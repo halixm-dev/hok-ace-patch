@@ -42,6 +42,33 @@ def failing_asset(error: BaseException, package=None) -> int | None:
     return found
 
 
+def _expand_staged_tokens(plans, log) -> int:
+    """Bake the English resource terms into the staged replacements, after translation.
+
+    translate_table requires source and target to carry identical placeholders, so the catalog keeps
+    {Energy}/{LordExp}/{LordHp} and the client would otherwise expand them to Chinese at render time.
+    Rewriting the materialized replacements keeps validation intact and still covers both staging
+    paths, because full mode copies this directory and fit-only takes its subset from it.
+    """
+    from resource_tokens import expand_tokens_in_message
+
+    changed = 0
+    for _package, replacements, _per_asset in plans:
+        for path in sorted(replacements.glob("*.assets")):
+            raw = path.read_bytes()
+            try:
+                expanded, count = expand_tokens_in_message(raw)
+            except Exception as error:  # an asset we cannot parse is left byte-for-byte alone
+                log(f"token expand skipped {path.name}: {error}")
+                continue
+            if count:
+                path.write_bytes(expanded)
+                changed += count
+    if changed:
+        log(f"expanded resource tokens in {changed} replacement strings")
+    return changed
+
+
 def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, output: pathlib.Path,
                 *, fit_only_mode: bool = False, log=print) -> dict:
     """Scan <game>, stage English packages into <output>/<id>/ and return the summary."""
@@ -56,6 +83,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     plans, fingerprints, counts, skipped = adaptive.scan(
         game, catalog, work / "scan", materialize=True
     )
+    _expand_staged_tokens(plans, log)
 
     def fit_only(package, replacements):
         fit_summary = capacity_report(package.package_dir, replacements)

@@ -46,7 +46,8 @@ environment. The repository has no test suite.
 - This repo's `tools/` is an *earlier fork* of the sibling's pipeline: `axml_set_debuggable.py` and
   `build_mobile_patch.py` are byte-identical, but `build_device_patch.py` had no `build_patch()`, no
   `qts_relocate` re-run fix, and no staging guards. Coverage gaps (resource tokens, extra text,
-  textures) were left unadopted by explicit decision, not oversight.
+  textures) were left unadopted by explicit decision, not oversight; resource tokens were adopted
+  later — see *Coverage difference from the reference*.
 - `tools/research/axml_add_provider.py` imports `axml_set_debuggable` from `tools/`; running it as a
   script puts only `tools/research/` on `sys.path`, so the move needed a one-line parent-directory
   insert. Any future move of a script that shares helpers must check this.
@@ -146,9 +147,9 @@ the runtime's `QtsPackage.build_slot_map` so it follows the shard's B-tree. With
 scanner can return a superseded copy of a relocated chunk, which makes a **second** run over an
 already-patched install read the old Chinese data. `build_patch` calls it before scanning.
 
-The rest of the reference's newer pipeline — `device_extensions`, `resource_tokens`, `pb_text`,
-`mobile_graphics`, `extra_text`, `unity_text` — is deliberately **not** adopted. Coverage is exactly
-what android-en's tools produce: text tables that fit, with the `full` → `fit-only` fallback.
+The rest of the reference's newer pipeline — `device_extensions`, `pb_text`, `mobile_graphics`,
+`extra_text`, `unity_text` — is deliberately **not** adopted. Coverage is exactly what android-en's
+tools produce: text tables that fit, with the `full` → `fit-only` fallback.
 
 ### Reverse-engineering tools (`tools/research/`)
 
@@ -176,12 +177,17 @@ byte-identical between the two repositories.
 
 ### Coverage difference from the reference
 
-Accepted and documented, not a defect to fix here: without `resource_tokens`, card text keeps
-tokens such as `{Energy}` that the client expands to Chinese at render time, so some strings render
-hybrid; without `device_extensions`/`mobile_graphics`, extra text tables and textures are not
-translated. Consequently the pipeline has no `graphics` package mode, and
+Still not adopted: without `device_extensions`/`mobile_graphics`, extra text tables and textures are
+not translated. Consequently the pipeline has no `graphics` package mode, and
 `patcher_core.count_translated` reports **text tables only** — the GUI and its completion message
 are reworded to match instead of reporting a permanent zero image count.
+
+Resource tokens were adopted afterwards by the `resource-token-expansion` feature:
+`tools/resource_tokens.py` expands `{Energy}`/`{LordExp}`/`{LordHp}` in the staged replacements after
+translation, so card text no longer renders hybrid. Three statements above therefore no longer
+describe the repository: `tools/` also holds `resource_tokens.py` (so the T1 acceptance listing is
+short by one file), the `[S3]` entry below is superseded, and the reference's `RESOURCE_TOKEN_FIX.md`
+is now attached rather than deferred.
 
 ### Verification boundary
 
@@ -194,9 +200,11 @@ path needs a dumped game directory and is therefore reported as unverified rathe
 
 ## [S3] Out of Scope
 
-- Adopting the reference's `device_extensions`, `resource_tokens`, `pb_text`, `mobile_graphics`,
-  `extra_text` or `unity_text` modules, or matching the reference's translation coverage.
+- Adopting the reference's `device_extensions`, `pb_text`, `mobile_graphics`, `extra_text` or
+  `unity_text` modules, or matching the reference's translation coverage. (`resource_tokens` is the one
+  exception: adopted later by the `resource-token-expansion` feature.)
 - Attaching the reference's `RESOURCE_TOKEN_FIX.md` work, which documents that unadopted change.
+  **Superseded** — attached by the later `resource-token-expansion` feature.
 - Regenerating `resources/catalog/` or `resources/runtime/`; both are consumed as-is.
 - Solving the missing `py -3.12` interpreter on this machine, or producing a `.venv` / built exe as
   part of this change.

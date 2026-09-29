@@ -73,7 +73,7 @@ def free_space(path: Path) -> int | None:
 
 - Write the translation **after** the in-game update finishes. Tencent's updater applies binary diffs that break if language packages were modified inside the APK.
 - `resources/runtime/` is precompiled bytecode — treat it as binary. When the runtime needs an extra stdlib import at freeze time, add it to `HIDDEN_IMPORTS` in `app/build_exe.py`.
-- Coverage is **text tables only**: no resource-token expansion, no extra text tables, no textures. Do not describe the result as a complete translation. `{Energy}`/`{LordExp}`/`{LordHp}` are left for the client to expand, so those strings render with Chinese terms.
+- Coverage is **text tables only**: no extra text tables, no textures. Do not describe the result as a complete translation. `{Energy}`/`{LordExp}`/`{LordHp}` are expanded to English terms in the staged replacements (`tools/resource_tokens.py`). The catalog must keep the tokens: `translate_table` requires matching placeholders, so expanding the catalog instead trips `placeholders_changed` and drops the records.
 - `count_translated` returns a single text-table count, and the GUI reports text tables only. Do not reintroduce an image count without a graphics pipeline behind it.
 - Code injection into the APK and prebaked APKs with translated assets both fail (anti-cheat kill / `IsPrebuild errorCode:151`). The supported path is: re-sign → debuggable data-access copy → replace packages in game data → reinstall.
 - Re-signing breaks direct WeChat/QQ login. Users log in via *Scan to login*. That limit is expected.

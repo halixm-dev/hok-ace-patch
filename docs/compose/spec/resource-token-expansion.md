@@ -1,6 +1,6 @@
 ---
 feature: resource-token-expansion
-status: designed
+status: in-progress
 updated: 2026-09-29
 branch: master
 commits:

@@ -48,10 +48,10 @@ The patcher's own working data (~8 GB: pulled APK, packages, sessions) goes to t
 The pipeline translates **text tables**. Each changed package is staged in `full` mode and falls back to
 `fit-only` when replacements compete for slack, dropping the tables that will not fit.
 
-It deliberately does not extend beyond that:
+Resource tokens such as `{Energy}`, `{LordExp}` and `{LordHp}` are expanded to English terms
+(`Energy`, `Chessplayer EXP`, `Chessplayer HP`) in the staged packages, so the client does not expand
+them to Chinese and card text reads fully English. Beyond that it deliberately does not extend:
 
-- Resource tokens such as `{Energy}`, `{LordExp}` and `{LordHp}` are left in place, so the client expands
-  them to Chinese at render time and those strings read as hybrid text (for example `Gain 1能量`).
 - Extra text tables outside the staged packages are not translated, and textures are not translated at all.
   There is no graphics package mode, so the app reports text tables only.
 
