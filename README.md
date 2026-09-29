@@ -49,8 +49,11 @@ The pipeline translates **text tables**. Each changed package is staged in `full
 `fit-only` when replacements compete for slack, dropping the tables that will not fit.
 
 Resource tokens such as `{Energy}`, `{LordExp}` and `{LordHp}` are expanded to English terms
-(`Energy`, `Chessplayer EXP`, `Chessplayer HP`) in the staged packages, so the client does not expand
-them to Chinese and card text reads fully English. Beyond that it deliberately does not extend:
+(`Energy`, `Chessplayer EXP`, `Chessplayer HP`) in the staged packages, so the client no longer
+expands them to Chinese. A space is inserted where the term would run into a preceding placeholder or
+a following `+`; every other boundary keeps the catalog's own spacing, so a minority of strings still
+show the term glued to an adjacent word (for example `CurrentEnergy:`). Beyond that the pipeline
+deliberately does not extend:
 
 - Extra text tables outside the staged packages are not translated, and textures are not translated at all.
   There is no graphics package mode, so the app reports text tables only.

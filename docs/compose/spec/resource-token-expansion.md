@@ -1,14 +1,66 @@
 ---
 feature: resource-token-expansion
-status: in-progress
+status: delivered
 updated: 2026-09-29
 branch: master
-commits:
+commits: 7cada8e..149e25e
 ---
 
 # Resource Token Expansion
 
 ## Report
+
+**What was built** — translated card text no longer renders hybrid Chinese/English on the resource
+terms. `tools/resource_tokens.py` maps `{Energy}`/`{LordExp}`/`{LordHp}` to `Energy`,
+`Chessplayer EXP` and `Chessplayer HP`, and `expand_tokens_in_message` walks the protobuf framing of a
+replacement asset — with its own varint, text-classification and length-prefix handling, because this
+repo does not carry `tools/pb_text.py` — rewriting only fields that carry one of the three tokens, so
+`{HeroName}`, `{X}` and numeric `{0|1}` are untouched. `tools/build_device_patch.py` calls
+`_expand_staged_tokens(plans, log)` immediately after `adaptive.scan`, so the substitution lands after
+`translate_table` validation and before staging, and both the `full`-mode copy and the `fit-only`
+subset carry it.
+
+The catalog is deliberately untouched: expanding the tokens there trips `placeholders_changed` and
+the records are dropped. `README.md`, `AGENTS.md` and the delivered
+`docs/compose/spec/standalone-patcher-app.md` no longer describe the hybrid text as an accepted
+limitation.
+
+**Verification** — repo Python 3.12.13 (`.venv`), no test suite. All commands run from
+`D:\Projects\hok-ace-android-en`; pipeline outputs went to `D:\hok-verify-tokenfix`, outside the repo.
+
+| Command | Result |
+|---|---|
+| `python -m py_compile tools/resource_tokens.py tools/build_device_patch.py` | PASS |
+| 33-check isolated script: token map, spacing, `{HeroName}`/`{0|1}` untouched, flat + nested walking, wire types 0/1/5 round-trip, length-prefix re-encode, `NotMessage` on field 0 / wire type 3 / truncated varint / overrunning length, idempotent re-walk | PASS 33/33 |
+| `python app\hok_patcher.py --selftest <game dump> D:\hok-verify-tokenfix\run1` (scan + expand + stage) | PASS, exit 0, 1.08 min; log `expanded resource tokens in 3384 replacement strings` |
+| Token grep over the 87 produced assets | PASS — 0 `{Energy}`, 0 `{LordExp}`, 0 `{LordHp}`; no `token expand skipped` line |
+| `counts` vs the pre-fix baseline `staged\device_patch_summary.json` | IDENTICAL — `unreadable_assets` 612, `tables` 87, `records` 184569, `translated` 181316, `graphics` 0, `already_english` 2304, `unknown` 3, `unrecognized_tables` 1; `invalid_translation` absent |
+| Package 1 staging | `full verified (72 assets)`, 15 dropped — same as baseline, mode stayed `full` |
+| Integrity sweep re-walking all 87 produced assets | PASS — `files=87 still_changing=0 further_changes=0 unparsable=0` |
+| `build_patch(..., fit_only_mode=True)` driver | PASS — 3384 expansions, 0 skips, package 1 `fit-only` 10 assets, counts unchanged, copied assets token-free |
+| Expected strings | `When the chess player levels up, Chessplayer EXP +{3|2}` present; `Gain {0|1} Energy` 22×; `Chessplayer HP` 608× |
+| Independent review of `7cada8e..149e25e` | No critical findings. Reviewer re-derived the expansion from the pre-fix assets: 3384 fields, output byte-identical to all 87 produced files |
+
+NOT verified: that no *live* string still renders a Chinese expansion. The staged shard's string blobs
+are transformed, so only an on-device Card Info check for Yixing and Niu Mo can settle it, and no
+acceptance criterion required it. `dist\HOK ACE Mobile English Patcher.exe` predates this feature, so
+`build.bat` must be re-run before shipping.
+
+**Journey log**
+
+- The tempting fix — rewriting the tokens in `catalog.json.gz` — is silently counterproductive: the
+  runtime's `gemini.validate_translation` compares `{...}` placeholders between source and target and
+  rejects the record, so the string stays Chinese. Expanded *after* translation is the whole design.
+- The pre-existing session at `dist\HOK ACE Patcher Data\sessions\20260929-212059` carries both the game
+  dump and a pre-fix `build\scan\replacements` tree. That pair is a reusable, bit-exact oracle for this
+  expansion: the pre-fix assets hold exactly the 3067 + 451 + 608 tokens and reproduce the 3384-field
+  result, so the ~1-minute pipeline does not have to be re-run to check a future change.
+- Grepping the staged `*.db` shards says nothing about string coverage — their blobs are neither raw nor
+  zlib/gzip, and they retain superseded container data (207 raw token bytes, all inside blocks
+  byte-identical to the pre-fix build). Judge coverage from `build\scan\replacements` instead.
+- The reference implementation's spacing rule was copied verbatim, and that is also its flaw: it adds a
+  space only before a digit/placeholder and before `+`, leaving 319 strings with the term glued to an
+  adjacent word. See the spacing limitation under [S2].
 
 ## [S1] Problem
 
@@ -39,9 +91,11 @@ Measured on this repo's present pipeline: a scan of the dumped game directory le
 `{Energy}`, **451** `{LordExp}` and **608** `{LordHp}` occurrences across the 87 assets in
 `<session>/build/scan/replacements/1/`.
 
-Today this repo documents the defect as accepted rather than fixed — `README.md` (*Translation
-coverage*), `AGENTS.md` (*Constraints*), and `docs/compose/spec/standalone-patcher-app.md`, whose
-`[S3] Out of Scope` explicitly parked "attaching the reference's `RESOURCE_TOKEN_FIX.md` work".
+Until this change the repo documented the defect as accepted rather than fixed — `README.md`
+(*Translation coverage*), `AGENTS.md` (*Constraints*), and
+`docs/compose/spec/standalone-patcher-app.md`, whose `[S3] Out of Scope` explicitly parked
+"attaching the reference's `RESOURCE_TOKEN_FIX.md` work". All three are updated by the same change
+that implements this feature.
 
 ## [S2] Design
 
@@ -119,7 +173,9 @@ paths carry the expanded text. This repo has no `device_extensions`, so there is
 path to cover.
 
 An asset that raises is logged as `token expand skipped <name>: <error>` and left byte-for-byte
-untouched; the run continues. Token expansion never propagates an exception out of `build_patch`.
+untouched; the run continues. `NotMessage` from the walker is therefore contained. An I/O failure
+reading or writing an asset is *not* caught and does abort the run — deliberately, since silently
+skipping an asset would quietly shrink coverage.
 
 ### Consequences to expect
 
@@ -130,6 +186,14 @@ untouched; the run continues. Token expansion never propagates an exception out 
 - `counts` from `adaptive.scan` are unaffected: expansion rewrites staged string content, it does not
   change how many tables or records were translated. `patcher_core.count_translated` still reports
   text tables only, and the GUI wording stays as it is.
+- **Known limitation — spacing.** A space is inserted only where the term would run into a preceding
+  digit/placeholder (`{0|1}{Energy}` → `{0|1} Energy`) or a following `+`. Every other boundary keeps
+  the catalog's own spacing, and the catalog glued the token to adjacent words because the Chinese
+  expansion needs no space. Measured over the 87 produced assets: strings carrying a term glued to an
+  adjacent word went from 57 to 376 (**+319**), e.g. `Current{Energy}:` → `CurrentEnergy:`,
+  `{Energy}to Obtain` → `Energyto Obtain`, and `…5 Chessplayer HPand1Special Equipment plate.`
+  Adding a letter-boundary space rule would fix these, but it can only lengthen strings and therefore
+  interacts with slot slack; it needs its own run and was left out of this feature.
 
 ### Testing boundary
 
@@ -154,7 +218,7 @@ and package `1` staged `full` with `replacement_count` 72.
 
 ## Tasks
 
-- [ ] T1: Add `tools/resource_tokens.py` with the token map, `expand_resource_tokens` and the self-contained `expand_tokens_in_message` — acceptance: on the two strings from [S1], `{Energy}`/`{LordExp}` expand to `Energy`/`Chessplayer EXP` with the documented spacing, `{HeroName}` and `{0|1}` are left untouched, and a re-walk of the output reports 0 further changes instead of raising (covers: S2)
-- [ ] T2: Call `_expand_staged_tokens(plans, log)` in `build_patch` right after `adaptive.scan` — acceptance: a scan + expand over the dumped game directory leaves 0 `{Energy}`, 0 `{LordExp}` and 0 `{LordHp}` occurrences across all 87 assets in `scan/replacements/1`, and the log carries no `token expand skipped` line (covers: S2; depends: T1)
-- [ ] T3: Full `build_patch` run into a work and output directory outside this repo — acceptance: `counts` match the pre-fix baseline exactly, `invalid_translation` is absent, package `1` still stages with mode `full` and a non-empty `replacement_count`, and the staged strings carry no resource tokens (covers: S2; depends: T2)
-- [ ] T4: Update `README.md`, `AGENTS.md` and `docs/compose/spec/standalone-patcher-app.md` so the token limitation is no longer described as accepted — acceptance: no document still claims the tokens are left for the client to expand, and the `[S3]` entry that parked this work is marked superseded (covers: S2; depends: T2)
+- [x] T1: Add `tools/resource_tokens.py` with the token map, `expand_resource_tokens` and the self-contained `expand_tokens_in_message` — acceptance: on the two strings from [S1], `{Energy}`/`{LordExp}` expand to `Energy`/`Chessplayer EXP` with the documented spacing, `{HeroName}` and `{0|1}` are left untouched, and a re-walk of the output reports 0 further changes instead of raising (covers: S2)
+- [x] T2: Call `_expand_staged_tokens(plans, log)` in `build_patch` right after `adaptive.scan` — acceptance: a scan + expand over the dumped game directory leaves 0 `{Energy}`, 0 `{LordExp}` and 0 `{LordHp}` occurrences across all 87 assets in `scan/replacements/1`, and the log carries no `token expand skipped` line (covers: S2; depends: T1)
+- [x] T3: Full `build_patch` run into a work and output directory outside this repo — acceptance: `counts` match the pre-fix baseline exactly, `invalid_translation` is absent, package `1` still stages with mode `full` and a non-empty `replacement_count`, and the staged strings carry no resource tokens (covers: S2; depends: T2)
+- [x] T4: Update `README.md`, `AGENTS.md` and `docs/compose/spec/standalone-patcher-app.md` so the token limitation is no longer described as accepted — acceptance: no document still claims the tokens are left for the client to expand, and the `[S3]` entry that parked this work is marked superseded (covers: S2; depends: T2)
