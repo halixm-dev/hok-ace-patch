@@ -1,0 +1,1762 @@
+[
+  {
+    "module": "__future__",
+    "package": false,
+    "path": "__future__.pyc"
+  },
+  {
+    "module": "_compat_pickle",
+    "package": false,
+    "path": "_compat_pickle.pyc"
+  },
+  {
+    "module": "_compression",
+    "package": false,
+    "path": "_compression.pyc"
+  },
+  {
+    "module": "_py_abc",
+    "package": false,
+    "path": "_py_abc.pyc"
+  },
+  {
+    "module": "_pydatetime",
+    "package": false,
+    "path": "_pydatetime.pyc"
+  },
+  {
+    "module": "_pydecimal",
+    "package": false,
+    "path": "_pydecimal.pyc"
+  },
+  {
+    "module": "_strptime",
+    "package": false,
+    "path": "_strptime.pyc"
+  },
+  {
+    "module": "_threading_local",
+    "package": false,
+    "path": "_threading_local.pyc"
+  },
+  {
+    "module": "anyio",
+    "package": true,
+    "path": "anyio\\__init__.pyc"
+  },
+  {
+    "module": "anyio._backends",
+    "package": true,
+    "path": "anyio\\_backends\\__init__.pyc"
+  },
+  {
+    "module": "anyio._backends._asyncio",
+    "package": false,
+    "path": "anyio\\_backends\\_asyncio.pyc"
+  },
+  {
+    "module": "anyio._backends._trio",
+    "package": false,
+    "path": "anyio\\_backends\\_trio.pyc"
+  },
+  {
+    "module": "anyio._core",
+    "package": true,
+    "path": "anyio\\_core\\__init__.pyc"
+  },
+  {
+    "module": "anyio._core._asyncio_selector_thread",
+    "package": false,
+    "path": "anyio\\_core\\_asyncio_selector_thread.pyc"
+  },
+  {
+    "module": "anyio._core._concurrency_utils",
+    "package": false,
+    "path": "anyio\\_core\\_concurrency_utils.pyc"
+  },
+  {
+    "module": "anyio._core._contextmanagers",
+    "package": false,
+    "path": "anyio\\_core\\_contextmanagers.pyc"
+  },
+  {
+    "module": "anyio._core._eventloop",
+    "package": false,
+    "path": "anyio\\_core\\_eventloop.pyc"
+  },
+  {
+    "module": "anyio._core._exceptions",
+    "package": false,
+    "path": "anyio\\_core\\_exceptions.pyc"
+  },
+  {
+    "module": "anyio._core._fileio",
+    "package": false,
+    "path": "anyio\\_core\\_fileio.pyc"
+  },
+  {
+    "module": "anyio._core._futures",
+    "package": false,
+    "path": "anyio\\_core\\_futures.pyc"
+  },
+  {
+    "module": "anyio._core._resources",
+    "package": false,
+    "path": "anyio\\_core\\_resources.pyc"
+  },
+  {
+    "module": "anyio._core._signals",
+    "package": false,
+    "path": "anyio\\_core\\_signals.pyc"
+  },
+  {
+    "module": "anyio._core._sockets",
+    "package": false,
+    "path": "anyio\\_core\\_sockets.pyc"
+  },
+  {
+    "module": "anyio._core._streams",
+    "package": false,
+    "path": "anyio\\_core\\_streams.pyc"
+  },
+  {
+    "module": "anyio._core._subprocesses",
+    "package": false,
+    "path": "anyio\\_core\\_subprocesses.pyc"
+  },
+  {
+    "module": "anyio._core._synchronization",
+    "package": false,
+    "path": "anyio\\_core\\_synchronization.pyc"
+  },
+  {
+    "module": "anyio._core._tasks",
+    "package": false,
+    "path": "anyio\\_core\\_tasks.pyc"
+  },
+  {
+    "module": "anyio._core._tempfile",
+    "package": false,
+    "path": "anyio\\_core\\_tempfile.pyc"
+  },
+  {
+    "module": "anyio._core._testing",
+    "package": false,
+    "path": "anyio\\_core\\_testing.pyc"
+  },
+  {
+    "module": "anyio._core._typedattr",
+    "package": false,
+    "path": "anyio\\_core\\_typedattr.pyc"
+  },
+  {
+    "module": "anyio._lazyimport",
+    "package": false,
+    "path": "anyio\\_lazyimport.pyc"
+  },
+  {
+    "module": "anyio.abc",
+    "package": true,
+    "path": "anyio\\abc\\__init__.pyc"
+  },
+  {
+    "module": "anyio.abc._eventloop",
+    "package": false,
+    "path": "anyio\\abc\\_eventloop.pyc"
+  },
+  {
+    "module": "anyio.abc._resources",
+    "package": false,
+    "path": "anyio\\abc\\_resources.pyc"
+  },
+  {
+    "module": "anyio.abc._sockets",
+    "package": false,
+    "path": "anyio\\abc\\_sockets.pyc"
+  },
+  {
+    "module": "anyio.abc._streams",
+    "package": false,
+    "path": "anyio\\abc\\_streams.pyc"
+  },
+  {
+    "module": "anyio.abc._subprocesses",
+    "package": false,
+    "path": "anyio\\abc\\_subprocesses.pyc"
+  },
+  {
+    "module": "anyio.abc._tasks",
+    "package": false,
+    "path": "anyio\\abc\\_tasks.pyc"
+  },
+  {
+    "module": "anyio.abc._testing",
+    "package": false,
+    "path": "anyio\\abc\\_testing.pyc"
+  },
+  {
+    "module": "anyio.lowlevel",
+    "package": false,
+    "path": "anyio\\lowlevel.pyc"
+  },
+  {
+    "module": "anyio.streams",
+    "package": true,
+    "path": "anyio\\streams\\__init__.pyc"
+  },
+  {
+    "module": "anyio.streams.memory",
+    "package": false,
+    "path": "anyio\\streams\\memory.pyc"
+  },
+  {
+    "module": "anyio.streams.stapled",
+    "package": false,
+    "path": "anyio\\streams\\stapled.pyc"
+  },
+  {
+    "module": "anyio.streams.tls",
+    "package": false,
+    "path": "anyio\\streams\\tls.pyc"
+  },
+  {
+    "module": "anyio.to_thread",
+    "package": false,
+    "path": "anyio\\to_thread.pyc"
+  },
+  {
+    "module": "argparse",
+    "package": false,
+    "path": "argparse.pyc"
+  },
+  {
+    "module": "ast",
+    "package": false,
+    "path": "ast.pyc"
+  },
+  {
+    "module": "asyncio",
+    "package": true,
+    "path": "asyncio\\__init__.pyc"
+  },
+  {
+    "module": "asyncio.base_events",
+    "package": false,
+    "path": "asyncio\\base_events.pyc"
+  },
+  {
+    "module": "asyncio.base_futures",
+    "package": false,
+    "path": "asyncio\\base_futures.pyc"
+  },
+  {
+    "module": "asyncio.base_subprocess",
+    "package": false,
+    "path": "asyncio\\base_subprocess.pyc"
+  },
+  {
+    "module": "asyncio.base_tasks",
+    "package": false,
+    "path": "asyncio\\base_tasks.pyc"
+  },
+  {
+    "module": "asyncio.constants",
+    "package": false,
+    "path": "asyncio\\constants.pyc"
+  },
+  {
+    "module": "asyncio.coroutines",
+    "package": false,
+    "path": "asyncio\\coroutines.pyc"
+  },
+  {
+    "module": "asyncio.events",
+    "package": false,
+    "path": "asyncio\\events.pyc"
+  },
+  {
+    "module": "asyncio.exceptions",
+    "package": false,
+    "path": "asyncio\\exceptions.pyc"
+  },
+  {
+    "module": "asyncio.format_helpers",
+    "package": false,
+    "path": "asyncio\\format_helpers.pyc"
+  },
+  {
+    "module": "asyncio.futures",
+    "package": false,
+    "path": "asyncio\\futures.pyc"
+  },
+  {
+    "module": "asyncio.locks",
+    "package": false,
+    "path": "asyncio\\locks.pyc"
+  },
+  {
+    "module": "asyncio.log",
+    "package": false,
+    "path": "asyncio\\log.pyc"
+  },
+  {
+    "module": "asyncio.mixins",
+    "package": false,
+    "path": "asyncio\\mixins.pyc"
+  },
+  {
+    "module": "asyncio.proactor_events",
+    "package": false,
+    "path": "asyncio\\proactor_events.pyc"
+  },
+  {
+    "module": "asyncio.protocols",
+    "package": false,
+    "path": "asyncio\\protocols.pyc"
+  },
+  {
+    "module": "asyncio.queues",
+    "package": false,
+    "path": "asyncio\\queues.pyc"
+  },
+  {
+    "module": "asyncio.runners",
+    "package": false,
+    "path": "asyncio\\runners.pyc"
+  },
+  {
+    "module": "asyncio.selector_events",
+    "package": false,
+    "path": "asyncio\\selector_events.pyc"
+  },
+  {
+    "module": "asyncio.sslproto",
+    "package": false,
+    "path": "asyncio\\sslproto.pyc"
+  },
+  {
+    "module": "asyncio.staggered",
+    "package": false,
+    "path": "asyncio\\staggered.pyc"
+  },
+  {
+    "module": "asyncio.streams",
+    "package": false,
+    "path": "asyncio\\streams.pyc"
+  },
+  {
+    "module": "asyncio.subprocess",
+    "package": false,
+    "path": "asyncio\\subprocess.pyc"
+  },
+  {
+    "module": "asyncio.taskgroups",
+    "package": false,
+    "path": "asyncio\\taskgroups.pyc"
+  },
+  {
+    "module": "asyncio.tasks",
+    "package": false,
+    "path": "asyncio\\tasks.pyc"
+  },
+  {
+    "module": "asyncio.threads",
+    "package": false,
+    "path": "asyncio\\threads.pyc"
+  },
+  {
+    "module": "asyncio.timeouts",
+    "package": false,
+    "path": "asyncio\\timeouts.pyc"
+  },
+  {
+    "module": "asyncio.transports",
+    "package": false,
+    "path": "asyncio\\transports.pyc"
+  },
+  {
+    "module": "asyncio.trsock",
+    "package": false,
+    "path": "asyncio\\trsock.pyc"
+  },
+  {
+    "module": "asyncio.unix_events",
+    "package": false,
+    "path": "asyncio\\unix_events.pyc"
+  },
+  {
+    "module": "asyncio.windows_events",
+    "package": false,
+    "path": "asyncio\\windows_events.pyc"
+  },
+  {
+    "module": "asyncio.windows_utils",
+    "package": false,
+    "path": "asyncio\\windows_utils.pyc"
+  },
+  {
+    "module": "base64",
+    "package": false,
+    "path": "base64.pyc"
+  },
+  {
+    "module": "bisect",
+    "package": false,
+    "path": "bisect.pyc"
+  },
+  {
+    "module": "bz2",
+    "package": false,
+    "path": "bz2.pyc"
+  },
+  {
+    "module": "calendar",
+    "package": false,
+    "path": "calendar.pyc"
+  },
+  {
+    "module": "certifi",
+    "package": true,
+    "path": "certifi\\__init__.pyc"
+  },
+  {
+    "module": "certifi.core",
+    "package": false,
+    "path": "certifi\\core.pyc"
+  },
+  {
+    "module": "concurrent",
+    "package": true,
+    "path": "concurrent\\__init__.pyc"
+  },
+  {
+    "module": "concurrent.futures",
+    "package": true,
+    "path": "concurrent\\futures\\__init__.pyc"
+  },
+  {
+    "module": "concurrent.futures._base",
+    "package": false,
+    "path": "concurrent\\futures\\_base.pyc"
+  },
+  {
+    "module": "concurrent.futures.process",
+    "package": false,
+    "path": "concurrent\\futures\\process.pyc"
+  },
+  {
+    "module": "concurrent.futures.thread",
+    "package": false,
+    "path": "concurrent\\futures\\thread.pyc"
+  },
+  {
+    "module": "contextlib",
+    "package": false,
+    "path": "contextlib.pyc"
+  },
+  {
+    "module": "contextvars",
+    "package": false,
+    "path": "contextvars.pyc"
+  },
+  {
+    "module": "copy",
+    "package": false,
+    "path": "copy.pyc"
+  },
+  {
+    "module": "csv",
+    "package": false,
+    "path": "csv.pyc"
+  },
+  {
+    "module": "ctypes",
+    "package": true,
+    "path": "ctypes\\__init__.pyc"
+  },
+  {
+    "module": "ctypes._endian",
+    "package": false,
+    "path": "ctypes\\_endian.pyc"
+  },
+  {
+    "module": "dataclasses",
+    "package": false,
+    "path": "dataclasses.pyc"
+  },
+  {
+    "module": "datetime",
+    "package": false,
+    "path": "datetime.pyc"
+  },
+  {
+    "module": "decimal",
+    "package": false,
+    "path": "decimal.pyc"
+  },
+  {
+    "module": "dis",
+    "package": false,
+    "path": "dis.pyc"
+  },
+  {
+    "module": "email",
+    "package": true,
+    "path": "email\\__init__.pyc"
+  },
+  {
+    "module": "email._encoded_words",
+    "package": false,
+    "path": "email\\_encoded_words.pyc"
+  },
+  {
+    "module": "email._header_value_parser",
+    "package": false,
+    "path": "email\\_header_value_parser.pyc"
+  },
+  {
+    "module": "email._parseaddr",
+    "package": false,
+    "path": "email\\_parseaddr.pyc"
+  },
+  {
+    "module": "email._policybase",
+    "package": false,
+    "path": "email\\_policybase.pyc"
+  },
+  {
+    "module": "email.base64mime",
+    "package": false,
+    "path": "email\\base64mime.pyc"
+  },
+  {
+    "module": "email.charset",
+    "package": false,
+    "path": "email\\charset.pyc"
+  },
+  {
+    "module": "email.contentmanager",
+    "package": false,
+    "path": "email\\contentmanager.pyc"
+  },
+  {
+    "module": "email.encoders",
+    "package": false,
+    "path": "email\\encoders.pyc"
+  },
+  {
+    "module": "email.errors",
+    "package": false,
+    "path": "email\\errors.pyc"
+  },
+  {
+    "module": "email.feedparser",
+    "package": false,
+    "path": "email\\feedparser.pyc"
+  },
+  {
+    "module": "email.generator",
+    "package": false,
+    "path": "email\\generator.pyc"
+  },
+  {
+    "module": "email.header",
+    "package": false,
+    "path": "email\\header.pyc"
+  },
+  {
+    "module": "email.headerregistry",
+    "package": false,
+    "path": "email\\headerregistry.pyc"
+  },
+  {
+    "module": "email.iterators",
+    "package": false,
+    "path": "email\\iterators.pyc"
+  },
+  {
+    "module": "email.message",
+    "package": false,
+    "path": "email\\message.pyc"
+  },
+  {
+    "module": "email.parser",
+    "package": false,
+    "path": "email\\parser.pyc"
+  },
+  {
+    "module": "email.policy",
+    "package": false,
+    "path": "email\\policy.pyc"
+  },
+  {
+    "module": "email.quoprimime",
+    "package": false,
+    "path": "email\\quoprimime.pyc"
+  },
+  {
+    "module": "email.utils",
+    "package": false,
+    "path": "email\\utils.pyc"
+  },
+  {
+    "module": "fnmatch",
+    "package": false,
+    "path": "fnmatch.pyc"
+  },
+  {
+    "module": "fractions",
+    "package": false,
+    "path": "fractions.pyc"
+  },
+  {
+    "module": "ftplib",
+    "package": false,
+    "path": "ftplib.pyc"
+  },
+  {
+    "module": "getopt",
+    "package": false,
+    "path": "getopt.pyc"
+  },
+  {
+    "module": "getpass",
+    "package": false,
+    "path": "getpass.pyc"
+  },
+  {
+    "module": "gettext",
+    "package": false,
+    "path": "gettext.pyc"
+  },
+  {
+    "module": "gzip",
+    "package": false,
+    "path": "gzip.pyc"
+  },
+  {
+    "module": "h11",
+    "package": true,
+    "path": "h11\\__init__.pyc"
+  },
+  {
+    "module": "h11._abnf",
+    "package": false,
+    "path": "h11\\_abnf.pyc"
+  },
+  {
+    "module": "h11._connection",
+    "package": false,
+    "path": "h11\\_connection.pyc"
+  },
+  {
+    "module": "h11._events",
+    "package": false,
+    "path": "h11\\_events.pyc"
+  },
+  {
+    "module": "h11._headers",
+    "package": false,
+    "path": "h11\\_headers.pyc"
+  },
+  {
+    "module": "h11._readers",
+    "package": false,
+    "path": "h11\\_readers.pyc"
+  },
+  {
+    "module": "h11._receivebuffer",
+    "package": false,
+    "path": "h11\\_receivebuffer.pyc"
+  },
+  {
+    "module": "h11._state",
+    "package": false,
+    "path": "h11\\_state.pyc"
+  },
+  {
+    "module": "h11._util",
+    "package": false,
+    "path": "h11\\_util.pyc"
+  },
+  {
+    "module": "h11._version",
+    "package": false,
+    "path": "h11\\_version.pyc"
+  },
+  {
+    "module": "h11._writers",
+    "package": false,
+    "path": "h11\\_writers.pyc"
+  },
+  {
+    "module": "hashlib",
+    "package": false,
+    "path": "hashlib.pyc"
+  },
+  {
+    "module": "hmac",
+    "package": false,
+    "path": "hmac.pyc"
+  },
+  {
+    "module": "http",
+    "package": true,
+    "path": "http\\__init__.pyc"
+  },
+  {
+    "module": "http.client",
+    "package": false,
+    "path": "http\\client.pyc"
+  },
+  {
+    "module": "http.cookiejar",
+    "package": false,
+    "path": "http\\cookiejar.pyc"
+  },
+  {
+    "module": "httpcore",
+    "package": true,
+    "path": "httpcore\\__init__.pyc"
+  },
+  {
+    "module": "httpcore._api",
+    "package": false,
+    "path": "httpcore\\_api.pyc"
+  },
+  {
+    "module": "httpcore._async",
+    "package": true,
+    "path": "httpcore\\_async\\__init__.pyc"
+  },
+  {
+    "module": "httpcore._async.connection",
+    "package": false,
+    "path": "httpcore\\_async\\connection.pyc"
+  },
+  {
+    "module": "httpcore._async.connection_pool",
+    "package": false,
+    "path": "httpcore\\_async\\connection_pool.pyc"
+  },
+  {
+    "module": "httpcore._async.http11",
+    "package": false,
+    "path": "httpcore\\_async\\http11.pyc"
+  },
+  {
+    "module": "httpcore._async.http2",
+    "package": false,
+    "path": "httpcore\\_async\\http2.pyc"
+  },
+  {
+    "module": "httpcore._async.http_proxy",
+    "package": false,
+    "path": "httpcore\\_async\\http_proxy.pyc"
+  },
+  {
+    "module": "httpcore._async.interfaces",
+    "package": false,
+    "path": "httpcore\\_async\\interfaces.pyc"
+  },
+  {
+    "module": "httpcore._async.socks_proxy",
+    "package": false,
+    "path": "httpcore\\_async\\socks_proxy.pyc"
+  },
+  {
+    "module": "httpcore._backends",
+    "package": true,
+    "path": "httpcore\\_backends\\__init__.pyc"
+  },
+  {
+    "module": "httpcore._backends.anyio",
+    "package": false,
+    "path": "httpcore\\_backends\\anyio.pyc"
+  },
+  {
+    "module": "httpcore._backends.auto",
+    "package": false,
+    "path": "httpcore\\_backends\\auto.pyc"
+  },
+  {
+    "module": "httpcore._backends.base",
+    "package": false,
+    "path": "httpcore\\_backends\\base.pyc"
+  },
+  {
+    "module": "httpcore._backends.mock",
+    "package": false,
+    "path": "httpcore\\_backends\\mock.pyc"
+  },
+  {
+    "module": "httpcore._backends.sync",
+    "package": false,
+    "path": "httpcore\\_backends\\sync.pyc"
+  },
+  {
+    "module": "httpcore._backends.trio",
+    "package": false,
+    "path": "httpcore\\_backends\\trio.pyc"
+  },
+  {
+    "module": "httpcore._exceptions",
+    "package": false,
+    "path": "httpcore\\_exceptions.pyc"
+  },
+  {
+    "module": "httpcore._models",
+    "package": false,
+    "path": "httpcore\\_models.pyc"
+  },
+  {
+    "module": "httpcore._ssl",
+    "package": false,
+    "path": "httpcore\\_ssl.pyc"
+  },
+  {
+    "module": "httpcore._sync",
+    "package": true,
+    "path": "httpcore\\_sync\\__init__.pyc"
+  },
+  {
+    "module": "httpcore._sync.connection",
+    "package": false,
+    "path": "httpcore\\_sync\\connection.pyc"
+  },
+  {
+    "module": "httpcore._sync.connection_pool",
+    "package": false,
+    "path": "httpcore\\_sync\\connection_pool.pyc"
+  },
+  {
+    "module": "httpcore._sync.http11",
+    "package": false,
+    "path": "httpcore\\_sync\\http11.pyc"
+  },
+  {
+    "module": "httpcore._sync.http2",
+    "package": false,
+    "path": "httpcore\\_sync\\http2.pyc"
+  },
+  {
+    "module": "httpcore._sync.http_proxy",
+    "package": false,
+    "path": "httpcore\\_sync\\http_proxy.pyc"
+  },
+  {
+    "module": "httpcore._sync.interfaces",
+    "package": false,
+    "path": "httpcore\\_sync\\interfaces.pyc"
+  },
+  {
+    "module": "httpcore._sync.socks_proxy",
+    "package": false,
+    "path": "httpcore\\_sync\\socks_proxy.pyc"
+  },
+  {
+    "module": "httpcore._synchronization",
+    "package": false,
+    "path": "httpcore\\_synchronization.pyc"
+  },
+  {
+    "module": "httpcore._trace",
+    "package": false,
+    "path": "httpcore\\_trace.pyc"
+  },
+  {
+    "module": "httpcore._utils",
+    "package": false,
+    "path": "httpcore\\_utils.pyc"
+  },
+  {
+    "module": "httpx",
+    "package": true,
+    "path": "httpx\\__init__.pyc"
+  },
+  {
+    "module": "httpx.__version__",
+    "package": false,
+    "path": "httpx\\__version__.pyc"
+  },
+  {
+    "module": "httpx._api",
+    "package": false,
+    "path": "httpx\\_api.pyc"
+  },
+  {
+    "module": "httpx._auth",
+    "package": false,
+    "path": "httpx\\_auth.pyc"
+  },
+  {
+    "module": "httpx._client",
+    "package": false,
+    "path": "httpx\\_client.pyc"
+  },
+  {
+    "module": "httpx._config",
+    "package": false,
+    "path": "httpx\\_config.pyc"
+  },
+  {
+    "module": "httpx._content",
+    "package": false,
+    "path": "httpx\\_content.pyc"
+  },
+  {
+    "module": "httpx._decoders",
+    "package": false,
+    "path": "httpx\\_decoders.pyc"
+  },
+  {
+    "module": "httpx._exceptions",
+    "package": false,
+    "path": "httpx\\_exceptions.pyc"
+  },
+  {
+    "module": "httpx._main",
+    "package": false,
+    "path": "httpx\\_main.pyc"
+  },
+  {
+    "module": "httpx._models",
+    "package": false,
+    "path": "httpx\\_models.pyc"
+  },
+  {
+    "module": "httpx._multipart",
+    "package": false,
+    "path": "httpx\\_multipart.pyc"
+  },
+  {
+    "module": "httpx._status_codes",
+    "package": false,
+    "path": "httpx\\_status_codes.pyc"
+  },
+  {
+    "module": "httpx._transports",
+    "package": true,
+    "path": "httpx\\_transports\\__init__.pyc"
+  },
+  {
+    "module": "httpx._transports.asgi",
+    "package": false,
+    "path": "httpx\\_transports\\asgi.pyc"
+  },
+  {
+    "module": "httpx._transports.base",
+    "package": false,
+    "path": "httpx\\_transports\\base.pyc"
+  },
+  {
+    "module": "httpx._transports.default",
+    "package": false,
+    "path": "httpx\\_transports\\default.pyc"
+  },
+  {
+    "module": "httpx._transports.mock",
+    "package": false,
+    "path": "httpx\\_transports\\mock.pyc"
+  },
+  {
+    "module": "httpx._transports.wsgi",
+    "package": false,
+    "path": "httpx\\_transports\\wsgi.pyc"
+  },
+  {
+    "module": "httpx._types",
+    "package": false,
+    "path": "httpx\\_types.pyc"
+  },
+  {
+    "module": "httpx._urlparse",
+    "package": false,
+    "path": "httpx\\_urlparse.pyc"
+  },
+  {
+    "module": "httpx._urls",
+    "package": false,
+    "path": "httpx\\_urls.pyc"
+  },
+  {
+    "module": "httpx._utils",
+    "package": false,
+    "path": "httpx\\_utils.pyc"
+  },
+  {
+    "module": "idna",
+    "package": true,
+    "path": "idna\\__init__.pyc"
+  },
+  {
+    "module": "idna.core",
+    "package": false,
+    "path": "idna\\core.pyc"
+  },
+  {
+    "module": "idna.idnadata",
+    "package": false,
+    "path": "idna\\idnadata.pyc"
+  },
+  {
+    "module": "idna.intranges",
+    "package": false,
+    "path": "idna\\intranges.pyc"
+  },
+  {
+    "module": "idna.package_data",
+    "package": false,
+    "path": "idna\\package_data.pyc"
+  },
+  {
+    "module": "idna.uts46data",
+    "package": false,
+    "path": "idna\\uts46data.pyc"
+  },
+  {
+    "module": "importlib",
+    "package": true,
+    "path": "importlib\\__init__.pyc"
+  },
+  {
+    "module": "importlib._abc",
+    "package": false,
+    "path": "importlib\\_abc.pyc"
+  },
+  {
+    "module": "importlib._bootstrap",
+    "package": false,
+    "path": "importlib\\_bootstrap.pyc"
+  },
+  {
+    "module": "importlib._bootstrap_external",
+    "package": false,
+    "path": "importlib\\_bootstrap_external.pyc"
+  },
+  {
+    "module": "importlib.abc",
+    "package": false,
+    "path": "importlib\\abc.pyc"
+  },
+  {
+    "module": "importlib.machinery",
+    "package": false,
+    "path": "importlib\\machinery.pyc"
+  },
+  {
+    "module": "importlib.metadata",
+    "package": true,
+    "path": "importlib\\metadata\\__init__.pyc"
+  },
+  {
+    "module": "importlib.metadata._adapters",
+    "package": false,
+    "path": "importlib\\metadata\\_adapters.pyc"
+  },
+  {
+    "module": "importlib.metadata._collections",
+    "package": false,
+    "path": "importlib\\metadata\\_collections.pyc"
+  },
+  {
+    "module": "importlib.metadata._functools",
+    "package": false,
+    "path": "importlib\\metadata\\_functools.pyc"
+  },
+  {
+    "module": "importlib.metadata._itertools",
+    "package": false,
+    "path": "importlib\\metadata\\_itertools.pyc"
+  },
+  {
+    "module": "importlib.metadata._meta",
+    "package": false,
+    "path": "importlib\\metadata\\_meta.pyc"
+  },
+  {
+    "module": "importlib.metadata._text",
+    "package": false,
+    "path": "importlib\\metadata\\_text.pyc"
+  },
+  {
+    "module": "importlib.readers",
+    "package": false,
+    "path": "importlib\\readers.pyc"
+  },
+  {
+    "module": "importlib.resources",
+    "package": true,
+    "path": "importlib\\resources\\__init__.pyc"
+  },
+  {
+    "module": "importlib.resources._adapters",
+    "package": false,
+    "path": "importlib\\resources\\_adapters.pyc"
+  },
+  {
+    "module": "importlib.resources._common",
+    "package": false,
+    "path": "importlib\\resources\\_common.pyc"
+  },
+  {
+    "module": "importlib.resources._itertools",
+    "package": false,
+    "path": "importlib\\resources\\_itertools.pyc"
+  },
+  {
+    "module": "importlib.resources._legacy",
+    "package": false,
+    "path": "importlib\\resources\\_legacy.pyc"
+  },
+  {
+    "module": "importlib.resources.abc",
+    "package": false,
+    "path": "importlib\\resources\\abc.pyc"
+  },
+  {
+    "module": "importlib.resources.readers",
+    "package": false,
+    "path": "importlib\\resources\\readers.pyc"
+  },
+  {
+    "module": "importlib.util",
+    "package": false,
+    "path": "importlib\\util.pyc"
+  },
+  {
+    "module": "inspect",
+    "package": false,
+    "path": "inspect.pyc"
+  },
+  {
+    "module": "ipaddress",
+    "package": false,
+    "path": "ipaddress.pyc"
+  },
+  {
+    "module": "json",
+    "package": true,
+    "path": "json\\__init__.pyc"
+  },
+  {
+    "module": "json.decoder",
+    "package": false,
+    "path": "json\\decoder.pyc"
+  },
+  {
+    "module": "json.encoder",
+    "package": false,
+    "path": "json\\encoder.pyc"
+  },
+  {
+    "module": "json.scanner",
+    "package": false,
+    "path": "json\\scanner.pyc"
+  },
+  {
+    "module": "logging",
+    "package": true,
+    "path": "logging\\__init__.pyc"
+  },
+  {
+    "module": "lz4",
+    "package": true,
+    "path": "lz4\\__init__.pyc"
+  },
+  {
+    "module": "lz4.block",
+    "package": true,
+    "path": "lz4\\block\\__init__.pyc"
+  },
+  {
+    "module": "lz4.version",
+    "package": false,
+    "path": "lz4\\version.pyc"
+  },
+  {
+    "module": "lzma",
+    "package": false,
+    "path": "lzma.pyc"
+  },
+  {
+    "module": "mimetypes",
+    "package": false,
+    "path": "mimetypes.pyc"
+  },
+  {
+    "module": "multiprocessing",
+    "package": true,
+    "path": "multiprocessing\\__init__.pyc"
+  },
+  {
+    "module": "multiprocessing.connection",
+    "package": false,
+    "path": "multiprocessing\\connection.pyc"
+  },
+  {
+    "module": "multiprocessing.context",
+    "package": false,
+    "path": "multiprocessing\\context.pyc"
+  },
+  {
+    "module": "multiprocessing.dummy",
+    "package": true,
+    "path": "multiprocessing\\dummy\\__init__.pyc"
+  },
+  {
+    "module": "multiprocessing.dummy.connection",
+    "package": false,
+    "path": "multiprocessing\\dummy\\connection.pyc"
+  },
+  {
+    "module": "multiprocessing.forkserver",
+    "package": false,
+    "path": "multiprocessing\\forkserver.pyc"
+  },
+  {
+    "module": "multiprocessing.heap",
+    "package": false,
+    "path": "multiprocessing\\heap.pyc"
+  },
+  {
+    "module": "multiprocessing.managers",
+    "package": false,
+    "path": "multiprocessing\\managers.pyc"
+  },
+  {
+    "module": "multiprocessing.pool",
+    "package": false,
+    "path": "multiprocessing\\pool.pyc"
+  },
+  {
+    "module": "multiprocessing.popen_fork",
+    "package": false,
+    "path": "multiprocessing\\popen_fork.pyc"
+  },
+  {
+    "module": "multiprocessing.popen_forkserver",
+    "package": false,
+    "path": "multiprocessing\\popen_forkserver.pyc"
+  },
+  {
+    "module": "multiprocessing.popen_spawn_posix",
+    "package": false,
+    "path": "multiprocessing\\popen_spawn_posix.pyc"
+  },
+  {
+    "module": "multiprocessing.popen_spawn_win32",
+    "package": false,
+    "path": "multiprocessing\\popen_spawn_win32.pyc"
+  },
+  {
+    "module": "multiprocessing.process",
+    "package": false,
+    "path": "multiprocessing\\process.pyc"
+  },
+  {
+    "module": "multiprocessing.queues",
+    "package": false,
+    "path": "multiprocessing\\queues.pyc"
+  },
+  {
+    "module": "multiprocessing.reduction",
+    "package": false,
+    "path": "multiprocessing\\reduction.pyc"
+  },
+  {
+    "module": "multiprocessing.resource_sharer",
+    "package": false,
+    "path": "multiprocessing\\resource_sharer.pyc"
+  },
+  {
+    "module": "multiprocessing.resource_tracker",
+    "package": false,
+    "path": "multiprocessing\\resource_tracker.pyc"
+  },
+  {
+    "module": "multiprocessing.shared_memory",
+    "package": false,
+    "path": "multiprocessing\\shared_memory.pyc"
+  },
+  {
+    "module": "multiprocessing.sharedctypes",
+    "package": false,
+    "path": "multiprocessing\\sharedctypes.pyc"
+  },
+  {
+    "module": "multiprocessing.spawn",
+    "package": false,
+    "path": "multiprocessing\\spawn.pyc"
+  },
+  {
+    "module": "multiprocessing.synchronize",
+    "package": false,
+    "path": "multiprocessing\\synchronize.pyc"
+  },
+  {
+    "module": "multiprocessing.util",
+    "package": false,
+    "path": "multiprocessing\\util.pyc"
+  },
+  {
+    "module": "netrc",
+    "package": false,
+    "path": "netrc.pyc"
+  },
+  {
+    "module": "nturl2path",
+    "package": false,
+    "path": "nturl2path.pyc"
+  },
+  {
+    "module": "numbers",
+    "package": false,
+    "path": "numbers.pyc"
+  },
+  {
+    "module": "opcode",
+    "package": false,
+    "path": "opcode.pyc"
+  },
+  {
+    "module": "pathlib",
+    "package": false,
+    "path": "pathlib.pyc"
+  },
+  {
+    "module": "pickle",
+    "package": false,
+    "path": "pickle.pyc"
+  },
+  {
+    "module": "pkgutil",
+    "package": false,
+    "path": "pkgutil.pyc"
+  },
+  {
+    "module": "platform",
+    "package": false,
+    "path": "platform.pyc"
+  },
+  {
+    "module": "pprint",
+    "package": false,
+    "path": "pprint.pyc"
+  },
+  {
+    "module": "py_compile",
+    "package": false,
+    "path": "py_compile.pyc"
+  },
+  {
+    "module": "queue",
+    "package": false,
+    "path": "queue.pyc"
+  },
+  {
+    "module": "quopri",
+    "package": false,
+    "path": "quopri.pyc"
+  },
+  {
+    "module": "random",
+    "package": false,
+    "path": "random.pyc"
+  },
+  {
+    "module": "runpy",
+    "package": false,
+    "path": "runpy.pyc"
+  },
+  {
+    "module": "secrets",
+    "package": false,
+    "path": "secrets.pyc"
+  },
+  {
+    "module": "selectors",
+    "package": false,
+    "path": "selectors.pyc"
+  },
+  {
+    "module": "shutil",
+    "package": false,
+    "path": "shutil.pyc"
+  },
+  {
+    "module": "signal",
+    "package": false,
+    "path": "signal.pyc"
+  },
+  {
+    "module": "socket",
+    "package": false,
+    "path": "socket.pyc"
+  },
+  {
+    "module": "ssl",
+    "package": false,
+    "path": "ssl.pyc"
+  },
+  {
+    "module": "statistics",
+    "package": false,
+    "path": "statistics.pyc"
+  },
+  {
+    "module": "string",
+    "package": false,
+    "path": "string.pyc"
+  },
+  {
+    "module": "stringprep",
+    "package": false,
+    "path": "stringprep.pyc"
+  },
+  {
+    "module": "subprocess",
+    "package": false,
+    "path": "subprocess.pyc"
+  },
+  {
+    "module": "tarfile",
+    "package": false,
+    "path": "tarfile.pyc"
+  },
+  {
+    "module": "tempfile",
+    "package": false,
+    "path": "tempfile.pyc"
+  },
+  {
+    "module": "textwrap",
+    "package": false,
+    "path": "textwrap.pyc"
+  },
+  {
+    "module": "threading",
+    "package": false,
+    "path": "threading.pyc"
+  },
+  {
+    "module": "token",
+    "package": false,
+    "path": "token.pyc"
+  },
+  {
+    "module": "tokenize",
+    "package": false,
+    "path": "tokenize.pyc"
+  },
+  {
+    "module": "tracemalloc",
+    "package": false,
+    "path": "tracemalloc.pyc"
+  },
+  {
+    "module": "typing",
+    "package": false,
+    "path": "typing.pyc"
+  },
+  {
+    "module": "typing_extensions",
+    "package": false,
+    "path": "typing_extensions.pyc"
+  },
+  {
+    "module": "urllib",
+    "package": true,
+    "path": "urllib\\__init__.pyc"
+  },
+  {
+    "module": "urllib.error",
+    "package": false,
+    "path": "urllib\\error.pyc"
+  },
+  {
+    "module": "urllib.parse",
+    "package": false,
+    "path": "urllib\\parse.pyc"
+  },
+  {
+    "module": "urllib.request",
+    "package": false,
+    "path": "urllib\\request.pyc"
+  },
+  {
+    "module": "urllib.response",
+    "package": false,
+    "path": "urllib\\response.pyc"
+  },
+  {
+    "module": "uuid",
+    "package": false,
+    "path": "uuid.pyc"
+  },
+  {
+    "module": "wxq_patch",
+    "package": true,
+    "path": "wxq_patch\\__init__.pyc"
+  },
+  {
+    "module": "wxq_patch.adaptive",
+    "package": false,
+    "path": "wxq_patch\\adaptive.pyc"
+  },
+  {
+    "module": "wxq_patch.combined_installer",
+    "package": false,
+    "path": "wxq_patch\\combined_installer.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_achievement_details_01",
+    "package": false,
+    "path": "wxq_patch\\direct_achievement_details_01.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_achievement_details_02",
+    "package": false,
+    "path": "wxq_patch\\direct_achievement_details_02.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_achievement_details_03",
+    "package": false,
+    "path": "wxq_patch\\direct_achievement_details_03.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_additional_group_overrides",
+    "package": false,
+    "path": "wxq_patch\\direct_additional_group_overrides.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_content_overrides",
+    "package": false,
+    "path": "wxq_patch\\direct_content_overrides.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_equipment_overrides",
+    "package": false,
+    "path": "wxq_patch\\direct_equipment_overrides.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_fidelity_corrections",
+    "package": false,
+    "path": "wxq_patch\\direct_fidelity_corrections.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_live_config_overrides",
+    "package": false,
+    "path": "wxq_patch\\direct_live_config_overrides.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_main_overrides",
+    "package": false,
+    "path": "wxq_patch\\direct_main_overrides.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_remaining_group_overrides_01",
+    "package": false,
+    "path": "wxq_patch\\direct_remaining_group_overrides_01.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_remaining_group_overrides_02",
+    "package": false,
+    "path": "wxq_patch\\direct_remaining_group_overrides_02.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_remaining_group_overrides_03",
+    "package": false,
+    "path": "wxq_patch\\direct_remaining_group_overrides_03.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_remaining_group_overrides_04",
+    "package": false,
+    "path": "wxq_patch\\direct_remaining_group_overrides_04.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_remaining_group_overrides_05",
+    "package": false,
+    "path": "wxq_patch\\direct_remaining_group_overrides_05.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_remaining_group_overrides_06",
+    "package": false,
+    "path": "wxq_patch\\direct_remaining_group_overrides_06.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_remaining_group_overrides_07",
+    "package": false,
+    "path": "wxq_patch\\direct_remaining_group_overrides_07.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_semantic_fidelity_corrections",
+    "package": false,
+    "path": "wxq_patch\\direct_semantic_fidelity_corrections.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_system_group_overrides",
+    "package": false,
+    "path": "wxq_patch\\direct_system_group_overrides.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_update_20260820_content",
+    "package": false,
+    "path": "wxq_patch\\direct_update_20260820_content.pyc"
+  },
+  {
+    "module": "wxq_patch.direct_update_20260820_main",
+    "package": false,
+    "path": "wxq_patch\\direct_update_20260820_main.pyc"
+  },
+  {
+    "module": "wxq_patch.gemini",
+    "package": false,
+    "path": "wxq_patch\\gemini.pyc"
+  },
+  {
+    "module": "wxq_patch.glossary",
+    "package": false,
+    "path": "wxq_patch\\glossary.pyc"
+  },
+  {
+    "module": "wxq_patch.hok_terminology",
+    "package": false,
+    "path": "wxq_patch\\hok_terminology.pyc"
+  },
+  {
+    "module": "wxq_patch.installation",
+    "package": false,
+    "path": "wxq_patch\\installation.pyc"
+  },
+  {
+    "module": "wxq_patch.installer",
+    "package": false,
+    "path": "wxq_patch\\installer.pyc"
+  },
+  {
+    "module": "wxq_patch.launcher_metadata",
+    "package": false,
+    "path": "wxq_patch\\launcher_metadata.pyc"
+  },
+  {
+    "module": "wxq_patch.live_config_content_groups",
+    "package": false,
+    "path": "wxq_patch\\live_config_content_groups.pyc"
+  },
+  {
+    "module": "wxq_patch.native_verify",
+    "package": false,
+    "path": "wxq_patch\\native_verify.pyc"
+  },
+  {
+    "module": "wxq_patch.package_metadata",
+    "package": false,
+    "path": "wxq_patch\\package_metadata.pyc"
+  },
+  {
+    "module": "wxq_patch.pipeline",
+    "package": false,
+    "path": "wxq_patch\\pipeline.pyc"
+  },
+  {
+    "module": "wxq_patch.protobuf_i18n",
+    "package": false,
+    "path": "wxq_patch\\protobuf_i18n.pyc"
+  },
+  {
+    "module": "wxq_patch.qtsvfs",
+    "package": false,
+    "path": "wxq_patch\\qtsvfs.pyc"
+  },
+  {
+    "module": "wxq_patch.remaining_content_groups",
+    "package": false,
+    "path": "wxq_patch\\remaining_content_groups.pyc"
+  },
+  {
+    "module": "wxq_patch.unity_package_installer",
+    "package": false,
+    "path": "wxq_patch\\unity_package_installer.pyc"
+  },
+  {
+    "module": "wxq_patch.update_20260904_content_groups",
+    "package": false,
+    "path": "wxq_patch\\update_20260904_content_groups.pyc"
+  },
+  {
+    "module": "xml",
+    "package": true,
+    "path": "xml\\__init__.pyc"
+  },
+  {
+    "module": "xml.parsers",
+    "package": true,
+    "path": "xml\\parsers\\__init__.pyc"
+  },
+  {
+    "module": "xml.parsers.expat",
+    "package": false,
+    "path": "xml\\parsers\\expat.pyc"
+  },
+  {
+    "module": "xml.sax",
+    "package": true,
+    "path": "xml\\sax\\__init__.pyc"
+  },
+  {
+    "module": "xml.sax._exceptions",
+    "package": false,
+    "path": "xml\\sax\\_exceptions.pyc"
+  },
+  {
+    "module": "xml.sax.expatreader",
+    "package": false,
+    "path": "xml\\sax\\expatreader.pyc"
+  },
+  {
+    "module": "xml.sax.handler",
+    "package": false,
+    "path": "xml\\sax\\handler.pyc"
+  },
+  {
+    "module": "xml.sax.saxutils",
+    "package": false,
+    "path": "xml\\sax\\saxutils.pyc"
+  },
+  {
+    "module": "xml.sax.xmlreader",
+    "package": false,
+    "path": "xml\\sax\\xmlreader.pyc"
+  },
+  {
+    "module": "xmlrpc",
+    "package": true,
+    "path": "xmlrpc\\__init__.pyc"
+  },
+  {
+    "module": "xmlrpc.client",
+    "package": false,
+    "path": "xmlrpc\\client.pyc"
+  },
+  {
+    "module": "zipfile",
+    "package": true,
+    "path": "zipfile\\__init__.pyc"
+  },
+  {
+    "module": "zipfile._path",
+    "package": true,
+    "path": "zipfile\\_path\\__init__.pyc"
+  },
+  {
+    "module": "zipfile._path.glob",
+    "package": false,
+    "path": "zipfile\\_path\\glob.pyc"
+  },
+  {
+    "module": "zipimport",
+    "package": false,
+    "path": "zipimport.pyc"
+  }
+]

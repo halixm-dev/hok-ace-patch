@@ -3,9 +3,14 @@ from __future__ import annotations
 
 import argparse
 import struct
+import sys
 from pathlib import Path
 
-from axml_set_debuggable import (
+# The shared AXML helpers live in tools/; running this file as a script puts tools/research on
+# sys.path instead, so the parent has to be added before the import below.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from axml_set_debuggable import (  # noqa: E402
     ANDROID_NS,
     NO_INDEX,
     RES_STRING_POOL,

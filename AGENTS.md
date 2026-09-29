@@ -1,0 +1,91 @@
+# HOK ACE Mobile English Patcher
+
+Windows GUI that installs the English translation into 王者万象棋 (`com.tencent.tmgp.osgame`) on an Android phone over USB, without root.
+
+Python **3.12 only**. `resources/runtime/` is 3.12 bytecode and will not load on any other version.
+
+## Commands
+
+Run from the project root:
+
+```bat
+setup.bat      :: .venv + requirements.txt  (fallback: set PYTHON=C:\path\to\python3.12.exe first)
+build.bat      :: -> dist\HOK ACE Mobile English Patcher.exe
+run.bat        :: run from source
+```
+
+Headless runtime check (needs a dumped game directory):
+
+```bat
+dist\HOK ACE Mobile English Patcher.exe --selftest <game-dir> <out-dir>
+```
+
+No test suite. Verify changes with `run.bat` or `--selftest`.
+
+## Architecture
+
+| Path | Role |
+|---|---|
+| `app/` | GUI (`hok_patcher.py`), device workflow (`patcher_core.py`), APK rewrite + v2 signing (`apk_tools.py`) |
+| `tools/` | Translation build pipeline. Entry: `build_device_patch.build_patch` |
+| `tools/research/` | Reverse-engineering probes; never imported by the app or the pipeline |
+| `resources/runtime/` | Compiled `wxq_patch` translation runtime (from the PC patcher) |
+| `resources/catalog/` | Translation catalog (`.blocks` / `.assets`) |
+
+Flow: `patcher_core` drives the seven device steps and calls `build_patch`. `apk_tools` rewrites and re-signs the APK. The GUI talks only to `patcher_core`.
+
+`sys.path` is set in `patcher_core.py`: `tools/` is inserted for source runs; `resources/runtime/` is **appended** so the project stdlib wins.
+
+### `build_patch` contract
+
+`tools/build_device_patch.py` exposes both a CLI and the programmatic entry the app uses:
+
+```python
+def build_patch(game: Path, catalog: Path, work: Path, output: Path,
+                *, fit_only_mode: bool = False, log=print) -> dict:
+```
+
+- It imports `wxq_patch` from whatever runtime directory the caller already put on `sys.path`; it never adds paths itself. That is what lets the frozen exe run it.
+- It calls `qts_relocate.install_btree_slot_map()` before scanning, so a re-run reads live chunks rather than superseded copies of relocated ones.
+- It returns exactly the payload written to `output/device_patch_summary.json`: `counts`, `skipped_count`, `fit_only`, and `packages` — each package carrying `package_id`, `mode`, `source_package`, `fit_summary`, `stage_report`. Callers read `stage_report["replacement_count"]`.
+- Only packages that actually staged appear in `packages`. A package with nothing left that fits is logged and skipped, not reported as a result.
+- `mode` is `full` or `fit-only`. This project has no `graphics` mode.
+
+## Code style
+
+Module docstring, `from __future__ import annotations`, type hints, `pathlib.Path`. Constants `UPPER_CASE` at module level. Private helpers `_name`. User-facing failures raise `PatchError`.
+
+```python
+"""One-line description of the module's job."""
+from __future__ import annotations
+
+from pathlib import Path
+
+PACKAGE = "com.tencent.tmgp.osgame"
+
+
+def free_space(path: Path) -> int | None:
+    """Free bytes on the drive holding <path> (or its nearest existing parent)."""
+    ...
+```
+
+## Constraints
+
+- Write the translation **after** the in-game update finishes. Tencent's updater applies binary diffs that break if language packages were modified inside the APK.
+- `resources/runtime/` is precompiled bytecode — treat it as binary. When the runtime needs an extra stdlib import at freeze time, add it to `HIDDEN_IMPORTS` in `app/build_exe.py`.
+- Coverage is **text tables only**: no resource-token expansion, no extra text tables, no textures. Do not describe the result as a complete translation. `{Energy}`/`{LordExp}`/`{LordHp}` are left for the client to expand, so those strings render with Chinese terms.
+- `count_translated` returns a single text-table count, and the GUI reports text tables only. Do not reintroduce an image count without a graphics pipeline behind it.
+- Code injection into the APK and prebaked APKs with translated assets both fail (anti-cheat kill / `IsPrebuild errorCode:151`). The supported path is: re-sign → debuggable data-access copy → replace packages in game data → reinstall.
+- Re-signing breaks direct WeChat/QQ login. Users log in via *Scan to login*. That limit is expected.
+- The patcher's ~8 GB working data goes to the user-chosen folder (default `HOK ACE Patcher Data` beside the exe), never into this repo.
+- `build/`, `dist/`, `.venv/` are generated and disposable.
+
+## Boundaries
+
+- `resources/key/` holds the re-signing key (`key.pk8`, `cert.der`) and ships with the app on purpose. Keep the key stable across releases; do not regenerate it.
+- `resources/catalog/` and `resources/runtime/` are produced by the PC patcher pipeline. This repo consumes them.
+- `tools/research/` is a research record, not shipping code. Nothing imports it and `app/build_exe.py` does not bundle it. Moving or deleting it must not break `app/` or `tools/`. Its scripts are run by hand from the project root.
+
+## Git
+
+Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`. Update `README.md` in the same change when commands or layout change.
