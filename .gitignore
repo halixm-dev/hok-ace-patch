@@ -1,0 +1,8 @@
+.venv/
+build/
+dist/
+__pycache__/
+*.pyc
+!resources/runtime/**/*.pyc
+HOK ACE Patcher Data/
+work/
