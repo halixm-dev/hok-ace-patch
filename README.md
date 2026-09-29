@@ -51,8 +51,8 @@ The pipeline translates **text tables**. Each changed package is staged in `full
 Resource tokens such as `{Energy}`, `{LordExp}` and `{LordHp}` are expanded to English terms
 (`Energy`, `Chessplayer EXP`, `Chessplayer HP`) in the staged packages, so the client no longer
 expands them to Chinese. A space is inserted wherever the term would otherwise run into a preceding
-word or placeholder, or into a following word or `+`. Beyond that the pipeline deliberately does not
-extend:
+word or placeholder, or into a following word or signed value. Beyond that the pipeline deliberately
+does not extend:
 
 - Extra text tables outside the staged packages are not translated, and textures are not translated at all.
   There is no graphics package mode, so the app reports text tables only.

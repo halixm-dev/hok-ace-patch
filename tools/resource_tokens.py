@@ -23,11 +23,11 @@ _CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 _TOKEN_RE = re.compile(r"\{[A-Za-z][A-Za-z0-9_]*\}")
 
 # The catalog glued the token to the words around it, because the Chinese expansion needs no space
-# ("获得{0|1}{Energy}。"). An English term does, so a space is inserted at those boundaries. The delta
-# spacing follows the catalog's own stat phrasing, which writes "Chessplayer EXP +{0}" and "Energy +2"
-# but glues a minus ("Energy-2", 69 occurrences): '+' is spaced, '-' is deliberately not.
+# ("获得{0|1}{Energy}。"). An English term does, so a space is inserted at those boundaries. A signed
+# delta counts as one boundary: the catalog writes a sign before a placeholder with a leading space
+# (" +{" 441 times, " -{" 23 times), so {LordExp}+{3|2} becomes "Chessplayer EXP +{3|2}".
 _SPACE_BEFORE = re.compile(r"[A-Za-z0-9}]")
-_SPACE_AFTER = re.compile(r"[A-Za-z+]")
+_SPACE_AFTER = re.compile(r"[A-Za-z]")
 
 _MAX_DEPTH = 16
 
@@ -36,12 +36,28 @@ class NotMessage(Exception):
     """Raised when a byte string is not a well-formed protobuf message."""
 
 
+def _tail(text: str, end: int) -> str:
+    """The space <text> needs after a term ending at <end>: before a word, or before a signed value.
+
+    A hyphen inside a compound ("Energy-Saving") is not a sign and is left alone, so a sign only earns
+    a space when a digit or a placeholder follows it.
+    """
+    if end >= len(text):
+        return ""
+    following = text[end]
+    if _SPACE_AFTER.match(following):
+        return " "
+    if following in "+-" and end + 1 < len(text) and (text[end + 1].isdigit() or text[end + 1] == "{"):
+        return " "
+    return ""
+
+
 def expand_resource_tokens(text: str) -> str:
     """Return <text> with resource tokens replaced by English terms.
 
     A space is inserted where the term would otherwise run into the preceding character (a letter,
-    digit or placeholder) or into a following letter or '+'. Anything else — punctuation, a following
-    '-', markup — keeps the catalog's own spacing.
+    digit or placeholder) or into a following word or signed value. Anything else — punctuation,
+    markup, a hyphen inside a compound — keeps the catalog's own spacing.
     """
     if not text or "{" not in text:
         return text
@@ -59,8 +75,7 @@ def expand_resource_tokens(text: str) -> str:
             break
         end = found + width
         lead = " " if found and _SPACE_BEFORE.match(text[found - 1]) else ""
-        tail = " " if end < len(text) and _SPACE_AFTER.match(text[end]) else ""
-        out.append(f"{text[index:found]}{lead}{term}{tail}")
+        out.append(f"{text[index:found]}{lead}{term}{_tail(text, end)}")
         index = end
     return "".join(out)
 
