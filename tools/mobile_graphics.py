@@ -125,7 +125,9 @@ def english_raw(mobile_raw: bytes, graphic: dict, catalog: Path) -> bytes | None
     payload = (catalog / graphic["payload"]).read_bytes()
 
     if graphic["payload"].endswith(".blocks") and fmt == "bc7" and layout == (4, 4):
-        # Block-for-block port: decode each patched run of BC7 rows, re-encode it as ASTC rows.
+        # Block-for-block port. Each range is a 16-byte-aligned run of BC7 blocks, which decode and
+        # re-encode independently of where they sit in the image, so a run is handed to the codecs as
+        # one <blocks*4>x4 strip and written back at the same offset.
         out = bytearray(mobile_raw)
         cursor = 0
         for offset, length in graphic["patch_ranges"]:

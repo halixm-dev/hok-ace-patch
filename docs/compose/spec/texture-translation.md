@@ -134,8 +134,13 @@ New chunk slots would need lookup keys only the game's own builder can derive, s
   decompressor. The game's decoder accepts stored blocks.
 - `qts_relocate.Shard.relocate` appends the new slot and repoints the shard's B-tree entry for that
   chunk's `hash1`. Keys never change, so B-tree ordering stays valid.
-- The package's index keeps its integrity token; only the raw length and the chunk size move, exactly
-  as `device_extensions.write_assets` does in the reference.
+- The package's **index is never written**. Because every asset keeps both its chunk count and its
+  chunk size, the descriptor's raw length and chunk size stay correct, and the moved bytes are found
+  through the shard's own B-tree rather than through the index. The staged index the pass produces is
+  therefore byte-identical to the source's.
+- Chunks are reassembled and re-split in `chunk_id` order, so that order is assumed to be byte order
+  within an asset. True for the three multi-chunk (1024x1024, four chunks each) textures in the game
+  data.
 
 ### Hook contract
 
@@ -208,6 +213,23 @@ The fix is at the point of failure, so the invariant holds for any consumer: whe
 packages the summary reports, and a package whose text staging failed but whose textures change gets
 a clean copy taken from the game dump by `_package_output` rather than having textures grafted onto a
 half-staged text package.
+
+### Failure modes
+
+Only a texture `english_raw` cannot handle is skipped. Anything unexpected — a payload that will not
+read, an encode that raises — is **not** caught and aborts the run, the same rule the token expansion
+applies to I/O failures. Containment would be the wrong trade here: a silently mangled texture renders
+as noise, which a user cannot tell apart from a wrong translation.
+
+Two facts worth recording, both surfaced by review:
+
+- **This pass is the first caller of the shard writer.** `qts_relocate.Shard.relocate` and
+  `Shard.save` had no callers at the base commit — the text pipeline stages through
+  `unity_package_installer` instead. The shard-writing path is exercised by these runs and nothing
+  else, so it has no independent history to lean on.
+- **`fit_only_mode` does not gate the graphics pass.** That mode exists to keep text replacements
+  inside the slots they already occupy; textures are always relocated, so there is nothing for it to
+  restrict. A `fit_only` run still applies every texture.
 
 ### GUI reporting
 

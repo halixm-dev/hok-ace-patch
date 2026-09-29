@@ -151,18 +151,21 @@ def check_codec() -> None:
 # 4. footprint resolution
 # --------------------------------------------------------------------------------------------
 def check_layout(catalog) -> None:
-    print("\n[4] astc_layout resolves the footprint from the raw size")
-    for bx, by in mg.ASTC_FOOTPRINTS:
-        size = math.ceil(404 / bx) * math.ceil(564 / by) * 16
-        resolved = mg.astc_layout(size, 404, 564)
-        check(f"{size} bytes at 404x564 -> {bx}x{by}", resolved == (bx, by), str(resolved))
+    print("\n[4] astc_layout inverts the size calculation")
     check("a raw size no footprint fits returns None", mg.astc_layout(12345, 404, 564) is None)
 
-    usable = [g for g in catalog.graphics.values() if g.get("width")]
-    full = sum(1 for g in usable
-               if mg.astc_layout(math.ceil(g["width"] / 4) * math.ceil(g["height"] / 4) * 16,
-                                 g["width"], g["height"]) == (4, 4))
-    check(f"every declared entry resolves at 4x4 ({full}/{len(usable)})", full == len(usable))
+    # Every declared entry at every footprint: the size that footprint implies must resolve back to
+    # it. Deriving the size at 4x4 and asserting 4x4 would prove nothing.
+    usable = [g for g in catalog.graphics.values() if g.get("width") and g.get("height")]
+    mismatches: list[str] = []
+    for graphic in usable:
+        width, height = graphic["width"], graphic["height"]
+        for bx, by in mg.ASTC_FOOTPRINTS:
+            size = math.ceil(width / bx) * math.ceil(height / by) * 16
+            if mg.astc_layout(size, width, height) != (bx, by):
+                mismatches.append(f"{bx}x{by}@{width}x{height}")
+    check(f"all {len(usable)} declared entries round-trip at all six footprints",
+          not mismatches, f"{len(mismatches)} mismatches" + (f" {mismatches[:4]}" if mismatches else ""))
 
 
 # --------------------------------------------------------------------------------------------
@@ -248,7 +251,11 @@ def check_unsupported(catalog) -> None:
 def check_game(catalog, game: pathlib.Path) -> None:
     print(f"\n[8] real device bytes from {game}")
     from device_extensions import _read_chunks  # noqa: PLC0415
+    from qts_relocate import install_btree_slot_map  # noqa: PLC0415
 
+    # Without this a re-run over an already-patched dump reads the superseded chunks the relocation
+    # left behind, the same way the stock scanner does, so every texture would look unpatched.
+    install_btree_slot_map()
     packages, _ = adaptive.discover(game, catalog)
     present: dict[int, tuple] = {}
     for package in packages:
@@ -262,19 +269,21 @@ def check_game(catalog, game: pathlib.Path) -> None:
     bad_outside = 0
     patched = replaced = unchanged = unsupported = 0
     skipped: list[str] = []
+    footprints: dict[tuple[int, int] | None, int] = {}
     for file_hash, (_package, chunks) in present.items():
         graphic = catalog.graphics[file_hash]
         # Every chunk, not just the first: a 1024x1024 texture spans four of them.
         raw = b"".join(mg.oodle_decompress(payload, slot.uncompressed_size)
                        for slot, payload in _read_chunks(chunks))
+        width, height, _dim = mg._dimensions(graphic)
+        layout = mg.astc_layout(len(raw), width, height)
+        footprints[layout] = footprints.get(layout, 0) + 1
         new = mg.english_raw(raw, graphic, CATALOG)
         if new is None or len(new) != len(raw):
             # A patch that will not port onto this texture's footprint. By design that is a skip,
             # not a failure -- english_raw must never raise for a texture it cannot handle.
             unsupported += 1
-            width, height, _ = mg._dimensions(graphic)
-            skipped.append(f"{file_hash:016X}@{len(raw)}B@"
-                           f"{mg.astc_layout(len(raw), width, height) or 'no footprint'}")
+            skipped.append(f"{file_hash:016X}@{len(raw)}B@{layout or 'no footprint'}")
             continue
         if new == raw:
             unchanged += 1
@@ -285,6 +294,9 @@ def check_game(catalog, game: pathlib.Path) -> None:
                 bad_outside += 1
         else:
             replaced += 1
+    check("the device footprints resolve from the real raw sizes", None not in footprints,
+          ", ".join(f"{'x'.join(map(str, k)) if k else 'none'}: {v}"
+                    for k, v in sorted(footprints.items(), key=lambda kv: -kv[1])))
     check("patch textures change nothing outside patch_ranges", bad_outside == 0,
           f"{patched} ported, {replaced} replaced wholesale")
     check("every present texture is ported, already English, or a documented skip",

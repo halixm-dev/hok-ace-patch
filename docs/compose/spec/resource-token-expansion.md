@@ -251,7 +251,9 @@ skipping an asset would quietly shrink coverage.
   to `fit-only` would not be.
 - `counts` from `adaptive.scan` are unaffected: expansion rewrites staged string content, it does not
   change how many tables or records were translated. `patcher_core.count_translated` still reports
-  text tables only, and the GUI wording stays as it is.
+  text tables only, and the GUI wording stays as it is. **Superseded** — `count_translated` returns
+  `(text tables, textures)` and the GUI reports both, per
+  `docs/compose/spec/texture-translation.md`.
 - **Spacing.** The first delivery copied the reference's narrower rule (space only before a
   digit/placeholder and before `+`) and left 319 strings with the term glued to an adjacent word —
   `IfEnergyis negative`, `theEnergyobtained this Round`, `CurrentEnergy:`. The boundary-aware rule
