@@ -1,0 +1,149 @@
+---
+feature: standalone-patcher-app
+status: designed
+updated: 2026-09-29
+branch: master
+commits:
+---
+
+# Standalone Patcher App
+
+## Report
+
+## [S1] Problem
+
+`hok-ace-android-en` holds a single directory, `tools/`, and nothing else. Getting an English
+translation onto a phone therefore means running `tools/apply_device_patch.sh` by hand, and that
+script points at a machine layout that no longer exists: an APK Editor Studio install, a
+`work/patcher-pyz` runtime, a `vendor/` directory, and pre-pulled `hok ace mobile *.apk` files.
+None of those are in the repository, so the script cannot run as committed.
+
+The sibling project `hok-ace-mobile-en` solves the same problem for the same game
+(`com.tencent.tmgp.osgame`) with a packaged Windows GUI: it pulls the APK and game data over USB,
+builds the English packages, pushes them back and reinstalls. This change gives `hok-ace-android-en`
+that same application surface, while keeping **its own** `tools/` pipeline as the translation engine.
+
+## [S2] Design
+
+The repository gains the reference project's layout: `app/` for the application, `resources/` for
+consumed data, root build scripts, and documentation. Branding is identical to the reference, so the
+app is the same product surface; only the translation pipeline behind it differs.
+
+### Application layer (`app/`)
+
+| File | Role |
+|---|---|
+| `hok_patcher.py` | customtkinter GUI, seven-step stepper, log pane, working-folder picker |
+| `patcher_core.py` | device workflow: adb, APK re-sign, data pull, translation, push, reinstall |
+| `apk_tools.py` | APK entry rewrite and APK Signature Scheme v2 signing (no Java / build-tools) |
+| `build_exe.py` | PyInstaller one-file build |
+| `make_icon.py` | regenerates `resources/icon.*` |
+
+Branding is taken verbatim from the reference: window title and exe name
+`HOK ACE Mobile English Patcher`, saved settings at
+`%APPDATA%\HOKAceEnglishPatcher\settings.json`, default working folder
+`HOK ACE Patcher Data` beside the executable, and the same `STEPS` stepper keys
+(`device`, `apk`, `access`, `pull`, `translate`, `install`, `restore`).
+
+`patcher_core` sets module search paths the same way the reference does: `tools/` is inserted for
+source runs (the frozen exe gets it via PyInstaller `--paths`), and `resources/runtime/` is
+**appended** so the project's own stdlib wins over the runtime's bundled copy.
+
+### Pipeline adaptation (`tools/`)
+
+`tools/build_device_patch.py` currently exposes only an argparse `main()`. It gains a programmatic
+entry point, becoming the single implementation that both `main()` and the app call:
+
+```python
+def build_patch(game: Path, catalog: Path, work: Path, output: Path,
+                *, fit_only_mode: bool = False, log=print) -> dict:
+```
+
+- `main()` keeps its existing flags (`--runtime`, `--game`, `--catalog`, `--work`, `--output`,
+  `--fit-only`) and now inserts the runtime path and then delegates to `build_patch`.
+- `build_patch` imports `wxq_patch` from whatever runtime directory the caller placed on
+  `sys.path`; it does not add paths itself. This keeps the function usable from the frozen exe,
+  where the runtime ships inside the bundle.
+- `log` is called with progress lines, allowing the GUI to stream them into its log pane.
+- The return value is exactly the payload written to `output/device_patch_summary.json`:
+  `{"counts": dict, "skipped_count": int, "fit_only": bool, "packages": [...]}` where each package
+  carries `package_id`, `mode`, `source_package`, `fit_summary` and `stage_report`, and
+  `stage_report` carries `status` and `replacement_count`.
+
+Two robustness fixes are folded into `build_patch` while writing it fresh, both guarding failure
+modes the current `while True` loops cannot recover from:
+
+1. Each staging loop runs `while any(directory.glob("*.assets"))` instead of `while True`, so a
+   package whose every asset was dropped terminates instead of spinning.
+2. A `None` report — reached when nothing is left that fits in place, as on a re-run over an
+   already-patched package — is logged and the package is skipped rather than appended as a crash.
+
+`tools/qts_relocate.py` joins the shipping pipeline. Its `install_btree_slot_map()` monkey-patches
+the runtime's `QtsPackage.build_slot_map` so it follows the shard's B-tree. Without it the stock
+scanner can return a superseded copy of a relocated chunk, which makes a **second** run over an
+already-patched install read the old Chinese data. `build_patch` calls it before scanning.
+
+The rest of the reference's newer pipeline — `device_extensions`, `resource_tokens`, `pb_text`,
+`mobile_graphics`, `extra_text`, `unity_text` — is deliberately **not** adopted. Coverage is exactly
+what android-en's tools produce: text tables that fit, with the `full` → `fit-only` fallback.
+
+### Reverse-engineering tools (`tools/research/`)
+
+`axml_add_provider.py`, `emulate_arm64_hash.py`, `extract_patcher.py`, `extract_pyz.py`,
+`find_arm64_xrefs.py`, `hash_probe.py`, `probe_descriptor_hashes.py`, `replace_apk_entries.py`,
+`apply_device_patch.sh` and `smali-probe/` are research artifacts on no runtime path. They move to
+`tools/research/`.
+
+`axml_add_provider.py` imports helpers from `axml_set_debuggable`, which stays in `tools/` because
+the app needs it. Running it as a script would put `tools/research/` — not `tools/` — on
+`sys.path`, breaking that import, so the module gains one line inserting its parent directory:
+
+```python
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+```
+
+### Resources (`resources/`)
+
+Copied verbatim from `hok-ace-mobile-en`: `adb/`, `catalog/`, `key/`, `runtime/`, `icon.ico`,
+`icon.png`. These are consumed, never regenerated here. `catalog/` and `runtime/` must stay in
+lockstep; the catalog is compatible because `build_mobile_patch.py` and `axml_set_debuggable.py` are
+byte-identical between the two repositories.
+
+`runtime/` is Python 3.12 bytecode and loads on no other version, so the project requires 3.12.
+
+### Coverage difference from the reference
+
+Accepted and documented, not a defect to fix here: without `resource_tokens`, card text keeps
+tokens such as `{Energy}` that the client expands to Chinese at render time, so some strings render
+hybrid; without `device_extensions`/`mobile_graphics`, extra text tables and textures are not
+translated. Consequently the pipeline has no `graphics` package mode, and
+`patcher_core.count_translated` reports **text tables only** — the GUI and its completion message
+are reworded to match instead of reporting a permanent zero image count.
+
+### Verification boundary
+
+There is no test suite, and no Android device or dumped game directory is available in this
+environment, so the end-to-end device flow cannot be exercised. Verification is limited to what is
+mechanically checkable: every Python file compiles under 3.12; the bundled runtime imports under
+3.12 and `install_btree_slot_map()` attaches to it; `build_patch` is importable and resolves its
+helpers; and the `apk_tools` signing round-trip is exercised on a synthetic APK. The `--selftest`
+path needs a dumped game directory and is therefore reported as unverified rather than claimed.
+
+## [S3] Out of Scope
+
+- Adopting the reference's `device_extensions`, `resource_tokens`, `pb_text`, `mobile_graphics`,
+  `extra_text` or `unity_text` modules, or matching the reference's translation coverage.
+- Attaching the reference's `RESOURCE_TOKEN_FIX.md` work, which documents that unadopted change.
+- Regenerating `resources/catalog/` or `resources/runtime/`; both are consumed as-is.
+- Solving the missing `py -3.12` interpreter on this machine, or producing a `.venv` / built exe as
+  part of this change.
+- Deleting the reverse-engineering tools; they are relocated, not removed.
+- Changing the game package (`com.tencent.tmgp.osgame`) or adding split-APK support.
+
+## Tasks
+
+- [ ] T1: Relocate the reverse-engineering scripts to `tools/research/` and keep `axml_add_provider.py` runnable — acceptance: `tools/` holds only `axml_set_debuggable.py`, `build_device_patch.py`, `build_mobile_patch.py`, `qts_relocate.py` plus `research/`, and running the relocated provider script exits 0 with its `--help` (covers: S2)
+- [ ] T2: Add `tools/qts_relocate.py` and the `build_patch()` entry point — acceptance: with `tools/` on `sys.path`, `build_patch` is importable and `build_patch(...)` returns a dict whose `packages` list contains only packages with a non-`None` `stage_report`; `install_btree_slot_map()` marks the runtime's `build_slot_map` as `_btree_aware`; `python tools/build_device_patch.py --help` exits 0 (covers: S2; depends: T3)
+- [ ] T3: Copy `resources/` verbatim from `hok-ace-mobile-en` — acceptance: `resources/adb/adb.exe`, `resources/key/key.pk8`, `resources/key/cert.der`, `resources/icon.ico`, `resources/icon.png`, `resources/catalog/catalog.json.gz` and `resources/runtime/argparse.pyc` all exist, and the last still starts with the Python 3.12 magic `cb 0d 0d 0a` (covers: S2)
+- [ ] T4: Build the `app/` layer wired to android-en's pipeline — acceptance: `patcher_core` imports `build_patch` from `build_device_patch` and `patch` as `make_debuggable_manifest` from `axml_set_debuggable`; `count_translated` returns a text-table count for a summary whose packages use `mode` `full`/`fit-only`; all five `app/` modules compile under Python 3.12 (covers: S2; depends: T2)
+- [ ] T5: Add root scripts and documentation — acceptance: `setup.bat`, `build.bat`, `run.bat`, `requirements.txt`, `README.md` and `AGENTS.md` exist; `README.md` states the reduced coverage and the re-run behaviour; `AGENTS.md` documents `tools/research/` as off the runtime path and records the `build_patch` contract (covers: S2; depends: T4)
