@@ -23,7 +23,9 @@ The translation engine remains **this** repository's own pipeline. `tools/build_
 `qts_relocate.install_btree_slot_map()` before scanning so a re-run reads live chunks instead of
 superseded copies. The reverse-engineering probes moved to `tools/research/`, off the runtime path.
 Staging is text-tables-only — `full` mode with a `fit-only` fallback, no graphics mode — so
-`count_translated` reports text tables and the GUI no longer mentions images.
+`count_translated` reports text tables and the GUI no longer mentions images. **Superseded:** the
+`graphics` mode, the texture pass and the `(text tables, textures)` count were all added by
+`docs/compose/spec/texture-translation.md`; see that document for what this one deferred.
 
 **Verification** — run from the repo root; `.venv` is Python 3.12.13 with `requirements.txt` installed.
 
@@ -54,7 +56,10 @@ environment. The repository has no test suite.
 - Scanning `wxq_patch`'s bytecode showed it references only `lz4` (vendored) and `httpx` (an unused
   `gemini` module) — none of UnityPy, `pypinyin`, `astc_encoder`, `ooz`, `texture2ddecoder` or
   `archspec`. `requirements.txt` and `build_exe.py` were trimmed accordingly; the exe is 48.2 MB
-  against the sibling's 66.3 MB.
+  against the sibling's 66.3 MB. **Partly reverted:** the texture pass does need `astc_encoder`, `ooz`,
+  `texture2ddecoder` and `archspec` after all, so those four came back in
+  `docs/compose/spec/texture-translation.md`. The scan was right about `wxq_patch` — the need is in the
+  new pass, not the runtime.
 - Two initial verification failures (embedded-certificate mismatch, debuggable attribute "missing")
   were defects in the *test fixtures*, not the product: an APK v2 certificates field needs a second
   length-prefix unwrap, and AXML requires resource-map entry *i* to name string-pool entry *i*. A
@@ -149,14 +154,17 @@ already-patched install read the old Chinese data. `build_patch` calls it before
 
 The rest of the reference's newer pipeline — `device_extensions`, `pb_text`, `mobile_graphics`,
 `extra_text`, `unity_text` — is deliberately **not** adopted. Coverage is exactly what android-en's
-tools produce: text tables that fit, with the `full` → `fit-only` fallback.
+tools produce: text tables that fit, with the `full` → `fit-only` fallback. **Partly superseded:**
+`device_extensions`' graphics half (`port_graphics`) and `mobile_graphics` were adopted later by the
+`texture-translation` feature; `pb_text`, `extra_text` and `unity_text` still are not.
 
 ### Reverse-engineering tools (`tools/research/`)
 
 `axml_add_provider.py`, `emulate_arm64_hash.py`, `extract_patcher.py`, `extract_pyz.py`,
 `find_arm64_xrefs.py`, `hash_probe.py`, `probe_descriptor_hashes.py`, `replace_apk_entries.py`,
 `apply_device_patch.sh` and `smali-probe/` are research artifacts on no runtime path. They move to
-`tools/research/`.
+`tools/research/`. `check_graphics.py` joined them later, added by the `texture-translation` feature as
+the offline check for the texture codec.
 
 `axml_add_provider.py` imports helpers from `axml_set_debuggable`, which stays in `tools/` because
 the app needs it. Running it as a script would put `tools/research/` — not `tools/` — on
@@ -177,10 +185,14 @@ byte-identical between the two repositories.
 
 ### Coverage difference from the reference
 
-Still not adopted: without `device_extensions`/`mobile_graphics`, extra text tables and textures are
-not translated. Consequently the pipeline has no `graphics` package mode, and
-`patcher_core.count_translated` reports **text tables only** — the GUI and its completion message
-are reworded to match instead of reporting a permanent zero image count.
+Still not adopted: `extra_text`, `unity_text` and `pb_text`, so extra text tables outside the staged
+packages are not translated.
+
+Textures and the image count were adopted afterwards. The `texture-translation` feature added
+`tools/device_extensions.py` and `tools/mobile_graphics.py`, gave the pipeline a `graphics` package
+mode, and returned `patcher_core.count_translated` to `(text tables, textures)` so the GUI and its
+completion message report both. See `docs/compose/spec/texture-translation.md`. The five statements
+above that this invalidates are marked in place.
 
 Resource tokens were adopted afterwards by the `resource-token-expansion` feature:
 `tools/resource_tokens.py` expands `{Energy}`/`{LordExp}`/`{LordHp}` in the staged replacements after
@@ -202,7 +214,9 @@ path needs a dumped game directory and is therefore reported as unverified rathe
 
 - Adopting the reference's `device_extensions`, `pb_text`, `mobile_graphics`, `extra_text` or
   `unity_text` modules, or matching the reference's translation coverage. (`resource_tokens` is the one
-  exception: adopted later by the `resource-token-expansion` feature.)
+  exception: adopted later by the `resource-token-expansion` feature. `device_extensions`' graphics
+  half and `mobile_graphics` are a second: **superseded** for those two by the `texture-translation`
+  feature; `pb_text`, `extra_text` and `unity_text` remain out of scope.)
 - Attaching the reference's `RESOURCE_TOKEN_FIX.md` work, which documents that unadopted change.
   **Superseded** — attached by the later `resource-token-expansion` feature.
 - Regenerating `resources/catalog/` or `resources/runtime/`; both are consumed as-is.
@@ -216,5 +230,5 @@ path needs a dumped game directory and is therefore reported as unverified rathe
 - [x] T1: Relocate the reverse-engineering scripts to `tools/research/` and keep `axml_add_provider.py` runnable — acceptance: `tools/` holds only `axml_set_debuggable.py`, `build_device_patch.py`, `build_mobile_patch.py`, `qts_relocate.py` plus `research/`, and running the relocated provider script exits 0 with its `--help` (covers: S2) — *superseded: `tools/` now also holds `resource_tokens.py`, see Coverage difference from the reference*
 - [x] T2: Add `tools/qts_relocate.py` and the `build_patch()` entry point — acceptance: with `tools/` on `sys.path`, `build_patch` is importable and `build_patch(...)` returns a dict whose `packages` list contains only packages with a non-`None` `stage_report`; `install_btree_slot_map()` marks the runtime's `build_slot_map` as `_btree_aware`; `python tools/build_device_patch.py --help` exits 0 (covers: S2; depends: T3)
 - [x] T3: Copy `resources/` verbatim from `hok-ace-mobile-en` — acceptance: `resources/adb/adb.exe`, `resources/key/key.pk8`, `resources/key/cert.der`, `resources/icon.ico`, `resources/icon.png`, `resources/catalog/catalog.json.gz` and `resources/runtime/argparse.pyc` all exist, and the last still starts with the Python 3.12 magic `cb 0d 0d 0a` (covers: S2)
-- [x] T4: Build the `app/` layer wired to android-en's pipeline — acceptance: `patcher_core` imports `build_patch` from `build_device_patch` and `patch` as `make_debuggable_manifest` from `axml_set_debuggable`; `count_translated` returns a text-table count for a summary whose packages use `mode` `full`/`fit-only`; all five `app/` modules compile under Python 3.12 (covers: S2; depends: T2)
-- [x] T5: Add root scripts and documentation — acceptance: `setup.bat`, `build.bat`, `run.bat`, `requirements.txt`, `README.md` and `AGENTS.md` exist; `README.md` states the reduced coverage and the re-run behaviour; `AGENTS.md` documents `tools/research/` as off the runtime path and records the `build_patch` contract (covers: S2; depends: T4)
+- [x] T4: Build the `app/` layer wired to android-en's pipeline — acceptance: `patcher_core` imports `build_patch` from `build_device_patch` and `patch` as `make_debuggable_manifest` from `axml_set_debuggable`; `count_translated` returns a text-table count for a summary whose packages use `mode` `full`/`fit-only`; all five `app/` modules compile under Python 3.12 (covers: S2; depends: T2) — *superseded: `count_translated` now returns `(text tables, textures)` and the pipeline has a third `mode`, see Coverage difference from the reference*
+- [x] T5: Add root scripts and documentation — acceptance: `setup.bat`, `build.bat`, `run.bat`, `requirements.txt`, `README.md` and `AGENTS.md` exist; `README.md` states the reduced coverage and the re-run behaviour; `AGENTS.md` documents `tools/research/` as off the runtime path and records the `build_patch` contract (covers: S2; depends: T4) — *superseded: the coverage and `build_patch` statements were rewritten by the `texture-translation` feature*

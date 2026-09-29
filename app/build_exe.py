@@ -41,6 +41,10 @@ def build() -> None:
         "--add-data", f"{RESOURCES / 'icon.png'}{sep}.",
         "--icon", str(RESOURCES / "icon.ico"),
         "--collect-data", "customtkinter",
+        "--collect-data", "archspec",
+        "--collect-all", "astc_encoder",
+        "--collect-all", "texture2ddecoder",
+        "--collect-all", "ooz",
     ]
     for module in HIDDEN_IMPORTS:
         args += ["--hidden-import", module]

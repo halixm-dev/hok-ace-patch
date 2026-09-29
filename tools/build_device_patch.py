@@ -1,7 +1,8 @@
 """Stage English replacements for every text package pulled from an updated Android install.
 
-The game directory must use the scanner layout: <game>/WXQ_Data/Package/builtin/<package id>/.
-Each changed package is written to <output>/<package id>/ and can be pushed back to
+Text tables are staged in place by the scanner layout: <game>/WXQ_Data/Package/builtin/<package id>/.
+The catalog's texture edits are then ported onto the device's ASTC textures as a second pass. Each
+changed package is written to <output>/<package id>/ and can be pushed back to
 files/QtsVFSCache/packages/<package id>/ on the device.
 """
 from __future__ import annotations
@@ -75,6 +76,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     from wxq_patch import adaptive
     from wxq_patch.unity_package_installer import capacity_report, stage_unity_package
     from qts_relocate import install_btree_slot_map
+    from device_extensions import extend_graphics
 
     install_btree_slot_map()
 
@@ -165,6 +167,10 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
             log(f"package {package.package_id}: dropped {len(dropped)} assets that competed for slack")
         if report is None:
             # Every remaining table was dropped, as on a re-run over an already patched package.
+            # The last attempt still wrote its own copy, so take it out again: the installer pushes
+            # every package directory under <output>, not the summary, and a half-fitted package
+            # must not reach the phone just because a texture pass made this run worth installing.
+            shutil.rmtree(output / package.package_id, ignore_errors=True)
             log(f"package {package.package_id}: nothing left that fits in place")
             continue
         packages.append({
@@ -175,6 +181,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
             "stage_report": report,
         })
         log(f"package {package.package_id}: {mode} {report['status']} ({report['replacement_count']} assets)")
+    packages += extend_graphics(game, catalog, output, log)
     summary = {
         "counts": dict(counts),
         "skipped_count": len(skipped),

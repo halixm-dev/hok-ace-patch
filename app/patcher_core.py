@@ -47,9 +47,16 @@ STEPS = [
 ]
 
 
-def count_translated(summary: dict) -> int:
-    """Text tables written by build_patch. This pipeline stages text packages only."""
-    return sum(package["stage_report"]["replacement_count"] for package in summary.get("packages", []))
+def count_translated(summary: dict) -> tuple[int, int]:
+    """(text tables, textures) written by build_patch."""
+    text = images = 0
+    for package in summary.get("packages", []):
+        count = package["stage_report"]["replacement_count"]
+        if package.get("mode") == "graphics":
+            images += count
+        else:
+            text += count
+    return text, images
 
 
 class PatchError(Exception):
@@ -352,8 +359,8 @@ class Patcher:
             self.log("Nothing new to translate (the game is probably already patched).")
             self.done("translate", "already installed")
             return summary, None
-        text = count_translated(summary)
-        self.done("translate", f"{text} text tables")
+        text, images = count_translated(summary)
+        self.done("translate", f"{text} text tables, {images} images")
         return summary, staged
 
     def push_translation(self, staged: Path) -> None:

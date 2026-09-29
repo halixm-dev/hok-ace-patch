@@ -323,8 +323,8 @@ class App(ctk.CTk):
     def worker(self) -> None:
         try:
             summary = Patcher(self, self.work_dir).run()
-            text = count_translated(summary)
-            detail = (f"{text} text tables translated. " if text
+            text, images = count_translated(summary)
+            detail = (f"{text} text tables and {images} images translated. " if text or images
                       else "The translation was already installed. ")
             self.messages.put(("done", (True, detail + "Open the game on your phone.\n\nLogin: use 'Scan to login' "
                                         "(the direct WeChat/QQ buttons do not work). With one phone: screenshot the QR code, "
