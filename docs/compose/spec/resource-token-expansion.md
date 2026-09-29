@@ -52,13 +52,14 @@ limitation.
 | PyInstaller analysis (`build\pyinstaller\HOK ACE Mobile English Patcher\PYZ-00.toc`) | `resource_tokens` and `resource_tokens.py` both present, matching the known-good `qts_relocate` precedent |
 | `python app\build_exe.py` with the app closed | PASS — `dist\HOK ACE Mobile English Patcher.exe` rebuilt, 48.25 MB, 22:17:50 against the module's 22:13:37 |
 | Frozen exe `--selftest` against the game dump (`run5`) | PASS, exit 0 — `full verified (72 assets)`, and its output is **byte-identical** to the source run (`run4`): same SHA-256 over all 87 assets, 0 tokens, sign sites spaced. The shipped binary provably carries the final rule |
+| Installed on the device (`f15a72e`, M2007J3SG, game data version 1.3.0.4) | PASS — package 1 hashed **on the phone** after the push matches the shard built with the fix: `1.db` `a0df436f…`, `1_0.db` `fbff2ec6…`, against `6cb13b99…` / `9a8f62e1…` before. Watchdog cleared, normal APK restored |
 | Independent review of `7cada8e..149e25e` | No critical findings. Reviewer re-derived the expansion from the pre-fix assets: 3384 fields, output byte-identical to all 87 produced files |
 | Independent review of `cc60205..b670d90` | No critical findings. T5 and T6 both hold; the reviewer's independent walker+expander reproduced all 87 assets byte-for-byte and found the false `-` citation recorded above |
 | Independent review of the sign rule (on `b670d90` + the working tree) | No critical bug. Independent reproduction again exact (3384 fields, 87/87 identical to `run4`); the sign predicate holds on all 165 sites; found the stale T5 acceptance text and the tag-shielded class now recorded in [S2] |
 
-NOT verified: that no *live* string still renders a Chinese expansion. The staged shard's string blobs
-are transformed, so only an on-device Card Info check for Yixing and Niu Mo can settle it, and no
-acceptance criterion required it.
+NOT verified: that the game now *renders* the terms in English. The fix is on the device — the shard
+read back from the phone hashes to the build that carries it — but the staged shard's string blobs are
+transformed, so only an on-device Card Info check for Yixing and Niu Mo can confirm the rendering.
 
 
 **Journey log**
@@ -66,10 +67,18 @@ acceptance criterion required it.
 - The tempting fix — rewriting the tokens in `catalog.json.gz` — is silently counterproductive: the
   runtime's `gemini.validate_translation` compares `{...}` placeholders between source and target and
   rejects the record, so the string stays Chinese. Expanded *after* translation is the whole design.
-- The pre-existing session at `dist\HOK ACE Patcher Data\sessions\20260929-212059` carries both the game
-  dump and a pre-fix `build\scan\replacements` tree. That pair is a reusable, bit-exact oracle for this
-  expansion: the pre-fix assets hold exactly the 3067 + 451 + 608 tokens and reproduce the 3384-field
-  result, so the ~1-minute pipeline does not have to be re-run to check a future change.
+- The pre-existing session at `dist\HOK ACE Patcher Data\sessions\20260929-212059` carried both the game
+  dump and a pre-fix `build\scan\replacements` tree. That pair was a reusable, bit-exact oracle for this
+  expansion: the pre-fix assets held exactly the 3067 + 451 + 608 tokens and reproduce the 3384-field
+  result. It no longer exists — the app's own retention (`Patcher.prune_old_sessions`, which keeps the
+  last two sessions) deleted it during the install runs below, so the built outputs under
+  `D:\hok-verify-tokenfix` are all that survives of it. Re-pull the game data to recreate it.
+- An already-patched install cannot be re-patched by the normal flow. `adaptive.scan` over the phone's
+  patched data reported `already_english` 125408 against 2304 on the clean dump, staged nothing, and
+  `build_patch` returned no packages — so the token expansion, which runs on the *replacement* assets
+  after the scan, had nothing to act on. Installing this change on that phone therefore meant pushing
+  the shard built from the clean dump directly. The scan only ever translates tables that still hold
+  Chinese; a data reset is what puts them back.
 - Grepping the staged `*.db` shards says nothing about string coverage — their blobs are neither raw nor
   zlib/gzip, and they retain superseded container data (207 raw token bytes, all inside blocks
   byte-identical to the pre-fix build). Judge coverage from `build\scan\replacements` instead.

@@ -64,6 +64,9 @@ shard's B-tree, so a second run reads the live chunks instead of superseded copi
 
 - Direct WeChat/QQ login does not work on a re-signed APK; use *Scan to login*.
 - After a game update: clear the game's data, let it re-download to the login screen, then patch again.
+- Re-running over an **already patched** install translates nothing: the scanner only translates tables
+  that still hold Chinese, and it reports nearly everything else as already English. To pick up a newer
+  translation build, reset the game's data first (previous bullet) so the tables are Chinese again.
 - Code injection into the APK and a "prebaked" APK with translated assets were both tried and fail
   (anti-cheat kill / `IsPrebuild errorCode:151`).
 - Only text tables are translated — see *Translation coverage* above.
