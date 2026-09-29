@@ -40,11 +40,22 @@ limitation.
 | `build_patch(..., fit_only_mode=True)` driver | PASS — 3384 expansions, 0 skips, package 1 `fit-only` 10 assets, counts unchanged, copied assets token-free |
 | Expected strings | `When the chess player levels up, Chessplayer EXP +{3|2}` present; `Gain {0|1} Energy` 22×; `Chessplayer HP` 608× |
 | Independent review of `7cada8e..149e25e` | No critical findings. Reviewer re-derived the expansion from the pre-fix assets: 3384 fields, output byte-identical to all 87 produced files |
+| Amendment T5/T6: 54-check unit script including the boundary cases | PASS 54/54 |
+| Amendment: in-memory A/B over the pre-fix assets | PASS — 3384 fields in 26 assets; glued strings 57 → 57, i.e. all 319 the first rule introduced are gone |
+| Amendment: `--selftest` re-run (`D:\hok-verify-tokenfix\run2`) | PASS, 0.98 min; `expanded resource tokens in 3384 replacement strings`; counts identical to baseline; `full verified (72 assets)`, 15 dropped, mode `full` |
+| Amendment: grep + integrity sweep over the 87 produced assets | PASS — 0 tokens, no `token expand skipped`, glued strings 57, `still_changing=0 unparsable=0` |
+| Amendment: the strings the review flagged | `If Energy is negative` 22×, `Current Energy:` 11×, `the Energy obtained` 11×, `Chessplayer HP and` 11×; `IfEnergyis`, `CurrentEnergy:`, `theEnergyobtained`, `HPand` all 0 |
+| Amendment: `fit_only_mode=True` re-run | PASS — 10 assets, 3384 expansions, 0 skips, counts unchanged |
+| PyInstaller analysis (`build\pyinstaller\HOK ACE Mobile English Patcher\PYZ-00.toc`) | `resource_tokens` and `resource_tokens.py` both present, matching the known-good `qts_relocate` precedent — bundling confirmed without a successful exe write |
 
 NOT verified: that no *live* string still renders a Chinese expansion. The staged shard's string blobs
 are transformed, so only an on-device Card Info check for Yixing and Niu Mo can settle it, and no
-acceptance criterion required it. `dist\HOK ACE Mobile English Patcher.exe` predates this feature, so
-`build.bat` must be re-run before shipping.
+acceptance criterion required it. Also outstanding: T7, replacing
+`dist\HOK ACE Mobile English Patcher.exe`. Its PyInstaller run reached the final assembly step, where it
+could not remove the existing exe because **the app is running and holds the file** — the rebuilt exe
+could not be written, so the shipped exe still predates this feature. Nothing about the build *config* is
+in doubt: the PYZ toc above already contains the new module.
+
 
 **Journey log**
 
@@ -60,7 +71,14 @@ acceptance criterion required it. `dist\HOK ACE Mobile English Patcher.exe` pred
   byte-identical to the pre-fix build). Judge coverage from `build\scan\replacements` instead.
 - The reference implementation's spacing rule was copied verbatim, and that is also its flaw: it adds a
   space only before a digit/placeholder and before `+`, leaving 319 strings with the term glued to an
-  adjacent word. See the spacing limitation under [S2].
+  adjacent word (`IfEnergyis negative`). Copying a rule that was verified only as "the tokens are gone"
+  is not the same as verifying the text it produces — the fix is the boundary-aware rule in [S2].
+- Two build-time hazards, both hit while rebuilding the exe: `build_exe.py` runs PyInstaller with
+  `--noconfirm` against `dist\`, where the app's own ~7.5 GB working folder lives, and it cannot replace
+  `dist\HOK ACE Mobile English Patcher.exe` at all while the app is running (`PermissionError: WinError 5`
+  in the final assembly step). Move the working folder aside before building, and confirm no app process
+  holds the exe. Moving that folder under a live app is unsafe in general — it happened here, was caught
+  immediately, and was reverted with nothing written.
 
 ## [S1] Problem
 
@@ -123,12 +141,23 @@ RESOURCE_TOKENS = {
 ```
 
 `{LordExp}` maps to `Chessplayer EXP`, not `Chess player experience`: the token is read as a stat
-(`棋手经验+{0}`), matching the catalog's own phrasing `Chessplayer EXP +{0}`. `expand_resource_tokens`
-applies the spacing the surrounding catalog text uses:
+(`棋手经验+{0}`), matching the catalog's own phrasing `Chessplayer EXP +{0}`.
 
-- a space is inserted when the token is glued to a preceding digit or `}` — `{0|1}{Energy}` → `{0|1} Energy`;
-- remaining occurrences are replaced bare;
-- `Chessplayer EXP+` → `Chessplayer EXP +`, so `{LordExp}+{3|2}` becomes `Chessplayer EXP +{3|2}`.
+The catalog glued the token to the words around it, because the Chinese expansion needs no space
+(`获得{0|1}{Energy}。`). An English term does, so `expand_resource_tokens` inserts one at the
+boundaries the corpus actually has, counted over the 87 pre-fix assets:
+
+| Boundary | Occurrences | Action |
+|---|---|---|
+| before: latin letter (`Current{Energy}:`, `If{Energy}is`) | 33 | insert a space |
+| before: digit or `}` (`get5{Energy}`, `{0|1}{Energy}`) | 2562 | insert a space |
+| after: latin letter (`{Energy}to Obtain`, `5{LordHp}and1`) | 341 | insert a space |
+| after: `+` (`{Energy}+{0\|2}`) | 99 | insert a space |
+| after: `-` (`{LordExp}-{3\|2}`) | 66 | **no space** — the catalog glues its own minus (`Energy-` 69×, `Energy -` 0×) |
+| after: punctuation, markup, end of string | remainder | unchanged |
+
+Every other boundary keeps the catalog's own spacing, which is why the rule only ever touches text it
+actually substituted: internals such as `RoundEnergyTitle2RoundInfo2` stay byte-identical.
 
 ### Walker contract
 
@@ -186,14 +215,12 @@ skipping an asset would quietly shrink coverage.
 - `counts` from `adaptive.scan` are unaffected: expansion rewrites staged string content, it does not
   change how many tables or records were translated. `patcher_core.count_translated` still reports
   text tables only, and the GUI wording stays as it is.
-- **Known limitation — spacing.** A space is inserted only where the term would run into a preceding
-  digit/placeholder (`{0|1}{Energy}` → `{0|1} Energy`) or a following `+`. Every other boundary keeps
-  the catalog's own spacing, and the catalog glued the token to adjacent words because the Chinese
-  expansion needs no space. Measured over the 87 produced assets: strings carrying a term glued to an
-  adjacent word went from 57 to 376 (**+319**), e.g. `Current{Energy}:` → `CurrentEnergy:`,
-  `{Energy}to Obtain` → `Energyto Obtain`, and `…5 Chessplayer HPand1Special Equipment plate.`
-  Adding a letter-boundary space rule would fix these, but it can only lengthen strings and therefore
-  interacts with slot slack; it needs its own run and was left out of this feature.
+- **Spacing.** The first delivery copied the reference's narrower rule (space only before a
+  digit/placeholder and before `+`) and left 319 strings with the term glued to an adjacent word —
+  `IfEnergyis negative`, `theEnergyobtained this Round`, `CurrentEnergy:`. The boundary-aware rule
+  above was added afterwards. Re-measured on the same 87 produced assets, glued strings are back to the
+  57 that the catalog already had before this feature began, and those remaining cases are pre-existing
+  catalog text, not substitution sites.
 
 ### Testing boundary
 
@@ -222,3 +249,6 @@ and package `1` staged `full` with `replacement_count` 72.
 - [x] T2: Call `_expand_staged_tokens(plans, log)` in `build_patch` right after `adaptive.scan` — acceptance: a scan + expand over the dumped game directory leaves 0 `{Energy}`, 0 `{LordExp}` and 0 `{LordHp}` occurrences across all 87 assets in `scan/replacements/1`, and the log carries no `token expand skipped` line (covers: S2; depends: T1)
 - [x] T3: Full `build_patch` run into a work and output directory outside this repo — acceptance: `counts` match the pre-fix baseline exactly, `invalid_translation` is absent, package `1` still stages with mode `full` and a non-empty `replacement_count`, and the staged strings carry no resource tokens (covers: S2; depends: T2)
 - [x] T4: Update `README.md`, `AGENTS.md` and `docs/compose/spec/standalone-patcher-app.md` so the token limitation is no longer described as accepted — acceptance: no document still claims the tokens are left for the client to expand, and the `[S3]` entry that parked this work is marked superseded (covers: S2; depends: T2)
+- [x] T5: Replace the inherited spacing rule with the boundary-aware rule in [S2] — acceptance: `expand_resource_tokens` spaces a term glued to a preceding letter/digit/`}` and to a following letter or `+`, leaves `-`, markup and punctuation alone, and a re-run over the 87 produced assets finds no string with a substituted term glued to an adjacent word (covers: S2)
+- [x] T6: Re-verify the pipeline after the spacing change — acceptance: the same run reproduces `counts`, keeps package `1` in `full` mode at 72 assets, leaves 0 resource tokens and no `token expand skipped`, and the produced assets still re-walk to 0 changes (covers: S2; depends: T5)
+- [ ] T7: Rebuild `dist\HOK ACE Mobile English Patcher.exe` from the changed pipeline — acceptance: the exe is newer than `tools/resource_tokens.py` and its `--selftest` reports package `1` at 72 assets (covers: S2; depends: T6) — **blocked**: the running app holds the exe file, so it cannot be replaced until the app is closed
