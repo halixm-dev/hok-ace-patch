@@ -53,13 +53,14 @@ limitation.
 | `python app\build_exe.py` with the app closed | PASS — `dist\HOK ACE Mobile English Patcher.exe` rebuilt, 48.25 MB, 22:17:50 against the module's 22:13:37 |
 | Frozen exe `--selftest` against the game dump (`run5`) | PASS, exit 0 — `full verified (72 assets)`, and its output is **byte-identical** to the source run (`run4`): same SHA-256 over all 87 assets, 0 tokens, sign sites spaced. The shipped binary provably carries the final rule |
 | Installed on the device (`f15a72e`, M2007J3SG, game data version 1.3.0.4) | PASS — package 1 hashed **on the phone** after the push matches the shard built with the fix: `1.db` `a0df436f…`, `1_0.db` `fbff2ec6…`, against `6cb13b99…` / `9a8f62e1…` before. Watchdog cleared, normal APK restored |
+| On-device rendering (Card Info) | PASS — the user confirmed on the phone that the card text now renders in English |
 | Independent review of `7cada8e..149e25e` | No critical findings. Reviewer re-derived the expansion from the pre-fix assets: 3384 fields, output byte-identical to all 87 produced files |
 | Independent review of `cc60205..b670d90` | No critical findings. T5 and T6 both hold; the reviewer's independent walker+expander reproduced all 87 assets byte-for-byte and found the false `-` citation recorded above |
 | Independent review of the sign rule (on `b670d90` + the working tree) | No critical bug. Independent reproduction again exact (3384 fields, 87/87 identical to `run4`); the sign predicate holds on all 165 sites; found the stale T5 acceptance text and the tag-shielded class now recorded in [S2] |
 
-NOT verified: that the game now *renders* the terms in English. The fix is on the device — the shard
-read back from the phone hashes to the build that carries it — but the staged shard's string blobs are
-transformed, so only an on-device Card Info check for Yixing and Niu Mo can confirm the rendering.
+Verified on the device: the card text renders in English. The user confirmed it on the phone
+(`f15a72e`) after the shard push, which closes the only item this document previously left
+unverified. Nothing about this feature is outstanding.
 
 
 **Journey log**
