@@ -3,7 +3,7 @@ feature: resource-token-expansion
 status: delivered
 updated: 2026-09-29
 branch: master
-commits: 7cada8e..b670d90
+commits: 7cada8e..d75cfa1
 ---
 
 # Resource Token Expansion
