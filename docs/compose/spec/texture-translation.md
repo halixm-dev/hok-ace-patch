@@ -1,14 +1,91 @@
 ---
 feature: texture-translation
-status: in-progress
+status: delivered
 updated: 2026-09-30
 branch: feat/texture-translation
-commits:
+commits: 290f5d8..46ed048
 ---
 
 # Texture Translation
 
 ## Report
+
+**What was built** — the patched game now renders the English textures. `tools/mobile_graphics.py`
+applies one catalog edit to one device texture: a `.blocks` BC7 payload is ported block for block when
+the device texture uses the 4x4 ASTC footprint, a `.blocks` RGBA32 payload is pasted onto the decoded
+image and only the blocks its pixels touch are re-encoded, and an `.assets` payload replaces the whole
+image. It returns `None` rather than raising for anything it cannot handle, and `MISSING_METADATA`
+supplies the geometry six catalog entries omit, so the catalog itself stays untouched.
+
+`tools/device_extensions.py` drives it. `port_graphics` reads each texture out of its Oodle chunk,
+applies the edit, and appends the changed chunks to the package shard while repointing the B-tree, so
+every asset keeps its chunk count and the index is never written. `extend_graphics` discovers the game
+packages afresh — a texture-heavy package stages no text, so the text scan never lists it — and
+returns `mode: "graphics"` summary entries totalling the textures written.
+
+`build_patch` calls it after the text loop, and that is what makes a texture-only run install: an
+empty package list used to short-circuit the push. `count_translated` returns `(text tables, textures)`
+again and both GUI call sites report both. Two defects surfaced on the way and are fixed here. A
+package whose staging ended with no report left its half-fitted copy in `output/` for the installer to
+push, harmless only while no run got that far. And the pass needed four dependencies back in
+`requirements.txt` and in `app/build_exe.py`, where omitting them builds a working exe that dies on the
+first texture.
+
+**Verification** — no device and no clean game dump were available. Everything below ran against
+either the shipped catalog (398 payloads, 44 review renders) or the surviving dump at
+`dist/HOK ACE Patcher Data/sessions/20260929-224052/game` — 2.6 GB, four discovered packages, and an
+already-patched install. All commands from the repo root with `.venv` (Python 3.12.13).
+
+| Command | Result |
+|---|---|
+| `py_compile` on every changed module | PASS |
+| `tools/research/check_graphics.py` | PASS — 25 checks, 74.9 s. 44/44 previews at 0.000 mean pixel difference; 324/324 `.blocks` entries port with 0 bytes changed outside `patch_ranges`, deterministically and idempotently; 74/74 `.assets` entries replay deterministically and idempotently; ASTC round trip mean 0.796 max 4; 392 declared entries round-trip at all six footprints |
+| `tools/research/check_graphics.py --game <dump copy>` | PASS — 29 checks, 101.2 s. 322 catalog textures present, 321 ported + 1 replaced wholesale, 0 skipped, 0 bytes outside `patch_ranges`; real device footprints 4x4 311, 6x6 10, 8x8 1 |
+| `python app\hok_patcher.py --selftest <dump> <out>` | PASS exit 0, 37.9 s — `{"ok": true, "packages": [["15",299],["19",22],["20",1]]}`; `counts` identical to the recorded pre-change baseline (`tables` 87, `records` 184569, `translated` 58212, `already_english` 125408, `unreadable_assets` 612, `graphics` 0) |
+| frozen `--selftest` after `app\build_exe.py` | PASS exit 0 — same package list; exe newer than every bundled source |
+| staged shard SHA-256 across 6 runs (1 source, 5 frozen, different sessions and paths) | IDENTICAL, 6/6 shards, 0 mismatches — `15_0.db ec3bb57196cb277a`, `19_0.db b1e62138100434c5`, `20_0.db aebd4d6c0adddef1` |
+| a second `port_graphics` pass over the first pass's own output | PASS — wrote 0 textures and created no output directory |
+| numeric directories under `<out>` vs `summary["packages"]` | EQUAL (`15,19,20`); the half-fitted `1/` left by the old behaviour is gone |
+| Independent review of `290f5d8..54bed01` | One critical — a stale claim in `resource-token-expansion.md` — plus two real gaps in the new checker: a circular `astc_layout` test, and no `install_btree_slot_map`, so a `--game` run against a patched dump silently read superseded chunks |
+| Independent re-review of the fixes (`54bed01..46ed048`) | No critical findings; both gaps closed and verified independently; all four changed files accepted |
+
+**On-device rendering is still owed.** No phone was available, so the ASTC port and the shard rewrite
+are proven only against the shipped payloads, the review renders and the game dump. That is the one
+thing this document does not claim.
+
+**Journey log**
+
+- **The installer pushes directories, not the summary.** `build_patch` drops text tables one at a time
+  until a package stages or runs out; when it runs out, `report` stays `None` and the package is left
+  out of `packages` — but the last failed attempt has already written `output/<id>/`. On the dump that
+  copy for package 1 was a structurally valid package the size of its source with exactly one of its
+  15 replacements applied. It stayed harmless only because `packages == []` short-circuited the
+  install before the push; adding graphics entries made the run install, which would have shipped it
+  over the user's own package 1. Found by asking what `push_translation` actually iterates.
+- **Two of the three "failures" in the new checker were the checker's own.** It read only the *first*
+  chunk of each asset, so the three multi-chunk 1024x1024 textures looked like they had no resolvable
+  ASTC footprint (1024x1024 at 4x4 is 1 048 576 bytes across four chunks). And it asserted the
+  untouched-block invariant on `.assets` full replacements, which legitimately rewrite every byte. A
+  checker's false failure looks exactly like a product defect — verify the checker against a case you
+  have already reasoned about before believing it.
+- **The runtime cannot read the textures it patches.** `qtsvfs.QtsPackage.extract` raises
+  `Unsupported compression 4` for Oodle, which is what the scan's 612 `unreadable_assets` are, so
+  `native_verify._verify_structural` is unusable on this content. The substitute is to read the staged
+  package back through its own B-tree — the path the game uses — and compare to the intended bytes;
+  that verified all 299 textures of package 15 in 0.1 s.
+- **`wxq_patch.adaptive` has a graphics path of its own and it is dead here.** `scan` references
+  `apply_graphic_payload`, which applies `patch_ranges` and verifies `patched_sha256` over a whole
+  asset — meaningful only for PC-format data. Instrumenting a scan of the dump recorded **0** calls and
+  `counts["graphics"]` stayed 0. Nothing here builds on it, and this change leaves it alone.
+- **A frozen-exe timing anomaly cost hours and was pre-existing.** `--selftest` against the reused
+  session directory took over 560 s at about 2% CPU while the same work ran in 27–50 s elsewhere — and
+  a byte-identical fresh copy of that same tree, session directories and all, finished in 40 s. It
+  reproduces with the unmodified base commit's exe, and the app creates a fresh session directory on
+  every run, so it is an environment artefact rather than a shipping defect. Two methodology traps made
+  it worse: a `--windowed` exe launched with `&` returns immediately, and the orphan it leaves behind
+  then competes with the run being timed; and an empty log file proves nothing, because `selftest`
+  redirects stdout to a block-buffered handle. Build a same-flags replica and A/B it against the base
+  commit before blaming the change.
 
 ## [S1] Problem
 
@@ -134,13 +211,16 @@ New chunk slots would need lookup keys only the game's own builder can derive, s
   decompressor. The game's decoder accepts stored blocks.
 - `qts_relocate.Shard.relocate` appends the new slot and repoints the shard's B-tree entry for that
   chunk's `hash1`. Keys never change, so B-tree ordering stays valid.
-- The package's **index is never written**. Because every asset keeps both its chunk count and its
-  chunk size, the descriptor's raw length and chunk size stay correct, and the moved bytes are found
-  through the shard's own B-tree rather than through the index. The staged index the pass produces is
-  therefore byte-identical to the source's.
-- Chunks are reassembled and re-split in `chunk_id` order, so that order is assumed to be byte order
-  within an asset. True for the three multi-chunk (1024x1024, four chunks each) textures in the game
-  data.
+- The package's **index is never written**. Every asset keeps its chunk count and the *uncompressed*
+  size of each chunk, so the descriptor's raw length and chunk size stay correct, and the moved bytes
+  are found through the shard's own B-tree rather than through the index. The staged index the pass
+  produces is therefore byte-identical to the source's. The shard itself does grow — package 15 goes
+  from 297 MB to 365 MB, because the replacement data is stored rather than compressed — which is why
+  the change is confined to the shard.
+- Chunks are reassembled and re-split in `chunk_id` order, so that order is **assumed** to be byte
+  order within an asset. Not measured: the three multi-chunk (1024x1024, four chunks each) textures in
+  the game data have chunk sizes that are multiples of the row pitch, which is consistent with
+  row-order splitting but does not establish it.
 
 ### Hook contract
 
@@ -323,39 +403,39 @@ Ground truth moves to `tools/research/check_graphics.py`, which is off the runti
 
 ## Tasks
 
-- [ ] T1: Add `tools/mobile_graphics.py` — the ASTC/Oodle codec (`english_raw`, `astc_layout`,
+- [x] T1: Add `tools/mobile_graphics.py` — the ASTC/Oodle codec (`english_raw`, `astc_layout`,
       `encode_astc`, `decode_astc`, `decode_pc`, `oodle_stored`, `oodle_decompress`) with the
       `MISSING_METADATA` fallback for the six metadata-less hashes — acceptance: `english_raw` returns
       changed bytes of the same length for a real `.blocks` BC7 4x4 entry, a `.blocks` RGBA32 entry and
       a `.assets` entry from the catalog; returns `None` for a raw size no footprint fits; and resolves
       all six metadata-less hashes to RGBA32 568x70 (covers: S2)
-- [ ] T2: Add `tools/device_extensions.py` with `port_graphics` and `extend_graphics` — acceptance:
+- [x] T2: Add `tools/device_extensions.py` with `port_graphics` and `extend_graphics` — acceptance:
       `port_graphics` over the dump's package 15 stages 299 textures into a fresh output directory while
       the source package's index and shard are byte-identical before and after (covers: S2; depends: T1)
-- [ ] T3: Call `extend_graphics(game, catalog, output, log)` in `build_patch` after the text staging
+- [x] T3: Call `extend_graphics(game, catalog, output, log)` in `build_patch` after the text staging
       loop — acceptance: a full `build_patch` run over the dump returns `mode == "graphics"` entries for
       packages 15/19/20 whose `replacement_count` totals 322, and the summary written to
       `output/device_patch_summary.json` contains them (covers: S2; depends: T2)
-- [ ] T4: Restore `count_translated` to `(text, images)` and update `patcher_core.build_translation`
+- [x] T4: Restore `count_translated` to `(text, images)` and update `patcher_core.build_translation`
       and `hok_patcher.App.worker` — acceptance: given a summary holding both modes, text and images are
       counted separately; a summary with only a `graphics` entry reports `0 text tables` and a non-zero
       image count rather than being treated as "already installed" (covers: S2; depends: T3)
-- [ ] T5: Restore the graphics dependencies in `requirements.txt` and the four PyInstaller flags in
+- [x] T5: Restore the graphics dependencies in `requirements.txt` and the four PyInstaller flags in
       `app/build_exe.py`, then rebuild — acceptance: `.venv` imports `astc_encoder`, `ooz` and
       `texture2ddecoder`; `app/build_exe.py` succeeds; and the frozen exe's `--selftest` over the dump
       completes with 322 textures staged instead of dying on the first one (covers: S2; depends: T3)
-- [ ] T6: Add `tools/research/check_graphics.py` — acceptance: it compares all 44 previews (0.000), round-trips
+- [x] T6: Add `tools/research/check_graphics.py` — acceptance: it compares all 44 previews (0.000), round-trips
       `encode_astc`/`decode_astc`, resolves `astc_layout` for the dump's real raw sizes, and asserts that
       a BC7 `.blocks` port changes no byte outside `patch_ranges`; it exits non-zero on any failure and
       nothing in `app/` or `tools/` imports it (covers: S2; depends: T1)
-- [ ] T7: Update `README.md`, `AGENTS.md` and `docs/compose/spec/standalone-patcher-app.md` —
+- [x] T7: Update `README.md`, `AGENTS.md` and `docs/compose/spec/standalone-patcher-app.md` —
       acceptance: no document still claims textures are not translated, that the pipeline has no
       `graphics` mode, or that the app reports text tables only; the app spec's `[S3]` deferral is marked
       superseded (covers: S2; depends: T4)
-- [ ] T8: Measure re-run safety and determinism — acceptance: a second `port_graphics` pass with the
+- [x] T8: Measure re-run safety and determinism — acceptance: a second `port_graphics` pass with the
       first pass's output as its source reports 0 textures written, and two independent `build_patch`
       runs over the same dump produce byte-identical shards (covers: S2; depends: T3)
-- [ ] T9: In `build_patch`, remove `output/<package_id>` when a package ends with no `report` —
+- [x] T9: In `build_patch`, remove `output/<package_id>` when a package ends with no `report` —
       acceptance: after a run over the dump, the numeric directories under `<output>` are exactly the
       package ids in `summary["packages"]`, and the previously-leaked package 1 directory is gone
       (covers: S2; depends: T3)

@@ -308,7 +308,8 @@ def check_game(catalog, game: pathlib.Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--game", type=pathlib.Path,
-                        help="game directory to read real device textures from (optional)")
+                        help="the dumped game directory to read real device textures from: the one "
+                             "holding WXQ_Data/Package/builtin (not a staged output)")
     parser.add_argument("--skip-slow", action="store_true",
                         help="skip the whole-catalog ASTC replay checks")
     args = parser.parse_args()
