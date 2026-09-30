@@ -69,11 +69,11 @@ def count_untranslated_graphics(summary: dict) -> int:
 
 
 def count_untranslated_text(summary: dict) -> int:
-    """Text tables the run translated but could not put in the package, so they stay in Chinese.
+    """Text tables the run translated but could not stage, so they stay in Chinese.
 
-    These live in build_patch's `text_skipped` list. Unlike `graphics_skipped` the packages there do
-    have an output directory: the loss is the part of it that never made it in, which is why the
-    summary reports what did land and this reports what did not.
+    These live in build_patch's `text_skipped` list. A package that loses tables can still have an
+    output directory behind it -- and one that loses all of them has none -- so `packages` alone
+    cannot say what did not make it.
     """
     return sum(entry.get("dropped_count", 0) for entry in summary.get("text_skipped", []))
 
@@ -374,23 +374,23 @@ class Patcher:
         staged = session / "staged"
         summary = build_patch(session / "game", BUNDLE / "catalog", session / "build", staged,
                               log=lambda line: self.log("  " + str(line)))
+        text, images = count_translated(summary)
+        dropped_text = count_untranslated_text(summary)
+        skipped = count_untranslated_graphics(summary)
+        untranslated = []
+        if dropped_text:
+            untranslated.append(f"{dropped_text} text table{'s' if dropped_text != 1 else ''}")
+        if skipped:
+            untranslated.append(f"{skipped} image{'s' if skipped != 1 else ''}")
         if not summary["packages"]:
             self.log("Nothing new to translate (the game is probably already patched).")
-            self.done("translate", "already installed")
-            return summary, None
-        text, images = count_translated(summary)
-        left = []
-        dropped_text = count_untranslated_text(summary)
-        if dropped_text:
-            left.append(f"{dropped_text} text table{'s' if dropped_text != 1 else ''}")
-        skipped = count_untranslated_graphics(summary)
-        if skipped:
-            left.append(f"{skipped} image{'s' if skipped != 1 else ''}")
         detail = f"{text} text tables, {images} images"
-        if left:
-            detail += ", " + " and ".join(left) + " left in Chinese"
-        self.done("translate", detail)
-        return summary, staged
+        if untranslated:
+            detail += ", " + " and ".join(untranslated) + " left in Chinese"
+        # "already installed" says there is nothing to report, so a run that installs nothing still
+        # names the tables it could not stage rather than hiding them behind that phrase.
+        self.done("translate", detail if (text or images or dropped_text) else "already installed")
+        return summary, staged if summary["packages"] else None
 
     def push_translation(self, staged: Path) -> None:
         self.step("install")

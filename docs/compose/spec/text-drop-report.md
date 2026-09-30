@@ -64,7 +64,12 @@ AGENTS.md already calls out for textures, and which `graphics_skipped` fixed the
   contract.
 - Both GUI count sites show it: the `translate` step's detail in `Patcher.build_translation`, and the
   final message in `App.worker`. Both phrase it as tables that stay in Chinese, and both read exactly as
-  they do today when `text_skipped` is empty.
+  they do today when `text_skipped` is empty. The one widening is when a run stages nothing at all and
+  yet lost text: `Patcher.build_translation` no longer leaves the step at `already installed` in that
+  case, and `App.worker` opens with "Nothing new to install." instead of "The translation was already
+  installed." That state is reachable — an install whose textures are all done and whose remaining
+  Chinese tables still cannot fit stages nothing — and it is the state where hiding the loss would
+  matter most, since the losses found so far are permanent until something changes.
 - The run log names each package that lost tables, beside the existing staging lines.
 - Staging behaviour is untouched: the retry loop, the drop order and the choice of which tables are
   sacrificed all stay as they are, as does `fit_summary.dropped_while_staging` as the retry-loop

@@ -325,10 +325,14 @@ class App(ctk.CTk):
         try:
             summary = Patcher(self, self.work_dir).run()
             text, images = count_translated(summary)
-            skipped = count_untranslated_graphics(summary)
-            detail = (f"{text} text tables and {images} images translated. " if text or images
-                      else "The translation was already installed. ")
             dropped_text = count_untranslated_text(summary)
+            skipped = count_untranslated_graphics(summary)
+            if text or images:
+                detail = f"{text} text tables and {images} images translated. "
+            elif dropped_text:
+                detail = "Nothing new to install. "
+            else:
+                detail = "The translation was already installed. "
             if dropped_text:
                 detail += (f"{dropped_text} text table{'s' if dropped_text != 1 else ''} could not be "
                            "applied and stay in Chinese. ")
