@@ -1,4 +1,10 @@
-"""Insert android:debuggable="true" into the <application> element of a binary AndroidManifest.xml."""
+"""Set or clear android:debuggable in the <application> element of a binary AndroidManifest.xml.
+
+Setting it is how the patcher builds the temporary data-access APK. Clearing it is the way back: if a
+run is interrupted after that APK is installed, the pull-then-restore path can adopt the debuggable
+build as the game's own (its signature matches) and reinstall it forever, so a caller that needs the
+original build back has to be able to write the flag the other way.
+"""
 from __future__ import annotations
 
 import argparse
@@ -19,6 +25,8 @@ TYPE_INT_BOOLEAN = 0x12
 DEBUGGABLE_RES_ID = 0x0101000F
 ANDROID_NS = "http://schemas.android.com/apk/res/android"
 NO_INDEX = 0xFFFFFFFF
+BOOLEAN_TRUE = 0xFFFFFFFF  # AXML encodes any non-zero word as true
+BOOLEAN_FALSE = 0x00000000
 
 
 def read_length8(data: bytes, pos: int) -> tuple[int, int]:
@@ -89,7 +97,9 @@ def shift(value: int, index: int) -> int:
     return value + 1 if value != NO_INDEX and value >= index else value
 
 
-def patch(manifest: bytes) -> bytes:
+def patch(manifest: bytes, debuggable: bool = True) -> bytes:
+    """Return <manifest> with android:debuggable set to <debuggable> on <application>."""
+    value = BOOLEAN_TRUE if debuggable else BOOLEAN_FALSE
     file_type, file_header_size, _ = struct.unpack_from("<HHI", manifest, 0)
     if file_type != RES_XML:
         raise ValueError("not a binary XML file")
@@ -156,9 +166,9 @@ def patch(manifest: bytes) -> bytes:
         if element_name == "application":
             existing = next((a for a in attrs if a[1] == name_index), None)
             if existing:
-                existing[2], existing[5], existing[6] = NO_INDEX, TYPE_INT_BOOLEAN, 0xFFFFFFFF
+                existing[2], existing[5], existing[6] = NO_INDEX, TYPE_INT_BOOLEAN, value
             else:
-                attrs.append([android_ns, name_index, NO_INDEX, 8, 0, TYPE_INT_BOOLEAN, 0xFFFFFFFF])
+                attrs.append([android_ns, name_index, NO_INDEX, 8, 0, TYPE_INT_BOOLEAN, value])
 
                 def sort_key(a):
                     return res_ids[a[1]] if a[1] < len(res_ids) else 0xFFFFFFFF
@@ -196,8 +206,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--no-debuggable", action="store_true",
+                        help="clear the flag instead of setting it, to rebuild the game's own manifest")
     args = parser.parse_args()
-    args.output.write_bytes(patch(args.source.read_bytes()))
+    args.output.write_bytes(patch(args.source.read_bytes(), not args.no_debuggable))
 
 
 if __name__ == "__main__":
