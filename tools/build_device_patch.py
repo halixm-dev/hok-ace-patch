@@ -286,21 +286,23 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
             if path.stem.upper() not in staged_hashes
         }))
 
-    relocated: set[str] = set()
+    relocated: dict[str, set[str]] = {}
     for package, dropped in dropped_text:
         if not dropped:
             continue
         written, _refused = relocate_text(package, output, dropped, log)
         if not written:
             continue
-        relocated |= set(written)
+        relocated.setdefault(package.package_id, set()).update(written)
         packages.append({"package_id": package.package_id, "mode": "relocated-text",
                          "stage_report": {"status": "relocated", "replacement_count": len(written)}})
 
     for package_id, planned, mode, staged_hashes in pending_text:
-        # A table relocation wrote into the package is applied, not lost, so it is not a loss to report.
-        note_missing(package_id, planned,
-                     [h for h in planned if h not in staged_hashes and h not in relocated], mode)
+        # A table relocation wrote into this package is applied, not lost, so it is not a loss to
+        # report. The set is keyed by package because the same asset hash can be planned in more than
+        # one of them, and applying it in one says nothing about the other.
+        applied = staged_hashes | relocated.get(package_id, set())
+        note_missing(package_id, planned, [h for h in planned if h not in applied], mode)
 
     graphics, graphics_skipped_extra = extend_graphics(game, catalog, output, log, skip=rebuilt)
     packages += graphics

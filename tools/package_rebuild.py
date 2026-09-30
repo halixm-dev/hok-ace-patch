@@ -131,7 +131,9 @@ def rebuild_package(package_id: str, device_dir: Path, prime_dir: Path, transfor
             raw = read_raw(prime, prime_slots, file_hash)
         else:
             raw = None
-        if raw is None:
+        if not raw:
+            # None from an unreadable chunk framing, or empty bytes: the builder cannot store a
+            # zero-byte file either, so the package takes the in-place path rather than failing here.
             log(f"package {package_id}: cannot read {file_hash:016X}; keeping the in-place patch path")
             return None
         new = transform(file_hash, raw)
@@ -146,7 +148,7 @@ def rebuild_package(package_id: str, device_dir: Path, prime_dir: Path, transfor
         if file_hash in device_entries or file_hash not in prime_slots:
             continue
         raw = read_raw(prime, prime_slots, file_hash)
-        new = transform(file_hash, raw) if raw is not None else None
+        new = transform(file_hash, raw) if raw else None
         graphics = file_hash in transform.graphics
         considered += graphics
         if new is None:

@@ -96,19 +96,23 @@ def btree_offsets(shard: Shard) -> dict[int, set[int]]:
 
 
 def read_raw(package, slots, file_hash: int) -> bytes | None:
-    """The asset's uncompressed bytes, or None when its chunk framing is one we cannot read.
+    """The asset's uncompressed bytes, or None when there are none to read.
 
-    Chunk compression type 1 is LZ4 and 4 is Oodle; a chunk whose compressed and uncompressed sizes
-    match is stored as it is. A payload that will not decompress returns None rather than raising —
-    the caller then leaves the asset alone, which is what the game already shows for it.
+    None covers both an asset with no chunks at all and a chunk framing we cannot follow. Chunk
+    compression type 1 is LZ4 and 4 is Oodle; a chunk whose compressed and uncompressed sizes match is
+    stored as it is. A payload that will not decompress returns None rather than raising — the caller
+    then leaves the asset alone, which is what the game already shows for it.
     """
     import lz4.block
     import ooz
 
     entry = package.entries[file_hash]
+    chunks = slots.get(file_hash)
+    if not chunks:
+        return None
     raw = bytearray()
-    for chunk_id in sorted(slots[file_hash]):
-        slot = slots[file_hash][chunk_id]
+    for chunk_id in sorted(chunks):
+        slot = chunks[chunk_id]
         with open(slot.shard_path, "rb") as handle:
             handle.seek(slot.payload_offset)
             payload = handle.read(slot.compressed_size)

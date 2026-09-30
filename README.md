@@ -231,5 +231,11 @@ few minutes and writes about 350 MB.
   `19`'s Unity prefab labels (the lobby hangs, and rewriting only the 15 prefabs that show faction names
   crashes at start with `stack corruption detected`), and the chessplayer definition `A8BC70BB87700709`
   field 37 (lobby loading stalls even when every reference in packages 1 and 14 is renamed with it).
+- Two entries of package `1` sit in the downloaded index with no payload of their own — their bytes are
+  the APK's — so the rebuild reads those from the APK. One further entry, `56077AC5D3F0B677`, arrives
+  declaring 7,597,568 bytes while its chunk stream holds 8,519,168. The rebuild carries the stream whole
+  and records the length it carries, so that entry's declared size differs from the device's by 921,600
+  bytes even though the stream itself is byte-identical. It is the one place the rebuilt package differs
+  from the device's copy in a value the game may read, and only a device run settles whether it matters.
 - Code injection into the APK and a "prebaked" APK with translated assets were both tried and fail
   (anti-cheat kill / `IsPrebuild errorCode:151`).

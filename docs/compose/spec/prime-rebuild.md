@@ -98,7 +98,18 @@ from the APK instead of carrying a second copy.
 An asset listed in the override index whose bytes cannot be read (the flag-word entries whose payload
 is the APK's are read from prime instead) aborts the package: `rebuild_package` logs and returns
 `None`, and the package falls back to the in-place path. One unreadable asset must not cost the
-package its patch.
+package its patch. Two of package `1`'s 403 entries are prime-backed this way (`92D3EE5696C9D644`,
+`5B905F540C9F7046`), and an entry whose bytes are empty counts as unreadable too, because the builder
+cannot store a zero-byte file.
+
+One entry, `56077AC5D3F0B677`, arrives declaring 7,597,568 bytes while its 28-chunk stream holds
+8,519,168. The builder derives an entry's chunking from the bytes it is handed, so a rebuilt package
+cannot both carry that stream whole and record the device's shorter figure. The stream is carried —
+dropping 921,600 bytes of data we do not understand is the worse guess — and the length it actually
+holds is recorded, which leaves the rebuilt entry self-consistent where the device's own copy is not.
+This is the one place a rebuilt package differs from the device's copy in a value the game may read,
+and only a device run settles whether it matters. The stream itself, which is what the game
+decompresses, is byte-identical.
 
 Before anything is staged, every asset is read back through the same `QtsPackage` code path the game
 data goes through and compared byte-for-byte, and the package node must equal the original's; any
