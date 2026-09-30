@@ -5,13 +5,15 @@ image and sometimes only the runs a Chinese label occupied. Android stores the s
 inside Oodle-compressed chunks, so a payload can only be applied once the device texture has been
 decompressed and its block footprint derived from the raw size.
 
-Two payload families and three paths:
+Two payload families and four paths:
 
 * a ``.blocks`` BC7 payload at the 4x4 footprint is ported block for block — BC7 and ASTC 4x4 both
   use 16-byte blocks on a 4x4 grid, so a PC byte range maps to the same byte range on the device;
 * a ``.blocks`` RGBA32 payload is pasted onto the decoded image and only the blocks it touches are
   re-encoded;
-* a ``.assets`` payload replaces the whole image.
+* a ``.assets`` payload replaces the whole image;
+* a ``.assets`` payload whose device revision moved geometry is spliced: the two images are aligned,
+  only the label's pixels are copied across, and only the blocks those pixels touch are re-encoded.
 
 Nothing here raises for a texture it cannot handle: ``english_raw`` returns ``None`` and the caller
 counts the texture as skipped. A silently skipped texture is far better than a failed patch run.
@@ -28,6 +30,19 @@ import texture2ddecoder
 OODLE_BLOCK = 0x40000  # Oodle LZ streams are split into 256 KiB blocks
 ASTC_FOOTPRINTS = [(4, 4), (5, 5), (6, 6), (8, 8), (10, 10), (12, 12)]
 PC_FORMATS = ("bc7", "rgba32")
+
+# Recovering a whole-image replacement whose device revision is a different size. A consumer build can
+# re-cut the same art by a block row, which changes the raw size and makes `astc_layout` refuse it. The
+# two images are still the same art though, so the label can be moved across once the alignment is
+# measured. These bound the search and gate the result.
+ALIGNMENT_SEARCH = 16      # px of vertical offset to try
+ALIGNMENT_MAX_MEAN = 12.0  # mean per-pixel difference outside the label that still counts as same art
+ALIGNMENT_MIN_GAIN = 0.75  # the winning offset must beat the median offset by this much to be believed
+ALIGNMENT_STEP_X = 8       # sample every Nth pixel horizontally; the art differs in blocks, not pixels
+ALIGNMENT_STEP_ROWS = 4    # and every Nth row vertically
+# A label already carrying the English pixels measures ~3.5 once decoded; the Chinese one measures ~64.
+# 12 sits well clear of both, so a re-run is recognised instead of being re-encoded.
+LABEL_MATCH_MEAN = 12.0
 
 # Six catalog entries carry no format/width/height, so their payloads could never be applied. All six
 # are 159040-byte map banners of one family (no label_box, no capture_row, no footer_group), and
@@ -68,6 +83,150 @@ def astc_layout(raw_size: int, width: int, height: int) -> tuple[int, int] | Non
     for bx, by in ASTC_FOOTPRINTS:
         if math.ceil(width / bx) * math.ceil(height / by) * 16 == raw_size:
             return bx, by
+    return None
+
+
+def label_rows(graphic: dict, height: int) -> tuple[int, int] | None:
+    """The label's row range in the decoded payload buffer.
+
+    ``label_box`` is stated in display order (top-down) like the review renders, while the payload
+    buffer is bottom-up, so the box has to be mirrored to index it. Cropping the payload at the raw
+    ``label_box`` rows returns a blank band; mirroring first returns the text.
+    """
+    box = graphic.get("label_box")
+    if not box:
+        return None
+    top, bottom = height - box[3], height - box[1]
+    if top >= bottom or top < 0:
+        return None
+    return top, bottom
+
+
+def offset_layouts(raw_size: int, width: int, height: int) -> list[tuple[int, int, int]]:
+    """(device_height, bx, by) whose blocks fill <raw_size> at the catalog's width.
+
+    The block count pins the geometry to within a block, so this returns the band's tallest height:
+    every height in the band covers the same block grid, so they share one decode and one encode and
+    the choice between them cannot change the output bytes.
+    """
+    layouts = []
+    for bx, by in ASTC_FOOTPRINTS:
+        blocks_x = math.ceil(width / bx)
+        if not blocks_x or raw_size % (blocks_x * 16):
+            continue
+        blocks_y = raw_size // (blocks_x * 16)
+        tallest, lowest = blocks_y * by, (blocks_y - 1) * by + 1
+        if lowest - ALIGNMENT_SEARCH <= height <= tallest + ALIGNMENT_SEARCH:
+            layouts.append((tallest, bx, by))
+    return layouts
+
+
+def _row_diff(left: bytes, right: bytes, width: int, left_row: int, right_row: int) -> float:
+    """Mean absolute difference between two rows, sampled. Alpha is skipped: it is flat here."""
+    left_at, right_at = left_row * width * 4, right_row * width * 4
+    total = count = 0
+    for x in range(0, width * 4, ALIGNMENT_STEP_X * 4):
+        for channel in (0, 1, 2):
+            total += abs(left[left_at + x + channel] - right[right_at + x + channel])
+            count += 1
+    return total / count
+
+
+def align_rows(catalog_rgba: bytes, device_rgba: bytes, width: int, catalog_height: int,
+               device_height: int, rows: tuple[int, int]) -> int | None:
+    """The offset putting the catalog image's row y at the device's row y+offset, or None.
+
+    BC7 on the PC and ASTC on the device never decode the same source to identical pixels, so the
+    overlap is compared and the winner must both stay under ``ALIGNMENT_MAX_MEAN`` and dip well below
+    the median offset. Unrelated art, or the wrong block footprint, scores flat and is refused.
+    """
+    scored: list[tuple[int, float]] = []
+    # The label is the one place the two images are expected to differ, so it is left out. The rows
+    # compared do not depend on the offset, so they are picked once.
+    compared = list(range(0, rows[0], ALIGNMENT_STEP_ROWS)) + \
+        list(range(rows[1], catalog_height, ALIGNMENT_STEP_ROWS))
+    for offset in range(-ALIGNMENT_SEARCH, ALIGNMENT_SEARCH + 1):
+        total = count = 0.0
+        for y in compared:
+            target = y + offset
+            if 0 <= target < device_height:
+                total += _row_diff(catalog_rgba, device_rgba, width, y, target)
+                count += 1
+        scored.append((offset, total / count if count else math.inf))
+    usable = [item for item in scored if item[1] != math.inf]
+    if not usable:
+        return None
+    best = min(usable, key=lambda item: item[1])
+    median = sorted(value for _, value in usable)[len(usable) // 2]
+    if best[1] > ALIGNMENT_MAX_MEAN or best[1] > ALIGNMENT_MIN_GAIN * median:
+        return None
+    return best[0]
+
+
+def _label_diff(catalog_rgba: bytes, device_rgba: bytes, width: int, device_height: int,
+                rows: tuple[int, int], box: list[int], offset: int) -> float | None:
+    """Mean absolute difference between the catalog's label and the device's, or None if it does not fit."""
+    stride = width * 4
+    left = box[0] * 4
+    length = (box[2] - box[0]) * 4
+    total = count = 0
+    for y in range(rows[0], rows[1], 2):
+        target = y + offset
+        if not 0 <= target < device_height:
+            return None
+        source_at, target_at = y * stride + left, target * stride + left
+        for x in range(0, length, ALIGNMENT_STEP_X * 4):
+            for channel in (0, 1, 2):
+                total += abs(catalog_rgba[source_at + x + channel]
+                             - device_rgba[target_at + x + channel])
+                count += 1
+    return total / count if count else None
+
+
+def splice_label(mobile_raw: bytes, graphic: dict, catalog: Path, width: int, height: int,
+                 fmt: str) -> bytes | None:
+    """Land <graphic>'s label on a device texture whose geometry moved, or return None.
+
+    Used when the device revision no longer matches the catalog's recorded size, which is a rejection
+    for a whole-image replacement. The art is still the same art, so rather than rescaling the payload
+    -- which would resample every glyph -- this finds the alignment between the two images and copies
+    only the ``label_box`` pixels across, then re-encodes just the blocks that touch. Every other byte
+    of the device texture, including any art the mobile build genuinely re-drew, is left alone.
+    """
+    rows = label_rows(graphic, height)
+    if rows is None:
+        return None
+    box = graphic["label_box"]
+    payload = (catalog / graphic["payload"]).read_bytes()
+    catalog_rgba = decode_pc(payload, width, height, fmt)
+    for device_height, bx, by in offset_layouts(len(mobile_raw), width, height):
+        device_rgba = bytearray(decode_astc(mobile_raw, width, device_height, bx, by))
+        offset = align_rows(bytes(catalog_rgba), bytes(device_rgba), width, height, device_height, rows)
+        if offset is None:
+            continue
+        existing = _label_diff(catalog_rgba, bytes(device_rgba), width, device_height, rows, box, offset)
+        if existing is not None and existing <= LABEL_MATCH_MEAN:
+            # Already spliced. Returning the bytes untouched keeps a re-run idempotent: re-encoding the
+            # same region from a lossy decode would perturb the blocks along the label's edge.
+            return mobile_raw
+        touched: set[tuple[int, int]] = set()
+        stride = width * 4
+        for y in range(rows[0], rows[1]):
+            target = y + offset
+            if not 0 <= target < device_height:
+                return None
+            source_at, target_at = y * stride + box[0] * 4, target * stride + box[0] * 4
+            length = (box[2] - box[0]) * 4
+            device_rgba[target_at:target_at + length] = catalog_rgba[source_at:source_at + length]
+            for x in range(box[0], box[2], bx):
+                touched.add((x // bx, target // by))
+        encoded = encode_astc(bytes(device_rgba), width, device_height, bx, by)
+        blocks_x = math.ceil(width / bx)
+        out = bytearray(mobile_raw)
+        for block_x, block_y in touched:
+            at = (block_y * blocks_x + block_x) * 16
+            out[at:at + 16] = encoded[at:at + 16]
+        return bytes(out)
     return None
 
 
@@ -120,6 +279,10 @@ def english_raw(mobile_raw: bytes, graphic: dict, catalog: Path) -> bytes | None
         return None
     layout = astc_layout(len(mobile_raw), width, height)
     if layout is None:
+        # The device revision is a different size from the catalog's record, so no block-for-block
+        # mapping exists. A whole-image replacement can still land, by moving just its label across.
+        if graphic["payload"].endswith(".assets"):
+            return splice_label(mobile_raw, graphic, catalog, width, height, fmt)
         return None
     bx, by = layout
     payload = (catalog / graphic["payload"]).read_bytes()

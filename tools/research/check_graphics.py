@@ -72,6 +72,102 @@ def ranges_of(graphic: dict) -> list[tuple[int, int]]:
     return [(offset, offset + length) for offset, length in graphic.get("patch_ranges", [])]
 
 
+def geometry_delta(raw_size: int, width: int, height: int) -> str:
+    """How a <raw_size>-byte device texture differs from the catalog's <width>x<height>.
+
+    A block count fixes the geometry only to within a block, so this reports a band: 7622 blocks
+    at 8x8 is 74x103 blocks, which is 585..592 by 817..824 pixels -- the catalog's 592x816 grid
+    plus one extra block row. Mapping a size back to one exact geometry would be a guess.
+    """
+    if raw_size % 16:
+        return f"{raw_size} B is not a whole number of 16-byte blocks"
+    blocks = raw_size // 16
+    best: tuple[int, str] | None = None
+    for bx, by in mg.ASTC_FOOTPRINTS:
+        cat_x, cat_y = math.ceil(width / bx), math.ceil(height / by)
+        if cat_x * cat_y == blocks:
+            return f"{blocks} blocks at {bx}x{by} is exactly the catalog geometry"
+        for nx in range(1, blocks + 1):
+            if blocks % nx:
+                continue
+            ny = blocks // nx
+            low_w, high_w = (nx - 1) * bx + 1, nx * bx
+            low_h, high_h = (ny - 1) * by + 1, ny * by
+            if not (low_w <= width <= high_w or low_h <= height <= high_h):
+                continue
+            cost = abs(nx - cat_x) + abs(ny - cat_y)
+            detail = (f"{blocks} blocks at {bx}x{by} = {low_w}..{high_w} x {low_h}..{high_h} px "
+                      f"({nx}x{ny} blocks; catalog geometry is {cat_x}x{cat_y})")
+            if best is None or cost < best[0]:
+                best = (cost, detail)
+    return best[1] if best else f"{blocks} blocks fit no geometry near {width}x{height}"
+
+
+def skip_reason(graphic: dict, raw_size: int, ported: bool) -> str | None:
+    """Why <graphic> could not be ported onto a <raw_size>-byte device texture, or None.
+
+    This explains a refusal that actually happened rather than predicting one. Whether a whole-image
+    replacement whose geometry moved can be rescued depends on data -- the label has to align -- so a
+    predictor would have to re-run the alignment to be right, and would drift from the code it mirrors.
+    """
+    if ported:
+        return None
+    width, height, fmt = mg._dimensions(graphic)
+    if not width or not height or fmt not in mg.PC_FORMATS:
+        return "no declared metadata"
+    layout = mg.astc_layout(raw_size, width, height)
+    if layout is None:
+        detail = f"geometry: {geometry_delta(raw_size, width, height)}"
+        if graphic["payload"].endswith(".assets"):
+            return (f"{detail}; the label splice did not land (no label_box, or the two images did "
+                    f"not align)")
+        return detail
+    if graphic["payload"].endswith(".blocks"):
+        if fmt == "rgba32" or (fmt == "bc7" and layout == (4, 4)):
+            return None
+        return f"{fmt} .blocks on a {layout[0]}x{layout[1]} texture"
+    return "english_raw returned nothing for a texture it should have replaced"
+
+
+def label_block_boxes(graphic: dict, raw_size: int) -> list[tuple[int, int, int, int]]:
+    """Per candidate block footprint, the block box (x0, y0, x1, y1) a splice could touch.
+
+    The alignment offset is data-dependent, so each box carries ``ALIGNMENT_SEARCH`` blocks of slack.
+    Only the label's blocks may differ after a splice -- the whole-image analogue of ``patch_ranges``,
+    and the invariant ``check_game`` asserts on a real device texture.
+    """
+    width, height, _fmt = mg._dimensions(graphic)
+    box = graphic.get("label_box")
+    rows = mg.label_rows(graphic, height) if box else None
+    if rows is None or not width:
+        return []
+    return [
+        (box[0] // bx,
+         max(0, rows[0] - mg.ALIGNMENT_SEARCH) // by,
+         (box[2] - 1) // bx,
+         (rows[1] - 1 + mg.ALIGNMENT_SEARCH) // by)
+        for _device_height, bx, by in mg.offset_layouts(raw_size, width, height)
+    ]
+
+
+def changed_blocks_outside(graphic: dict, raw: bytes, new: bytes, width: int,
+                           bx: int, by: int) -> int:
+    """Changed 16-byte blocks falling outside any box the label could occupy, or -1 if unknowable."""
+    boxes = label_block_boxes(graphic, len(raw))
+    if not boxes:
+        return -1
+    blocks_x = math.ceil(width / bx)
+    outside = 0
+    for index in range(0, min(len(raw), len(new)), 16):
+        if raw[index:index + 16] == new[index:index + 16]:
+            continue
+        position = index // 16
+        block_x, block_y = position % blocks_x, position // blocks_x
+        if not any(x0 <= block_x <= x1 and y0 <= block_y <= y1 for x0, y0, x1, y1 in boxes):
+            outside += 1
+    return outside
+
+
 def outside_ranges(raw: bytes, new: bytes, ranges: list[tuple[int, int]]) -> int:
     return sum(
         1 for index, (before, after) in enumerate(zip(raw, new))
@@ -248,61 +344,202 @@ def check_unsupported(catalog) -> None:
 # --------------------------------------------------------------------------------------------
 # 8. the real device bytes
 # --------------------------------------------------------------------------------------------
-def check_game(catalog, game: pathlib.Path) -> None:
-    print(f"\n[8] real device bytes from {game}")
+def device_rows(catalog, game: pathlib.Path) -> list[dict]:
+    """One row per catalog entry: where the dump carries it and what the port does with it.
+
+    Every entry gets a row, including the ones the dump does not carry at all. Those are the
+    point: a catalog entry with no device counterpart can never be applied, and an aggregate
+    count cannot tell you that.
+    """
     from device_extensions import _read_chunks  # noqa: PLC0415
+
+    packages, _ = adaptive.discover(game, catalog)
+    present: dict[int, tuple] = {}
+    owner: dict[int, str] = {}
+    for package in packages:
+        slots = package.build_slot_map()
+        for file_hash in package.entries:
+            if file_hash in catalog.graphics and file_hash in slots:
+                present.setdefault(file_hash, (package, slots[file_hash]))
+                owner.setdefault(file_hash, package.package_id)
+
+    rows = []
+    for file_hash, graphic in catalog.graphics.items():
+        width, height, fmt = mg._dimensions(graphic)
+        row = {
+            "hash": f"{file_hash:016X}",
+            "label": graphic.get("label") or "?",
+            "kind": graphic["payload"].rsplit(".", 1)[-1],
+            "geometry": f"{width}x{height} {fmt}" if width and height else "no metadata",
+            "declared": graphic.get("package") or "-",
+            "owner": owner.get(file_hash, "-"),
+            "present": file_hash in present,
+            "raw": None,
+            "outcome": "absent",
+            "detail": "",
+        }
+        if row["present"]:
+            _package, chunks = present[file_hash]
+            row["raw"] = b"".join(mg.oodle_decompress(payload, slot.uncompressed_size)
+                                  for slot, payload in _read_chunks(chunks))
+            new = mg.english_raw(row["raw"], graphic, CATALOG)
+            ported = new is not None and len(new) == len(row["raw"])
+            reason = skip_reason(graphic, len(row["raw"]), ported)
+            if reason is not None:
+                row["outcome"] = "skipped"
+                row["detail"] = reason
+            elif new == row["raw"]:
+                row["outcome"] = "already English"
+            elif graphic["payload"].endswith(".blocks"):
+                row["outcome"] = "ported"
+                row["outside"] = outside_ranges(row["raw"], new, ranges_of(graphic))
+            elif mg.astc_layout(len(row["raw"]), *mg._dimensions(graphic)[:2]):
+                row["outcome"] = "replaced"
+            else:
+                # The device revision is a different size, so the whole-image replacement was landed
+                # by moving just the label across. Only the label's blocks may have changed.
+                row["outcome"] = "spliced"
+                width, _catalog_height, _fmt = mg._dimensions(graphic)
+                footprint = mg.offset_layouts(len(row["raw"]), width, _catalog_height)
+                row["outside"] = (changed_blocks_outside(graphic, row["raw"], new, width, footprint[0][1],
+                                                        footprint[0][2])
+                                  if footprint else -1)
+                row["idempotent"] = mg.english_raw(new, graphic, CATALOG) == new
+        rows.append(row)
+    rows.sort(key=lambda r: (r["outcome"], r["label"], r["hash"]))
+    return rows
+
+
+def check_game(catalog, game: pathlib.Path, *, table: bool = False) -> None:
+    print(f"\n[8] real device bytes from {game}")
     from qts_relocate import install_btree_slot_map  # noqa: PLC0415
 
     # Without this a re-run over an already-patched dump reads the superseded chunks the relocation
     # left behind, the same way the stock scanner does, so every texture would look unpatched.
     install_btree_slot_map()
-    packages, _ = adaptive.discover(game, catalog)
-    present: dict[int, tuple] = {}
-    for package in packages:
-        slots = package.build_slot_map()
-        for file_hash in package.entries:
-            if file_hash in catalog.graphics and file_hash in slots:
-                present[file_hash] = (package, slots[file_hash])
-    check("the dump carries catalog textures", bool(present), f"{len(present)} across "
-          f"{sorted({p.package_id for p, _ in present.values()})}")
+    rows = device_rows(catalog, game)
 
-    bad_outside = 0
-    patched = replaced = unchanged = unsupported = 0
-    skipped: list[str] = []
-    footprints: dict[tuple[int, int] | None, int] = {}
-    for file_hash, (_package, chunks) in present.items():
-        graphic = catalog.graphics[file_hash]
-        # Every chunk, not just the first: a 1024x1024 texture spans four of them.
-        raw = b"".join(mg.oodle_decompress(payload, slot.uncompressed_size)
-                       for slot, payload in _read_chunks(chunks))
-        width, height, _dim = mg._dimensions(graphic)
-        layout = mg.astc_layout(len(raw), width, height)
-        footprints[layout] = footprints.get(layout, 0) + 1
-        new = mg.english_raw(raw, graphic, CATALOG)
-        if new is None or len(new) != len(raw):
-            # A patch that will not port onto this texture's footprint. By design that is a skip,
-            # not a failure -- english_raw must never raise for a texture it cannot handle.
-            unsupported += 1
-            skipped.append(f"{file_hash:016X}@{len(raw)}B@{layout or 'no footprint'}")
-            continue
-        if new == raw:
-            unchanged += 1
-            continue
-        if graphic["payload"].endswith(".blocks"):
-            patched += 1
-            if outside_ranges(raw, new, ranges_of(graphic)):
-                bad_outside += 1
-        else:
-            replaced += 1
-    check("the device footprints resolve from the real raw sizes", None not in footprints,
-          ", ".join(f"{'x'.join(map(str, k)) if k else 'none'}: {v}"
-                    for k, v in sorted(footprints.items(), key=lambda kv: -kv[1])))
+    by_outcome: dict[str, list[dict]] = {}
+    for row in rows:
+        by_outcome.setdefault(row["outcome"], []).append(row)
+    reachable = [r for r in rows if r["present"]]
+
+    check("the dump carries catalog textures", bool(reachable), f"{len(reachable)} of {len(rows)}")
+
+    # The per-entry table. Absent and skipped rows are what a run cannot translate, so they are
+    # printed by default; the 300-odd applied rows are available with --table.
+    interesting = [r for r in rows if r["outcome"] in ("absent", "skipped")]
+    shown = rows if table else interesting
+    if shown:
+        print(f"  {'hash':<17}{'kind':<8}{'catalog geometry':<18}{'decl':<6}{'owner':<7}"
+              f"{'raw':>8}  label")
+        for row in shown:
+            raw = str(len(row["raw"])) if row["raw"] else "-"
+            print(f"  {row['hash']:<17}{row['kind']:<8}{row['geometry']:<18}{row['declared']:<6}"
+                  f"{row['owner']:<7}{raw:>8}  {row['label']}")
+            if row["detail"]:
+                print(f"      {row['outcome']}: {row['detail']}")
+
+    for outcome in ("ported", "replaced", "spliced", "already English", "skipped", "absent"):
+        count = len(by_outcome.get(outcome, []))
+        if count:
+            print(f"  {outcome}: {count}")
+
+    bad_outside = sum(1 for row in by_outcome.get("ported", []) if row.get("outside"))
     check("patch textures change nothing outside patch_ranges", bad_outside == 0,
-          f"{patched} ported, {replaced} replaced wholesale")
-    check("every present texture is ported, already English, or a documented skip",
-          patched + replaced + unchanged + unsupported == len(present),
-          f"{patched} ported, {replaced} replaced, {unchanged} already English, "
-          f"{unsupported} skipped" + (f" {skipped}" if skipped else ""))
+          f"{len(by_outcome.get('ported', []))} ported, "
+          f"{len(by_outcome.get('replaced', []))} replaced wholesale")
+
+    spliced = by_outcome.get("spliced", [])
+    stray = [r["hash"] for r in spliced if r.get("outside")]
+    check("a label splice touches only the label's blocks", not stray,
+          f"{len(spliced)} spliced" + (f", stray bytes in {stray}" if stray else ""))
+    not_idempotent = [r["hash"] for r in spliced if not r.get("idempotent")]
+    check("a label splice over its own output changes nothing", not not_idempotent,
+          f"{len(spliced)} spliced" + (f", {not_idempotent} not idempotent" if not_idempotent else ""))
+
+    accounted = sum(len(by_outcome.get(o, []))
+                    for o in ("ported", "replaced", "spliced", "already English", "skipped"))
+    check("every texture the dump carries is ported, already English, or a documented skip",
+          accounted == len(reachable),
+          f"{len(by_outcome.get('ported', []))} ported, {len(by_outcome.get('replaced', []))} "
+          f"replaced, {len(spliced)} spliced, "
+          f"{len(by_outcome.get('already English', []))} already English, "
+          f"{len(by_outcome.get('skipped', []))} skipped; {len(by_outcome.get('absent', []))} of "
+          f"{len(rows)} catalog entries have no device counterpart")
+
+
+# --------------------------------------------------------------------------------------------
+# 9. the label splice, on a synthetic device revision
+# --------------------------------------------------------------------------------------------
+def synthetic_revision(graphic, extra_rows: int, label_fill: tuple[int, int, int, int]) -> bytes:
+    """The catalog's art re-cut taller by <extra_rows>, carrying a different label.
+
+    Builds the situation the splice exists for, without a device dump: same art, moved geometry,
+    and a label that is not the catalog's -- so the English pixels are genuinely absent.
+    """
+    width, height, fmt = mg._dimensions(graphic)
+    rgba = bytearray(mg.decode_pc((CATALOG / graphic["payload"]).read_bytes(), width, height, fmt))
+    rows, box = mg.label_rows(graphic, height), graphic["label_box"]
+    stride = width * 4
+    for y in range(rows[0], rows[1]):
+        for x in range(box[0], box[2]):
+            at = y * stride + x * 4
+            rgba[at:at + 4] = bytes(label_fill)
+    grown = bytearray(extra_rows * stride) + rgba
+    return mg.encode_astc(bytes(grown), width, height + extra_rows, 8, 8)
+
+
+def check_splice(catalog) -> None:
+    print("\n[9] the label splice, on a synthetic device revision")
+    graphic = next(g for g in catalog.graphics.values()
+                   if g["payload"].endswith(".assets") and g.get("label_box")
+                   and mg._dimensions(g)[:2] == (568, 304))
+    width, height, fmt = mg._dimensions(graphic)
+    extra = 8
+    device_raw = synthetic_revision(graphic, extra, (0, 0, 0, 255))
+    check("the synthetic revision is a different size from the catalog's",
+          mg.astc_layout(len(device_raw), width, height) is None,
+          f"catalog 568x304, revision {len(device_raw)} B")
+
+    spliced = mg.english_raw(device_raw, graphic, CATALOG)
+    check("the splice lands a texture astc_layout refuses", spliced is not None,
+          "None" if spliced is None else f"{len(spliced)} B")
+    if spliced is None:
+        return
+    check("the splice keeps the length", len(spliced) == len(device_raw),
+          f"{len(spliced)} vs {len(device_raw)}")
+
+    boxes = label_block_boxes(graphic, len(device_raw))
+    footprint = mg.offset_layouts(len(device_raw), width, height)
+    outside = (changed_blocks_outside(graphic, device_raw, spliced, width, footprint[0][1], footprint[0][2])
+               if footprint else -1)
+    check("it touches only the label's blocks", outside == 0, f"{outside} stray blocks in {boxes}")
+
+    # The label the device now carries must be the catalog's, measured the same way the code decides.
+    catalog_rgba = mg.decode_pc((CATALOG / graphic["payload"]).read_bytes(), width, height, fmt)
+    revision_height = height + extra
+    rows, box = mg.label_rows(graphic, height), graphic["label_box"]
+    before = mg._label_diff(catalog_rgba, mg.decode_astc(device_raw, width, revision_height, 8, 8),
+                            width, revision_height, rows, box, extra)
+    after = mg._label_diff(catalog_rgba, mg.decode_astc(spliced, width, revision_height, 8, 8),
+                           width, revision_height, rows, box, extra)
+    check("the spliced label is the catalog's, and the original was not",
+          after is not None and before is not None and after <= mg.LABEL_MATCH_MEAN < before,
+          f"before {before:.1f}, after {after:.1f}, threshold {mg.LABEL_MATCH_MEAN}")
+
+    check("a re-run over the splice changes nothing",
+          mg.english_raw(spliced, graphic, CATALOG) == spliced)
+    check("the splice is deterministic",
+          mg.english_raw(device_raw, graphic, CATALOG) == spliced)
+
+    # Negative: unrelated art at a mismatched geometry must be refused, not spliced blindly.
+    noise = bytes((index * 37 + 11) % 256 for index in range(len(device_raw)))
+    check("unrelated bytes at a mismatched geometry are refused",
+          mg.english_raw(noise, graphic, CATALOG) is None)
+    # Negative: no label_box means there is nothing to splice, so it stays a skip.
+    check("a replacement with no label_box is still skipped",
+          mg.english_raw(device_raw, {**graphic, "label_box": None}, CATALOG) is None)
 
 
 def main() -> int:
@@ -312,6 +549,9 @@ def main() -> int:
                              "holding WXQ_Data/Package/builtin (not a staged output)")
     parser.add_argument("--skip-slow", action="store_true",
                         help="skip the whole-catalog ASTC replay checks")
+    parser.add_argument("--table", action="store_true",
+                        help="print every catalog texture's device row, not just the absent/skipped "
+                             "ones (needs --game)")
     args = parser.parse_args()
 
     start = time.perf_counter()
@@ -323,6 +563,7 @@ def main() -> int:
     check_missing_metadata(catalog)
     check_codec()
     check_layout(catalog)
+    check_splice(catalog)
     if args.skip_slow:
         print("\n[5][6][7] skipped (--skip-slow)")
     else:
@@ -330,7 +571,7 @@ def main() -> int:
         check_full_replacement(catalog)
         check_unsupported(catalog)
     if args.game:
-        check_game(catalog, args.game)
+        check_game(catalog, args.game, table=args.table)
 
     print(f"\n{time.perf_counter() - start:.1f}s")
     if FAILURES:
