@@ -1,14 +1,59 @@
 ---
 feature: text-drop-report
-status: in-progress
+status: delivered
 updated: 2026-09-30
 branch: feat/text-drop-report
-commits:
+commits: 9a276c3..8d0704c
 ---
 
 # Text Drop Report
 
 ## Report
+
+**What was built** — a run now says which translated text tables it could not stage. `build_patch`
+writes `text_skipped` into the payload it returns and into `output/device_patch_summary.json`: one
+entry per package that lost at least one of its translated tables, carrying `package_id`, `mode`,
+`considered_count`, `dropped_count` and the dropped hashes, plus a log line per such package. A package
+that stages nothing gets an entry covering its whole plan, so the case that previously left only a log
+line is in the summary too. `count_untranslated_text` sums it, and both GUI count sites report it: the
+`translate` step's detail and the final message. The field names stay distinct from `graphics_skipped`'s
+so that no accessor sums textures and tables into a total that means nothing.
+
+Staging is untouched: the retry loop, the drop order and which tables are sacrificed are exactly as they
+were, and `fit_summary.dropped_while_staging` keeps its meaning as the retry loop's diagnostic. The one
+reporting change beyond the new field is that a run which installs nothing no longer says "already
+installed" while it lost tables — `Patcher.build_translation` reports the counts it has, and
+`App.worker` opens with "Nothing new to install." in that state.
+
+**Verification** — `.venv\Scripts\python.exe -m py_compile` on the three changed Python files: PASS.
+`Patcher.build_translation` driven through a stub `Ui` against the freshly pulled 1.4.0.1 data
+(`sessions/20260930-102304/game`, ~4 minutes): `text_skipped` = one entry, package `1`, `full`,
+`considered_count` 92, `dropped_count` 11, `dropped` equal to the independently reproduced drop set;
+`count_translated` (81, 323); `count_untranslated_text` 11; step detail `81 text tables, 323 images, 11
+text tables left in Chinese`; the on-disk summary carries the field; and every file of packages 1/15/19/20
+was byte-identical before and after the run (sha256 compared). The same procedure against the
+already-patched dump: package `1` stages nothing, its entry reads 15 of 15, the step detail reads
+`0 text tables, 322 images, 15 text tables left in Chinese`, and the game data is again byte-identical.
+12 wording assertions through the real `Patcher.build_translation` and the real `App.worker` with stubbed
+inputs: PASS, covering the no-loss and textures-only cases (unchanged), singular and plural, a summary
+with no `text_skipped` key at all, and the nothing-staged-with-loss path. Independent review of
+`9a276c3..b5cd724` found no critical issues, and of the follow-up `b5cd724..9c39a1d` found no regression;
+`8d0704c` is prose only and changes no logic.
+
+**Journey log**
+
+- The names were never a catalog gap: the catalog maps 瑶妹→Yaria, 白歌→Bai Ge, 姜导→Director Jiang, and
+  the runtime translates every occurrence of each. The loss happens at staging, which is why the
+  catalog and the runtime both looked innocent.
+- Every table the drop loop gives up on is chessplayer domain: 11 of 92 on a fresh pull and 15 of 92 on
+  the older data, all Chessplayer/Skill/Talent/Secret text, with the two 600 KB tables dropped on every
+  run on disk. That domain-shaped loss is what makes one screen Chinese while its neighbours are English.
+- `fit_summary.dropped_while_staging` already held the answer and nothing read it. Its victim list agrees
+  set-for-set with plan-minus-staged, which is the cross-check that makes `dropped` trustworthy.
+- Deliberately not chased: which record the screen actually renders. That needs the game's own code or a
+  phone experiment, and the report is worth having without it.
+- `git worktree add` is blocked by this session's sandbox, so the branch was cut in place — after
+  committing the in-flight texture work, which is what kept the tree clean enough to do that.
 
 ## [S1] Problem
 
@@ -90,6 +135,6 @@ AGENTS.md already calls out for textures, and which `graphics_skipped` fixed the
 
 ## Tasks
 
-- [ ] T1: Add `text_skipped` to `build_patch`'s summary and log a line per package that lost tables — acceptance: on the 10:23 session dump a run writes `text_skipped` with one entry, `considered_count` 92 and 11 dropped hashes equal to the reproduced drop set, and the log names the package (covers: S2)
-- [ ] T2: Add `count_untranslated_text` and wire both GUI sites — acceptance: the `translate` step detail and the final message each state how many text tables stay in Chinese, and with an empty `text_skipped` both read exactly as they do today (covers: S2; depends: T1)
-- [ ] T3: Update AGENTS.md's `build_patch` contract and the README run description — acceptance: the documented payload lists `text_skipped` with its entry fields, and the constraints section says the text side reports what it could not apply (covers: S2; depends: T1)
+- [x] T1: Add `text_skipped` to `build_patch`'s summary and log a line per package that lost tables — acceptance: on the 10:23 session dump a run writes `text_skipped` with one entry, `considered_count` 92 and 11 dropped hashes equal to the reproduced drop set, and the log names the package (covers: S2)
+- [x] T2: Add `count_untranslated_text` and wire both GUI sites — acceptance: the `translate` step detail and the final message each state how many text tables stay in Chinese, and with an empty `text_skipped` both read exactly as they do today (covers: S2; depends: T1)
+- [x] T3: Update AGENTS.md's `build_patch` contract and the README run description — acceptance: the documented payload lists `text_skipped` with its entry fields, and the constraints section says the text side reports what it could not apply (covers: S2; depends: T1)
