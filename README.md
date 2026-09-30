@@ -175,7 +175,9 @@ texture by eye when the hash alone does not say what it is:
 wide Card Info panels. `--floor-only` needs no dump: it reprints the family and measures what a genuine
 sibling of it scores at each device footprint, which is the baseline the search is judged against. With
 `--game` it censuses the dump and scores every 568x304-shaped texture in it against all 27 payloads,
-near-misses included, so a weak match is visible as a weak match:
+near-misses included, so a weak match is visible as a weak match. Like every tool that takes a dump, its
+census covers the downloaded layer only — read the coverage section above before drawing a conclusion
+about the build from a negative here:
 
 ```bat
 .venv\Scripts\python.exe tools\research\ribbon_id_hunt.py --floor-only
@@ -235,7 +237,10 @@ few minutes and writes about 350 MB.
   the APK's — so the rebuild reads those from the APK. One further entry, `56077AC5D3F0B677`, arrives
   declaring 7,597,568 bytes while its chunk stream holds 8,519,168. The rebuild carries the stream whole
   and records the length it carries, so that entry's declared size differs from the device's by 921,600
-  bytes even though the stream itself is byte-identical. It is the one place the rebuilt package differs
-  from the device's copy in a value the game may read, and only a device run settles whether it matters.
+  bytes even though the stream itself is byte-identical. Together with the 16-byte token derived from
+  that length, it is the only entry whose rebuilt form differs from the device's copy in a value the game
+  may read: every other entry keeps its bytes and its declared size, and the one field that differs
+  elsewhere is the record's own offset, which necessarily moves when the index is re-laid-out. Only a
+  device run settles whether the length matters.
 - Code injection into the APK and a "prebaked" APK with translated assets were both tried and fail
   (anti-cheat kill / `IsPrebuild errorCode:151`).

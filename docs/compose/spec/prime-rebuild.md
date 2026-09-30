@@ -107,9 +107,11 @@ One entry, `56077AC5D3F0B677`, arrives declaring 7,597,568 bytes while its 28-ch
 cannot both carry that stream whole and record the device's shorter figure. The stream is carried —
 dropping 921,600 bytes of data we do not understand is the worse guess — and the length it actually
 holds is recorded, which leaves the rebuilt entry self-consistent where the device's own copy is not.
-This is the one place a rebuilt package differs from the device's copy in a value the game may read,
-and only a device run settles whether it matters. The stream itself, which is what the game
-decompresses, is byte-identical.
+That length and the 16-byte token derived from it are the only values the rebuilt package differs from
+the device's copy in for any entry: every other entry keeps its bytes and its declared size, and the one
+field that differs elsewhere is the record's own offset, which necessarily moves when the index is
+re-laid-out. The stream itself — what the game decompresses — is byte-identical, and only a device run
+settles whether the recorded length matters.
 
 Before anything is staged, every asset is read back through the same `QtsPackage` code path the game
 data goes through and compared byte-for-byte, and the package node must equal the original's; any

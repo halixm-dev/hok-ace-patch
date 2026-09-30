@@ -151,7 +151,9 @@ def rebuild_package(package_id: str, device_dir: Path, prime_dir: Path, transfor
         new = transform(file_hash, raw) if raw else None
         graphics = file_hash in transform.graphics
         considered += graphics
-        if new is None:
+        if not new:
+            # Falsy covers both "no change" and empty bytes; the builder cannot store an empty file,
+            # and the device-entry loop above treats the same condition as unreadable.
             continue
         added += 1
         textures += graphics
