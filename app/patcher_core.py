@@ -30,7 +30,7 @@ SETTINGS = Path(os.environ.get("APPDATA", Path.home())) / "HOKAceEnglishPatcher"
 sys.path.append(str(BUNDLE / "runtime"))
 
 import apk_tools  # noqa: E402
-from axml_set_debuggable import patch as make_debuggable_manifest  # noqa: E402
+from axml_set_debuggable import is_debuggable, patch as make_debuggable_manifest  # noqa: E402
 from build_device_patch import build_patch  # noqa: E402
 from qts_builder import find_builder_dir  # noqa: E402
 
@@ -137,6 +137,12 @@ def check_work_dir(path: Path) -> None:
     if free < MIN_FREE_BYTES:
         raise PatchError(f"Not enough disk space in the working folder ({path}). At least 8 GB free is "
                          f"needed (currently {free / 1024**3:.1f} GB). Choose a folder on another drive.")
+
+
+def apk_is_debuggable(apk: Path) -> bool:
+    """True when the APK's manifest turns android:debuggable on."""
+    with zipfile.ZipFile(apk) as archive:
+        return is_debuggable(archive.read("AndroidManifest.xml"))
 
 
 class Ui(Protocol):
@@ -293,12 +299,31 @@ class Patcher:
         self.step("apk", "copying the APK from the phone (~2 GB)")
         remote_size = int(self.adb.shell(f"stat -c %s '{remote_path}'").split()[0])
         local = self.work / "installed.apk"
-        if not local.exists() or local.stat().st_size != remote_size:
+        access = self.work / "access.apk"
+        # A run interrupted between installing the access APK and restoring the game APK leaves our
+        # own debuggable copy on the phone. It differs from the cached one by a byte, so the size test
+        # below would pull it in and cache it as the game APK, and every later restore would install a
+        # debug build. While the phone runs the access APK we built, the cache stays the source.
+        needs_copy = not local.exists() or local.stat().st_size != remote_size
+        if needs_copy and access.exists() and remote_size == access.stat().st_size:
+            self.log("The phone is still running the temporary access APK; using the cached game APK.")
+            needs_copy = False
+        if needs_copy:
             partial = self.work / "installed.apk.part"
             self.adb.run("pull", remote_path, str(partial))
             partial.replace(local)
         else:
             self.log("APK already cached, skipping the copy.")
+        if apk_is_debuggable(local):
+            # Only the debug flag separates this file from the game's own APK, so clearing it rebuilds
+            # the original. Coming back from a cache an older run already poisoned needs this, and a
+            # debug build left in the cache would make every restore install a game that cannot start.
+            self.log("The cached APK carries the debug flag; rebuilding it without it.")
+            clean = self.work / "normal-clean.apk"
+            with zipfile.ZipFile(local) as archive:
+                manifest = make_debuggable_manifest(archive.read("AndroidManifest.xml"), debuggable=False)
+            self.build_signed(local, clean, {"AndroidManifest.xml": manifest})
+            clean.replace(local)
         cert = (BUNDLE / "key" / "cert.der").read_bytes()
         if apk_tools.signed_with(local, cert):
             self.log("The game uses the patcher-signed APK (signature matches).")

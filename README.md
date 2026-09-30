@@ -41,6 +41,11 @@ If `py -3.12` is not available: `set PYTHON=C:\path\to\python3.12.exe` before `s
    (`tools/build_device_patch.py`), pushes them back and verifies them.
 3. Reinstalls the normal re-signed APK.
 
+The debuggable copy must never be left installed: the game dies a few seconds into Unity startup
+under it (measured on device, signal 7, bus error), so an interrupted run looks like a broken patch.
+`patcher_core` recognises its own access APK and refuses to cache it as the game APK, which is how a
+run that dies between steps 1 and 3 recovers.
+
 The game's data has two layers, and the patcher writes to the second one:
 
 | layer | where | contents |

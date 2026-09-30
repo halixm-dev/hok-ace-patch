@@ -202,6 +202,16 @@ def patch(manifest: bytes, debuggable: bool = True) -> bytes:
     return struct.pack("<HHI", RES_XML, file_header_size, file_header_size + len(out)) + out
 
 
+def is_debuggable(manifest: bytes) -> bool:
+    """True when <application> already turns android:debuggable on.
+
+    patch() leaves a manifest byte-identical when the flag is already the value asked for, so this
+    is exact: asking for true changes nothing only if it was true. A manifest with no debug attribute
+    at all comes back changed, which is what keeps the official build from reading as debuggable.
+    """
+    return patch(manifest, debuggable=True) == manifest
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
