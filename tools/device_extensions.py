@@ -5,6 +5,11 @@ Oodle blocks. A package is never re-laid-out: new chunks would need lookup keys 
 builder can derive, so every asset keeps its chunk count and each changed chunk is appended to the
 shard and repointed in its B-tree by ``qts_relocate.Shard``.
 
+A texture the codec cannot handle — an unreadable footprint, or a device revision whose geometry no
+longer matches the catalog's record — is skipped, never raised. ``port_graphics`` reports those skips
+and ``extend_graphics`` returns them in a list of their own, so a package whose every texture was
+skipped is visible in the run's summary even though it contributes no output directory.
+
 The text passes the reference implementation also carries — relocated text tables and the extra-text
 / romanised-name coverage — are not part of this pass.
 """
@@ -37,23 +42,28 @@ def _read_chunks(slots: dict) -> list[tuple[object, bytes]]:
     return chunks
 
 
-def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> int:
-    """Apply every catalog texture edit that exists in <package>; return textures written."""
+def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dict:
+    """Apply every catalog texture edit that exists in <package>.
+
+    Returns ``{"considered": n, "written": n, "skipped": [hash, ...]}``. A package whose every edit
+    is skipped writes nothing and creates no output directory, but still reports what it skipped:
+    a texture the codec refuses is otherwise invisible in the run's summary.
+    """
     import mobile_graphics as mg
     from wxq_patch.qtsvfs import QtsPackage
 
     wanted = [file_hash for file_hash in package.entries if file_hash in catalog.graphics]
     if not wanted:
-        return 0
+        return {"considered": 0, "written": 0, "skipped": []}
     source_slots = package.build_slot_map()
     pending: list[tuple[int, list, bytes]] = []
-    unsupported = 0
+    skipped: list[str] = []
     for file_hash in wanted:
         chunks = _read_chunks(source_slots.get(file_hash, {}))
         raw = b"".join(mg.oodle_decompress(payload, slot.uncompressed_size) for slot, payload in chunks)
         new = mg.english_raw(raw, catalog.graphics[file_hash], catalog_dir)
         if new is None or len(new) != len(raw):
-            unsupported += 1
+            skipped.append(f"{file_hash:016X}")
         elif new != raw:  # equal means already English (patcher re-run)
             pending.append((file_hash, chunks, new))
     written = len(pending)
@@ -70,27 +80,41 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> int
                 shard.relocate(target_slots[file_hash][slot.chunk_id], mg.oodle_stored(piece), len(piece))
         shard.save()
     log(f"package {package.package_id}: {written} textures translated"
-        + (f", {unsupported} skipped (format not supported)" if unsupported else ""))
-    return written
+        + (f", {len(skipped)} of {len(wanted)} skipped ({', '.join(skipped)})" if skipped else ""))
+    return {"considered": len(wanted), "written": written, "skipped": skipped}
 
 
-def extend_graphics(game: Path, catalog_dir: Path, output: Path, log) -> list[dict]:
-    """Apply texture edits across every discovered package; return summary entries.
+def extend_graphics(game: Path, catalog_dir: Path, output: Path, log) -> tuple[list[dict], list[dict]]:
+    """Apply texture edits across every discovered package.
 
     Packages are discovered afresh rather than taken from the text scan's plans: a texture-heavy
     package usually stages no text at all, so the scan never lists it.
+
+    Returns two lists: the summary entries for packages that wrote something, and the entries for
+    packages whose every edit was skipped. The second list is kept out of ``packages`` on purpose --
+    it has no output directory behind it, and the installer pushes by directory, so a skipped-only
+    package must not look like a result.
     """
     from wxq_patch import adaptive
 
     catalog = adaptive.load_catalog(catalog_dir)
     packages, _skipped = adaptive.discover(game, catalog)
     reports = []
+    skipped = []
     for package in packages:
-        count = port_graphics(package, catalog, catalog_dir, output, log)
-        if count:
+        report = port_graphics(package, catalog, catalog_dir, output, log)
+        if report["written"]:
             reports.append({
                 "package_id": package.package_id,
                 "mode": "graphics",
-                "stage_report": {"status": "relocated", "replacement_count": count},
+                "stage_report": {"status": "relocated", "replacement_count": report["written"]},
             })
-    return reports
+        elif report["skipped"]:
+            skipped.append({
+                "package_id": package.package_id,
+                "mode": "graphics",
+                "skipped_count": len(report["skipped"]),
+                "considered_count": report["considered"],
+                "skipped": report["skipped"],
+            })
+    return reports, skipped

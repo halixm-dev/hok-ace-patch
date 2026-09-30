@@ -59,6 +59,15 @@ def count_translated(summary: dict) -> tuple[int, int]:
     return text, images
 
 
+def count_untranslated_graphics(summary: dict) -> int:
+    """Textures the run found but could not translate, so they stay in Chinese.
+
+    These live in build_patch's separate `graphics_skipped` list, not in `packages`: a package whose
+    every texture was skipped writes no directory, and the installer pushes by directory.
+    """
+    return sum(entry.get("skipped_count", 0) for entry in summary.get("graphics_skipped", []))
+
+
 class PatchError(Exception):
     """Expected failure with a message meant for the user."""
 
@@ -360,7 +369,11 @@ class Patcher:
             self.done("translate", "already installed")
             return summary, None
         text, images = count_translated(summary)
-        self.done("translate", f"{text} text tables, {images} images")
+        skipped = count_untranslated_graphics(summary)
+        detail = f"{text} text tables, {images} images"
+        if skipped:
+            detail += f", {skipped} left in Chinese"
+        self.done("translate", detail)
         return summary, staged
 
     def push_translation(self, staged: Path) -> None:

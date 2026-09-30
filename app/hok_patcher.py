@@ -13,7 +13,7 @@ import customtkinter as ctk
 from PIL import Image
 
 from patcher_core import (BUNDLE, MIN_FREE_BYTES, STEPS, Adb, PatchError, Patcher, build_patch, count_translated,
-                          free_space, load_work_dir, save_work_dir)
+                          count_untranslated_graphics, free_space, load_work_dir, save_work_dir)
 
 APP_TITLE = "HOK ACE Mobile English Patcher"
 APP_VERSION = "1.1"
@@ -324,8 +324,12 @@ class App(ctk.CTk):
         try:
             summary = Patcher(self, self.work_dir).run()
             text, images = count_translated(summary)
+            skipped = count_untranslated_graphics(summary)
             detail = (f"{text} text tables and {images} images translated. " if text or images
                       else "The translation was already installed. ")
+            if skipped:
+                detail += (f"{skipped} image{'s' if skipped != 1 else ''} could not be translated "
+                           "and stay in Chinese. ")
             self.messages.put(("done", (True, detail + "Open the game on your phone.\n\nLogin: use 'Scan to login' "
                                         "(the direct WeChat/QQ buttons do not work). With one phone: screenshot the QR code, "
                                         "open WeChat in split screen and scan it from the gallery.")))

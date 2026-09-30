@@ -181,12 +181,14 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
             "stage_report": report,
         })
         log(f"package {package.package_id}: {mode} {report['status']} ({report['replacement_count']} assets)")
-    packages += extend_graphics(game, catalog, output, log)
+    graphics, graphics_skipped = extend_graphics(game, catalog, output, log)
+    packages += graphics
     summary = {
         "counts": dict(counts),
         "skipped_count": len(skipped),
         "fit_only": fit_only_mode,
         "packages": packages,
+        "graphics_skipped": graphics_skipped,
     }
     (output / "device_patch_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     log(json.dumps(summary["counts"], indent=2))
