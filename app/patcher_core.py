@@ -72,7 +72,7 @@ def count_untranslated_text(summary: dict) -> int:
     """Text tables the run translated but could not stage, so they stay in Chinese.
 
     These live in build_patch's `text_skipped` list. A package that loses tables can still have an
-    output directory behind it -- and one that loses all of them has none -- so `packages` alone
+    output directory behind it — and one that loses all of them has none — so `packages` alone
     cannot say what did not make it.
     """
     return sum(entry.get("dropped_count", 0) for entry in summary.get("text_skipped", []))
@@ -387,8 +387,8 @@ class Patcher:
         detail = f"{text} text tables, {images} images"
         if untranslated:
             detail += ", " + " and ".join(untranslated) + " left in Chinese"
-        # "already installed" says there is nothing to report, so a run that installs nothing still
-        # names the tables it could not stage rather than hiding them behind that phrase.
+        # "already installed" claims there is nothing to report, so a run that installs nothing and
+        # still lost tables names them instead.
         self.done("translate", detail if (text or images or dropped_text) else "already installed")
         return summary, staged if summary["packages"] else None
 
