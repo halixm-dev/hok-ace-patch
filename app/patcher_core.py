@@ -68,6 +68,16 @@ def count_untranslated_graphics(summary: dict) -> int:
     return sum(entry.get("skipped_count", 0) for entry in summary.get("graphics_skipped", []))
 
 
+def count_untranslated_text(summary: dict) -> int:
+    """Text tables the run translated but could not put in the package, so they stay in Chinese.
+
+    These live in build_patch's `text_skipped` list. Unlike `graphics_skipped` the packages there do
+    have an output directory: the loss is the part of it that never made it in, which is why the
+    summary reports what did land and this reports what did not.
+    """
+    return sum(entry.get("dropped_count", 0) for entry in summary.get("text_skipped", []))
+
+
 class PatchError(Exception):
     """Expected failure with a message meant for the user."""
 
@@ -369,10 +379,16 @@ class Patcher:
             self.done("translate", "already installed")
             return summary, None
         text, images = count_translated(summary)
+        left = []
+        dropped_text = count_untranslated_text(summary)
+        if dropped_text:
+            left.append(f"{dropped_text} text table{'s' if dropped_text != 1 else ''}")
         skipped = count_untranslated_graphics(summary)
-        detail = f"{text} text tables, {images} images"
         if skipped:
-            detail += f", {skipped} left in Chinese"
+            left.append(f"{skipped} image{'s' if skipped != 1 else ''}")
+        detail = f"{text} text tables, {images} images"
+        if left:
+            detail += ", " + " and ".join(left) + " left in Chinese"
         self.done("translate", detail)
         return summary, staged
 

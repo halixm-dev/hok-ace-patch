@@ -13,7 +13,8 @@ import customtkinter as ctk
 from PIL import Image
 
 from patcher_core import (BUNDLE, MIN_FREE_BYTES, STEPS, Adb, PatchError, Patcher, build_patch, count_translated,
-                          count_untranslated_graphics, free_space, load_work_dir, save_work_dir)
+                          count_untranslated_graphics, count_untranslated_text, free_space, load_work_dir,
+                          save_work_dir)
 
 APP_TITLE = "HOK ACE Mobile English Patcher"
 APP_VERSION = "1.1"
@@ -327,6 +328,10 @@ class App(ctk.CTk):
             skipped = count_untranslated_graphics(summary)
             detail = (f"{text} text tables and {images} images translated. " if text or images
                       else "The translation was already installed. ")
+            dropped_text = count_untranslated_text(summary)
+            if dropped_text:
+                detail += (f"{dropped_text} text table{'s' if dropped_text != 1 else ''} could not be "
+                           "applied and stay in Chinese. ")
             if skipped:
                 detail += (f"{skipped} image{'s' if skipped != 1 else ''} could not be translated "
                            "and stay in Chinese. ")

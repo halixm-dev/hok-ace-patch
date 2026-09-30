@@ -91,6 +91,14 @@ them card-shaped, and the catalog's 299 entries at that shape are the **hero** c
 Talent, skill and effect cards, whose bottom band carries a type word or a card name rather than a
 faction, and which the catalog does not translate at all.
 
+The text pass can also lose tables at the container. Replacing a table with a longer one needs room in
+the package's shard, and when the shard has none the staging loop drops that table and restages with
+what is left. On the game data used to develop this, package `1` stages 81 of its 92 translated tables
+and drops 11 — every one of them a chessplayer skill, talent or secret-skill table — and those tables
+stay Chinese. The run reports them instead of looking clean: `text_skipped` in
+`device_patch_summary.json`, a line in the run log, and the count in the app's `translate` step and in
+its final message.
+
 Resource tokens such as `{Energy}`, `{LordExp}` and `{LordHp}` are expanded to English terms
 (`Energy`, `Chessplayer EXP`, `Chessplayer HP`) in the staged packages, so the client no longer
 expands them to Chinese. A space is inserted wherever the term would otherwise run into a preceding

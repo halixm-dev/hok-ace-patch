@@ -120,7 +120,29 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         )
 
     packages = []
+    text_skipped = []
+
+    def note_missing(package_id, planned, missing, mode):
+        """Record the tables this run translated but did not put into the package.
+
+        The drop loop below gives ground until the container takes what is left, so a package that
+        stages successfully can still be missing part of its plan -- or, when it stages nothing, all
+        of it. Without this the loss reaches the log only, and the summary reads as a clean run.
+        """
+        if not missing:
+            return
+        text_skipped.append({
+            "package_id": package_id,
+            "mode": mode,
+            "considered_count": len(planned),
+            "dropped_count": len(missing),
+            "dropped": missing,
+        })
+        log(f"package {package_id}: {len(missing)} of {len(planned)} translated tables are not in the "
+            f"staged package and stay in Chinese")
+
     for package, replacements, _per_asset in plans:
+        planned = sorted(path.stem.upper() for path in replacements.glob("*.assets"))
         fit_summary = None
         report = None
         mode = "full"
@@ -172,6 +194,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
             # must not reach the phone just because a texture pass made this run worth installing.
             shutil.rmtree(output / package.package_id, ignore_errors=True)
             log(f"package {package.package_id}: nothing left that fits in place")
+            note_missing(package.package_id, planned, planned, mode)
             continue
         packages.append({
             "package_id": package.package_id,
@@ -181,6 +204,10 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
             "stage_report": report,
         })
         log(f"package {package.package_id}: {mode} {report['status']} ({report['replacement_count']} assets)")
+        staged_dir = work / ("full-replacements" if mode == "full" else "fit-replacements") / package.package_id
+        staged_hashes = {path.stem.upper() for path in staged_dir.glob("*.assets")}
+        missing = [item for item in planned if item not in staged_hashes]
+        note_missing(package.package_id, planned, missing, mode)
     graphics, graphics_skipped = extend_graphics(game, catalog, output, log)
     packages += graphics
     summary = {
@@ -188,6 +215,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         "skipped_count": len(skipped),
         "fit_only": fit_only_mode,
         "packages": packages,
+        "text_skipped": text_skipped,
         "graphics_skipped": graphics_skipped,
     }
     (output / "device_patch_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
