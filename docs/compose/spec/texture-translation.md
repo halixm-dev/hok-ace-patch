@@ -153,15 +153,53 @@ and returns `(4, 4)` for it, and `None` when no footprint fits — which is the 
 |---|---|---|
 | `.blocks`, `format == "bc7"`, footprint `(4, 4)` | 324 catalog entries | decode each patched run of BC7 rows to RGBA, re-encode those rows as ASTC 4x4, splice them into the copied Android texture at the **same offsets**. Untouched bytes stay bit-identical. |
 | `.blocks`, `format == "rgba32"` | partial RGBA patch | decode the whole Android texture, paste the PC pixels at their offsets, re-encode the **whole** texture, then copy back only the 16-byte blocks those pixels touch. |
-| `.assets`, either format | full replacement | decode the PC payload wholesale, re-encode the entire image as ASTC at the resolved footprint. |
+| `.assets`, either format, device size matches | full replacement | decode the PC payload wholesale, re-encode the entire image as ASTC at the resolved footprint. |
+| `.assets`, device size does not match | the device revision moved | align the two images, copy the `label_box` pixels across, re-encode only the blocks that touch — see below. |
+
+### The label splice
+
+`astc_layout` requires an exact width and height, so a device revision that re-cuts the art by a block
+row is refused outright and the texture stays Chinese. That is a whole-image replacement failing on
+geometry alone, and rescaling the payload to fit would resample every glyph, so the fix is to move the
+label instead.
+
+The precondition is that the two images are the same art. The catalog records
+`unrelated_blocks_identical` for exactly this reason, and it is checkable rather than assumed: compare
+the two decodes row by row, leaving the label band out, and a real alignment dips sharply while
+unrelated art scores flat.
+
+- `label_rows` mirrors `label_box` into the payload's row order. `label_box` is stated in display order
+  like the review renders, and the payload buffer is bottom-up. Cropping the payload at the raw
+  `label_box` rows returns a blank band; mirroring first returns the text.
+- `offset_layouts` derives the device geometry. A block count pins the geometry to within a block, so it
+  returns the band's tallest height: every height in the band covers the same block grid, so they share
+  one decode and one encode and the choice cannot change the output bytes.
+- `align_rows` searches ±`ALIGNMENT_SEARCH` pixels and accepts the winner only if it stays under
+  `ALIGNMENT_MAX_MEAN` **and** dips to `ALIGNMENT_MIN_GAIN` of the median offset. The second test is
+  what refuses a wrong footprint or unrelated art, which score flat.
+- The paste touches only the blocks the label overlaps, and `splice_label` returns `mobile_raw` untouched
+  when the label already matches. That second part is what keeps a re-run idempotent: re-encoding the
+  same region from a lossy decode perturbs the blocks along the label's edge, so the bytes would drift
+  on every run. `LABEL_MATCH_MEAN` separates the two cases with a wide margin — measured 64.0 while the
+  label is Chinese and 3.5 once spliced.
+
+Measured on `C9E29F61B9E73713` (Three Kingdoms, catalog 592x816, device 592x824 = one extra 8px block
+row): alignment offset +2, 210 blocks changed across block rows 2..8, everything else byte-identical.
+Section `[9]` of `tools/research/check_graphics.py` exercises the whole path on a synthetic revision, so
+none of this needs a phone or a dump.
+
+What this does *not* do is rescue an asset the build does not carry. Of the catalog's 398 texture edits,
+75 have no counterpart on the device under that hash at all — measured by scanning every package index in
+a 2.86 GB dump, not inferred — and those stay Chinese however the code is written.
 
 ### `english_raw` contract
 
 `english_raw(mobile_raw: bytes, graphic: dict, catalog: Path) -> bytes | None` returns **None**, not an
-exception, for anything it cannot handle: an unknown format, a raw size that no ASTC footprint fits, or
-a `.blocks` payload that is neither a BC7 4x4 port nor an RGBA32 patch. `port_graphics` counts those as
-`skipped (format not supported)` and the run continues. A silently skipped texture is strictly better
-than a failed patch run — the same reasoning the previous feature applied to unparseable text assets.
+exception, for anything it cannot handle: an unknown format, a raw size that no ASTC footprint fits, a
+mismatched `.assets` that will not align, or a `.blocks` payload that is neither a BC7 4x4 port nor an
+RGBA32 patch. `port_graphics` counts those as skipped and the run continues. A silently skipped texture
+is strictly better than a failed patch run — the same reasoning the previous feature applied to
+unparseable text assets.
 
 ### Missing metadata: six entries get an in-module table
 
@@ -228,17 +266,21 @@ New chunk slots would need lookup keys only the game's own builder can derive, s
 assembled:
 
 ```python
-    packages += extend_graphics(game, catalog, output, log)
+    graphics, graphics_skipped = extend_graphics(game, catalog, output, log)
+    packages += graphics
 ```
 
 `tools/device_extensions.py` exposes:
 
 ```python
-def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> int:
-    """Apply every catalog texture edit that exists in <package>; return textures written."""
+def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dict:
+    """Apply every catalog texture edit that exists in <package>.
 
-def extend_graphics(game: Path, catalog_dir: Path, output: Path, log) -> list[dict]:
-    """Apply texture edits across every discovered package; return summary entries."""
+    Returns {"considered": n, "written": n, "skipped": [hash, ...]}.
+    """
+
+def extend_graphics(game: Path, catalog_dir: Path, output: Path, log) -> tuple[list[dict], list[dict]]:
+    """Apply texture edits across every discovered package; return (reports, skipped)."""
 ```
 
 `extend_graphics` re-runs `adaptive.discover(game, catalog)` rather than reusing `adaptive.scan`'s
@@ -252,6 +294,21 @@ packages 15/19/20, which stage no text at all. Each package that actually wrote 
 
 Packages where nothing changed contribute nothing, matching `build_patch`'s existing rule that only
 packages that staged appear in `packages`.
+
+A package whose **every** texture was skipped wrote no directory, so it must not appear in
+`packages` — the installer pushes by directory. It is returned in the second list instead, which
+`build_patch` writes to the summary as `graphics_skipped`:
+
+```python
+{"package_id": ..., "mode": "graphics", "skipped_count": n,
+ "considered_count": n, "skipped": [hash, ...]}
+```
+
+Without that list a texture the codec refuses is reported nowhere a caller can read. The concrete
+cost: package `1050016095` holds exactly one catalog texture, `C9E29F61B9E73713`, whose device
+revision is 592x824 while the catalog records 592x816. The geometry check skips it, the package wrote
+nothing, and the run's summary therefore said nothing about it — so the Three Kingdoms card kept its
+Chinese ribbon through several patch runs with no visible signal.
 
 Ordering is load-bearing in two ways. The pass runs **after** the text loop so that a package needing
 both is written once — `_package_output` reuses `output/<id>/` when text staging already created it,
