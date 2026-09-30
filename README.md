@@ -10,12 +10,13 @@ if the language packages were modified inside the APK.
 | Path | Contents |
 |---|---|
 | `app/` | GUI (`hok_patcher.py`), workflow (`patcher_core.py`), APK signing (`apk_tools.py`), `build_exe.py`, `make_icon.py` |
-| `tools/` | Translation build pipeline: `build_device_patch.py` (entry `build_patch`), `device_extensions.py` (texture pass), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py` |
-| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, AXML provider injection, archive extractors) and the offline graphics tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`. Off the runtime path; nothing here ships in the exe |
+| `tools/` | Translation build pipeline: `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py` |
+| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`. Off the runtime path; nothing here ships in the exe |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime, extracted from the PC patcher (Python 3.12 bytecode) |
 | `resources/catalog/` | Translation catalog (`.blocks` / `.assets`) — the English texture payloads the texture pass applies, plus `previews/` |
 | `resources/adb/` | `adb.exe` + DLLs |
 | `resources/key/` | Re-signing key: `key.pk8` + `cert.der` |
+| `resources/qtsvfs/` | Tencent's own package builder (`QtsVFS.dll`, `QtskDB.dll`, VC runtimes), driven by ctypes to re-lay-out a package whole |
 | `resources/icon.*` | App icon (regenerate with `app\make_icon.py`) |
 
 ## Build
@@ -40,17 +41,40 @@ If `py -3.12` is not available: `set PYTHON=C:\path\to\python3.12.exe` before `s
    (`tools/build_device_patch.py`), pushes them back and verifies them.
 3. Reinstalls the normal re-signed APK.
 
+The game's data has two layers, and the patcher writes to the second one:
+
+| layer | where | contents |
+|---|---|---|
+| **prime**, built into the APK | `assets/bin/Data/Package/builtin/<id>/` | every asset as the APK was built |
+| **override**, downloaded | `files/QtsVFSCache/packages/<id>/` | only the assets that changed since that build |
+
+The game reads override first and falls back to prime, so an asset that exists only in prime is
+unreachable by an in-place edit. The pulled APK is therefore a patch input, not just something to
+re-sign: packages `1` and `1050016095` are laid out again with Tencent's own builder
+(`resources/qtsvfs/`) so the override copies of them can carry the prime-only content, translated.
+Nothing else is rebuilt — re-laying-out a package means recompressing all of it.
+
 The patcher's own working data (~8 GB: pulled APK, packages, sessions) goes to the folder chosen in the app
 (default `HOK ACE Patcher Data` next to the exe), not into this project.
 
 ## Translation coverage
 
 The pipeline translates **text tables and textures**. Text is staged in `full` mode and falls back to
-`fit-only` when replacements compete for slack, dropping the tables that will not fit. Textures are a
-second pass that ports each reviewed edit in `resources/catalog/` onto the device's ASTC textures,
-which the game stores Oodle-compressed; the changed chunks are appended to the package shard and
-repointed in its B-tree, so every asset keeps its chunk count. On the game data used to develop this,
-323 of the catalog's 398 edits are present and all 323 are applied.
+`fit-only` when replacements compete for slack, dropping the tables that will not fit; a table the stager
+cannot fit is then appended to the end of the shard rather than lost. Textures are a second pass that
+ports each reviewed edit in `resources/catalog/` onto the device's ASTC textures, which the game stores
+Oodle-compressed; the changed chunks are appended to the package shard and repointed in its B-tree, so
+every asset keeps its chunk count.
+
+Of the catalog's 398 texture edits, 395 exist somewhere in the mobile build — 323 in the downloaded layer
+and 73 in the APK's built-in layer, one asset keyed in both — and a run applies 394 of them. The ones it
+does not:
+
+- `7B4CC5DF48336D2D`, Central Plains' fourth wide faction panel, sits in the APK's package `21`. Applying
+  it means rebuilding that package, which recompresses all 511 MB of it — 85,211 assets — on every run,
+  for that one texture. Package `21` is deliberately not rebuilt.
+- `197CC5393D16E3CB`, `884E0B4581F47CF7` and `89C771ECFCDC7FBE` are in neither layer: their asset ids are
+  not in the mobile build, so no code change can apply them.
 
 A whole-image replacement can also land when the device revision of the same art is a different size
 from the catalog's record — a build re-cutting a card by one block row changes the raw size, which by
@@ -61,43 +85,54 @@ align is still skipped rather than rescaled. On the game data used to develop th
 way. Which screen draws that asset has not been established, so treat the recovery as a correctness fix
 rather than a visible one.
 
-The other 75 catalog edits have **no counterpart on the device at all**: their asset ids are not in the
-mobile build, so no code change can apply them. They are the art behind much of what stays Chinese,
-and the clearest case is the Card Info view's faction ribbon. That ribbon is **not** the card's own art:
-the grid card `F72420296646DC5B` is in the catalog, on the device, and the pass rewrites its ribbon to
-`Central Plains`, yet the Card Info view for that same card still shows `河洛`. The ribbon comes from a
-wide-format per-faction panel instead — the catalog keys 27 of them at 568x304, four art variants per
-faction and three for Mecha — and the device carries that family for one faction only, the Sunset panel
-behind `BCCC8C957621FA27`. So the faction ribbon inside a card is translated everywhere it is baked
-into the card art, and stays Chinese in the views that draw it from the separate wide panel.
+The catalog keys 27 wide per-faction panels at 568x304 — four art variants per faction and three for
+Mecha — and the Card Info view draws its faction ribbon from that family rather than from the card's own
+art: the grid card `F72420296646DC5B` is in the catalog and on the device, and the pass rewrites its
+ribbon, yet the Card Info view for that same card still shows `河洛`. So the faction ribbon is translated
+wherever it is baked into the card art, and comes from the separate wide panel in the views that draw it
+that way. It is art rather than text, so no text table can reach it: in that same Card Info view every
+other string, including the faction name inside a card's rules text, is already English.
 
-That gap was measured rather than inferred, because this is the one family that could plausibly have
-been on the device all along under an id the catalog does not key. `tools/research/ribbon_id_hunt.py`
-scores every device texture whose raw size could hold a 568x304 panel — each of the six ASTC footprints,
-and every height inside the 16 px the label splice is able to absorb — against all 27 English payloads.
-The test separates the family by an order of magnitude: a genuine sibling of it measures between 0.05
-and 2.5 depending on the footprint, while an unrelated texture of the same shape measures about 14. The
-Sunset panel matches its own payload at 1.1, inside that floor, and the next-closest entry scores 4.3.
-The best of the other 54 candidates scores 11.0, more than four times the floor, and rendering every one
-of them shows black frames, gradients, event banners and buttons rather than panels. The other factions'
-wide panels are therefore not in this build under any id, and the Card Info ribbon for them cannot be
-fixed from this repo.
+An earlier measurement concluded the panel family was absent from the build. That conclusion was drawn
+against the **downloaded** layer only, and is superseded. `tools/research/ribbon_id_hunt.py` scores every
+texture in that layer whose raw size could hold a 568x304 panel — each of the six ASTC footprints, and
+every height inside the 16 px the label splice is able to absorb — against all 27 English payloads; the
+test separates the family by an order of magnitude, a genuine sibling measuring between 0.05 and 2.5
+depending on the footprint while an unrelated texture of the same shape measures about 14. Within that
+layer its negative result held: the Sunset panel behind `BCCC8C957621FA27` matched its own payload at
+1.1, and the best of the other 54 candidates scored 11.0, rendering as black frames, gradients, event
+banners and buttons rather than panels.
 
-The ribbon is art rather than text: in that same Card Info view every other string, including the
-faction name inside a card's rules text, is already English.
+Counting the APK's built-in layer as well changes the answer: 26 of the 27 panels are there under the
+catalog's own ids — 25 of them in package `1050016095` and `7B4CC5DF48336D2D` in package `21` — and the
+Sunset panel the hunt did find is in the downloaded layer. A run now applies 26 of the 27, so every
+faction's wide panel is translated except Central Plains' fourth variant. Whether the Card Info view
+follows is for the device to show; this document does not claim it.
+
+`tools/research/prime_probe.py` prints that census: what each package keeps only in the APK, and how much
+of it the catalog covers. A search for a missing asset has to run over both layers, which is the lesson
+the earlier measurement paid for.
 
 The catalog's card coverage is also narrower than it looks. Package `15` holds 3990 textures, 1994 of
 them card-shaped, and the catalog's 299 entries at that shape are the **hero** cards — the rest are
 Talent, skill and effect cards, whose bottom band carries a type word or a card name rather than a
 faction, and which the catalog does not translate at all.
 
-The text pass can also lose tables at the container. Replacing a table with a longer one needs room in
-the package's shard, and when the shard has none the staging loop drops that table and restages with
-what is left. On the game data used to develop this, package `1` stages 81 of its 92 translated tables
-and drops 11 — every one of them a chessplayer skill, talent or secret-skill table — and those tables
-stay Chinese. The run reports them instead of looking clean: `text_skipped` in
+Package `1` is where the two layers matter most for text. It holds 2492 of its 2873 assets only in the
+APK, 408 of them catalog text tables, of which 298 translate — 51,095 records, the chessplayer names and
+their skills, talents and secret skills among them. The rebuild carries all 298 into the downloaded copy
+of the package, which is the layer the game reads first, together with the 102 downloaded assets it
+re-translates.
+
+That rebuild is also why the stager no longer loses package `1`'s tables. Replacing a table with a longer
+one needs room in the package's shard, and when the shard has none the staging loop drops that table and
+restages with what is left — on this data it used to drop 11 of package `1`'s 92, every one of them a
+chessplayer skill, talent or secret-skill table. A package the rebuild replaces never reaches that loop.
+For every other package the drop is now a relocation instead: a table that will not fit its slot is
+appended to the end of the shard, keeping its chunk count, so it is applied rather than lost. Whatever
+still cannot be applied is reported rather than looking like a clean run: `text_skipped` in
 `device_patch_summary.json`, a line in the run log, and the count in the app's `translate` step and in
-its final message.
+its final message. On this data both loss lists are empty.
 
 Resource tokens such as `{Energy}`, `{LordExp}` and `{LordHp}` are expanded to English terms
 (`Energy`, `Chessplayer EXP`, `Chessplayer HP`) in the staged packages, so the client no longer
@@ -180,10 +215,21 @@ few minutes and writes about 350 MB.
 
 - Direct WeChat/QQ login does not work on a re-signed APK; use *Scan to login*.
 - After a game update: clear the game's data, let it re-download to the login screen, then patch again.
+  Patch with the APK the phone has now: the prime layer comes from the pulled APK, so a package that was
+  rebuilt against an older build's built-in assets is rebuilt again against the current one. The pull is
+  skipped when the cached copy's size already matches, and re-taken when it does not.
+- A rebuilt package is larger than the one it replaces, because it carries the APK's translatable content
+  as well: on this data package `1` goes from 29.3 MB to 30.6 MB and package `1050016095` from 0.3 MB to
+  2.5 MB. Rebuilding recompresses the package, so it is done for the two packages that gain by it and no
+  others — see the coverage section for the one texture package `21` is left out for.
 - Re-running over an **already patched** install translates no more text: the scanner only translates
   tables that still hold Chinese, and it reports nearly everything else as already English. To pick up
   a newer translation build, reset the game's data first (previous bullet) so the tables are Chinese
   again. Textures are not affected by that limit — the texture pass compares each device texture
   against its English payload, so a re-run picks up any texture the previous run did not write.
+- Not reachable by any patch through the game data, each tried and failed on the phone: rewriting package
+  `19`'s Unity prefab labels (the lobby hangs, and rewriting only the 15 prefabs that show faction names
+  crashes at start with `stack corruption detected`), and the chessplayer definition `A8BC70BB87700709`
+  field 37 (lobby loading stalls even when every reference in packages 1 and 14 is renamed with it).
 - Code injection into the APK and a "prebaked" APK with translated assets were both tried and fail
   (anti-cheat kill / `IsPrebuild errorCode:151`).

@@ -1,9 +1,10 @@
 """Stage English replacements for every text package pulled from an updated Android install.
 
 Text tables are staged in place by the scanner layout: <game>/WXQ_Data/Package/builtin/<package id>/.
-The catalog's texture edits are then ported onto the device's ASTC textures as a second pass. Each
-changed package is written to <output>/<package id>/ and can be pushed back to
-files/QtsVFSCache/packages/<package id>/ on the device.
+Two things extend that: packages whose translatable content only exists in the APK are rebuilt whole
+against the APK (``package_rebuild``), and the catalog's texture edits are ported onto the device's
+ASTC textures as a second pass. Each changed package is written to <output>/<package id>/ and can be
+pushed back to files/QtsVFSCache/packages/<package id>/ on the device.
 """
 from __future__ import annotations
 
@@ -70,18 +71,78 @@ def _expand_staged_tokens(plans, log) -> int:
     return changed
 
 
+def rebuild_prime_packages(game: pathlib.Path, catalog_dir: pathlib.Path, apk: pathlib.Path,
+                           builder_dir: pathlib.Path, work: pathlib.Path, output: pathlib.Path,
+                           log) -> list[dict]:
+    """Rebuild every package whose translatable content partly lives only in the APK.
+
+    Returns the summary entries; each also carries `textures_considered` and `textures_skipped`, which
+    the caller moves into `graphics_skipped` rather than keeping on the entry, so that no reader can
+    add the same skipped texture up twice.
+    """
+    from wxq_patch import adaptive
+    from package_rebuild import REBUILD_PACKAGES, extract_prime, make_transform, rebuild_package
+    from qts_builder import Builder
+
+    catalog = adaptive.load_catalog(catalog_dir)
+    prime = extract_prime(apk, set(REBUILD_PACKAGES), work / "prime")
+    builder = Builder(builder_dir)
+    refused: set[int] = set()
+    transform = make_transform(catalog, catalog_dir, log, refused)
+    reports = []
+    for package_id in REBUILD_PACKAGES:
+        device_dir = game / "WXQ_Data" / "Package" / "builtin" / package_id
+        if package_id not in prime or not device_dir.is_dir():
+            log(f"package {package_id}: not in the APK or not downloaded; skipped")
+            continue
+        report = rebuild_package(package_id, device_dir, prime[package_id], transform, builder,
+                                 work, output, log, refused)
+        if report is None:
+            continue
+        if report["textures_skipped"]:
+            log(f"package {package_id}: {len(report['textures_skipped'])} of "
+                f"{report['textures_considered']} textures cannot be translated and stay in Chinese")
+        reports.append(report)
+    return reports
+
+
 def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, output: pathlib.Path,
-                *, fit_only_mode: bool = False, log=print) -> dict:
-    """Scan <game>, stage English packages into <output>/<id>/ and return the summary."""
+                *, fit_only_mode: bool = False, apk: pathlib.Path | None = None,
+                builder_dir: pathlib.Path | None = None, log=print) -> dict:
+    """Scan <game>, stage English packages into <output>/<id>/ and return the summary.
+
+    With <apk> and <builder_dir> (a folder holding the PC QtsVFS.dll), the packages that keep
+    translatable text or textures only inside the APK are rebuilt whole; every other package is
+    patched in place.
+    """
     from wxq_patch import adaptive
     from wxq_patch.unity_package_installer import capacity_report, stage_unity_package
     from qts_relocate import install_btree_slot_map
-    from device_extensions import extend_graphics
+    from device_extensions import exclude_extra_chunks, extend_graphics, relocate_text
 
     install_btree_slot_map()
 
     work.mkdir(parents=True, exist_ok=True)
     output.mkdir(parents=True, exist_ok=True)
+
+    packages = []
+    graphics_skipped = []
+    if apk is not None and builder_dir is not None:
+        for report in rebuild_prime_packages(game, catalog, apk, builder_dir, work, output, log):
+            if report["textures_skipped"]:
+                graphics_skipped.append({
+                    "package_id": report["package_id"],
+                    "mode": "rebuilt",
+                    "skipped_count": len(report["textures_skipped"]),
+                    "considered_count": report["textures_considered"],
+                    "skipped": report["textures_skipped"],
+                })
+            packages.append({key: value for key, value in report.items()
+                             if key not in ("textures_considered", "textures_skipped")})
+    else:
+        log("APK or QtsVFS builder not available: text and textures that exist only in the APK stay Chinese")
+    rebuilt = {entry["package_id"] for entry in packages}
+
     plans, fingerprints, counts, skipped = adaptive.scan(
         game, catalog, work / "scan", materialize=True
     )
@@ -119,15 +180,14 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
             source_hashes=source_hashes,
         )
 
-    packages = []
     text_skipped = []
 
-    def note_missing(package_id, planned, missing, mode):
+    def note_missing(package_id: str, planned: list[str], missing: list[str], mode: str) -> None:
         """Record the tables this run translated but did not put into the package.
 
-        The drop loop below gives ground until the container takes what is left, so a package that
-        stages successfully can still be missing part of its plan -- or, when it stages nothing, all
-        of it. Without this the loss reaches the log only, and the summary reads as a clean run.
+        The drop loop gives ground until the container takes what is left, so a package that stages
+        successfully can still be missing part of its plan -- or, when it stages nothing, all of it.
+        Without this the loss reaches the log only, and the summary reads as a clean run.
         """
         if not missing:
             return
@@ -141,8 +201,22 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         log(f"package {package_id}: {len(missing)} of {len(planned)} translated tables are not in the "
             f"staged package and stay in Chinese")
 
+    # A table the loop could not stage is handed to relocate_text after the loop, so what counts as a
+    # loss can only be decided once relocation has run.
+    pending_text = []  # (package id, plan, mode, hashes staged in place)
+    dropped_text = []  # (package, {file hash: replacement path}) the loop did not stage
+
     for package, replacements, _per_asset in plans:
-        planned = sorted(path.stem.upper() for path in replacements.glob("*.assets"))
+        # A rebuilt package no longer matches the device's copy, so the in-place stager must not
+        # re-derive it; the rebuild already carried everything the package holds.
+        if package.package_id in rebuilt:
+            continue
+
+        all_replacements = replacements
+        planned = sorted(path.stem.upper() for path in all_replacements.glob("*.assets"))
+        # Tables that would need more chunks than the original has are kept away from the stager,
+        # which would invent lookup keys for the new chunks; relocate_text appends them instead.
+        replacements, _excluded = exclude_extra_chunks(package, all_replacements, work, log)
         fit_summary = None
         report = None
         mode = "full"
@@ -192,24 +266,46 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
             # The last attempt still wrote its own copy, so take it out again: the installer pushes
             # every package directory under <output>, not the summary, and a half-fitted package
             # must not reach the phone just because a texture pass made this run worth installing.
+            # relocate_text below can still put the tables back into a clean copy of the package.
             shutil.rmtree(output / package.package_id, ignore_errors=True)
             log(f"package {package.package_id}: nothing left that fits in place")
-            note_missing(package.package_id, planned, planned, mode)
-            continue
-        packages.append({
-            "package_id": package.package_id,
-            "mode": mode,
-            "source_package": str(package.package_dir),
-            "fit_summary": fit_summary,
-            "stage_report": report,
-        })
-        log(f"package {package.package_id}: {mode} {report['status']} ({report['replacement_count']} assets)")
+        else:
+            packages.append({
+                "package_id": package.package_id,
+                "mode": mode,
+                "source_package": str(package.package_dir),
+                "fit_summary": fit_summary,
+                "stage_report": report,
+            })
+            log(f"package {package.package_id}: {mode} {report['status']} ({report['replacement_count']} assets)")
         staged_dir = work / ("full-replacements" if mode == "full" else "fit-replacements") / package.package_id
-        staged_hashes = {path.stem.upper() for path in staged_dir.glob("*.assets")}
-        missing = [item for item in planned if item not in staged_hashes]
-        note_missing(package.package_id, planned, missing, mode)
-    graphics, graphics_skipped = extend_graphics(game, catalog, output, log)
+        staged_hashes = {path.stem.upper() for path in staged_dir.glob("*.assets")} if report is not None else set()
+        pending_text.append((package.package_id, planned, mode, staged_hashes))
+        dropped_text.append((package, {
+            int(path.stem, 16): path for path in all_replacements.glob("*.assets")
+            if path.stem.upper() not in staged_hashes
+        }))
+
+    relocated: set[str] = set()
+    for package, dropped in dropped_text:
+        if not dropped:
+            continue
+        written, _refused = relocate_text(package, output, dropped, log)
+        if not written:
+            continue
+        relocated |= set(written)
+        packages.append({"package_id": package.package_id, "mode": "relocated-text",
+                         "stage_report": {"status": "relocated", "replacement_count": len(written)}})
+
+    for package_id, planned, mode, staged_hashes in pending_text:
+        # A table relocation wrote into the package is applied, not lost, so it is not a loss to report.
+        note_missing(package_id, planned,
+                     [h for h in planned if h not in staged_hashes and h not in relocated], mode)
+
+    graphics, graphics_skipped_extra = extend_graphics(game, catalog, output, log, skip=rebuilt)
     packages += graphics
+    graphics_skipped += graphics_skipped_extra
+
     summary = {
         "counts": dict(counts),
         "skipped_count": len(skipped),
@@ -231,10 +327,13 @@ def main() -> None:
     parser.add_argument("--work", type=pathlib.Path, required=True)
     parser.add_argument("--output", type=pathlib.Path, required=True)
     parser.add_argument("--fit-only", action="store_true")
+    parser.add_argument("--apk", type=pathlib.Path, help="the APK the prime layer is read from")
+    parser.add_argument("--builder", type=pathlib.Path, help="folder with QtsVFS.dll + QtskDB.dll")
     args = parser.parse_args()
 
     sys.path.insert(0, str(args.runtime.resolve()))
-    build_patch(args.game, args.catalog, args.work, args.output, fit_only_mode=args.fit_only)
+    build_patch(args.game, args.catalog, args.work, args.output, fit_only_mode=args.fit_only,
+                apk=args.apk, builder_dir=args.builder)
 
 
 if __name__ == "__main__":

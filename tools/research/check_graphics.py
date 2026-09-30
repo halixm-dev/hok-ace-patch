@@ -348,8 +348,12 @@ def device_rows(catalog, game: pathlib.Path) -> list[dict]:
     """One row per catalog entry: where the dump carries it and what the port does with it.
 
     Every entry gets a row, including the ones the dump does not carry at all. Those are the
-    point: a catalog entry with no device counterpart can never be applied, and an aggregate
-    count cannot tell you that.
+    point: an aggregate count cannot tell you which entry is missing.
+
+    ``absent`` here means **absent from this dump**, which is the downloaded layer only. It does not
+    mean the mobile build lacks the asset: the APK's built-in packages are a second layer the game
+    reads, and most of those entries live there. ``prime_probe.py`` counts that layer. Calling an
+    entry unreachable needs both.
     """
     from device_extensions import _read_chunks  # noqa: PLC0415
 
@@ -466,7 +470,8 @@ def check_game(catalog, game: pathlib.Path, *, table: bool = False) -> None:
           f"replaced, {len(spliced)} spliced, "
           f"{len(by_outcome.get('already English', []))} already English, "
           f"{len(by_outcome.get('skipped', []))} skipped; {len(by_outcome.get('absent', []))} of "
-          f"{len(rows)} catalog entries have no device counterpart")
+          f"{len(rows)} catalog entries are not in this dump (the downloaded layer -- run "
+          f"prime_probe.py for the APK's layer before calling any of them unreachable)")
 
 
 # --------------------------------------------------------------------------------------------

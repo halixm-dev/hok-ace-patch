@@ -77,6 +77,15 @@ accounting points at a cause: `fit_summary.dropped_while_staging` holds the retr
 caller reads it, and `count_translated` counts only what landed. This is the same invisible-loss class
 AGENTS.md already calls out for textures, and which `graphics_skipped` fixed there.
 
+**Amended 2026-09-30.** The drop is real, is reported, and is *not* the cause of the Chessplayer
+screen. Attribution was wrong: the game reads two data layers and this repo writes only the downloaded
+one, while package `1` keeps 2492 of its 2873 assets — 298 of them catalog tables that translate, 51 095
+records, the chessplayer names among them — only in the APK. So every chessplayer name already had
+English label records staged into the override tables that *were* applied, and the screen read Chinese
+anyway because it draws from the APK's copy. The only remaining action here was the reporting; the
+screen is `prime-rebuild.md`'s job. The drop-loop finding below stands on its own: 11 of 92 tables never
+reached the phone, and the run no longer hides it.
+
 ## [S2] Design
 
 `build_patch` gains a top-level `text_skipped` list in the payload it returns and writes to

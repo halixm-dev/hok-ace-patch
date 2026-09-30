@@ -32,6 +32,7 @@ sys.path.append(str(BUNDLE / "runtime"))
 import apk_tools  # noqa: E402
 from axml_set_debuggable import patch as make_debuggable_manifest  # noqa: E402
 from build_device_patch import build_patch  # noqa: E402
+from qts_builder import find_builder_dir  # noqa: E402
 
 PLAY_PROTECT_HINT = "If Google Play Protect shows a pop-up on the phone, tap 'More details' -> 'Install anyway'."
 
@@ -48,12 +49,21 @@ STEPS = [
 
 
 def count_translated(summary: dict) -> tuple[int, int]:
-    """(text tables, textures) written by build_patch."""
+    """(text tables, textures) written by build_patch.
+
+    A rebuilt package holds both kinds and its `replacement_count` covers both, so it carries the
+    texture share in `textures`; classifying it by mode alone would report package 1's tables as
+    images, or package 1050016095's images as tables.
+    """
     text = images = 0
     for package in summary.get("packages", []):
         count = package["stage_report"]["replacement_count"]
         if package.get("mode") == "graphics":
             images += count
+        elif package.get("mode") == "rebuilt":
+            textures = package.get("textures", 0)
+            images += textures
+            text += count - textures
         else:
             text += count
     return text, images
@@ -372,7 +382,12 @@ class Patcher:
     def build_translation(self, session: Path) -> tuple[dict, Path | None]:
         self.step("translate", "1-3 minutes")
         staged = session / "staged"
+        # The prime layer half the game's text lives in is inside the APK, and the package
+        # builder is what lets a downloaded package carry it. Without the builder (a source
+        # checkout missing resources/qtsvfs) build_patch logs that and patches as it always did.
+        builder_dir = find_builder_dir([BUNDLE / "qtsvfs"])
         summary = build_patch(session / "game", BUNDLE / "catalog", session / "build", staged,
+                              apk=self.normal_apk if builder_dir else None, builder_dir=builder_dir,
                               log=lambda line: self.log("  " + str(line)))
         text, images = count_translated(summary)
         dropped_text = count_untranslated_text(summary)

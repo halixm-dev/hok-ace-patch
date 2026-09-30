@@ -1,159 +1,184 @@
-# Panduan untuk AI agent: memperbaiki string yang belum terjemah (nama Chessplayer, tab faksi di menu Card, dll.)
+# A guide for an AI agent: fixing the strings that are still untranslated (Chessplayer names, the Card menu's faction tab, and the rest)
 
-Panduan ini ditulis dari pengalaman project `hok-ace-mobile-en-v1` (patcher bahasa Inggris untuk
-王者万象棋 / HOK ACE, `com.tencent.tmgp.osgame`, Android, tanpa root). Pakai untuk project serupa:
-game Unity + QtsVFS (Tencent) dengan patcher yang menulis terjemahan ke data game di HP.
+This guide was written from the experience of the project `hok-ace-mobile-en-v1` (an English patcher for
+王者万象棋 / HOK ACE, `com.tencent.tmgp.osgame`, Android, without root). Use it for a similar project: a
+Unity + QtsVFS (Tencent) game with a patcher that writes the translation into the game data on the phone.
 
-Baca dulu `README.md` project. Semua klaim "tested" di bawah berasal dari uji di HP (Infinix X6853),
-game versi 1.3.0.4 dan 1.4.0.1.
+Read `README.md` first. Every "tested" claim below comes from a test on the phone (Infinix X6853), game
+versions 1.3.0.4 and 1.4.0.1.
+
+The numbers quoted here are the ones that project measured on its own data. This repo has since measured
+its own 1.4.0.1 data — `docs/compose/spec/prime-rebuild.md` §S1 and `README.md` — and those figures are the
+ones to trust for this repo.
 
 ---
 
-## 1. Model mental: kenapa string masih Mandarin
+## 1. The mental model: why the strings are still Mandarin
 
-Data game Android punya **dua lapis**:
+The Android game data has **two layers**:
 
-| Lapis | Lokasi | Isi |
+| Layer | Location | Contents |
 |---|---|---|
-| Prime (bawaan APK) | `assets/bin/Data/Package/builtin/<id>/` di dalam APK | Semua asset saat APK dibuild |
-| Override (download) | `files/QtsVFSCache/packages/<id>/` (akses via `run-as`) | Hanya asset yang **berubah** sejak APK dibuild |
+| Prime (built into the APK) | `assets/bin/Data/Package/builtin/<id>/` inside the APK | Every asset as the APK was built |
+| Override (downloaded) | `files/QtsVFSCache/packages/<id>/` (read via `run-as`) | Only the assets that **changed** since the APK was built |
 
-Game membaca override dulu, lalu fallback ke prime. Patcher lama hanya mengubah override, jadi
-**asset yang hanya ada di APK tidak pernah tersentuh**. Di 1.3.0.4, 413 dari 497 tabel teks catalog
-(loading tips, nama chessplayer, sebagian besar UI) dan semua 72 tekstur arena/map hanya ada di APK.
+The game reads override first, then falls back to prime. An older patcher only modified override, so **an
+asset that exists only in the APK was never touched**. On 1.3.0.4, 413 of the catalog's 497 text tables
+(loading tips, chessplayer names, most of the UI) and all 72 arena/map textures existed only in the APK.
 
-Penyebab lain string tetap Mandarin:
-1. String ada di asset yang **tidak dicakup catalog PC** (bukan tabel bahasa) → pass `extra_text`.
-2. String ada di **Unity prefab** (package 19) atau tabel definisi → sering *tidak aman* diubah (lihat §5).
-3. String berasal dari **launcher**, bukan data game (mis. "正在初始化游戏", judul login) → tidak bisa dipatch lewat data.
-4. Terjemahannya ada, tapi **terlalu panjang** untuk layout mobile (mis. tab "Chessplayer" menimpa
-   "Combat Power") → itu masalah panjang teks, bukan string yang hilang.
+Other reasons a string stays Mandarin:
+
+1. The string is in an asset the **PC catalog does not cover** (not a language table) → the `extra_text`
+   pass.
+2. The string is in a **Unity prefab** (package 19) or a definition table → often *unsafe* to change
+   (see §5).
+3. The string comes from the **launcher**, not from game data (e.g. "正在初始化游戏", the login title) →
+   it cannot be patched through the data at all.
+4. The translation exists but is **too long** for the mobile layout (e.g. the "Chessplayer" tab overlaps
+   "Combat Power") → that is a text-length problem, not a missing string.
 
 ---
 
-## 2. Alur diagnosis (lakukan berurutan)
+## 2. The diagnosis flow (work through it in order)
 
-1. **Screenshot + catat string Mandarin persis** (minta user, atau `adb exec-out screencap -p > s.png`).
-   Salin karakter aslinya, mis. `瑶妹`, `棋手`.
-2. **Cari di catalog**: `resources/catalog/catalog.json.gz` → key `unique` adalah map Mandarin → Inggris resmi
-   dari patcher PC. `table_hashes`/`schema` menunjukkan tabel mana yang dicakup.
+1. **Screenshot and record the exact Mandarin string** (ask the user, or
+   `adb exec-out screencap -p > s.png`). Copy the original characters, e.g. `瑶妹`, `棋手`.
+2. **Look it up in the catalog**: `resources/catalog/catalog.json.gz` → the `unique` key is a map from
+   Mandarin to the PC patcher's official English. `table_hashes`/`schema` show which tables are covered.
    ```python
    import gzip, json
    cat = json.load(gzip.open("resources/catalog/catalog.json.gz"))
    print(cat["unique"].get("瑶妹"))   # -> "Yaria"
    ```
-   Di Windows, set `PYTHONIOENCODING=utf-8` sebelum print CJK (cp1252 akan crash).
-3. **Cari asset yang memuat string itu**, di kedua lapis:
-   - override: dump dari HP (`run-as <pkg> tar -cf - -C files/QtsVFSCache packages`)
-   - prime: ekstrak dari APK (`package_rebuild.extract_prime`)
-   Baca tiap asset dengan `QtsPackage(...).build_slot_map()` + `extra_text.read_raw`, lalu cari
-   bytes UTF-8 string tsb. Catat **package id** dan **file hash** (16 hex).
-4. **Klasifikasikan** hasilnya:
+   On Windows, set `PYTHONIOENCODING=utf-8` before printing CJK (cp1252 will crash).
+3. **Find the asset that holds the string**, in both layers:
+   - override: the dump from the phone (`run-as <pkg> tar -cf - -C files/QtsVFSCache packages`)
+   - prime: extract it from the APK (`package_rebuild.extract_prime`)
+   Read each asset with `QtsPackage(...).build_slot_map()` + `extra_text.read_raw`, then search the bytes
+   for that UTF-8 string. Note the **package id** and the **file hash** (16 hex digits).
+4. **Classify the result**:
 
-| Temuan | Tindakan |
+| Finding | Action |
 |---|---|
-| Hash ada di `catalog.known`, asset hanya di prime | Tambahkan package ke `REBUILD_PACKAGES` (§3) |
-| Hash ada di `catalog.known`, asset di override | Seharusnya sudah jalan; cek log stager (asset di-drop karena tidak muat slot?) |
-| Bukan tabel catalog, protobuf teks tampilan | Tambahkan hash ke `DISPLAY_ASSETS` di `extra_text.py` setelah diuji (§4) |
-| Unity prefab package 19 / tabel definisi | Lihat §5 — sudah terbukti crash/hang |
-| Tidak ditemukan di data sama sekali | Kemungkinan launcher/native; laporkan tidak bisa dipatch |
+| The hash is in `catalog.known` and the asset only exists in prime | Add the package to `REBUILD_PACKAGES` (§3) |
+| The hash is in `catalog.known` and the asset is in override | It should already work; check the stager log (was the asset dropped for not fitting its slot?) |
+| Not a catalog table, but protobuf display text | Add the hash to `DISPLAY_ASSETS` in `extra_text.py` after testing it (§4) |
+| A Unity prefab in package 19 / a definition table | See §5 — already proven to crash or hang |
+| Not found in the data at all | Probably the launcher or native code; report that it cannot be patched |
 
 ---
 
-## 3. Perbaikan utama: rebuild package penuh (ini yang memperbaiki nama Chessplayer)
+## 3. The main fix: rebuild the package whole (this is what fixed the Chessplayer names)
 
-Nama chessplayer di halaman Chessplayer (`瑶妹`→Yaria, `镜`→Jing, `乔汐`→Qiao Xi, `白歌`→Bai Ge, dst.)
-ada di tabel teks package **1** yang hanya ada di APK. Solusinya: bangun ulang override package utuh.
+The chessplayer names on the Chessplayer page (`瑶妹`→Yaria, `镜`→Jing, `乔汐`→Qiao Xi, `白歌`→Bai Ge, and
+so on) live in text tables of package **1** that exist only in the APK. The solution is to build the
+override package for package 1 again, whole.
 
-Kode: `tools/package_rebuild.py`, `tools/qts_builder.py`, dipanggil dari
+Code: `tools/package_rebuild.py`, `tools/qts_builder.py`, called from
 `build_device_patch.rebuild_prime_packages`.
 
-Cara kerja:
-1. `extract_prime(apk, REBUILD_PACKAGES, work/"prime")` — salin `.db` package dari APK.
-2. Untuk tiap asset override: baca raw (dari override, atau dari prime jika entry override tanpa data),
-   jalankan `transform` (tabel catalog → `adaptive.translate_table`, grafik → `mobile_graphics`,
-   `SAFE_ASSETS` → `pb_text.rewrite`).
-3. Tambahkan asset **prime-only yang berubah setelah diterjemahkan**. Prime-only yang tidak berubah
-   jangan dimasukkan — game tetap membacanya dari APK.
-4. Build dengan builder resmi Tencent: `QtsVFS.dll` + `QtskDB.dll` dari game PC
-   (`WXQ_Data/Plugins/x86_64`, dibundel di `resources/qtsvfs/`). Format PC = Android (key entry & chunk
-   hash diturunkan dari file hash + isi).
-5. `qts_builder.finalize`: hapus record khusus builder (global-index node, export-setting/remain-dir),
-   salin node `QTSF_PACKAGE` dan flag entry dari override asli.
-6. **Read-back**: setiap asset dibaca ulang dan dibandingkan byte-per-byte; node package harus identik.
-   Jangan pernah push ke HP jika read-back gagal.
+How it works:
 
-Jebakan yang sudah ditemukan:
-- `MaxStorageSize` **wajib** di-set (1 GiB). Kalau tidak, builder membaca memori sampah dan menulis
-  satu file storage per asset.
-- Flag kompresi packed = `level << 16 | type` (level default 5).
-- Hanya rebuild package yang memang perlu (`REBUILD_PACKAGES = ("1", "1050016095")`). Package lain
-  cukup in-place; rebuild berarti rekompresi ratusan MB.
-- Package yang di-rebuild dilewati oleh stager in-place dan pass `extend` (`skip=rebuilt`).
+1. `extract_prime(apk, REBUILD_PACKAGES, work/"prime")` — copy the package's `.db` files out of the APK.
+2. For each override asset: read the raw bytes (from override, or from prime when an override entry has no
+   data of its own), run `transform` (catalog table → `adaptive.translate_table`, graphics →
+   `mobile_graphics`, `SAFE_ASSETS` → `pb_text.rewrite`).
+3. Add the **prime-only assets that changed** after translation. Prime-only assets that did not change are
+   left out — the game keeps reading those from the APK.
+4. Build with Tencent's official builder: `QtsVFS.dll` + `QtskDB.dll` from the PC game
+   (`WXQ_Data/Plugins/x86_64`, bundled in this repo as `resources/qtsvfs/`). The PC format equals the
+   Android format (the entry key and chunk hash are derived from the file hash and the contents).
+5. `qts_builder.finalize`: remove the records only the builder writes (the global-index node, the
+   export-setting and remain-dir nodes), copy the `QTSF_PACKAGE` node and the entry flags from the
+   original override package.
+6. **Read back**: every asset is read again and compared byte-for-byte; the package node must be
+   identical. Never push to the phone if the read-back fails.
 
-Hasil di 1.3.0.4: package 1 = 684 asset (97 override diterjemahkan + 303 tabel baru dari APK);
-package 1050016095 = 66 tekstur arena/map.
+Traps already found:
+
+- `MaxStorageSize` **must** be set (1 GiB). If it is not, the builder reads uninitialised memory and writes
+  one storage file per asset.
+- The packed compression flag is `level << 16 | type` (level 5 by default).
+- Only rebuild the packages that actually need it (`REBUILD_PACKAGES = ("1", "1050016095")`). Other
+  packages are fine in place; a rebuild means recompressing hundreds of MB.
+- A package that gets rebuilt is skipped by the in-place stager and by the `extend` pass
+  (`skip=rebuilt`).
+
+Result on 1.3.0.4: package 1 = 684 assets (97 translated from override + 303 new tables from the APK);
+package 1050016095 = 66 arena/map textures.
 
 ---
 
-## 4. Asset non-catalog: `extra_text.py`
+## 4. Non-catalog assets: `extra_text.py`
 
-Untuk string yang tidak ada di tabel bahasa catalog tapi ada di asset protobuf tampilan:
-- `pb_text.rewrite` mengganti string yang **persis** cocok dengan `catalog.unique` (+ `OFFICIAL_FIXES`).
-- Nama lawan AI (`BOT_NAME_ASSETS`, ~11k nama) diromanisasi dengan `pypinyin` karena tidak ada terjemahan resmi.
-- Hanya hash di `SAFE_ASSETS` yang diubah. **Allowlist, bukan blocklist**: mengganti semua string
-  yang cocok di config lain merusak layar login karena sebagian string Mandarin adalah *lookup key*.
-- Package `10` (label skill editor) dan `14` (script gameplay) dikecualikan: Mandarin di sana adalah logika.
+For strings that are not in any catalog language table but exist in protobuf display assets:
 
-Menambah asset baru ke `DISPLAY_ASSETS`: tambahkan **satu per satu** (atau set kecil), uji di HP
-(loading sampai "Click to Enter Game", buka menu Card, lobby), lalu catat hasilnya di komentar —
-termasuk yang gagal. Daftar yang sudah terbukti merusak ada di komentar `extra_text.py`:
-- Loading macet 40–80%: newbie unlock rewards `41974B12`, salah satu tabel label kecil
+- `pb_text.rewrite` replaces strings that match `catalog.unique` **exactly** (plus `OFFICIAL_FIXES`).
+- AI opponent names (`BOT_NAME_ASSETS`, ~11k names) are romanised with `pypinyin`, because there is no
+  official translation for them.
+- Only hashes in `SAFE_ASSETS` are modified. It is an **allowlist, not a blocklist**: replacing every
+  matching string in the other config assets broke the login screen, because some Mandarin strings there
+  are *lookup keys*.
+- Packages `10` (skill-editor labels) and `14` (gameplay scripts) are excluded: the Mandarin there is
+  logic.
+
+To add a new asset to `DISPLAY_ASSETS`: add **one at a time** (or a small set), test it on the phone
+(loading through to "Click to Enter Game", open the Card menu, the lobby), then record the result in a
+comment — including the failures. The list of proven-damaging hashes lives in the comments of
+`extra_text.py`:
+
+- Loading stalls at 40–80%: newbie unlock rewards `41974B12`, one of the small label tables
   `8B5C2394/A07BC11B/4CEF98BE/63922EF4/7E3F57D7/3914DBBF/14DEEB2E`.
-- Menu Card rusak (kartu abu-abu placeholder): hero role guide `DD11D75B/CA340C43/BBFD4BE9/CAC6E38D`.
+- Card menu breaks (cards become grey placeholders): hero role guide
+  `DD11D75B/CA340C43/BBFD4BE9/CAC6E38D`.
 
 ---
 
-## 5. Yang sudah dicoba dan GAGAL (jangan ulangi tanpa ide baru)
+## 5. What has already been tried and FAILED (do not repeat without a new idea)
 
-| Percobaan | Hasil |
+| Attempt | Result |
 |---|---|
-| Ubah nama di definisi chessplayer `A8BC70BB87700709` field 37 | Lobby macet saat loading, bahkan setelah semua referensi di package 1 & 14 ikut diganti. Nama di halaman Chessplayer diperbaiki lewat tabel teks package 1 (§3), bukan lewat definisi ini. |
-| Rewrite semua label prefab Unity package 19 (`UNITY_TEXT_PACKAGES = {"19"}`) | Lobby macet. |
-| Rewrite **hanya nama faksi** di 15 prefab package 19 yang menampilkannya (tab faksi menu Card) | Crash saat start: `stack corruption detected`. Package 19 prefab sekarang dibiarkan. |
-| Code injection ke APK | Dibunuh anti-cheat. |
-| APK "prebaked" dengan asset terjemahan | `IsPrebuild errorCode:151`. |
-| Memodifikasi paket bahasa di APK sebelum update | Updater Tencent memakai binary diff; diff rusak. |
+| Change the name in chessplayer definition `A8BC70BB87700709` field 37 | The lobby hangs while loading, even after every reference in packages 1 and 14 was renamed too. The name on the Chessplayer page is fixed through package 1's text tables (§3), not through this definition. |
+| Rewrite every Unity prefab label in package 19 (`UNITY_TEXT_PACKAGES = {"19"}`) | The lobby hangs. |
+| Rewrite **only the faction names** in the 15 package-19 prefabs that display them (the Card menu's faction tab) | The game crashes at start: `stack corruption detected`. The package-19 prefabs are now left alone. |
+| Code injection into the APK | Killed by anti-cheat. |
+| A "prebaked" APK with translated assets | `IsPrebuild errorCode:151`. |
+| Modifying the language packages inside the APK before the update | Tencent's updater uses binary diffs; the diff breaks. |
 
-### Tab faksi di menu Card
-Status: **belum terselesaikan secara aman** lewat prefab. Langkah yang disarankan untuk agent berikutnya:
-1. Cek dulu apakah nama faksi juga ada di **tabel teks catalog yang prime-only** di package 1. Kalau ya,
-   rebuild §3 mungkin sudah menerjemahkannya — verifikasi di HP sebelum menyentuh prefab.
-2. Kalau label hanya ada di prefab package 19, jangan rewrite serialized string-nya (panjang berubah →
-   crash). Opsi yang belum dicoba: ganti dengan string **berpanjang byte sama/lebih pendek dengan padding**
-   sehingga layout serialized tidak bergeser, atau cari apakah prefab mengambil teks dari key tabel
-   (lalu terjemahkan tabelnya). Uji satu prefab dulu.
-3. Kalau tidak ada cara aman, dokumentasikan sebagai known limit.
+### The Card menu's faction tab
+
+Status: **not safely solved** through the prefabs. Suggested next steps for the following agent:
+
+1. First check whether the faction names are also in a **catalog text table that is prime-only** in
+   package 1. If they are, the §3 rebuild may already have translated them — verify on the phone before
+   touching a prefab.
+2. If the label only exists in a package-19 prefab, do not rewrite its serialized string (a changed length
+   crashes). Options not yet tried: replace it with a string of the **same or shorter byte length with
+   padding**, so the serialized layout does not shift; or find out whether the prefab takes its text from
+   a table key (and then translate the table). Test one prefab first.
+3. If there is no safe way, document it as a known limit.
 
 ---
 
-## 6. Alur uji di HP
+## 6. The device test loop
 
-1. Pastikan data game sudah update penuh sampai layar login (setelah update game: clear data,
-   download ulang, lalu patch lagi).
-2. Build patch offline dulu terhadap dump data (`python tools/build_device_patch.py --runtime resources/runtime
-   --game <dump> --catalog resources/catalog --work <w> --output <o> --apk <apk> --builder resources/qtsvfs`).
-   Butuh Python **3.12** (bytecode runtime `wxq_patch`).
-3. Push ke `files/QtsVFSCache/packages/<id>/`, hapus `files/QtsVFSCache/Watchdog/*` (lihat `app/patcher_core.py`).
-4. Buka game, cek `adb logcat` untuk error QtsVFS, screenshot layar login.
-5. Setelah login (user harus pakai *Scan to login*; login WeChat/QQ langsung tidak jalan di APK re-sign):
-   cek loading tips, halaman Chessplayer, lobby, menu Card, gambar arena.
-6. Simpan backup `packages` + `Watchdog` sebelum push agar bisa rollback.
+1. Make sure the game data has fully updated to the login screen (after a game update: clear the data,
+   download it again, then patch again).
+2. Build the patch offline against a data dump first (`python tools/build_device_patch.py --runtime
+   resources/runtime --game <dump> --catalog resources/catalog --work <w> --output <o> --apk <apk>
+   --builder resources/qtsvfs`). It needs Python **3.12** (the compiled `wxq_patch` runtime).
+3. Push to `files/QtsVFSCache/packages/<id>/`, and delete `files/QtsVFSCache/Watchdog/*` (see
+   `app/patcher_core.py`).
+4. Open the game and check `adb logcat` for QtsVFS errors; screenshot the login screen.
+5. After logging in (the user must use *Scan to login*; direct WeChat/QQ login does not work on a re-signed
+   APK): check the loading tips, the Chessplayer page, the lobby, the Card menu, the arena artwork.
+6. Back up `packages` + `Watchdog` before pushing, so you can roll back.
 
-## 7. Aturan kerja
+## 7. Working rules
 
-- Satu perubahan per uji; catat hasil (berhasil/gagal + gejala + tanggal) di komentar kode dekat hash-nya.
-- Gunakan terjemahan resmi dari catalog PC; jangan menerjemahkan bebas kecuali tidak ada padanan
-  (lalu masukkan ke `OFFICIAL_FIXES` dengan alasan).
-- Jangan ubah panjang/struktur asset biner yang tidak dipahami; selalu read-back sebelum push.
-- Jangan klaim "sudah terjemah" sebelum user melihatnya di HP setelah login.
+- One change per test; record the result (success/failure + symptom + date) in a comment next to the hash.
+- Use the official translation from the PC catalog; do not translate freely unless there is no equivalent
+  (and then put it in `OFFICIAL_FIXES` with a reason).
+- Do not change the length or structure of a binary asset you do not understand; always read back before
+  pushing.
+- Do not claim something is "translated" before the user has seen it on the phone after logging in.

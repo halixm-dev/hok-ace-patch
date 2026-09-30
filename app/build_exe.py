@@ -35,6 +35,7 @@ def build() -> None:
         "--add-data", f"{RESOURCES / 'adb'}{sep}adb",
         "--add-data", f"{RESOURCES / 'runtime'}{sep}runtime",
         "--add-data", f"{RESOURCES / 'catalog'}{sep}catalog",
+        "--add-data", f"{RESOURCES / 'qtsvfs'}{sep}qtsvfs",
         "--add-data", f"{RESOURCES / 'key' / 'cert.der'}{sep}key",
         "--add-data", f"{RESOURCES / 'key' / 'key.pk8'}{sep}key",
         "--add-data", f"{RESOURCES / 'icon.ico'}{sep}.",
@@ -45,6 +46,9 @@ def build() -> None:
         "--collect-all", "astc_encoder",
         "--collect-all", "texture2ddecoder",
         "--collect-all", "ooz",
+        # The extra-text pass romanises the opponent names with pypinyin, which carries its own
+        # dictionary data; --hidden-import alone would ship the code without it.
+        "--collect-all", "pypinyin",
     ]
     for module in HIDDEN_IMPORTS:
         args += ["--hidden-import", module]

@@ -90,6 +90,22 @@ def expand_tokens_in_message(data: bytes) -> tuple[bytes, int]:
     return _walk(data, 0)
 
 
+def expand_tokens(data: bytes, log=None) -> bytes:
+    """<data> with resource tokens expanded, or <data> unchanged when it is not a message we can walk.
+
+    The prime-rebuild and extra-text passes translate assets the staged-replacement pass never sees,
+    so they need the same substitution, and the same tolerance: a token left unexpanded is cosmetic,
+    while refusing the asset would lose the translation with it.
+    """
+    try:
+        expanded, _count = expand_tokens_in_message(data)
+    except Exception as error:  # noqa: BLE001 - a shape we cannot walk is left alone, not raised
+        if log is not None:
+            log(f"  token expand skipped: {error}")
+        return data
+    return expanded
+
+
 def _varint(data: bytes, pos: int) -> tuple[int, int]:
     result = shift = 0
     while True:

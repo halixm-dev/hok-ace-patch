@@ -1,4 +1,4 @@
-"""Grow a QtsVFS shard: append chunk slots at the end and repoint the slot position B-tree.
+"""Read a QtsVFS shard's chunk payloads, and grow it: append slots and repoint the position B-tree.
 
 Shard layout (reverse engineered from Android 1.3.0.4 packages):
   header   +0x08 u32 data end, +0x0C u32 file size, +0x30 u32 offset of the active page table
@@ -93,6 +93,37 @@ def btree_offsets(shard: Shard) -> dict[int, set[int]]:
         for i, key in enumerate(struct.unpack_from(f"<{count}I", shard.data, page)):
             offsets.setdefault(key, set()).add(shard._u32(page + (KEYS_PER_PAGE + i) * 4))
     return offsets
+
+
+def read_raw(package, slots, file_hash: int) -> bytes | None:
+    """The asset's uncompressed bytes, or None when its chunk framing is one we cannot read.
+
+    Chunk compression type 1 is LZ4 and 4 is Oodle; a chunk whose compressed and uncompressed sizes
+    match is stored as it is. A payload that will not decompress returns None rather than raising —
+    the caller then leaves the asset alone, which is what the game already shows for it.
+    """
+    import lz4.block
+    import ooz
+
+    entry = package.entries[file_hash]
+    raw = bytearray()
+    for chunk_id in sorted(slots[file_hash]):
+        slot = slots[file_hash][chunk_id]
+        with open(slot.shard_path, "rb") as handle:
+            handle.seek(slot.payload_offset)
+            payload = handle.read(slot.compressed_size)
+        try:
+            if slot.compressed_size == slot.uncompressed_size:
+                raw += payload  # chunk stored uncompressed
+            elif entry.compression == 1:
+                raw += lz4.block.decompress(payload, uncompressed_size=slot.uncompressed_size)
+            elif entry.compression == 4:
+                raw += ooz.decompress(payload, slot.uncompressed_size)
+            else:
+                return None
+        except Exception:  # noqa: BLE001 - unknown framing: leave the asset alone
+            return None
+    return bytes(raw)
 
 
 def install_btree_slot_map() -> None:
