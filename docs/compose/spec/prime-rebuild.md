@@ -3,7 +3,7 @@ feature: prime-rebuild
 status: delivered
 updated: 2026-09-30
 branch: feat/prime-rebuild
-commits: e21ed33..5bf1ab3
+commits: e21ed33..9be8adb
 ---
 
 # Prime Rebuild
@@ -51,8 +51,30 @@ documentation error; the fixes are `263631b`, re-reviewed as `1341055..263631b` 
 complete with no regression. `5bf1ab3` follows that re-review and its guard is verified by the stub run
 above.
 
-**Not verified on a phone.** Nothing here is claimed to look different in the game; the device loop is
-the guide's §6, one change per test.
+**Device test** — on the phone (Xiaomi M2007J3SG, Android 12, game data 1.4.0.1), reverting the six
+packages to a pristine download between runs:
+
+| run | package data | APK | result |
+|---|---|---|---|
+| control A | pristine download | debuggable | **died**, signal 7 (bus error), ~14 s after launch |
+| control B | pristine download | normal | **ran**, `MountPackage 1 / 1050016095, override => succeed!` |
+| patched | this run's six packages | normal | **ran**, same pid past 90 s, `BulkExportFromPackageJob done, result=1, errorCode=0` |
+
+Control A is what settles the earlier crash: a debuggable build kills the game on its own, with no
+patch present, so both crashes seen earlier — and the "reverting the packages still crashes" test —
+describe the debug build, not this feature. The `GCloud` / `QTS_LOG` lines that were read as a crash
+signature (`CheckLocalPatchDiffFiles blModified = [1]`, `GetAllSubpatchInfo ArraySize:[552]`) appear on
+the unpatched control too. That is now a constraint in `AGENTS.md`, and the cache bug it exposed is
+`9be8adb`.
+
+The installed data was checked below the UI: package `1` as staged holds **388 catalog tables with
+`translated: 0`** against 90 in the pristine download — the delta of 298 is the APK-only tables — and
+`00BF2528D217FFFA` (`战队` / `最强王者达成次数` in the APK, translatable there) reads English. So the
+tables this feature exists for did reach the layer the game mounts, and the device build reproduced the
+offline run exactly (701 assets, 298 from the APK; `402 text tables, 394 images`).
+
+**Not yet seen on screen.** What the text and textures look like in the game after login is the user's
+to report; this test covers boot and the installed data only.
 
 **Journey log**
 
@@ -72,6 +94,20 @@ the guide's §6, one change per test.
 - One entry, `56077AC5D3F0B677`, declares fewer bytes than its stream holds. Carrying the stream whole and
   recording what was carried is the only self-consistent option, and truncating bytes we do not
   understand would be the worse guess; it is named in `README.md` as the thing a device run has to settle.
+- Two hours went into a crash that was never this feature: run 1's launch *and* its revert test both ran
+  on the debuggable access APK, because the restore before them had failed and the failure was reported
+  only through `ui.log`, which the harness had stubbed to a no-op. The lesson is not "test on device" but
+  that any failure announced through a UI callback can be swallowed by a headless caller, so nothing that
+  decides whether the run worked may live there.
+- A rebuild that stages nothing is not evidence of a broken rebuild. `unreadable_assets: 701` plus
+  `translated: 4` came from a dump that was already patched, so every table was English and the transform
+  had nothing to change — `already_english: 260426` against a pristine dump's `2303` says so outright. A
+  dump's provenance has to be established before its build is believed, which is why the session from
+  21:31 was preserved: it is the only pristine copy of 1.4.0.1 this repo holds.
+- Restoring packages from such a dump is not the same as a fresh `pm clear`, and the difference is
+  measurable: the restored download pulls 2.667 GB where patched data pulls 2.737 GB, and control B boots
+  on it. That is what makes a revert test sound here, where the earlier one was not — it reverted to the
+  *previous patch's* output and so could neither convict nor clear anything.
 
 ## [S1] Problem
 
