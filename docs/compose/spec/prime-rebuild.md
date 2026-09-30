@@ -1,14 +1,77 @@
 ---
 feature: prime-rebuild
-status: in-progress
+status: delivered
 updated: 2026-09-30
 branch: feat/prime-rebuild
-commits:
+commits: e21ed33..5bf1ab3
 ---
 
 # Prime Rebuild
 
 ## Report
+
+**What was built** — the patcher can now reach the half of the game's data it never touched. The game
+reads the packages baked into the APK (prime) when the downloaded ones (override) lack an asset, and
+this repo staged into override alone, so prime-only content was untranslatable — no text table, no
+texture. `tools/package_rebuild.py` now re-lays-out packages `1` and `1050016095` whole with Tencent's
+own builder (`resources/qtsvfs/`, driven by ctypes in `tools/qts_builder.py`), so their override copies
+carry the prime-only content, translated, while prime-only assets that need no change are left out.
+Everything reads back byte-for-byte before a package is written, and the in-place stager and the
+extension pass both skip a rebuilt id.
+
+Measured on game data 1.4.0.1: a run stages 400 replacements for package `1` (102 downloaded assets
+re-translated plus **298** catalog tables taken from the APK — 51,095 records, the chessplayer names
+among them) and 72 textures for package `1050016095`. **394 of the catalog's 398 texture edits now
+apply, where 323 did.** The Chessplayer names reach the layer the screen reads, which is what the
+override-only path could never do.
+
+Two more passes came with it. A table the in-place stager cannot fit is appended to the end of the shard
+instead of being dropped (`exclude_extra_chunks` / `write_assets` / `relocate_text`), which recovers the
+11 chessplayer tables the drop report recorded as permanently lost; and `extra_text` + `pb_text` +
+`unity_text` translate display strings the catalog has no table for, gated on an allowlist because some
+Chinese in those assets is a lookup key. `count_translated` classifies a rebuilt package by the texture
+share the entry carries, not by its mode, because one entry now holds both kinds.
+
+**Verification** — all from the project root, on head `5bf1ab3` unless noted:
+
+| command | result |
+|---|---|
+| `py_compile` on the 13 changed/new modules | PASS (exit 0) |
+| `tools/research/check_graphics.py` | PASS, 91 s, "all checks passed" (324/324 `.blocks` ported, 74/74 `.assets` replayed) |
+| `tools/research/check_graphics.py --game <dump>` | PASS, 95 s; `ported 321, replaced 1, spliced 1, absent 75` |
+| `tools/research/prime_probe.py` | prints the `[S1]` table exactly |
+| `build_device_patch.py --apk … --builder …` vs the 102304 dump | PASS, exit 0 in 128 s; packages `1` and `1050016095` `rebuilt` (400 / 72), `15`/`19`/`20` graphics, `4` extra-text; `text_skipped` and `graphics_skipped` both empty; **all 21 guarded files of the dump byte-identical afterwards** |
+| frozen exe `app/build_exe.py` then `--selftest <dump> <out>` | PASS; exe contains `QtsVFS.dll`, `QtskDB.dll`, `pypinyin`, `package_rebuild` and not `prime_probe`; selftest exit 0 in 60 s with `relocated-text 11` for package `1` and `text_skipped` empty |
+| `patcher_core.count_translated` on the run's summary | PASS — `text=402 images=394`; a mode-only classifier would have said `474 / 323` |
+| extra-text probe: allowlist gating and a rewrite round-trip | PASS — only `SAFE_ASSETS` selected, 34 unallowlisted Chinese-bearing assets offered and none taken, second pass changed 0 strings |
+| post-review probes: `read_raw` contract, per-package reconciliation, empty-transform guard | PASS — the guard was exercised by stubbing a prime-only table to `b""`: 700 assets, 297 added, no exception |
+
+Independent review of `e21ed33..1341055` found no critical issue, three low-severity ones and one
+documentation error; the fixes are `263631b`, re-reviewed as `1341055..263631b` and found correct and
+complete with no regression. `5bf1ab3` follows that re-review and its guard is verified by the stub run
+above.
+
+**Not verified on a phone.** Nothing here is claimed to look different in the game; the device loop is
+the guide's §6, one change per test.
+
+**Journey log**
+
+- The handoff's own figures did not survive measurement: it gave the override package as 26.8 MB where
+  disk says 29.3 MB, and 2494 prime-only where the count is 2492. Measuring before designing is what
+  produced `[S1]`, which is why the probe is committed rather than left in `%TEMP%`.
+- Two durable claims were wrong for the same reason — `check_graphics.py --game` prints `absent: 75` and
+  both `README.md` and project memory read that as "not in the mobile build". It is a census of the
+  downloaded layer, and the APK carries 73 more, including 26 of the 27 wide faction panels the Card
+  Info ribbon is drawn from. The tool's own wording was what invited the mistake, so the wording was
+  fixed too. Never conclude an asset is absent without counting `assets/bin/Data/Package/builtin/`.
+- The relocation pass was expected to be inert once package `1` is rebuilt, and it is — on the path where
+  the APK is available. On the path without one it is not, and that is the run that proves it recovers
+  the 11 tables. A pass can be worth porting precisely because it is dormant on today's data.
+- `QtsPackage.entries` over-reports a rebuilt package (703 against 701 real entries) because the dropped
+  builder records stay as dead space in the index. Asset counts have to go through the B-tree.
+- One entry, `56077AC5D3F0B677`, declares fewer bytes than its stream holds. Carrying the stream whole and
+  recording what was carried is the only self-consistent option, and truncating bytes we do not
+  understand would be the worse guess; it is named in `README.md` as the thing a device run has to settle.
 
 ## [S1] Problem
 
@@ -271,8 +334,12 @@ Indonesian — the only non-English artifact in the chain. It is rewritten in En
 - **Assets neither the catalog nor the allowlists cover.** 2084 of package `1`'s prime-only assets
   and 535 of `1050016095`'s are uncovered and stay as they are; the extra-text pass only reaches
   allowlisted display assets.
-- **The catalog's 75 edits with no device counterpart.** Their asset ids are not in the mobile build,
-  so no code change can apply them.
+- **The three catalog edits no layer carries.** `197CC5393D16E3CB`, `884E0B4581F47CF7` and
+  `89C771ECFCDC7FBE` are in neither the downloaded layer nor the APK, so no code change can apply them.
+  The design phase put this number at 75, from a census of the downloaded dump alone; 72 of those were
+  in the APK all along. `7B4CC5DF48336D2D` is a fourth kind — present in the APK's package `21` and
+  deliberately left unapplied, because reaching it means rebuilding that package and recompressing
+  511 MB for one texture, and package `21` holds no other catalog edit.
 - **Coverage claims.** The result is the staged text tables plus the catalog's textures. The texture
   count is reported as *applied*, never as *covered*, and no run is described as a complete
   translation.
@@ -282,12 +349,12 @@ Indonesian — the only non-English artifact in the chain. It is rewritten in En
 
 ## Tasks
 
-- [ ] T1: Ship Tencent's builder in `resources/qtsvfs/` and port `tools/qts_builder.py` — acceptance: `Builder(resources/qtsvfs)` loads both DLLs, `VFS_Initialize_Scripted` returns 1, and `package_node` on a real override index returns the package node bytes (covers: S2)
-- [ ] T2: Port `tools/package_rebuild.py` and `read_raw` — acceptance: rebuilding package `1` from `installed.apk` against the 102304 dump produces a package whose every asset reads back byte-identical and whose `QTSF_PACKAGE` node equals the override's, and a prime-only asset the transform leaves alone is absent from it (covers: S2; depends: T1)
-- [ ] T3: Port the relocation pass into `tools/device_extensions.py` — acceptance: a text asset too large for its chunks is relocated with its chunk count preserved, its entry's raw length and chunk size updated, and its bytes read back identical (covers: S2; depends: T2)
-- [ ] T4: Port the extra-text layer as `tools/pb_text.py`, `tools/unity_text.py` and `tools/extra_text.py`, and add `pypinyin` to `requirements.txt` — acceptance: `pb_text.rewrite` round-trips a known allowlisted asset and `extra_text.plan_package` selects only hashes in `SAFE_ASSETS` (covers: S2)
-- [ ] T5: Rewire `tools/build_device_patch.py` — acceptance: on the 102304 dump the run reports `mode: "rebuilt"` for packages `1` and `1050016095`, package `1`'s entry carries `added_from_apk: 298` and `textures: 0`, `1050016095`'s carries a `textures` equal to the number of catalog textures the rebuild changed, any texture either rebuild refuses appears in `graphics_skipped`, `text_skipped` is empty, and every file of the dump is byte-identical afterwards (covers: S2; depends: T2, T3, T4)
-- [ ] T6: Wire the app — acceptance: `patcher_core.build_translation` passes the APK and the bundled builder, `count_translated` splits a rebuilt package by `textures`, `--selftest` still runs and logs the fallback when no APK is given, and `app/build_exe.py` ships `resources/qtsvfs` and collects `pypinyin` (covers: S2; depends: T5)
-- [ ] T7: Update the documentation — acceptance: AGENTS.md's `build_patch` contract lists `mode: rebuilt`, the `textures` field, the `graphics_skipped` interaction and the new arguments; README's coverage section describes the prime layer and what rebuilding it applies; and `docs/compose/spec/text-drop-report.md`'s `[S1]` attributes the Chessplayer screen to the prime layer while keeping the drop-loop finding (covers: S2; depends: T5)
-- [ ] T8: Rewrite `docs/agent-guide-untranslated-strings.md` in English in place — acceptance: the file is English, its sections keep their order and their tested-hash records, and the commit notes the change (covers: S2)
-- [ ] T9: Record the measurement as `tools/research/prime_probe.py` — acceptance: running it from the project root reprints the `[S1]` table's numbers for packages `1` and `1050016095` without a phone, and nothing in `app/` or `tools/` imports it (covers: S1)
+- [x] T1: Ship Tencent's builder in `resources/qtsvfs/` and port `tools/qts_builder.py` — acceptance: `Builder(resources/qtsvfs)` loads both DLLs, `VFS_Initialize_Scripted` returns 1, and `package_node` on a real override index returns the package node bytes (covers: S2)
+- [x] T2: Port `tools/package_rebuild.py` and `read_raw` — acceptance: rebuilding package `1` from `installed.apk` against the 102304 dump produces a package whose every asset reads back byte-identical and whose `QTSF_PACKAGE` node equals the override's, and a prime-only asset the transform leaves alone is absent from it (covers: S2; depends: T1)
+- [x] T3: Port the relocation pass into `tools/device_extensions.py` — acceptance: a text asset too large for its chunks is relocated with its chunk count preserved, its entry's raw length and chunk size updated, and its bytes read back identical (covers: S2; depends: T2)
+- [x] T4: Port the extra-text layer as `tools/pb_text.py`, `tools/unity_text.py` and `tools/extra_text.py`, and add `pypinyin` to `requirements.txt` — acceptance: `pb_text.rewrite` round-trips a known allowlisted asset and `extra_text.plan_package` selects only hashes in `SAFE_ASSETS` (covers: S2)
+- [x] T5: Rewire `tools/build_device_patch.py` — acceptance: on the 102304 dump the run reports `mode: "rebuilt"` for packages `1` and `1050016095`, package `1`'s entry carries `added_from_apk: 298` and `textures: 0`, `1050016095`'s carries a `textures` equal to the number of catalog textures the rebuild changed, any texture either rebuild refuses appears in `graphics_skipped`, `text_skipped` is empty, and every file of the dump is byte-identical afterwards (covers: S2; depends: T2, T3, T4)
+- [x] T6: Wire the app — acceptance: `patcher_core.build_translation` passes the APK and the bundled builder, `count_translated` splits a rebuilt package by `textures`, `--selftest` still runs and logs the fallback when no APK is given, and `app/build_exe.py` ships `resources/qtsvfs` and collects `pypinyin` (covers: S2; depends: T5)
+- [x] T7: Update the documentation — acceptance: AGENTS.md's `build_patch` contract lists `mode: rebuilt`, the `textures` field, the `graphics_skipped` interaction and the new arguments; README's coverage section describes the prime layer and what rebuilding it applies; and `docs/compose/spec/text-drop-report.md`'s `[S1]` attributes the Chessplayer screen to the prime layer while keeping the drop-loop finding (covers: S2; depends: T5)
+- [x] T8: Rewrite `docs/agent-guide-untranslated-strings.md` in English in place — acceptance: the file is English, its sections keep their order and their tested-hash records, and the commit notes the change (covers: S2)
+- [x] T9: Record the measurement as `tools/research/prime_probe.py` — acceptance: running it from the project root reprints the `[S1]` table's numbers for packages `1` and `1050016095` without a phone, and nothing in `app/` or `tools/` imports it (covers: S1)
