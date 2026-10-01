@@ -57,14 +57,15 @@ def count_translated(summary: dict) -> tuple[int, int]:
 
     A rebuilt package holds both kinds and its `replacement_count` covers both, so it carries the
     texture share in `textures`; classifying it by mode alone would report package 1's tables as
-    images, or package 1050016095's images as tables.
+    images, or package 1050016095's images as tables. A package the append pass added to carries the
+    same split for the same reason.
     """
     text = images = 0
     for package in summary.get("packages", []):
         count = package["stage_report"]["replacement_count"]
         if package.get("mode") == "graphics":
             images += count
-        elif package.get("mode") == "rebuilt":
+        elif package.get("mode") in ("rebuilt", "added-from-apk"):
             textures = package.get("textures", 0)
             images += textures
             text += count - textures
@@ -77,19 +78,24 @@ def count_untranslated_graphics(summary: dict) -> int:
     """Textures the run found but could not translate, so they stay in Chinese.
 
     These live in build_patch's separate `graphics_skipped` list, not in `packages`: a package whose
-    every texture was skipped writes no directory, and the installer pushes by directory.
+    every texture was skipped writes no directory, and the installer pushes by directory. The append
+    pass reports the textures it could not add the same way, in `append_skipped`.
     """
-    return sum(entry.get("skipped_count", 0) for entry in summary.get("graphics_skipped", []))
+    return (sum(entry.get("skipped_count", 0) for entry in summary.get("graphics_skipped", []))
+            + sum(entry.get("textures", 0) for entry in summary.get("append_skipped", [])))
 
 
 def count_untranslated_text(summary: dict) -> int:
-    """Text tables the run translated but could not stage, so they stay in Chinese.
+    """Text tables the run translated but could not apply, so they stay in Chinese.
 
     These live in build_patch's `text_skipped` list. A package that loses tables can still have an
     output directory behind it — and one that loses all of them has none — so `packages` alone
-    cannot say what did not make it.
+    cannot say what did not make it. The append pass reports the tables it could not add in
+    `append_skipped`; its entries count both kinds, so the tables are what is left after `textures`.
     """
-    return sum(entry.get("dropped_count", 0) for entry in summary.get("text_skipped", []))
+    return (sum(entry.get("dropped_count", 0) for entry in summary.get("text_skipped", []))
+            + sum(entry.get("assets", 0) - entry.get("textures", 0)
+                  for entry in summary.get("append_skipped", [])))
 
 
 class PatchError(Exception):

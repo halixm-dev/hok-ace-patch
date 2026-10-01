@@ -10,7 +10,7 @@ if the language packages were modified inside the APK.
 | Path | Contents |
 |---|---|
 | `app/` | GUI (`hok_patcher.py`), workflow (`patcher_core.py`), APK signing (`apk_tools.py`), `build_exe.py`, `make_icon.py` |
-| `tools/` | Translation build pipeline: `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py`, `axml_label.py` |
+| `tools/` | Translation build pipeline: `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), append into an existing package (`qts_insert.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py`, `axml_label.py` |
 | `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`. Off the runtime path; nothing here ships in the exe |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime, extracted from the PC patcher (Python 3.12 bytecode) |
 | `resources/catalog/` | Translation catalog (`.blocks` / `.assets`) — the English texture payloads the texture pass applies, plus `previews/` |
@@ -63,11 +63,19 @@ The game's data has two layers, and the patcher writes to the second one:
 
 The game reads override first and falls back to prime, so an asset that exists only in prime is
 unreachable by an in-place edit. The pulled APK is therefore a patch input, not just something to
-re-sign: packages `1` and `1050016095` are laid out again with Tencent's own builder
-(`resources/qtsvfs/`) so the override copies of them can carry the prime-only content, translated.
-Nothing else is rebuilt — re-laying-out a package means recompressing all of it, and what that costs is
-the *override* copy's size, not the APK's: package `21` would cost about 40 MB to lay out rather than the
-511 MB its APK copy suggests, and it is left alone for a different reason, recorded in the coverage list.
+re-sign, and there are two ways to carry that content into the override copy:
+
+- **Lay the package out again** with Tencent's own builder (`resources/qtsvfs/`), which is what packages
+  `1` and `1050016095` get. This changes the container's shape, which is why only those two are done:
+  re-laying-out a package means recompressing all of it, and what that costs is the *override* copy's
+  size, not the APK's — package `21` would cost about 40 MB to lay out rather than the 511 MB its APK
+  copy suggests.
+- **Append the asset to the package that is already there** (`qts_insert.py`, run by
+  `package_rebuild.add_prime_only`). Tencent's builder makes a throw-away package holding just the new
+  asset, and its chunk slot and index record — with every key the game derives — are appended to the
+  target's shard and index and linked into their B-trees. Nothing else in the container moves, so the
+  package keeps the shape the game already reads. This is how package `21` gets the Central Plains
+  panel.
 
 The patcher's own working data (~8 GB: pulled APK, packages, sessions) goes to the folder chosen in the app
 (default `HOK ACE Patcher Data` next to the exe), not into this project.
@@ -93,16 +101,17 @@ without a device cycle. The same class of edit had already broken the login scre
 prefab label tried, which is why the set is this small.
 
 Of the catalog's 398 texture edits, 395 exist somewhere in the mobile build — 323 in the downloaded layer
-and 73 in the APK's built-in layer, one asset keyed in both — and a run applies 394 of them. The ones it
-does not:
+and 73 in the APK's built-in layer, one asset keyed in both — and a run applies all 395. `7B4CC5DF48336D2D`,
+Central Plains' fourth wide faction panel, sits in the APK's package `21` and reaches the phone by append:
+the panel is translated from its prime revision and one record is added to the override copy of `21`, which
+therefore keeps the container shape the game already mounts. A *rebuild* of `21` also applies it — 4863
+assets laid out, 48.7 MB, mounted by the game, the panel read back as English — but on the phone it costs a
+card: the Factionless hero Yixing then draws as the game's grey placeholder, with art and faction bar
+missing, while Tencent's own copy of the package draws that card correctly. Package `21` is therefore kept
+out of `REBUILD_PACKAGES`.
 
-- `7B4CC5DF48336D2D`, Central Plains' fourth wide faction panel, sits in the APK's package `21`. A rebuild
-  of `21` does apply it — 4863 assets laid out, 48.7 MB, mounted by the game, the panel read back as
-  English — but on the phone it costs a card: the Factionless hero Yixing then draws as the game's grey
-  placeholder, `TimiText` and all, with art and faction bar missing, while Tencent's own copy of the
-  package draws that card correctly. Package `21` is left alone for that reason and not for its size.
-- `197CC5393D16E3CB`, `884E0B4581F47CF7` and `89C771ECFCDC7FBE` are in neither layer: their asset ids are
-  not in the mobile build, so no code change can apply them.
+Three edits are left alone: `197CC5393D16E3CB`, `884E0B4581F47CF7` and `89C771ECFCDC7FBE` are in neither
+layer, so no code change can apply them.
 
 A device chunk's framing is per chunk and self-describing: stored when its compressed and uncompressed
 sizes agree, a Zstandard frame when the payload opens with that magic, otherwise whatever the entry's
@@ -171,7 +180,9 @@ For every other package the drop is now a relocation instead: a table that will 
 appended to the end of the shard, keeping its chunk count, so it is applied rather than lost. Whatever
 still cannot be applied is reported rather than looking like a clean run: `text_skipped` in
 `device_patch_summary.json`, a line in the run log, and the count in the app's `translate` step and in
-its final message. On this data both loss lists are empty.
+its final message. An asset the append pass could not add is reported the same way, in `append_skipped`,
+which counts the images and the tables separately so the app can say what stays in Chinese and of which
+kind. On this data all three loss lists are empty.
 
 Resource tokens such as `{Energy}`, `{LordExp}` and `{LordHp}` are expanded to English terms
 (`Energy`, `Chessplayer EXP`, `Chessplayer HP`) in the staged packages, so the client no longer
@@ -184,7 +195,9 @@ does not extend:
 
 Re-running the patcher is safe: `qts_relocate.install_btree_slot_map()` makes the scanner follow the
 shard's B-tree, so a second run reads the live chunks instead of superseded copies of relocated ones,
-and the texture pass treats a texture that already matches its English payload as done.
+the texture pass treats a texture that already matches its English payload as done, and the append pass
+leaves a package alone once its staged copy already holds the asset — appending a record it already has
+would index the same B-tree key twice.
 
 ## Checking the texture pass
 

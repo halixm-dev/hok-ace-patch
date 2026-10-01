@@ -108,12 +108,6 @@ Imports `read_raw` from `qts_relocate` (the codec-9- and Zstandard-aware reader)
 - `rebuilt` stays `{entry["package_id"] for entry in packages}` computed **before** the scan, so the
   append pass runs after `extend_graphics` and never touches a package that pass replaced whole.
 
-`tools/pb_text.py` — `has_row_checksum(data) -> bool`, with private helpers `_top_level` and
-`_row_digest`: true when field 1 is the uppercase MD5 of the concatenated field-2 rows. A ResData
-config bin is validated by the game at load, and on rejection it falls back to a rawassets file that
-does not exist on Android, which empties whole menus. Wired into `make_transform` (prime rebuild and
-append) and `extra_text.plan_package`.
-
 ### Failure behaviour
 
 | Condition | Behaviour |
@@ -143,8 +137,17 @@ it: `textures` as images that stay Chinese, `assets - textures` as tables. `text
   the 24 386 codec-9 entries of prime 21 (`0x50001` where `0x90009` is meant), but the panel this pass
   appends is a 56-byte/codec-4 entry, so the bug does not affect it. Left as an open lead.
 - Putting package `21` back into `REBUILD_PACKAGES`. It stays out.
-- The `extra_text.SAFE_ASSETS` allowlist itself. `has_row_checksum` is added as a guard beside it;
-  the allowlist keeps exactly the assets HEAD has.
+- The `extra_text.SAFE_ASSETS` allowlist itself. A row-checksum guard (`pb_text.has_row_checksum`,
+  which the source fork carries) was to be added beside it and was **dropped after measurement**: on a
+  pristine layer every one of those assets answers true — the eight withdrawn bins *and* the four the
+  allowlist translates — so the guard cannot tell them apart, and since both call sites already sit
+  inside `file_hash in SAFE_ASSETS` branches its only effect would be to make the pass apply nothing.
+  An earlier reading of four falses came from the device-cycle snapshot under
+  `artifacts/hok-device-cycle/phone/`, which is our own patched build: rewriting one of those assets
+  invalidates the stored MD5, so a patched copy answers false and the pristine one true. Measure this
+  class of question on a freshly pulled layer, never on a copy this project has already written to.
+- Hand-writing a record or a B-tree layout. The one thing the append path must have from Tencent is the
+  record its builder derives (`qts_insert.add_assets`); nothing here composes a lookup key itself.
 - The game force-closing before the lobby (the handoff's L1/L2).
 - Re-signing, the manifest rename, and the APK rewrite path.
 - Page splits in the B-trees: a full leaf is reported, not solved.
@@ -156,6 +159,5 @@ it: `textures` as images that stay Chinese, `assets - textures` as tables. `text
 - [ ] T3: Extend `extract_prime` (`index_only`, `package_ids=None`), `make_transform` (`tables`) and add `add_prime_only` — acceptance: an override package lacking the panel gains it translated; one already carrying it is left alone; a full leaf and a multi-shard package are skipped and reported rather than raised (covers: S2)
 - [ ] T4: Wire the pass into `build_patch` with the builder and transform lifted out of `rebuild_prime_packages` — acceptance: an offline CLI run over a game dir with an APK and builder reports a `added-from-apk` entry for the package that gained the panel, and reports none when the APK or builder is missing (covers: S2)
 - [ ] T5: Report the pass and classify it — acceptance: `count_translated` on a summary carrying an `added-from-apk` entry returns the appended textures as images, and a skipped append is counted as untranslated images and tables (covers: S2)
-- [ ] T6: Add `pb_text.has_row_checksum` and wire it into both translation paths — acceptance: the eight withdrawn package-1 assets read back true and are left untranslated, while the four device-validated assets read back false and still translate (covers: S2)
 - [ ] T7: Offline verification over a real device layer — acceptance: `tools/build_device_patch.py` run against the phone's own override packages writes a translated panel into that package's staged copy, a second run reaches the same state, and the summary's counts are consistent (covers: S2)
 - [ ] T8: Device cycle — acceptance: on the phone the Card grid still draws Yixing **and** the Central Plains Card Info ribbon is English; `files/QtsVFSCache/QtsVFS.log` and `normal1.log` show no new fix set naming the appended package (covers: S2; device-gated)
