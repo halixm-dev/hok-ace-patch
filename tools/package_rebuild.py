@@ -239,7 +239,9 @@ def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output
 
     Returns (entries for packages that gained something, entries for packages that could not be
     appended to). The second list is not a result -- no output directory stands behind it -- but it
-    names the assets that stay Chinese, which the summary cannot say any other way.
+    names the assets that stay Chinese, which the summary cannot say any other way. Each of its
+    entries carries the assets the pass would have written and how many of those are textures, so a
+    caller can report what stays Chinese as images and as tables rather than as one total.
     """
     from device_extensions import _package_output
     from qts_builder import entry_flag
@@ -291,16 +293,10 @@ def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output
                 continue
             if not wanted:
                 continue
-        if len(device.shard_paths) != 1:
-            # add_assets writes <id>_0.db by name, so a package split over several shards is not
-            # something to guess at.
-            note(package_id, f"its device copy has {len(device.shard_paths)} shards", len(wanted),
-                 texture_count(wanted))
-            continue
         try:
             prime_dir = extract_prime(apk, {package_id}, work / "prime")[package_id]
         except KeyError:
-            note(package_id, "the package is not in the APK", len(wanted), texture_count(wanted))
+            log(f"package {package_id}: the APK index lists it but the package is not there")
             continue
 
         prime = QtsPackage(prime_dir)
@@ -317,6 +313,13 @@ def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output
                            "flag": entry_flag(prime_index, entry)})
         if not assets:
             continue
+        textures = texture_count(a["file_hash"] for a in assets)
+        if len(device.shard_paths) != 1:
+            # add_assets writes <id>_0.db by name, so a package split over several shards is not
+            # something to guess at. Named after the transform, because the count in the summary has
+            # to be what this pass would have written, not what it hoped to.
+            note(package_id, f"its device copy has {len(device.shard_paths)} shards", len(assets), textures)
+            continue
 
         created = not staged_dir.is_dir()
         target = _package_output(device, output)
@@ -327,7 +330,7 @@ def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output
             # directory, so it must not stay there looking like a result.
             if created:
                 shutil.rmtree(target, ignore_errors=True)
-            note(package_id, str(error), len(assets), texture_count(a["file_hash"] for a in assets))
+            note(package_id, str(error), len(assets), textures)
             continue
         entries.append({
             "package_id": package_id,
@@ -336,6 +339,6 @@ def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output
             "fit_summary": None,
             "stage_report": {"status": "verified", "replacement_count": len(assets)},
             "assets": len(assets),
-            "textures": texture_count(a["file_hash"] for a in assets),
+            "textures": textures,
         })
     return entries, skipped
