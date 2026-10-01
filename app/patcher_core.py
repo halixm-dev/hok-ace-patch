@@ -461,8 +461,8 @@ class Patcher:
         if untranslated:
             detail += ", " + " and ".join(untranslated) + " left in Chinese"
         # "already installed" claims there is nothing to report, so a run that installs nothing and
-        # still lost tables names them instead.
-        self.done("translate", detail if (text or images or dropped_text) else "already installed")
+        # still lost tables or images names them instead.
+        self.done("translate", detail if (text or images or dropped_text or skipped) else "already installed")
         return summary, staged if summary["packages"] else None
 
     def push_translation(self, staged: Path) -> None:
