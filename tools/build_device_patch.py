@@ -71,24 +71,21 @@ def _expand_staged_tokens(plans, log) -> int:
     return changed
 
 
-def rebuild_prime_packages(game: pathlib.Path, catalog_dir: pathlib.Path, apk: pathlib.Path,
-                           builder_dir: pathlib.Path, work: pathlib.Path, output: pathlib.Path,
-                           log) -> list[dict]:
+def rebuild_prime_packages(game: pathlib.Path, apk: pathlib.Path, transform, builder,
+                           work: pathlib.Path, output: pathlib.Path, log,
+                           refused: set[int]) -> list[dict]:
     """Rebuild every package whose translatable content partly lives only in the APK.
 
     Returns the summary entries; each also carries `textures_considered` and `textures_skipped`, which
     the caller moves into `graphics_skipped` rather than keeping on the entry, so that no reader can
     add the same skipped texture up twice.
-    """
-    from wxq_patch import adaptive
-    from package_rebuild import REBUILD_PACKAGES, extract_prime, make_transform, rebuild_package
-    from qts_builder import Builder
 
-    catalog = adaptive.load_catalog(catalog_dir)
+    <transform> and <builder> belong to the caller, which hands the same pair to the append pass, so
+    both passes decide an asset's fate the same way. <refused> is the caller's set, filled per package.
+    """
+    from package_rebuild import REBUILD_PACKAGES, extract_prime, rebuild_package
+
     prime = extract_prime(apk, set(REBUILD_PACKAGES), work / "prime")
-    builder = Builder(builder_dir)
-    refused: set[int] = set()
-    transform = make_transform(catalog, catalog_dir, log, refused)
     reports = []
     for package_id in REBUILD_PACKAGES:
         device_dir = game / "WXQ_Data" / "Package" / "builtin" / package_id
@@ -127,8 +124,19 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
 
     packages = []
     graphics_skipped = []
+    append_skipped = []
+    official_builder = transform = None
     if apk is not None and builder_dir is not None:
-        for report in rebuild_prime_packages(game, catalog, apk, builder_dir, work, output, log):
+        from package_rebuild import make_transform
+        from qts_builder import Builder
+
+        # One transform and one builder for both passes that reach into the APK: the rebuild lays a
+        # package out whole, the append adds records to the package that is already there.
+        official_builder = Builder(builder_dir)
+        refused: set[int] = set()
+        transform = make_transform(adaptive.load_catalog(catalog), catalog, log, refused)
+        for report in rebuild_prime_packages(game, apk, transform, official_builder, work, output,
+                                             log, refused):
             if report["textures_skipped"]:
                 graphics_skipped.append({
                     "package_id": report["package_id"],
@@ -308,6 +316,15 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     packages += graphics
     graphics_skipped += graphics_skipped_extra
 
+    if official_builder is not None:
+        # Last, so an append lands on the copy the passes above staged rather than being overwritten
+        # by one, and so a package a rebuild replaced whole is left alone (`rebuilt`).
+        from package_rebuild import add_prime_only
+
+        appended, append_skipped = add_prime_only(game, apk, transform, official_builder, work,
+                                                  output, rebuilt, log)
+        packages += appended
+
     summary = {
         "counts": dict(counts),
         "skipped_count": len(skipped),
@@ -315,6 +332,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         "packages": packages,
         "text_skipped": text_skipped,
         "graphics_skipped": graphics_skipped,
+        "append_skipped": append_skipped,
     }
     (output / "device_patch_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     log(json.dumps(summary["counts"], indent=2))
