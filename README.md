@@ -197,7 +197,9 @@ Re-running the patcher is safe: `qts_relocate.install_btree_slot_map()` makes th
 shard's B-tree, so a second run reads the live chunks instead of superseded copies of relocated ones,
 the texture pass treats a texture that already matches its English payload as done, and the append pass
 leaves a package alone once its staged copy already holds the asset — appending a record it already has
-would index the same B-tree key twice.
+would index the same B-tree key twice. A run that reuses an output directory therefore reports fewer
+packages than that directory holds: the copy the first run appended to is left as it is, because it is
+where the earlier result lives.
 
 ## Checking the texture pass
 
