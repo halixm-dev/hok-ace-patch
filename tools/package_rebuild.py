@@ -34,11 +34,15 @@ PRIME_PREFIX = "assets/bin/Data/Package/builtin/"
 REBUILD_PACKAGES = ("1", "1050016095")
 
 
-def extract_prime(apk: Path, package_ids, target: Path) -> dict[str, Path]:
+def extract_prime(apk: Path, package_ids, target: Path, index_only: bool = False) -> dict[str, Path]:
     """Copy the APK's built-in packages <package_ids> to <target>/<id>/; return the folders found.
 
     QtsPackage derives the index filename from the directory name, so each package's files have to
     sit in a folder named exactly after its id.
+
+    <package_ids> None copies every package of the APK, which is what the scan for prime-only content
+    needs. <index_only> copies just <id>.db: enough to list a package's entries, without pulling the
+    hundreds of MB of shards that most of them hold.
     """
     found = {}
     with zipfile.ZipFile(apk) as archive:
@@ -46,7 +50,11 @@ def extract_prime(apk: Path, package_ids, target: Path) -> dict[str, Path]:
             if not info.filename.startswith(PRIME_PREFIX) or info.is_dir():
                 continue
             package_id, _, name = info.filename[len(PRIME_PREFIX):].partition("/")
-            if package_id not in package_ids or "/" in name or not name.endswith(".db"):
+            if package_ids is not None and package_id not in package_ids:
+                continue
+            if "/" in name or not name.endswith(".db"):
+                continue
+            if index_only and name != f"{package_id}.db":
                 continue
             folder = target / package_id
             folder.mkdir(parents=True, exist_ok=True)
@@ -102,6 +110,7 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int]):
         return None
 
     transform.graphics = set(catalog.graphics)
+    transform.tables = set(catalog.known)
     return transform
 
 
@@ -214,3 +223,119 @@ def rebuild_package(package_id: str, device_dir: Path, prime_dir: Path, transfor
         "textures_skipped": skipped_textures,
         "entries_without_bytes": sorted(f"{file_hash:016X}" for file_hash in without_bytes),
     }
+
+
+def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output: Path,
+                   skip: set[str], log) -> tuple[list[dict], list[dict]]:
+    """Insert translated catalog assets that only exist in the APK into the override package.
+
+    A package whose catalog content exists only in the APK cannot be patched in place, and rebuilding
+    it whole lays the container out again, which changes its index shape and every shard offset. These
+    records are appended instead (``qts_insert.add_assets``), so the package keeps the shape the game
+    already reads and gains one translated asset.
+
+    <skip> holds the packages a rebuild replaced whole: their staged copy no longer matches the
+    device's container, and the rebuild already carried the prime-only assets into it.
+
+    Returns (entries for packages that gained something, entries for packages that could not be
+    appended to). The second list is not a result -- no output directory stands behind it -- but it
+    names the assets that stay Chinese, which the summary cannot say any other way.
+    """
+    from device_extensions import _package_output
+    from qts_builder import entry_flag
+    from qts_insert import add_assets
+    from qts_relocate import TreeFull, read_raw
+    from wxq_patch.qtsvfs import QtsPackage
+
+    root = game / "WXQ_Data" / "Package" / "builtin"
+    indexes = extract_prime(apk, None, work / "prime-index", index_only=True)
+    entries: list[dict] = []
+    skipped: list[dict] = []
+
+    def texture_count(hashes) -> int:
+        return sum(file_hash in transform.graphics for file_hash in hashes)
+
+    def note(package_id: str, reason: str, assets: int, textures: int) -> None:
+        skipped.append({"package_id": package_id, "mode": "added-from-apk", "reason": reason,
+                        "assets": assets, "textures": textures})
+        log(f"package {package_id}: {assets} translated assets stay in Chinese ({reason})")
+
+    for package_id, index_dir in sorted(indexes.items()):
+        device_dir = root / package_id
+        if package_id in skip or not (device_dir / f"{package_id}_0.db").is_file():
+            continue
+        try:
+            wanted = set(QtsPackage(index_dir).entries)
+        except Exception:  # noqa: BLE001 - an index that will not read lists nothing to add
+            continue
+        wanted &= transform.graphics | transform.tables
+        if not wanted:
+            continue
+        try:
+            device = QtsPackage(device_dir)
+        except Exception as error:  # noqa: BLE001 - a package that will not read is not ours to patch
+            log(f"package {package_id}: device package will not read ({error}); nothing appended")
+            continue
+        wanted -= set(device.entries)
+        if not wanted:
+            continue
+        # A staged copy an earlier pass or an earlier run made holds the same assets, and appending a
+        # record it already has would index the same B-tree key twice. Only what it still lacks is
+        # worth appending; an asset that is already there is not a result of this run.
+        staged_dir = output / package_id
+        if staged_dir.is_dir():
+            try:
+                wanted -= set(QtsPackage(staged_dir).entries)
+            except Exception as error:  # noqa: BLE001 - someone else's staged copy: leave it alone
+                log(f"package {package_id}: staged copy will not read ({error}); nothing appended")
+                continue
+            if not wanted:
+                continue
+        if len(device.shard_paths) != 1:
+            # add_assets writes <id>_0.db by name, so a package split over several shards is not
+            # something to guess at.
+            note(package_id, f"its device copy has {len(device.shard_paths)} shards", len(wanted),
+                 texture_count(wanted))
+            continue
+        try:
+            prime_dir = extract_prime(apk, {package_id}, work / "prime")[package_id]
+        except KeyError:
+            note(package_id, "the package is not in the APK", len(wanted), texture_count(wanted))
+            continue
+
+        prime = QtsPackage(prime_dir)
+        slots = prime.build_slot_map()
+        prime_index = prime.index_path.read_bytes()
+        assets = []
+        for file_hash in sorted(wanted):
+            raw = read_raw(prime, slots, file_hash) if file_hash in slots else None
+            new = transform(file_hash, raw) if raw else None
+            if new is None:
+                continue
+            entry = prime.entries[file_hash]
+            assets.append({"file_hash": file_hash, "raw": new, "chunk_size": entry.chunk_size,
+                           "flag": entry_flag(prime_index, entry)})
+        if not assets:
+            continue
+
+        created = not staged_dir.is_dir()
+        target = _package_output(device, output)
+        try:
+            add_assets(package_id, target, assets, builder, work, log)
+        except TreeFull as error:
+            # The staged copy holds an untouched copy of the package; the installer pushes by
+            # directory, so it must not stay there looking like a result.
+            if created:
+                shutil.rmtree(target, ignore_errors=True)
+            note(package_id, str(error), len(assets), texture_count(a["file_hash"] for a in assets))
+            continue
+        entries.append({
+            "package_id": package_id,
+            "mode": "added-from-apk",
+            "source_package": str(prime_dir),
+            "fit_summary": None,
+            "stage_report": {"status": "verified", "replacement_count": len(assets)},
+            "assets": len(assets),
+            "textures": texture_count(a["file_hash"] for a in assets),
+        })
+    return entries, skipped
