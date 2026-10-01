@@ -162,9 +162,13 @@ of it the catalog covers. A search for a missing asset has to run over both laye
 the earlier measurement paid for.
 
 The catalog's card coverage is also narrower than it looks. Package `15` holds 3990 textures, 1994 of
-them card-shaped, and the catalog's 299 entries at that shape are the **hero** cards — the rest are
-Talent, skill and effect cards, whose bottom band carries a type word or a card name rather than a
-faction, and which the catalog does not translate at all.
+them card-shaped, and the catalog's 299 entries at that shape are the **hero** cards — the other **1695**
+are Talent, skill and effect cards, whose bottom band carries a type word or a card name rather than a
+faction, and which the catalog does not translate at all. Decoding two of them shows `技能` beside an
+already-English `SKILL`, and a `TALENT` card whose band reads `钻石狂澜`. The English for those names is
+in the catalog and in some cases already drawn in the art, so what is missing is the *rendering*: this is
+the largest visible gap left, and closing it needs a pass that draws text in the band's own font, colour
+and position, because there is no catalog payload to copy. Nothing here draws text yet.
 
 Package `1` is where the two layers matter most for text. It holds 2492 of its 2873 assets only in the
 APK, 408 of them catalog text tables, of which 298 translate — 51,095 records, the chessplayer names and
@@ -192,6 +196,18 @@ does not extend:
 
 - Extra text tables outside the staged packages are not translated, and no texture outside
   `resources/catalog/` is.
+
+Two allowlists decide how far the display strings the catalog has no table for are taken. `SAFE_ASSETS`
+in `tools/extra_text.py` holds the four assets a device cycle has cleared; `CANDIDATE_ASSETS` beside it
+holds the fifteen the asset note names as *not tried*, each resolved to the hash the package carries and
+measured — `tools/research/extra_text_candidates.py` prints that table, and checks that a run naming no
+candidate plans the allowlist and nothing else. Four of the fifteen are display-label tables the catalog
+covers: `63922EF4D4C86526` is `幻化`/`夺宝`/`限时`, `7E3F57D727FA8625` is `道具`, `3914DBBFECD1E54D` is
+`高光表情`, and `4CEF98BEC79CB48C` is four more. The other eleven are guide-step, buff, nickname and
+damage identifiers the catalog reaches at most 9% of, so the labels are the cycles worth running. A cycle
+is one variable: `--cycle-asset <hash>` on the offline CLI enables exactly that asset for one run, the run
+names it in `device_patch_summary.json`'s `cycle_assets`, and the hash joins `SAFE_ASSETS` only once a
+phone has shown the screen it feeds. `docs/compose/spec/extra-text-cycles.md` holds the loop.
 
 Re-running the patcher is safe: `qts_relocate.install_btree_slot_map()` makes the scanner follow the
 shard's B-tree, so a second run reads the live chunks instead of superseded copies of relocated ones,

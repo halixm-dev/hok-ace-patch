@@ -7,6 +7,10 @@
   listed as carrying them.
 
 Assets are rewritten with the same chunk count they already have (`device_extensions.write_assets`).
+
+`SAFE_ASSETS` is an allowlist and `CANDIDATE_ASSETS` the measured queue for it: an asset joins the
+allowlist only after a device cycle has looked at the screen it feeds, and a cycle turns one candidate
+on for one run through `resolve_candidates` rather than by editing the allowlist.
 """
 from __future__ import annotations
 
@@ -44,6 +48,36 @@ SAFE_ASSETS = BOT_NAME_ASSETS | {
 # parts 87C2793F, damage-type tables 7B40D34D / 1BAEBF0F / EAF99621, 3F4DD9B1, newbie unlock rewards
 # 41974B12, the small label tables 8B5C2394 / A07BC11B / 4CEF98BE / 63922EF4 / 7E3F57D7 / 3914DBBF /
 # 14DEEB2E. A note claiming "verified on device" is only as good as the screens it was verified on.
+# Those fifteen are the short forms. CANDIDATE_ASSETS resolves them to the hashes the packages carry
+# and records each one's measurement -- distinct Chinese strings it holds (of the fields that carry
+# them, since labels repeat) and how many of those the catalog has an official English for, which is the
+# share this pass could translate and therefore what a cycle buys -- so a cycle starts from the numbers
+# rather than from the note. Measured against the downloaded layer, game data 1.4.0.1, by
+# tools/research/extra_text_candidates.py.
+# The order is the order to run the cycles in: the four label tables first, because they are display
+# labels the catalog mostly or entirely covers, and the other eleven only after a cycle says the class is
+# safe. Those eleven are step, buff, nickname and damage identifiers the catalog reaches 1.5-9% of, so a
+# cycle on one would add a handful of strings and risk a screen the note above already lists a synonym of.
+CANDIDATE_ASSETS: dict[int, str] = {
+    0x63922EF4D4C86526: "3 of 3, and a 90-byte asset -- Transmog / Treasure Hunt / Limited Time; the "
+                        "cheapest honest signal there is",
+    0x4CEF98BEC79CB48C: "4 of 12 (15 fields) -- Tier / Hero Faction / Keyword / Wanxiang Quiz",
+    0x7E3F57D727FA8625: "1 of 1 -- Props",
+    0x3914DBBFECD1E54D: "1 of 1 -- Highlight Expression",
+    0x41974B124E0053E0: "15 of 25 (42 fields) -- the newbie unlock-reward list; only a new account sees it",
+    0x7B40D34D9DF271FF: "3 of 53 (65 fields) -- Damage / Invincible / Magic Damage Can Crit; the other "
+                        "50 are designer shorthand",
+    0x1BAEBF0F2F2454FD: "3 of 49 (59 fields) -- the same family as above",
+    0xEAF9962143676693: "3 of 53 (65 fields) -- the same family as above",
+    0xA07BC11BA94A5969: "5 of 10 -- no screen identified yet",
+    0x14DEEB2E14F20E3C: "2 of 3, in a 115 KB asset -- two labels for the price of a big one",
+    0x8B5C239421E23186: "9 of 283 -- guide step names (S1 lineup - use button): logic, not labels",
+    0x9E141D556DA884E7: "23 of 596 (632 fields) -- guide triggers: the same class",
+    0xC11D0D1498204926: "35 of 587 (859 fields) -- buff definitions, mostly designer shorthand",
+    0x87C2793FEEDCA60D: "20 of 678 (2199 fields) -- nickname parts, and 3% of them are labels",
+    0x3F4DD9B1D383FD83: "1 of 2, and it is reachable (package 4) -- but that is the package the note "
+                        "withdrew: its write path does not verify its own write",
+}
 # Values that are logic rather than labels. A skill-config message stores 空 (empty) in the slots that
 # carry no skill, and the client reads that value back instead of treating it as text. Guarding it did
 # not by itself fix the skill button -- withdrawing those assets did -- but the allowlist above was
@@ -60,6 +94,31 @@ OFFICIAL_FIXES = {"蝉儿": "Chan'er"}
 # Skill-editor labels (10) and gameplay scripts (14): Chinese there is logic, not display text.
 EXCLUDED_PACKAGES = {"10", "14"}
 _CJK_RUN = re.compile(r"[\u3400-\u9fff\uf900-\ufaff]+")
+
+
+class UnknownCandidate(ValueError):
+    """Raised when a device cycle names an asset that is not on the measured candidate list."""
+
+
+def resolve_candidates(selector: str) -> list[int]:
+    """The candidate asset hashes <selector> names, for one device cycle.
+
+    <selector> is one or more hexadecimal prefixes separated by commas, each at least four digits and
+    each matching exactly one of CANDIDATE_ASSETS. A cycle turns on what was measured rather than what
+    was typed, so a prefix that is ambiguous or names nothing is refused instead of guessed at.
+    """
+    resolved: list[int] = []
+    for token in (part.strip().upper() for part in re.split(r"[,\s]+", selector) if part.strip()):
+        if not re.fullmatch(r"[0-9A-F]{4,16}", token):
+            raise UnknownCandidate(f"{token!r} is not a hexadecimal asset hash")
+        matches = [file_hash for file_hash in CANDIDATE_ASSETS if f"{file_hash:016X}".startswith(token)]
+        if len(matches) != 1:
+            raise UnknownCandidate(f"{token!r} names {len(matches)} candidates, and a cycle enables one")
+        if matches[0] not in resolved:
+            resolved.append(matches[0])
+    if not resolved:
+        raise UnknownCandidate("no asset named")
+    return resolved
 
 
 def pinyin_name(text: str) -> str:
@@ -127,16 +186,23 @@ def plan_unity_package(package, catalog) -> dict[int, bytes]:
     return jobs
 
 
-def plan_package(package, catalog, skip: set[int], log=None) -> dict[int, bytes]:
-    """New raw bytes for every allowlisted protobuf asset in <package> that can be translated."""
+def plan_package(package, catalog, skip: set[int], log=None,
+                 candidates: frozenset[int] = frozenset()) -> dict[int, bytes]:
+    """New raw bytes for every allowlisted protobuf asset in <package> that can be translated.
+
+    <candidates> are the CANDIDATE_ASSETS a device cycle has turned on for this run. They join the
+    allowlist for the run and are not added to it: `SAFE_ASSETS` grows only when a cycle's screen has
+    been looked at, so no run can ship an asset that was never put on a phone.
+    """
     from qts_relocate import read_raw
     from resource_tokens import expand_tokens
 
+    allowed = SAFE_ASSETS | candidates
     slots = package.build_slot_map()
     jobs: dict[int, bytes] = {}
     for file_hash in slots:
         entry = package.entries.get(file_hash)
-        if entry is None or file_hash in skip or file_hash not in SAFE_ASSETS or entry.compression not in (1, 4):
+        if entry is None or file_hash in skip or file_hash not in allowed or entry.compression not in (1, 4):
             continue
         raw = read_raw(package, slots, file_hash)
         if raw is None or not pb_text.CJK.search(raw.decode("utf-8", "ignore")):
@@ -152,8 +218,12 @@ def plan_package(package, catalog, skip: set[int], log=None) -> dict[int, bytes]
     return jobs
 
 
-def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] = frozenset()) -> list[dict]:
-    """Translate uncovered protobuf assets in every package of <game>; returns summary entries."""
+def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] = frozenset(),
+                candidates: frozenset[int] = frozenset()) -> list[dict]:
+    """Translate uncovered protobuf assets in every package of <game>; returns summary entries.
+
+    <candidates> is the device cycle's enablement, passed through to `plan_package`.
+    """
     from device_extensions import relocate_assets
     from wxq_patch.qtsvfs import QtsPackage
 
@@ -169,7 +239,7 @@ def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] 
             continue
         if len(package.shard_paths) != 1:
             continue
-        jobs = plan_package(package, catalog, skip, log)
+        jobs = plan_package(package, catalog, skip, log, candidates=candidates)
         if package_dir.name in UNITY_TEXT_PACKAGES:
             jobs.update(plan_unity_package(package, catalog))
         if not jobs:

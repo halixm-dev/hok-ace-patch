@@ -66,7 +66,8 @@ def extract_prime(apk: Path, package_ids, target: Path, index_only: bool = False
     return found
 
 
-def make_transform(catalog, catalog_dir: Path, log, refused: set[int]):
+def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
+                   candidates: frozenset[int] = frozenset()):
     """Build the per-asset decision both layers share.
 
     ``transform(file_hash, raw) -> translated bytes, or None when the asset needs no change``.
@@ -76,12 +77,19 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int]):
     caller must read it per package, because "left alone" and "refused" are the same return value:
     a texture that is already English is done, while one the codec refused is a skip, and only the
     second belongs in the run's report.
+
+    <candidates> is a device cycle's enablement. It has to be here as well as in `extra_text`: the
+    four allowlisted extra-text assets reach a rebuilt package through this transform, because the
+    extra-text pass skips the packages a rebuild replaced whole. A candidate enabled in only one of the
+    two would be a no-op for a package the rebuild owns.
     """
     import extra_text
     import mobile_graphics as mg
     import pb_text
     from resource_tokens import expand_tokens
     from wxq_patch import adaptive
+
+    allowed = extra_text.SAFE_ASSETS | candidates
 
     def transform(file_hash: int, raw: bytes) -> bytes | None:
         if file_hash in catalog.known:
@@ -101,7 +109,7 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int]):
                 refused.add(file_hash)
                 return None
             return new if new != raw else None
-        if file_hash in extra_text.SAFE_ASSETS and pb_text.CJK.search(raw.decode("utf-8", "ignore")):
+        if file_hash in allowed and pb_text.CJK.search(raw.decode("utf-8", "ignore")):
             try:
                 new, changed = pb_text.rewrite(raw, extra_text.translator_for(file_hash, catalog))
             except pb_text.NotMessage:

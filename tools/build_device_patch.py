@@ -105,12 +105,17 @@ def rebuild_prime_packages(game: pathlib.Path, apk: pathlib.Path, transform, bui
 
 def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, output: pathlib.Path,
                 *, fit_only_mode: bool = False, apk: pathlib.Path | None = None,
-                builder_dir: pathlib.Path | None = None, log=print) -> dict:
+                builder_dir: pathlib.Path | None = None, cycle_assets: frozenset[int] = frozenset(),
+                log=print) -> dict:
     """Scan <game>, stage English packages into <output>/<id>/ and return the summary.
 
     With <apk> and <builder_dir> (a folder holding the PC QtsVFS.dll), the packages that keep
     translatable text or textures only inside the APK are rebuilt whole; every other package is
     patched in place.
+
+    <cycle_assets> is a device cycle's one-variable change: the extra-text candidate assets this run
+    enables on top of the allowlist. Empty on a normal run, and recorded in the summary either way, so
+    a staged build says which cycle produced it.
     """
     from wxq_patch import adaptive
     from wxq_patch.unity_package_installer import capacity_report, stage_unity_package
@@ -134,7 +139,8 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         # package out whole, the append adds records to the package that is already there.
         official_builder = Builder(builder_dir)
         refused: set[int] = set()
-        transform = make_transform(adaptive.load_catalog(catalog), catalog, log, refused)
+        transform = make_transform(adaptive.load_catalog(catalog), catalog, log, refused,
+                                   candidates=cycle_assets)
         for report in rebuild_prime_packages(game, apk, transform, official_builder, work, output,
                                              log, refused):
             if report["textures_skipped"]:
@@ -312,7 +318,8 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         applied = staged_hashes | relocated.get(package_id, set())
         note_missing(package_id, planned, [h for h in planned if h not in applied], mode)
 
-    graphics, graphics_skipped_extra = extend_graphics(game, catalog, output, log, skip=rebuilt)
+    graphics, graphics_skipped_extra = extend_graphics(game, catalog, output, log, skip=rebuilt,
+                                                       candidates=cycle_assets)
     packages += graphics
     graphics_skipped += graphics_skipped_extra
 
@@ -333,6 +340,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         "text_skipped": text_skipped,
         "graphics_skipped": graphics_skipped,
         "append_skipped": append_skipped,
+        "cycle_assets": [f"{file_hash:016X}" for file_hash in sorted(cycle_assets)],
     }
     (output / "device_patch_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     log(json.dumps(summary["counts"], indent=2))
@@ -349,11 +357,26 @@ def main() -> None:
     parser.add_argument("--fit-only", action="store_true")
     parser.add_argument("--apk", type=pathlib.Path, help="the APK the prime layer is read from")
     parser.add_argument("--builder", type=pathlib.Path, help="folder with QtsVFS.dll + QtskDB.dll")
+    parser.add_argument("--cycle-asset", action="append", metavar="HASH",
+                        help="an extra-text candidate this device cycle enables, by hash or hex "
+                             "prefix; repeatable, and comma-separated values are read as well")
     args = parser.parse_args()
 
     sys.path.insert(0, str(args.runtime.resolve()))
+    cycle_assets: frozenset[int] = frozenset()
+    if args.cycle_asset:
+        from extra_text import CANDIDATE_ASSETS, UnknownCandidate, resolve_candidates
+
+        try:
+            cycle_assets = frozenset(resolve_candidates(",".join(args.cycle_asset)))
+        except UnknownCandidate as error:
+            known = "\n".join(f"  {file_hash:016X}  {what}"
+                              for file_hash, what in CANDIDATE_ASSETS.items())
+            parser.error(f"--cycle-asset: {error}\nthe measured candidates are:\n{known}")
+        for file_hash in sorted(cycle_assets):
+            print(f"device cycle: enabling {file_hash:016X} -- {CANDIDATE_ASSETS[file_hash]}")
     build_patch(args.game, args.catalog, args.work, args.output, fit_only_mode=args.fit_only,
-                apk=args.apk, builder_dir=args.builder)
+                apk=args.apk, builder_dir=args.builder, cycle_assets=cycle_assets)
 
 
 if __name__ == "__main__":

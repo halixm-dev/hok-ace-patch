@@ -191,7 +191,8 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
 
 
 def extend_graphics(game: Path, catalog_dir: Path, output: Path, log,
-                    skip: set[str] = frozenset()) -> tuple[list[dict], list[dict]]:
+                    skip: set[str] = frozenset(),
+                    candidates: frozenset[int] = frozenset()) -> tuple[list[dict], list[dict]]:
     """Run the texture pass and the extra-text pass over every discovered package.
 
     Packages are discovered afresh rather than taken from the text scan's plans: a texture-heavy
@@ -199,6 +200,9 @@ def extend_graphics(game: Path, catalog_dir: Path, output: Path, log,
 
     <skip> holds the packages a rebuild already replaced whole; this pass builds on the device's own
     container, so touching one of those would apply edits to a package that no longer matches it.
+
+    <candidates> is the device cycle's enablement for the extra-text pass, which is the only thing
+    here that has one.
 
     Returns two lists: the summary entries for packages that wrote something, and the entries for
     packages whose every texture was skipped. The second list is kept out of ``packages`` on purpose --
@@ -231,5 +235,5 @@ def extend_graphics(game: Path, catalog_dir: Path, output: Path, log,
             })
     from extra_text import extend_text
 
-    reports += extend_text(game, catalog, output, log, skip)
+    reports += extend_text(game, catalog, output, log, skip, candidates=candidates)
     return reports, skipped

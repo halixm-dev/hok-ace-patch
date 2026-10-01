@@ -143,10 +143,27 @@ translate. The catalog keeps the tokens, because `translate_table` requires matc
 Ten assets were enabled, watched on a phone and withdrawn, each with the screen that showed the damage;
 the hashes and symptoms are beside the allowlist. Task names `5214339F97C419ED` make a tournament replay
 SIGSEGV, the four chessplayer-skill assets remove the skill-description button, and mail / quiz /
-"not open yet" notices remove the game button after pressing start and blank the encyclopedia. Fifteen
-further assets are named there as *not tried* — guide triggers, buff definitions, nickname parts,
-damage-type tables, newbie unlock rewards and six small label tables. Both sets stay out until a device
-cycle says otherwise.
+"not open yet" notices remove the game button after pressing start and blank the encyclopedia. Both sets
+stay out until a device cycle says otherwise.
+
+Fifteen further assets are named there as *not tried*. They were resolved to full hashes and measured
+against the downloaded layer (`tools/research/extra_text_candidates.py`, `extra-text-cycles.md`), and the
+measurement says the fifteen are not fifteen equal opportunities. Four are display-label tables the
+catalog mostly or entirely covers, worth a cycle: `63922EF4D4C86526` 3 of 3 strings
+(Transmog / Treasure Hunt / Limited Time), `4CEF98BEC79CB48C` 4 of 12, `7E3F57D727FA8625` 1 of 1 (Props)
+and `3914DBBFECD1E54D` 1 of 1 (Highlight Expression). The other eleven are step, buff, nickname and damage
+**identifiers** the catalog reaches 1.5-9% of — `8B5C239421E23186` is 283 guide step names
+(`S1 lineup - use button`), `9E141D556DA884E7` 596 guide triggers, `C11D0D1498204926` 587 buff
+definitions, `87C2793FEEDCA60D` 678 nickname parts, the three damage tables 3 of 49-53 each with the rest
+designer shorthand, `41974B124E0053E0` 15 of 25, `A07BC11BA94A5969` 5 of 10, `14DEEB2E14F20E3C` 2 of 3,
+and `3F4DD9B1D383FD83`, which is reachable but in package `4`, the package the note withdrew. The whole
+set is about **131 strings, of which the four label tables are 9**, so those four are the cycles worth
+running and the rest wait until a cycle says the class is safe.
+
+A cycle is now one variable by construction: `--cycle-asset <hash>` enables exactly one queued candidate,
+the run records it in `device_patch_summary.json`'s `cycle_assets`, and the hash joins `SAFE_ASSETS` only
+once a cycle has looked at the screen it feeds. Four cycles are built and verified offline; none has a
+verdict, so the allowlist is still the four assets it was.
 
 ## Knowingly left Chinese
 
@@ -156,6 +173,13 @@ cycle says otherwise.
   loading stalls even with every reference renamed alongside it).
 - Package `15`: 3990 textures, 1994 of them card-shaped, and the catalog's 299 entries at that shape are
   the hero cards. The rest carry a type word or a card name on the bottom band and are not catalogued.
+  Counted exactly: package `15` holds **1695** entries the catalog does not cover at the hero-card
+  geometry (404x564, ASTC 4x4, 227 856 B), and they are the Talent, skill and effect cards — decoding
+  two of them shows `技能` beside an already-English `SKILL` (`000847DC117D3C4E`) and a `TALENT` card whose
+  band reads `钻石狂澜` (`0143B73B5071A289`). The English for those names is in `catalog.unique` and, in
+  several, already drawn in the art, so nothing is missing but the *rendering*: this is the largest
+  visible gap left and it needs a pass that draws text in the band's own font, colour and position,
+  because no catalog payload exists to copy. Nothing in this repo draws text.
 - Every texture outside `resources/catalog/` and every text table outside the staged packages.
 - The prime-only remainder no catalog entry covers at all: **2084** of package `1`'s 2492 prime-only
   assets and **535** of package `1050016095`'s 606. This is the honest measure of what is not merely
