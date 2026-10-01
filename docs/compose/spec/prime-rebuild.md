@@ -1,7 +1,7 @@
 ---
 feature: prime-rebuild
 status: delivered
-updated: 2026-09-30
+updated: 2026-10-01
 branch: feat/prime-rebuild
 commits: e21ed33..9be8adb
 ---
@@ -22,10 +22,11 @@ extension pass both skip a rebuilt id.
 Measured on game data 1.4.0.1: a run stages 392 replacements for package `1` (94 downloaded assets
 re-translated plus **298** catalog tables taken from the APK — 51,095 records, the chessplayer names
 among them) and 72 textures for package `1050016095`. **394 of the catalog's 398 texture edits now
-apply, where 323 did** — 395 once package `21` joined `REBUILD_PACKAGES`, which is the state `README.md`
-documents. The Chessplayer names reach the layer the screen reads, which is what the
-override-only path could never do. (The count was 400 before the device round below withdrew the
-assets it convicts: the six extras left in the allowlist are six fewer replacements.)
+apply, where 323 did** — 395 with package `21` rebuilt as well, the state this feature left the
+pipeline in; `21` has since left `REBUILD_PACKAGES`, and the append pass in `prime-only-append.md` is
+what reaches that 395th edit today. The Chessplayer names reach the layer the screen reads, which is
+what the override-only path could never do. (The count was 400 before the device round below withdrew
+the assets it convicts: the six extras left in the allowlist are six fewer replacements.)
 
 Two more passes came with it. A table the in-place stager cannot fit is appended to the end of the shard
 instead of being dropped (`exclude_extra_chunks` / `write_assets` / `relocate_text`), which recovers the
@@ -462,19 +463,104 @@ supplies the prime layer is the one installed on the phone.
 `resources/qtsvfs/` joins the shipped resources and `app/build_exe.py` adds it with `--add-data`, so
 the frozen exe can rebuild on any machine. `pypinyin` joins `requirements.txt` and `HIDDEN_IMPORTS`.
 
+### Which pass owns a string, and how to find out
+
+A string that is still Chinese is diagnosed from the data, in this order, rather than guessed at:
+
+1. **Capture the exact Chinese** — from the user's report, or `adb exec-out screencap -p > s.png`.
+2. **Look it up in the catalog**: `resources/catalog/catalog.json.gz`, where `unique` maps Chinese to
+   the PC patcher's official English. Set `PYTHONIOENCODING=utf-8` on Windows, or printing CJK raises
+   through cp1252.
+
+   ```python
+   import gzip, json
+   cat = json.load(gzip.open("resources/catalog/catalog.json.gz"))
+   print(cat["unique"].get("瑶妹"))   # -> "Yaria"
+   ```
+
+3. **Find the asset that holds it, in both layers**: the phone's dump for override, and
+   `package_rebuild.extract_prime` for prime. Read each candidate through
+   `QtsPackage(...).build_slot_map()` and `qts_relocate.read_raw`, then search those bytes for the
+   UTF-8 string. That gives the **package id** and the **file hash** (16 hex digits).
+4. **Classify what you found**:
+
+   | finding | the pass that owns it |
+   |---|---|
+   | `catalog.known`, asset prime-only | this rebuild — add the package to `REBUILD_PACKAGES` |
+   | `catalog.known`, asset in override | it should already apply; ask whether the stager dropped it for not fitting (`text_skipped`) and whether relocation recovered it |
+   | not a catalog table, protobuf display text | the extra-text allowlist, after a device cycle |
+   | a package-19 prefab, or a definition table | nothing safe — `[S3]` |
+   | not in either layer | the launcher or native code; it cannot be patched through game data |
+
+Beyond the prime layer, four things leave a string Chinese, and none of them is a missing
+translation: no catalog table covers the asset (the extra-text pass, or nothing); it is a prefab or a
+definition table, where a rewrite is unsafe; it comes from the launcher — the login title,
+`正在初始化游戏` — and is not in game data at all; or the translation exists and is **too long** for the
+mobile layout, which is a text-length problem rather than a missing string.
+
+### The device test loop
+
+The game's data has to be fully updated to the login screen before a patch goes on — after a game
+update that means clearing the data, downloading it again, and only then patching. One change per
+cycle, and the cycle's verdict recorded before the next one starts:
+
+1. Build offline against a dump first: `tools/build_device_patch.py --runtime resources/runtime --game
+   <dump> --catalog resources/catalog --work <w> --output <o> --apk <apk> --builder resources/qtsvfs`.
+   It needs Python **3.12** — `resources/runtime/` is 3.12 bytecode.
+2. Back up `packages` **and** `Watchdog`, so the cycle can be rolled back.
+3. Push the staged directories to `files/QtsVFSCache/packages/<id>/` and delete
+   `files/QtsVFSCache/Watchdog/*`; `app/patcher_core.py` holds the sequence.
+4. Open the game, read `adb logcat` for QtsVFS errors, and screenshot the login screen.
+5. Log in — *Scan to login*, since a re-signed APK cannot do direct WeChat/QQ login — and walk the
+   screens the change should have touched: the loading tips, the Chessplayer page, the lobby, the Card
+   menu, the arena artwork.
+6. Nothing is "translated" until the user has seen it after logging in. A staged file that reads back
+   correctly is not evidence about a screen.
+
+### Working rules
+
+- One change per device test, and the verdict — success or failure, symptom, date — recorded beside
+  the hash it concerns, in the code, not in a session log.
+- Use the PC catalog's official English. Translate freely only where no equivalent exists, and put
+  that in `OFFICIAL_FIXES` with its reason.
+- Never change the length or the structure of a binary asset whose format is not understood, and
+  always read a staged asset back before pushing it.
+- Check **both** layers before calling an asset unreachable. `check_graphics.py --game`'s `absent`
+  count is a census of the downloaded layer alone; `tools/research/prime_probe.py` is the census that
+  includes `assets/bin/Data/Package/builtin/`.
+
 ### Documentation
 
-`docs/agent-guide-untranslated-strings.md` is the method this design ports, and it is currently
-Indonesian — the only non-English artifact in the chain. It is rewritten in English in place.
+The method above is ported from a handoff guide, `docs/agent-guide-untranslated-strings.md`, written
+from the predecessor project's experience on game data 1.3.0.4. It was rewritten in English in place
+during this work, and its lasting content — the diagnosis flow, the test loop and the working rules
+above, and the faction-tab next steps in `[S3]` — has since been folded into this document, so the
+guide itself is gone: its 1.3.0.4 figures are superseded by `[S1]` and the report, which are measured
+on this repo's own 1.4.0.1 data.
 
 ## [S3] Out of Scope
 
 - **Code injection into the APK, and prebaked APKs with translated assets.** Both were tried and
   fail (anti-cheat kill / `IsPrebuild errorCode:151`).
+- **Modifying the language packages inside the APK before the in-game update finishes.** Tencent's
+  updater applies binary diffs and the diff breaks, which is why a run writes the translation after
+  the update completes. It is a constraint in `AGENTS.md`.
 - **Package 19's Unity prefabs, and the Card Info faction ribbon.** Rewriting the prefabs hangs the
   lobby; rewriting only the faction labels in the 15 that show them crashes the game.
   `UNITY_TEXT_PACKAGES` stays empty. The ribbon is a known limit documented in `README.md` and this
   change does not address it.
+
+  The Card menu's faction tab is **not safely solved** through the prefabs, and this is where a
+  further attempt starts:
+
+  1. Check first whether the faction names are also in a **prime-only catalog table** of package `1`.
+     If they are, the rebuild may already have translated them — verify on the phone before touching
+     a prefab.
+  2. If the label exists only in a package-19 prefab, do not rewrite its serialized string at a new
+     length: that is what crashes. Untried are a replacement of the **same or shorter byte length,
+     padded** so the serialized layout does not shift, and establishing whether the prefab reads its
+     text from a table key, which would move the job to that table. Test one prefab first.
+  3. If neither is safe, the tab stays a documented limit.
 - **The chessplayer definition `A8BC70BB87700709` field 37.** Changing it stalls lobby loading even
   when every exact reference in packages 1 and 14 is renamed.
 - **Assets neither the catalog nor the allowlists cover.** 2084 of package `1`'s prime-only assets
@@ -483,14 +569,18 @@ Indonesian — the only non-English artifact in the chain. It is rewritten in En
 - **The three catalog edits no layer carries.** `197CC5393D16E3CB`, `884E0B4581F47CF7` and
   `89C771ECFCDC7FBE` are in neither the downloaded layer nor the APK, so no code change can apply them.
   The design phase put this number at 75, from a census of the downloaded dump alone; 72 of those were
-  in the APK all along. `7B4CC5DF48336D2D` is a fourth kind — present in the APK's package `21` and
-  deliberately left unapplied, because reaching it means rebuilding that package and recompressing
-  511 MB for one texture, and package `21` holds no other catalog edit.
+  in the APK all along. `7B4CC5DF48336D2D` is a fourth kind — present only in the APK's package `21`,
+  which this rebuild deliberately omits: the rebuild works and the game mounts it, but it draws the
+  Factionless card Yixing as the game's grey placeholder. **Its size is not the reason** — a rebuild
+  lays out the *downloaded* copy, 4866 assets and about 40 MB, not the APK's 511 MB over 85 211 assets —
+  so a future attempt is judged on the screens it costs, not on recompression. Package `21` holds no
+  other catalog edit, so that one card is the whole price; `prime-only-append.md` is the change that
+  applies this texture without rebuilding it.
 - **Coverage claims.** The result is the staged text tables plus the catalog's textures. The texture
   count is reported as *applied*, never as *covered*, and no run is described as a complete
   translation.
-- **Verified devices.** Nothing here is confirmed on a phone by this document. The device loop in the
-  guide's §6 runs after the port, one change per test, and no string or texture is claimed translated
+- **Verified devices.** Nothing here is confirmed on a phone by this document. The device test loop in
+  `[S2]` runs after the port, one change per test, and no string or texture is claimed translated
   until the user has seen it after login.
 
 ## Tasks
@@ -504,3 +594,4 @@ Indonesian — the only non-English artifact in the chain. It is rewritten in En
 - [x] T7: Update the documentation — acceptance: AGENTS.md's `build_patch` contract lists `mode: rebuilt`, the `textures` field, the `graphics_skipped` interaction and the new arguments; README's coverage section describes the prime layer and what rebuilding it applies; and `docs/compose/spec/text-drop-report.md`'s `[S1]` attributes the Chessplayer screen to the prime layer while keeping the drop-loop finding (covers: S2; depends: T5)
 - [x] T8: Rewrite `docs/agent-guide-untranslated-strings.md` in English in place — acceptance: the file is English, its sections keep their order and their tested-hash records, and the commit notes the change (covers: S2)
 - [x] T9: Record the measurement as `tools/research/prime_probe.py` — acceptance: running it from the project root reprints the `[S1]` table's numbers for packages `1` and `1050016095` without a phone, and nothing in `app/` or `tools/` imports it (covers: S1)
+- [x] T10: Fold the ported guide into this document — acceptance: the diagnosis flow, the device test loop and the working rules read as `[S2]` subsections, the faction-tab next steps are in `[S3]`, no 1.3.0.4 figure survives as a claim about this repo, `### Documentation` names where the guide's content went, and the standalone file is removed (covers: S2; depends: T8)

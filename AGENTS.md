@@ -115,6 +115,14 @@ def free_space(path: Path) -> int | None:
 - `resources/catalog/` and `resources/runtime/` are produced by the PC patcher pipeline. This repo consumes them. Never edit the catalog to fix a record: corrections belong in this repo's code, which is why `mobile_graphics.MISSING_METADATA` supplies the geometry six entries omit.
 - `tools/research/` is a research record, not shipping code. Nothing imports it and `app/build_exe.py` does not bundle it. Moving or deleting it must not break `app/` or `tools/`. Its scripts are run by hand from the project root.
 
+## Docs
+
+`docs/compose/spec/` holds one record per shipped feature: `## Report` (what landed, the verification commands and their results, the journey log of what was measured and withdrawn), `[S1] Problem`, `[S2] Design`, `[S3] Out of Scope`, `## Tasks`. This file carries the rules that always apply; a record carries the reasoning and the evidence behind them.
+
+- `docs/translation-progress.md` is the coverage ledger: how much of the catalog applies, what each data layer carries, what is translated outside the catalog, and what is knowingly left Chinese. It is the one file that moves with coverage, so it is updated in the same change as the work whenever a catalog re-import, a new pass or a `REBUILD_PACKAGES` change, a device cycle on the `extra_text` allowlist, or a run whose `text_skipped` / `graphics_skipped` / `append_skipped` is non-empty moves a count. A run's own summary outranks it.
+- Consult the record for a pass before changing that pass — why the code is shaped this way, and which attempt already failed, are in its `[S2]`, `[S3]` or journey log rather than in the code — and update it in the same change as the work.
+- `prime-rebuild.md` also holds the two procedures this file only demands: how to diagnose an untranslated string across both data layers, and the device test loop a device-gated change follows.
+
 ## Git
 
 Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`. Update `README.md` in the same change when commands or layout change.
