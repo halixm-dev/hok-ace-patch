@@ -1,14 +1,84 @@
 ---
 feature: prime-only-append
-status: in-progress
+status: delivered
 updated: 2026-10-01
 branch: feat/prime-only-append
-commits:
+commits: c3f23b3..e4c83ad
 ---
 
 # Prime-Only Append
 
 ## Report
+
+**What was built** — Catalog assets that exist only in the APK can now reach an override package
+without laying the container out again. `tools/qts_insert.add_assets` has Tencent's builder produce a
+throw-away package holding just the new asset, then appends that asset's chunk slot to the target's
+shard and its index record to the target's index, linking each into the B-tree that indexes it
+(`qts_relocate.Shard.insert_key`, `append_record`). Nothing else in the target moves — its records,
+page table and tree pages are untouched, and it gains bytes at the end plus one key per tree — so the
+package keeps the shape the game already mounts. `package_rebuild.add_prime_only` finds what this
+applies to (catalog entries present in the APK's prime package and absent from the device's override
+copy) and `build_patch` runs it last, sharing the rebuild's transform and builder, keyed on the
+packages a rebuild already replaced.
+
+On this build the pass resolves to exactly one package and one texture. Of the APK's 182 packages,
+three hold catalog content in prime — package `1` (497 tables), `1050016095` (72 textures) and `21`
+(the Central Plains panel) — and the first two are already rebuilt whole, so they are in `skip`. That
+one asset is the Central Plains Card Info ribbon, the only catalog edit that could not previously be
+applied: it exists only in package `21`, and rebuilding `21` costs the Factionless card. On the phone
+the ribbon now reads `Central Plains` where the previous capture read `河洛`, and the Card grid still
+draws Yixing with full art.
+
+Things that go wrong are reported rather than fatal: a B-tree leaf already holding 510 keys, a device
+copy split over several shards, or a staged copy that will not read are recorded in the run's
+`append_skipped` list and counted by the app as images and as tables that stay in Chinese. A read-back
+that disagrees **raises**, because a record linked under the wrong key is invisible until the game
+fails to find it.
+
+**Verification** — every command below ran from the worktree; scripts are research scratch under
+`artifacts/probe-append/` (gitignored).
+
+| command | result |
+|---|---|
+| `python artifacts\probe-append\t1_btree.py` | PASS — keys inserted into copies of the phone's own package `21` are found by a search walked from the tree's root, and the bytes at the offset it returns are the record that was appended; nothing outside the tree pages, the header's data-end words and the new record changed (0 bytes); a leaf padded to 510 keys raises `TreeFull` |
+| `python artifacts\probe-append\t2_append.py` | PASS — the real append into a copy of the phone's override `21`: the panel reads back translated (43 168 B ASTC, geometry preserved), all 4866 pre-existing entries read identically, one key added per tree, no leaf over 510 |
+| `python artifacts\probe-append\t3_pass.py` | PASS — `add_prime_only` over the phone's 278-package layer and the patcher's own APK: one package, one texture; the device's copy is untouched; a second run reports nothing and adds no key |
+| `python artifacts\probe-append\t3_skip.py` | PASS — both skip paths driven end to end: an index whose leaves are padded to 510 keys and a device copy with two shards each come back as one `append_skipped` entry naming the package, the reason and the one texture it would have written, leave no staged directory behind, and reach the counters as one image and no tables |
+| `python artifacts\probe-append\t4_gate.py` | PASS — with no APK or builder the pass does not run and the pipeline logs the same line it always did |
+| `build_device_patch.py` over the phone's layer (`--apk installed.apk --builder resources\qtsvfs`) | 6 packages staged, `21` reported as `added-from-apk` with `textures: 1`, `append_skipped`/`text_skipped`/`graphics_skipped` all empty, output directories exactly the reported packages |
+| `python artifacts\probe-append\t7_verify.py run-t4` | PASS — 13 checks, including the game dump's own `1.db`/`21.db`/`21_0.db` unchanged by MD5 after the run |
+| `python artifacts\probe-append\t7_rerun.py` | PASS — a second run into the same output does not report `21` again, leaves the panel byte-identical (md5 `9525ef58…`), adds no duplicate B-tree key, and does not grow the package |
+| `python artifacts\probe-append\summary.py run-t4` | `count_translated` = (392 tables, 395 images) — the appended texture counted as an image; before the classification fix it read (393, 394) |
+| `python app\build_exe.py`, then `--selftest artifacts\game-dump` | the frozen exe builds, carries `qts_insert` in its archive, and stages 5 packages (1, 1050016095, 15, 19, 20) — no `21`, which is the gate: the headless check passes no APK or builder |
+| device cycle | lobby in English, Card grid with Yixing's art, ribbon `Central Plains`; `QtsVFS.log` — `MountPackage 21, override, 0 => succeed! pkgHash:8591676242410099349 basePkgHash:14935366421268903059 state:4 prebuild:0`, `ScanJob ... [after]brokenFiles count 0, size 0 ... errorCode=0`, `VFS_GetBrokenFileCount builtin, 0 size 0`; `normal1.log` has 0 lines matching `errorCode:[1-9]|QtsfFixer|FixFile|crc not match|corruptedPackages|IsPrebuild` (`artifacts\device-cycle-t8\normal1-repair-lines.txt`). Phone file check: `21_0.db` 40 747 008 B (pristine 40 730 624) |
+
+An independent review of `c3f23b3..e4c83ad` found no critical defect. Three of its findings were fixed
+before this document was finalized: `AGENTS.md` claimed `append_skipped` covers a staged copy that will
+not read, which the pass logs and skips without an entry; the counters' skipped-append half had no
+artifact feeding a non-empty list, which `t3_skip.py` now supplies; and the app's summary was gated on
+translated text alone, so a run that only skipped images would have called itself "already installed".
+Its remaining point stands as a release note: the built exe has to be rebuilt from this branch before it
+ships, which the build above does.
+
+**Journey log**
+
+1. A re-run into the same output duplicated the panel's index **and** shard B-tree key. `QtsPackage.entries`
+   is keyed by file hash, so the duplicate was invisible there and showed only as two offsets under one
+   key in the tree. The pass now subtracts what the staged copy already holds.
+2. The source fork's row-checksum guard was measured, dropped, and then re-measured. The first reading
+   (the four validated assets "unguarded") came from `artifacts/hok-device-cycle/phone/`, which is our
+   own patched build, and rewriting one of those bins invalidates its stored MD5. On a freshly pulled
+   layer all of them answer true, so the guard cannot separate the withdrawn set from the validated one.
+3. The pristine download layer the earlier cleanup deleted was recovered from the phone itself (one
+   `tar` stream over `run-as`), which is what let every offline check here run against the real append
+   target instead of a package we synthesized.
+4. The handoff's "for every prime package" loop collapses to one package on this build, because the two
+   other packages holding prime-only content are already rebuilt whole. The blast radius is a property
+   of the catalog, not of the loop — worth re-measuring, not assuming, on another build.
+5. A passing assertion is not evidence. `t7_rerun.py` asserted `"21" not in packages or packages`, which
+   is vacuously true, and the review caught it; the run's real property is that the second run reports
+   `21` *not at all*, because its staged copy already holds the panel. Write the property that would
+   fail, and check a claim against the artifact rather than against a summary of it.
 
 ## [S1] Problem
 
@@ -154,10 +224,12 @@ it: `textures` as images that stay Chinese, `assets - textures` as tables. `text
 
 ## Tasks
 
-- [ ] T1: Add `_active_page`, `insert_key` and `append_record` to `Shard` — acceptance: a key inserted into copies of Tencent's prime-21 index and shard is found by that tree's own lookup, and a leaf at 510 keys raises (covers: S2)
-- [ ] T2: Add `qts_insert.add_assets` — acceptance: appending a translated asset to a copy of Tencent's prime 21 reads back byte-identical, every pre-existing entry of that package still reads, and the container's other records and page table are unchanged (covers: S2)
-- [ ] T3: Extend `extract_prime` (`index_only`, `package_ids=None`), `make_transform` (`tables`) and add `add_prime_only` — acceptance: an override package lacking the panel gains it translated; one already carrying it is left alone; a full leaf and a multi-shard package are skipped and reported rather than raised (covers: S2)
-- [ ] T4: Wire the pass into `build_patch` with the builder and transform lifted out of `rebuild_prime_packages` — acceptance: an offline CLI run over a game dir with an APK and builder reports a `added-from-apk` entry for the package that gained the panel, and reports none when the APK or builder is missing (covers: S2)
-- [ ] T5: Report the pass and classify it — acceptance: `count_translated` on a summary carrying an `added-from-apk` entry returns the appended textures as images, and a skipped append is counted as untranslated images and tables (covers: S2)
-- [ ] T7: Offline verification over a real device layer — acceptance: `tools/build_device_patch.py` run against the phone's own override packages writes a translated panel into that package's staged copy, a second run reaches the same state, and the summary's counts are consistent (covers: S2)
-- [ ] T8: Device cycle — acceptance: on the phone the Card grid still draws Yixing **and** the Central Plains Card Info ribbon is English; `files/QtsVFSCache/QtsVFS.log` and `normal1.log` show no new fix set naming the appended package (covers: S2; device-gated)
+- [x] T1: Add `_active_page`, `insert_key` and `append_record` to `Shard` — acceptance: a key inserted into copies of Tencent's prime-21 index and shard is found by that tree's own lookup, and a leaf at 510 keys raises (covers: S2)
+- [x] T2: Add `qts_insert.add_assets` — acceptance: appending a translated asset to a copy of Tencent's prime 21 reads back byte-identical, every pre-existing entry of that package still reads, and the container's other records and page table are unchanged (covers: S2)
+- [x] T3: Extend `extract_prime` (`index_only`, `package_ids=None`), `make_transform` (`tables`) and add `add_prime_only` — acceptance: an override package lacking the panel gains it translated; one already carrying it is left alone; a full leaf and a multi-shard package are skipped and reported rather than raised (covers: S2)
+- [x] T4: Wire the pass into `build_patch` with the builder and transform lifted out of `rebuild_prime_packages` — acceptance: an offline CLI run over a game dir with an APK and builder reports a `added-from-apk` entry for the package that gained the panel, and reports none when the APK or builder is missing (covers: S2)
+- [x] T5: Report the pass and classify it — acceptance: `count_translated` on a summary carrying an `added-from-apk` entry returns the appended textures as images, and a skipped append is counted as untranslated images and tables (covers: S2)
+- [x] T7: Offline verification over a real device layer — acceptance: `tools/build_device_patch.py` run against the phone's own override packages writes a translated panel into that package's staged copy, a second run reaches the same state, and the summary's counts are consistent (covers: S2)
+- [x] T8: Device cycle — acceptance: on the phone the Card grid still draws Yixing **and** the Central Plains Card Info ribbon is English; `files/QtsVFSCache/QtsVFS.log` and `normal1.log` show no new fix set naming the appended package (covers: S2; device-gated)
+
+T6 (the `pb_text.has_row_checksum` guard) was dropped during implementation; see Out of Scope.
