@@ -1,14 +1,17 @@
-"""Read a QtsVFS shard's chunk payloads, and grow it: append slots and repoint the position B-tree.
+"""Read a QtsVFS shard's chunk payloads, and grow it: append slots and repoint or extend its B-tree.
 
 Shard layout (reverse engineered from Android 1.3.0.4 packages):
   header   +0x08 u32 data end, +0x0C u32 file size, +0x30 u32 offset of the active page table
   page table  6 x u32 header, then entries [logical, active physical, spare physical, ...] x 6 u32
   B-tree pages (0x1000 bytes): keys u32[510], values u32[510], tail [self, ?, next, type<<16 | count]
-               leaf type 3 maps low 32 bits of a chunk's hash1 -> slot offset
+               leaf type 3 maps low 32 bits of a chunk's hash1 -> slot offset; internal type 2
+               stores the lowest key of each child in the same arrays
   slot     +0 u32 self offset, +4 i32 -1, +8 u32 slot size, +12 u64 hash1, +20 u32 flags,
            +24 u32 payload length + 4, +28 u32 raw size, +32 payload,
            trailer at align4(32 + payload): u64 file hash, u32 reserved, u32 chunk id (16 bytes)
-Relocating never changes keys, so the B-tree ordering stays valid.
+Relocating never changes keys, so the B-tree ordering stays valid. Appending a record does add a key,
+which is inserted into the leaf the search reaches; a leaf that is already full is reported rather
+than split, because a split would rewrite pages the game's own layout owns.
 """
 from __future__ import annotations
 
@@ -30,6 +33,10 @@ LZ4_CODECS = (1, 9)
 # Twelve assets of package 21 are framed this way, and codec 4 is the id they are *not* stored under
 # as often as not, so the payload, not the entry, is what says how to read it.
 ZSTD_MAGIC = b"\x28\xb5\x2f\xfd"
+
+
+class TreeFull(RuntimeError):
+    """A B-tree leaf holds KEYS_PER_PAGE keys, and this code does not split pages."""
 
 
 class Shard:
@@ -87,6 +94,56 @@ class Shard:
         self._repoint(slot.hash1 & 0xFFFFFFFF, slot.slot_offset, offset)
         self.data_end = end
         self.relocated += 1
+        return offset
+
+    def _active_page(self, logical: int) -> int:
+        """Physical page the page table at +0x30 currently maps <logical> to."""
+        table = self._u32(0x30)
+        for i in range(self._u32(table + 4)):
+            row_logical, active = struct.unpack_from("<II", self.data, table + 24 + i * 24)
+            if row_logical == logical:
+                return active
+        raise RuntimeError(f"{self.path.name}: page {logical:#x} not in the page table")
+
+    def insert_key(self, key: int, value: int) -> None:
+        """Add <key> -> <value> to the leaf the B-tree search reaches.
+
+        The root page is at +0x10. Internal pages are type 2 and hold each child's lowest key, so the
+        child to follow is the last one whose lowest key is not above <key>. Raises TreeFull when that
+        leaf has no room: growing a full leaf means splitting pages, which would move keys the game's
+        own layout put there.
+        """
+        page = self._active_page(self._u32(0x10))
+        while True:
+            tail = self._u32(page + PAGE - 4)
+            count = tail & 0xFFFF
+            keys = struct.unpack_from(f"<{count}I", self.data, page)
+            if tail >> 16 == LEAF_TYPE:
+                break
+            child = max((i for i, low in enumerate(keys) if low <= key), default=0)
+            page = self._active_page(self._u32(page + (KEYS_PER_PAGE + child) * 4))
+        if count >= KEYS_PER_PAGE:
+            raise TreeFull(f"{self.path.name}: B-tree leaf {page:#x} is full")
+        values = struct.unpack_from(f"<{count}I", self.data, page + KEYS_PER_PAGE * 4)
+        at = next((i for i, existing in enumerate(keys) if existing > key), count)
+        keys = keys[:at] + (key,) + keys[at:]
+        values = values[:at] + (value,) + values[at:]
+        struct.pack_into(f"<{count + 1}I", self.data, page, *keys)
+        struct.pack_into(f"<{count + 1}I", self.data, page + KEYS_PER_PAGE * 4, *values)
+        struct.pack_into("<I", self.data, page + PAGE - 4, (tail & 0xFFFF0000) | (count + 1))
+        self.leaves = self._active_leaf_pages()
+
+    def append_record(self, record: bytes, key: int) -> int:
+        """Append a self-describing record (+0 self offset, +8 size) and index it under <key>."""
+        offset = (self.data_end + 3) & ~3
+        buffer = bytearray(record)
+        struct.pack_into("<I", buffer, 0, offset)
+        end = offset + len(buffer)
+        if len(self.data) < end:
+            self.data.extend(b"\0" * (end - len(self.data)))
+        self.data[offset:end] = buffer
+        self.data_end = end
+        self.insert_key(key, offset)
         return offset
 
     def save(self) -> None:
