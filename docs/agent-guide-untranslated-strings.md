@@ -99,8 +99,16 @@ Traps already found:
 - `MaxStorageSize` **must** be set (1 GiB). If it is not, the builder reads uninitialised memory and writes
   one storage file per asset.
 - The packed compression flag is `level << 16 | type` (level 5 by default).
+- Reading a package means following each chunk's framing, not the entry's compression id: stored when the
+  compressed and uncompressed sizes agree, a Zstandard frame when the payload opens with `28 b5 2f fd`,
+  otherwise the id's codec (`1` and `9` are LZ4, `4` is Oodle). One asset can mix framings. `read_raw`
+  refuses an entry it cannot frame, and one refused entry aborts a whole rebuild.
 - Only rebuild the packages that actually need it (`REBUILD_PACKAGES = ("1", "1050016095")`). Other
-  packages are fine in place; a rebuild means recompressing hundreds of MB.
+  packages are fine in place; a rebuild means laying out the whole *downloaded* copy again, which is
+  hundreds of MB for some packages and about 40 MB for `21`. Package `21` was tried and withdrawn: it
+  carries the wide Central Plains panel, and rebuilding it makes the Factionless card Yixing draw as the
+  game's grey placeholder, so the ribbon stays Chinese. A rebuild is judged on the screens it costs, not
+  on recompression.
 - A package that gets rebuilt is skipped by the in-place stager and by the `extend` pass
   (`skip=rebuilt`).
 

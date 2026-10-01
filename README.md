@@ -65,7 +65,9 @@ The game reads override first and falls back to prime, so an asset that exists o
 unreachable by an in-place edit. The pulled APK is therefore a patch input, not just something to
 re-sign: packages `1` and `1050016095` are laid out again with Tencent's own builder
 (`resources/qtsvfs/`) so the override copies of them can carry the prime-only content, translated.
-Nothing else is rebuilt — re-laying-out a package means recompressing all of it.
+Nothing else is rebuilt — re-laying-out a package means recompressing all of it, and what that costs is
+the *override* copy's size, not the APK's: package `21` would cost about 40 MB to lay out rather than the
+511 MB its APK copy suggests, and it is left alone for a different reason, recorded in the coverage list.
 
 The patcher's own working data (~8 GB: pulled APK, packages, sessions) goes to the folder chosen in the app
 (default `HOK ACE Patcher Data` next to the exe), not into this project.
@@ -94,11 +96,21 @@ Of the catalog's 398 texture edits, 395 exist somewhere in the mobile build — 
 and 73 in the APK's built-in layer, one asset keyed in both — and a run applies 394 of them. The ones it
 does not:
 
-- `7B4CC5DF48336D2D`, Central Plains' fourth wide faction panel, sits in the APK's package `21`. Applying
-  it means rebuilding that package, which recompresses all 511 MB of it — 85,211 assets — on every run,
-  for that one texture. Package `21` is deliberately not rebuilt.
+- `7B4CC5DF48336D2D`, Central Plains' fourth wide faction panel, sits in the APK's package `21`. A rebuild
+  of `21` does apply it — 4863 assets laid out, 48.7 MB, mounted by the game, the panel read back as
+  English — but on the phone it costs a card: the Factionless hero Yixing then draws as the game's grey
+  placeholder, `TimiText` and all, with art and faction bar missing, while Tencent's own copy of the
+  package draws that card correctly. Package `21` is left alone for that reason and not for its size.
 - `197CC5393D16E3CB`, `884E0B4581F47CF7` and `89C771ECFCDC7FBE` are in neither layer: their asset ids are
   not in the mobile build, so no code change can apply them.
+
+A device chunk's framing is per chunk and self-describing: stored when its compressed and uncompressed
+sizes agree, a Zstandard frame when the payload opens with that magic, otherwise whatever the entry's
+compression id says — `1` and `9` LZ4, `4` Oodle. One asset can mix them, and package `21` has twelve
+that do. `tools/qts_relocate.py` follows the payload rather than the id for that reason; a reader that
+went by the id alone left 1285 of that package's 4866 entries unreadable, which is what a rebuild of `21`
+needs and could not have. It is left out for the card above instead, so the translation of that one
+texture stays reachable only by a rebuild that is worse than the Chinese ribbon it would fix.
 
 A whole-image replacement can also land when the device revision of the same art is a different size
 from the catalog's record — a build re-cutting a card by one block row changes the raw size, which by
@@ -129,9 +141,12 @@ banners and buttons rather than panels.
 
 Counting the APK's built-in layer as well changes the answer: 26 of the 27 panels are there under the
 catalog's own ids — 25 of them in package `1050016095` and `7B4CC5DF48336D2D` in package `21` — and the
-Sunset panel the hunt did find is in the downloaded layer. A run now applies 26 of the 27, so every
-faction's wide panel is translated except Central Plains' fourth variant. Whether the Card Info view
-follows is for the device to show; this document does not claim it.
+Sunset panel the hunt did find is in the downloaded layer. A run applies 26 of the 27: the 25 through the
+rebuild of `1050016095`, the Sunset panel in place, and not `7B4CC5DF48336D2D`, whose package costs the
+card listed in the coverage section. Which panel a card's Card Info view draws was settled on the device:
+the revision the APK holds for `7B4CC5DF48336D2D` renders as `❖ 河洛 ❖` on the maroon bar, exactly the
+ribbon a Central Plains card draws in that view, and a rebuild carrying the English payload of that same
+panel was put on the phone, read back as `Central Plains`, and withdrawn again once the price showed up.
 
 `tools/research/prime_probe.py` prints that census: what each package keeps only in the APK, and how much
 of it the catalog covers. A search for a missing asset has to run over both layers, which is the lesson
@@ -247,7 +262,7 @@ few minutes and writes about 350 MB.
 - A rebuilt package is larger than the one it replaces, because it carries the APK's translatable content
   as well: on this data package `1` goes from 29.3 MB to 30.6 MB and package `1050016095` from 0.3 MB to
   2.5 MB. Rebuilding recompresses the package, so it is done for the two packages that gain by it and no
-  others — see the coverage section for the one texture package `21` is left out for.
+  others, and a third was tried and withdrawn: package `21`, whose rebuild cost a Factionless card.
 - Re-running over an **already patched** install translates no more text: the scanner only translates
   tables that still hold Chinese, and it reports nearly everything else as already English. To pick up
   a newer translation build, reset the game's data first (previous bullet) so the tables are Chinese

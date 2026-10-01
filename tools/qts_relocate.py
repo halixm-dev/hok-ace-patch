@@ -19,6 +19,17 @@ PAGE = 0x1000
 KEYS_PER_PAGE = 510
 LEAF_TYPE = 3
 FILE_GROWTH = 0x4000
+# Entry compression ids that hold LZ4 block data. 1 is what the packages this patch has always read
+# use; 9 is the same LZ4 block data behind a 12-byte-longer entry descriptor, written by whatever
+# updater produced the newer override packages (packages 19, 20 and 21 carry it). Measured on those
+# three: every sampled chunk of both ids decodes to exactly its declared size, while codec 4 (Oodle)
+# refuses LZ4 outright. Treating 9 as unknown left 1285 of package 21's entries unreadable.
+LZ4_CODECS = (1, 9)
+# A chunk whose payload opens with this is a Zstandard frame, whatever its entry declares: the framing
+# is per chunk, and one asset can mix them (7CCE483D88B236CF is an LZ4 chunk followed by a zstd one).
+# Twelve assets of package 21 are framed this way, and codec 4 is the id they are *not* stored under
+# as often as not, so the payload, not the entry, is what says how to read it.
+ZSTD_MAGIC = b"\x28\xb5\x2f\xfd"
 
 
 class Shard:
@@ -98,18 +109,21 @@ def btree_offsets(shard: Shard) -> dict[int, set[int]]:
 def read_raw(package, slots, file_hash: int) -> bytes | None:
     """The asset's uncompressed bytes, or None when there are none to read.
 
-    None covers both an asset with no chunks at all and a chunk framing we cannot follow. Chunk
-    compression type 1 is LZ4 and 4 is Oodle; a chunk whose compressed and uncompressed sizes match is
-    stored as it is. A payload that will not decompress returns None rather than raising — the caller
-    then leaves the asset alone, which is what the game already shows for it.
+    None covers both an asset with no chunks at all and a chunk framing we cannot follow. A chunk whose
+    compressed and uncompressed sizes match is stored as it is; a payload opening with the Zstandard
+    magic is a zstd frame; otherwise the entry's compression id says which codec wrote it, 1 and 9
+    being LZ4 and 4 Oodle. A payload that will not decompress returns None rather than raising — the
+    caller then leaves the asset alone, which is what the game already shows for it.
     """
     import lz4.block
     import ooz
+    import zstandard
 
     entry = package.entries[file_hash]
     chunks = slots.get(file_hash)
     if not chunks:
         return None
+    zstd = None
     raw = bytearray()
     for chunk_id in sorted(chunks):
         slot = chunks[chunk_id]
@@ -119,7 +133,11 @@ def read_raw(package, slots, file_hash: int) -> bytes | None:
         try:
             if slot.compressed_size == slot.uncompressed_size:
                 raw += payload  # chunk stored uncompressed
-            elif entry.compression == 1:
+            elif payload[:4] == ZSTD_MAGIC:
+                if zstd is None:
+                    zstd = zstandard.ZstdDecompressor()
+                raw += zstd.decompress(payload, max_output_size=slot.uncompressed_size)
+            elif entry.compression in LZ4_CODECS:
                 raw += lz4.block.decompress(payload, uncompressed_size=slot.uncompressed_size)
             elif entry.compression == 4:
                 raw += ooz.decompress(payload, slot.uncompressed_size)

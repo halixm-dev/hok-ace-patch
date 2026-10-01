@@ -22,7 +22,8 @@ extension pass both skip a rebuilt id.
 Measured on game data 1.4.0.1: a run stages 392 replacements for package `1` (94 downloaded assets
 re-translated plus **298** catalog tables taken from the APK — 51,095 records, the chessplayer names
 among them) and 72 textures for package `1050016095`. **394 of the catalog's 398 texture edits now
-apply, where 323 did.** The Chessplayer names reach the layer the screen reads, which is what the
+apply, where 323 did** — 395 once package `21` joined `REBUILD_PACKAGES`, which is the state `README.md`
+documents. The Chessplayer names reach the layer the screen reads, which is what the
 override-only path could never do. (The count was 400 before the device round below withdrew the
 assets it convicts: the six extras left in the allowlist are six fewer replacements.)
 
@@ -160,6 +161,45 @@ one build. Only a pair of staged builds, differing in one asset, supports a caus
   the builder's own bookkeeping nodes, which carry the build machine's **absolute output path**
   (`...\shipped` against `...\probe-final`); Tencent's builder embeds it, so no two rebuilds agree unless
   they share an output directory.
+- Package `21` was left out of `REBUILD_PACKAGES` on the grounds that its APK copy is 511 MB and a rebuild
+  "recompresses all of it". That was the wrong number twice over. A rebuild lays out the *downloaded* copy:
+  4866 assets, 40.7 MB in, 48.1 MB out, 101 s. And cost was never what stopped it — the reader refused the
+  package. `read_raw` dispatched on the entry's compression id, which is 9 for 1285 of those 4866 entries,
+  and 9 was not in its list. Measured across packages 19, 20 and 21, id 9 is the same LZ4 block data as id
+  1 behind a 12-byte-longer entry descriptor: 62 of 62 sampled chunks decoded to exactly their declared
+  size, while id 4 (Oodle) refused LZ4 outright.
+- The chunk framing is per chunk and self-describing, so no list of ids can be complete. Twelve assets of
+  package `21` hold Zstandard frames — one of them, `7CCE483D88B236CF`, is an LZ4 chunk followed by a zstd
+  one, and three of the twelve declare id 1 or 4 while holding zstd. `read_raw` reads the payload's magic
+  first now, which is why `zstandard` is a run-time dependency. An entry's id is a hint; the payload is the
+  fact.
+- Rebuilding `21` exercised two behaviours for the first time. Four entries
+  (`B85AF970632CE322`, `C9ABDBDE9643A78C`, `CDE7C688F1E0185A`, `E5FBCD1C777EB18E`) have no chunks in either
+  layer, and one of them used to abort the whole package; they are now left out and named in
+  `entries_without_bytes`, which loses nothing the game could load, since an index entry pointing at
+  nothing is unreadable there too. Bytes that exist but will not decode still abort instead of being
+  dropped, because dropping those would revert the assets to the APK's revisions with nothing in the log to
+  say so. On this data `21` rebuilds to 4863 assets with 1 translated from the APK — the wide Central Plains
+  panel whose absence left the Card Info ribbon showing `❖ 河洛 ❖` while the grid card beside it was already
+  English — and the pipeline as a whole went from 128 s to 219 s.
+
+- Package `21` was rebuilt, put on the phone and withdrawn in the same session. It carries the wide
+  Central Plains panel `7B4CC5DF48336D2D`, so its rebuild is what turns that card's Card Info ribbon from
+  `❖ 河洛 ❖` into `Central Plains`, and it does: 4863 assets, 48.7 MB, mounted by the game, the panel read
+  back as English, the English ribbon seen on the phone. What it also does is break one card. With the
+  rebuilt package the Factionless hero Yixing draws as the game's grey placeholder — `TimiText`, a stray
+  `朵莉亚`, no art, no faction bar — and its Card Info panel comes out equally blank; restoring Tencent's
+  own copy of `21` draws that card correctly again, which is how the two states were told apart. So the
+  panel stays Chinese and `21` stays out of `REBUILD_PACKAGES`. The tempting explanation is the 511 MB,
+  and it is wrong: cost was never what stopped this, and for a package this size the rebuild is cheap.
+- What the rebuild does *not* explain is why one card goes, and the honest state of that is: unidentified.
+  Every asset of the rebuilt package is byte-identical to Tencent's for the 3470 entries that could be
+  compared, every entry's declared codec decodes its own payload, and no asset of the package mentions the
+  card in text at all — so the trigger is in the container, not the content: the four entries the rebuild
+  dropped (index entries with no chunks in either layer, `B85AF970632CE322`, `C9ABDBDE9643A78C`,
+  `CDE7C688F1E0185A`, `E5FBCD1C777EB18E`), the two u32 flag words `finalize` restores per entry, or the
+  descriptor layout the builder writes where Tencent's updater wrote a 12-byte-longer one. Narrowing that
+  is where a further attempt would start.
 
 ## [S1] Problem
 
@@ -231,9 +271,10 @@ Contracts the code must keep, each already paid for once:
 
 ### Which packages are rebuilt
 
-`package_rebuild.REBUILD_PACKAGES = ("1", "1050016095")` — the two packages measured above to keep
-translatable content only in the APK. Every other package keeps the in-place path: a rebuild lays the
-whole container out again, so it must be reserved for packages that gain something.
+`package_rebuild.REBUILD_PACKAGES = ("1", "1050016095")` — the packages measured to keep translatable
+content only in the APK. Every other package keeps the in-place path: a rebuild lays the whole container
+out again, so it must be reserved for packages that gain something. `21`, which holds the wide Central
+Plains panel, was tried and withdrawn; the journey log has the card that cost.
 
 ### `rebuild_package`
 

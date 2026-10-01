@@ -4,9 +4,10 @@ On Android the game data has two layers: the APK's built-in (prime) packages, an
 override packages under files/QtsVFSCache, which hold only what changed since the APK was built. The
 game reads override first. Measured on 1.4.0.1, package 1 (text tables) keeps 2492 of its 2873 assets
 - 298 of them catalog tables that translate, 51095 records, the chessplayer names among them - only in
-the APK, and package 1050016095 keeps 71 of the catalog's textures there. The in-place stager can only
-rewrite assets that already sit in the override package, and the texture pass reads the same layer, so
-neither ever saw those.
+the APK, package 1050016095 keeps 71 of the catalog's textures there, and package 21 keeps
+`7B4CC5DF48336D2D`, the wide Central Plains panel its Card Info view draws. The in-place stager can
+only rewrite assets that already sit in the override package, and the texture pass reads the same
+layer, so neither ever saw those.
 
 A rebuilt override package holds every asset of the original override package (translated where the
 transform changes it, byte-identical otherwise) plus the prime-only assets the transform changes.
@@ -23,6 +24,13 @@ PRIME_PREFIX = "assets/bin/Data/Package/builtin/"
 # The packages measured to keep translatable content that the override package lacks. Every other
 # package keeps the in-place path: everything it needs is already downloaded, and a rebuild lays the
 # whole container out again, which means recompressing hundreds of MB for nothing.
+#
+# 21 is the package that would carry the wide Central Plains panel (`7B4CC5DF48336D2D`, only in the
+# APK), and it is deliberately absent. Its rebuild works - 4863 assets, 48.7 MB, the panel translated,
+# and the game mounts it - but on the phone it costs a card: the Factionless hero Yixing then draws as
+# the game's grey placeholder, art and faction bar missing, while Tencent's own copy of the package
+# draws it correctly. The cost of laying a package out is the *override* copy's size, not the APK's
+# (4866 assets, about 40 MB, against the APK's 511 MB), so cost is not the reason to leave 21 alone.
 REBUILD_PACKAGES = ("1", "1050016095")
 
 
@@ -122,6 +130,7 @@ def rebuild_package(package_id: str, device_dir: Path, prime_dir: Path, transfor
 
     assets, words = [], {}
     translated = added = textures = considered = 0
+    without_bytes: list[int] = []
     device_entries = device.entries if device else {}
     for file_hash, entry in device_entries.items():
         if file_hash in device_slots:
@@ -130,10 +139,14 @@ def rebuild_package(package_id: str, device_dir: Path, prime_dir: Path, transfor
             # Listed in the override index without data (flag word set): the bytes are the APK's.
             raw = read_raw(prime, prime_slots, file_hash)
         else:
-            raw = None
+            # Listed in the override index with no bytes in either layer. Nothing can carry it into
+            # the rebuilt package, and the game cannot read it from the original either - an index
+            # entry pointing at nothing - so leaving it out changes nothing it can load.
+            without_bytes.append(file_hash)
+            continue
         if not raw:
-            # None from an unreadable chunk framing, or empty bytes: the builder cannot store a
-            # zero-byte file either, so the package takes the in-place path rather than failing here.
+            # Bytes that exist but will not decode: the builder cannot store a zero-byte file either,
+            # so the package takes the in-place path rather than failing here.
             log(f"package {package_id}: cannot read {file_hash:016X}; keeping the in-place patch path")
             return None
         new = transform(file_hash, raw)
@@ -185,6 +198,7 @@ def rebuild_package(package_id: str, device_dir: Path, prime_dir: Path, transfor
     log(f"package {package_id}: rebuilt with {len(assets)} assets "
         f"({translated} downloaded assets translated, {added} translated from the APK"
         + (f", {len(skipped_textures)} of {considered} textures skipped" if skipped_textures else "")
+        + (f", {len(without_bytes)} entries hold no bytes in either layer" if without_bytes else "")
         + f"; {fixed['removed_records']} builder records dropped)")
     return {
         "package_id": package_id,
@@ -198,4 +212,5 @@ def rebuild_package(package_id: str, device_dir: Path, prime_dir: Path, transfor
         "textures": textures,
         "textures_considered": considered,
         "textures_skipped": skipped_textures,
+        "entries_without_bytes": sorted(f"{file_hash:016X}" for file_hash in without_bytes),
     }
