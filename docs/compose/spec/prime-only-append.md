@@ -1,6 +1,6 @@
 ---
 feature: prime-only-append
-status: designed
+status: in-progress
 updated: 2026-10-01
 branch: feat/prime-only-append
 commits:
