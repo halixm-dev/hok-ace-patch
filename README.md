@@ -71,6 +71,17 @@ ports each reviewed edit in `resources/catalog/` onto the device's ASTC textures
 Oodle-compressed; the changed chunks are appended to the package shard and repointed in its B-tree, so
 every asset keeps its chunk count.
 
+A third pass, `extra_text`, translates display strings the catalog has no table for — strings that live in
+config assets rather than localization tables, which is why its allowlist is exactly **four assets**: the
+AI opponent nicknames (~11 000, romanised with pinyin), the display-text table, the post-match compliments
+and the rule pages. Every entry in that list was put on a phone and watched, because translating one of
+these assets can take a screen with it: task names make a tournament replay force-close, the four
+chessplayer-skill assets remove the skill-description button, and mail, quiz and "not open yet" notices
+remove the game button after pressing start and blank the encyclopedia. The withdrawn hashes and the
+symptom each one causes are recorded beside the allowlist in `tools/extra_text.py`; do not add to that set
+without a device cycle. The same class of edit had already broken the login screen, the Card menu and every
+prefab label tried, which is why the set is this small.
+
 Of the catalog's 398 texture edits, 395 exist somewhere in the mobile build — 323 in the downloaded layer
 and 73 in the APK's built-in layer, one asset keyed in both — and a run applies 394 of them. The ones it
 does not:

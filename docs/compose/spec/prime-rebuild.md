@@ -19,18 +19,21 @@ carry the prime-only content, translated, while prime-only assets that need no c
 Everything reads back byte-for-byte before a package is written, and the in-place stager and the
 extension pass both skip a rebuilt id.
 
-Measured on game data 1.4.0.1: a run stages 400 replacements for package `1` (102 downloaded assets
+Measured on game data 1.4.0.1: a run stages 392 replacements for package `1` (94 downloaded assets
 re-translated plus **298** catalog tables taken from the APK — 51,095 records, the chessplayer names
 among them) and 72 textures for package `1050016095`. **394 of the catalog's 398 texture edits now
 apply, where 323 did.** The Chessplayer names reach the layer the screen reads, which is what the
-override-only path could never do.
+override-only path could never do. (The count was 400 before the device round below withdrew the
+assets it convicts: the six extras left in the allowlist are six fewer replacements.)
 
 Two more passes came with it. A table the in-place stager cannot fit is appended to the end of the shard
 instead of being dropped (`exclude_extra_chunks` / `write_assets` / `relocate_text`), which recovers the
 11 chessplayer tables the drop report recorded as permanently lost; and `extra_text` + `pb_text` +
 `unity_text` translate display strings the catalog has no table for, gated on an allowlist because some
-Chinese in those assets is a lookup key. `count_translated` classifies a rebuilt package by the texture
-share the entry carries, not by its mode, because one entry now holds both kinds.
+Chinese in those assets is a lookup key — an allowlist the device round below cut from fourteen assets
+to four, each withdrawal recorded with the screen that condemns it. `count_translated` classifies a
+rebuilt package by the texture share the entry carries, not by its mode, because one entry now holds
+both kinds.
 
 **Verification** — all from the project root, on head `5bf1ab3` unless noted:
 
@@ -73,8 +76,40 @@ The installed data was checked below the UI: package `1` as staged holds **388 c
 tables this feature exists for did reach the layer the game mounts, and the device build reproduced the
 offline run exactly (701 assets, 298 from the APK; `402 text tables, 394 images`).
 
-**Not yet seen on screen.** What the text and textures look like in the game after login is the user's
-to report; this test covers boot and the installed data only.
+**Not yet seen on screen** by that test: it covered boot and the installed data only.
+
+**Device test, second round** — the user logged in, and the text and textures *were* there; four
+regressions came with them, and all four were the `extra_text` pass, not the rebuild:
+
+| symptom | cause | how it was found |
+|---|---|---|
+| no game button after pressing start | mail / quiz / notices | not the textures (reverting every texture package left all four), not the catalog tables (a build with `extra_text` off fixed them while 388 tables stayed English) |
+| encyclopedia blank | mail / quiz / notices | as above |
+| chessplayer skill-description button gone | the four skill assets | same |
+| **tournament replay force-closes** | **task names `5214339F97C419ED`** | see below |
+
+The replay crash is not a scripted quit: `adb shell dumpsys activity exit-info com.tencent.tmgp.osgame`
+reports `reason=2 (SIGNALED)`, `status=11` — SIGSEGV — with `pss` 1.2–1.3 GB, 2–3½ minutes into each
+session, and it never reaches logcat (`WIN DEATH` and `has died: fg TOP` only), the `crash` buffer is
+empty and dropbox has no `data_app_crash`. So the search rested on the user's reports, and the reports
+had to be single-variable:
+
+| package 1 content (textures and package 4 identical on both sides) | replay |
+|---|---|
+| 388 tables (90 override + 298 prime-only), `extra_text` off | works |
+| + `1C8F7FFF7BDEF14D` compliments | works |
+| + `A1987F488164E53A` display-text table | works |
+| + `5214339F97C419ED` task names | **SIGSEGV** |
+| + `B5D856BFDF22400D` rule pages and `2D1113B0AD51A562` nicknames (task names left out) | works |
+
+So the pass is content-specific rather than unsound, the shipping `SAFE_ASSETS` is those four assets,
+and the rebuild is cleared: the tables-only build replays fine, which matches the user's own history —
+the install they had been playing predates this port and had no `extra_text` pass at all.
+
+The last row also settles the earlier deduction that the four assets were "exonerated". They were not:
+those deductions treated *not changed in the staged package* as *disabled*, and an enabled asset that
+rewrites nothing looks identical to a disabled one — which is exactly what `A1987F488164E53A` did in
+one build. Only a pair of staged builds, differing in one asset, supports a causal claim.
 
 **Journey log**
 
@@ -108,6 +143,23 @@ to report; this test covers boot and the installed data only.
   measurable: the restored download pulls 2.667 GB where patched data pulls 2.737 GB, and control B boots
   on it. That is what makes a revert test sound here, where the earlier one was not — it reverted to the
   *previous patch's* output and so could neither convict nor clear anything.
+- The allowlist bisect was worth one device cycle per asset because each cycle started from the
+  configuration last known good rather than from the failing one. That makes the recovered set grow
+  monotonically and every verdict usable on its own, where bisecting down from the full build would have
+  produced a run of "still broken" and one usable answer at the end.
+- Ask for symptoms one at a time. "All four still broken" is one bit that costs a full cycle; the report
+  that split the start button and the encyclopedia from the skill button and the replay halved the search
+  in one message. The same report is what showed the four symptoms were two unrelated asset groups.
+- A failure that arrives *after* a screen has been up for thirty seconds needs the exit record, not
+  logcat: `dumpsys activity exit-info <pkg>` names the reason, the signal and the pss, while the client
+  suppresses tombstones and the game's own log (`Android/data/<pkg>/files/bqLog/...`, readable with plain
+  adb and no `run-as`) stops mid-network-ping.
+- Verifying a code change against a device-validated build has to compare **asset by asset**. The rebuilt
+  container is re-laid out on every build, so `1.db` and `1_0.db` differ between two builds with identical
+  content — 701 of 703 entries byte-identical, no metadata difference at all. The two that did differ are
+  the builder's own bookkeeping nodes, which carry the build machine's **absolute output path**
+  (`...\shipped` against `...\probe-final`); Tencent's builder embeds it, so no two rebuilds agree unless
+  they share an output directory.
 
 ## [S1] Problem
 
@@ -289,12 +341,29 @@ Non-catalog display text that the PC catalog has no table for, ported as three m
 - `extra_text.py` — the allowlist and the romanisation.
 
 `SAFE_ASSETS` is an **allowlist**, not a blocklist: rewriting every matching string in the config
-assets broke the login screen, because some Chinese there is a lookup key rather than a label. It is
-`BOT_NAME_ASSETS` plus `DISPLAY_ASSETS`. AI opponent names (~11 000) are romanised with `pypinyin`
-because the catalog has no official translation for them. Packages `10` (skill-editor labels) and `14`
-(gameplay scripts) are excluded: Chinese there is logic. `UNITY_TEXT_PACKAGES` stays empty — rewriting
-package 19's prefab labels hangs the lobby, and rewriting only the faction labels in the 15 prefabs
-that show them crashes the game with `stack corruption detected`.
+assets broke the login screen, because some Chinese there is a lookup key rather than a label.
+
+After the device round below it is exactly four assets, and none of them may be added to without a
+device cycle:
+
+| asset | what it is |
+|---|---|
+| `2D1113B0AD51A562` | AI opponent nicknames (~11 000), romanised with `pypinyin` — the catalog has no official translation for them |
+| `A1987F488164E53A` | display-text table `{id, text, #key#}`, 474 replacements |
+| `1C8F7FFF7BDEF14D` | post-match compliments, 13 strings |
+| `B5D856BFDF22400D` | rule pages, 16 strings |
+
+Withdrawn, each by the screen it breaks: task names `5214339F97C419ED` (a tournament replay SIGSEGVs),
+the four chessplayer-skill assets `10271B050169A7B7` / `0FDA07B7C51E4AC5` / `DEE91C1DE999F3AF` /
+`D9A68213BB843F61` (the skill-description button disappears), mail `5B7E509D10BD722F` / quiz
+`A3B34BE9879BE25B` / notices `721918D44EDAB146` (no game button after pressing start; blank
+encyclopedia), and both package-4 assets `E0FF23C02C95D892` / `13429059252DC6EB` — package 4 stays
+pristine because its path is the in-place `write_assets`, which does not verify its own write.
+
+Packages `10` (skill-editor labels) and `14` (gameplay scripts) are excluded: Chinese there is logic.
+`UNITY_TEXT_PACKAGES` stays empty — rewriting package 19's prefab labels hangs the lobby, and rewriting
+only the faction labels in the 15 prefabs that show them crashes the game with
+`stack corruption detected`.
 
 The hashes already tested and their failures stay in the comments beside the allowlist, so the next
 addition starts from the record rather than repeating it.

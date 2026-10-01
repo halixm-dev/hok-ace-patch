@@ -19,31 +19,36 @@ import pb_text
 
 # Protobuf list of the ~11k nicknames shown for AI opponents ("chessplayers") in matches.
 BOT_NAME_ASSETS = {0x2D1113B0AD51A562}
-# Only assets verified to hold display text. Replacing matching strings in the other config assets
-# broke the login screen: some Chinese strings there are lookup keys rather than labels.
+# The assets this pass may rewrite. Every one was put on a phone and watched, because nothing about an
+# asset predicts what rewriting it costs.
 SAFE_ASSETS = BOT_NAME_ASSETS | {
-    0xE0FF23C02C95D892,  # skin names and descriptions (package 4)
     0xA1987F488164E53A,  # display-text table {id, text, #key#}
-}
-# Display-only assets whose strings the PC catalog translates; each set verified on device
-# (2026-09-29: loading reaches "Click to Enter Game", the Card menu renders).
-# Stall initial loading, UI disappearing around 40-80%: newbie unlock rewards 41974B12, and one of
-# the small label tables 8B5C2394 / A07BC11B / 4CEF98BE / 63922EF4 / 7E3F57D7 / 3914DBBF / 14DEEB2E.
-# Break the Card menu, leaving grey placeholder cards: hero role guide DD11D75B / CA340C43 / BBFD4BE9
-# / CAC6E38D.
-# Not tried: guide triggers 9E141D55, buff definitions C11D0D14, nickname parts 87C2793F, damage-type
-# tables 7B40D34D / 1BAEBF0F / EAF99621, 3F4DD9B1.
-DISPLAY_ASSETS = {
-    0x5B7E509D10BD722F,  # system mail titles and bodies
-    0xA3B34BE9879BE25B,  # quiz questions and answers
-    0x10271B050169A7B7, 0x0FDA07B7C51E4AC5, 0xDEE91C1DE999F3AF, 0xD9A68213BB843F61,  # chessplayer skills
-    0x13429059252DC6EB,  # arena and skin flavour text (package 4)
-    0x721918D44EDAB146,  # "not open yet" notices
     0x1C8F7FFF7BDEF14D,  # post-match compliments
-    0x5214339F97C419ED,  # task names
     0xB5D856BFDF22400D,  # rule pages
 }
-SAFE_ASSETS |= DISPLAY_ASSETS
+# Rewrites that were tried on device and withdrawn (2026-09-30 / 10-01). Each was a single-variable
+# device cycle: the same build, with one more asset enabled, watching the screen it feeds.
+#   0x5214339F97C419ED   task names: translating it makes a tournament replay SIGSEGV -- signal 11,
+#                        pss ~1.3 GB, ~30 s into the replay, every time. The same build without it
+#                        replays fine, which is what put it here.
+#   0x10271B050169A7B7, 0x0FDA07B7C51E4AC5, 0xDEE91C1DE999F3AF, 0xD9A68213BB843F61   chessplayer
+#                        skills: the chessplayer skill-description button disappears.
+#   0x5B7E509D10BD722F, 0xA3B34BE9879BE25B, 0x721918D44EDAB146   mail / quiz / "not open yet"
+#                        notices: no game button after pressing start, and a blank encyclopedia.
+#   0x13429059252DC6EB, 0xE0FF23C02C95D892   package 4: these go through the in-place `write_assets`,
+#                        which does not verify its own write, so package 4 stays pristine.
+# The same class of edit broke the login screen (a Chinese string there is a lookup key rather than a
+# label), the Card menu (grey placeholder cards: hero role guide DD11D75B / CA340C43 / BBFD4BE9 /
+# CAC6E38D), and every package-19 prefab label tried (initial loading stalls; faction names rewrite as
+# "stack corruption detected"). Not tried: guide triggers 9E141D55, buff definitions C11D0D14, nickname
+# parts 87C2793F, damage-type tables 7B40D34D / 1BAEBF0F / EAF99621, 3F4DD9B1, newbie unlock rewards
+# 41974B12, the small label tables 8B5C2394 / A07BC11B / 4CEF98BE / 63922EF4 / 7E3F57D7 / 3914DBBF /
+# 14DEEB2E. A note claiming "verified on device" is only as good as the screens it was verified on.
+# Values that are logic rather than labels. A skill-config message stores 空 (empty) in the slots that
+# carry no skill, and the client reads that value back instead of treating it as text. Guarding it did
+# not by itself fix the skill button -- withdrawing those assets did -- but the allowlist above was
+# validated on device with this guard in place, so removing it needs its own cycle.
+SKIPPED_STRINGS = {"空"}
 # Packages whose Unity prefabs carry UI labels (faction names, buttons). Empty, and it stays that way:
 # rewriting every package-19 prefab label stalled the lobby's loading, and rewriting only the faction
 # names in the 15 prefabs that show them crashes the game at start with "stack corruption detected"
@@ -74,6 +79,8 @@ def translator_for(file_hash: int, catalog):
     official = catalog.unique
 
     def translate(text: str) -> str | None:
+        if text in SKIPPED_STRINGS:
+            return None
         if text in OFFICIAL_FIXES:
             return OFFICIAL_FIXES[text]
         if text in official:
@@ -89,6 +96,8 @@ def official_only(catalog):
     """The catalog's official English for one string, with no romanisation fallback."""
 
     def translate(text: str) -> str | None:
+        if text in SKIPPED_STRINGS:
+            return None
         return OFFICIAL_FIXES.get(text) or catalog.unique.get(text)
 
     return translate
