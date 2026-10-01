@@ -66,8 +66,9 @@ ships, which the build above does.
    is keyed by file hash, so the duplicate was invisible there and showed only as two offsets under one
    key in the tree. The pass now subtracts what the staged copy already holds.
 2. The source fork's row-checksum guard was measured, dropped, and then re-measured. The first reading
-   (the four validated assets "unguarded") came from `artifacts/hok-device-cycle/phone/`, which is our
-   own patched build, and rewriting one of those bins invalidates its stored MD5. On a freshly pulled
+   (the four validated assets "unguarded") came from a device-cycle snapshot an earlier session left
+   behind — `hok-device-cycle/phone/`, our own patched build, since deleted with the rest of that
+   session's evidence — and rewriting one of those bins invalidates its stored MD5. On a freshly pulled
    layer all of them answer true, so the guard cannot separate the withdrawn set from the validated one.
 3. The pristine download layer the earlier cleanup deleted was recovered from the phone itself (one
    `tar` stream over `run-as`), which is what let every offline check here run against the real append
@@ -212,10 +213,10 @@ it: `textures` as images that stay Chinese, `assets - textures` as tables. `text
   pristine layer every one of those assets answers true — the eight withdrawn bins *and* the four the
   allowlist translates — so the guard cannot tell them apart, and since both call sites already sit
   inside `file_hash in SAFE_ASSETS` branches its only effect would be to make the pass apply nothing.
-  An earlier reading of four falses came from the device-cycle snapshot under
-  `artifacts/hok-device-cycle/phone/`, which is our own patched build: rewriting one of those assets
-  invalidates the stored MD5, so a patched copy answers false and the pristine one true. Measure this
-  class of question on a freshly pulled layer, never on a copy this project has already written to.
+  An earlier reading of four falses came from a previous session's device-cycle snapshot (our own
+  patched build, deleted with the rest of that evidence): rewriting one of those assets invalidates the
+  stored MD5, so a patched copy answers false and the pristine one true. Measure this class of question
+  on a freshly pulled layer, never on a copy this project has already written to.
 - Hand-writing a record or a B-tree layout. The one thing the append path must have from Tencent is the
   record its builder derives (`qts_insert.add_assets`); nothing here composes a lookup key itself.
 - The game force-closing before the lobby (the handoff's L1/L2).
