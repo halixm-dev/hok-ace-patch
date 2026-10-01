@@ -17,6 +17,9 @@ PACKAGE = "com.tencent.tmgp.osgame"
 REMOTE_TMP = "/data/local/tmp/hokace"
 MIN_FREE_BYTES = 8 * 1024**3
 NO_WINDOW = 0x08000000 if os.name == "nt" else 0
+# The name the game is listed under once patched. Writing it is cosmetic, so a manifest this cannot
+# be written into is logged and the run continues.
+APP_NAME = "Honor of Kings: ACE"
 
 PROJECT = Path(__file__).resolve().parents[1]
 BUNDLE = Path(getattr(sys, "_MEIPASS", PROJECT / "resources"))
@@ -30,6 +33,7 @@ SETTINGS = Path(os.environ.get("APPDATA", Path.home())) / "HOKAceEnglishPatcher"
 sys.path.append(str(BUNDLE / "runtime"))
 
 import apk_tools  # noqa: E402
+from axml_label import set_label  # noqa: E402
 from axml_set_debuggable import is_debuggable, patch as make_debuggable_manifest  # noqa: E402
 from build_device_patch import build_patch  # noqa: E402
 from qts_builder import find_builder_dir  # noqa: E402
@@ -139,10 +143,10 @@ def check_work_dir(path: Path) -> None:
                          f"needed (currently {free / 1024**3:.1f} GB). Choose a folder on another drive.")
 
 
-def apk_is_debuggable(apk: Path) -> bool:
-    """True when the APK's manifest turns android:debuggable on."""
+def apk_manifest(apk: Path) -> bytes:
+    """The APK's binary AndroidManifest.xml."""
     with zipfile.ZipFile(apk) as archive:
-        return is_debuggable(archive.read("AndroidManifest.xml"))
+        return archive.read("AndroidManifest.xml")
 
 
 class Ui(Protocol):
@@ -295,6 +299,26 @@ class Patcher:
             raise PatchError("This game build is installed as split APKs, which the patcher does not support yet.")
         return paths[0]
 
+    def manifest_to_install(self, manifest: bytes) -> bytes:
+        """The manifest of the APK we install: no debug flag, and the game named in English.
+
+        Only the first is load-bearing (the game dies during startup under a debuggable build) and only
+        the second is optional: a manifest the rename cannot read keeps the game's own name rather than
+        failing the run, because the translation is what the user is here for. Both are reported, so a
+        run that did not rename the app says so.
+        """
+        if is_debuggable(manifest):
+            self.log("The cached APK carries the debug flag; rebuilding it without it.")
+            manifest = make_debuggable_manifest(manifest, debuggable=False)
+        try:
+            named = set_label(manifest, APP_NAME)
+        except ValueError as error:
+            self.log(f"  leaving the app name as it is: {error}")
+            return manifest
+        if named != manifest:
+            self.log(f"  naming the app {APP_NAME!r}")
+        return named
+
     def prepare_normal_apk(self, remote_path: str) -> None:
         self.step("apk", "copying the APK from the phone (~2 GB)")
         remote_size = int(self.adb.shell(f"stat -c %s '{remote_path}'").split()[0])
@@ -314,18 +338,22 @@ class Patcher:
             partial.replace(local)
         else:
             self.log("APK already cached, skipping the copy.")
-        if apk_is_debuggable(local):
-            # Only the debug flag separates this file from the game's own APK, so clearing it rebuilds
-            # the original. Coming back from a cache an older run already poisoned needs this, and a
-            # debug build left in the cache would make every restore install a game that cannot start.
-            self.log("The cached APK carries the debug flag; rebuilding it without it.")
-            clean = self.work / "normal-clean.apk"
-            with zipfile.ZipFile(local) as archive:
-                manifest = make_debuggable_manifest(archive.read("AndroidManifest.xml"), debuggable=False)
-            self.build_signed(local, clean, {"AndroidManifest.xml": manifest})
-            clean.replace(local)
+        # Whether the phone carries our signature is a property of the file the phone just gave us, so
+        # it is read before any rebuild: a rebuilt APK always carries it, and asking afterwards would
+        # answer yes for Tencent's own build too and skip the reinstall that build needs.
         cert = (BUNDLE / "key" / "cert.der").read_bytes()
-        if apk_tools.signed_with(local, cert):
+        mine = apk_tools.signed_with(local, cert)
+        manifest = apk_manifest(local)
+        wanted = self.manifest_to_install(manifest)
+        if wanted != manifest:
+            # Only the manifest separates our build from the game's own APK, so rebuilding it here is
+            # how a cached APK from an older version comes to carry the patch, and the run's last step
+            # is what installs it. This is also what stops the work repeating: the next run reads the
+            # rebuilt cache back and finds nothing left to write.
+            clean = self.work / "normal-clean.apk"
+            self.build_signed(local, clean, {"AndroidManifest.xml": wanted})
+            clean.replace(local)
+        if mine:
             self.log("The game uses the patcher-signed APK (signature matches).")
             self.normal_apk = local
             self.done("apk", "signature matches")
@@ -342,7 +370,7 @@ class Patcher:
             raise PatchError("Cancelled by the user.")
         self.step("apk", "building the patcher-signed APK")
         resigned = self.work / "normal.apk"
-        self.build_signed(local, resigned, {})
+        self.build_signed(local, resigned, {"AndroidManifest.xml": wanted})
         self.normal_apk = resigned
         self.step("apk", "reinstalling the game")
         self.adb.run("uninstall", PACKAGE, check=False)
@@ -376,8 +404,7 @@ class Patcher:
         stamp = self.work / "access.apk.source"
         source_id = f"{self.normal_apk.stat().st_size}:{self.normal_apk.stat().st_mtime_ns}"
         if not (target.exists() and stamp.exists() and stamp.read_text() == source_id):
-            with zipfile.ZipFile(self.normal_apk) as z:
-                manifest = make_debuggable_manifest(z.read("AndroidManifest.xml"))
+            manifest = make_debuggable_manifest(apk_manifest(self.normal_apk))
             self.build_signed(self.normal_apk, target, {"AndroidManifest.xml": manifest})
             stamp.write_text(source_id)
         self.ui.set_step("access", "active", "installing the access APK (check the phone for a pop-up)")

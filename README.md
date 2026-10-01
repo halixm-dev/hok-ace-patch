@@ -10,7 +10,7 @@ if the language packages were modified inside the APK.
 | Path | Contents |
 |---|---|
 | `app/` | GUI (`hok_patcher.py`), workflow (`patcher_core.py`), APK signing (`apk_tools.py`), `build_exe.py`, `make_icon.py` |
-| `tools/` | Translation build pipeline: `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py` |
+| `tools/` | Translation build pipeline: `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py`, `axml_label.py` |
 | `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`. Off the runtime path; nothing here ships in the exe |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime, extracted from the PC patcher (Python 3.12 bytecode) |
 | `resources/catalog/` | Translation catalog (`.blocks` / `.assets`) — the English texture payloads the texture pass applies, plus `previews/` |
@@ -35,8 +35,8 @@ If `py -3.12` is not available: `set PYTHON=C:\path\to\python3.12.exe` before `s
 
 ## What the patcher does on the phone
 
-1. Pulls the installed APK, re-signs it with the project key, and builds a temporary
-   `android:debuggable` copy for data access via `run-as`.
+1. Pulls the installed APK, names the app in its manifest, re-signs it with the project key, and builds
+   a temporary `android:debuggable` copy for data access via `run-as`.
 2. Reads the language packages from the game data, builds the English packages
    (`tools/build_device_patch.py`), pushes them back and verifies them.
 3. Reinstalls the normal re-signed APK.
@@ -45,6 +45,14 @@ The debuggable copy must never be left installed: the game dies a few seconds in
 under it (measured on device, signal 7, bus error), so an interrupted run looks like a broken patch.
 `patcher_core` recognises its own access APK and refuses to cache it as the game APK, which is how a
 run that dies between steps 1 and 3 recovers.
+
+That re-signed APK is the game's own file with one entry rewritten, `AndroidManifest.xml`, which is
+where the debug flag and the app's name live. The name is `Honor of Kings: ACE` (`APP_NAME` in
+`app/patcher_core.py`), written by `tools/axml_label.py` into the `<application>` label and into every
+component that carries the same label reference: the launcher entry has no label of its own and
+inherits that one, and the task switcher reads the activity's. It is a literal in the manifest, so the
+game's own `R.string.game_name` and anything reading it are untouched. Renaming is cosmetic, so a
+manifest it cannot read leaves the name as it is and the run continues, with a log line saying so.
 
 The game's data has two layers, and the patcher writes to the second one:
 
