@@ -71,6 +71,47 @@ def _expand_staged_tokens(plans, log) -> int:
     return changed
 
 
+def _drop_uncatalogued_tables(plans, catalog, counts, log) -> list:
+    """Drop the replacements for tables the catalog has no record for, and take the census down with them.
+
+    `adaptive.scan` recognizes a localization table by its shape and translates it whenever every string
+    it holds is in the catalog's string map, so a table the catalog has no `.blocks` for is staged all the
+    same. That is how two assets the `extra_text` allowlist has never cleared — `3914DBBFECD1E54D` and
+    `63922EF4D4C86526`, both in package 1 on this data — reached the phone once packages `1` and
+    `1050016095` stopped being rebuilt: the rebuilt path consulted `catalog.known` alone, the in-place path
+    did not, and the two disagreed about the same layer.
+
+    The primary pass means *the catalog's tables*. Anything else needs a device cycle, which is what the
+    allowlist is for, so a table the catalog does not list is left out here. `counts` is adjusted in place
+    because it is the scanner's census and the summary reports it: a plan this function shortens must not
+    leave the census claiming more than the run staged.
+    """
+    kept = []
+    dropped = 0
+    for package, replacements, per_asset in plans:
+        for path in sorted(replacements.glob("*.assets")):
+            file_hash = int(path.stem, 16)
+            if file_hash in catalog.known:
+                continue
+            seen = per_asset.get(file_hash, {})
+            counts["tables"] -= 1
+            counts["records"] -= seen.get("records", 0)
+            counts["translated"] -= seen.get("translated", 0)
+            counts["unknown"] -= seen.get("unknown", 0)
+            path.unlink()
+            dropped += 1
+            log(f"package {package.package_id}: {file_hash:016X} is a table the catalog has no record "
+                f"for ({seen.get('translated', 0)} of its strings it could translate); left Chinese, it "
+                f"needs an extra_text cycle")
+        if any(replacements.glob("*.assets")):
+            kept.append((package, replacements, per_asset))
+        else:
+            log(f"package {package.package_id}: every table it planned sits outside the catalog; skipped")
+    if dropped:
+        log(f"{dropped} tables outside the catalog left unstaged")
+    return kept
+
+
 def rebuild_prime_packages(game: pathlib.Path, apk: pathlib.Path, transform, builder,
                            work: pathlib.Path, output: pathlib.Path, log,
                            refused: set[int]) -> list[dict]:
@@ -109,9 +150,16 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
                 log=print) -> dict:
     """Scan <game>, stage English packages into <output>/<id>/ and return the summary.
 
-    With <apk> and <builder_dir> (a folder holding the PC QtsVFS.dll), the packages that keep
-    translatable text or textures only inside the APK are rebuilt whole; every other package is
-    patched in place.
+    The text pass stages **the catalog's tables** (`catalog.known`) and nothing else: `adaptive.scan`
+    recognizes a localization table by shape and can resolve strings for one the catalog has no record
+    for, and those belong to a device cycle rather than to a normal run
+    (`_drop_uncatalogued_tables`).
+
+    <apk> is what makes the game's **other data layer** reachable: the packages baked into it (prime)
+    hold content the downloaded layer lacks, and the append pass carries what the catalog covers into the
+    override copy. <builder_dir>, a folder holding Tencent's PC QtsVFS.dll, is only needed to lay a
+    package out whole — which only the packages named in `REBUILD_PACKAGES` ask for, and that list is
+    empty, so a run without the DLLs reaches the same primed content as one with them.
 
     <cycle_assets> is a device cycle's one-variable change: the extra-text candidate assets this run
     enables on top of the allowlist. Empty on a normal run, and recorded in the summary either way, so
@@ -120,46 +168,58 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     from wxq_patch import adaptive
     from wxq_patch.unity_package_installer import capacity_report, stage_unity_package
     from qts_relocate import install_btree_slot_map
-    from device_extensions import exclude_extra_chunks, extend_graphics, relocate_text
+    from device_extensions import exclude_extra_chunks, extend_graphics, relocate_text, repair_talent_dictionary
 
     install_btree_slot_map()
 
     work.mkdir(parents=True, exist_ok=True)
     output.mkdir(parents=True, exist_ok=True)
 
+    loaded_catalog = adaptive.load_catalog(catalog)
     packages = []
     graphics_skipped = []
     append_skipped = []
     official_builder = transform = None
-    if apk is not None and builder_dir is not None:
-        from package_rebuild import make_transform
-        from qts_builder import Builder
-
-        # One transform and one builder for both passes that reach into the APK: the rebuild lays a
-        # package out whole, the append adds records to the package that is already there.
-        official_builder = Builder(builder_dir)
-        refused: set[int] = set()
-        transform = make_transform(adaptive.load_catalog(catalog), catalog, log, refused,
-                                   candidates=cycle_assets)
-        for report in rebuild_prime_packages(game, apk, transform, official_builder, work, output,
-                                             log, refused):
-            if report["textures_skipped"]:
-                graphics_skipped.append({
-                    "package_id": report["package_id"],
-                    "mode": "rebuilt",
-                    "skipped_count": len(report["textures_skipped"]),
-                    "considered_count": report["textures_considered"],
-                    "skipped": report["textures_skipped"],
-                })
-            packages.append({key: value for key, value in report.items()
-                             if key not in ("textures_considered", "textures_skipped")})
+    if apk is None:
+        # Both passes that reach into the APK read it, so without it the primed content — 297 of
+        # package `1`'s tables and 71 of package `1050016095`'s textures on this data — stays Chinese.
+        log("no APK given: text and textures that exist only in the APK stay Chinese")
     else:
-        log("APK or QtsVFS builder not available: text and textures that exist only in the APK stay Chinese")
+        from package_rebuild import REBUILD_PACKAGES, make_transform
+
+        refused: set[int] = set()
+        # The transform reads the catalog and nothing else, so the append no longer needs QtsVFS.dll: it
+        # harvests each record from the APK's own copy of the package. The builder is what lays a package
+        # out whole, which only `REBUILD_PACKAGES` asks for.
+        transform = make_transform(loaded_catalog, catalog, log, refused, candidates=cycle_assets)
+        if builder_dir is None:
+            log("no QtsVFS builder given: no package is laid out whole; the append covers the rest")
+            if REBUILD_PACKAGES:
+                log(f"  {REBUILD_PACKAGES} is named in REBUILD_PACKAGES but cannot be rebuilt without "
+                    f"it, so their prime-only content stays Chinese")
+        elif REBUILD_PACKAGES:
+            from qts_builder import Builder
+
+            official_builder = Builder(builder_dir)
+        if official_builder is not None:
+            for report in rebuild_prime_packages(game, apk, transform, official_builder, work, output,
+                                                 log, refused):
+                if report["textures_skipped"]:
+                    graphics_skipped.append({
+                        "package_id": report["package_id"],
+                        "mode": "rebuilt",
+                        "skipped_count": len(report["textures_skipped"]),
+                        "considered_count": report["textures_considered"],
+                        "skipped": report["textures_skipped"],
+                    })
+                packages.append({key: value for key, value in report.items()
+                                 if key not in ("textures_considered", "textures_skipped")})
     rebuilt = {entry["package_id"] for entry in packages}
 
     plans, fingerprints, counts, skipped = adaptive.scan(
         game, catalog, work / "scan", materialize=True
     )
+    plans = _drop_uncatalogued_tables(plans, loaded_catalog, counts, log)
     _expand_staged_tokens(plans, log)
 
     def fit_only(package, replacements):
@@ -323,12 +383,21 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     packages += graphics
     graphics_skipped += graphics_skipped_extra
 
-    if official_builder is not None:
+    # Already-English tables produce no replacement plan. Repair the old oversized Talent Card
+    # chunk separately so running the new patcher over its predecessor also fixes the grid.
+    repaired, repair_skipped = repair_talent_dictionary(game, loaded_catalog, output, log, skip=rebuilt)
+    packages += repaired
+    text_skipped += repair_skipped
+
+    if transform is not None:
+        # Gated on the **APK**, not on the builder: the append harvests each record from the APK's own
+        # prime copy of the package rather than asking Tencent's builder to mint one, so a run without
+        # the DLLs reaches the primed content all the same.
         # Last, so an append lands on the copy the passes above staged rather than being overwritten
         # by one, and so a package a rebuild replaced whole is left alone (`rebuilt`).
         from package_rebuild import add_prime_only
 
-        appended, append_skipped = add_prime_only(game, apk, transform, official_builder, work,
+        appended, append_skipped = add_prime_only(game, apk, transform, work,
                                                   output, rebuilt, log)
         packages += appended
 

@@ -1,7 +1,7 @@
 ---
 feature: prime-rebuild
 status: delivered
-updated: 2026-10-01
+updated: 2026-10-02
 branch: feat/prime-rebuild
 commits: e21ed33..9be8adb
 ---
@@ -37,6 +37,29 @@ to four, each withdrawal recorded with the screen that condemns it. `count_trans
 rebuilt package by the texture share the entry carries, not by its mode, because one entry now holds
 both kinds.
 
+A later measurement refined what the builder is the only source of, without changing a run. Comparing
+this cycle's `work/prime/1` against `work/rebuild-1/out/1` showed both lookup keys are identity
+functions — an entry key varies only with the asset it names, a chunk's `hash1` only with the asset and
+the chunk index — so an asset a package already carries needs no key derived at all. `[S2]`'s "The keys
+the builder derives" has the counts, and `tools/research/key_derivation_probe.py` reproduces them.
+
+**Later still: no package is rebuilt at all.** `REBUILD_PACKAGES` is now empty. Both packages this
+feature named — `1` for its 298 prime-only text tables and `1050016095` for its 71 prime-only textures —
+are covered by the append pass, which adds records to the container the game already reads instead of
+laying it out again, so QtsVFS.dll has no caller left in the pipeline. `prime-only-append.md`'s T11 and
+T12 measure what that costs and what it gains, asset by asset: packages `1050016095` and `21` come out
+holding exactly what their rebuilds held, and so does package `1` on every catalog table. The first
+attempt reported **393 text tables against this rebuild's 392**, and the extra two were this rebuild's
+own rule working as intended rather than a gap: `3914DBBFECD1E54D` and `63922EF4D4C86526` are tables
+`adaptive.scan` recognizes and resolves although the catalog has no record for them — and one of them
+cannot be given a verdict at all, because every one of the game's 277 packages has its key referenced by a
+single row, a draw type windowed for a month that ended a year before this build. They are now dropped by
+`build_device_patch._drop_uncatalogued_tables`, so the primary pass means the catalog's tables and
+anything else needs a cycle, which is what `[S2]`'s transform was for; the run reports **391 text tables
+and the same 395 images**, one short of the rebuild because the append's encoder cannot store
+`3A70308AAF6F18F8`. The rebuild is otherwise untouched and reachable by name, which is what keeps it as
+the path for a package that has to be re-laid out rather than added to.
+
 **Verification** — all from the project root, on head `5bf1ab3` unless noted:
 
 | command | result |
@@ -50,6 +73,7 @@ both kinds.
 | `patcher_core.count_translated` on the run's summary | PASS — `text=402 images=394`; a mode-only classifier would have said `474 / 323` |
 | extra-text probe: allowlist gating and a rewrite round-trip | PASS — only `SAFE_ASSETS` selected, 34 unallowlisted Chinese-bearing assets offered and none taken, second pass changed 0 strings |
 | post-review probes: `read_raw` contract, per-package reconciliation, empty-transform guard | PASS — the guard was exercised by stubbing a prime-only table to `b""`: 700 assets, 297 added, no exception |
+| `tools/research/key_derivation_probe.py` (added after this feature; the `3914DBBFECD1E54D` artifacts and session `20260929-191327`) | PASS — 679 shared assets: the entry key moved for 0, and 13 of 13 re-chunked assets kept every shared `hash1`; `--survey` over the dump's 278 packages: `hash1` differs per chunk in all 3462 multi-chunk assets, and the entry key is no `hash1` half in all 79,617; `--record` on `7B4CC5DF48336D2D`: the builder's record and prime's agree on every field but the record's own offset and the 16 bytes at `+52`, while the content differs; `--stager` on the phone-pushed session: the stager changed only `+44` (99 records) and `+80` (11 of those) and never the token, so a harvested record is a whole record |
 
 Independent review of `e21ed33..1341055` found no critical issue, three low-severity ones and one
 documentation error; the fixes are `263631b`, re-reviewed as `1341055..263631b` and found correct and
@@ -270,12 +294,81 @@ Contracts the code must keep, each already paid for once:
 - Every asset handed to the builder must be non-empty; the builder cannot store a zero-byte file.
 - `finalize` must find exactly the entries it was given, and a B-tree leaf must not be emptied.
 
+### The keys the builder derives
+
+Both B-trees order a package by a key the builder mints: the index by each entry's key (record `+12`),
+the shard by each chunk's `hash1` (slot `+12`, ordered on its low 32 bits). Neither key depends on the
+content it points at. `tools/research/key_derivation_probe.py` measured it on this cycle's own
+`work/prime/1` against `work/rebuild-1/out/1`, the 679 assets both hold — content compared after
+decompression, so a re-compression is not read as an edit:
+
+| what changed | assets | keys identical |
+|---|---|---|
+| content bytes | 677 | 664 |
+| byte length | 653 | 640 |
+| chunk count | 13 | 13, for every chunk index the two share |
+
+The entry key moved for none of the 679: `C779022CBA18BDBE` was re-chunked from 146 chunks to 153 and
+kept it, and `0058049528CF2027`, whose content grew 47,973 → 52,795 bytes, kept every `hash1`. The 13
+whose byte length changed *and* whose keys moved are exactly the 13 that were re-chunked, and for the
+chunk indices they share they kept `hash1` as well. So an entry key varies only with the asset it names,
+and a chunk's `hash1` only with the asset and the chunk index.
+
+Surveying all 278 packages of the dump (79,617 assets, 87,527 chunks) agrees: `hash1` differs per chunk
+in all 3,462 multi-chunk assets, and in all 79,617 assets the entry key equals neither half of any of
+that asset's `hash1` values — so there is no arithmetic shortcut between the two keys. The shard agrees
+with what `qts_relocate` already assumes: 91,941 of its 102,790 active leaf keys are a slot's
+`hash1 & 0xFFFFFFFF`. 101 packages of the dump have an index and no shard, so they carry no chunk to
+check.
+
+Neither function has been named, and naming them is not needed: being identity functions, both are
+recoverable from data. `hash_probe.py`'s XXH64 and `probe_descriptor_hashes.py`'s `qts_hash` were tested
+over the packed inputs (`<QI`, `<IQ`, the 16-hex-digit form, each half folded) against 2,873 entry keys
+and 3,197 `hash1` values, with no match.
+
+What this buys is that an asset a package already carries needs no key derived at all — its keys are in
+the package — and a chunk index that did not exist before is the only *key* work the builder still owns
+(re-chunking is the only thing here that creates one: 13 of 679 assets, or a table keyed on
+`(file_hash, chunk_id)` covering the dump's 87,527 chunks, on the order of 2 MB).
+
+**The keys are not all a record carries, and what else it carries is inherited from the stager.**
+Measured on the asset the append pass actually uses — `7B4CC5DF48336D2D`, the one catalog edit that lives
+only in the APK's package `21`, `work/prime/21` against `work/insert-21/out/21` through
+`key_derivation_probe.py --record` — the builder's minted record and the prime package's shipped record
+disagree on exactly five u32s: `+00`, the record's own offset in the index, which is positional, and the
+16 bytes at `+52..+67`. Everything else agrees byte-for-byte while the content is entirely different: the
+same entry key `3E2FE941`, the same chunk `0` `hash1` `4D90FAD807B56200`, one chunk, the same declared
+size 43168, chunk size 307200 and packed flag `00050004`. Those 16 bytes are content-derived — the same
+file hash, the same byte length and the same keys still give different tokens — and no stdlib digest
+(MD5, SHA-1 and SHA-256 truncated to 16, BLAKE2b-16, BLAKE2s-16) named them.
+
+They do not have to be named, because nothing checks them. `device_extensions.write_assets` states it in
+a comment — "Descriptor (32 bytes at entry+28) keeps its integrity token; only the raw length changes" —
+and `key_derivation_probe.py --stager` measures it on a real run rather than trusting the comment:
+session `20260929-191327`, `mode: full`, status `verified`, whose staged package was pushed to a phone.
+Package `1`'s source and staged indexes over their 381 shared entries differ in exactly two fields, the
+raw length at `+44` (99 records) and the chunk size at `+80` (11 of those), and **the token at `+52..+67`
+moved in none of the 99, including the 70 whose content was replaced outright.** So the game loads an
+entry whose token does not describe its content.
+
+That is what makes the harvest a whole record rather than most of one: a record taken from prime matches
+a builder-minted record in every field the stager itself writes. The append path has since dropped the
+builder for this reason (`prime-only-append.md`, T9): the keys come from prime, the payload is re-encoded
+by the encoder `write_assets` already uses, and the token rides along unused. What the builder remains
+the only source of is a chunk index the package does not already carry, which is why `write_assets` keeps
+the chunk count instead of adding one and why an append keeps prime's chunking. The measured
+Talent Card exception in `prime-only-append.md` T15 uses one offline-derived identity key to keep
+its original chunk size, without adding dictionary rows or loading the builder during normal runs.
+
 ### Which packages are rebuilt
 
-`package_rebuild.REBUILD_PACKAGES = ("1", "1050016095")` — the packages measured to keep translatable
-content only in the APK. Every other package keeps the in-place path: a rebuild lays the whole container
-out again, so it must be reserved for packages that gain something. `21`, which holds the wide Central
-Plains panel, was tried and withdrawn; the journey log has the card that cost.
+`package_rebuild.REBUILD_PACKAGES` names the packages to lay out whole. It is **empty**: both packages
+this feature named — `1` for its 298 prime-only text tables and `1050016095` for its 71 prime-only
+textures — are now covered by the append pass, which adds records to the container the game already reads
+instead of rebuilding it (`prime-only-append.md`, T11). The rebuild stays for a package that has to be
+re-laid out rather than added to, and it is the only caller of QtsVFS.dll left. `21`, which holds the wide
+Central Plains panel, reaches the phone by append; a rebuild of it costs the Factionless card, and the
+journey log has the screen.
 
 ### `rebuild_package`
 
@@ -486,7 +579,7 @@ A string that is still Chinese is diagnosed from the data, in this order, rather
 
    | finding | the pass that owns it |
    |---|---|
-   | `catalog.known`, asset prime-only | this rebuild — add the package to `REBUILD_PACKAGES` |
+   | `catalog.known`, asset prime-only | the append pass — it reaches the device copy without changing the container's shape; a rebuild (`REBUILD_PACKAGES`) is the fallback for a package that has to be re-laid out whole |
    | `catalog.known`, asset in override | it should already apply; ask whether the stager dropped it for not fitting (`text_skipped`) and whether relocation recovered it |
    | not a catalog table, protobuf display text | the extra-text allowlist, after a device cycle |
    | a package-19 prefab, or a definition table | nothing safe — `[S3]` |
@@ -506,7 +599,14 @@ cycle, and the cycle's verdict recorded before the next one starts:
 
 1. Build offline against a dump first: `tools/build_device_patch.py --runtime resources/runtime --game
    <dump> --catalog resources/catalog --work <w> --output <o> --apk <apk> --builder resources/qtsvfs`.
-   It needs Python **3.12** — `resources/runtime/` is 3.12 bytecode.
+   It needs Python **3.12** — `resources/runtime/` is 3.12 bytecode. **The dump has to be the game-data
+   version the phone is running** — `<dump>/WXQ_Data/Package/builtin/1/1.info` against the phone's own
+   `files/QtsVFSCache/packages/1/1.info`. A staged package is a *revision of one layer*, so pushing one
+   from an older version reverts every asset the game changed in between, and the symptom is a load that
+   stops at 0% followed by the game repairing itself with a download. Tried on 2026-10-02: a cycle
+   staged from the 1.4.0.1 `artifacts/game-dump` went onto a 1.4.0.2 phone, reverting a 34 KB Chinese
+   config asset and a 13.5 KB English one, and produced no verdict on the asset being tested. Check the
+   version before the push, or the cycle is wasted and the phone loses its translation.
 2. Back up `packages` **and** `Watchdog`, so the cycle can be rolled back.
 3. Push the staged directories to `files/QtsVFSCache/packages/<id>/` and delete
    `files/QtsVFSCache/Watchdog/*`; `app/patcher_core.py` holds the sequence.

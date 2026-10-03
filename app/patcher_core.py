@@ -79,7 +79,8 @@ def count_untranslated_graphics(summary: dict) -> int:
 
     These live in build_patch's separate `graphics_skipped` list, not in `packages`: a package whose
     every texture was skipped writes no directory, and the installer pushes by directory. The append
-    pass reports the textures it could not add the same way, in `append_skipped`.
+    pass reports the textures it could not add the same way, in `append_skipped` — where a package that
+    got some of its assets can also appear, naming the share that stays Chinese.
     """
     return (sum(entry.get("skipped_count", 0) for entry in summary.get("graphics_skipped", []))
             + sum(entry.get("textures", 0) for entry in summary.get("append_skipped", [])))
@@ -92,6 +93,8 @@ def count_untranslated_text(summary: dict) -> int:
     output directory behind it — and one that loses all of them has none — so `packages` alone
     cannot say what did not make it. The append pass reports the tables it could not add in
     `append_skipped`; its entries count both kinds, so the tables are what is left after `textures`.
+    That list carries the same two shapes, a package the pass could not add to at all and the refused
+    share of one it did add to.
     """
     return (sum(entry.get("dropped_count", 0) for entry in summary.get("text_skipped", []))
             + sum(entry.get("assets", 0) - entry.get("textures", 0)
@@ -440,12 +443,13 @@ class Patcher:
     def build_translation(self, session: Path) -> tuple[dict, Path | None]:
         self.step("translate", "1-3 minutes")
         staged = session / "staged"
-        # The prime layer half the game's text lives in is inside the APK, and the package
-        # builder is what lets a downloaded package carry it. Without the builder (a source
-        # checkout missing resources/qtsvfs) build_patch logs that and patches as it always did.
+        # The prime layer half the game's text lives in is inside the APK, and the append pass is what
+        # carries it into a downloaded package. That needs the APK, not the package builder: the builder
+        # is only for laying a package out whole, which no package asks for. A source checkout missing
+        # resources/qtsvfs therefore still translates everything the catalog covers.
         builder_dir = find_builder_dir([BUNDLE / "qtsvfs"])
         summary = build_patch(session / "game", BUNDLE / "catalog", session / "build", staged,
-                              apk=self.normal_apk if builder_dir else None, builder_dir=builder_dir,
+                              apk=self.normal_apk, builder_dir=builder_dir,
                               log=lambda line: self.log("  " + str(line)))
         text, images = count_translated(summary)
         dropped_text = count_untranslated_text(summary)

@@ -11,7 +11,7 @@ if the language packages were modified inside the APK.
 |---|---|
 | `app/` | GUI (`hok_patcher.py`), workflow (`patcher_core.py`), APK signing (`apk_tools.py`), `build_exe.py`, `make_icon.py` |
 | `tools/` | Translation build pipeline: `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), append into an existing package (`qts_insert.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py`, `axml_label.py` |
-| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`. Off the runtime path; nothing here ships in the exe |
+| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, key derivation, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`. Off the runtime path; nothing here ships in the exe |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime, extracted from the PC patcher (Python 3.12 bytecode) |
 | `resources/catalog/` | Translation catalog (`.blocks` / `.assets`) — the English texture payloads the texture pass applies, plus `previews/` |
 | `resources/adb/` | `adb.exe` + DLLs |
@@ -65,17 +65,20 @@ The game reads override first and falls back to prime, so an asset that exists o
 unreachable by an in-place edit. The pulled APK is therefore a patch input, not just something to
 re-sign, and there are two ways to carry that content into the override copy:
 
-- **Lay the package out again** with Tencent's own builder (`resources/qtsvfs/`), which is what packages
-  `1` and `1050016095` get. This changes the container's shape, which is why only those two are done:
-  re-laying-out a package means recompressing all of it, and what that costs is the *override* copy's
-  size, not the APK's — package `21` would cost about 40 MB to lay out rather than the 511 MB its APK
-  copy suggests.
-- **Append the asset to the package that is already there** (`qts_insert.py`, run by
-  `package_rebuild.add_prime_only`). Tencent's builder makes a throw-away package holding just the new
-  asset, and its chunk slot and index record — with every key the game derives — are appended to the
-  target's shard and index and linked into their B-trees. Nothing else in the container moves, so the
-  package keeps the shape the game already reads. This is how package `21` gets the Central Plains
-  panel.
+- **Append the asset to the package that is already there** — what a normal run does (`qts_insert.py`,
+  run by `package_rebuild.add_prime_only`). The asset's index record and its chunk slot are taken from the
+  APK's own prime copy of the package, which already carries the asset, so every key the game derives comes
+  with them; the payload is re-encoded and both are appended to the target's shard and index and linked
+  into their B-trees. Nothing else in the container moves, so the package keeps the shape the game
+  already reads, and no builder is involved. This is how packages `1`, `1050016095` and `21` get the
+  content they keep only in the APK: `1`'s 297 prime-only tables, `1050016095`'s 71 prime-only textures,
+  and `21`'s Central Plains panel.
+- **Lay the package out again** with Tencent's own builder (`resources/qtsvfs/`), per package named in
+  `package_rebuild.REBUILD_PACKAGES` — **empty**, because the append reaches everything the catalog
+  covers while leaving the container's shape alone. The rebuild is kept as the path for a package that has
+  to be re-laid out rather than added to, and it is the pipeline's only caller of `QtsVFS.dll`. It
+  recompresses the whole *override* copy, so what it costs is that copy's size, not the APK's — package
+  `21` would cost about 40 MB to lay out rather than the 511 MB its APK copy suggests.
 
 The patcher's own working data (~8 GB: pulled APK, packages, sessions) goes to the folder chosen in the app
 (default `HOK ACE Patcher Data` next to the exe), not into this project.
@@ -84,10 +87,18 @@ The patcher's own working data (~8 GB: pulled APK, packages, sessions) goes to t
 
 The pipeline translates **text tables and textures**. Text is staged in `full` mode and falls back to
 `fit-only` when replacements compete for slack, dropping the tables that will not fit; a table the stager
-cannot fit is then appended to the end of the shard rather than lost. Textures are a second pass that
-ports each reviewed edit in `resources/catalog/` onto the device's ASTC textures, which the game stores
-Oodle-compressed; the changed chunks are appended to the package shard and repointed in its B-tree, so
-every asset keeps its chunk count.
+cannot fit is then appended to the end of the shard rather than lost. It stages **the catalog's tables and
+nothing else**: the scanner can recognize and resolve a localization table the catalog has no record for,
+and such a table is left Chinese, because translating anything outside the catalog needs a device cycle
+(see the `extra_text` allowlist below). Textures are a second pass that ports each reviewed edit in
+`resources/catalog/` onto the device's ASTC textures, which the game stores Oodle-compressed; the changed
+chunks are appended to the package shard and repointed in its B-tree, so every asset keeps its chunk count.
+
+The Talent Card name dictionary keeps its original 307,200-byte chunk size and gains one chunk
+using a native lookup key measured offline and verified on the phone. This fixes grid labels
+such as `Arena Tiger` that previously displayed raw `#BE08...` refs. A normal patch run needs no
+builder DLL for this fix. Rerunning the updated patcher also repairs an older patched copy, even
+when its dictionary strings are already English.
 
 A third pass, `extra_text`, translates display strings the catalog has no table for — strings that live in
 config assets rather than localization tables, which is why its allowlist is exactly **four assets**: the
@@ -172,21 +183,22 @@ and position, because there is no catalog payload to copy. Nothing here draws te
 
 Package `1` is where the two layers matter most for text. It holds 2492 of its 2873 assets only in the
 APK, 408 of them catalog text tables, of which 298 translate — 51,095 records, the chessplayer names and
-their skills, talents and secret skills among them. The rebuild carries all 298 into the downloaded copy
-of the package, which is the layer the game reads first, together with the 102 downloaded assets it
-re-translates.
+their skills, talents and secret skills among them. The append carries **297 of the 298** into the
+downloaded copy of the package, which is the layer the game reads first; the one it leaves out,
+`3A70308AAF6F18F8`, is a 60-byte table whose LZ4 block lands exactly on its own length, which this format
+cannot tell apart from a *stored* chunk. The catalog tables the downloaded copy already holds are staged
+in place or relocated, and four more assets are rewritten by the extra-text pass.
 
-That rebuild is also why the stager no longer loses package `1`'s tables. Replacing a table with a longer
-one needs room in the package's shard, and when the shard has none the staging loop drops that table and
-restages with what is left — on this data it used to drop 11 of package `1`'s 92, every one of them a
-chessplayer skill, talent or secret-skill table. A package the rebuild replaces never reaches that loop.
-For every other package the drop is now a relocation instead: a table that will not fit its slot is
-appended to the end of the shard, keeping its chunk count, so it is applied rather than lost. Whatever
-still cannot be applied is reported rather than looking like a clean run: `text_skipped` in
-`device_patch_summary.json`, a line in the run log, and the count in the app's `translate` step and in
-its final message. An asset the append pass could not add is reported the same way, in `append_skipped`,
-which counts the images and the tables separately so the app can say what stays in Chinese and of which
-kind. On this data all three loss lists are empty.
+The stager needs room in the package's shard to replace a table with a longer one, and when the shard has
+none the staging loop drops that table and restages with what is left — on this data it used to drop 11 of
+package `1`'s 92, every one of them a chessplayer skill, talent or secret-skill table. The drop is now a
+relocation instead: a table that will not fit its slot is appended to the end of the shard. Its
+chunk count is preserved except for the measured Talent Card dictionary fix described above. Whatever still cannot be applied is reported rather than
+looking like a clean run: `text_skipped` in `device_patch_summary.json`, a line in the run log, and the
+count in the app's `translate` step and in its final message. An asset the append pass could not add is
+reported the same way, in `append_skipped`, which counts the images and the tables separately so the app
+can say what stays in Chinese and of which kind. On this data `text_skipped` and `graphics_skipped` are
+empty, and `append_skipped` holds the one table above.
 
 Resource tokens such as `{Energy}`, `{LordExp}` and `{LordHp}` are expanded to English terms
 (`Energy`, `Chessplayer EXP`, `Chessplayer HP`) in the staged packages, so the client no longer
@@ -314,3 +326,7 @@ few minutes and writes about 350 MB.
   device run settles whether the length matters.
 - Code injection into the APK and a "prebaked" APK with translated assets were both tried and fail
   (anti-cheat kill / `IsPrebuild errorCode:151`).
+
+Local dumps, generated packages and device evidence are excluded from Git.
+See [local artifact retention](docs/artifact-retention.md) for what the 2026-10-03
+cleanup retained and which historical outputs must be rebuilt before reuse.

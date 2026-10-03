@@ -18,7 +18,12 @@ This change makes a cycle one variable by construction and records the measureme
 | the CLI that builds one cycle | `tools/build_device_patch.py --cycle-asset`, `build_patch(cycle_assets=...)` |
 | a staged build saying which cycle produced it | `device_patch_summary.json` → `cycle_assets` |
 | the census a cycle starts from, and the check that the knob is inert without one | `tools/research/extra_text_candidates.py` |
-| four cycles built and verified offline, ready to push | `artifacts/cycles/<hash>/out/` (gitignored) |
+| four cycles originally built and verified offline; obsolete outputs removed 2026-10-03 | `artifacts/cycles/<hash>/out/` (gitignored) |
+
+**Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the
+phone has since updated to 1.4.0.2, so they are no longer pushable as they stand. See the journey log's
+last entry: a staged package is a revision of one layer, and the phone's version has to be checked against
+the dump's before a hand-driven push.
 
 ### What the measurement says
 
@@ -48,6 +53,14 @@ catalog reaches 1.5-9% of, where a cycle buys a handful of strings and risks a s
 lists a synonym of. The whole set is worth about 130 strings, and the label tables are 9 of them — which
 is why the order in `CANDIDATE_ASSETS` is the four labels first and the rest only after a cycle says the
 class is safe.
+
+Two of those four label tables carry a measured screen fact beside their hash since 2026-10-02, and it
+changes what a cycle on them can buy: `3914DBBFECD1E54D` **cannot be cycled at all** — its one key is
+referenced by a single row, a draw type windowed for a month that ended a year before this build, so no
+live screen draws it — while `63922EF4D4C86526` is referenced with no date window and is cycleable. Both
+are now dropped from a normal run's plan, because the text pass stages the catalog's tables and nothing
+else (`prime-only-append.md`, T12): a diagnostic cycle enables it with `--cycle-asset`; promotion
+to `extra_text.SAFE_ASSETS` still requires a watched successful device verdict.
 
 Placeholder normalisation was measured as a way to reach more of them and added **nothing**: replacing
 every `{...}`/`%d` form and dropping colour tags before looking a string up matched no additional string
@@ -100,9 +113,10 @@ Tencent's builder writing its own **build path** into the package: `AF1FB540A2B8
 agree there. They are named as `BUILDER_BOOKKEEPING` in the verification script.
 
 The app path still runs: `.venv\Scripts\python.exe app\hok_patcher.py --selftest artifacts\game-dump
-artifacts\selftest-out` → `{"ok": true, "packages": [["1", 81], ["1", 11], ["1050016095", 1], ["15", 299],
+artifacts\selftest-out` → `{"ok": true, "packages": [["1", 79], ["1", 11], ["1050016095", 1], ["15", 299],
 ["19", 22], ["20", 1], ["1", 4]]}`. The final `["1", 4]` is the extra-text pass reporting the four
-allowlisted assets, which is what the no-APK path does instead of the rebuild. And
+allowlisted assets, which is what the no-APK path does instead of the rebuild; `79` was `81` until the text
+pass was gated to the catalog's tables (`prime-only-append.md`, T12). And
 `tools/research/check_graphics.py` → `all checks passed`, unaffected.
 
 **Journey log**
@@ -131,6 +145,19 @@ allowlisted assets, which is what the no-APK path does instead of the rebuild. A
   multi-shard problem the note's other package-4 entries implied. It stays out of the queue anyway, for
   the reason the note gives — package `4` writes through `write_assets`, which does not read its own
   write back — and the measurement is recorded so the next attempt does not re-derive it.
+- **The first real push of a cycle failed, and the cause was the staging layer, not the asset.** The
+  cycle for `3914DBBFECD1E54D` was pushed from `artifacts/cycles/3914DBBFECD1E54D/out` — staged from
+  game data **1.4.0.1** — onto a phone running **1.4.0.2**. A staged package is a revision of one layer,
+  so it reverted the three assets that differ between the versions in package 1 (measured against a
+  backup taken before the push: `9F3227B6D2226784`, 34 832 B and 512 CJK either way; `0A3F6BAF53C9CA9D`,
+  13 505 B, English either way; plus the builder's bookkeeping nodes), along with the intended candidate.
+  The game stopped at **0% loading**, and on the next launch repaired itself with a download, reverting
+  the whole translation. **No verdict was produced for `3914DBBFECD1E54D`** — a 44-byte label table is not
+  a startup dependency, so the stall says nothing about it. The checks the next cycle carries: the
+  source's `<id>.info` version against the phone's before any write, and a push that touches only the
+  package the candidate lives in, since a rebuilt package also differs by the build path the builder
+  embeds. Re-staged from the pristine 1.4.0.2 package 1, the same cycle differs from the phone's baseline
+  in **exactly three assets** — the candidate and those two bookkeeping nodes.
 
 ## [S1] Problem
 
@@ -181,8 +208,10 @@ the invariant that says the knob is inert on a normal build. It is off the runti
 ### The device test loop for a cycle
 
 One candidate per cycle, and the verdict written beside the hash in `CANDIDATE_ASSETS` before the next
-cycle starts. The cycles' builds are pre-built under `artifacts/cycles/<hash>/out/`; each one is a
-complete patch (the six packages a normal run stages) plus the one asset, so pushing it *is* the cycle.
+cycle starts. Build a fresh cycle under a new work/output directory from the phone's own
+game-data version. The old `artifacts/cycles/<hash>/out/` builds were staged from 1.4.0.1 and their
+obsolete generated outputs were removed on 2026-10-03. A cycle is a complete patch plus the one asset;
+the version-checking push tool can send only the package that differs.
 
 1. **Prerequisites.** The game's data must be fully downloaded (open the game to the login screen once
    after any update), and nothing may be installed that the patcher did not put there. The account has to

@@ -9,10 +9,12 @@ the APK, package 1050016095 keeps 71 of the catalog's textures there, and packag
 only rewrite assets that already sit in the override package, and the texture pass reads the same
 layer, so neither ever saw those.
 
-A rebuilt override package holds every asset of the original override package (translated where the
-transform changes it, byte-identical otherwise) plus the prime-only assets the transform changes.
-Prime-only assets that need no change are left out, so the game keeps reading them from the APK rather
-than carrying a second copy of each.
+`add_prime_only` covers all three by appending, which keeps each package's container shape; a package
+named in `REBUILD_PACKAGES` is laid out whole by Tencent's own builder instead. A rebuilt override
+package holds every asset of the original override package (translated where the transform changes it,
+byte-identical otherwise) plus the prime-only assets the transform changes. Prime-only assets that need
+no change are left out either way, so the game keeps reading them from the APK rather than carrying a
+second copy of each.
 """
 from __future__ import annotations
 
@@ -21,17 +23,21 @@ import zipfile
 from pathlib import Path
 
 PRIME_PREFIX = "assets/bin/Data/Package/builtin/"
-# The packages measured to keep translatable content that the override package lacks. Every other
-# package keeps the in-place path: everything it needs is already downloaded, and a rebuild lays the
-# whole container out again, which means recompressing hundreds of MB for nothing.
+# Empty on purpose. Both packages this used to name - 1 for its 298 prime-only text tables and
+# 1050016095 for its 71 prime-only textures - now reach the phone through the append pass, which adds
+# records to the container the game already reads rather than laying it out whole. The rebuild stays
+# reachable: name a package here and a run given the APK and `resources/qtsvfs` rebuilds it, which is
+# the only remaining caller of QtsVFS.dll and the path to take if a package ever has to be re-laid out
+# rather than added to.
 #
-# 21 is the package that would carry the wide Central Plains panel (`7B4CC5DF48336D2D`, only in the
-# APK), and it is deliberately absent. Its rebuild works - 4863 assets, 48.7 MB, the panel translated,
-# and the game mounts it - but on the phone it costs a card: the Factionless hero Yixing then draws as
-# the game's grey placeholder, art and faction bar missing, while Tencent's own copy of the package
-# draws it correctly. The cost of laying a package out is the *override* copy's size, not the APK's
-# (4866 assets, about 40 MB, against the APK's 511 MB), so cost is not the reason to leave 21 alone.
-REBUILD_PACKAGES = ("1", "1050016095")
+# 21 is the package that carries the wide Central Plains panel (`7B4CC5DF48336D2D`, only in the APK),
+# and it reaches the phone by append for that reason. Its rebuild works - 4863 assets, 48.7 MB, the
+# panel translated, and the game mounts it - but on the phone it costs a card: the Factionless hero
+# Yixing then draws as the game's grey placeholder, art and faction bar missing, while Tencent's own
+# copy of the package draws it correctly. The cost of laying a package out is the *override* copy's
+# size, not the APK's (4866 assets, about 40 MB, against the APK's 511 MB), so cost is not the reason
+# to leave 21 alone.
+REBUILD_PACKAGES = ()
 
 
 def extract_prime(apk: Path, package_ids, target: Path, index_only: bool = False) -> dict[str, Path]:
@@ -233,7 +239,7 @@ def rebuild_package(package_id: str, device_dir: Path, prime_dir: Path, transfor
     }
 
 
-def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output: Path,
+def add_prime_only(game: Path, apk: Path, transform, work: Path, output: Path,
                    skip: set[str], log) -> tuple[list[dict], list[dict]]:
     """Insert translated catalog assets that only exist in the APK into the override package.
 
@@ -245,14 +251,14 @@ def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output
     <skip> holds the packages a rebuild replaced whole: their staged copy no longer matches the
     device's container, and the rebuild already carried the prime-only assets into it.
 
-    Returns (entries for packages that gained something, entries for packages that could not be
-    appended to). The second list is not a result -- no output directory stands behind it -- but it
-    names the assets that stay Chinese, which the summary cannot say any other way. Each of its
-    entries carries the assets the pass would have written and how many of those are textures, so a
-    caller can report what stays Chinese as images and as tables rather than as one total.
+    Returns (entries for what the pass added, entries for what it could not add). The second list
+    covers two shapes: a package it could not append to at all, which has no output directory behind it,
+    and the share of a package it did add to, whose refused assets are absent from that package's entry.
+    Either way it names the assets that stay Chinese, which the summary cannot say any other way. Each
+    entry carries the assets involved and how many of those are textures, so a caller can report what
+    stays Chinese as images and as tables rather than as one total.
     """
     from device_extensions import _package_output
-    from qts_builder import entry_flag
     from qts_insert import add_assets
     from qts_relocate import TreeFull, read_raw
     from wxq_patch.qtsvfs import QtsPackage
@@ -309,16 +315,13 @@ def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output
 
         prime = QtsPackage(prime_dir)
         slots = prime.build_slot_map()
-        prime_index = prime.index_path.read_bytes()
         assets = []
         for file_hash in sorted(wanted):
             raw = read_raw(prime, slots, file_hash) if file_hash in slots else None
             new = transform(file_hash, raw) if raw else None
             if new is None:
                 continue
-            entry = prime.entries[file_hash]
-            assets.append({"file_hash": file_hash, "raw": new, "chunk_size": entry.chunk_size,
-                           "flag": entry_flag(prime_index, entry)})
+            assets.append({"file_hash": file_hash, "raw": new})
         if not assets:
             continue
         textures = texture_count(a["file_hash"] for a in assets)
@@ -332,7 +335,7 @@ def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output
         created = not staged_dir.is_dir()
         target = _package_output(device, output)
         try:
-            add_assets(package_id, target, assets, builder, work, log)
+            written = add_assets(package_id, target, assets, prime, log)
         except TreeFull as error:
             # The staged copy holds an untouched copy of the package; the installer pushes by
             # directory, so it must not stay there looking like a result.
@@ -340,13 +343,28 @@ def add_prime_only(game: Path, apk: Path, transform, builder, work: Path, output
                 shutil.rmtree(target, ignore_errors=True)
             note(package_id, str(error), len(assets), textures)
             continue
+        if not written:
+            if created:
+                shutil.rmtree(target, ignore_errors=True)
+            note(package_id, "no asset could be re-encoded", len(assets), textures)
+            continue
+        written_hashes = {int(file_hash, 16) for file_hash in written}
+        if len(written) != len(assets):
+            # The refused assets are absent from the entry below, so without this the summary reads as
+            # if the pass added everything it offered and the tables among them count as applied. The
+            # package is in both lists on purpose: `packages` is the part it added, this is the part
+            # that stays Chinese.
+            refused_hashes = [asset["file_hash"] for asset in assets
+                              if asset["file_hash"] not in written_hashes]
+            note(package_id, f"its encoder cannot re-encode {len(refused_hashes)} of {len(assets)}",
+                 len(refused_hashes), texture_count(refused_hashes))
         entries.append({
             "package_id": package_id,
             "mode": "added-from-apk",
             "source_package": str(prime_dir),
             "fit_summary": None,
-            "stage_report": {"status": "verified", "replacement_count": len(assets)},
-            "assets": len(assets),
-            "textures": textures,
+            "stage_report": {"status": "verified", "replacement_count": len(written)},
+            "assets": len(written),
+            "textures": texture_count(written_hashes),
         })
     return entries, skipped

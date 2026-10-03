@@ -5,8 +5,11 @@ translated outside the catalog, and what is knowingly left Chinese. `AGENTS.md` 
 state obeys and `docs/compose/spec/` the reasoning behind each pass; this file carries the running
 counts, so it is the one that moves when coverage moves.
 
-Catalog counts verified 2026-10-01 at `cf1055e`. The per-layer counts are device measurements against
-game data **1.4.0.1**, each recorded with its command in the spec record named beside it.
+Catalog counts verified 2026-10-01 at `cf1055e`. The per-layer counts are measurements over the downloaded
+layer against game data **1.4.0.1**, each recorded with its command in the spec record named beside it.
+The phone has since updated to **1.4.0.2**, which changes two assets of package `1` and nothing else
+(`prime-only-append.md`, T11); every count below is unaffected by that, and a re-measurement should use the
+phone's own layer, not the 1.4.0.1 dump.
 
 ## How progress is counted
 
@@ -24,9 +27,20 @@ A run reports four numbers through the app's `translate` step, all read from
 | text tables left in Chinese | `count_untranslated_text` | translated, then not applied — `text_skipped`, `append_skipped` |
 | images left in Chinese | `count_untranslated_graphics` | found, then not translated or not added — `graphics_skipped`, `append_skipped` |
 
-The last full run recorded (`prime-only-append.md`, `run-t4`) printed **392 text tables and 395 images
+The earlier rebuild run (`prime-only-append.md`, `run-t4`) printed **392 text tables and 395 images
 across 6 packages**, with `text_skipped`, `graphics_skipped` and `append_skipped` all empty. That is the
-run `README.md` means by "a run applies all 395".
+run `README.md` means by "a run applies all 395". A patch of that shape was put on the phone on
+2026-10-02, where the game launched under it and read English; a 1.4.0.1-staged build pushed onto that same
+phone stalled it at 0% and was repaired away by the game, which is why the layer's version is now a
+pre-flight check (`prime-rebuild.md`'s device test loop).
+
+`REBUILD_PACKAGES` is now empty, so no package is laid out again and `QtsVFS.dll` has no caller in a
+normal run (`prime-only-append.md`, T11), and the text pass is gated to the catalog's tables (T12). The
+append needs only the pulled APK, not the builder (T13), so a run given the APK and no DLL stages
+byte-identical packages. The latest full run, staged from the fresh 1.4.0.2 snapshot and
+device-verified on 2026-10-03, reports **391 text tables and 395 images across the same 6 packages** — one
+table short of that rebuild, because the append's encoder cannot store `3A70308AAF6F18F8`, which
+`append_skipped` counts as staying Chinese.
 
 ## What the catalog holds
 
@@ -59,8 +73,11 @@ set PYTHONPATH=tools;resources\runtime
 
 The game reads **override** (downloaded) first and falls back to **prime** (inside the APK), and every
 pass here writes into override. An asset that exists only in prime is therefore unreachable by an
-in-place edit, which is what the rebuild and the append pass exist to close. `prime_probe.py` censuses
-both layers; a search for a missing asset has to run over both.
+in-place edit, which is what the **append** pass closes: it adds records to the override copy without
+changing the container's shape, so it needs the APK and nothing else. `rebuild_package` reaches the same
+content by laying the package out whole, which nothing asks for today (`REBUILD_PACKAGES` is empty) and
+which only Tencent's builder can do. `prime_probe.py` censuses both layers; a search for a missing asset
+has to run over both.
 
 ### Textures — 395 of 398 applied
 
@@ -68,7 +85,7 @@ both layers; a search for a missing asset has to run over both.
 |---|---|---|
 | downloaded layer only | 322 | texture pass, in place |
 | both layers | 1 | whichever pass owns its package — once |
-| prime only — package `1050016095` | 71 | prime rebuild — `REBUILD_PACKAGES` |
+| prime only — package `1050016095` | 71 | append — `qts_insert.add_assets` |
 | prime only — package `21` | 1 | append — `qts_insert.add_assets` |
 | **applied** | **395** | |
 | neither layer | 3 | unreachable: `197CC5393D16E3CB`, `884E0B4581F47CF7`, `89C771ECFCDC7FBE` |
@@ -83,22 +100,31 @@ catalog and 592x824 on the device, so the pass aligns the two images and copies 
 (`splice_label`). It counts as applied, but as a correctness fix: which screen draws it is not
 established, so it is not evidence of anything visible.
 
-### Text — the staged tables plus package `1`'s prime layer
+### Text — the staged tables plus what the append takes out of package `1`'s prime layer
 
-Text applies three ways: staged in place (`full`, falling back to `fit-only`), relocated to the end of the
-shard when a longer table has no room (`relocated-text`), and carried out of the APK by a rebuild
-(`rebuilt`). The rebuild is what the prime layer needs, and only two packages have one:
+Text applies four ways: staged in place (`full`, falling back to `fit-only`), relocated to the end of the
+shard when a longer table has no room (`relocated-text`), rewritten outside the catalog by the `extra-text`
+pass, and carried out of the APK by the append (`added-from-apk`, `qts_insert.add_assets`). The last two
+are what the prime layer needs; two packages carry text there, and one carries a texture:
 
 | package | prime entries | override entries | prime only | of those, catalog tables | translate |
 |---|---|---|---|---|---|
-| `1` | 2873 (45.9 MB) | 403 (29.3 MB) | 2492 | 408 | **298** — 51 095 records |
+| `1` | 2873 (45.9 MB) | 403 (29.3 MB) | 2492 | 408 | **298** offered, 297 applied — 51 095 records |
 | `1050016095` | 608 (5.2 MB) | 2 (0.3 MB) | 606 | 0 | 0 — but 71 catalog textures |
 
-On this data a run stages **392 replacements for package `1`**: 94 downloaded assets re-translated plus
-the 298 tables taken out of the APK, which is where the run's 392 text tables come from. The chessplayer
-names, skills, talents and secret skills are in that 298 — the screens that draw them read prime, so no
-override-only path could reach them. Package `1` goes 29.3 MB → 30.6 MB in the process and package
-`1050016095` 0.3 MB → 2.5 MB, which is the whole cost of the rebuild.
+On this data a run reports **391 text tables for package `1`**, one of which stays Chinese: 79 assets
+staged in place, 11 relocated, 4 rewritten by the `extra-text` pass, and 297 appended out of the APK. The
+chessplayer names, skills, talents and secret skills are in that 297 — the screens that draw them read
+prime, so no override-only path could reach them. Package `1050016095`'s 71 prime-only textures go the
+same way and are counted as images.
+
+The refused table is `3A70308AAF6F18F8`, a 60-byte table whose LZ4 block lands exactly on its own length,
+which this format cannot tell apart from a *stored* chunk; it is named in the log and counted in
+`append_skipped`. The pass stages **the catalog's tables and nothing else**: `adaptive.scan` recognizes a
+localization table by shape and can resolve one the catalog has no record for, and two such tables in
+package `1` — `3914DBBFECD1E54D` and `63922EF4D4C86526` — were being staged by it while the rebuild path
+it replaced never would have. `build_device_patch._drop_uncatalogued_tables` drops them, so a normal run
+translates nothing outside the catalog; see *Knowingly left Chinese* for the two.
 
 Relocation is why the stager no longer loses these: it used to drop 11 of package `1`'s 92 translated
 override tables at the container, every one a chessplayer skill, talent or secret-skill table.
@@ -165,8 +191,25 @@ the run records it in `device_patch_summary.json`'s `cycle_assets`, and the hash
 once a cycle has looked at the screen it feeds. Four cycles are built and verified offline; none has a
 verdict, so the allowlist is still the four assets it was.
 
+The **Talent Card grid regression is fixed and device-verified on 2026-10-03**. The full
+4064-row English dictionary keeps the game's original 307,200-byte chunk size and uses a measured
+native key for its added second chunk. Grid names resolve again, including `Arena Tiger`; its
+detail pane and the Hero, Effect and Equipment tabs also work in the full English patch. Longer
+tile names still use the client's normal ellipsis. Rerunning the updated patcher repairs an older
+already-English copy. Counts remain **391 text tables and 395 applied textures**, with the one
+known append refusal below. Evidence and the withdrawn impossibility verdict are recorded in
+`docs/compose/spec/prime-only-append.md` T15.
+
 ## Knowingly left Chinese
 
+- **Two tables in package `1` the catalog has no record for**, which a normal run no longer stages:
+  `3914DBBFECD1E54D` (`高光表情` → Highlight Expression) and `63922EF4D4C86526` (`幻化`/`夺宝`/`限时` →
+  Transmog / Treasure Hunt / Limited Time). Both sit in `extra_text.CANDIDATE_ASSETS`. `3914DBBFECD1E54D`
+  **cannot be cycled at all**: the only asset in the game's 277 packages that references its key is a
+  日月行者 draw-type row windowed 2025-09-10 to 2025-10-10, so no live screen can draw it. `63922EF4D4C86526`
+  is referenced with no date window, so a cycle for it is possible.
+- The one catalog table the append's encoder cannot store: `3A70308AAF6F18F8`, a 60-byte table whose LZ4
+  block lands exactly on its own length, which this format cannot tell apart from a *stored* chunk.
 - The three catalog texture edits that exist in neither layer.
 - Package `19`'s Unity prefab labels (the lobby hangs; only the faction names, rewritten, crash at start
   with "stack corruption detected"), and the chessplayer definition `A8BC70BB87700709` field 37 (lobby

@@ -60,10 +60,21 @@ SAFE_ASSETS = BOT_NAME_ASSETS | {
 # cycle on one would add a handful of strings and risk a screen the note above already lists a synonym of.
 CANDIDATE_ASSETS: dict[int, str] = {
     0x63922EF4D4C86526: "3 of 3, and a 90-byte asset -- Transmog / Treasure Hunt / Limited Time; the "
-                        "cheapest honest signal there is",
-    0x4CEF98BEC79CB48C: "4 of 12 (15 fields) -- Tier / Hero Faction / Keyword / Wanxiang Quiz",
+                        "cheapest honest signal there is. Its three keys are referenced by "
+                        "`C7052167E428F9D5` (package 1, 137 bytes) with no date window, so a screen that "
+                        "draws it is reachable -- unlike 3914DBBF below. Measured 2026-10-02.",
+    0x4CEF98BEC79CB48C: "4 of 12 (15 fields) -- Tier / Hero Faction / Keyword / Wanxiang Quiz. Holds no "
+                        "`#key#` rows at all: its values are inline, like the withdrawn config assets "
+                        "rather than like a lookup table, which is why `translate_table` refuses it",
     0x7E3F57D727FA8625: "1 of 1 -- Props",
-    0x3914DBBFECD1E54D: "1 of 1 -- Highlight Expression",
+    # Unobservable, measured on device 2026-10-02. `3914DBBFECD1E54D` is a one-row lookup table,
+    # `#07B0CCFD72A346C9#` -> 高光表情, and a sweep of all 277 packages finds that key referenced in
+    # exactly one asset: `3644C4ACF0410B1E`, a 239-byte draw-type row windowed 2025-09-10 to 2025-10-10
+    # whose icon is `ArtHub/Icon/System/ExternalGame/Draw/Icon_Draw_Type_RYXZ` (日月行者). The window
+    # closed a year before this build, so no live screen can draw the label and a cycle cannot produce a
+    # verdict for it. Do not spend a phone on this hash; the finding is the measurement.
+    0x3914DBBFECD1E54D: "1 of 1 -- Highlight Expression; UNOBSERVABLE -- its only referencing row is a "
+                        "draw type windowed 2025-09-10 to 2025-10-10, long expired (2026-10-02)",
     0x41974B124E0053E0: "15 of 25 (42 fields) -- the newbie unlock-reward list; only a new account sees it",
     0x7B40D34D9DF271FF: "3 of 53 (65 fields) -- Damage / Invincible / Magic Damage Can Crit; the other "
                         "50 are designer shorthand",
