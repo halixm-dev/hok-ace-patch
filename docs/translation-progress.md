@@ -42,6 +42,18 @@ device-verified on 2026-10-03, reports **391 text tables and 395 images across t
 table short of that rebuild, because the append's encoder cannot store `3A70308AAF6F18F8`, which
 `append_skipped` counts as staying Chinese.
 
+The first successful full Android/Shizuku run on 2026-10-05, using the Xiaomi Android 12's live **1.4.0.2** data, confirms the same counts:
+
+| Android live result | Count |
+|---|---:|
+| Text tables applied | 391 |
+| Textures applied | 395 |
+| Text tables skipped | 1 |
+| Textures skipped | 0 |
+| Distinct patched packages | 6 |
+
+The skip is one of package `1`'s 298 prime-only tables refused by the append encoder; `text_skipped` and `graphics_skipped` are empty, and `append_skipped` carries one text asset. The completed journal verifies the applied payload and restored normal APK, with no dirty packages or pending mutation. No candidate assets were enabled. This confirms existing coverage through the Android pipeline; it does not add catalog coverage or complete the watched-screen checklist. Session and summary evidence: `artifacts/android-live-patch-success-20261005.json`, recorded in `android-shizuku-patcher.md`.
+
 ## What the catalog holds
 
 `resources/catalog/` is produced by the PC patcher pipeline; this repo consumes it, so a record is

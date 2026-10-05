@@ -1,0 +1,303 @@
+package dev.halixm.hokacepatcher
+
+import android.content.Context
+import android.os.ParcelFileDescriptor
+import com.chaquo.python.Python
+import com.chaquo.python.android.AndroidPlatform
+import java.io.File
+import java.io.RandomAccessFile
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import org.json.JSONObject
+
+/** Serialize snapshot/build/apply and recover complete file sets before restoring the normal APK. */
+class PatchCoordinator @JvmOverloads constructor(
+    private val context: Context,
+    private val device: IPrivilegedDeviceService,
+    private val report: (String) -> Unit,
+    private val installedVerifier: InstalledApkVerifier? = null,
+) {
+    /** Injectable only in-process; the application always uses the independent installed verifier. */
+    fun interface InstalledApkVerifier { fun verify(expected: ApkIdentity) }
+    private val store = RecoveryStore(context)
+    private val sessions = File(context.filesDir, "sessions")
+    private val cancelled = AtomicBoolean(false)
+    private val activeJournal = AtomicReference<SessionJournal?>(null)
+
+    fun cancel() { cancelled.set(true) }
+
+    fun pendingRecoveryResult(): JSONObject? {
+        val journal = activeJournal.get() ?: return null
+        if (journal.phase != PatchPhase.RECOVERY_REQUIRED) return null
+        val saved = journal.snapshot()
+        return JSONObject().put("status", "recovery_required").put("session", journal.id)
+            .put("normal_verified", saved.optBoolean("normal_verified", false))
+            .put("packages_dirty", journal.dirtyPackages).put("launch_allowed", false)
+            .put("error", saved.optString("last_error", "Game recovery is incomplete"))
+    }
+
+    fun interrupted(reason: String) {
+        cancelled.set(true)
+        activeJournal.get()?.let { journal ->
+            if (journal.phase !in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) journal.recoveryRequired(reason)
+        }
+    }
+
+    private fun checkpoint() {
+        check(!cancelled.get()) { "Patch cancelled; restoring verified originals" }
+        check(device.asBinder().isBinderAlive) { "Shizuku service disconnected" }
+    }
+
+    private fun bridge(name: String, vararg arguments: Any): String {
+        if (!Python.isStarted()) Python.start(AndroidPlatform(context))
+        return Python.getInstance().getModule("android_bridge").callAttr(name, *arguments).toString()
+    }
+
+    private fun requireSpace(phase: String, vararg allocations: Long) =
+        StorageBudget.requireAvailable(context.filesDir, phase, *allocations)
+
+    private fun <T> exclusive(action: () -> T): T {
+        DurableFiles.createDirectories(sessions)
+        RandomAccessFile(File(sessions, "coordinator.lock"), "rw").use { file ->
+            file.channel.use { channel ->
+                val lock = checkNotNull(channel.tryLock()) { "Another patch or recovery is running" }
+                lock.use { return action() }
+            }
+        }
+    }
+
+    private fun install(journal: SessionJournal, file: File, access: Boolean, next: PatchPhase) {
+        val identity = ApkIdentity.read(context, file)
+        if (!access) identity.requireRecovery()
+        else check(identity.debuggable && identity.certificateSha256 == GameSigner.CERTIFICATE_SHA256)
+        journal.intent(if (access) "install_access" else "install_normal", identity.json())
+        report(if (access) "Opening game data access" else "Restoring normal game APK")
+        ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use {
+            device.replaceGameApk(it, identity.bytes)
+        }
+        verifyInstalled(identity)
+        journal.outcome(next, JSONObject().put("normal_verified", !access))
+    }
+
+    private fun verifyInstalled(expected: ApkIdentity) {
+        installedVerifier?.let { it.verify(expected); return }
+        InstalledGameVerifier(context, device).verify(expected)
+    }
+
+    fun verifyRecoveryInstalled(normalId: String) { exclusive { verifyInstalled(store.verify(normalId)) } }
+
+    private fun validateLayer(manifest: File) {
+        ParcelFileDescriptor.open(manifest, ParcelFileDescriptor.MODE_READ_ONLY).use {
+            device.validateGameSnapshot(it)
+        }
+    }
+
+    /** Existing converted installs only. Official-signature conversion requires a separate consent flow. */
+    @JvmOverloads fun run(normalId: String, accessApk: File, sourceIdentity: ApkIdentity? = null): JSONObject = exclusive {
+        EmergencyRestoreStore(context).requireResolved()
+        val unfinished = SessionJournal.pending(sessions)
+        check(unfinished.isEmpty()) { "Recover the unfinished session before starting another patch" }
+        check(FirstSetupJournal.pending(context).isEmpty()) { "Finish or recover first-time setup before starting a patch" }
+        val normal = store.verify(normalId)
+        val installedSource = sourceIdentity ?: normal
+        installedSource.requireRecovery()
+        check(installedSource.versionCode == normal.versionCode && installedSource.versionName == normal.versionName) {
+            "Prepared source and recovery versions do not match"
+        }
+        val access = ApkIdentity.read(context, accessApk)
+        check(access.debuggable && access.certificateSha256 == normal.certificateSha256 &&
+            access.versionCode == normal.versionCode && access.versionName == normal.versionName) {
+            "Access and recovery APK identities do not match"
+        }
+        val engine = EngineAssets.prepare(context)
+        bridge("engine_preflight", engine.path)
+        requireSpace("APK install and normal restore", maxOf(access.bytes, normal.bytes))
+        verifyInstalled(installedSource)
+        checkpoint()
+        val journal = SessionJournal.create(sessions, normalId, engine.name)
+        activeJournal.set(journal)
+        val transaction = GameFileTransaction(journal, device)
+        val metrics = RunMetrics(context, File(journal.directory, "resource-metrics.json"))
+        var metricStatus = "interrupted"
+        try {
+            val sessionAccess = File(journal.directory, "access.apk")
+            try {
+                // A retained immutable inode keeps the session independently addressable without another 2 GB copy.
+                check(accessApk.setReadOnly()) { "Cannot protect the access APK" }
+                try { android.system.Os.link(accessApk.path, sessionAccess.path) }
+                catch (error: android.system.ErrnoException) {
+                    check(accessApk.canonicalPath.startsWith(context.filesDir.canonicalPath + File.separator)) {
+                        "Access APK reference leaves private storage"
+                    }
+                    android.system.Os.symlink(accessApk.canonicalPath, sessionAccess.path)
+                }
+                DurableFiles.syncDirectory(journal.directory)
+            } catch (error: android.system.ErrnoException) {
+                requireSpace("access APK copy, install and normal restore", access.bytes, maxOf(access.bytes, normal.bytes))
+                accessApk.inputStream().use { input -> sessionAccess.outputStream().use {
+                    input.copyTo(it, 1024 * 1024); it.fd.sync()
+                } }
+                check(sessionAccess.setReadOnly()) { "Cannot protect session access APK" }
+                DurableFiles.syncDirectory(journal.directory)
+            }
+            check(ApkIdentity.read(context, File(journal.directory, "access.apk")) == access)
+            checkpoint()
+            device.forceStopGame()
+            install(journal, File(journal.directory, "access.apk"), true, PatchPhase.SNAPSHOT_ACCESS_INSTALLED)
+            val archive = File(journal.directory, "snapshot.tar")
+            report("Measuring downloaded game data and required backup space")
+            val snapshotEstimate = JSONObject(device.estimateGameSnapshot())
+            val snapshotBudget = snapshotEstimate.getLong("archive_budget")
+            check(snapshotBudget in 1..(8L * 1024 * 1024 * 1024)) { "Invalid snapshot estimate" }
+            // Archive and extraction coexist; keep independent installer space for normal restore.
+            requireSpace("measured snapshot, extraction and normal restore", snapshotBudget, snapshotBudget, normal.bytes)
+            report("Saving complete game data and Watchdog snapshot")
+            ParcelFileDescriptor.open(archive, ParcelFileDescriptor.MODE_CREATE or
+                ParcelFileDescriptor.MODE_TRUNCATE or ParcelFileDescriptor.MODE_WRITE_ONLY).use {
+                val result = JSONObject(device.snapshotGame(it, snapshotBudget))
+                check(archive.length() == result.getLong("bytes") &&
+                    ApkIdentity.digest(archive) == result.getString("sha256")) { "Snapshot transport differs" }
+            }
+            requireSpace("snapshot extraction and normal restore", archive.length(), normal.bytes)
+            bridge("unpack_snapshot", engine.path, archive.path, File(journal.directory, "snapshot").path,
+                8L * 1024 * 1024 * 1024)
+            archive.delete()
+            validateLayer(File(journal.directory, "snapshot/manifest.json"))
+            journal.outcome(PatchPhase.SNAPSHOT_READY)
+            install(journal, store.normal(normalId), false, PatchPhase.NORMAL_RESTORED_FOR_BUILD)
+            checkpoint()
+            val buildEstimate = JSONObject(bridge("estimate_snapshot_build", engine.path,
+                journal.directory.path, store.normal(normalId).path))
+            check(buildEstimate.getInt("schema") == 1 && buildEstimate.getBoolean("estimate_only"))
+            val buildBytes = buildEstimate.getLong("additional_bytes")
+            check(buildBytes > 0) { "Invalid offline build storage estimate" }
+            val buildSpace = requireSpace("offline build and normal restore", buildBytes, normal.bytes)
+            journal.outcome(PatchPhase.BUILDING, JSONObject().put("build_storage_estimate", buildEstimate)
+                .put("build_storage_check", buildSpace))
+            report("Building text and graphics from the verified private snapshot")
+            val summary = JSONObject(bridge("build_snapshot", engine.path, journal.directory.path,
+                store.normal(normalId).path, normalId))
+            journal.outcome(PatchPhase.STAGED, JSONObject().put("counts", JSONObject(
+                bridge("result_counts", engine.path, summary.toString()))))
+            checkpoint()
+            val hashes = JSONObject(File(journal.directory, "staged-hashes.json").readText())
+            val originals = transaction.verifyOriginals().getJSONObject("files")
+            hashes.keys().asSequence().forEach { GameFilePolicy.validate("packages/$it", writable = true) }
+            val largestStaged = hashes.keys().asSequence().map {
+                File(journal.directory, "out/$it").length()
+            }.maxOrNull() ?: 0L
+            val largestOriginal = originals.keys().asSequence().map {
+                originals.getJSONObject(it).getLong("bytes")
+            }.maxOrNull() ?: 0L
+            val writeReserve = maxOf(largestStaged, largestOriginal)
+            requireSpace("access install, file writes and normal restore", maxOf(access.bytes, normal.bytes), writeReserve)
+            device.forceStopGame()
+            install(journal, File(journal.directory, "access.apk"), true, PatchPhase.APPLY_ACCESS_INSTALLED)
+            validateLayer(File(journal.directory, "snapshot/manifest.json"))
+            journal.outcome(PatchPhase.APPLYING)
+            for (name in hashes.keys().asSequence().sorted()) {
+                checkpoint()
+                requireSpace("package write and normal restore", normal.bytes, writeReserve)
+                report("Applying package file $name")
+                transaction.write("packages/$name", File(journal.directory, "out/$name"), hashes.getString(name))
+            }
+            checkpoint()
+            transaction.finishApply(hashes)
+            install(journal, store.normal(normalId), false, PatchPhase.COMPLETE)
+            metricStatus = "complete"
+            summary
+        } catch (error: Throwable) {
+            journal.recoveryRequired(error.message ?: error.javaClass.simpleName)
+            try { recoverLocked(journal) } catch (recovery: Throwable) {
+                journal.recoveryRequired("${error.message}; recovery: ${recovery.message}")
+                restoreNormalAfterFailure(journal, recovery)
+                error.addSuppressed(recovery)
+            }
+            if (journal.phase == PatchPhase.COMPLETE) {
+                metricStatus = "complete"
+                report("Verified patch and normal APK recovered after interrupted final installation")
+                JSONObject(File(journal.directory, "out/device_patch_summary.json").readText())
+            } else throw error
+        } finally {
+            runCatching { metrics.finish(metricStatus) }.onFailure {
+                android.util.Log.w("HokAceMetrics", "Resource metrics could not be retained", it)
+            }
+        }
+    }
+
+    fun recover(sessionId: String) = exclusive {
+        GameFilePolicy.session(sessionId)
+        val journal = SessionJournal.load(File(sessions, sessionId))
+        activeJournal.set(journal)
+        try { recoverLocked(journal) } catch (error: Throwable) {
+            journal.recoveryRequired(error.message ?: "Recovery interrupted")
+            restoreNormalAfterFailure(journal, error)
+            throw error
+        }
+        journal.terminalResult()
+    }
+
+    private fun restoreNormalAfterFailure(journal: SessionJournal, cause: Throwable) {
+        try {
+            val normal = store.verify(journal.recoveryId)
+            check(device.asBinder().isBinderAlive) { "Shizuku is unavailable for normal APK restoration" }
+            if (!runCatching { verifyInstalled(normal) }.isSuccess) {
+                requireSpace("emergency normal APK restore", normal.bytes)
+                journal.beginRecoveryNormal(normal)
+                report("Restoring normal APK; package recovery remains required")
+                ParcelFileDescriptor.open(store.normal(normal.sha256), ParcelFileDescriptor.MODE_READ_ONLY).use {
+                    device.replaceGameApk(it, normal.bytes)
+                }
+                verifyInstalled(normal)
+            }
+            journal.recoveryNormalVerified()
+            report("Normal APK verified; do not launch until package recovery is resolved")
+        } catch (restore: Throwable) {
+            cause.addSuppressed(restore)
+            journal.recoveryRequired("${cause.message}; normal APK restore: ${restore.message}")
+        }
+    }
+
+    private fun recoverLocked(journal: SessionJournal) {
+        check(journal.phase !in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) { "Session already resolved" }
+        val normal = store.verify(journal.recoveryId)
+        device.forceStopGame()
+        val transaction = if (journal.dirtyPackages) GameFileTransaction(journal, device) else null
+        val forward = !journal.dirtyPackages && journal.snapshot().optBoolean("patch_payload_verified", false)
+        val applied = if (forward) GameFileTransaction(journal, device).verifyAppliedManifest() else null
+        // Refusing damaged originals must retain the prior unresolved package-write intent.
+        val originals = transaction?.verifyOriginals()
+        journal.outcome(PatchPhase.RESTORING)
+        if (applied != null) {
+            // A durable earlier verification cannot establish the layer after a restart or update.
+            val accessFile = File(journal.directory, "access.apk")
+            val access = ApkIdentity.read(context, accessFile)
+            check(access.debuggable && access.certificateSha256 == normal.certificateSha256 &&
+                access.versionCode == normal.versionCode && access.versionName == normal.versionName) {
+                "Retained access and recovery APK identities differ"
+            }
+            requireSpace("applied-layer recovery audit and normal restore", maxOf(normal.bytes, access.bytes))
+            install(journal, accessFile, true, PatchPhase.RESTORING)
+            validateLayer(applied)
+        }
+        if (transaction != null) {
+            val files = checkNotNull(originals).getJSONObject("files")
+            val largest = files.keys().asSequence().map { files.getJSONObject(it).getLong("bytes") }.maxOrNull() ?: 0L
+            val access = ApkIdentity.read(context, File(journal.directory, "access.apk"))
+            requireSpace("complete rollback and normal restore", maxOf(normal.bytes, access.bytes), largest)
+            install(journal, File(journal.directory, "access.apk"), true, PatchPhase.RESTORING)
+            transaction.rollback { source -> requireSpace("rollback file and normal restore", normal.bytes, source.length()) }
+        }
+        // A failed offline build may fill storage while the already-verified normal APK stays
+        // installed. Verify that identity before spending another APK-sized installer allocation.
+        val alreadyNormal = runCatching { verifyInstalled(normal) }.isSuccess
+        if (alreadyNormal) {
+            journal.outcome(journal.recoveryCompletionPhase, JSONObject().put("normal_verified", true))
+            report("Normal game APK verified; interrupted session recovered")
+            return
+        }
+        requireSpace("normal APK restore", normal.bytes)
+        install(journal, store.normal(normal.sha256), false, journal.recoveryCompletionPhase)
+        report("Normal game APK verified; interrupted session recovered")
+    }
+}

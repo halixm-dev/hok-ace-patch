@@ -1,7 +1,7 @@
 ---
 feature: texture-translation
 status: delivered
-updated: 2026-09-30
+updated: 2026-10-03
 branch: feat/texture-translation
 commits: 290f5d8..46ed048
 ---
@@ -55,6 +55,15 @@ thing this document does not claim.
 
 **Journey log**
 
+- **Android exposed an invalid synthetic fixture (2026-10-03).** The checker filled its
+  synthetic ASTC buffers with arbitrary ramp bytes. Those are not valid ASTC blocks:
+  the ARM64 decoder crashed in `decode_intseq` / `decode_endpoints` at check 5, including
+  in a fresh process. `device_bytes` now encodes a known opaque background. The independent
+  untouched-block, deterministic-output and idempotence assertions remain. The corrected
+  full `--game` checker passed on Windows (130.4 s) and the Xiaomi Android 12 ARM64 spike
+  (120.9 s; instrumentation 121.807 s), each with 321 ported, one replaced, one spliced
+  and zero skipped downloaded textures. This fixes the research fixture only; it does not
+  establish decoder safety for malformed inputs or live-game acceptance of the Android port.
 - **The installer pushes directories, not the summary.** `build_patch` drops text tables one at a time
   until a package stages or runs out; when it runs out, `report` stays `None` and the package is left
   out of `packages` — but the last failed attempt has already written `output/<id>/`. On the dump that

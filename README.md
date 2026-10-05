@@ -328,5 +328,44 @@ few minutes and writes about 350 MB.
   (anti-cheat kill / `IsPrebuild errorCode:151`).
 
 Local dumps, generated packages and device evidence are excluded from Git.
+An experimental Android/Shizuku patcher lives alongside the Windows patcher under
+[`android/`](android/README.md). On 2026-10-05 its full live flow completed on the Xiaomi Android 12:
+391 text tables and 395 textures applied across six packages, one text table skipped, and the
+normal APK and applied package payload verified. Already-normal APKs retain their identity;
+matching cached normal/access APKs are verified and reused before creating any new copies.
+The Android launcher is **HOK ACE Patcher**, with application ID `dev.halixm.hokacepatcher`.
+It uses the supplied adaptive icon over `#9EBEF7`. The former `io.github.hokace.patcher` install
+keeps its own private files; the package rename does not migrate or delete recovery data.
+Its development UI has one **Start** button. It checks Shizuku permission automatically,
+verifies pending emergency restoration, recovers interrupted patch/setup work, prepares fresh
+files and detects first setup without a manual step list or preparation picker. It pauses for
+Shizuku startup/permission, first-setup data-loss and login consent, and confirming game downloads.
+Voice/tutorial buttons are removed. Live timestamped progress logs appear on the main screen; safe stopping and recovery remain. Storage errors show required, available and additional GB. Snapshot space uses measured game data rather than a fixed 8 GiB allocation.
+Emergency installer opening saves a pending restore request; independent installed-APK verification
+must resolve it, while unfinished game-data changes still require recovery.
+Connected foreground verification survives its own Shizuku service loss safely: it keeps the
+request pending, then resolves it only after a fresh independent normal-APK check.
+Unreadable patch/setup records allow explicit emergency selection of a retained normal APK;
+the selected APK is fully verified before opening the installer, without clearing damaged records.
+Diagnostic export preserves bounded raw records and backups even when they are unreadable;
+exported evidence does not authorize recovery or clear pending changes.
+Its fixture diagnostic now verifies real file rollback after killing and restarting the Android
+app; deliberate live-game interruption and broader installer lifecycle acceptance remain open.
+Replacing the installed disposable fixture preserves its data and exact APK bytes;
+fresh fixture installation/recovery also passes after both MIUI debugging/installation options
+were confirmed. Full game installer recovery still needs acceptance.
+Patch journals are published after their first durable write; incomplete initialization cannot
+appear as an authorized recovery session.
+Converted-install patch start requires a fresh, one-use confirmation that game updates finished and the game is closed; the normal full-patch path now passes on the measured Xiaomi; watched-screen and repeat-patch acceptance remain open.
+First setup now has separate data-loss and Scan-to-login confirmations, a one-use foreground request,
+installation recovery and a fresh-update checkpoint. Actual first-official conversion remains untested.
+Offline build preflight estimates work/staging storage while reserving the normal APK for recovery.
+Android notice/source auditing and remaining release requirements are recorded in
+[`android/native/THIRD_PARTY.md`](android/native/THIRD_PARTY.md).
+It remains a development build: another OEM, Android 15/page-size tests, deliberate live failures and a cable-disconnected release cycle are still pending. See its README for build commands and the feature report for measured evidence.
+The development platform harness, `tools/research/check_android_platform.py`, records ABI/page size,
+matches installed development APK hashes to the inspected build, and checks codec loading without game access.
+Windows and Android share the four result counters in `tools/patch_summary.py`; the Windows
+GUI continues to consume them through `app/patcher_core.py`.
 See [local artifact retention](docs/artifact-retention.md) for what the 2026-10-03
 cleanup retained and which historical outputs must be rebuilt before reuse.
