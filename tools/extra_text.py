@@ -198,15 +198,18 @@ def plan_unity_package(package, catalog) -> dict[int, bytes]:
 
 
 def plan_package(package, catalog, skip: set[int], log=None,
-                 candidates: frozenset[int] = frozenset()) -> dict[int, bytes]:
+                 candidates: frozenset[int] = frozenset(),
+                 terms: dict[str, str] | None = None) -> dict[int, bytes]:
     """New raw bytes for every allowlisted protobuf asset in <package> that can be translated.
 
     <candidates> are the CANDIDATE_ASSETS a device cycle has turned on for this run. They join the
     allowlist for the run and are not added to it: `SAFE_ASSETS` grows only when a cycle's screen has
     been looked at, so no run can ship an asset that was never put on a phone.
+
+    <terms> are the patch language's resource terms (`languages`); English when omitted.
     """
     from qts_relocate import read_raw
-    from resource_tokens import expand_tokens
+    from resource_tokens import RESOURCE_TOKENS, expand_tokens
 
     allowed = SAFE_ASSETS | candidates
     slots = package.build_slot_map()
@@ -225,15 +228,17 @@ def plan_package(package, catalog, skip: set[int], log=None,
         if changed:
             # The replacement comes from the catalog verbatim, so it carries the same {Energy}-style
             # tokens the staged path has to expand; the client would otherwise render them in Chinese.
-            jobs[file_hash] = expand_tokens(new, log)
+            jobs[file_hash] = expand_tokens(new, log, terms or RESOURCE_TOKENS)
     return jobs
 
 
 def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] = frozenset(),
-                candidates: frozenset[int] = frozenset()) -> list[dict]:
+                candidates: frozenset[int] = frozenset(),
+                terms: dict[str, str] | None = None) -> list[dict]:
     """Translate uncovered protobuf assets in every package of <game>; returns summary entries.
 
-    <candidates> is the device cycle's enablement, passed through to `plan_package`.
+    <candidates> is the device cycle's enablement and <terms> the language's resource terms, both
+    passed through to `plan_package`.
     """
     from device_extensions import relocate_assets
     from wxq_patch.qtsvfs import QtsPackage
@@ -250,7 +255,7 @@ def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] 
             continue
         if len(package.shard_paths) != 1:
             continue
-        jobs = plan_package(package, catalog, skip, log, candidates=candidates)
+        jobs = plan_package(package, catalog, skip, log, candidates=candidates, terms=terms)
         if package_dir.name in UNITY_TEXT_PACKAGES:
             jobs.update(plan_unity_package(package, catalog))
         if not jobs:

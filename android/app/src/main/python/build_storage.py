@@ -61,7 +61,16 @@ def estimate(packages: Path | str, catalog: Path | str, apk: Path | str, manifes
     if not prime_bytes or prime_bytes > MAX_BYTES:
         raise ValueError("APK prime extraction exceeds storage budget")
 
-    catalog_bytes = sum(path.stat().st_size for path in catalog.rglob("*") if path.is_file())
+    # A non-English catalog reads the English payloads it does not re-draw, so those count too.
+    from languages import ENGLISH
+
+    files = {path.relative_to(catalog): path for path in catalog.rglob("*") if path.is_file()}
+    english = catalog.parent / ENGLISH.catalog
+    if english != catalog and english.is_dir():
+        for path in english.rglob("*"):
+            if path.is_file():
+                files.setdefault(path.relative_to(english), path)
+    catalog_bytes = sum(path.stat().st_size for path in files.values())
     # Scan, excluded-chunk, full and fit replacement trees can coexist. Use source plus
     # catalog payload as a growth allowance per copy; translation/native peaks still need measurement.
     replacements = 4 * (source_payload_bytes + catalog_bytes)

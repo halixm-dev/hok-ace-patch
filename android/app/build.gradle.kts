@@ -16,6 +16,8 @@ val stageEngineAssets by tasks.registering(Sync::class) {
         rename { "$it.payload" }
     }
     from("../../resources/catalog") { into("engine/catalog"); rename { "$it.payload" } }
+    // Indonesian borrows every texture payload it does not re-draw from catalog/ beside it.
+    from("../../resources/catalog_id") { into("engine/catalog_id"); rename { "$it.payload" } }
     from("../../tools") {
         into("engine/tools")
         include("*.py")

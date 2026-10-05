@@ -111,11 +111,14 @@ class PatchCoordinator @JvmOverloads constructor(
         }
         val engine = EngineAssets.prepare(context)
         bridge("engine_preflight", engine.path)
+        // Read once: the whole run builds one language even if the picker changes meanwhile.
+        val language = PatchLanguage.current(context)
         requireSpace("APK install and normal restore", maxOf(access.bytes, normal.bytes))
         verifyInstalled(installedSource)
         checkpoint()
         val journal = SessionJournal.create(sessions, normalId, engine.name)
         activeJournal.set(journal)
+        report("Language: ${PatchLanguage.name(language)}")
         val transaction = GameFileTransaction(journal, device)
         val metrics = RunMetrics(context, File(journal.directory, "resource-metrics.json"))
         var metricStatus = "interrupted"
@@ -167,16 +170,16 @@ class PatchCoordinator @JvmOverloads constructor(
             install(journal, store.normal(normalId), false, PatchPhase.NORMAL_RESTORED_FOR_BUILD)
             checkpoint()
             val buildEstimate = JSONObject(bridge("estimate_snapshot_build", engine.path,
-                journal.directory.path, store.normal(normalId).path))
+                journal.directory.path, store.normal(normalId).path, language))
             check(buildEstimate.getInt("schema") == 1 && buildEstimate.getBoolean("estimate_only"))
             val buildBytes = buildEstimate.getLong("additional_bytes")
             check(buildBytes > 0) { "Invalid offline build storage estimate" }
             val buildSpace = requireSpace("offline build and normal restore", buildBytes, normal.bytes)
             journal.outcome(PatchPhase.BUILDING, JSONObject().put("build_storage_estimate", buildEstimate)
-                .put("build_storage_check", buildSpace))
+                .put("build_storage_check", buildSpace).put("language", language))
             report("Building text and graphics from the verified private snapshot")
             val summary = JSONObject(bridge("build_snapshot", engine.path, journal.directory.path,
-                store.normal(normalId).path, normalId))
+                store.normal(normalId).path, normalId, language))
             journal.outcome(PatchPhase.STAGED, JSONObject().put("counts", JSONObject(
                 bridge("result_counts", engine.path, summary.toString()))))
             checkpoint()

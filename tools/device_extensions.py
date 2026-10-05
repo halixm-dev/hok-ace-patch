@@ -292,6 +292,8 @@ def extend_graphics(game: Path, catalog_dir: Path, output: Path, log,
                 "skipped": report["skipped"],
             })
     from extra_text import extend_text
+    from languages import for_catalog
 
-    reports += extend_text(game, catalog, output, log, skip, candidates=candidates)
+    reports += extend_text(game, catalog, output, log, skip, candidates=candidates,
+                           terms=for_catalog(catalog_dir).resource_terms)
     return reports, skipped

@@ -39,6 +39,19 @@ def _prepare(root: Path) -> None:
         raise PatchError("Consumed runtime bytecode does not match embedded Python")
 
 
+def _catalog(root: Path, language: str) -> Path:
+    """The verified catalog directory for <language>; an unknown code is refused, never defaulted."""
+    import languages
+
+    try:
+        catalog = languages.catalog_dir(root, language)
+    except ValueError as error:
+        raise PatchError(str(error)) from error
+    if not (catalog / "catalog.json.gz").is_file():
+        raise PatchError(f"The {languages.get(language).name} catalog is missing from the engine")
+    return catalog
+
+
 def diagnostics(engine_root: str) -> str:
     """Return real imports and codec operations; unavailable bindings remain explicit gates."""
     root = Path(engine_root).resolve()
@@ -68,6 +81,10 @@ def diagnostics(engine_root: str) -> str:
     catalog = adaptive.load_catalog(root / "catalog")
     result["catalog_tables"] = len(catalog.known)
     result["catalog_textures"] = len(catalog.graphics)
+    import languages
+
+    result["languages"] = {code: len(adaptive.load_catalog(_catalog(root, code)).known)
+                           for code in languages.LANGUAGES}
     result["lz4_roundtrip"] = result["zstd_roundtrip"] = True
     result["full_codec_gate"] = all(item["loaded"] for item in result["codecs"].values())
     return json.dumps(result, indent=2)
@@ -83,11 +100,12 @@ def engine_preflight(engine_root: str) -> str:
     return json.dumps(result)
 
 
-def build_scratch(engine_root: str, session_root: str) -> str:
+def build_scratch(engine_root: str, session_root: str, language: str = "en") -> str:
     """Build in a fresh scratch session; this entry point never accesses live game files."""
     root = Path(engine_root).resolve()
     session = Path(session_root).resolve()
     _prepare(root)
+    catalog = _catalog(root, language)
     from package_rebuild import REBUILD_PACKAGES
 
     if REBUILD_PACKAGES:
@@ -120,7 +138,7 @@ def build_scratch(engine_root: str, session_root: str) -> str:
 
     started = time.monotonic()
     with (session / "build.log").open("w", encoding="utf-8") as log_file:
-        summary = build_patch(game, root / "catalog", work, output, apk=apk,
+        summary = build_patch(game, catalog, work, output, apk=apk,
                               builder_dir=None, cycle_assets=frozenset(),
                               log=lambda message: print(message, file=log_file, flush=True))
     reported = {str(item["package_id"]) for item in summary["packages"]}
@@ -227,19 +245,21 @@ def result_counts(engine_root: str, summary_json: str) -> str:
                        "skipped_textures": count_untranslated_graphics(summary)})
 
 
-def estimate_snapshot_build(engine_root: str, session_root: str, normal_apk: str) -> str:
+def estimate_snapshot_build(engine_root: str, session_root: str, normal_apk: str,
+                            language: str = "en") -> str:
     """Read verified snapshot and APK metadata before creating any build work/output."""
     root, session = Path(engine_root).resolve(), Path(session_root).resolve()
     _prepare(root)
     from mobile_snapshot import verify_snapshot
     from build_storage import estimate
 
+    catalog = _catalog(root, language)
     manifest = verify_snapshot(session / "snapshot")
-    return json.dumps(estimate(session / "snapshot/packages", root / "catalog", Path(normal_apk), manifest))
+    return json.dumps(estimate(session / "snapshot/packages", catalog, Path(normal_apk), manifest))
 
 
 def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
-                   expected_apk_sha256: str) -> str:
+                   expected_apk_sha256: str, language: str = "en") -> str:
     """Build a retained, rehashed snapshot using the independently verified recovery APK."""
     root, session, apk = Path(engine_root).resolve(), Path(session_root).resolve(), Path(normal_apk).resolve()
     _prepare(root)
@@ -262,7 +282,7 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
         for name, entry in manifest["files"].items() if name.startswith("packages/")
     }, "apk": {"sha256": expected_apk_sha256}}
     (session / "control.json").write_text(json.dumps(control), encoding="utf-8")
-    return build_scratch(str(root), str(session))
+    return build_scratch(str(root), str(session), language)
 
 
 def prepare_game_apks(engine_root: str, source_path: str, destination_path: str, signer) -> str:

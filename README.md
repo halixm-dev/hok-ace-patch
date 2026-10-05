@@ -1,7 +1,8 @@
 # HOK ACE Mobile English Patcher
 
-Windows app that installs the English translation into 王者万象棋 (`com.tencent.tmgp.osgame`)
-on an Android phone over USB, without root. The translation is written into the game data
+Windows app that installs the English or Indonesian translation into 王者万象棋
+(`com.tencent.tmgp.osgame`) on an Android phone over USB, without root. Pick the language under
+**LANGUAGE** in the app before starting; the choice is remembered. The translation is written into the game data
 **after** the in-game update finishes, because Tencent's updater applies binary diffs that break
 if the language packages were modified inside the APK.
 
@@ -10,10 +11,11 @@ if the language packages were modified inside the APK.
 | Path | Contents |
 |---|---|
 | `app/` | GUI (`hok_patcher.py`), workflow (`patcher_core.py`), APK signing (`apk_tools.py`), `build_exe.py`, `make_icon.py` |
-| `tools/` | Translation build pipeline: `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), append into an existing package (`qts_insert.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py`, `axml_label.py` |
-| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, key derivation, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`. Off the runtime path; nothing here ships in the exe |
+| `tools/` | Translation build pipeline: `languages.py` (the patch languages and their catalogs), `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), append into an existing package (`qts_insert.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py`, `axml_label.py` |
+| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, key derivation, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`, `make_language_payloads.py`. Off the runtime path; nothing here ships in the exe |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime, extracted from the PC patcher (Python 3.12 bytecode) |
-| `resources/catalog/` | Translation catalog (`.blocks` / `.assets`) — the English texture payloads the texture pass applies, plus `previews/` |
+| `resources/catalog/` | English translation catalog (`catalog.json.gz`) and the English texture payloads (`.blocks` / `.assets`) the texture pass applies, plus `previews/` |
+| `resources/catalog_id/` | Indonesian catalog (`catalog.json.gz`) plus the textures it re-draws (`<HASH>.blocks`, `previews/<HASH>.png`); every other texture comes from `catalog/` |
 | `resources/adb/` | `adb.exe` + DLLs |
 | `resources/key/` | Re-signing key: `key.pk8` + `cert.der` |
 | `resources/qtsvfs/` | Tencent's own package builder (`QtsVFS.dll`, `QtskDB.dll`, VC runtimes), driven by ctypes to re-lay-out a package whole |
@@ -37,7 +39,7 @@ If `py -3.12` is not available: `set PYTHON=C:\path\to\python3.12.exe` before `s
 
 1. Pulls the installed APK, names the app in its manifest, re-signs it with the project key, and builds
    a temporary `android:debuggable` copy for data access via `run-as`.
-2. Reads the language packages from the game data, builds the English packages
+2. Reads the language packages from the game data, builds the translated packages in the chosen language
    (`tools/build_device_patch.py`), pushes them back and verifies them.
 3. Reinstalls the normal re-signed APK.
 
@@ -228,6 +230,33 @@ leaves a package alone once its staged copy already holds the asset — appendin
 would index the same B-tree key twice. A run that reuses an output directory therefore reports fewer
 packages than that directory holds: the copy the first run appended to is left as it is, because it is
 where the earlier result lives.
+
+## Languages
+
+The catalog directory is the language: `resources/catalog/` is English and `resources/catalog_id/` is
+Bahasa Indonesia (`tools/languages.py`). The offline pipeline and the headless check take a language the
+same way the app does:
+
+```bat
+.venv\Scripts\python.exe tools\build_device_patch.py --runtime resources\runtime --game <game-dir> ^
+    --catalog resources\catalog_id --work <work-dir> --output <out-dir> --apk <path>\installed.apk
+dist\HOK ACE Mobile English Patcher.exe --selftest <game-dir> <out-dir> id
+```
+
+A language catalog ships only the textures it re-draws; every other texture is the English edit. Today
+that is the lobby's START GAME label, drawn as MULAI GAME. To re-draw another label, put its render at
+`resources/catalog_<lang>/previews/<HASH>.png`, add it to `LABELS` in
+`tools/research/make_language_payloads.py`, and regenerate; `--check` fails when a shipped payload is
+out of date:
+
+```bat
+.venv\Scripts\python.exe tools\research\make_language_payloads.py
+.venv\Scripts\python.exe tools\research\make_language_payloads.py --check
+```
+
+Text the game already ships in English stays English in an Indonesian run unless the catalog carries an
+`english_updates` row for it, and switching an already-patched phone to the other language needs the
+game's data reset first, as for any newer translation build (*Known limits*).
 
 ## Checking the texture pass
 

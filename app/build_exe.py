@@ -35,6 +35,9 @@ def build() -> None:
         "--add-data", f"{RESOURCES / 'adb'}{sep}adb",
         "--add-data", f"{RESOURCES / 'runtime'}{sep}runtime",
         "--add-data", f"{RESOURCES / 'catalog'}{sep}catalog",
+        # Indonesian: its own catalog.json.gz and re-drawn textures; every other texture payload is
+        # read from catalog/ beside it (languages.payload_path), so the two must ship side by side.
+        "--add-data", f"{RESOURCES / 'catalog_id'}{sep}catalog_id",
         "--add-data", f"{RESOURCES / 'qtsvfs'}{sep}qtsvfs",
         "--add-data", f"{RESOURCES / 'key' / 'cert.der'}{sep}key",
         "--add-data", f"{RESOURCES / 'key' / 'key.pk8'}{sep}key",

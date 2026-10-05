@@ -7,6 +7,8 @@ import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
 
@@ -36,6 +38,20 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     val advanced = column()
     private var next = "start"
     private var workerNotice = ""
+    private var choosingLanguage = false
+    private val languages = RadioGroup(activity).apply {
+        tag = "language-picker"; orientation = LinearLayout.VERTICAL
+        PatchLanguage.choices.forEach { (code, name) ->
+            addView(RadioButton(activity).apply {
+                id = View.generateViewId(); text = name; tag = "language-$code"; textSize = 18f; setTextColor(ink)
+                minHeight = dp(48)
+            })
+        }
+        setOnCheckedChangeListener { group, checked ->
+            val code = group.findViewById<RadioButton>(checked)?.tag?.toString()?.removePrefix("language-")
+            if (!choosingLanguage && code != null) invoke("language:$code")
+        }
+    }
 
     private val recoveryOptions by lazy {
         column().apply {
@@ -53,8 +69,14 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         root.setPadding(dp(20), dp(24), dp(20), dp(32))
         root.setBackgroundColor(Color.rgb(243, 246, 250))
         root.addView(text("HOK ACE Patcher", 30))
-        root.addView(text("English patcher", 16))
+        root.addView(text("English and Indonesian patcher", 16))
         root.addView(text("Some game text will stay Chinese.\nUse Scan to login after setup.", 16))
+        val languageCard = card()
+        languageCard.addView(text("Language", 23))
+        languageCard.addView(text("Choose the translation before you tap Start.\nTo switch a game that is already " +
+            "translated, clear the game's data and download it again first.", 16))
+        languageCard.addView(languages)
+        root.addView(languageCard)
         val card = card()
         card.addView(StepPicture(activity))
         card.addView(heading); card.addView(detail); card.addView(primary)
@@ -109,6 +131,19 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     fun working(value: Boolean) { primary.isEnabled = !value }
+
+    /** Show <code> as chosen without reporting it back as a new choice. */
+    fun language(code: String) {
+        val button = languages.findViewWithTag<RadioButton>("language-$code") ?: return
+        if (button.isChecked) return
+        choosingLanguage = true
+        try { languages.check(button.id) } finally { choosingLanguage = false }
+    }
+
+    /** A run reads the language once at its start, so the choice is locked while work is in progress. */
+    fun languageEnabled(value: Boolean) {
+        for (index in 0 until languages.childCount) languages.getChildAt(index).isEnabled = value
+    }
 
     fun resultMessage(value: String) {
         if (value == workerNotice) return

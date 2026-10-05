@@ -10,6 +10,10 @@ The deliverable copy is `artifacts/dev.halixm.hokacepatcher.apk`; Gradle's build
 
 This is a development Android patcher alongside the Windows app. A full live patch succeeded on the Xiaomi Android 12 on 2026-10-05; broader device and release acceptance remains open.
 It targets Android 11+ / ARM64 and uses a Shizuku AIDL UserService with fixed operations.
+The home screen's **Language** card chooses English or Bahasa Indonesia (`PatchLanguage`, saved
+on the phone). A run reads it once when it starts and records it in the session journal, and the card
+is locked while work is in progress. The engine carries `catalog/` and `catalog_id/` side by side,
+because the Indonesian catalog reads the English texture payloads it does not re-draw.
 The home screen has one **Start** button. Shizuku permission is requested automatically when
 its server is available. If it is stopped, Start opens Shizuku and continues when you return.
 After Start, pending emergency verification comes first, followed by interrupted patch recovery,

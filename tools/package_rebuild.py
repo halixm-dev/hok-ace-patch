@@ -92,10 +92,12 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
     import extra_text
     import mobile_graphics as mg
     import pb_text
+    from languages import for_catalog
     from resource_tokens import expand_tokens
     from wxq_patch import adaptive
 
     allowed = extra_text.SAFE_ASSETS | candidates
+    terms = for_catalog(catalog_dir).resource_terms
 
     def transform(file_hash: int, raw: bytes) -> bytes | None:
         if file_hash in catalog.known:
@@ -108,7 +110,7 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
                 return None
             # translate_table keeps the catalog's {Energy}-style tokens, so a rebuilt table needs the
             # same expansion the in-place staging path applies to its replacements.
-            return expand_tokens(bytes(new), log)
+            return expand_tokens(bytes(new), log, terms)
         if file_hash in catalog.graphics:
             new = mg.english_raw(raw, catalog.graphics[file_hash], catalog_dir)
             if new is None or len(new) != len(raw):
@@ -120,7 +122,7 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
                 new, changed = pb_text.rewrite(raw, extra_text.translator_for(file_hash, catalog))
             except pb_text.NotMessage:
                 return None
-            return expand_tokens(new, log) if changed else None
+            return expand_tokens(new, log, terms) if changed else None
         return None
 
     transform.graphics = set(catalog.graphics)

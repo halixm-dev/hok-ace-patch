@@ -27,6 +27,8 @@ import astc_encoder
 import ooz
 import texture2ddecoder
 
+from languages import payload_path
+
 OODLE_BLOCK = 0x40000  # Oodle LZ streams are split into 256 KiB blocks
 ASTC_FOOTPRINTS = [(4, 4), (5, 5), (6, 6), (8, 8), (10, 10), (12, 12)]
 PC_FORMATS = ("bc7", "rgba32")
@@ -197,7 +199,7 @@ def splice_label(mobile_raw: bytes, graphic: dict, catalog: Path, width: int, he
     if rows is None:
         return None
     box = graphic["label_box"]
-    payload = (catalog / graphic["payload"]).read_bytes()
+    payload = payload_path(catalog, graphic["payload"]).read_bytes()
     catalog_rgba = decode_pc(payload, width, height, fmt)
     for device_height, bx, by in offset_layouts(len(mobile_raw), width, height):
         device_rgba = bytearray(decode_astc(mobile_raw, width, device_height, bx, by))
@@ -285,7 +287,8 @@ def english_raw(mobile_raw: bytes, graphic: dict, catalog: Path) -> bytes | None
             return splice_label(mobile_raw, graphic, catalog, width, height, fmt)
         return None
     bx, by = layout
-    payload = (catalog / graphic["payload"]).read_bytes()
+    # A non-English catalog ships only the images it re-draws; the rest are the English edits.
+    payload = payload_path(catalog, graphic["payload"]).read_bytes()
 
     if graphic["payload"].endswith(".blocks") and fmt == "bc7" and layout == (4, 4):
         # Block-for-block port. Each range is a 16-byte-aligned run of BC7 blocks, which decode and

@@ -212,6 +212,32 @@ already-English copy. Counts remain **391 text tables and 395 applied textures**
 known append refusal below. Evidence and the withdrawn impossibility verdict are recorded in
 `docs/compose/spec/prime-only-append.md` T15.
 
+## Bahasa Indonesia
+
+`resources/catalog_id/` holds the Indonesian catalog (`docs/compose/spec/indonesian-language.md`). It has
+the same 499 tables and 398 graphics entries as the English one, so its coverage counts are the English
+counts. An offline run against the pristine 1.4.0.2 snapshot and APK (2026-10-05), and the same counts from
+the build pushed onto the Xiaomi M2007J3SG that day, where the game launched and the lobby read Indonesian
+with MULAI GAME on its start button (`indonesian-language.md`, *Device cycle*):
+
+| Indonesian offline result | Count |
+|---|---:|
+| Text tables applied | 391 |
+| Textures applied | 395 |
+| Text tables skipped | 1 (`0196F0E230EC1C70`, the append encoder's refusal) |
+| Textures skipped | 0 |
+| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME) |
+
+The other 393 applied textures carry the English edit. Two gaps are specific to the language:
+
+- **Game-shipped English stays English.** The catalog translates Chinese sources and re-targets only the
+  29 750 `english_updates` rows the English catalog had, so 20 228 of the 324 905 records in the staged
+  tables (6%) are English the game itself ships, left as it is — mostly package `1`'s prime-only tables.
+  Closing it needs `english_updates` rows in the catalog.
+- **Switching an already-translated install changes no text.** The Indonesian catalog over the 387
+  English-staged tables changes none of them; only the re-drawn textures would switch. Clear the game's
+  data first, as for any newer translation build.
+
 ## Knowingly left Chinese
 
 - **Two tables in package `1` the catalog has no record for**, which a normal run no longer stages:

@@ -25,14 +25,15 @@ PROJECT = Path(__file__).resolve().parents[1]
 BUNDLE = Path(getattr(sys, "_MEIPASS", PROJECT / "resources"))
 if not getattr(sys, "frozen", False):
     sys.path.insert(0, str(PROJECT / "tools"))  # the exe gets these via PyInstaller --paths
-# Only the chosen working folder is remembered here (a few bytes); the ~8 GB of game data goes to
-# whatever folder the user picks.
+# Only the chosen working folder and language are remembered here (a few bytes); the ~8 GB of game
+# data goes to whatever folder the user picks.
 SETTINGS = Path(os.environ.get("APPDATA", Path.home())) / "HOKAceEnglishPatcher" / "settings.json"
 
 # Translation runtime (compiled wxq_patch modules) ships as data; append so our stdlib wins.
 sys.path.append(str(BUNDLE / "runtime"))
 
 import apk_tools  # noqa: E402
+import languages  # noqa: E402
 from axml_label import set_label  # noqa: E402
 from axml_set_debuggable import is_debuggable, patch as make_debuggable_manifest  # noqa: E402
 from build_device_patch import build_patch  # noqa: E402
@@ -63,19 +64,40 @@ def default_work_dir() -> Path:
     return base / "HOK ACE Patcher Data"
 
 
+def _load_settings() -> dict:
+    try:
+        settings = json.loads(SETTINGS.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return settings if isinstance(settings, dict) else {}
+
+
+def _save_settings(**changes) -> None:
+    try:
+        SETTINGS.parent.mkdir(parents=True, exist_ok=True)
+        SETTINGS.write_text(json.dumps({**_load_settings(), **changes}), encoding="utf-8")
+    except OSError:
+        pass  # the choice still applies for this session
+
+
 def load_work_dir() -> Path:
     try:
-        return Path(json.loads(SETTINGS.read_text(encoding="utf-8"))["work_dir"])
-    except (OSError, ValueError, KeyError, TypeError):
+        return Path(_load_settings()["work_dir"])
+    except (KeyError, TypeError):
         return default_work_dir()
 
 
 def save_work_dir(path: Path) -> None:
-    try:
-        SETTINGS.parent.mkdir(parents=True, exist_ok=True)
-        SETTINGS.write_text(json.dumps({"work_dir": str(path)}), encoding="utf-8")
-    except OSError:
-        pass  # the choice still applies for this session
+    _save_settings(work_dir=str(path))
+
+
+def load_language() -> str:
+    code = _load_settings().get("language")
+    return code if code in languages.LANGUAGES else languages.DEFAULT_LANGUAGE
+
+
+def save_language(code: str) -> None:
+    _save_settings(language=languages.get(code).code)
 
 
 def free_space(path: Path) -> int | None:
@@ -162,9 +184,10 @@ class Adb:
 
 
 class Patcher:
-    def __init__(self, ui: Ui, work: Path):
+    def __init__(self, ui: Ui, work: Path, language: str = languages.DEFAULT_LANGUAGE):
         self.ui = ui
         self.work = work
+        self.language = languages.get(language)
         self.log = ui.log
         self.adb: Adb | None = None
         self.normal_apk: Path | None = None
@@ -174,6 +197,7 @@ class Patcher:
     def run(self) -> dict:
         check_work_dir(self.work)
         self.log(f"Working folder: {self.work}")
+        self.log(f"Language: {self.language.name}")
         self.adb = Adb(self.work)
         self.wait_for_device()
         base_path = self.find_installed_apk()
@@ -400,7 +424,8 @@ class Patcher:
         # is only for laying a package out whole, which no package asks for. A source checkout missing
         # resources/qtsvfs therefore still translates everything the catalog covers.
         builder_dir = find_builder_dir([BUNDLE / "qtsvfs"])
-        summary = build_patch(session / "game", BUNDLE / "catalog", session / "build", staged,
+        catalog = languages.catalog_dir(BUNDLE, self.language.code)
+        summary = build_patch(session / "game", catalog, session / "build", staged,
                               apk=self.normal_apk, builder_dir=builder_dir,
                               log=lambda line: self.log("  " + str(line)))
         text, images = count_translated(summary)

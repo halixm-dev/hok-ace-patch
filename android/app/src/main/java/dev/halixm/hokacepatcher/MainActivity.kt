@@ -124,6 +124,13 @@ class MainActivity : Activity() {
                     } else actions["Authorize Shizuku"]?.let { runTask(it) }
                 }
                 "recovery_options" -> home.showRecovery()
+                "language:en", "language:id" -> {
+                    val code = key.removePrefix("language:")
+                    if (busy || automatic || PatchWorkerService.isWorking) home.language(PatchLanguage.current(this))
+                    else runCatching { PatchLanguage.set(this, code) }
+                        .onSuccess { log("Language: ${PatchLanguage.name(code)}") }
+                        .onFailure { log("ERROR: ${it.message}"); home.language(PatchLanguage.current(this)) }
+                }
                 "game" -> {
                     val launch = packageManager.getLaunchIntentForPackage("com.tencent.tmgp.osgame")
                     if (launch != null) startActivity(launch)
@@ -142,6 +149,7 @@ class MainActivity : Activity() {
                 }]?.let { runTask(it) }
             }
         }
+        home.language(PatchLanguage.current(this))
         workerStatus = TextView(this).apply { tag = "worker-status"; setTextIsSelectable(true) }
         home.advanced.addView(workerStatus)
         fun action(label: String, task: () -> Unit) {
@@ -361,12 +369,13 @@ class MainActivity : Activity() {
             busy && automatic -> home.show("Checking game files", "Please wait. We are checking the saved game app and recovery files.", "Please wait", "start", false)
             pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true)
             !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false))
-            state?.optString("status") == "complete" && !pending.getOrThrow() -> home.show("English added", WorkerStatus.describe(state), "Start another patch", "start", false)
+            state?.optString("status") == "complete" && !pending.getOrThrow() -> home.show("Translation added", WorkerStatus.describe(state), "Start another patch", "start", false)
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped", friendlyFailure(state?.optString("error").orEmpty()), "Try again", "start", true)
             pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true)
             else -> home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
         }
         home.working(busy || live || (automatic && !waitingForShizuku))
+        home.languageEnabled(!busy && !live && !automatic)
         home.progress(live || (busy && automatic))
         buttons.forEach { it.isEnabled = !busy && !live && !automatic }
         home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required"))
@@ -510,7 +519,9 @@ class MainActivity : Activity() {
         val dialog = AlertDialog.Builder(this).setTitle("Start translation")
             .setMessage("1. Finish ALL downloads in the game.\n2. Close the game.\n\n" +
                 "3. We change game files and briefly replace the game app.\n\n" +
-                "4. Keep the game CLOSED until work or recovery finishes.\n\nAdding English has not passed all phone tests.")
+                "4. Keep the game CLOSED until work or recovery finishes.\n\n" +
+                "Language: ${PatchLanguage.name(PatchLanguage.current(this))}\n\n" +
+                "Adding the translation has not passed all phone tests.")
             .setView(confirmation).setNegativeButton("Cancel") { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton("Start patch", null).create()
         dialog.show()
         run {
