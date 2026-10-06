@@ -10,6 +10,11 @@ The deliverable copy is `artifacts/dev.halixm.hokacepatcher.apk`; Gradle's build
 
 This is a development Android patcher alongside the Windows app. A full live patch succeeded on the Xiaomi Android 12 on 2026-10-05; broader device and release acceptance remains open.
 It targets Android 11+ / ARM64 and uses a Shizuku AIDL UserService with fixed operations.
+On ROMs where Shizuku's own user-service starter crashes (MediaTek `LoadedApk.makeApplicationInner`,
+seen on an Infinix X6853 with Android 16), the worker starts the same service itself through Shizuku's shell-process
+API (`ShellServiceStarter`) and receives its binder through the shell-only `WorkerBinderProvider`.
+**Export diagnostic logs** includes the app's own trace (`trace.log`), the phone and Shizuku details,
+recent process exits, build logs and the app's logcat.
 The home screen's **Language** card chooses English or Bahasa Indonesia (`PatchLanguage`, saved
 on the phone). The same choice immediately switches the patcher's interface between English and
 Indonesian, including confirmations, recovery controls and notification actions. Raw technical logs

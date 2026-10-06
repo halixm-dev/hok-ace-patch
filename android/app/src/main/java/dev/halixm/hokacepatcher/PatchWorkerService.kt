@@ -37,6 +37,10 @@ class PatchWorkerService : Service() {
     @Synchronized private fun state(value: JSONObject) {
         if (retiring.get() && value.optString("status") !in setOf("recovery_required", "cancelled")) return
         val message = value.optString("progress").ifBlank { value.optString("error") }
+        if (value.optString("status") != "running") DiagnosticTrace.event("worker", "Result: $value")
+        else if (message.isNotBlank() && message != recentMessages.lastOrNull()?.substringAfter("  ")) {
+            DiagnosticTrace.event("worker", "Progress: $message")
+        }
         if (message.isNotBlank()) {
             val time = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date())
             recentMessages.addLast("$time  ${message.take(2000)}")
@@ -56,6 +60,12 @@ class PatchWorkerService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        DiagnosticTrace.init(this)
+        DiagnosticTrace.event("worker", "Service created")
+    }
 
     private fun show(message: String) {
         if (retiring.get()) return
@@ -78,6 +88,8 @@ class PatchWorkerService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        DiagnosticTrace.event("worker", "Start command ${intent?.action} start $startId flags $flags busy ${busy.get()} " +
+            "extras ${intent?.extras?.keySet()?.associateWith { intent.extras?.get(it) }}")
         if (intent?.action == "cancel") {
             cancelRequested.set(true)
             coordinator?.cancel()
@@ -157,7 +169,7 @@ class PatchWorkerService : Service() {
                 if (!retiring.get()) runCatching { state(setup?.pendingRecoveryResult() ?: coordinator?.pendingRecoveryResult() ?:
                     JSONObject().put("status", if (activeAction == "prepare" && cancelRequested.get()) "cancelled" else "error")
                         .put("action", activeAction).put("error", failureMessage).put("error_type", error.javaClass.name)) }
-                android.util.Log.e("HokAceWorker", "Patch/recovery stopped", error)
+                DiagnosticTrace.error("worker", "Patch/recovery stopped during $activeAction", error)
             } finally {
                 connection?.close()
                 connection = null
@@ -172,6 +184,7 @@ class PatchWorkerService : Service() {
     }
 
     override fun onTimeout(startId: Int, fgsType: Int) {
+        DiagnosticTrace.event("worker", "Foreground service timeout during $activeAction (type $fgsType)")
         retiring.set(true)
         cancelRequested.set(true)
         coordinator?.interrupted("Foreground processing timed out; inspect retained recovery journal")
@@ -183,6 +196,7 @@ class PatchWorkerService : Service() {
     }
 
     override fun onDestroy() {
+        DiagnosticTrace.event("worker", "Service destroyed; busy ${busy.get()} action $activeAction")
         retiring.set(true)
         cancelRequested.set(true)
         coordinator?.interrupted("Worker interrupted; recovery required")

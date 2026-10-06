@@ -85,7 +85,8 @@ class MainActivity : Activity() {
         service = null
         log("Shizuku stopped; device operations unavailable")
     }
-    private val permission = Shizuku.OnRequestPermissionResultListener { _, result ->
+    private val permission = Shizuku.OnRequestPermissionResultListener { code, result ->
+        DiagnosticTrace.event("ui", "Shizuku permission result $result for request $code")
         runOnUiThread {
             if (result == PackageManager.PERMISSION_GRANTED) {
                 connect()
@@ -99,6 +100,8 @@ class MainActivity : Activity() {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
+        DiagnosticTrace.init(this)
+        DiagnosticTrace.event("ui", "Activity created; restored ${state != null}, worker running ${PatchWorkerService.isWorking}")
         permissionRequested = state?.getBoolean("permission-requested") ?: false
         awaitingToken = state?.getString("automatic-token")
         awaitingAction = state?.getString("automatic-action")
@@ -107,6 +110,7 @@ class MainActivity : Activity() {
         waitingForDownloads = state?.getString("waiting-downloads")
         automatic = (awaitingToken != null || waitingForShizuku || waitingForDownloads != null) && state?.getBoolean("automatic") == true
         home = GuidedHome(this) { key ->
+            DiagnosticTrace.event("ui", "Tap $key; busy $busy automatic $automatic shizuku ${Shizuku.pingBinder()}")
             when (key) {
                 "start" -> beginAutomatic()
                 "stop" -> AlertDialog.Builder(this).setTitle(ui("Stop safely?"))
@@ -297,8 +301,9 @@ class MainActivity : Activity() {
             awaitingSince = android.os.SystemClock.elapsedRealtime()
             intent.putExtra("flow", token)
         }
+        DiagnosticTrace.event("ui", "Starting worker ${intent.action} flow ${intent.getStringExtra("flow")}")
         try { startForegroundService(intent) }
-        catch (error: Exception) { stopAutomatic(); log("ERROR: ${error.message}") }
+        catch (error: Exception) { DiagnosticTrace.error("ui", "Worker did not start", error); stopAutomatic(); log("ERROR: ${error.message}") }
     }
 
     private fun savedWorker(): JSONObject? {
@@ -393,6 +398,8 @@ class MainActivity : Activity() {
             message.contains("space", true) || message.contains("storage", true) ->
                 ui("Free now:") + " ${StorageBudget.freeSpaceLabel(filesDir.usableSpace)}.\n" +
                     ui("The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files.")
+            message.contains("Shizuku worker connection timed out") ->
+                "Shizuku is running, but the patcher's helper did not start. Open Shizuku, stop it and start it again, then return here and tap Try again. If it happens again, save a log for help. Keep the game closed."
             message.contains("Shizuku", true) || message.contains("permission", true) ->
                 "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed."
             message.contains("USER_RESTRICTED", true) ->
@@ -552,8 +559,8 @@ class MainActivity : Activity() {
         }
     }
 
-    override fun onResume() { super.onResume(); statusHandler.post(refreshStatus) }
-    override fun onPause() { statusHandler.removeCallbacks(refreshStatus); super.onPause() }
+    override fun onResume() { super.onResume(); DiagnosticTrace.event("ui", "Activity resumed"); statusHandler.post(refreshStatus) }
+    override fun onPause() { DiagnosticTrace.event("ui", "Activity paused"); statusHandler.removeCallbacks(refreshStatus); super.onPause() }
 
     private fun recoveryId(): String {
         EmergencyRestoreStore(this).snapshot()?.takeIf {
@@ -618,8 +625,9 @@ class MainActivity : Activity() {
         }
     }
     private fun connect() {
+        DiagnosticTrace.event("ui", "Binding activity UserService")
         try { Shizuku.bindUserService(args, connection) }
-        catch (error: Exception) { log("Cannot bind UserService: ${error.message}") }
+        catch (error: Exception) { DiagnosticTrace.error("ui", "bindUserService refused", error); log("Cannot bind UserService: ${error.message}") }
     }
 
     private fun copyApk() {
@@ -657,7 +665,10 @@ class MainActivity : Activity() {
         home.working(true)
         buttons.forEach { it.isEnabled = false }
         worker.execute {
-            try { task() } catch (error: Exception) { runOnUiThread { stopAutomatic() }; log("ERROR: ${error.message}") }
+            try { task() } catch (error: Exception) {
+                DiagnosticTrace.error("ui", "Task failed", error)
+                runOnUiThread { stopAutomatic() }; log("ERROR: ${error.message}")
+            }
             finally {
                 runOnUiThread {
                     busy = false
@@ -667,7 +678,7 @@ class MainActivity : Activity() {
         }
     }
     private fun log(message: String) {
-        android.util.Log.i("HokAceProbe", message)
+        DiagnosticTrace.event("ui", "Log: $message")
         runOnUiThread {
             if (!destroyed) {
                 if (message.startsWith("ERROR:") || message.startsWith("Cannot ") || message.startsWith("Prepare game") || message.startsWith("No ")) home.message(if (message.startsWith("ERROR:") || message.startsWith("Cannot ")) friendlyFailure(message) else message)
@@ -689,6 +700,7 @@ class MainActivity : Activity() {
         super.onSaveInstanceState(state)
     }
     override fun onDestroy() {
+        DiagnosticTrace.event("ui", "Activity destroyed; changing configuration $isChangingConfigurations")
         destroyed = true
         statusHandler.removeCallbacks(refreshStatus)
         Shizuku.removeBinderReceivedListener(received)

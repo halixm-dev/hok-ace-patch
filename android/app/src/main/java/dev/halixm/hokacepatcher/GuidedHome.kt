@@ -27,6 +27,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val detail = text("Start Shizuku, then come back here.", 16)
     private val primary = button("Start", "next-step", true) { invoke(next) }
     private val recovery = column()
+    private var shown = ""
     private val stop = button("Stop safely", "stop-automatic") { invoke("stop") }
     private val spinner = android.widget.ProgressBar(activity)
     private val notice = text("", 18)
@@ -132,6 +133,8 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     fun show(title: String, instruction: String, label: String, action: String, recoveryNeeded: Boolean) {
+        val screen = "$title | $instruction | $label -> $action, recovery $recoveryNeeded"
+        if (screen != shown) { shown = screen; DiagnosticTrace.event("screen", screen) }
         heading.text = ui(title); detail.text = ui(instruction); primary.text = ui(label); next = action
         recovery.visibility = if (recoveryNeeded) View.VISIBLE else View.GONE
     }
@@ -182,6 +185,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
 
     fun message(value: String) {
         if (notice.text.toString() == ui(value)) return
+        DiagnosticTrace.event("screen", "Notice: $value")
         notice.text = ui(value); notice.visibility = View.VISIBLE
         notice.announceForAccessibility(notice.text)
     }

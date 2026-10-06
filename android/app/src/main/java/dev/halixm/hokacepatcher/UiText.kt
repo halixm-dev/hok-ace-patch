@@ -66,6 +66,7 @@ object UiText {
         "Continue" to "Lanjutkan",
         "Ready when you are" to "Siap dimulai",
         "Tap Start. We will check your game and prepare everything. Keep the game closed while we work." to "Ketuk Mulai. Game akan diperiksa dan semua file disiapkan. Jangan buka game selama proses.",
+        "Shizuku is running, but the patcher's helper did not start. Open Shizuku, stop it and start it again, then return here and tap Try again. If it happens again, save a log for help. Keep the game closed." to "Shizuku berjalan, tetapi layanan pendukung patcher tidak mulai. Buka Shizuku, hentikan lalu jalankan lagi, kemudian kembali ke sini dan ketuk Coba lagi. Jika terulang, simpan log untuk bantuan. Jangan buka game.",
         "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed." to "Buka dan jalankan Shizuku, lalu izinkan HOK ACE. Kembali ke sini dan coba lagi. Jangan buka game.",
         "The phone blocked installation. Unlock it and accept the install prompt. Open Technical tools for the full error." to "Ponsel memblokir pemasangan. Buka kunci dan setujui permintaan pemasangan. Buka Alat teknis untuk melihat galat lengkap.",
         "Work stopped. Keep the game closed. Check recovery options below, or save a log for help." to "Proses terhenti. Jangan buka game. Periksa pilihan pemulihan di bawah atau simpan log untuk bantuan.",

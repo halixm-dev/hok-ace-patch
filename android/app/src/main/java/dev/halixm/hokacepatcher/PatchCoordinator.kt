@@ -51,7 +51,9 @@ class PatchCoordinator @JvmOverloads constructor(
 
     private fun bridge(name: String, vararg arguments: Any): String {
         if (!Python.isStarted()) Python.start(AndroidPlatform(context))
-        return Python.getInstance().getModule("android_bridge").callAttr(name, *arguments).toString()
+        return DiagnosticTrace.timed("engine", name) {
+            Python.getInstance().getModule("android_bridge").callAttr(name, *arguments).toString()
+        }
     }
 
     private fun requireSpace(phase: String, vararg allocations: Long) =

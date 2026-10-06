@@ -149,11 +149,12 @@ class ApkPreparation(private val context: Context) {
         val root = EngineAssets.prepare(context)
         if (!Python.isStarted()) Python.start(AndroidPlatform(context))
         val bridge = Python.getInstance().getModule("android_bridge")
-        bridge.callAttr("engine_preflight", root.path)
+        DiagnosticTrace.timed("engine", "engine_preflight") { bridge.callAttr("engine_preflight", root.path) }
         checkpoint()
         report("Preparing normal and access APKs using the stable game key")
-        val result = JSONObject(bridge.callAttr("prepare_game_apks", root.path, source.path,
-            File(directory, "apks").path, GameSigner(root)).toString())
+        val result = JSONObject(DiagnosticTrace.timed("engine", "prepare_game_apks") {
+            bridge.callAttr("prepare_game_apks", root.path, source.path, File(directory, "apks").path, GameSigner(root))
+        }.toString())
         checkpoint()
         val normalFile = File(directory, "apks/normal.apk")
         val normal = ApkIdentity.read(context, normalFile)
