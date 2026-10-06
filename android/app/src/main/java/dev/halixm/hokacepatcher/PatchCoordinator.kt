@@ -6,6 +6,7 @@ import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import java.io.File
 import java.io.RandomAccessFile
+import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import org.json.JSONObject
@@ -55,6 +56,47 @@ class PatchCoordinator @JvmOverloads constructor(
 
     private fun requireSpace(phase: String, vararg allocations: Long) =
         StorageBudget.requireAvailable(context.filesDir, phase, *allocations)
+
+    /**
+     * A resolved session keeps its journal and small receipts. Its game-data copy, build work, staged
+     * packages and APK links are the bulk of a run (about twice the downloaded data) and are never read
+     * again: rollback and forward recovery only ever use an unresolved session's.
+     */
+    private fun releaseSession(directory: File): Long {
+        var freed = 0L
+        for (name in listOf("snapshot.tar", "access.apk", "normal.apk", "game", "work")) freed += DurableFiles.deleteTree(File(directory, name))
+        for ((folder, keep) in listOf("snapshot" to "manifest.json", "out" to "device_patch_summary.json")) {
+            File(directory, folder).listFiles().orEmpty().filter { it.name != keep }.forEach { freed += DurableFiles.deleteTree(it) }
+        }
+        return freed
+    }
+
+    /**
+     * The latest completed run's build estimate, or 0. A build is only measurable once the game data is
+     * copied out; this lets the copy's own check reserve the build too. The build re-checks its actual
+     * estimate before it starts. Older estimates (schema 1) counted every package and are ignored.
+     */
+    private fun previousBuildEstimate(): Long = sessions.listFiles().orEmpty()
+        .filter { it.isDirectory && !Files.isSymbolicLink(it.toPath()) }
+        .mapNotNull { runCatching { SessionJournal.load(it) }.getOrNull() }
+        .filter { it.phase == PatchPhase.COMPLETE }
+        .maxByOrNull { it.snapshot().getLong("created_ms") }?.snapshot()
+        ?.optJSONObject("build_storage_estimate")?.takeIf { it.optInt("schema") == 2 }
+        ?.optLong("additional_bytes")?.takeIf { it in 0..(8L * 1024 * 1024 * 1024) } ?: 0L
+
+    /** Coordinator lock held. A damaged journal is left for recovery and export rather than guessed at. */
+    private fun releaseResolvedSessions() {
+        var freed = 0L
+        for (directory in sessions.listFiles().orEmpty()) {
+            if (!directory.isDirectory || Files.isSymbolicLink(directory.toPath())) continue
+            val journal = runCatching { SessionJournal.load(directory) }.getOrNull() ?: continue
+            if (journal.phase !in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) continue
+            freed += runCatching { releaseSession(directory) }.getOrElse {
+                report("Could not remove some files of an earlier run (${it.javaClass.simpleName})"); 0L
+            }
+        }
+        if (freed > 0) report("Freed ${StorageBudget.freeSpaceLabel(freed)} of files left by earlier runs")
+    }
 
     private fun <T> exclusive(action: () -> T): T {
         DurableFiles.createDirectories(sessions)
@@ -113,8 +155,12 @@ class PatchCoordinator @JvmOverloads constructor(
         bridge("engine_preflight", engine.path)
         // Read once: the whole run builds one language even if the picker changes meanwhile.
         val language = PatchLanguage.current(context)
-        requireSpace("APK install and normal restore", maxOf(access.bytes, normal.bytes))
         verifyInstalled(installedSource)
+        // Space the patch can reclaim goes before the first budget, so that budget is not short by it.
+        releaseResolvedSessions()
+        runCatching { ApkPreparation(context).releaseUnneeded(installedSource, accessApk.parentFile?.parentFile, report) }
+            .onFailure { report("Could not remove unneeded saved APKs (${it.javaClass.simpleName})") }
+        requireSpace("APK install and normal restore", maxOf(access.bytes, normal.bytes))
         checkpoint()
         val journal = SessionJournal.create(sessions, normalId, engine.name)
         activeJournal.set(journal)
@@ -152,8 +198,11 @@ class PatchCoordinator @JvmOverloads constructor(
             val snapshotEstimate = JSONObject(device.estimateGameSnapshot())
             val snapshotBudget = snapshotEstimate.getLong("archive_budget")
             check(snapshotBudget in 1..(8L * 1024 * 1024 * 1024)) { "Invalid snapshot estimate" }
-            // Archive and extraction coexist; keep independent installer space for normal restore.
-            requireSpace("measured snapshot, extraction and normal restore", snapshotBudget, snapshotBudget, normal.bytes)
+            // Archive and extraction coexist; then the extraction stays while the build adds its own files.
+            // Reserve both now, so a copy that fits is not followed by a build that cannot, plus
+            // independent installer space for normal restore.
+            requireSpace("measured snapshot, extraction, build and normal restore", snapshotBudget,
+                maxOf(snapshotBudget, previousBuildEstimate()), normal.bytes)
             report("Saving complete game data and Watchdog snapshot")
             ParcelFileDescriptor.open(archive, ParcelFileDescriptor.MODE_CREATE or
                 ParcelFileDescriptor.MODE_TRUNCATE or ParcelFileDescriptor.MODE_WRITE_ONLY).use {
@@ -171,7 +220,7 @@ class PatchCoordinator @JvmOverloads constructor(
             checkpoint()
             val buildEstimate = JSONObject(bridge("estimate_snapshot_build", engine.path,
                 journal.directory.path, store.normal(normalId).path, language))
-            check(buildEstimate.getInt("schema") == 1 && buildEstimate.getBoolean("estimate_only"))
+            check(buildEstimate.getInt("schema") == 2 && buildEstimate.getBoolean("estimate_only"))
             val buildBytes = buildEstimate.getLong("additional_bytes")
             check(buildBytes > 0) { "Invalid offline build storage estimate" }
             val buildSpace = requireSpace("offline build and normal restore", buildBytes, normal.bytes)
@@ -182,6 +231,9 @@ class PatchCoordinator @JvmOverloads constructor(
                 store.normal(normalId).path, normalId, language))
             journal.outcome(PatchPhase.STAGED, JSONObject().put("counts", JSONObject(
                 bridge("result_counts", engine.path, summary.toString()))))
+            // Apply and rollback read only out/, the snapshot and the hash lists; the extracted APK
+            // packages and replacement trees would otherwise sit through both installs below.
+            runCatching { DurableFiles.deleteTree(File(journal.directory, "work")) }
             checkpoint()
             val hashes = JSONObject(File(journal.directory, "staged-hashes.json").readText())
             val originals = transaction.verifyOriginals().getJSONObject("files")
@@ -225,7 +277,17 @@ class PatchCoordinator @JvmOverloads constructor(
             runCatching { metrics.finish(metricStatus) }.onFailure {
                 android.util.Log.w("HokAceMetrics", "Resource metrics could not be retained", it)
             }
+            releaseIfResolved(journal)
         }
+    }
+
+    private fun releaseIfResolved(journal: SessionJournal) {
+        if (journal.phase !in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) return
+        // Runs in finally: never let cleanup or its message replace the run's own outcome.
+        runCatching {
+            val freed = releaseSession(journal.directory)
+            if (freed > 0) report("Freed ${StorageBudget.freeSpaceLabel(freed)} of temporary patch files")
+        }.onFailure { android.util.Log.w("HokAceStorage", "Resolved session files could not be removed", it) }
     }
 
     fun recover(sessionId: String) = exclusive {
@@ -237,6 +299,7 @@ class PatchCoordinator @JvmOverloads constructor(
             restoreNormalAfterFailure(journal, error)
             throw error
         }
+        releaseIfResolved(journal)
         journal.terminalResult()
     }
 

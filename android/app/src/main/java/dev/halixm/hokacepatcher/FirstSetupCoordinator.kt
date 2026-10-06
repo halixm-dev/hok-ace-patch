@@ -108,6 +108,9 @@ class FirstSetupCoordinator @JvmOverloads constructor(
         transport.installNormal(normalFile, journal.normal)
         transport.verifyInstalled(journal.normal)
         journal.normalInstalled(journal.normal)
+        // The official app is gone; its saved copy and older versions' APKs would only crowd out the game's downloads.
+        runCatching { ApkPreparation(context).releaseUnneeded(journal.normal, null, ::progress) }
+            .onFailure { android.util.Log.w("HokAceSetup", "Unneeded saved APKs could not be removed", it) }
         progress("Open the game, finish its downloads, then close it before translation")
         return journal.result()
     }

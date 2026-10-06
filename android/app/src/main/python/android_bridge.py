@@ -255,7 +255,8 @@ def estimate_snapshot_build(engine_root: str, session_root: str, normal_apk: str
 
     catalog = _catalog(root, language)
     manifest = verify_snapshot(session / "snapshot")
-    return json.dumps(estimate(session / "snapshot/packages", catalog, Path(normal_apk), manifest))
+    return json.dumps(estimate(session / "snapshot/packages", catalog, Path(normal_apk), manifest,
+                               scratch=session))
 
 
 def build_snapshot(engine_root: str, session_root: str, normal_apk: str,

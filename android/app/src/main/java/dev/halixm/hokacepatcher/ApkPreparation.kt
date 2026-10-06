@@ -8,6 +8,8 @@ import com.chaquo.python.android.AndroidPlatform
 import java.io.File
 import java.util.UUID
 import java.io.RandomAccessFile
+import java.nio.file.Files
+import java.nio.file.LinkOption
 import org.json.JSONObject
 
 /** Prepare manifest-only stable-key APKs and recovery identity before offering any game mutation. */
@@ -27,6 +29,72 @@ class ApkPreparation(private val context: Context) {
                 lock.use { return prepareLocked(device, report, checkpoint) }
             }
         }
+    }
+
+    /**
+     * Free saved APKs the installed game can no longer use, once it is verified as the stable-key normal
+     * build <installed>:
+     *
+     * - every saved official source APK (`original.apk`, about 2 GB). It is read only while deriving the
+     *   normal and access APKs; reuse, first setup and recovery go by the receipt's identity, never by the
+     *   file, and an official-signature APK cannot be installed again without first setup's uninstall,
+     *   which copies the installed app afresh;
+     * - every preparation made for another game version (its access APK, about 2 GB). Access is
+     *   installed only over a normal build of the same version, so it cannot serve this game again; a new
+     *   version prepares its own.
+     *
+     * <keep> is the preparation a run is using. Skipped while a preparation runs; a folder whose receipt
+     * will not read is left alone, and nothing another retained APK path links to is deleted. Recovery
+     * APKs live apart (`RecoveryStore`) and are never touched here.
+     */
+    fun releaseUnneeded(installed: ApkIdentity, keep: File?, report: (String) -> Unit) {
+        installed.requireRecovery()
+        RandomAccessFile(File(context.filesDir, "preparation.lock"), "rw").use { file ->
+            file.channel.use { channel ->
+                val lock = try { channel.tryLock() } catch (_: java.nio.channels.OverlappingFileLockException) { null }
+                    ?: return
+                lock.use { releaseLocked(installed, keep?.canonicalFile, report) }
+            }
+        }
+    }
+
+    private fun releaseLocked(installed: ApkIdentity, keep: File?, report: (String) -> Unit) {
+        val root = File(context.filesDir, "preparations")
+        val folders = root.listFiles().orEmpty().filter {
+            it.isDirectory && !Files.isSymbolicLink(it.toPath()) && File(it, "receipt.json").isFile
+        }
+        val stale = folders.filter { folder ->
+            if (folder.canonicalFile == keep) return@filter false
+            val normal = runCatching {
+                ApkIdentity.fromJson(JSONObject(String(AtomicFile(File(folder, "receipt.json")).readFully(),
+                    Charsets.UTF_8)).getJSONObject("normal"))
+            }.getOrNull() ?: return@filter false
+            normal.versionCode != installed.versionCode || normal.versionName != installed.versionName
+        }.toSet()
+        // Deduplication and sessions may point a retained APK path at another file; never pull one from under it.
+        val linked = (listOf(File(context.filesDir, "recovery"), File(context.filesDir, "sessions"))
+            .flatMap { it.listFiles().orEmpty().toList() } + (folders - stale))
+            .flatMap { listOf(File(it, "normal.apk"), File(it, "access.apk"), File(it, "apks/access.apk")) }
+            .filter { Files.isSymbolicLink(it.toPath()) }
+            .mapNotNull { runCatching { it.canonicalPath }.getOrNull() }
+        fun protects(path: File) = path.canonicalPath.let { target ->
+            linked.any { it == target || it.startsWith(target + File.separator) }
+        }
+        var sources = 0L
+        var versions = 0L
+        for (folder in folders) {
+            if (folder in stale && !protects(folder)) {
+                runCatching { versions += DurableFiles.deleteTree(folder); DurableFiles.syncDirectory(root) }
+                    .onFailure { report("Could not remove saved APKs of an older game version; keeping them") }
+                continue
+            }
+            val source = File(folder, "original.apk")
+            if (!Files.exists(source.toPath(), LinkOption.NOFOLLOW_LINKS) || protects(source)) continue
+            runCatching { sources += DurableFiles.deleteTree(source); DurableFiles.syncDirectory(folder) }
+                .onFailure { report("Could not remove a saved original game APK; keeping it") }
+        }
+        if (sources > 0) report("Freed ${StorageBudget.freeSpaceLabel(sources)}: removed the saved original game APK, which the installed game no longer needs")
+        if (versions > 0) report("Freed ${StorageBudget.freeSpaceLabel(versions)}: removed saved APKs made for an older game version")
     }
 
     private fun prepareLocked(device: IPrivilegedDeviceService, report: (String) -> Unit, checkpoint: () -> Unit): Prepared {
@@ -110,7 +178,8 @@ class ApkPreparation(private val context: Context) {
             DurableFiles.syncDirectory(File(directory, "apks"))
             DurableFiles.syncDirectory(directory)
         } catch (error: Throwable) { storage.failWrite(stream); throw error }
-        // The independently rehashed cache now owns normal recovery. Keep source/access and receipt.
+        // The independently rehashed cache now owns normal recovery. Keep source/access and receipt; the
+        // source goes once the installed game is the stable-key build (releaseUnneeded).
         check(normalFile.delete()) { "Cannot remove duplicate prepared normal APK" }
         return Prepared(directory, original, normal, access)
     }

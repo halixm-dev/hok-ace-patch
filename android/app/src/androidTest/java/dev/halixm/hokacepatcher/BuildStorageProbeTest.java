@@ -56,9 +56,15 @@ public final class BuildStorageProbeTest {
                 engine.getPath(), session.getPath(), new File(base, "normal.apk").getPath()).toString());
             assertTrue(result.getBoolean("estimate_only"));
             JSONObject parts = result.getJSONObject("components");
-            assertEquals(1849376768L, parts.getLong("prime_extraction_bytes"));
-            assertEquals(2718497695L, parts.getLong("staged_package_bytes"));
-            assertEquals(7497769750L, result.getLong("additional_bytes"));
+            // Desktop reading of the same control (pristine 2026-10-03 layer, same APK prime): only the seven
+            // packages holding catalog content are reserved, and only the APK packages the append reads.
+            assertEquals(2, result.getInt("schema"));
+            assertEquals(2718497695L, result.getLong("package_bytes"));
+            assertEquals(37732352L, parts.getLong("prime_index_bytes"));
+            assertEquals(588660736L, parts.getLong("prime_extraction_bytes"));
+            assertEquals(916603132L, parts.getLong("staged_package_bytes"));
+            long sum = 0; for (java.util.Iterator<String> keys = parts.keys(); keys.hasNext();) sum += parts.getLong(keys.next());
+            assertEquals(sum, result.getLong("additional_bytes"));
             long normalBytes = new File(base, "normal.apk").length();
             assertEquals(2026631918L, normalBytes);
             long required = StorageBudget.INSTANCE.required(new long[]{result.getLong("additional_bytes"), normalBytes});

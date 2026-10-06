@@ -459,11 +459,13 @@ adb shell am instrument -w -r -e class dev.halixm.hokacepatcher.CoordinatorRecov
 ```
 
 Offline-build storage preflight now reads verified snapshot sizes, package descriptors, APK ZIP
-metadata and immutable catalog sizes before creating `work/` or `out/`. It includes prime extraction,
-staged packages and a staging-attempt copy, four replacement trees, normal-APK recovery and margin.
-The current control requires 10,000,621,751 free bytes at build start; the separate pre-access
-reserve and 8 GiB snapshot cap remain unchanged. This is an estimate; measured peak and interrupted
-low-space acceptance remain open. Read-only control and forced refusal checks:
+metadata, APK prime indexes and immutable catalog sizes before creating `work/` or `out/`. It
+reserves the APK packages the append actually reads, each package holding catalog content plus a
+staging-attempt copy, four replacement trees, normal-APK recovery and margin. The 2.72 GB control
+estimates 2,668,538,356 additional bytes (it was 7,497,769,750 when every package was counted; the
+actual build left 1.62 GB). The snapshot check also reserves the latest completed run's build
+estimate. This is an estimate; measured peak and interrupted low-space acceptance remain open.
+Read-only control and forced refusal checks:
 
 ```bat
 adb shell am instrument -w -r -e class dev.halixm.hokacepatcher.BuildStorageProbeTest,dev.halixm.hokacepatcher.StorageProbeTest,dev.halixm.hokacepatcher.WorkerProbeTest dev.halixm.hokacepatcher.test/androidx.test.runner.AndroidJUnitRunner
@@ -558,5 +560,7 @@ from generated Android assets; the source runtime files remain untouched.
 The home screen shows the latest 40 timestamped worker messages while patching. It refreshes every second, follows new messages when you are at the bottom, and lets you scroll back. Messages remain visible after completion, failure, or reopening the app; each new worker operation starts a fresh list. Progress shows actual activity rather than an estimated percentage.
 
 APK preparation now checks the retained cache before allocating new files. Matching installed and cached APKs must pass full SHA-256, manifest, signer/version, recovery identity checks. Identical immutable APKs share an inode through a durable hard link (or a verified private symbolic reference when SELinux blocks hard links); recovery/source/access paths remain available. A patch session links its access APK too, with a space-checked copy fallback. Snapshot storage is measured only after data access is installed: reserve archive plus extracted files and normal-install space. A measurement/storage failure follows existing restore handling. The 8 GiB snapshot limit remains a maximum, not a required allocation for every run.
+
+The app removes what recovery no longer needs. A completed or cancelled session keeps its journal and small receipts, while its game-data copy, build work and staged packages are deleted at the end of the run and before the next run's first space check. Build work is deleted as soon as the packages are staged. Once the installed game is verified as the stable-key normal build (after first setup and at the start of each patch), the saved official APK (`original.apk`, about 2 GB) and every preparation made for another game version are deleted. The current version's access APK and every recovery APK are kept.
 
 Snapshots accept the measured empty updater directory trees `packages/builtin/Merge/<package-id>` and `packages/builtin/CleanCopy/<package-id>`. These are directory-only exceptions; unknown files, traversal and archive links still fail closed. Python-only engine updates retain independently verified APK preparations.
