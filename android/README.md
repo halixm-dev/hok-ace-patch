@@ -11,11 +11,20 @@ The deliverable copy is `artifacts/dev.halixm.hokacepatcher.apk`; Gradle's build
 This is a development Android patcher alongside the Windows app. A full live patch succeeded on the Xiaomi Android 12 on 2026-10-05; broader device and release acceptance remains open.
 It targets Android 11+ / ARM64 and uses a Shizuku AIDL UserService with fixed operations.
 The home screen's **Language** card chooses English or Bahasa Indonesia (`PatchLanguage`, saved
-on the phone). A run reads it once when it starts and records it in the session journal, and the card
+on the phone). The same choice immediately switches the patcher's interface between English and
+Indonesian, including confirmations, recovery controls and notification actions. Raw technical logs
+stay unchanged for diagnosis. A run reads it once when it starts and records it in the session journal, and the card
 is locked while work is in progress. The engine carries `catalog/` and `catalog_id/` side by side,
 because the Indonesian catalog reads the English texture payloads it does not re-draw.
-The home screen has one **Start** button. Shizuku permission is requested automatically when
+The home screen has one **Start** button. The visual theme follows [wxq.qq.com](https://wxq.qq.com/): lavender and
+ice-blue backgrounds, a geometric gradient hero, translucent white cards and violet-blue buttons.
+The hero is drawn locally; it needs no network or downloaded website artwork. Language choices,
+disabled states, recovery controls and scrolling retain their existing behavior.
+Shizuku permission is requested automatically when
 its server is available. If it is stopped, Start opens Shizuku and continues when you return.
+If Shizuku is missing, the button opens its official Google Play listing; a browser opens that
+listing when the Play Store app is unavailable. If neither can open, the app explains how to install it.
+The live activity log and technical log each scroll independently inside the home page.
 After Start, pending emergency verification comes first, followed by interrupted patch recovery,
 setup recovery or the fresh-download checkpoint. Clean state starts preparation automatically.
 Fresh preparation is fully loaded/verified before automatically choosing first-setup consent or

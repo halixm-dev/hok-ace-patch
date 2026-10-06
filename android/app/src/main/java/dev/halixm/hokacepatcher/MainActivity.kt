@@ -109,18 +109,16 @@ class MainActivity : Activity() {
         home = GuidedHome(this) { key ->
             when (key) {
                 "start" -> beginAutomatic()
-                "stop" -> AlertDialog.Builder(this).setTitle("Stop safely?")
-                    .setMessage("Keep the game closed. Any unfinished changes must be restored before you open it.")
-                    .setNegativeButton("Keep going", null).setPositiveButton("Stop and recover") { _, _ ->
+                "stop" -> AlertDialog.Builder(this).setTitle(ui("Stop safely?"))
+                    .setMessage(ui("Keep the game closed. Any unfinished changes must be restored before you open it."))
+                    .setNegativeButton(ui("Keep going"), null).setPositiveButton(ui("Stop and recover")) { _, _ ->
                         val hadWorker = awaitingToken != null || PatchWorkerService.isWorking
                         stopAutomatic()
                         if (hadWorker) startService(Intent(this, PatchWorkerService::class.java).setAction("cancel"))
                     }.show()
                 "shizuku" -> {
                     if (!Shizuku.pingBinder()) {
-                        val launch = packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
-                        if (launch != null) startActivity(launch)
-                        else home.message("Open the Shizuku app and start it. Then return here.")
+                        openShizuku()
                     } else actions["Authorize Shizuku"]?.let { runTask(it) }
                 }
                 "recovery_options" -> home.showRecovery()
@@ -128,7 +126,7 @@ class MainActivity : Activity() {
                     val code = key.removePrefix("language:")
                     if (busy || automatic || PatchWorkerService.isWorking) home.language(PatchLanguage.current(this))
                     else runCatching { PatchLanguage.set(this, code) }
-                        .onSuccess { log("Language: ${PatchLanguage.name(code)}") }
+                        .onSuccess { log("Language: ${PatchLanguage.name(code)}"); recreate() }
                         .onFailure { log("ERROR: ${it.message}"); home.language(PatchLanguage.current(this)) }
                 }
                 "game" -> {
@@ -214,7 +212,7 @@ class MainActivity : Activity() {
                 .putExtra(Intent.EXTRA_TITLE, "hok-ace-recovery-log.txt"), 1402) }
         }
         output = TextView(this).apply { setTextIsSelectable(true); text = state?.getString("log") ?: "Ready\n" }
-        home.advanced.addView(output)
+        home.addDiagnosticLog(output)
         Shizuku.addBinderReceivedListenerSticky(received)
         Shizuku.addBinderDeadListener(died)
         Shizuku.addRequestPermissionResultListener(permission)
@@ -240,15 +238,20 @@ class MainActivity : Activity() {
         permissionRequested = false
         if (!Shizuku.pingBinder()) {
             waitingForShizuku = true
-            val launch = packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api")
-            if (launch != null) startActivity(launch)
-            else home.message("Install and start Shizuku, then return here.")
+            openShizuku()
             return
         }
         if (ensurePermission()) routeAutomatic()
     }
 
     private fun stopAutomatic() { automatic = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null }
+
+    private fun openShizuku() {
+        if (!ShizukuLauncher.open(this)) {
+            stopAutomatic()
+            home.message("Cannot open Shizuku or Google Play. Install Shizuku from play.google.com, start it, then return here.")
+        }
+    }
 
     /** Only the Start action arms continuation; opening the app never starts game changes. */
     private fun routeAutomatic() {
@@ -364,12 +367,13 @@ class MainActivity : Activity() {
             (0 until messages.length()).map { messages.optString(it) })
         val live = PatchWorkerService.isWorking || awaitingToken != null
         when {
-            live -> home.show("Working on your game", state?.optString("progress", "Checking and preparing files…")
-                ?: "Checking and preparing files…", "Please wait", "start", false)
+            live -> home.show("Working on your game", UiText.progress(this, state?.optString("progress", "Checking and preparing files…")
+                ?: "Checking and preparing files…"), "Please wait", "start", false)
             busy && automatic -> home.show("Checking game files", "Please wait. We are checking the saved game app and recovery files.", "Please wait", "start", false)
             pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true)
+            !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false))
             !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false))
-            state?.optString("status") == "complete" && !pending.getOrThrow() -> home.show("Translation added", WorkerStatus.describe(state), "Start another patch", "start", false)
+            state?.optString("status") == "complete" && !pending.getOrThrow() -> home.show("Translation added", UiText.completed(this, state), "Start another patch", "start", false)
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped", friendlyFailure(state?.optString("error").orEmpty()), "Try again", "start", true)
             pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true)
             else -> home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
@@ -383,12 +387,12 @@ class MainActivity : Activity() {
     }
 
     private fun friendlyFailure(message: String): String {
-        StorageBudget.explainFailure(message, filesDir.usableSpace)?.let { return it }
-        if (message.contains("GB free for this step")) return message.removePrefix("ERROR: ")
+        StorageBudget.explainFailure(message, filesDir.usableSpace)?.let { return UiText.storage(this, it) }
+        if (message.contains("GB free for this step")) return UiText.storage(this, message.removePrefix("ERROR: "))
         return when {
             message.contains("space", true) || message.contains("storage", true) ->
-                "Free now: ${StorageBudget.freeSpaceLabel(filesDir.usableSpace)}.\n" +
-                    "The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files."
+                ui("Free now:") + " ${StorageBudget.freeSpaceLabel(filesDir.usableSpace)}.\n" +
+                    ui("The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files.")
             message.contains("Shizuku", true) || message.contains("permission", true) ->
                 "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed."
             message.contains("USER_RESTRICTED", true) ->
@@ -396,6 +400,8 @@ class MainActivity : Activity() {
             else -> "Work stopped. Keep the game closed. Check recovery options below, or save a log for help."
         }
     }
+
+    private fun ui(value: String) = UiText.text(this, value)
 
     private fun device(): IPrivilegedDeviceService = checkNotNull(service) { "Authorize and connect Shizuku first" }
 
@@ -405,7 +411,7 @@ class MainActivity : Activity() {
         }.sortedByDescending { it.lastModified() }
         if (choices.isEmpty()) { log("Prepare game files first"); return }
         runOnUiThread {
-            AlertDialog.Builder(this).setTitle("Choose prepared game files")
+            AlertDialog.Builder(this).setTitle(ui("Choose prepared game files"))
                 .setItems(choices.map { DateFormat.getDateTimeInstance().format(Date(it.lastModified())) }.toTypedArray()) { _, index ->
                     runTask {
                         log("Checking prepared game files")
@@ -413,7 +419,7 @@ class MainActivity : Activity() {
                         check(!prepared.requiresSignatureConversion) { "Use First setup and confirm its separate data-loss warning first" }
                         runOnUiThread { showPatchConfirmation(prepared) }
                     }
-                }.setNegativeButton("Cancel", null).show()
+                }.setNegativeButton(ui("Cancel"), null).show()
         }
     }
 
@@ -424,27 +430,24 @@ class MainActivity : Activity() {
         }.sortedByDescending { it.lastModified() }
         if (choices.isEmpty()) { log("Prepare game files first"); return }
         runOnUiThread {
-            AlertDialog.Builder(this).setTitle("Choose game files for first setup")
+            AlertDialog.Builder(this).setTitle(ui("Choose game files for first setup"))
                 .setItems(choices.map { DateFormat.getDateTimeInstance().format(Date(it.lastModified())) }.toTypedArray()) { _, index ->
                     runTask {
                         val prepared = ApkPreparation(this).load(choices[index].name)
                         check(prepared.requiresSignatureConversion) { "This game is already converted; use the patch update checkpoint" }
                         runOnUiThread { showFirstSetupConfirmation(prepared) }
                     }
-                }.setNegativeButton("Cancel", null).show()
+                }.setNegativeButton(ui("Cancel"), null).show()
         }
     }
 
     private fun showFirstSetupConfirmation(prepared: ApkPreparation.Prepared): AlertDialog {
-        val loss = CheckBox(this).apply { tag = "setup-data-loss"; text = "I accept deletion of the game's local data" }
-        val login = CheckBox(this).apply { tag = "setup-scan-login"; text = "I will use Scan to login" }
+        val loss = CheckBox(this).apply { tag = "setup-data-loss"; text = ui("I accept deletion of the game's local data") }
+        val login = CheckBox(this).apply { tag = "setup-scan-login"; text = ui("I will use Scan to login") }
         val checks = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; addView(loss); addView(login) }
-        val dialog = AlertDialog.Builder(this).setTitle("First setup deletes local game data")
-            .setMessage("1. This deletes saved game data, downloads and login on this phone.\n\n" +
-                "2. Download all game updates again.\n\n3. Direct WeChat/QQ login stops working. Use Scan to login.\n\n" +
-                "4. English is added later, after you confirm that downloads finished.\n\n" +
-                "First setup has not passed all phone tests.")
-            .setView(checks).setNegativeButton("Cancel") { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton("Delete data and set up", null).create()
+        val dialog = AlertDialog.Builder(this).setTitle(ui("First setup deletes local game data"))
+            .setMessage(UiText.firstSetup(this))
+            .setView(checks).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton(ui("Delete data and set up"), null).create()
         dialog.show()
         val start = dialog.getButton(AlertDialog.BUTTON_POSITIVE); start.isEnabled = false
         val refresh = { start.isEnabled = loss.isChecked && login.isChecked }
@@ -467,28 +470,27 @@ class MainActivity : Activity() {
         val pending = FirstSetupJournal.pending(this)
         if (pending.isEmpty()) { log("No pending game setup"); return }
         runOnUiThread {
-            AlertDialog.Builder(this).setTitle("Recover or finish game setup")
+            AlertDialog.Builder(this).setTitle(ui("Recover or finish game setup"))
                 .setItems(pending.map { DateFormat.getDateTimeInstance().format(Date(it.snapshot().getLong("updated_ms"))) }.toTypedArray()) { _, index ->
                     val journal = pending[index]
                     if (journal.phase == FirstSetupPhase.WAITING_FOR_GAME_UPDATE) showSetupUpdateConfirmation(journal.id)
-                    else AlertDialog.Builder(this).setTitle("Recover game installation")
-                        .setMessage("Check the installed app and restore the verified normal game app if it is absent. " +
-                            "Recovery will not repeat removal. Deleted local game data cannot be restored by this step.")
-                        .setNegativeButton("Cancel", null).setPositiveButton("Recover") { _, _ ->
+                    else AlertDialog.Builder(this).setTitle(ui("Recover game installation"))
+                        .setMessage(ui("Check the installed app and restore the verified normal game app if it is absent. " +
+                            "Recovery will not repeat removal. Deleted local game data cannot be restored by this step."))
+                        .setNegativeButton(ui("Cancel"), null).setPositiveButton(ui("Recover")) { _, _ ->
                             startWorker(Intent(this, PatchWorkerService::class.java)
                                 .setAction("setup_recover").putExtra("setup", journal.id))
                         }.show()
-                }.setNegativeButton("Cancel", null).show()
+                }.setNegativeButton(ui("Cancel"), null).show()
         }
     }
 
     private fun showSetupUpdateConfirmation(id: String): AlertDialog {
         val check = CheckBox(this).apply { tag = "setup-update-confirmation";
-            text = "Every fresh game update finished, and I closed the game" }
-        val dialog = AlertDialog.Builder(this).setTitle("Finish game setup")
-            .setMessage("Open the game, complete all downloads, then close it. We will then prepare the new files automatically. " +
-                "English starts after the final update confirmation.")
-            .setNeutralButton("Open game") { _, _ ->
+            text = ui("Every fresh game update finished, and I closed the game") }
+        val dialog = AlertDialog.Builder(this).setTitle(ui("Finish game setup"))
+            .setMessage(UiText.setupUpdate(this))
+            .setNeutralButton(ui("Open game")) { _, _ ->
                 if (automatic) waitingForDownloads = id
                 runTask {
                     val setup = FirstSetupJournal.pending(this).single { it.id == id }
@@ -500,7 +502,7 @@ class MainActivity : Activity() {
                         if (launch != null) startActivity(launch) else home.message("The game cannot be opened. Use recovery.")
                     }
                 }
-            }.setView(check).setNegativeButton("Cancel") { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton("Confirm updates", null).create()
+            }.setView(check).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton(ui("Confirm updates"), null).create()
         dialog.show()
         val finish = dialog.getButton(AlertDialog.BUTTON_POSITIVE); finish.isEnabled = false
         check.setOnCheckedChangeListener { _, checked -> finish.isEnabled = checked }
@@ -514,15 +516,11 @@ class MainActivity : Activity() {
 
     private fun showPatchConfirmation(prepared: ApkPreparation.Prepared): AlertDialog {
         val confirmation = CheckBox(this).apply {
-            tag = "update-confirmation"; text = "All in-game updates finished, and I closed the game"
+            tag = "update-confirmation"; text = ui("All in-game updates finished, and I closed the game")
         }
-        val dialog = AlertDialog.Builder(this).setTitle("Start translation")
-            .setMessage("1. Finish ALL downloads in the game.\n2. Close the game.\n\n" +
-                "3. We change game files and briefly replace the game app.\n\n" +
-                "4. Keep the game CLOSED until work or recovery finishes.\n\n" +
-                "Language: ${PatchLanguage.name(PatchLanguage.current(this))}\n\n" +
-                "Adding the translation has not passed all phone tests.")
-            .setView(confirmation).setNegativeButton("Cancel") { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton("Start patch", null).create()
+        val dialog = AlertDialog.Builder(this).setTitle(ui("Start translation"))
+            .setMessage(UiText.patchConfirmation(this))
+            .setView(confirmation).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton(ui("Start patch"), null).create()
         dialog.show()
         run {
             val start = dialog.getButton(AlertDialog.BUTTON_POSITIVE); start.isEnabled = false
@@ -545,12 +543,12 @@ class MainActivity : Activity() {
         val pending = SessionJournal.pending(File(filesDir, "sessions"))
         if (pending.isEmpty()) { log("No interrupted patch to recover"); return }
         runOnUiThread {
-            AlertDialog.Builder(this).setTitle("Recover interrupted patch")
+            AlertDialog.Builder(this).setTitle(ui("Recover interrupted patch"))
                 .setItems(pending.map { DateFormat.getDateTimeInstance().format(
-                    Date(it.snapshot().getLong("created_ms"))) + " â€” interrupted run" }.toTypedArray()) { _, index ->
+                    Date(it.snapshot().getLong("created_ms"))) + " — " + ui("Interrupted run") }.toTypedArray()) { _, index ->
                     startWorker(Intent(this, PatchWorkerService::class.java).setAction("recover")
                         .putExtra("session", pending[index].id))
-                }.setNegativeButton("Cancel", null).show()
+                }.setNegativeButton(ui("Cancel"), null).show()
         }
     }
 
@@ -574,10 +572,10 @@ class MainActivity : Activity() {
         if (choices.needsSelection) {
             log("Recovery records cannot be read. Choose a retained APK; game-data recovery remains unresolved.")
             runOnUiThread {
-                AlertDialog.Builder(this).setTitle("Choose emergency normal APK")
-                    .setItems(choices.ids.map { "Saved APK " + it.take(12) }.toTypedArray()) { _, index ->
+                AlertDialog.Builder(this).setTitle(ui("Choose emergency normal APK"))
+                    .setItems(choices.ids.map { ui("Saved APK") + " " + it.take(12) }.toTypedArray()) { _, index ->
                         runTask { openRecoveryInstaller(choices.ids[index]) }
-                    }.setNegativeButton("Cancel", null).show()
+                    }.setNegativeButton(ui("Cancel"), null).show()
             }
         } else openRecoveryInstaller(choices.ids.single())
     }
@@ -586,12 +584,10 @@ class MainActivity : Activity() {
         val identity = RecoveryStore(this).verify(id)
         val uri = Uri.parse("content://$packageName.recovery/$id/normal.apk")
         runOnUiThread {
-            AlertDialog.Builder(this).setTitle("Restore normal game APK")
-                .setMessage("Restore version ${identity.versionName} with data retained. " +
-                    "This restores the APK only. Unresolved package writes still require rollback before launching the game. " +
-                    "Opening the installer does not verify a completed restoration.")
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Open installer") { _, _ ->
+            AlertDialog.Builder(this).setTitle(ui("Restore normal game APK"))
+                .setMessage(UiText.restore(this, identity.versionName))
+                .setNegativeButton(ui("Cancel"), null)
+                .setPositiveButton(ui("Open installer")) { _, _ ->
                     if (!packageManager.canRequestPackageInstalls()) {
                         log("Allow this app to install APKs, then press Emergency normal APK installer again.")
                         startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,

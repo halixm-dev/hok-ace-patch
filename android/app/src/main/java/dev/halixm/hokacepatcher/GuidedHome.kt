@@ -1,10 +1,14 @@
 package dev.halixm.hokacepatcher
 
 import android.app.Activity
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.RippleDrawable
+import android.view.Gravity
 import android.view.View
+import android.view.MotionEvent
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.RadioButton
@@ -14,20 +18,23 @@ import android.widget.TextView
 
 /** One start action; show only work progress and checkpoints that need the user. */
 class GuidedHome(private val activity: Activity, private val invoke: (String) -> Unit) {
-    private val ink = Color.rgb(24, 42, 61)
-    private val blue = Color.rgb(25, 81, 161)
+    private val ink = Color.rgb(38, 39, 82)
+    private val blue = Color.rgb(78, 69, 179)
+    private val muted = Color.rgb(96, 98, 127)
+    private val edge = Color.rgb(219, 218, 242)
     private val root = column()
     private val heading = text("Let's get started", 25)
-    private val detail = text("Start Shizuku, then come back here.", 18)
+    private val detail = text("Start Shizuku, then come back here.", 16)
     private val primary = button("Start", "next-step", true) { invoke(next) }
     private val recovery = column()
     private val stop = button("Stop safely", "stop-automatic") { invoke("stop") }
     private val spinner = android.widget.ProgressBar(activity)
     private val notice = text("", 18)
     private val liveLog = text("", 15).apply { tag = "live-patch-log"; setTextIsSelectable(true) }
-    private val logScroll = ScrollView(activity).apply {
+    private val logScroll = LogScrollView(activity).apply {
         addView(liveLog)
         layoutParams = LinearLayout.LayoutParams(-1, dp(180))
+        tag = "live-log-scroll"
     }
     private val logCard = card().apply {
         visibility = View.GONE
@@ -45,6 +52,12 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             addView(RadioButton(activity).apply {
                 id = View.generateViewId(); text = name; tag = "language-$code"; textSize = 18f; setTextColor(ink)
                 minHeight = dp(48)
+                buttonTintList = ColorStateList(
+                    arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf(android.R.attr.state_checked), intArrayOf()),
+                    intArrayOf(muted, blue, muted))
+                background = background(Color.rgb(246, 245, 255))
+                setPadding(dp(12), dp(6), dp(12), dp(6))
+                layoutParams = RadioGroup.LayoutParams(-1, -2).apply { setMargins(0, dp(4), 0, dp(4)) }
             })
         }
         setOnCheckedChangeListener { group, checked ->
@@ -66,20 +79,20 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     init {
-        root.setPadding(dp(20), dp(24), dp(20), dp(32))
-        root.setBackgroundColor(Color.rgb(243, 246, 250))
-        root.addView(text("HOK ACE Patcher", 30))
-        root.addView(text("English and Indonesian patcher", 16))
-        root.addView(text("Some game text will stay Chinese.\nUse Scan to login after setup.", 16))
+        root.setPadding(dp(20), dp(16), dp(20), dp(32))
+        root.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+            intArrayOf(Color.rgb(230, 234, 255), Color.rgb(245, 242, 255), Color.rgb(232, 242, 255)))
+        root.addView(hero())
         val languageCard = card()
+        languageCard.addView(eyebrow("01  /  YOUR TRANSLATION"))
         languageCard.addView(text("Language", 23))
-        languageCard.addView(text("Choose the translation before you tap Start.\nTo switch a game that is already " +
-            "translated, clear the game's data and download it again first.", 16))
+        languageCard.addView(text("Switching languages? Clear the game's data and download it again first.", 15))
         languageCard.addView(languages)
         root.addView(languageCard)
         val card = card()
-        card.addView(StepPicture(activity))
+        card.addView(eyebrow("02  /  READY TO PLAY"))
         card.addView(heading); card.addView(detail); card.addView(primary)
+        spinner.indeterminateTintList = ColorStateList.valueOf(blue)
         spinner.visibility = View.GONE; stop.visibility = View.GONE
         card.addView(spinner); card.addView(stop)
         root.addView(card)
@@ -102,11 +115,24 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         advanced.visibility = View.GONE
         advanced.addView(text("For testing or support", 22))
         root.addView(advanced)
-        activity.setContentView(ScrollView(activity).apply { isFillViewport = true; addView(root) })
+        root.addView(text("COMMUNITY PATCHER  /  HOK ACE", 11).apply {
+            gravity = Gravity.CENTER; letterSpacing = 0.12f
+            setPadding(0, dp(24), 0, 0)
+        })
+        activity.setContentView(ScrollView(activity).apply {
+            isFillViewport = true
+            setBackgroundColor(Color.rgb(230, 234, 255))
+            addView(root)
+            setOnApplyWindowInsetsListener { view, insets ->
+                val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars())
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+                insets
+            }
+        })
     }
 
     fun show(title: String, instruction: String, label: String, action: String, recoveryNeeded: Boolean) {
-        heading.text = title; detail.text = instruction; primary.text = label; next = action
+        heading.text = ui(title); detail.text = ui(instruction); primary.text = ui(label); next = action
         recovery.visibility = if (recoveryNeeded) View.VISIBLE else View.GONE
     }
 
@@ -142,44 +168,96 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
 
     /** A run reads the language once at its start, so the choice is locked while work is in progress. */
     fun languageEnabled(value: Boolean) {
-        for (index in 0 until languages.childCount) languages.getChildAt(index).isEnabled = value
+        for (index in 0 until languages.childCount) languages.getChildAt(index).apply {
+            isEnabled = value; alpha = if (value) 1f else 0.55f
+        }
     }
 
     fun resultMessage(value: String) {
         if (value == workerNotice) return
-        if (value.isEmpty() && notice.text.toString() == workerNotice) notice.visibility = View.GONE
+        if (value.isEmpty() && notice.text.toString() == ui(workerNotice)) notice.visibility = View.GONE
         workerNotice = value
         if (value.isNotEmpty()) message(value)
     }
 
     fun message(value: String) {
-        if (notice.text.toString() == value) return
-        notice.text = value; notice.visibility = View.VISIBLE
-        notice.announceForAccessibility(value)
+        if (notice.text.toString() == ui(value)) return
+        notice.text = ui(value); notice.visibility = View.VISIBLE
+        notice.announceForAccessibility(notice.text)
     }
 
     fun technicalButton(label: String, callback: () -> Unit): Button = button(label, null, callback = callback).also {
         advanced.addView(it)
     }
 
+    fun addDiagnosticLog(output: TextView) {
+        advanced.addView(LogScrollView(activity).apply {
+            tag = "diagnostic-log-scroll"
+            layoutParams = LinearLayout.LayoutParams(-1, dp(240))
+            addView(output)
+        })
+    }
+
+    private fun ui(value: String) = UiText.text(activity, value)
+
     private fun dp(value: Int) = (value * activity.resources.displayMetrics.density).toInt()
     private fun column() = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
     private fun background(color: Int) = GradientDrawable().apply { setColor(color); cornerRadius = dp(18).toFloat() }
+    private fun eyebrow(value: String) = text(value, 11).apply {
+        setTextColor(blue); letterSpacing = 0.14f; setTypeface(null, Typeface.BOLD)
+        setPadding(0, 0, 0, dp(4))
+    }
+
+    private fun hero() = column().apply {
+        background = AceHeroDrawable(activity.resources.displayMetrics.density)
+        setPadding(dp(22), dp(20), dp(22), dp(20))
+        addView(eyebrow("HONOR OF KINGS  /  ACE").apply { setTextColor(Color.rgb(224, 228, 255)) })
+        addView(text("HOK ACE Patcher", 32).apply {
+            setTextColor(Color.WHITE); setLineSpacing(0f, 0.95f)
+            typeface = Typeface.create("sans-serif-black", Typeface.NORMAL)
+        })
+        addView(text("Your next move. Your language.", 16).apply { setTextColor(Color.WHITE) })
+        addView(text("Some game text will stay Chinese.\nUse Scan to login after setup.", 14).apply {
+            setTextColor(Color.WHITE)
+            background = background(Color.argb(65, 20, 22, 75))
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+        })
+    }
+
     private fun card() = column().apply {
-        background = background(Color.WHITE); setPadding(dp(18), dp(18), dp(18), dp(18))
-        layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(18), 0, dp(18)) }
+        background = background(Color.argb(235, 255, 255, 255)).apply { setStroke(dp(1), edge) }
+        setPadding(dp(20), dp(20), dp(20), dp(20))
+        layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(16), 0, 0) }
     }
     private fun text(value: String, size: Int) = TextView(activity).apply {
-        text = value; textSize = size.toFloat(); setTextColor(ink)
+        text = ui(value); textSize = size.toFloat(); setTextColor(if (size >= 23) ink else muted)
         setPadding(0, dp(8), 0, dp(10)); setLineSpacing(dp(3).toFloat(), 1f)
         if (size >= 23) { setTypeface(null, Typeface.BOLD); isAccessibilityHeading = true }
     }
     private fun button(label: String, testTag: String?, primaryAction: Boolean = false, callback: () -> Unit) = Button(activity).apply {
-        text = label; tag = testTag; textSize = 18f; isAllCaps = false; minHeight = dp(60); minimumHeight = dp(60)
-        setTextColor(if (primaryAction) Color.WHITE else blue)
-        background = background(if (primaryAction) blue else Color.WHITE).apply { if (!primaryAction) setStroke(dp(1), blue) }
+        text = ui(label); tag = testTag; textSize = 16f; isAllCaps = false; minHeight = dp(60); minimumHeight = dp(60)
+        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
+            intArrayOf(muted, if (primaryAction) Color.WHITE else blue)))
+        val enabled = if (primaryAction) GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(blue, Color.rgb(66, 98, 187))).apply { cornerRadius = dp(16).toFloat() }
+            else background(Color.WHITE).apply { setStroke(dp(1), edge) }
+        val states = android.graphics.drawable.StateListDrawable().apply {
+            addState(intArrayOf(-android.R.attr.state_enabled), background(Color.rgb(226, 226, 240)))
+            addState(intArrayOf(), enabled)
+        }
+        background = RippleDrawable(ColorStateList.valueOf(Color.argb(45, 125, 137, 231)), states, null)
         setPadding(dp(14), dp(12), dp(14), dp(12))
         layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(6), 0, dp(6)) }
         setOnClickListener { callback() }
+    }
+}
+
+/** Reserve log gestures even when a selectable child TextView consumes the initial touch. */
+private class LogScrollView(context: android.content.Context) : ScrollView(context) {
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        parent?.requestDisallowInterceptTouchEvent(
+            event.actionMasked != MotionEvent.ACTION_UP && event.actionMasked != MotionEvent.ACTION_CANCEL)
+        return super.dispatchTouchEvent(event)
     }
 }
