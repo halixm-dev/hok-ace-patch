@@ -201,6 +201,17 @@ What this does *not* do is rescue an asset the build does not carry. Of the cata
 75 have no counterpart on the device under that hash at all — measured by scanning every package index in
 a 2.86 GB dump, not inferred — and those stay Chinese however the code is written.
 
+*Later (2026-10-05):* 72 of the 75 turned out to be in the APK's prime layer (`prime-rebuild.md`), and the
+last three are reached by **device revision**. They are 404x564 effect-card band edits whose `.blocks`
+payload is shared by 7-8 cards each, and package `15` carries each card under another hash. A census of all
+1994 card-shaped textures there, decoding only the patch-range blocks and comparing them with the bands of
+the 299 catalogued cards, finds exactly three uncatalogued cards at a mean difference of 0.01-0.02, one per
+missing edit and each inside that edit's payload group; the next closest is 0.38, a blank band.
+`mobile_graphics.DEVICE_REVISIONS` maps each device hash to its catalog edit and `catalog_graphics` merges
+them into the set both texture paths use, so a run applies 398. `962747E1E5B73A93` is the Riverlands card
+Armed Power, whose band read `大河流域` on the phone and reads *Riverlands* after the fix (device-verified,
+Indonesian build). An alias is a measurement, not a guess: one joins only with a band match like these.
+
 ### `english_raw` contract
 
 `english_raw(mobile_raw: bytes, graphic: dict, catalog: Path) -> bytes | None` returns **None**, not an

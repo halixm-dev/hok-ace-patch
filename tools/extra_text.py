@@ -5,6 +5,7 @@
   for it.
 * UI text components in Unity prefabs get the official English for exact matches, when a package is
   listed as carrying them.
+* A Lua UI script that hard-codes a label (`SCRIPT_LABELS`) gets that one literal replaced.
 
 Assets are rewritten with the same chunk count they already have (`device_extensions.write_assets`).
 
@@ -23,13 +24,10 @@ import pb_text
 
 # Protobuf list of the ~11k nicknames shown for AI opponents ("chessplayers") in matches.
 BOT_NAME_ASSETS = {0x2D1113B0AD51A562}
-# The assets this pass may rewrite. Every one was put on a phone and watched, because nothing about an
-# asset predicts what rewriting it costs.
-SAFE_ASSETS = BOT_NAME_ASSETS | {
-    0xA1987F488164E53A,  # display-text table {id, text, #key#}
-    0x1C8F7FFF7BDEF14D,  # post-match compliments
-    0xB5D856BFDF22400D,  # rule pages
-}
+# The config assets this pass may rewrite. Every one has to be put on a phone and watched, because nothing
+# about an asset predicts what rewriting it costs. Empty since 2026-10-05: all four that had been cleared
+# were withdrawn (below), and a candidate joins only after a cycle clears it.
+SAFE_ASSETS: frozenset[int] = frozenset()
 # Rewrites that were tried on device and withdrawn (2026-09-30 / 10-01). Each was a single-variable
 # device cycle: the same build, with one more asset enabled, watching the screen it feeds.
 #   0x5214339F97C419ED   task names: translating it makes a tournament replay SIGSEGV -- signal 11,
@@ -41,6 +39,21 @@ SAFE_ASSETS = BOT_NAME_ASSETS | {
 #                        notices: no game button after pressing start, and a blank encyclopedia.
 #   0x13429059252DC6EB, 0xE0FF23C02C95D892   package 4: these go through the in-place `write_assets`,
 #                        which does not verify its own write, so package 4 stays pristine.
+#   0xB5D856BFDF22400D   rule pages, which is `ResHelpSystemCfgDataBin`: rewriting it removes the back
+#                        arrow and the title from the Announcement (news) screen, leaving no way out
+#                        but the system back key's quit prompt. `UINewsMainClass:InitUI` reads this
+#                        bin for its help button before it builds the header. Allowlisted on 2026-10-01
+#                        against the replay alone; withdrawn 2026-10-05 after a device cycle (Indonesian
+#                        build, 1.4.0.2) with only this asset left out brought the header back.
+#   0x2D1113B0AD51A562, 0xA1987F488164E53A, 0x1C8F7FFF7BDEF14D   AI opponent nicknames, display-text table,
+#                        post-match compliments: with these rewritten, every match ends in the client's
+#                        QTS-failure popup (`Doctor:HasQtsFailure`, shown as `/未翻译UI/QTSFailureTips`
+#                        because the game ships no text for that key). Two matches out of two on a build
+#                        carrying them; none on the same build with all three left out (2026-10-05,
+#                        Indonesian, 1.4.0.2). Not bisected further, so any one may be harmless; each
+#                        one's way back is a CANDIDATE_ASSETS cycle. All four withdrawals here are config
+#                        bins that store an MD5 the rewrite leaves stale, and the 2026-10-01 verdicts
+#                        that cleared them watched the replay crash only.
 # The same class of edit broke the login screen (a Chinese string there is a lookup key rather than a
 # label), the Card menu (grey placeholder cards: hero role guide DD11D75B / CA340C43 / BBFD4BE9 /
 # CAC6E38D), and every package-19 prefab label tried (initial loading stalls; faction names rewrite as
@@ -104,6 +117,17 @@ OFFICIAL_FIXES = {"蝉儿": "Chan'er"}
 
 # Skill-editor labels (10) and gameplay scripts (14): Chinese there is logic, not display text.
 EXCLUDED_PACKAGES = {"10", "14"}
+# Lua UI scripts that hard-code a display label instead of looking one up, so no table can reach it.
+# Each entry is the exact source text with `{}` where the label sits, and the Chinese label. Only that
+# literal is replaced, with the catalog's official translation; a script whose text does not hold it
+# exactly once is left alone. These scripts sit in package 10, which the protobuf pass excludes, so
+# they are named here one by one rather than found by a scan.
+SCRIPT_LABELS: dict[int, tuple[tuple[str, str], ...]] = {
+    # Encyclopedia > Effect Cards: the class an effect card with no faction falls in, drawn as the
+    # filter chip, the filter button and the section title (`vClassIdToDescriptor`, id -1). Prime-only
+    # in 1.4.0.2, so it reaches the phone through the append pass.
+    0x9BD30F0DF58B1FBF: (('name = "{}"', "通用"),),
+}
 _CJK_RUN = re.compile(r"[\u3400-\u9fff\uf900-\ufaff]+")
 
 
@@ -171,6 +195,37 @@ def official_only(catalog):
         return OFFICIAL_FIXES.get(text) or catalog.unique.get(text)
 
     return translate
+
+
+def rewrite_script(file_hash: int, raw: bytes, catalog) -> bytes | None:
+    """<raw> with the SCRIPT_LABELS literals of <file_hash> translated, or None when nothing changes."""
+    new = raw
+    translate = official_only(catalog)
+    for template, label in SCRIPT_LABELS.get(file_hash, ()):
+        target = translate(label)
+        # The label lands inside a Lua string literal, so anything that would end or escape it is refused.
+        if not target or any(char in target for char in '"\\\r\n'):
+            continue
+        old, replacement = template.format(label).encode(), template.format(target).encode()
+        if new.count(old) == 1:
+            new = new.replace(old, replacement)
+    return new if new != raw else None
+
+
+def plan_scripts(package, skip: set[int]) -> dict[int, bytes]:
+    """The SCRIPT_LABELS assets <package>'s own copy carries, read raw, for `rewrite_script`."""
+    from qts_relocate import read_raw
+
+    slots = package.build_slot_map()
+    found = {}
+    for file_hash in SCRIPT_LABELS:
+        entry = package.entries.get(file_hash)
+        if entry is None or file_hash in skip or file_hash not in slots or entry.compression not in (1, 4):
+            continue
+        raw = read_raw(package, slots, file_hash)
+        if raw is not None:
+            found[file_hash] = raw
+    return found
 
 
 def plan_unity_package(package, catalog) -> dict[int, bytes]:
@@ -247,7 +302,7 @@ def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] 
     reports = []
     root = game / "WXQ_Data" / "Package" / "builtin"
     for package_dir in sorted(p for p in root.iterdir() if p.is_dir() and p.name.isdigit()):
-        if package_dir.name in EXCLUDED_PACKAGES or package_dir.name in skip_packages:
+        if package_dir.name in skip_packages:
             continue
         try:
             package = QtsPackage(package_dir)
@@ -255,7 +310,11 @@ def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] 
             continue
         if len(package.shard_paths) != 1:
             continue
-        jobs = plan_package(package, catalog, skip, log, candidates=candidates, terms=terms)
+        # The named script labels are the one thing this pass writes in an excluded package.
+        jobs = {file_hash: new for file_hash, raw in plan_scripts(package, skip).items()
+                if (new := rewrite_script(file_hash, raw, catalog)) is not None}
+        if package_dir.name not in EXCLUDED_PACKAGES:
+            jobs.update(plan_package(package, catalog, skip, log, candidates=candidates, terms=terms))
         if package_dir.name in UNITY_TEXT_PACKAGES:
             jobs.update(plan_unity_package(package, catalog))
         if not jobs:

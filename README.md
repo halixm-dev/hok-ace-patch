@@ -102,19 +102,22 @@ such as `Arena Tiger` that previously displayed raw `#BE08...` refs. A normal pa
 builder DLL for this fix. Rerunning the updated patcher also repairs an older patched copy, even
 when its dictionary strings are already English.
 
-A third pass, `extra_text`, translates display strings the catalog has no table for — strings that live in
-config assets rather than localization tables, which is why its allowlist is exactly **four assets**: the
-AI opponent nicknames (~11 000, romanised with pinyin), the display-text table, the post-match compliments
-and the rule pages. Every entry in that list was put on a phone and watched, because translating one of
-these assets can take a screen with it: task names make a tournament replay force-close, the four
-chessplayer-skill assets remove the skill-description button, and mail, quiz and "not open yet" notices
-remove the game button after pressing start and blank the encyclopedia. The withdrawn hashes and the
-symptom each one causes are recorded beside the allowlist in `tools/extra_text.py`; do not add to that set
-without a device cycle. The same class of edit had already broken the login screen, the Card menu and every
-prefab label tried, which is why the set is this small.
+A third pass, `extra_text`, translates display strings the catalog has no table for. Most of them live in
+config assets rather than localization tables, and its allowlist for those, `SAFE_ASSETS`, is **empty**:
+every config asset ever cleared on a phone was withdrawn later, because translating one can take a screen
+with it. Task names make a tournament replay force-close; the four chessplayer-skill assets remove the
+skill-description button; mail, quiz and "not open yet" notices remove the game button after pressing start
+and blank the encyclopedia; the rule pages remove the Announcement screen's back arrow and title; and the AI
+nicknames, display-text table and post-match compliments make every match end in a
+`/未翻译UI/QTSFailureTips` popup, the client's QTS-failure notice. The withdrawn hashes and the symptom each
+one causes are recorded beside the allowlist in `tools/extra_text.py`; do not add to that set without a
+device cycle. The same class of edit had already broken the login screen, the Card menu and every prefab
+label tried. What the pass still does is `SCRIPT_LABELS`: one hard-coded label in a Lua UI script, the
+Effect Card filter's `通用`, replaced with the catalog's `General` and appended to package `10`.
 
-Of the catalog's 398 texture edits, 395 exist somewhere in the mobile build — 323 in the downloaded layer
-and 73 in the APK's built-in layer, one asset keyed in both — and a run applies all 395. `7B4CC5DF48336D2D`,
+Of the catalog's 398 texture edits, 395 exist somewhere in the mobile build under their own hash — 323 in
+the downloaded layer and 73 in the APK's built-in layer, one asset keyed in both — and the other three are
+reached through the device revision of their card, so a run applies all **398**. `7B4CC5DF48336D2D`,
 Central Plains' fourth wide faction panel, sits in the APK's package `21` and reaches the phone by append:
 the panel is translated from its prime revision and one record is added to the override copy of `21`, which
 therefore keeps the container shape the game already mounts. A *rebuild* of `21` also applies it — 4863
@@ -123,8 +126,11 @@ card: the Factionless hero Yixing then draws as the game's grey placeholder, wit
 missing, while Tencent's own copy of the package draws that card correctly. Package `21` is therefore kept
 out of `REBUILD_PACKAGES`.
 
-Three edits are left alone: `197CC5393D16E3CB`, `884E0B4581F47CF7` and `89C771ECFCDC7FBE` are in neither
-layer, so no code change can apply them.
+Three edits, `197CC5393D16E3CB`, `884E0B4581F47CF7` and `89C771ECFCDC7FBE`, are in neither layer under
+their own hash: they are effect-card faction bands, and the mobile build carries each card under another
+hash. `mobile_graphics.DEVICE_REVISIONS` maps each edit to the one package-`15` card whose band matches its
+group's band (mean difference 0.01-0.02; the next closest card is 0.38), which is how the Riverlands card
+Armed Power reads *Riverlands* instead of `大河流域`.
 
 A device chunk's framing is per chunk and self-describing: stored when its compressed and uncompressed
 sizes agree, a Zstandard frame when the payload opens with that magic, otherwise whatever the entry's
@@ -212,7 +218,7 @@ does not extend:
   `resources/catalog/` is.
 
 Two allowlists decide how far the display strings the catalog has no table for are taken. `SAFE_ASSETS`
-in `tools/extra_text.py` holds the four assets a device cycle has cleared; `CANDIDATE_ASSETS` beside it
+in `tools/extra_text.py` holds the config assets a device cycle has cleared (none today); `CANDIDATE_ASSETS` beside it
 holds the fifteen the asset note names as *not tried*, each resolved to the hash the package carries and
 measured — `tools/research/extra_text_candidates.py` prints that table, and checks that a run naming no
 candidate plans the allowlist and nothing else. Four of the fifteen are display-label tables the catalog

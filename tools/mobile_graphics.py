@@ -61,7 +61,29 @@ MISSING_METADATA: dict[str, tuple[str, int, int]] = {
     "EA2F803D955BE24F": ("rgba32", 568, 70),
 }
 
+# Catalog edits the mobile build carries under another asset hash. The three 404x564 effect-card band
+# edits below exist in neither data layer under their own hash, yet package 15 holds exactly one
+# uncatalogued card per edit whose band decodes to the band of a catalogued card sharing that edit's
+# payload at a mean difference of 0.01-0.02 (the next-closest band in the census is 0.38, a blank band).
+# A band edit is the same bytes for every card of its group, so the payload lands unchanged. Measured
+# over all 1994 card textures of the 1.4.0.2 layer; `962747E1E5B73A93` is the Riverlands effect card
+# Armed Power, whose band stayed Chinese.
+DEVICE_REVISIONS: dict[int, int] = {
+    0x962747E1E5B73A93: 0x884E0B4581F47CF7,  # Riverlands effect card (Armed Power)
+    0xC71FEF8D6BE03BBF: 0x89C771ECFCDC7FBE,  # Sunset effect card
+    0x29B6B1724CC28DE0: 0x197CC5393D16E3CB,  # Three Kingdoms effect card
+}
+
 _contexts: dict[tuple[int, int], astc_encoder.ASTCContext] = {}
+
+
+def catalog_graphics(graphics: dict[int, dict]) -> dict[int, dict]:
+    """<graphics> plus each edit's device revision, keyed by the hash the device carries it under."""
+    merged = dict(graphics)
+    for device_hash, catalog_hash in DEVICE_REVISIONS.items():
+        if catalog_hash in graphics:
+            merged.setdefault(device_hash, graphics[catalog_hash])
+    return merged
 
 
 def oodle_stored(raw: bytes, decoder_type: int = 0x0C) -> bytes:

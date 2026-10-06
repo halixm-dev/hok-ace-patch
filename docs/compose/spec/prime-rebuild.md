@@ -667,7 +667,9 @@ on this repo's own 1.4.0.1 data.
   and 535 of `1050016095`'s are uncovered and stay as they are; the extra-text pass only reaches
   allowlisted display assets.
 - **The three catalog edits no layer carries.** `197CC5393D16E3CB`, `884E0B4581F47CF7` and
-  `89C771ECFCDC7FBE` are in neither the downloaded layer nor the APK, so no code change can apply them.
+  `89C771ECFCDC7FBE` are in neither the downloaded layer nor the APK *under their own hash*. Their cards
+  are in package `15` under other hashes, and since 2026-10-05 `mobile_graphics.DEVICE_REVISIONS` applies
+  them there (`texture-translation.md`).
   The design phase put this number at 75, from a census of the downloaded dump alone; 72 of those were
   in the APK all along. `7B4CC5DF48336D2D` is a fourth kind — present only in the APK's package `21`,
   which this rebuild deliberately omits: the rebuild works and the game mounts it, but it draws the

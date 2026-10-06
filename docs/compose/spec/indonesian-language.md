@@ -72,6 +72,21 @@ T8). Evidence: `artifacts/indonesian-device-cycle-20261005.log`, `artifacts/indo
 | Launch | game alive past 80 s (PID 11908); logcat has no QtsVFS error, fatal signal or `IsPrebuild` line; the session was still logged in |
 | Lobby | **MULAI GAME** on the start button; Indonesian labels (Toko, Harapan, Top-up Pertama, Peringkat, Kartu, Kesejahteraan, "Undang ke tim", "2 hari 3 jam", "Jangan tampilkan hari ini"). Labels still in English — Menu, Event, Trading Post, Growth Path, Battle Pass, Precious Prayer, Lineup, Chessplayer — are the Indonesian catalog's own values for those sources |
 
+**Device report and fixes (2026-10-05, evening)** — walking the screens after login turned up four
+bugs. Three were never Indonesian-specific: the English patch has them too.
+
+| reported | cause | fix | device verdict |
+|---|---|---|---|
+| Effect Card type filter shows `通用` | hard-coded in the Lua script `9BD30F0DF58B1FBF` (package `10`, prime-only) | `extra_text.SCRIPT_LABELS`, appended | chip reads **General** |
+| one effect card (Armed Power) keeps `-大河流域-` on its band | its catalog edit `884E0B4581F47CF7` is carried under `962747E1E5B73A93`; two more cards likewise | `mobile_graphics.DEVICE_REVISIONS` | band reads **Riverlands** |
+| `/未翻译UI/QTSFailureTips` popup after a match | the client's QTS-failure notice, raised while three rewritten config bins are in place | `SAFE_ASSETS` emptied | 2 of 2 matches with them, 0 of 1 without |
+| Announcement screen has no back arrow or title | rule pages `B5D856BFDF22400D` is `ResHelpSystemCfgDataBin`, read before the header is built | withdrawn from `SAFE_ASSETS` | "< pengumuman" with its back arrow |
+
+Two builds were pushed, both staged from the phone's own layer with the six patched packages restored to
+the pristine dump: A (both fixes, rule pages withheld) and B (A with every `SAFE_ASSETS` entry withheld).
+B is byte-identical to what the committed code stages. Final counts: **388 text tables, 398 textures**,
+one known table refusal. Evidence: `MEMORY.md`'s 2026-10-05 section.
+
 **Journey log**
 
 - The user supplied only `catalog.json.gz` and `mulai_game.png`. The catalog turned out to be a drop-in for
@@ -137,5 +152,7 @@ texture and needs an Indonesian image; and the resource tokens expand to English
 - [x] T8 Measure a language switch over an already-English install; picker hints added.
 - [x] T9 Device cycle: Indonesian run on the phone; lobby shows MULAI GAME; the game starts and reads
   Indonesian (launch and lobby; see *Device cycle*).
+- [x] T11 Device report: Effect Card filter label, Armed Power band, post-match QTS popup, Announcement
+  header — fixed and device-verified (see *Device report and fixes*).
 - [ ] T10 Walk the remaining screens in Indonesian after login: loading tips, Chessplayer page, Card menu,
   arena artwork.

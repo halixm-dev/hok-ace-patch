@@ -14,7 +14,7 @@ def estimate(packages: Path | str, catalog: Path | str, apk: Path | str, manifes
     """Account for extracted prime, staged copies and replacement work; not a peak guarantee."""
     from wxq_patch.adaptive import load_catalog
     from wxq_patch.qtsvfs import QtsPackage
-    from extra_text import SAFE_ASSETS
+    from extra_text import SAFE_ASSETS, SCRIPT_LABELS
 
     packages, catalog, apk = Path(packages), Path(catalog), Path(apk)
     package_bytes = 0
@@ -28,7 +28,7 @@ def estimate(packages: Path | str, catalog: Path | str, apk: Path | str, manifes
     if not 0 < package_bytes <= MAX_BYTES:
         raise ValueError("Build source exceeds snapshot budget")
 
-    wanted = load_catalog(catalog).known | SAFE_ASSETS
+    wanted = load_catalog(catalog).known | SAFE_ASSETS | set(SCRIPT_LABELS)
     source_payload_bytes = 0
     for directory in packages.iterdir():
         if not directory.is_dir() or not directory.name.isdecimal():
