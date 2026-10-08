@@ -44,8 +44,8 @@ def failing_asset(error: BaseException, package=None) -> int | None:
     return found
 
 
-def _expand_staged_tokens(plans, log) -> int:
-    """Bake the English resource terms into the staged replacements, after translation.
+def _expand_staged_tokens(plans, log, terms: dict[str, str]) -> int:
+    """Bake the language's resource terms (<terms>) into the staged replacements, after translation.
 
     translate_table requires source and target to carry identical placeholders, so the catalog keeps
     {Energy}/{LordExp}/{LordHp} and the client would otherwise expand them to Chinese at render time.
@@ -59,7 +59,7 @@ def _expand_staged_tokens(plans, log) -> int:
         for path in sorted(replacements.glob("*.assets")):
             raw = path.read_bytes()
             try:
-                expanded, count = expand_tokens_in_message(raw)
+                expanded, count = expand_tokens_in_message(raw, terms)
             except Exception as error:  # an asset we cannot parse is left byte-for-byte alone
                 log(f"token expand skipped {path.name}: {error}")
                 continue
@@ -148,7 +148,10 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
                 *, fit_only_mode: bool = False, apk: pathlib.Path | None = None,
                 builder_dir: pathlib.Path | None = None, cycle_assets: frozenset[int] = frozenset(),
                 log=print) -> dict:
-    """Scan <game>, stage English packages into <output>/<id>/ and return the summary.
+    """Scan <game>, stage translated packages into <output>/<id>/ and return the summary.
+
+    <catalog> decides the language: `languages.for_catalog` reads it from the directory's name, and a
+    catalog that ships only some texture payloads borrows the rest from the English one beside it.
 
     The text pass stages **the catalog's tables** (`catalog.known`) and nothing else: `adaptive.scan`
     recognizes a localization table by shape and can resolve strings for one the catalog has no record
@@ -169,8 +172,11 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     from wxq_patch.unity_package_installer import capacity_report, stage_unity_package
     from qts_relocate import install_btree_slot_map
     from device_extensions import exclude_extra_chunks, extend_graphics, relocate_text, repair_talent_dictionary
+    from languages import for_catalog
 
     install_btree_slot_map()
+    language = for_catalog(catalog)
+    log(f"language: {language.name} ({catalog.name})")
 
     work.mkdir(parents=True, exist_ok=True)
     output.mkdir(parents=True, exist_ok=True)
@@ -220,7 +226,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         game, catalog, work / "scan", materialize=True
     )
     plans = _drop_uncatalogued_tables(plans, loaded_catalog, counts, log)
-    _expand_staged_tokens(plans, log)
+    _expand_staged_tokens(plans, log, language.resource_terms)
 
     def fit_only(package, replacements):
         fit_summary = capacity_report(package.package_dir, replacements)
@@ -402,6 +408,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         packages += appended
 
     summary = {
+        "language": language.code,
         "counts": dict(counts),
         "skipped_count": len(skipped),
         "fit_only": fit_only_mode,

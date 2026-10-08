@@ -27,6 +27,8 @@ import astc_encoder
 import ooz
 import texture2ddecoder
 
+from languages import payload_path
+
 OODLE_BLOCK = 0x40000  # Oodle LZ streams are split into 256 KiB blocks
 ASTC_FOOTPRINTS = [(4, 4), (5, 5), (6, 6), (8, 8), (10, 10), (12, 12)]
 PC_FORMATS = ("bc7", "rgba32")
@@ -59,7 +61,29 @@ MISSING_METADATA: dict[str, tuple[str, int, int]] = {
     "EA2F803D955BE24F": ("rgba32", 568, 70),
 }
 
+# Catalog edits the mobile build carries under another asset hash. The three 404x564 effect-card band
+# edits below exist in neither data layer under their own hash, yet package 15 holds exactly one
+# uncatalogued card per edit whose band decodes to the band of a catalogued card sharing that edit's
+# payload at a mean difference of 0.01-0.02 (the next-closest band in the census is 0.38, a blank band).
+# A band edit is the same bytes for every card of its group, so the payload lands unchanged. Measured
+# over all 1994 card textures of the 1.4.0.2 layer; `962747E1E5B73A93` is the Riverlands effect card
+# Armed Power, whose band stayed Chinese.
+DEVICE_REVISIONS: dict[int, int] = {
+    0x962747E1E5B73A93: 0x884E0B4581F47CF7,  # Riverlands effect card (Armed Power)
+    0xC71FEF8D6BE03BBF: 0x89C771ECFCDC7FBE,  # Sunset effect card
+    0x29B6B1724CC28DE0: 0x197CC5393D16E3CB,  # Three Kingdoms effect card
+}
+
 _contexts: dict[tuple[int, int], astc_encoder.ASTCContext] = {}
+
+
+def catalog_graphics(graphics: dict[int, dict]) -> dict[int, dict]:
+    """<graphics> plus each edit's device revision, keyed by the hash the device carries it under."""
+    merged = dict(graphics)
+    for device_hash, catalog_hash in DEVICE_REVISIONS.items():
+        if catalog_hash in graphics:
+            merged.setdefault(device_hash, graphics[catalog_hash])
+    return merged
 
 
 def oodle_stored(raw: bytes, decoder_type: int = 0x0C) -> bytes:
@@ -197,7 +221,7 @@ def splice_label(mobile_raw: bytes, graphic: dict, catalog: Path, width: int, he
     if rows is None:
         return None
     box = graphic["label_box"]
-    payload = (catalog / graphic["payload"]).read_bytes()
+    payload = payload_path(catalog, graphic["payload"]).read_bytes()
     catalog_rgba = decode_pc(payload, width, height, fmt)
     for device_height, bx, by in offset_layouts(len(mobile_raw), width, height):
         device_rgba = bytearray(decode_astc(mobile_raw, width, device_height, bx, by))
@@ -285,7 +309,8 @@ def english_raw(mobile_raw: bytes, graphic: dict, catalog: Path) -> bytes | None
             return splice_label(mobile_raw, graphic, catalog, width, height, fmt)
         return None
     bx, by = layout
-    payload = (catalog / graphic["payload"]).read_bytes()
+    # A non-English catalog ships only the images it re-draws; the rest are the English edits.
+    payload = payload_path(catalog, graphic["payload"]).read_bytes()
 
     if graphic["payload"].endswith(".blocks") and fmt == "bc7" and layout == (4, 4):
         # Block-for-block port. Each range is a 16-byte-aligned run of BC7 blocks, which decode and

@@ -25,18 +25,20 @@ PROJECT = Path(__file__).resolve().parents[1]
 BUNDLE = Path(getattr(sys, "_MEIPASS", PROJECT / "resources"))
 if not getattr(sys, "frozen", False):
     sys.path.insert(0, str(PROJECT / "tools"))  # the exe gets these via PyInstaller --paths
-# Only the chosen working folder is remembered here (a few bytes); the ~8 GB of game data goes to
-# whatever folder the user picks.
+# Only the chosen working folder and language are remembered here (a few bytes); the ~8 GB of game
+# data goes to whatever folder the user picks.
 SETTINGS = Path(os.environ.get("APPDATA", Path.home())) / "HOKAceEnglishPatcher" / "settings.json"
 
 # Translation runtime (compiled wxq_patch modules) ships as data; append so our stdlib wins.
 sys.path.append(str(BUNDLE / "runtime"))
 
 import apk_tools  # noqa: E402
+import languages  # noqa: E402
 from axml_label import set_label  # noqa: E402
 from axml_set_debuggable import is_debuggable, patch as make_debuggable_manifest  # noqa: E402
 from build_device_patch import build_patch  # noqa: E402
 from qts_builder import find_builder_dir  # noqa: E402
+from patch_summary import count_translated, count_untranslated_graphics, count_untranslated_text  # noqa: E402
 
 PLAY_PROTECT_HINT = "If Google Play Protect shows a pop-up on the phone, tap 'More details' -> 'Install anyway'."
 
@@ -52,55 +54,6 @@ STEPS = [
 ]
 
 
-def count_translated(summary: dict) -> tuple[int, int]:
-    """(text tables, textures) written by build_patch.
-
-    A rebuilt package holds both kinds and its `replacement_count` covers both, so it carries the
-    texture share in `textures`; classifying it by mode alone would report package 1's tables as
-    images, or package 1050016095's images as tables. A package the append pass added to carries the
-    same split for the same reason.
-    """
-    text = images = 0
-    for package in summary.get("packages", []):
-        count = package["stage_report"]["replacement_count"]
-        if package.get("mode") == "graphics":
-            images += count
-        elif package.get("mode") in ("rebuilt", "added-from-apk"):
-            textures = package.get("textures", 0)
-            images += textures
-            text += count - textures
-        else:
-            text += count
-    return text, images
-
-
-def count_untranslated_graphics(summary: dict) -> int:
-    """Textures the run found but could not translate, so they stay in Chinese.
-
-    These live in build_patch's separate `graphics_skipped` list, not in `packages`: a package whose
-    every texture was skipped writes no directory, and the installer pushes by directory. The append
-    pass reports the textures it could not add the same way, in `append_skipped` — where a package that
-    got some of its assets can also appear, naming the share that stays Chinese.
-    """
-    return (sum(entry.get("skipped_count", 0) for entry in summary.get("graphics_skipped", []))
-            + sum(entry.get("textures", 0) for entry in summary.get("append_skipped", [])))
-
-
-def count_untranslated_text(summary: dict) -> int:
-    """Text tables the run translated but could not apply, so they stay in Chinese.
-
-    These live in build_patch's `text_skipped` list. A package that loses tables can still have an
-    output directory behind it — and one that loses all of them has none — so `packages` alone
-    cannot say what did not make it. The append pass reports the tables it could not add in
-    `append_skipped`; its entries count both kinds, so the tables are what is left after `textures`.
-    That list carries the same two shapes, a package the pass could not add to at all and the refused
-    share of one it did add to.
-    """
-    return (sum(entry.get("dropped_count", 0) for entry in summary.get("text_skipped", []))
-            + sum(entry.get("assets", 0) - entry.get("textures", 0)
-                  for entry in summary.get("append_skipped", [])))
-
-
 class PatchError(Exception):
     """Expected failure with a message meant for the user."""
 
@@ -111,19 +64,40 @@ def default_work_dir() -> Path:
     return base / "HOK ACE Patcher Data"
 
 
+def _load_settings() -> dict:
+    try:
+        settings = json.loads(SETTINGS.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return settings if isinstance(settings, dict) else {}
+
+
+def _save_settings(**changes) -> None:
+    try:
+        SETTINGS.parent.mkdir(parents=True, exist_ok=True)
+        SETTINGS.write_text(json.dumps({**_load_settings(), **changes}), encoding="utf-8")
+    except OSError:
+        pass  # the choice still applies for this session
+
+
 def load_work_dir() -> Path:
     try:
-        return Path(json.loads(SETTINGS.read_text(encoding="utf-8"))["work_dir"])
-    except (OSError, ValueError, KeyError, TypeError):
+        return Path(_load_settings()["work_dir"])
+    except (KeyError, TypeError):
         return default_work_dir()
 
 
 def save_work_dir(path: Path) -> None:
-    try:
-        SETTINGS.parent.mkdir(parents=True, exist_ok=True)
-        SETTINGS.write_text(json.dumps({"work_dir": str(path)}), encoding="utf-8")
-    except OSError:
-        pass  # the choice still applies for this session
+    _save_settings(work_dir=str(path))
+
+
+def load_language() -> str:
+    code = _load_settings().get("language")
+    return code if code in languages.LANGUAGES else languages.DEFAULT_LANGUAGE
+
+
+def save_language(code: str) -> None:
+    _save_settings(language=languages.get(code).code)
 
 
 def free_space(path: Path) -> int | None:
@@ -210,9 +184,10 @@ class Adb:
 
 
 class Patcher:
-    def __init__(self, ui: Ui, work: Path):
+    def __init__(self, ui: Ui, work: Path, language: str = languages.DEFAULT_LANGUAGE):
         self.ui = ui
         self.work = work
+        self.language = languages.get(language)
         self.log = ui.log
         self.adb: Adb | None = None
         self.normal_apk: Path | None = None
@@ -222,6 +197,7 @@ class Patcher:
     def run(self) -> dict:
         check_work_dir(self.work)
         self.log(f"Working folder: {self.work}")
+        self.log(f"Language: {self.language.name}")
         self.adb = Adb(self.work)
         self.wait_for_device()
         base_path = self.find_installed_apk()
@@ -448,7 +424,8 @@ class Patcher:
         # is only for laying a package out whole, which no package asks for. A source checkout missing
         # resources/qtsvfs therefore still translates everything the catalog covers.
         builder_dir = find_builder_dir([BUNDLE / "qtsvfs"])
-        summary = build_patch(session / "game", BUNDLE / "catalog", session / "build", staged,
+        catalog = languages.catalog_dir(BUNDLE, self.language.code)
+        summary = build_patch(session / "game", catalog, session / "build", staged,
                               apk=self.normal_apk, builder_dir=builder_dir,
                               log=lambda line: self.log("  " + str(line)))
         text, images = count_translated(summary)

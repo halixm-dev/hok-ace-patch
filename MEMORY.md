@@ -687,6 +687,8 @@ Claims that were believed, acted on, and turned out wrong — kept because the m
 | Card Info renders the `592x816` portrait frame | inferred from layout; the views look alike | the wide `568x304` family, settled by ids and elimination (§6) |
 | the Chessplayer screen shows Chinese because the drop loop drops its tables (`b5cd724`) | that screen draws from the **prime** layer, which the in-place path never writes | the prime-layer gap; the drop loop is a separate real loss (§4, §7) |
 | the `extra_text` pass is blanket-unsafe | swept every asset at once | content-specific; four assets ship (§5) |
+| the four `SAFE_ASSETS` are safe | each was cleared against the **replay crash only**; nobody opened the Announcement screen or watched a match end | all four withdrawn 2026-10-05: rule pages hide the news header, the other three end every match in the QTS-failure popup (2026-10-05 section) |
+| `197CC5…`, `884E0B…`, `89C771…` cannot be applied by any code change | searched by the catalog's hash only | the cards exist under other hashes; their bands match at 0.01-0.02 (2026-10-05 section) |
 | these four assets are exonerated | "not changed in the staged package" was read as "disabled" — an enabled asset that rewrites nothing looks identical to a disabled one | only a single-variable pair, both sides staged, supports a causal claim (§5) |
 | the `nodisplay` build had every `extra_text` asset disabled | it kept BOT and still enabled `A1987F488164E53A` | measured with `hok_classify.py`, not inferred (§5) |
 | reverting the packages exonerates the rebuild | sound reasoning, **wrong variable** — reverting `.db` files cannot help while the installed APK is a debug build | the debuggable APK was the cause (§2) |
@@ -737,3 +739,44 @@ reusable probes. See `docs/artifact-retention.md`; old full candidate builds mus
 from the phone's version. Normal build code now initializes Tencent DLLs only when a rebuild
 package is named. With `REBUILD_PACKAGES=()`, an APK plus an absent builder directory passes
 the old-package repair check. Graphics offline checks pass.
+
+
+## 2026-10-05 — Indonesian device report: four bugs, three causes
+
+Reported on the Indonesian build (1.4.0.2, Xiaomi `f15a72e`). Each verdict below is a pushed build,
+14/14 files read back on the phone, normal APK `29b3ee7e…` restored, screens watched.
+
+- **Effect Card filter showed `通用`** (chip, filter button, section title). Not a table: the Lua script
+  `9BD30F0DF58B1FBF` (package `10`, prime-only) hard-codes `name = "通用"` for a card with no faction
+  (`CardClassifyCriterionEffectCardType:vClassIdToDescriptor`, id -1). The faction labels around it come from
+  `6649BBDD0B5C956F`, which was already translated. Fixed by `extra_text.SCRIPT_LABELS`, appended to package
+  `10`'s override copy (`MountPackage 10, override … succeed`); the chip reads **General** on the phone.
+- **Armed Power kept `-大河流域-` on its band.** The catalog's three "neither layer" edits are effect-card band
+  edits whose payloads are shared by 7-8 cards each. A census of package `15`'s 1994 card-shaped textures
+  (404x564 ASTC 4x4) against the bands of the 299 catalogued cards found exactly three uncatalogued cards at
+  mean difference 0.01-0.02, one per missing edit and each matching that edit's payload group; the next
+  closest is 0.38 (44 blank-band cards). `962747E1E5B73A93` is Armed Power → `884E0B4581F47CF7`;
+  `C71FEF8D6BE03BBF` → `89C771ECFCDC7FBE` (Sunset); `29B6B1724CC28DE0` → `197CC5393D16E3CB` (Three Kingdoms).
+  `mobile_graphics.DEVICE_REVISIONS`; package `15` now applies 302 textures; the band reads **Riverlands**.
+- **Announcement screen lost its back arrow and title** (the system back key then offers to quit the game).
+  `UINewsMainClass:InitUI` evaluates `PBDataManager.ResHelpSystemCfgDataBin.Get(NEWS_CENTER)` before it
+  builds the header, and `B5D856BFDF22400D` — the allowlisted "rule pages" — *is* `ResHelpSystemCfgDataBin`
+  (fields ID, Title, TabCount, TabData…). Build A = the fixes above with only that asset left out: header back
+  ("< pengumuman"). Strictly A also added the script and three textures, neither on this screen.
+- **`/未翻译UI/QTSFailureTips` popup after every match.** `GameplayClass:vOnPostLeaveGameBattle` shows
+  `Localize.GetString("QTSFailureTips")` when the C# `Doctor.QtsFailure` flag is set ("QTS exception, ask the
+  user to restart"); the key has no string anywhere, hence the raw path. Not a broken file: QtsVFS logs no
+  read error during the match and `Watchdog/BrokenList.db` stays empty. Build A (three config bins still
+  rewritten): popup in 2 of 2 matches. Build B (all `SAFE_ASSETS` left out): no popup. Not bisected further
+  at the user's choice, so `SAFE_ASSETS` is empty.
+- The game's own logging is off in release (`dc.Log.ShowLog(False)`); `[QTS_LOG]` still reaches logcat under
+  `Unity`, and the main buffer is only 256 KB, so a match has to be streamed live
+  (`adb logcat -v time Unity:V GCloud:V '*:E'`), with a reconnect loop — USB dropped twice in one evening.
+- The stored 32-hex MD5 at the head of these bins is **not** `md5(rest of the bin)`, so resealing is still
+  unknown. `ResData.ResActivityHelpSystemCfgDataBin` and `ResNBGuideTipCfg` "Does NOT exist" lines are the
+  game's own (absent from the pristine dump and the APK too).
+- Machine: `/data/local/tmp` held 6 GB of 09-28 research APKs (`exp2c2.apk`, `osgame_exp2_crcpatch.apk`,
+  `osgame_gadget.apk`, `frida-server`); with 4.2 GB free the normal-APK restore failed with
+  `INSUFFICIENT_STORAGE`, leaving the debuggable APK installed. Deleted with the user's approval (10 GB free).
+  A cycle script must keep the restore inside `finally` for the access install itself too.
+

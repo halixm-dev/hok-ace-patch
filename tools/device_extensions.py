@@ -216,7 +216,8 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
     import mobile_graphics as mg
     from wxq_patch.qtsvfs import QtsPackage
 
-    wanted = [file_hash for file_hash in package.entries if file_hash in catalog.graphics]
+    graphics = mg.catalog_graphics(catalog.graphics)
+    wanted = [file_hash for file_hash in package.entries if file_hash in graphics]
     if not wanted:
         return {"considered": 0, "written": 0, "skipped": []}
     source_slots = package.build_slot_map()
@@ -225,7 +226,7 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
     for file_hash in wanted:
         chunks = _read_chunks(source_slots.get(file_hash, {}))
         raw = b"".join(mg.oodle_decompress(payload, slot.uncompressed_size) for slot, payload in chunks)
-        new = mg.english_raw(raw, catalog.graphics[file_hash], catalog_dir)
+        new = mg.english_raw(raw, graphics[file_hash], catalog_dir)
         if new is None or len(new) != len(raw):
             skipped.append(f"{file_hash:016X}")
         elif new != raw:  # equal means already English (patcher re-run)
@@ -292,6 +293,8 @@ def extend_graphics(game: Path, catalog_dir: Path, output: Path, log,
                 "skipped": report["skipped"],
             })
     from extra_text import extend_text
+    from languages import for_catalog
 
-    reports += extend_text(game, catalog, output, log, skip, candidates=candidates)
+    reports += extend_text(game, catalog, output, log, skip, candidates=candidates,
+                           terms=for_catalog(catalog_dir).resource_terms)
     return reports, skipped

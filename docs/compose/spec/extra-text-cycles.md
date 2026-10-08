@@ -20,6 +20,17 @@ This change makes a cycle one variable by construction and records the measureme
 | the census a cycle starts from, and the check that the knob is inert without one | `tools/research/extra_text_candidates.py` |
 | four cycles originally built and verified offline; obsolete outputs removed 2026-10-03 | `artifacts/cycles/<hash>/out/` (gitignored) |
 
+**2026-10-05: the allowlist is empty.** All four assets it held were withdrawn after device cycles on the
+Indonesian build (1.4.0.2). Rewriting the rule pages `B5D856BFDF22400D`, which is `ResHelpSystemCfgDataBin`,
+removed the Announcement screen's back arrow and title. Rewriting the nicknames, display-text table and
+compliments (`2D1113B0AD51A562`, `A1987F488164E53A`, `1C8F7FFF7BDEF14D`) made every match end in the client's
+QTS-failure popup, `/未翻译UI/QTSFailureTips`: 2 of 2 matches with them, none without. Their 2026-10-01
+verdicts had watched the replay crash only. The three were not bisected, so each may come back through this
+queue. The pass now also carries `SCRIPT_LABELS`, an exact literal in a Lua UI script (the Effect Card
+filter's `通用`), which is not a config bin, was verified on its screen and across a match, and reaches the
+phone through the append because the script is prime-only. Symptoms and dates are beside the allowlist in
+`tools/extra_text.py`; the evidence is in `MEMORY.md`'s 2026-10-05 section.
+
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the
 phone has since updated to 1.4.0.2, so they are no longer pushable as they stand. See the journey log's
 last entry: a staged package is a revision of one layer, and the phone's version has to be checked against

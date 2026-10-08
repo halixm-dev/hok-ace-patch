@@ -85,17 +85,21 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
     second belongs in the run's report.
 
     <candidates> is a device cycle's enablement. It has to be here as well as in `extra_text`: the
-    four allowlisted extra-text assets reach a rebuilt package through this transform, because the
+    allowlisted extra-text assets reach a rebuilt package through this transform, because the
     extra-text pass skips the packages a rebuild replaced whole. A candidate enabled in only one of the
     two would be a no-op for a package the rebuild owns.
     """
     import extra_text
     import mobile_graphics as mg
     import pb_text
+    from languages import for_catalog
     from resource_tokens import expand_tokens
     from wxq_patch import adaptive
 
     allowed = extra_text.SAFE_ASSETS | candidates
+    terms = for_catalog(catalog_dir).resource_terms
+    # The same edits the in-place texture pass ports, including their device revisions.
+    graphics = mg.catalog_graphics(catalog.graphics)
 
     def transform(file_hash: int, raw: bytes) -> bytes | None:
         if file_hash in catalog.known:
@@ -108,23 +112,26 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
                 return None
             # translate_table keeps the catalog's {Energy}-style tokens, so a rebuilt table needs the
             # same expansion the in-place staging path applies to its replacements.
-            return expand_tokens(bytes(new), log)
-        if file_hash in catalog.graphics:
-            new = mg.english_raw(raw, catalog.graphics[file_hash], catalog_dir)
+            return expand_tokens(bytes(new), log, terms)
+        if file_hash in graphics:
+            new = mg.english_raw(raw, graphics[file_hash], catalog_dir)
             if new is None or len(new) != len(raw):
                 refused.add(file_hash)
                 return None
             return new if new != raw else None
+        if file_hash in extra_text.SCRIPT_LABELS:
+            return extra_text.rewrite_script(file_hash, raw, catalog)
         if file_hash in allowed and pb_text.CJK.search(raw.decode("utf-8", "ignore")):
             try:
                 new, changed = pb_text.rewrite(raw, extra_text.translator_for(file_hash, catalog))
             except pb_text.NotMessage:
                 return None
-            return expand_tokens(new, log) if changed else None
+            return expand_tokens(new, log, terms) if changed else None
         return None
 
-    transform.graphics = set(catalog.graphics)
+    transform.graphics = set(graphics)
     transform.tables = set(catalog.known)
+    transform.scripts = set(extra_text.SCRIPT_LABELS)
     return transform
 
 
@@ -284,7 +291,7 @@ def add_prime_only(game: Path, apk: Path, transform, work: Path, output: Path,
             wanted = set(QtsPackage(index_dir).entries)
         except Exception:  # noqa: BLE001 - an index that will not read lists nothing to add
             continue
-        wanted &= transform.graphics | transform.tables
+        wanted &= transform.graphics | transform.tables | transform.scripts
         if not wanted:
             continue
         try:

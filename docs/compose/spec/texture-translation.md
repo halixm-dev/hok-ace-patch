@@ -1,7 +1,7 @@
 ---
 feature: texture-translation
 status: delivered
-updated: 2026-09-30
+updated: 2026-10-03
 branch: feat/texture-translation
 commits: 290f5d8..46ed048
 ---
@@ -55,6 +55,15 @@ thing this document does not claim.
 
 **Journey log**
 
+- **Android exposed an invalid synthetic fixture (2026-10-03).** The checker filled its
+  synthetic ASTC buffers with arbitrary ramp bytes. Those are not valid ASTC blocks:
+  the ARM64 decoder crashed in `decode_intseq` / `decode_endpoints` at check 5, including
+  in a fresh process. `device_bytes` now encodes a known opaque background. The independent
+  untouched-block, deterministic-output and idempotence assertions remain. The corrected
+  full `--game` checker passed on Windows (130.4 s) and the Xiaomi Android 12 ARM64 spike
+  (120.9 s; instrumentation 121.807 s), each with 321 ported, one replaced, one spliced
+  and zero skipped downloaded textures. This fixes the research fixture only; it does not
+  establish decoder safety for malformed inputs or live-game acceptance of the Android port.
 - **The installer pushes directories, not the summary.** `build_patch` drops text tables one at a time
   until a package stages or runs out; when it runs out, `report` stays `None` and the package is left
   out of `packages` — but the last failed attempt has already written `output/<id>/`. On the dump that
@@ -191,6 +200,17 @@ none of this needs a phone or a dump.
 What this does *not* do is rescue an asset the build does not carry. Of the catalog's 398 texture edits,
 75 have no counterpart on the device under that hash at all — measured by scanning every package index in
 a 2.86 GB dump, not inferred — and those stay Chinese however the code is written.
+
+*Later (2026-10-05):* 72 of the 75 turned out to be in the APK's prime layer (`prime-rebuild.md`), and the
+last three are reached by **device revision**. They are 404x564 effect-card band edits whose `.blocks`
+payload is shared by 7-8 cards each, and package `15` carries each card under another hash. A census of all
+1994 card-shaped textures there, decoding only the patch-range blocks and comparing them with the bands of
+the 299 catalogued cards, finds exactly three uncatalogued cards at a mean difference of 0.01-0.02, one per
+missing edit and each inside that edit's payload group; the next closest is 0.38, a blank band.
+`mobile_graphics.DEVICE_REVISIONS` maps each device hash to its catalog edit and `catalog_graphics` merges
+them into the set both texture paths use, so a run applies 398. `962747E1E5B73A93` is the Riverlands card
+Armed Power, whose band read `大河流域` on the phone and reads *Riverlands* after the fix (device-verified,
+Indonesian build). An alias is a measurement, not a guess: one joins only with a band match like these.
 
 ### `english_raw` contract
 

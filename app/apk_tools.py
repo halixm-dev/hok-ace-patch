@@ -1,4 +1,4 @@
-"""Minimal APK rewriting and APK Signature Scheme v2 signing, without Java or build-tools."""
+"""Streaming APK rewriting and v2 signing with an optional platform RSA adapter."""
 from __future__ import annotations
 
 import copy
@@ -7,9 +7,7 @@ import shutil
 import struct
 import zipfile
 from pathlib import Path
-
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding
+from typing import Callable
 
 SIGNATURE_SUFFIXES = (".RSA", ".DSA", ".EC", ".SF", ".MF")
 ALIGNMENT_EXTRA_ID = 0xD935
@@ -76,12 +74,23 @@ def _chunk_digests(f, start: int, end: int, digests: list[bytes]) -> None:
         digests.append(hashlib.sha256(b"\xa5" + struct.pack("<I", len(block)) + block).digest())
 
 
-def sign_v2(source: Path, target: Path, key_der: bytes, cert_der: bytes) -> None:
+def sign_v2(source: Path, target: Path, key_der: bytes, cert_der: bytes, *,
+            rsa_signer: Callable[[bytes], bytes] | None = None,
+            public_key_der: bytes | None = None) -> None:
     """Write <target> = <source> plus an APK Signing Block holding a v2 RSA/SHA-256 signature."""
-    key = serialization.load_der_private_key(key_der, password=None)
-    public_key = key.public_key().public_bytes(
-        serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
-    )
+    if rsa_signer is None:
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import padding
+
+        key = serialization.load_der_private_key(key_der, password=None)
+        public_key = key.public_key().public_bytes(
+            serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        rsa_signer = lambda data: key.sign(data, padding.PKCS1v15(), hashes.SHA256())
+    else:
+        if not public_key_der:
+            raise ValueError("A platform RSA adapter requires its DER public key")
+        public_key = public_key_der
     size = source.stat().st_size
     with source.open("rb") as f:
         eocd_offset = _find_eocd(f, size)
@@ -110,7 +119,7 @@ def sign_v2(source: Path, target: Path, key_der: bytes, cert_der: bytes) -> None
             + _lp(_lp(cert_der))
             + _lp(b"")
         )
-        signature = key.sign(signed_data, padding.PKCS1v15(), hashes.SHA256())
+        signature = rsa_signer(signed_data)
         signer = _lp(signed_data) + _lp(_lp(struct.pack("<I", RSA_PKCS1_SHA256) + _lp(signature))) + _lp(public_key)
         value = _lp(_lp(signer))
         pairs = struct.pack("<QI", len(value) + 4, V2_BLOCK_ID) + value

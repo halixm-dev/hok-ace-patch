@@ -5,11 +5,15 @@ resource display names at render time, and those names are still Chinese in the 
 translated strings render hybrid ("Gain 1能量"). The catalog cannot be fixed instead: translate_table
 compares placeholders between source and target, so substituting there rejects the record. The
 substitution happens here, on the staged replacements after translation.
+
+The terms are the patch language's: `languages.Language.resource_terms` holds one table per catalog,
+and every entry point here takes it as <terms>, defaulting to English.
 """
 from __future__ import annotations
 
 import re
 
+# The English terms; other languages' tables live in `languages`.
 RESOURCE_TOKENS = {
     "{Energy}": "Energy",
     "{LordExp}": "Chessplayer EXP",
@@ -52,8 +56,8 @@ def _tail(text: str, end: int) -> str:
     return ""
 
 
-def expand_resource_tokens(text: str) -> str:
-    """Return <text> with resource tokens replaced by English terms.
+def expand_resource_tokens(text: str, terms: dict[str, str] = RESOURCE_TOKENS) -> str:
+    """Return <text> with resource tokens replaced by <terms> (English unless a language passes its own).
 
     A space is inserted where the term would otherwise run into the preceding character (a letter,
     digit or placeholder) or into a following word or signed value. Anything else — punctuation,
@@ -66,7 +70,7 @@ def expand_resource_tokens(text: str) -> str:
     while index < len(text):
         found = width = -1
         term = ""
-        for token, name in RESOURCE_TOKENS.items():
+        for token, name in terms.items():
             at = text.find(token, index)
             if at >= 0 and (found < 0 or at < found):
                 found, term, width = at, name, len(token)
@@ -80,17 +84,17 @@ def expand_resource_tokens(text: str) -> str:
     return "".join(out)
 
 
-def expand_tokens_in_message(data: bytes) -> tuple[bytes, int]:
+def expand_tokens_in_message(data: bytes, terms: dict[str, str] = RESOURCE_TOKENS) -> tuple[bytes, int]:
     """Return (<data> with resource tokens expanded, number of string fields changed).
 
     Walks the protobuf framing the way <data>'s reader does, but visits a string whenever it carries
     a resource token rather than whenever it carries CJK: the strings that need expanding are the
-    already-translated English ones. Raises NotMessage when <data> is not a well-formed message.
+    already-translated ones. Raises NotMessage when <data> is not a well-formed message.
     """
-    return _walk(data, 0)
+    return _walk(data, 0, terms)
 
 
-def expand_tokens(data: bytes, log=None) -> bytes:
+def expand_tokens(data: bytes, log=None, terms: dict[str, str] = RESOURCE_TOKENS) -> bytes:
     """<data> with resource tokens expanded, or <data> unchanged when it is not a message we can walk.
 
     The prime-rebuild and extra-text passes translate assets the staged-replacement pass never sees,
@@ -98,7 +102,7 @@ def expand_tokens(data: bytes, log=None) -> bytes:
     while refusing the asset would lose the translation with it.
     """
     try:
-        expanded, _count = expand_tokens_in_message(data)
+        expanded, _count = expand_tokens_in_message(data, terms)
     except Exception as error:  # noqa: BLE001 - a shape we cannot walk is left alone, not raised
         if log is not None:
             log(f"  token expand skipped: {error}")
@@ -139,7 +143,7 @@ def _as_text(value: bytes) -> str | None:
     return None if _CONTROL.search(text) else text
 
 
-def _walk(data: bytes, depth: int) -> tuple[bytes, int]:
+def _walk(data: bytes, depth: int, terms: dict[str, str]) -> tuple[bytes, int]:
     out = bytearray()
     pos = changed = 0
     while pos < len(data):
@@ -164,13 +168,13 @@ def _walk(data: bytes, depth: int) -> tuple[bytes, int]:
             value = data[start:end]
             text = _as_text(value)
             if text is not None and _TOKEN_RE.search(text):
-                replacement = expand_resource_tokens(text)
+                replacement = expand_resource_tokens(text, terms)
                 if replacement != text:
                     value = replacement.encode("utf-8")
                     changed += 1
             elif text is None and depth < _MAX_DEPTH and value:
                 try:
-                    value, nested = _walk(value, depth + 1)
+                    value, nested = _walk(value, depth + 1, terms)
                     changed += nested
                 except NotMessage:
                     pass
