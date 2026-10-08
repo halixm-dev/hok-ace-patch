@@ -13,8 +13,9 @@ phone's own layer, not the 1.4.0.1 dump.
 
 ## How progress is counted
 
-Coverage is **the staged text tables, the catalog's textures, and four `extra_text` assets** — nothing
-else. There is no percentage: the build's own totals for tables, textures and config assets are not
+Coverage is **the staged text tables, the catalog's textures, and one hard-coded Lua label**
+(`extra_text.SCRIPT_LABELS`) — nothing else. The `extra_text` config-asset allowlist is empty since
+2026-10-05. There is no percentage: the build's own totals for tables, textures and config assets are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
 
 A run reports four numbers through the app's `translate` step, all read from
@@ -41,6 +42,38 @@ byte-identical packages. The latest full run, staged from the fresh 1.4.0.2 snap
 device-verified on 2026-10-03, reports **391 text tables and 395 images across the same 6 packages** — one
 table short of that rebuild, because the append's encoder cannot store `3A70308AAF6F18F8`, which
 `append_skipped` counts as staying Chinese.
+
+The first successful full Android/Shizuku run on 2026-10-05, using the Xiaomi Android 12's live **1.4.0.2** data, confirms the same counts:
+
+| Android live result | Count |
+|---|---:|
+| Text tables applied | 391 |
+| Textures applied | 395 |
+| Text tables skipped | 1 |
+| Textures skipped | 0 |
+| Distinct patched packages | 6 |
+
+The skip is one of package `1`'s 298 prime-only tables refused by the append encoder; `text_skipped` and `graphics_skipped` are empty, and `append_skipped` carries one text asset. The completed journal verifies the applied payload and restored normal APK, with no dirty packages or pending mutation. No candidate assets were enabled. This confirms existing coverage through the Android pipeline; it does not add catalog coverage or complete the watched-screen checklist. Session and summary evidence: `artifacts/android-live-patch-success-20261005.json`, recorded in `android-shizuku-patcher.md`.
+
+### 2026-10-05: three device bugs fixed, counts moved
+
+The Indonesian device report (`MEMORY.md`, 2026-10-05) moved every count. Staged from the phone's own
+1.4.0.2 layer with its APK, device-verified on the Xiaomi:
+
+| result | English | Indonesian |
+|---|---:|---:|
+| Text tables applied (`count_translated`) | 388 | 388 |
+| Textures applied | **398** | **398** |
+| Text tables left in Chinese | 1 | 1 |
+| Textures left in Chinese | 0 | 0 |
+
+- **+3 textures:** the three catalog edits no layer carries under their own hash are reached through their
+  cards' device revisions (`mobile_graphics.DEVICE_REVISIONS`), which fixed the Armed Power band.
+- **−4 text assets:** the `extra_text` allowlist was emptied. The rule pages hid the Announcement header,
+  and the nicknames / display-text table / compliments caused the post-match QTS-failure popup.
+- **+1 text asset:** the Effect Card filter's hard-coded `通用` (`SCRIPT_LABELS`, package `10`'s Lua),
+  appended from the APK, so the count is 79 in place + 11 relocated + 297 appended in package `1` + 1
+  appended in package `10`.
 
 ## What the catalog holds
 
@@ -79,7 +112,7 @@ content by laying the package out whole, which nothing asks for today (`REBUILD_
 which only Tencent's builder can do. `prime_probe.py` censuses both layers; a search for a missing asset
 has to run over both.
 
-### Textures — 395 of 398 applied
+### Textures — 398 of 398 applied
 
 | where the edit exists | count | applied by |
 |---|---|---|
@@ -87,15 +120,15 @@ has to run over both.
 | both layers | 1 | whichever pass owns its package — once |
 | prime only — package `1050016095` | 71 | append — `qts_insert.add_assets` |
 | prime only — package `21` | 1 | append — `qts_insert.add_assets` |
-| **applied** | **395** | |
-| neither layer | 3 | unreachable: `197CC5393D16E3CB`, `884E0B4581F47CF7`, `89C771ECFCDC7FBE` |
+| neither layer under its own hash — package `15`, through `DEVICE_REVISIONS` | 3 | texture pass, in place: `197CC5393D16E3CB`, `884E0B4581F47CF7`, `89C771ECFCDC7FBE` |
+| **applied** | **398** | |
 
 The one appended edit is `7B4CC5DF48336D2D`, the wide Central Plains panel the Card Info view draws. Its
 package `21` stays out of `REBUILD_PACKAGES` on purpose: a rebuild applies it too and the game mounts it,
 but on the phone the Factionless hero Yixing then draws as the game's grey placeholder. Append adds one
 record to `21`'s override copy and leaves the container's shape alone.
 
-One of those 395 is recovered rather than ported: `C9E29F61B9E73713` (Three Kingdoms) is 592x816 in the
+One of those 398 is recovered rather than ported: `C9E29F61B9E73713` (Three Kingdoms) is 592x816 in the
 catalog and 592x824 on the device, so the pass aligns the two images and copies only the label across
 (`splice_label`). It counts as applied, but as a correctness fix: which screen draws it is not
 established, so it is not evidence of anything visible.
@@ -112,8 +145,9 @@ are what the prime layer needs; two packages carry text there, and one carries a
 | `1` | 2873 (45.9 MB) | 403 (29.3 MB) | 2492 | 408 | **298** offered, 297 applied — 51 095 records |
 | `1050016095` | 608 (5.2 MB) | 2 (0.3 MB) | 606 | 0 | 0 — but 71 catalog textures |
 
-On this data a run reports **391 text tables for package `1`**, one of which stays Chinese: 79 assets
-staged in place, 11 relocated, 4 rewritten by the `extra-text` pass, and 297 appended out of the APK. The
+On this data a run reports **387 text tables for package `1`**, one of which stays Chinese: 79 assets
+staged in place, 11 relocated and 297 appended out of the APK (until 2026-10-05 it was 391, with 4 more
+rewritten by the `extra-text` pass); package `10`'s appended Lua label makes the run's total 388. The
 chessplayer names, skills, talents and secret skills are in that 297 — the screens that draw them read
 prime, so no override-only path could reach them. Package `1050016095`'s 71 prime-only textures go the
 same way and are counted as images.
@@ -142,15 +176,20 @@ Re-measure:
 
 ## Translated outside the catalog
 
-`extra_text` (over `pb_text` and `unity_text`) translates display strings in config assets the catalog
-has no localization table for. Its allowlist is device-gated and exactly four assets:
+`extra_text` (over `pb_text` and `unity_text`) translates display strings the catalog has no
+localization table for. Its config-asset allowlist, `SAFE_ASSETS`, is device-gated and **empty**. The four
+assets it held until 2026-10-05 were each withdrawn after a device cycle:
 
-| asset | what it is | translated by |
+| asset | what it is | why it was withdrawn |
 |---|---|---|
-| `2D1113B0AD51A562` | ~11 000 AI opponent nicknames | pinyin romanisation — the catalog has no official translation |
-| `A1987F488164E53A` | display-text table (`{id, text, #key#}`) | the catalog's official English, exact matches only |
-| `1C8F7FFF7BDEF14D` | post-match compliments | same |
-| `B5D856BFDF22400D` | rule pages | same |
+| `2D1113B0AD51A562` | ~11 000 AI opponent nicknames (pinyin) | with these three rewritten, every match ends in the `/未翻译UI/QTSFailureTips` popup |
+| `A1987F488164E53A` | display-text table (`{id, text, #key#}`) | same cycle; not bisected |
+| `1C8F7FFF7BDEF14D` | post-match compliments | same cycle; not bisected |
+| `B5D856BFDF22400D` | rule pages (`ResHelpSystemCfgDataBin`) | the Announcement screen loses its back arrow and title |
+
+What the pass still writes is `SCRIPT_LABELS`: exact literals in Lua UI scripts, today one, the Effect
+Card filter's hard-coded `通用` in `9BD30F0DF58B1FBF` (package `10`, prime-only, so it is appended). It
+reads **General** on the phone and survived a full match without the popup.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 
@@ -188,8 +227,9 @@ running and the rest wait until a cycle says the class is safe.
 
 A cycle is now one variable by construction: `--cycle-asset <hash>` enables exactly one queued candidate,
 the run records it in `device_patch_summary.json`'s `cycle_assets`, and the hash joins `SAFE_ASSETS` only
-once a cycle has looked at the screen it feeds. Four cycles are built and verified offline; none has a
-verdict, so the allowlist is still the four assets it was.
+once a cycle has looked at the screen it feeds. Four cycles were built offline; none has a verdict. A
+cycle must now also watch a match end and the Announcement screen, which is what the 2026-10-01 verdicts
+missed.
 
 The **Talent Card grid regression is fixed and device-verified on 2026-10-03**. The full
 4064-row English dictionary keeps the game's original 307,200-byte chunk size and uses a measured
@@ -199,6 +239,32 @@ tile names still use the client's normal ellipsis. Rerunning the updated patcher
 already-English copy. Counts remain **391 text tables and 395 applied textures**, with the one
 known append refusal below. Evidence and the withdrawn impossibility verdict are recorded in
 `docs/compose/spec/prime-only-append.md` T15.
+
+## Bahasa Indonesia
+
+`resources/catalog_id/` holds the Indonesian catalog (`docs/compose/spec/indonesian-language.md`). It has
+the same 499 tables and 398 graphics entries as the English one, so its coverage counts are the English
+counts. An offline run against the pristine 1.4.0.2 snapshot and APK (2026-10-05), and the same counts from
+the build pushed onto the Xiaomi M2007J3SG that day, where the game launched and the lobby read Indonesian
+with MULAI GAME on its start button (`indonesian-language.md`, *Device cycle*):
+
+| Indonesian offline result | Count |
+|---|---:|
+| Text tables applied | 388 (391 before 2026-10-05's withdrawals) |
+| Textures applied | 398 (395 before the device revisions) |
+| Text tables skipped | 1 (`0196F0E230EC1C70`, the append encoder's refusal) |
+| Textures skipped | 0 |
+| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME) |
+
+The other 396 applied textures carry the English edit. Two gaps are specific to the language:
+
+- **Game-shipped English stays English.** The catalog translates Chinese sources and re-targets only the
+  29 750 `english_updates` rows the English catalog had, so 20 228 of the 324 905 records in the staged
+  tables (6%) are English the game itself ships, left as it is — mostly package `1`'s prime-only tables.
+  Closing it needs `english_updates` rows in the catalog.
+- **Switching an already-translated install changes no text.** The Indonesian catalog over the 387
+  English-staged tables changes none of them; only the re-drawn textures would switch. Clear the game's
+  data first, as for any newer translation build.
 
 ## Knowingly left Chinese
 
@@ -210,7 +276,8 @@ known append refusal below. Evidence and the withdrawn impossibility verdict are
   is referenced with no date window, so a cycle for it is possible.
 - The one catalog table the append's encoder cannot store: `3A70308AAF6F18F8`, a 60-byte table whose LZ4
   block lands exactly on its own length, which this format cannot tell apart from a *stored* chunk.
-- The three catalog texture edits that exist in neither layer.
+- What the four withdrawn `extra_text` assets used to translate: the ~11 000 AI opponent nicknames (now
+  Chinese again), the display-text table, the post-match compliments and the rule pages.
 - Package `19`'s Unity prefab labels (the lobby hangs; only the faction names, rewritten, crash at start
   with "stack corruption detected"), and the chessplayer definition `A8BC70BB87700709` field 37 (lobby
   loading stalls even with every reference renamed alongside it).

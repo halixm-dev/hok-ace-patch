@@ -13,8 +13,8 @@ import customtkinter as ctk
 from PIL import Image
 
 from patcher_core import (BUNDLE, MIN_FREE_BYTES, STEPS, Adb, PatchError, Patcher, build_patch, count_translated,
-                          count_untranslated_graphics, count_untranslated_text, free_space, load_work_dir,
-                          save_work_dir)
+                          count_untranslated_graphics, count_untranslated_text, free_space, languages,
+                          load_language, load_work_dir, save_language, save_work_dir)
 
 APP_TITLE = "HOK ACE Mobile English Patcher"
 APP_VERSION = "1.1"
@@ -121,6 +121,7 @@ class App(ctk.CTk):
         self.busy = False
         self.rows: dict[str, StepRow] = {}
         self.work_dir = load_work_dir()
+        self.language = load_language()
 
         self.columnconfigure(0, weight=0, minsize=320)
         self.columnconfigure(1, weight=1)
@@ -142,7 +143,7 @@ class App(ctk.CTk):
             ctk.CTkLabel(header, image=image, text="").grid(row=0, column=0, rowspan=2, padx=(24, 14), pady=16)
         ctk.CTkLabel(header, text="HOK ACE Mobile English Patcher", text_color=TEXT,
                      font=ctk.CTkFont(size=20, weight="bold")).grid(row=0, column=1, sticky="sw", pady=(18, 0))
-        ctk.CTkLabel(header, text="English translation for 王者万象棋 (Android) · no root required",
+        ctk.CTkLabel(header, text="English or Indonesian translation for 王者万象棋 (Android) · no root required",
                      text_color=MUTED, font=ctk.CTkFont(size=12)).grid(row=1, column=1, sticky="nw", pady=(0, 16))
         ctk.CTkLabel(header, text=f"v{APP_VERSION}", text_color=GOLD, fg_color=SURFACE_2, corner_radius=8,
                      width=52, height=26, font=ctk.CTkFont(size=12, weight="bold")).grid(
@@ -177,7 +178,7 @@ class App(ctk.CTk):
         main = ctk.CTkFrame(self, fg_color="transparent")
         main.grid(row=1, column=1, sticky="nsew", padx=(10, 20), pady=20)
         main.columnconfigure(0, weight=1)
-        main.rowconfigure(3, weight=1)
+        main.rowconfigure(4, weight=1)
 
         guide = ctk.CTkFrame(main, fg_color=SURFACE, corner_radius=14, border_width=1, border_color=BORDER)
         guide.grid(row=0, column=0, sticky="ew")
@@ -204,8 +205,26 @@ class App(ctk.CTk):
         self.folder_button.grid(row=0, column=1, rowspan=3, padx=18)
         self.show_work_dir()
 
+        language = ctk.CTkFrame(main, fg_color=SURFACE, corner_radius=14, border_width=1, border_color=BORDER)
+        language.grid(row=2, column=0, sticky="ew", pady=(14, 0))
+        language.columnconfigure(0, weight=1)
+        ctk.CTkLabel(language, text="LANGUAGE  ·  the translation installed into the game", text_color=MUTED,
+                     font=ctk.CTkFont(size=10, weight="bold")).grid(row=0, column=0, sticky="sw", padx=18, pady=(12, 0))
+        # Measured: a pass over an already-English install changes no table, only the re-drawn textures.
+        ctk.CTkLabel(language, text="To switch a phone that is already translated, clear the game's data and "
+                                    "let it download again first.", text_color=MUTED, anchor="w", wraplength=330,
+                     justify="left", font=ctk.CTkFont(size=11)).grid(row=1, column=0, sticky="nw", padx=18,
+                                                                      pady=(0, 12))
+        names = {item.name: code for code, item in languages.LANGUAGES.items()}
+        self.language_picker = ctk.CTkSegmentedButton(
+            language, values=list(names), selected_color=ACCENT, selected_hover_color=ACCENT_HOVER,
+            unselected_color=SURFACE_2, unselected_hover_color=BORDER, height=32, corner_radius=10,
+            command=lambda name: self.choose_language(names[name]))
+        self.language_picker.set(languages.get(self.language).name)
+        self.language_picker.grid(row=0, column=1, rowspan=2, padx=18, pady=10)
+
         action = ctk.CTkFrame(main, fg_color="transparent")
-        action.grid(row=2, column=0, sticky="ew", pady=14)
+        action.grid(row=3, column=0, sticky="ew", pady=14)
         action.columnconfigure(1, weight=1)
         self.button = ctk.CTkButton(action, text="Start Patch", fg_color=ACCENT, hover_color=ACCENT_HOVER,
                                     height=46, width=180, corner_radius=12,
@@ -220,7 +239,7 @@ class App(ctk.CTk):
         self.progress.set(0)
 
         log_card = ctk.CTkFrame(main, fg_color=SURFACE, corner_radius=14, border_width=1, border_color=BORDER)
-        log_card.grid(row=3, column=0, sticky="nsew")
+        log_card.grid(row=4, column=0, sticky="nsew")
         log_card.rowconfigure(1, weight=1)
         log_card.columnconfigure(0, weight=1)
         ctk.CTkLabel(log_card, text="LOG", text_color=MUTED, font=ctk.CTkFont(size=10, weight="bold")).grid(
@@ -255,6 +274,10 @@ class App(ctk.CTk):
         self.work_dir = path
         save_work_dir(path)
         self.show_work_dir()
+
+    def choose_language(self, code: str) -> None:
+        self.language = code
+        save_language(code)
 
     # ---------- thread-safe UI interface used by Patcher ----------
     def log(self, line: str) -> None:
@@ -317,13 +340,14 @@ class App(ctk.CTk):
             row.set("pending")
         self.button.configure(state="disabled", text="Running…")
         self.folder_button.configure(state="disabled")
+        self.language_picker.configure(state="disabled")
         self.progress.configure(mode="indeterminate")
         self.progress.start()
         threading.Thread(target=self.worker, daemon=True).start()
 
     def worker(self) -> None:
         try:
-            summary = Patcher(self, self.work_dir).run()
+            summary = Patcher(self, self.work_dir, self.language).run()
             text, images = count_translated(summary)
             dropped_text = count_untranslated_text(summary)
             skipped = count_untranslated_graphics(summary)
@@ -355,6 +379,7 @@ class App(ctk.CTk):
         self.progress.set(1 if ok else 0)
         self.button.configure(state="normal", text="Run Again" if ok else "Try Again")
         self.folder_button.configure(state="normal")
+        self.language_picker.configure(state="normal")
         self.show_work_dir()
         self.status.configure(text="Done! Translation installed." if ok else "Failed. See the log for details.",
                               text_color=SUCCESS if ok else DANGER)
@@ -388,14 +413,14 @@ class LogStream:
         pass
 
 
-def selftest(game: Path, out: Path) -> None:
-    """Headless check of the frozen translation runtime: <exe> --selftest <game> <out>."""
+def selftest(game: Path, out: Path, language: str = languages.DEFAULT_LANGUAGE) -> None:
+    """Headless check of the frozen translation runtime: <exe> --selftest <game> <out> [language]."""
     import json
 
     with (out.parent / (out.name + ".log")).open("w", encoding="utf-8") as log_file:
         sys.stdout = sys.stderr = log_file
         try:
-            summary = build_patch(game, BUNDLE / "catalog", out / "build", out / "staged")
+            summary = build_patch(game, languages.catalog_dir(BUNDLE, language), out / "build", out / "staged")
             (out / "selftest.json").write_text(json.dumps(
                 {"ok": True, "packages": [(p["package_id"], p["stage_report"]["replacement_count"])
                                           for p in summary["packages"]]}))
@@ -404,8 +429,8 @@ def selftest(game: Path, out: Path) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) == 4 and sys.argv[1] == "--selftest":
-        selftest(Path(sys.argv[2]), Path(sys.argv[3]))
+    if len(sys.argv) in (4, 5) and sys.argv[1] == "--selftest":
+        selftest(Path(sys.argv[2]), Path(sys.argv[3]), *sys.argv[4:])
         return
     try:
         # Own taskbar identity so Windows shows our icon instead of the Python one.

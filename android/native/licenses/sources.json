@@ -1,0 +1,43 @@
+{
+  "Apache-2.0.txt": {
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+  },
+  "Chaquopy-17.0.0-MIT.txt": {
+    "bytes": 1076,
+    "sha256": "345a9fdfeed355d37b18569ef277ba56eb0ab7c0b17a08a90163ce8d33d2b862",
+    "url": "https://raw.githubusercontent.com/chaquo/chaquopy/17.0.0/LICENSE.txt"
+  },
+  "Codec-source-header-NOTICES.txt": {
+    "bytes": 95689,
+    "origin": "Pinned original pyooz 0.0.8, astc-encoder-py 0.1.12 and texture2ddecoder 1.0.6 source archives",
+    "recipe": "android/native/collect_source_notices.py",
+    "scope": "Comments in the first 16 KiB of C/C++ sources, deduplicated without editing; manual completeness review remains open",
+    "sha256": "fa4116ddce8a93e7061ea7dac68bed4f9c78a0e4bada454b19842391d996d37e"
+  },
+  "Maven-source-header-NOTICES.txt": {
+    "bytes": 32645,
+    "origin": "Seven published source JARs bound to resolved runtime coordinates; source hashes in artifacts/android-maven-sources/manifest.json",
+    "recipe": "android/native/audit_maven.py --published <sources> --notice-output <file>",
+    "scope": "Copyright/license comments in first 16 KiB of Java/Kotlin members; manual completeness and binary/source equivalence remain open",
+    "sha256": "2e3ed9fbb7e62332cb4923e8c02b5d29f333234e43c07e8e92321ecb978bc284"
+  },
+  "NDK-28.2.13676358-toolchain-NOTICE.txt": {
+    "bytes": 799639,
+    "origin": "Android NDK 28.2.13676358 NOTICE.toolchain",
+    "scope": "Original complete toolchain notices; includes unused toolchain components as well as the linked LLVM C++ runtime",
+    "sha256": "789714a9076571c580cf531bdcebec776a4d889c12c3c1108adafc6e4338710a"
+  },
+  "Python-3.12.12-LICENSE.txt": {
+    "bytes": 13936,
+    "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+    "url": "https://raw.githubusercontent.com/python/cpython/v3.12.12/LICENSE"
+  },
+  "Shizuku-API-MIT.txt": {
+    "bytes": 1062,
+    "scope": "MIT text at the upstream URL referenced by 13.1.5 Maven POM; version-specific source match remains open",
+    "sha256": "64870037f294b6f2b75c8ebe77cc0702acb3b64f86b4b0e58bf8558525303686",
+    "url": "https://raw.githubusercontent.com/RikkaApps/Shizuku-API/a27f6e4151ba7b39965ca47edb2bf0aeed7102e5/LICENSE"
+  }
+}

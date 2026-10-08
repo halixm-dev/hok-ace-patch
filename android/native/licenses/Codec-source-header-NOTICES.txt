@@ -1,0 +1,2123 @@
+Pinned codec source header notices
+Leading comment inventory; includes source which may be unused. Not a complete redistribution review.
+
+=== pyooz 0.0.8; source SHA-256 98916331773493764483bc6448c9c6166bf2440939abe77cd140509038cc3adf ===
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/kraken.cpp
+
+/*
+=== Kraken Decompressor for Windows ===
+Copyright (C) 2016, Powzix
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/aba.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/abd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/abdl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/abs.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/add.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/addlv.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/addv.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/addw_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/bic.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ceq.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cls.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cltz.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/clz.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cnt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/hadd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/hsub.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/maxnm.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/maxv.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/min.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/minnm.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/minv.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlal_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mls.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mls_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlsl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlsl_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlsl_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/movn.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/movn_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mul_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mull_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/neg.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/orn.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/pmin.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qabs.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qneg.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qrdmulh_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qsub.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rnd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/st1.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/sub.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/subw.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/subw_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/types.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/uqadd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-constify.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-features.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cmplt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/load.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/loadu.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/lzcnt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/mov_mask.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/set.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/setone.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/store.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/storeu.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/xop.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/addhn.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlal_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlsl_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mull_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/subhn.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/add.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/and.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/cmplt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/cnt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/dup.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/ld1.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/ptest.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/ptrue.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/qadd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/reinterpret.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/sel.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/st1.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/sub.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/types.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve/whilelt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/sve.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/add_a.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/adds.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/adds_a.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/addv.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/addvi.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/and.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/andi.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/ld.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/st.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/subv.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/types.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-f16.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/wasm/relaxed-simd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/wasm/simd128.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cmpneq.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cvtt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/f16c.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/addl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/addl_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/addw.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/bsl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cagt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ceqz.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/dot.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/dot_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ext.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/get_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/get_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/get_low.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/max.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mla.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mla_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlal.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlal_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/movl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/movl_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mul.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mul_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mull.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mull_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/padal.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/paddl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/pmax.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qadd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qdmulh.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qdmull.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qmovn.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qmovn_high.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qmovun.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qrdmulh.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qrdmulh_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/reinterpret.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rhadd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/set_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/st1_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/subl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/trn.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/trn1.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/trn2.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/uzp.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/uzp1.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/uzp2.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/zip.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/zip1.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/zip2.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Sean Maher <seanptmaher@gmail.com> (Copyright owned by Google, LLC)
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/and.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cge.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cgez.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cgt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cgtz.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cle.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/clez.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/clt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/create.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/eor.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mvn.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/orr.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qshl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qtbl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qtbx.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rbit.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rev16.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rev32.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rev64.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rshl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rshr_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rsra_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/shl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/shl_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/shll_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/shr_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/sra_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/tbl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/tbx.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/tst.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cmpgt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/extract.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/insert.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/kshift.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/mov.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/movm.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/permutex2var.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/permutexvar.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/shuffle.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Christopher Moore <moore@free.fr>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/bcax.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qshlu_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/sqadd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/xar.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Atharva Nimbalkar <atharvakn@gmail.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cage.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Evan Nemerson <evan@nemerson.com>
+ *   2021      Atharva Nimbalkar <atharvakn@gmail.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cmla.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cmla_rot180.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cmla_rot270.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cmla_rot90.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/fma.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/fma_lane.h
+
+/* SPDX-License-Identifier: MIT
+*
+* Permission is hereby granted, free of charge, to any person
+* obtaining a copy of this software and associated documentation
+* files (the "Software"), to deal in the Software without
+* restriction, including without limitation the rights to use, copy,
+* modify, merge, publish, distribute, sublicense, and/or sell copies
+* of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be
+* included in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+* BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+* ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+* CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*
+* Copyright:
+*   2021      Atharva Nimbalkar <atharvakn@gmail.com>
+*/
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/combine.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the folhighing conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Sean Maher <seanptmaher@gmail.com> (Copyright owned by Google, LLC)
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/cvt.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Sean Maher <seanptmaher@gmail.com>
+ *   2020-2021 Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/dup_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rndi.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rndm.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rndn.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rndp.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-complex.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cmple.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020-2021 Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/dup_n.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Sean Maher <seanptmaher@gmail.com> (Copyright owned by Google, LLC)
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/fma_n.h
+
+/* SPDX-License-Identifier: MIT
+*
+* Permission is hereby granted, free of charge, to any person
+* obtaining a copy of this software and associated documentation
+* files (the "Software"), to deal in the Software without
+* restriction, including without limitation the rights to use, copy,
+* modify, merge, publish, distribute, sublicense, and/or sell copies
+* of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be
+* included in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+* BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+* ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+* CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*
+* Copyright:
+*   2021      Evan Nemerson <evan@nemerson.com>
+*/
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ld1.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/recpe.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rsqrte.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/shrn_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/st2.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2021      Zhi An Ng <zhin@google.com> (Copyright owned by Google, LLC)
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ld1_dup.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ld4_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qshrn_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rsqrts.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/sri_n.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Zhi An Ng <zhin@google.com> (Copyright owned by Google, LLC)
+ *   2021      Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ld1_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ld2.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qdmulh_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qrshrn_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qrshrun_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qshrun_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/recps.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/rshrn_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/st2_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/st3_lane.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Zhi An Ng <zhin@google.com> (Copyright owned by Google, LLC)
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ld3.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/ld4.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/st3.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/st4.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Sean Maher <seanptmaher@gmail.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlal_high_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/mlsl_high_n.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/subl_high.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Décio Luiz Gazzoni Filho <decio@decpp.net>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/padd.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020-2021 Evan Nemerson <evan@nemerson.com>
+ *   2020      Sean Maher <seanptmaher@gmail.com> (Copyright owned by Google, LLC)
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/qdmulh_lane.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/arm/neon/st4_lane.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Evan Nemerson <evan@nemerson.com>
+ *   2021      Zhi An Ng <zhin@google.com> (Copyright owned by Google, LLC)
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/check.h
+
+/* Check (assertions)
+ * Portable Snippets - https://gitub.com/nemequ/portable-snippets
+ * Created by Evan Nemerson <evan@nemerson.com>
+ *
+ *   To the extent possible under law, the authors have waived all
+ *   copyright and related or neighboring rights to this code.  For
+ *   details, see the Creative Commons Zero 1.0 Universal license at
+ *   https://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * SPDX-License-Identifier: CC0-1.0
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/debug-trap.h
+
+/* Debugging assertions and traps
+ * Portable Snippets - https://gitub.com/nemequ/portable-snippets
+ * Created by Evan Nemerson <evan@nemerson.com>
+ *
+ *   To the extent possible under law, the authors have waived all
+ *   copyright and related or neighboring rights to this code.  For
+ *   details, see the Creative Commons Zero 1.0 Universal license at
+ *   https://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * SPDX-License-Identifier: CC0-1.0
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/hedley.h
+
+/* Hedley - https://nemequ.github.io/hedley
+ * Created by Evan Nemerson <evan@nemerson.com>
+ *
+ * To the extent possible under law, the author(s) have dedicated all
+ * copyright and related and neighboring rights to this software to
+ * the public domain worldwide. This software is distributed without
+ * any warranty.
+ *
+ * For details, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+ * SPDX-License-Identifier: CC0-1.0
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/mips/msa/madd.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TOa THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-align.h
+
+/* Alignment
+ * Created by Evan Nemerson <evan@nemerson.com>
+ *
+ *   To the extent possible under law, the authors have waived all
+ *   copyright and related or neighboring rights to this code.  For
+ *   details, see the Creative Commons Zero 1.0 Universal license at
+ *   <https://creativecommons.org/publicdomain/zero/1.0/>
+ *
+ * SPDX-License-Identifier: CC0-1.0
+ *
+ **********************************************************************
+ *
+ * This is portability layer which should help iron out some
+ * differences across various compilers, as well as various verisons of
+ * C and C++.
+ *
+ * It was originally developed for SIMD Everywhere
+ * (<https://github.com/simd-everywhere/simde>), but since its only
+ * dependency is Hedley (<https://nemequ.github.io/hedley>, also CC0)
+ * it can easily be used in other projects, so please feel free to do
+ * so.
+ *
+ * If you do use this in your project, please keep a link to SIMDe in
+ * your code to remind you where to report any bugs and/or check for
+ * updated versions.
+ *
+ * # API Overview
+ *
+ * The API has several parts, and most macros have a few variations.
+ * There are APIs for declaring aligned fields/variables, optimization
+ * hints, and run-time alignment checks.
+ *
+ * Briefly, macros ending with "_TO" take numeric values and are great
+ * when you know the value you would like to use.  Macros ending with
+ * "_LIKE", on the other hand, accept a type and are used when you want
+ * to use the alignment of a type instead of hardcoding a value.
+ *
+ * Documentation for each section of the API is inline.
+ *
+ * True to form, MSVC is the main problem and imposes several
+ * limitations on the effectiveness of the APIs.  Detailed descriptions
+ * of the limitations of each macro are inline, but in general:
+ *
+ *  * On C11+ or C++11+ code written using this API will work.  The
+ *    ASSUME macros may or may not generate a hint to the compiler, but
+ *    that is only an optimization issue and will not actually cause
+ *    failures.
+ *  * If you're using pretty much any compiler other than MSVC,
+ *    everything should basically work as well as in C11/C++11.
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-arch.h
+
+/* Architecture detection
+ * Created by Evan Nemerson <evan@nemerson.com>
+ *
+ *   To the extent possible under law, the authors have waived all
+ *   copyright and related or neighboring rights to this code.  For
+ *   details, see the Creative Commons Zero 1.0 Universal license at
+ *   <https://creativecommons.org/publicdomain/zero/1.0/>
+ *
+ * SPDX-License-Identifier: CC0-1.0
+ *
+ * Different compilers define different preprocessor macros for the
+ * same architecture.  This is an attempt to provide a single
+ * interface which is usable on any compiler.
+ *
+ * In general, a macro named SIMDE_ARCH_* is defined for each
+ * architecture the CPU supports.  When there are multiple possible
+ * versions, we try to define the macro to the target version.  For
+ * example, if you want to check for i586+, you could do something
+ * like:
+ *
+ *   #if defined(SIMDE_ARCH_X86) && (SIMDE_ARCH_X86 >= 5)
+ *   ...
+ *   #endif
+ *
+ * You could also just check that SIMDE_ARCH_X86 >= 5 without checking
+ * if it's defined first, but some compilers may emit a warning about
+ * an undefined macro being used (e.g., GCC with -Wundef).
+ *
+ * This was originally created for SIMDe
+ * <https://github.com/simd-everywhere/simde> (hence the prefix), but this
+ * header has no dependencies and may be used anywhere.  It is
+ * originally based on information from
+ * <https://sourceforge.net/p/predef/wiki/Architectures/>, though it
+ * has been enhanced with additional information.
+ *
+ * If you improve this file, or find a bug, please file the issue at
+ * <https://github.com/simd-everywhere/simde/issues>.  If you copy this into
+ * your project, even if you change the prefix, please keep the links
+ * to SIMDe intact so others know where to report issues, submit
+ * enhancements, and find the latest version. */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-common.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-diagnostic.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-math.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/mmx.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/sse3.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/sse4.1.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/ssse3.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2017-2020 Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/simde-detect-clang.h
+
+/* Detect Clang Version
+ * Created by Evan Nemerson <evan@nemerson.com>
+ *
+ * To the extent possible under law, the author(s) have dedicated all
+ * copyright and related and neighboring rights to this software to
+ * the public domain worldwide. This software is distributed without
+ * any warranty.
+ *
+ * For details, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+ * SPDX-License-Identifier: CC0-1.0
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2018-2020 Evan Nemerson <evan@nemerson.com>
+ *        2020 Michael R. Crusoe <crusoe@debian.org>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx2.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2018-2020 Evan Nemerson <evan@nemerson.com>
+ *   2019-2020 Michael R. Crusoe <crusoe@debian.org>
+ *   2020      Himanshi Mathur <himanshi18037@iiitd.ac.in>
+ *   2020      Hidayat Khan <huk2209@gmail.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/2intersect.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/madd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/maddubs.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Ashleigh Newman-Jones <ashnewman-jones@hotmail.co.uk>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/abs.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/add.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/avg.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/blend.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/max.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/min.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/mulhi.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/mulhrs.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/mullo.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/packs.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/packus.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/sad.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/set4.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/sll.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/sllv.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/sra.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/srai.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/srav.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/srl.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/srli.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/srlv.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/subs.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/unpackhi.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/unpacklo.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Hidayat Khan <huk2209@gmail.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/adds.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/andnot.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/copysign.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/fmadd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/negate.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/set1.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/setr.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/setr4.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/sqrt.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/xorsign.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/svml.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Himanshi Mathur <himanshi18037@iiitd.ac.in>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/and.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cvts.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/div.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/mul.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/or.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/sub.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/xor.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Himanshi Mathur <himanshi18037@iiitd.ac.in>
+ *   2020      Hidayat Khan <huk2209@gmail.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/broadcast.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/slli.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Hidayat Khan <huk2209@gmail.com>
+ *   2020      Christopher Moore <moore@free.fr>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cast.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/setzero.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Himanshi Mathur <himanshi18037@iiitd.ac.in>
+ *   2020      Hidayat Khan <huk2209@gmail.com>
+ *   2020      Christopher Moore <moore@free.fr>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cmp.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cmpeq.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020-2021 Evan Nemerson <evan@nemerson.com>
+ *   2020      Himanshi Mathur <himanshi18037@iiitd.ac.in>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cmpge.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020-2021 Evan Nemerson <evan@nemerson.com>
+ *   2020      Christopher Moore <moore@free.fr>
+ *   2021      Andrew Rodriguez <anrodriguez@linkedin.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/cvt.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020-2021 Evan Nemerson <evan@nemerson.com>
+ *   2020      Himanshi Mathur <himanshi18037@iiitd.ac.in>
+ *   2020      Hidayat Khan <huk2209@gmail.com>
+ *   2021      Andrew Rodriguez <anrodriguez@linkedin.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/expand.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Andrew Rodriguez <anrodriguez@linkedin.com>
+ *   2021      Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/fmsub.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/fnmadd.h
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/fnmsub.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      kitegi <kitegi@users.noreply.github.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/ternarylogic.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Kunwar Maheep Singh <kunwar.maheep@students.iiit.ac.in>
+ *   2021      Christopher Moore <moore@free.fr>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/test.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2020      Hidayat Khan <huk2209@gmail.com>
+ *   2020      Christopher Moore <moore@free.fr>
+ *   2021      Andrew Rodriguez <anrodriguez@linkedin.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/testn.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Andrew Rodriguez <anrodriguez@linkedin.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/avx512/types.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *  2020      Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/clmul.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2016      Thomas Pornin <pornin@bolet.org>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/fma.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2019      Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/gfni.h
+
+/* Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2020-2021 Christopher Moore <moore@free.fr>
+ *   2020      Evan Nemerson <evan@nemerson.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/sse.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2017-2020 Evan Nemerson <evan@nemerson.com>
+ *   2015-2017 John W. Ratcliff <jratcliffscarab@gmail.com>
+ *   2015      Brandon Rowlett <browlett@nvidia.com>
+ *   2015      Ken Fast <kfast@gdeb.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/sse2.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2017-2020 Evan Nemerson <evan@nemerson.com>
+ *   2015-2017 John W. Ratcliff <jratcliffscarab@gmail.com>
+ *   2015      Brandon Rowlett <browlett@nvidia.com>
+ *   2015      Ken Fast <kfast@gdeb.com>
+ *   2017      Hasindu Gamaarachchi <hasindu@unsw.edu.au>
+ *   2018      Jeff Daily <jeff.daily@amd.com>
+ */
+
+Original source files:
+pyooz-0.0.8/ooz/dep/ooz/simde/simde/x86/sse4.2.h
+
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2017      Evan Nemerson <evan@nemerson.com>
+ *   2020      Hidayat Khan <huk2209@gmail.com>
+ */
+
+=== astc-encoder-py 0.1.12; source SHA-256 03759ac32804cae32bc238e72f94c5ba27e228507df00816b741f7961f1184f9 ===
+
+Original source files:
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc.h
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_vecmathlib_common_4.h
+
+// SPDX-License-Identifier: Apache-2.0
+// ----------------------------------------------------------------------------
+// Copyright 2020-2024 Arm Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. You may obtain a copy
+// of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
+// ----------------------------------------------------------------------------
+
+
+Original source files:
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_averages_and_directions.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_block_sizes.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_color_quantize.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_color_unquantize.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_partition_tables.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_quantization.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_symbolic_physical.cpp
+
+// SPDX-License-Identifier: Apache-2.0
+// ----------------------------------------------------------------------------
+// Copyright 2011-2023 Arm Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. You may obtain a copy
+// of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
+// ----------------------------------------------------------------------------
+
+
+Original source files:
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_compress_symbolic.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_decompress_symbolic.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_entry.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_find_best_partitioning.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_ideal_endpoints_and_weights.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_image.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_integer_sequence.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_internal.h
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_internal_entry.h
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_mathlib.h
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_pick_best_endpoint_format.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_weight_align.cpp
+
+// SPDX-License-Identifier: Apache-2.0
+// ----------------------------------------------------------------------------
+// Copyright 2011-2024 Arm Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. You may obtain a copy
+// of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
+// ----------------------------------------------------------------------------
+
+
+Original source files:
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_compute_variance.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_percentile_tables.cpp
+astc_encoder_py-0.1.12/src/astcenc_error_metrics.cpp
+
+// SPDX-License-Identifier: Apache-2.0
+// ----------------------------------------------------------------------------
+// Copyright 2011-2022 Arm Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. You may obtain a copy
+// of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
+// ----------------------------------------------------------------------------
+
+
+Original source files:
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_diagnostic_trace.cpp
+
+// SPDX-License-Identifier: Apache-2.0
+// ----------------------------------------------------------------------------
+// Copyright 2021-2023 Arm Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. You may obtain a copy
+// of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
+// ----------------------------------------------------------------------------
+
+
+Original source files:
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_diagnostic_trace.h
+
+// SPDX-License-Identifier: Apache-2.0
+// ----------------------------------------------------------------------------
+// Copyright 2021-2022 Arm Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. You may obtain a copy
+// of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
+// ----------------------------------------------------------------------------
+
+
+Original source files:
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_mathlib.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_mathlib_softfloat.cpp
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_weight_quant_xfer_tables.cpp
+
+// SPDX-License-Identifier: Apache-2.0
+// ----------------------------------------------------------------------------
+// Copyright 2011-2021 Arm Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. You may obtain a copy
+// of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
+// ----------------------------------------------------------------------------
+
+
+Original source files:
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_vecmathlib.h
+
+// SPDX-License-Identifier: Apache-2.0
+// ----------------------------------------------------------------------------
+// Copyright 2019-2024 Arm Limited
+// Copyright 2008 Jose Fonseca
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. You may obtain a copy
+// of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
+// ----------------------------------------------------------------------------
+
+
+Original source files:
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_vecmathlib_avx2_8.h
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_vecmathlib_neon_4.h
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_vecmathlib_none_4.h
+astc_encoder_py-0.1.12/src/astc-encoder/Source/astcenc_vecmathlib_sse_4.h
+
+// SPDX-License-Identifier: Apache-2.0
+// ----------------------------------------------------------------------------
+// Copyright 2019-2024 Arm Limited
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. You may obtain a copy
+// of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+// License for the specific language governing permissions and limitations
+// under the License.
+// ----------------------------------------------------------------------------
+
+
+=== texture2ddecoder 1.0.6; source SHA-256 88f04d8951018ac13b8dacd07e57e8adad4a6f1cfe5509646e8a1020346a81ca ===
+
+Original source files:
+texture2ddecoder-1.0.6/src/Texture2DDecoder/crunch/crn_decomp.h
+
+// File: crn_decomp.h - Fast CRN->DXTc texture transcoder header file library
+// Copyright (c) 2010-2016 Richard Geldreich, Jr. All rights reserved.
+// See Copyright Notice and license at the end of this file.
+//
+// This single header file contains *all* of the code necessary to unpack .CRN files to raw DXTn bits.
+// It does NOT depend on the crn compression library.
+//
+// Note: This is a single file, stand-alone C++ library which is controlled by the use of two macros:
+//   If CRND_INCLUDE_CRND_H is NOT defined, the header is included.
+//   If CRND_HEADER_FILE_ONLY is NOT defined, the implementation is included.
+//
+// Important: If compiling with gcc, be sure strict aliasing is disabled: -fno-strict-aliasing
+
+
+Original source files:
+texture2ddecoder-1.0.6/src/Texture2DDecoder/crunch/crnlib.h
+
+// File: crnlib.h - Advanced DXTn texture compression library.
+// Copyright (c) 2010-2016 Richard Geldreich, Jr. All rights reserved.
+// See copyright notice and license at the end of this file.
+//
+// This header file contains the public crnlib declarations for DXTn,
+// clustered DXTn, and CRN compression/decompression.
+//
+// Note: This library does NOT need to be linked into your game executable if
+// all you want to do is transcode .CRN files to raw DXTn bits at run-time.
+// The crn_decomp.h header file library contains all the code necessary for
+// decompression.
+//
+// Important: If compiling with gcc, be sure strict aliasing is disabled: -fno-strict-aliasing
+
+
+Original source files:
+texture2ddecoder-1.0.6/src/Texture2DDecoder/endianness.h
+
+/*
+ *
+ * License Information
+ *
+ * endianness.h is derived from https://gist.github.com/jtbr/7a43e6281e6cca353b33ee501421860c
+ * The file is licensed under the MIT License shown below.
+ *
+ *
+ * The MIT License (MIT)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+Original source files:
+texture2ddecoder-1.0.6/src/Texture2DDecoder/fp16.h
+
+/*
+ *
+ * License Information
+ *
+ * FP16 library is derived from https://github.com/Maratyszcza/FP16.
+ * The library is licensed under the MIT License shown below.
+ *
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2017 Facebook Inc.
+ * Copyright (c) 2017 Georgia Institute of Technology
+ * Copyright 2019 Google LLC
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+Original source files:
+texture2ddecoder-1.0.6/src/Texture2DDecoder/unitycrunch/crn_decomp.h
+
+// File: crn_decomp.h - Fast CRN->DXTc texture transcoder header file library
+// Copyright (c) 2010-2016 Richard Geldreich, Jr. and Binomial LLC
+// See Copyright Notice and license at the end of this file.
+//
+// This single header file contains *all* of the code necessary to unpack .CRN files to raw DXTn bits.
+// It does NOT depend on the crn compression library.
+//
+// Note: This is a single file, stand-alone C++ library which is controlled by the use of the following macro:
+//   If CRND_INCLUDE_CRND_H is NOT defined, the header is included.
+//
+// Important: If compiling with gcc, be sure strict aliasing is disabled: -fno-strict-aliasing
+
+
+Original source files:
+texture2ddecoder-1.0.6/src/Texture2DDecoder/unitycrunch/crnlib.h
+
+// File: crnlib.h - Advanced DXTn texture compression library.
+// Copyright (c) 2010-2016 Richard Geldreich, Jr. and Binomial LLC
+// See copyright notice and license at the end of this file.
+//
+// This header file contains the public crnlib declarations for DXTn,
+// clustered DXTn, and CRN compression/decompression.
+//
+// Note: This library does NOT need to be linked into your game executable if
+// all you want to do is transcode .CRN files to raw DXTn bits at run-time.
+// The crn_decomp.h header file library contains all the code necessary for
+// decompression.
+//
+// Important: If compiling with gcc, be sure strict aliasing is disabled: -fno-strict-aliasing
+

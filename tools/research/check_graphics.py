@@ -63,9 +63,13 @@ def mean_abs_diff(left: bytes, right: bytes) -> float:
 
 
 def device_bytes(width: int, height: int, bx: int, by: int) -> bytes:
-    """A synthetic device texture of the shape <english_raw> expects, filled with a ramp."""
-    size = math.ceil(width / bx) * math.ceil(height / by) * 16
-    return bytes((i * 31 + 7) % 256 for i in range(size))
+    """A valid synthetic ASTC texture of the shape <english_raw> expects.
+
+    Arbitrary ramp bytes are not ASTC blocks: the native decoder crashes on their invalid endpoint
+    parameters on ARM64. These checks measure edits to valid textures, so encode a known opaque
+    background instead. Byte comparisons still independently prove that untouched blocks stay intact.
+    """
+    return mg.encode_astc(bytes((7, 38, 69, 255)) * (width * height), width, height, bx, by)
 
 
 def ranges_of(graphic: dict) -> list[tuple[int, int]]:

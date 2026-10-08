@@ -7,3 +7,8 @@ __pycache__/
 HOK ACE Patcher Data/
 work/
 artifacts/
+android/.gradle/
+android/.kotlin/
+android/**/build/
+android/local.properties
+android/wheels/

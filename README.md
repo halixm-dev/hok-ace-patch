@@ -1,7 +1,8 @@
 # HOK ACE Mobile English Patcher
 
-Windows app that installs the English translation into 王者万象棋 (`com.tencent.tmgp.osgame`)
-on an Android phone over USB, without root. The translation is written into the game data
+Windows app that installs the English or Indonesian translation into 王者万象棋
+(`com.tencent.tmgp.osgame`) on an Android phone over USB, without root. Pick the language under
+**LANGUAGE** in the app before starting; the choice is remembered. The translation is written into the game data
 **after** the in-game update finishes, because Tencent's updater applies binary diffs that break
 if the language packages were modified inside the APK.
 
@@ -10,10 +11,11 @@ if the language packages were modified inside the APK.
 | Path | Contents |
 |---|---|
 | `app/` | GUI (`hok_patcher.py`), workflow (`patcher_core.py`), APK signing (`apk_tools.py`), `build_exe.py`, `make_icon.py` |
-| `tools/` | Translation build pipeline: `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), append into an existing package (`qts_insert.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py`, `axml_label.py` |
-| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, key derivation, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`. Off the runtime path; nothing here ships in the exe |
+| `tools/` | Translation build pipeline: `languages.py` (the patch languages and their catalogs), `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), append into an existing package (`qts_insert.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `axml_set_debuggable.py`, `axml_label.py` |
+| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, key derivation, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`, `make_language_payloads.py`. Off the runtime path; nothing here ships in the exe |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime, extracted from the PC patcher (Python 3.12 bytecode) |
-| `resources/catalog/` | Translation catalog (`.blocks` / `.assets`) — the English texture payloads the texture pass applies, plus `previews/` |
+| `resources/catalog/` | English translation catalog (`catalog.json.gz`) and the English texture payloads (`.blocks` / `.assets`) the texture pass applies, plus `previews/` |
+| `resources/catalog_id/` | Indonesian catalog (`catalog.json.gz`) plus the textures it re-draws (`<HASH>.blocks`, `previews/<HASH>.png`); every other texture comes from `catalog/` |
 | `resources/adb/` | `adb.exe` + DLLs |
 | `resources/key/` | Re-signing key: `key.pk8` + `cert.der` |
 | `resources/qtsvfs/` | Tencent's own package builder (`QtsVFS.dll`, `QtskDB.dll`, VC runtimes), driven by ctypes to re-lay-out a package whole |
@@ -37,7 +39,7 @@ If `py -3.12` is not available: `set PYTHON=C:\path\to\python3.12.exe` before `s
 
 1. Pulls the installed APK, names the app in its manifest, re-signs it with the project key, and builds
    a temporary `android:debuggable` copy for data access via `run-as`.
-2. Reads the language packages from the game data, builds the English packages
+2. Reads the language packages from the game data, builds the translated packages in the chosen language
    (`tools/build_device_patch.py`), pushes them back and verifies them.
 3. Reinstalls the normal re-signed APK.
 
@@ -100,19 +102,22 @@ such as `Arena Tiger` that previously displayed raw `#BE08...` refs. A normal pa
 builder DLL for this fix. Rerunning the updated patcher also repairs an older patched copy, even
 when its dictionary strings are already English.
 
-A third pass, `extra_text`, translates display strings the catalog has no table for — strings that live in
-config assets rather than localization tables, which is why its allowlist is exactly **four assets**: the
-AI opponent nicknames (~11 000, romanised with pinyin), the display-text table, the post-match compliments
-and the rule pages. Every entry in that list was put on a phone and watched, because translating one of
-these assets can take a screen with it: task names make a tournament replay force-close, the four
-chessplayer-skill assets remove the skill-description button, and mail, quiz and "not open yet" notices
-remove the game button after pressing start and blank the encyclopedia. The withdrawn hashes and the
-symptom each one causes are recorded beside the allowlist in `tools/extra_text.py`; do not add to that set
-without a device cycle. The same class of edit had already broken the login screen, the Card menu and every
-prefab label tried, which is why the set is this small.
+A third pass, `extra_text`, translates display strings the catalog has no table for. Most of them live in
+config assets rather than localization tables, and its allowlist for those, `SAFE_ASSETS`, is **empty**:
+every config asset ever cleared on a phone was withdrawn later, because translating one can take a screen
+with it. Task names make a tournament replay force-close; the four chessplayer-skill assets remove the
+skill-description button; mail, quiz and "not open yet" notices remove the game button after pressing start
+and blank the encyclopedia; the rule pages remove the Announcement screen's back arrow and title; and the AI
+nicknames, display-text table and post-match compliments make every match end in a
+`/未翻译UI/QTSFailureTips` popup, the client's QTS-failure notice. The withdrawn hashes and the symptom each
+one causes are recorded beside the allowlist in `tools/extra_text.py`; do not add to that set without a
+device cycle. The same class of edit had already broken the login screen, the Card menu and every prefab
+label tried. What the pass still does is `SCRIPT_LABELS`: one hard-coded label in a Lua UI script, the
+Effect Card filter's `通用`, replaced with the catalog's `General` and appended to package `10`.
 
-Of the catalog's 398 texture edits, 395 exist somewhere in the mobile build — 323 in the downloaded layer
-and 73 in the APK's built-in layer, one asset keyed in both — and a run applies all 395. `7B4CC5DF48336D2D`,
+Of the catalog's 398 texture edits, 395 exist somewhere in the mobile build under their own hash — 323 in
+the downloaded layer and 73 in the APK's built-in layer, one asset keyed in both — and the other three are
+reached through the device revision of their card, so a run applies all **398**. `7B4CC5DF48336D2D`,
 Central Plains' fourth wide faction panel, sits in the APK's package `21` and reaches the phone by append:
 the panel is translated from its prime revision and one record is added to the override copy of `21`, which
 therefore keeps the container shape the game already mounts. A *rebuild* of `21` also applies it — 4863
@@ -121,8 +126,11 @@ card: the Factionless hero Yixing then draws as the game's grey placeholder, wit
 missing, while Tencent's own copy of the package draws that card correctly. Package `21` is therefore kept
 out of `REBUILD_PACKAGES`.
 
-Three edits are left alone: `197CC5393D16E3CB`, `884E0B4581F47CF7` and `89C771ECFCDC7FBE` are in neither
-layer, so no code change can apply them.
+Three edits, `197CC5393D16E3CB`, `884E0B4581F47CF7` and `89C771ECFCDC7FBE`, are in neither layer under
+their own hash: they are effect-card faction bands, and the mobile build carries each card under another
+hash. `mobile_graphics.DEVICE_REVISIONS` maps each edit to the one package-`15` card whose band matches its
+group's band (mean difference 0.01-0.02; the next closest card is 0.38), which is how the Riverlands card
+Armed Power reads *Riverlands* instead of `大河流域`.
 
 A device chunk's framing is per chunk and self-describing: stored when its compressed and uncompressed
 sizes agree, a Zstandard frame when the payload opens with that magic, otherwise whatever the entry's
@@ -210,7 +218,7 @@ does not extend:
   `resources/catalog/` is.
 
 Two allowlists decide how far the display strings the catalog has no table for are taken. `SAFE_ASSETS`
-in `tools/extra_text.py` holds the four assets a device cycle has cleared; `CANDIDATE_ASSETS` beside it
+in `tools/extra_text.py` holds the config assets a device cycle has cleared (none today); `CANDIDATE_ASSETS` beside it
 holds the fifteen the asset note names as *not tried*, each resolved to the hash the package carries and
 measured — `tools/research/extra_text_candidates.py` prints that table, and checks that a run naming no
 candidate plans the allowlist and nothing else. Four of the fifteen are display-label tables the catalog
@@ -228,6 +236,33 @@ leaves a package alone once its staged copy already holds the asset — appendin
 would index the same B-tree key twice. A run that reuses an output directory therefore reports fewer
 packages than that directory holds: the copy the first run appended to is left as it is, because it is
 where the earlier result lives.
+
+## Languages
+
+The catalog directory is the language: `resources/catalog/` is English and `resources/catalog_id/` is
+Bahasa Indonesia (`tools/languages.py`). The offline pipeline and the headless check take a language the
+same way the app does:
+
+```bat
+.venv\Scripts\python.exe tools\build_device_patch.py --runtime resources\runtime --game <game-dir> ^
+    --catalog resources\catalog_id --work <work-dir> --output <out-dir> --apk <path>\installed.apk
+dist\HOK ACE Mobile English Patcher.exe --selftest <game-dir> <out-dir> id
+```
+
+A language catalog ships only the textures it re-draws; every other texture is the English edit. Today
+that is the lobby's START GAME label, drawn as MULAI GAME. To re-draw another label, put its render at
+`resources/catalog_<lang>/previews/<HASH>.png`, add it to `LABELS` in
+`tools/research/make_language_payloads.py`, and regenerate; `--check` fails when a shipped payload is
+out of date:
+
+```bat
+.venv\Scripts\python.exe tools\research\make_language_payloads.py
+.venv\Scripts\python.exe tools\research\make_language_payloads.py --check
+```
+
+Text the game already ships in English stays English in an Indonesian run unless the catalog carries an
+`english_updates` row for it, and switching an already-patched phone to the other language needs the
+game's data reset first, as for any newer translation build (*Known limits*).
 
 ## Checking the texture pass
 
@@ -328,5 +363,44 @@ few minutes and writes about 350 MB.
   (anti-cheat kill / `IsPrebuild errorCode:151`).
 
 Local dumps, generated packages and device evidence are excluded from Git.
+An experimental Android/Shizuku patcher lives alongside the Windows patcher under
+[`android/`](android/README.md). On 2026-10-05 its full live flow completed on the Xiaomi Android 12:
+391 text tables and 395 textures applied across six packages, one text table skipped, and the
+normal APK and applied package payload verified. Already-normal APKs retain their identity;
+matching cached normal/access APKs are verified and reused before creating any new copies.
+The Android launcher is **HOK ACE Patcher**, with application ID `dev.halixm.hokacepatcher`.
+It uses the supplied adaptive icon over `#9EBEF7`. The former `io.github.hokace.patcher` install
+keeps its own private files; the package rename does not migrate or delete recovery data.
+Its development UI has one **Start** button. It checks Shizuku permission automatically,
+verifies pending emergency restoration, recovers interrupted patch/setup work, prepares fresh
+files and detects first setup without a manual step list or preparation picker. It pauses for
+Shizuku startup/permission, first-setup data-loss and login consent, and confirming game downloads.
+Voice/tutorial buttons are removed. Live timestamped progress logs appear on the main screen; safe stopping and recovery remain. Storage errors show required, available and additional GB. Snapshot space uses measured game data rather than a fixed 8 GiB allocation.
+Emergency installer opening saves a pending restore request; independent installed-APK verification
+must resolve it, while unfinished game-data changes still require recovery.
+Connected foreground verification survives its own Shizuku service loss safely: it keeps the
+request pending, then resolves it only after a fresh independent normal-APK check.
+Unreadable patch/setup records allow explicit emergency selection of a retained normal APK;
+the selected APK is fully verified before opening the installer, without clearing damaged records.
+Diagnostic export preserves bounded raw records and backups even when they are unreadable;
+exported evidence does not authorize recovery or clear pending changes.
+Its fixture diagnostic now verifies real file rollback after killing and restarting the Android
+app; deliberate live-game interruption and broader installer lifecycle acceptance remain open.
+Replacing the installed disposable fixture preserves its data and exact APK bytes;
+fresh fixture installation/recovery also passes after both MIUI debugging/installation options
+were confirmed. Full game installer recovery still needs acceptance.
+Patch journals are published after their first durable write; incomplete initialization cannot
+appear as an authorized recovery session.
+Converted-install patch start requires a fresh, one-use confirmation that game updates finished and the game is closed; the normal full-patch path now passes on the measured Xiaomi; watched-screen and repeat-patch acceptance remain open.
+First setup now has separate data-loss and Scan-to-login confirmations, a one-use foreground request,
+installation recovery and a fresh-update checkpoint. Actual first-official conversion remains untested.
+Offline build preflight estimates work/staging storage while reserving the normal APK for recovery.
+Android notice/source auditing and remaining release requirements are recorded in
+[`android/native/THIRD_PARTY.md`](android/native/THIRD_PARTY.md).
+It remains a development build: another OEM, Android 15/page-size tests, deliberate live failures and a cable-disconnected release cycle are still pending. See its README for build commands and the feature report for measured evidence.
+The development platform harness, `tools/research/check_android_platform.py`, records ABI/page size,
+matches installed development APK hashes to the inspected build, and checks codec loading without game access.
+Windows and Android share the four result counters in `tools/patch_summary.py`; the Windows
+GUI continues to consume them through `app/patcher_core.py`.
 See [local artifact retention](docs/artifact-retention.md) for what the 2026-10-03
 cleanup retained and which historical outputs must be rebuilt before reuse.

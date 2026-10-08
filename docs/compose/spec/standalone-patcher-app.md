@@ -1,7 +1,7 @@
 ---
 feature: standalone-patcher-app
 status: delivered
-updated: 2026-09-29
+updated: 2026-10-04
 branch: master
 commits: 7b9769b..9f151a8
 ---
@@ -9,6 +9,16 @@ commits: 7b9769b..9f151a8
 # Standalone Patcher App
 
 ## Report
+
+On 2026-10-04 the three summary accessors moved unchanged into `tools/patch_summary.py` so
+Android and Windows classify the four results identically. `patcher_core` re-exports the existing
+names, preserving the GUI API. Python 3.12 import/control check returns 391 text tables, 395 applied
+textures, one skipped table and zero skipped textures; accessor identity matches the shared module.
+The frozen application was rebuilt with `.venv/Scripts/python.exe app/build_exe.py` and passed
+`--selftest` against `dist/HOK ACE Patcher Data/pristine/20261003-173730/game`;
+`artifacts/android-port-windows-selftest/selftest.json` reports `ok: true`. Build and self-test
+logs are `artifacts/android-port-windows-build.log` and `artifacts/android-port-windows-selftest.log`.
+The self-test covers the downloaded dump without an APK input.
 
 **What was built** — `hok-ace-android-en` is now a standalone, buildable Windows patcher app with the
 sibling project's layout and branding: `app/` (customtkinter GUI, USB device workflow, APK rewrite and
@@ -39,12 +49,21 @@ Staging is text-tables-only — `full` mode with a `fit-only` fallback, no graph
 | `python app/build_exe.py` | PASS — `dist/HOK ACE Mobile English Patcher.exe`, 48.2 MB |
 | Frozen exe `--selftest <empty dir> <out>` | PASS (expected failure) — loaded the bundled runtime and reached `wxq_patch\adaptive.py` before `ValueError: WXQ_Data/Package/builtin was not found` |
 
-NOT RUN, and not claimed: `--selftest` against a real dumped game directory, and the end-to-end device
-flow (adb detect, APK pull, package push, reinstall). Neither a device nor game data exists in this
-environment. The repository has no test suite.
+At the original delivery, the real-dump self-test and end-to-end device flow were not run.
+The 2026-10-04 real-dump self-test above supersedes that historical limitation. Later device
+and graphics evidence is recorded in the corresponding feature records. The repository has no
+general test suite.
 
 **Journey log**
 
+- **Android signing adapter (2026-10-03).** `apk_tools.sign_v2` accepts an optional RSA callable
+  and DER public key; its default still loads the existing PKCS#8 key through cryptography.
+  Crypto imports now occur only in that default branch. ZIP rewriting and the v2 digest/block
+  construction stay shared. The old implementation, new default and injected desktop RSA output
+  are byte-identical on the disposable fixture control (SHA-256 `eeb33a4e…26d3854b`), and
+  SDK `apksigner verify --verbose --print-certs` independently verifies v2 and the stable certificate.
+  The Android port delegates the one RSA operation to Java; its separate device proof is recorded
+  in `android-shizuku-patcher.md`.
 - This repo's `tools/` is an *earlier fork* of the sibling's pipeline: `axml_set_debuggable.py` and
   `build_mobile_patch.py` are byte-identical, but `build_device_patch.py` had no `build_patch()`, no
   `qts_relocate` re-run fix, and no staging guards. Coverage gaps (resource tokens, extra text,
