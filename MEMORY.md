@@ -780,3 +780,54 @@ Reported on the Indonesian build (1.4.0.2, Xiaomi `f15a72e`). Each verdict below
   `INSUFFICIENT_STORAGE`, leaving the debuggable APK installed. Deleted with the user's approval (10 GB free).
   A cycle script must keep the restore inside `finally` for the access install itself too.
 
+
+
+## 2026-10-08 — Diamond Frenzy Effect Cards print raw `#23F7...` refs: the other ten card dictionaries
+
+Reported on the Indonesian build installed by the Android patcher (Infinix X6853, session `c1a2e7d8`,
+388 tables / 398 textures); the user says the English build shows the same. Encyclopedia → Diamond Frenzy →
+Kartu Efek: every grid caption and the detail pane's name and description are raw refs
+(`#23F7C87B1B68DA1C#`, `#23F7CDBFA1846C57#`), while the tabs and the "Terkait" line are translated.
+
+- **Cause: the T15 failure on the other card dictionaries.** Both refs are defined in `28D9F8B02CAA94E2`
+  (600 767 B, 2 chunks x 307200; `41B38BE39A60C211` is a 1.2 MB asset that references them). Each game mode
+  carries its own copy of the card dictionary under its own ref prefix, and the relocation pass enlarged the
+  chunk size of the ten that are not the Talent one. Offline Indonesian build on the 1.4.0.1 dump
+  (`cache/base-1401`): `28D9F8B02CAA94E2` and `A336359CD92A858E` 600 767 → 658 309 B at chunk size 331 776
+  (2 chunks); `666DC40230B31A30`, `F628F40CE23D983E`, `42E8DB43608C2FF1`, `9BE81CD52C660467`,
+  `27BBF8CDFFFA177F`, `C4E32B49AE8B7FFB`, `5EB61A0269CD8550`, `04F21C6735D0D555` ~277 KB → ~319 KB at
+  319 488 / 323 584 (1 chunk). Prefixes `#23F7` `#8E55` `#A40D` `#0977` `#9344` `#BF5A` `#75CA` `#1632`
+  `#31CF` `#BCDE`; `C059EA43719099F1` (`#BE08`) was the only one already fixed.
+- **Keys minted offline, user-authorized.** One throwaway one-asset `Builder.build` per dictionary with the
+  staged bytes at chunk size 307200, flag `0x50001`. Every chunk index the device already has reproduced its
+  device hash1 (11/11), the Talent dictionary reproduced exactly `15A33357ECBFA5CC` / `29157589AC92F155`, and
+  every build read back byte-identical. The new keys are `device_extensions.NATIVE_CHUNK_KEYS`.
+- **Offline verification.** Indonesian and English fresh builds: all eleven at chunk size 307200 with native
+  keys (3 chunks for the two 600 KB dictionaries, 2 for the rest), no non-standard chunk size left in package
+  `1`. Repair path: a build over the old broken output repairs ten dictionaries and its package `1` is
+  byte-identical, asset for asset, to the fresh build.
+- **Owed: the device verdict** for the ten new dictionaries (Diamond Frenzy Effect Cards first), and the
+  Android APK rebuild that carries the fix (no Android SDK on the machine that made it).
+
+### Same day: 1.5.0.1 on the phone, catalog fixes, an Android 15 preparation failure
+
+- **Device verdict for the card dictionaries.** The phone moved to data 1.5.0.1; a USB run through
+  `patcher_core` (same `build_patch` as the Android engine) staged all eleven at 307200 with their native keys
+  (keys of 1.5.0.1's chunks matched the minted ones). Diamond Frenzy's Effect Card grid and detail pane now read
+  as text (screenshot of Build Snowman's tile and name). One more enlarged chunk remains, on the **append** path:
+  `218D140500F68F37` (prime-only hero skill text, `#CE46` refs, 259 450 → 311 786 B at chunk 315 392). Not fixed.
+- **1.5.0.1 rewrote card texts the catalog keyed by their old wording** (`+3`→`+4`, `3/5/7/9`→`3/6/9/12`,
+  `+10`→`+{0|10}`…), so those rows stay Chinese. A rough scan of package `1`'s catalog tables found ~1300 distinct
+  Chinese values left, ~100 of them near-identical to a catalog source. Only the ones the user reported are fixed.
+- **Indonesian catalog fixes**, re-applied over each upstream catalog by `tools/research/apply_catalog_fixes.py`:
+  `棋手` Chessplayer (upstream wrote Pemain), `传承` Inheritance, `阵营祝福` Faction Blessing, Yao's Combine keyword
+  link, and the 1.5.0.1 wording of Shared Fortune, Inheritance and Build Snowman.
+- **Android 15 (Infinix X6851) fails APK preparation** with `Prepared APK version/signer/debug identity differs`
+  on game 1.1.1 (774472), three retries, 18 GB of unfinished preparations left behind. The normal APK passed
+  `requireRecovery`, so the access APK failed; the game manifest has **no** `android:debuggable`, so access gets the
+  attribute inserted, which Android 16 on the X6853 honours. Cause not yet measured: the Android build now names
+  each differing field and Android's vs the manifest's debuggable view, and removes unfinished preparations.
+- **Android build.** JDK 17 + SDK 35 live outside the repo (`..\toolchain`). A clean Gradle build reproduced the
+  installed APK's three dex files byte for byte, so the sideload APK is the installed build with `classes3.dex`
+  and the engine assets replaced, signed with a new key in `artifacts/android-sideload-key/` (not the original
+  debug key: installing it over the original build needs an uninstall).
