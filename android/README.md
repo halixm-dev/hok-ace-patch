@@ -2,7 +2,7 @@
 
 Launcher name: **HOK ACE Patcher**. Application ID: `dev.halixm.hokacepatcher`.
 The attached foreground artwork is packaged unchanged, inset 15% for adaptive-mask headroom;
-its background is `#9EBEF7`. The home screen no longer has the Test version badge.
+its background is white (`#FFFFFF`). The home screen no longer has the Test version badge.
 The old `io.github.hokace.patcher` package and private recovery data are retained separately;
 there is no automatic data migration. New Shizuku authorization is required for the new identity.
 The deliverable copy is `artifacts/dev.halixm.hokacepatcher.apk`; Gradle's build output stays
@@ -94,7 +94,10 @@ For normal use, install **HOK ACE Patcher** and **Shizuku**. The probe fixture a
 ## Build on Windows
 
 Install Android SDK platform 35, JDK 17+, and run the repository's `setup.bat` with Python 3.12.
-Set `ANDROID_HOME` to the SDK and `JAVA_HOME` to the JDK. The checked-in Gradle 8.9 wrapper
+Set `ANDROID_HOME` to the SDK and `JAVA_HOME` to the JDK.
+Both debug and release builds sign with `android/signing/debug.keystore` (alias `androiddebugkey`,
+passwords `android`), checked in so every PC produces the same signer and an installed patcher
+updates in place. It is the key earlier builds took from `%USERPROFILE%\.android`; keep it stable. The checked-in Gradle 8.9 wrapper
 pins AGP 8.7.3, Kotlin 2.0.0, Chaquopy 17.0.0 and Shizuku API/provider 13.1.5.
 The Chaquopy build interpreter is the repository's `.venv/Scripts/python.exe`.
 
