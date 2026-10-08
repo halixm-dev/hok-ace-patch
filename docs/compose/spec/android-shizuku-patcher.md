@@ -661,7 +661,7 @@ Launcher name and notification title are **HOK ACE Patcher**; application ID, co
 instrumentation identity are `dev.halixm.hokacepatcher`. Current Android helpers and command examples
 follow that identity; older evidence below retains its measured package/process names. The launcher
 uses the user-supplied `foreground-icon.png` unchanged inside a 15% inset, an adaptive icon and
-`#9EBEF7` background, for both normal and round launcher requests. The home Test version badge is
+white `#FFFFFF` background (was `#9EBEF7` until 2026-10-08), for both normal and round launcher requests. The home Test version badge is
 removed; required consent and incomplete-acceptance explanations remain. This changes patcher
 branding only. The game's package, stable signing identity and translation content are unchanged.
 The old app's recovery/scratch files stay in its old sandbox. No automatic migration or uninstall is

@@ -369,7 +369,7 @@ An experimental Android/Shizuku patcher lives alongside the Windows patcher unde
 normal APK and applied package payload verified. Already-normal APKs retain their identity;
 matching cached normal/access APKs are verified and reused before creating any new copies.
 The Android launcher is **HOK ACE Patcher**, with application ID `dev.halixm.hokacepatcher`.
-It uses the supplied adaptive icon over `#9EBEF7`. The former `io.github.hokace.patcher` install
+It uses the supplied adaptive icon over white (`#FFFFFF`). The former `io.github.hokace.patcher` install
 keeps its own private files; the package rename does not migrate or delete recovery data.
 Its development UI has one **Start** button. It checks Shizuku permission automatically,
 verifies pending emergency restoration, recovers interrupted patch/setup work, prepares fresh
