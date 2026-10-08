@@ -464,7 +464,7 @@ chunk and uses the measured identity key for its second slot. It verifies existi
 and slot framing, refuses unmeasured layouts or a third chunk, and reads the result back. Other
 assets retain their prior staging path; config `0AA59370241BFC22` remains byte-identical.
 `exclude_extra_chunks` always routes this dictionary to relocation, so the runtime stager cannot
-invent a new key. `repair_talent_dictionary` separately repairs an old enlarged chunk even when
+invent a new key. `repair_talent_dictionary` (now `repair_card_dictionaries`, see below) separately repairs an old enlarged chunk even when
 the already-English dictionary produces no translation plan. A normal run loads no builder DLL.
 
 Offline verification: the fresh full build with the APK and no builder stages the same 391 text
@@ -510,3 +510,16 @@ live B-tree slot map before comparing relocated content.
 Cleanup removed 18.1 GiB of repeated/generated outputs and kept source dumps, the final fixed
 patch, native donor, screenshots, reports and reusable tools. Historical commands referencing
 removed outputs require rebuilding; `docs/artifact-retention.md` records the retention policy.
+
+### The other ten card dictionaries, 2026-10-08
+
+Diamond Frenzy's Effect Card grid and detail pane print raw `#23F7...` refs on a patched phone. The
+refs are defined in `28D9F8B02CAA94E2`, one of the ten per-mode card dictionaries that the relocation
+pass still enlarged after T15 fixed the Talent one; each copy carries its own ref prefix. The user
+authorized minting their keys with the bundled builder the same way, offline: each throwaway build
+reproduced every key the device already had, the Talent keys included, before its new chunk keys were
+taken. `NATIVE_CHUNK_KEYS` now covers all eleven, `write_assets` gives each one chunks of 307200 bytes
+(a third chunk for the two 600 KB copies), and `repair_card_dictionaries` repairs an earlier patch's
+enlarged copies. Offline: Indonesian and English builds leave no non-standard chunk size in package `1`,
+and the repair of an old broken package is byte-identical to a fresh build. Device verdict owed; see
+`MEMORY.md`'s 2026-10-08 section.

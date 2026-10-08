@@ -130,11 +130,46 @@ class ApkPreparation(private val context: Context) {
                 return saved.copy(source = identity)
             }
         }
+        // Only a preparation creates these folders, under the lock held here, and it writes the receipt last:
+        // a folder without one is an attempt that died before finishing. Earlier builds kept them.
+        val preparations = File(context.filesDir, "preparations")
+        // Deduplication may have pointed a retained APK at a file inside one by symlink; never pull it from under it.
+        val linked = listOf(File(context.filesDir, "recovery"), File(context.filesDir, "sessions"), preparations)
+            .flatMap { root -> root.walkTopDown().filter { Files.isSymbolicLink(it.toPath()) }.toList() }
+            .mapNotNull { runCatching { it.canonicalPath }.getOrNull() }
+        var abandoned = 0L
+        for (folder in preparations.listFiles().orEmpty()) {
+            if (!folder.isDirectory || Files.isSymbolicLink(folder.toPath()) || File(folder, "receipt.json").exists()) continue
+            val prefix = folder.canonicalPath + File.separator
+            if (linked.any { it.startsWith(prefix) }) continue
+            runCatching { abandoned += DurableFiles.deleteTree(folder) }
+                .onFailure { report("Could not remove an unfinished earlier preparation; keeping it") }
+        }
+        if (abandoned > 0) {
+            DurableFiles.syncDirectory(preparations)
+            report("Freed ${StorageBudget.freeSpaceLabel(abandoned)} left by unfinished earlier preparations")
+        }
         // Source + signed normal + unsigned access + signed access is the measured implementation's peak.
         StorageBudget.requireAvailable(context.filesDir, "APK preparation", bytes, bytes, bytes, bytes)
         val directory = File(context.filesDir, "preparations/${UUID.randomUUID()}")
         check(!directory.exists())
         DurableFiles.createDirectories(directory)
+        try {
+            return prepareInto(directory, bytes, device, report, checkpoint)
+        } catch (error: Throwable) {
+            // Until its receipt exists nothing refers to this folder; a failed or cancelled preparation
+            // otherwise leaves ~3 APK copies (measured: 18 GB after three retries on one phone).
+            if (!File(directory, "receipt.json").exists()) runCatching {
+                val freed = DurableFiles.deleteTree(directory)
+                DurableFiles.syncDirectory(directory.parentFile!!)
+                if (freed > 0) report("Removed ${StorageBudget.freeSpaceLabel(freed)} left by the failed preparation")
+            }
+            throw error
+        }
+    }
+
+    private fun prepareInto(directory: File, bytes: Long, device: IPrivilegedDeviceService,
+                            report: (String) -> Unit, checkpoint: () -> Unit): Prepared {
         val source = File(directory, "original.apk")
         report("Copying and verifying the installed source APK")
         ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_CREATE or
@@ -161,10 +196,19 @@ class ApkPreparation(private val context: Context) {
         normal.requireRecovery()
         val accessFile = File(directory, "apks/access.apk")
         val access = ApkIdentity.read(context, accessFile)
-        check(access.debuggable && access.certificateSha256 == normal.certificateSha256 &&
-            access.versionCode == original.versionCode && normal.versionCode == original.versionCode &&
-            access.versionName == original.versionName && normal.versionName == original.versionName) {
-            "Prepared APK version/signer/debug identity differs"
+        // Name every field that differs: a bare "differs" on one Android 15 phone left the cause unknowable.
+        val differences = buildList {
+            if (!access.debuggable) add("access not debuggable per Android (its manifest declares debuggable: " +
+                "${manifestDeclaresDebuggable(accessFile)}; normal manifest: ${manifestDeclaresDebuggable(normalFile)})")
+            if (access.certificateSha256 != normal.certificateSha256)
+                add("signer access ${access.certificateSha256.take(16)} vs normal ${normal.certificateSha256.take(16)}")
+            if (access.versionCode != original.versionCode || normal.versionCode != original.versionCode)
+                add("versionCode source ${original.versionCode}, normal ${normal.versionCode}, access ${access.versionCode}")
+            if (access.versionName != original.versionName || normal.versionName != original.versionName)
+                add("versionName source ${original.versionName}, normal ${normal.versionName}, access ${access.versionName}")
+        }
+        check(differences.isEmpty()) {
+            "Prepared APK version/signer/debug identity differs: ${differences.joinToString("; ")}"
         }
         check(normal.sha256 == result.getJSONObject("normal").getString("sha256") &&
             access.sha256 == result.getJSONObject("access").getString("sha256")) { "Prepared APK hash differs" }
@@ -184,6 +228,14 @@ class ApkPreparation(private val context: Context) {
         check(normalFile.delete()) { "Cannot remove duplicate prepared normal APK" }
         return Prepared(directory, original, normal, access)
     }
+
+    /** The manifest's own android:debuggable, read by the engine's AXML parser; Android's view is ApkIdentity. */
+    private fun manifestDeclaresDebuggable(apk: File): String = runCatching {
+        val manifest = java.util.zip.ZipFile(apk).use { zip ->
+            zip.getInputStream(checkNotNull(zip.getEntry("AndroidManifest.xml"))).use { it.readBytes() }
+        }
+        Python.getInstance().getModule("axml_set_debuggable").callAttr("is_debuggable", manifest).toBoolean().toString()
+    }.getOrElse { "unknown (${it.javaClass.simpleName})" }
 
     fun load(id: String): Prepared {
         GameFilePolicy.session(id)

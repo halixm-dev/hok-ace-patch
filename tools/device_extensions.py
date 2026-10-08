@@ -6,8 +6,8 @@
   asset keeps its chunk count and each changed chunk is appended to the shard and repointed in its
   B-tree by ``qts_relocate.Shard``.
 * Text tables the stager could not fit are appended instead of being dropped (``relocate_text``).
-  The Talent Card dictionary keeps its original chunk size using a measured native second-chunk
-  key; ``repair_talent_dictionary`` also repairs an earlier patch's already-English copy.
+  The per-mode card dictionaries keep their original chunk size by gaining chunks under measured
+  native keys; ``repair_card_dictionaries`` also repairs an earlier patch's already-English copies.
   Strings the catalog has no table for are translated in place (``extra_text``).
 
 A texture the codec cannot handle — an unreadable footprint, or a device revision whose geometry no
@@ -24,25 +24,41 @@ from pathlib import Path
 
 from qts_relocate import Shard, chunk_size_for
 
-# Native identity keys measured offline with the authorized Tencent-builder diagnostic, then
-# device-tested on 1.4.0.2. Enlarging this dictionary's chunk makes every Talent Card label a raw
-# ref. Keep 307200-byte chunks and append the measured second slot; normal runs need no DLL.
-TALENT_DICTIONARY = 0xC059EA43719099F1
-TALENT_CHUNK_SIZE = 307200
-TALENT_CHUNK_KEYS = (0x15A33357ECBFA5CC, 0x29157589AC92F155)
+# The client reads a card dictionary only at its original 307200-byte chunk size: enlarging the chunk
+# makes every label that dictionary feeds a raw `#XXXX...#` ref (device-measured on the Talent Card
+# grid, then reported on Diamond Frenzy's Effect Cards). Each game mode carries its own copy, under
+# its own ref prefix. A translation that outgrows the chunks therefore gets new ones, whose native
+# keys (chunk hash1 by chunk index) were minted offline with the user-authorized Tencent-builder
+# diagnostic: a throwaway one-asset build per dictionary reproduced every key the device already
+# carries, the Talent keys included, before its new ones were taken. Normal runs need no DLL.
+NATIVE_CHUNK_SIZE = 307200
+NATIVE_CHUNK_KEYS = {
+    0xC059EA43719099F1: (0x15A33357ECBFA5CC, 0x29157589AC92F155),  # #BE08 Talent Card, device-verified
+    0x28D9F8B02CAA94E2: (0xDF3E388D824BA647, 0x106CE6E96D181721, 0xF1334A1AFDEF7A42),  # #23F7 Diamond Frenzy
+    0xA336359CD92A858E: (0xEEDD3A39A715583D, 0x3703FE65783D648C, 0x7636E7F15BF9A4FA),  # #8E55
+    0x666DC40230B31A30: (0x48E6394509FDD6AB, 0x379743B433B99DE1),  # #A40D
+    0xF628F40CE23D983E: (0x50E3487DFFE72C54, 0x876D20F0AA4E7DC5),  # #0977
+    0x42E8DB43608C2FF1: (0x87F061C69DD6E272, 0xDFC5B1EECDF2E589),  # #9344
+    0x9BE81CD52C660467: (0xF9779D71928E5099, 0xBBD69700ACFCD33E),  # #BF5A
+    0x27BBF8CDFFFA177F: (0x240D4B90C7A9FF1D, 0xCE2F0DC5C6A90FEE),  # #75CA
+    0xC4E32B49AE8B7FFB: (0x53B319290B67B270, 0x3D3674505997D563),  # #1632
+    0x5EB61A0269CD8550: (0xA3FC1EBFF30A1BE4, 0xADF8F4F47197142E),  # #31CF
+    0x04F21C6735D0D555: (0x984A9068A9C3B0F0, 0xDF4EA49367E1E315),  # #BCDE
+}
 
 
-def _talent_slots(entry, chunks: dict, raw_size: int) -> dict | None:
-    """Verified slot templates for this dictionary, or None for an unmeasured layout."""
-    needed = math.ceil(raw_size / TALENT_CHUNK_SIZE)
-    if (entry.compression != 1 or needed not in (1, 2)
-            or set(chunks) not in ({0}, {0, 1}) or len(chunks) > needed
-            or any(slot.hash1 != TALENT_CHUNK_KEYS[i] or slot.header_flags != 16
+def _native_slots(file_hash: int, entry, chunks: dict, raw_size: int) -> dict | None:
+    """Verified slot templates for a dictionary in NATIVE_CHUNK_KEYS, or None for an unmeasured layout."""
+    keys = NATIVE_CHUNK_KEYS[file_hash]
+    needed = math.ceil(raw_size / NATIVE_CHUNK_SIZE)
+    if (entry.compression != 1 or not chunks or not 1 <= needed <= len(keys)
+            or set(chunks) != set(range(len(chunks))) or len(chunks) > needed
+            or any(slot.hash1 != keys[i] or slot.header_flags != 16
                    or slot.reserved != 0 for i, slot in chunks.items())):
         return None
     result = dict(chunks)
-    if needed == 2 and 1 not in result:
-        result[1] = replace(chunks[0], chunk_id=1, hash1=TALENT_CHUNK_KEYS[1])
+    for chunk_id in range(len(chunks), needed):
+        result[chunk_id] = replace(chunks[0], chunk_id=chunk_id, hash1=keys[chunk_id])
     return result
 
 
@@ -70,9 +86,9 @@ def _read_chunks(slots: dict) -> list[tuple[object, bytes]]:
 def write_assets(package_dir: Path, jobs: dict[int, bytes]) -> tuple[list[str], list[str]]:
     """Write new raw bytes for assets of the staged package at <package_dir>.
 
-    Assets keep their chunk count and are re-cut when necessary, except the Talent Card dictionary:
-    its measured native second-chunk key lets it keep the original chunk size. Returns
-    (written hashes, refused hashes).
+    Assets keep their chunk count and are re-cut when necessary, except the card dictionaries in
+    NATIVE_CHUNK_KEYS: their measured native keys let them gain chunks and keep the original chunk
+    size. Returns (written hashes, refused hashes).
     """
     import lz4.block
     import mobile_graphics as mg
@@ -89,9 +105,9 @@ def write_assets(package_dir: Path, jobs: dict[int, bytes]) -> tuple[list[str], 
         chunk_count = len(original_slots)
         chunk_size = chunk_size_for(len(raw), entry.chunk_size, chunk_count) if chunk_count else None
         templates = original_slots
-        if file_hash == TALENT_DICTIONARY:
-            templates = _talent_slots(entry, original_slots, len(raw))
-            chunk_size = TALENT_CHUNK_SIZE if templates is not None else None
+        if file_hash in NATIVE_CHUNK_KEYS:
+            templates = _native_slots(file_hash, entry, original_slots, len(raw))
+            chunk_size = NATIVE_CHUNK_SIZE if templates is not None else None
         if entry.compression not in (1, 4) or chunk_size is None:
             refused.append(f"{file_hash:016X}")
             continue
@@ -113,12 +129,15 @@ def write_assets(package_dir: Path, jobs: dict[int, bytes]) -> tuple[list[str], 
         written.append(f"{file_hash:016X}")
     shard.save()
     package.index_path.write_bytes(bytes(index))
-    if f"{TALENT_DICTIONARY:016X}" in written:
+    native = [h for h in jobs if h in NATIVE_CHUNK_KEYS and f"{h:016X}" in written]
+    if native:
         from qts_relocate import read_raw
 
         checked = QtsPackage(package_dir)
-        if read_raw(checked, checked.build_slot_map(), TALENT_DICTIONARY) != jobs[TALENT_DICTIONARY]:
-            raise RuntimeError("Talent Card dictionary failed read-back after staging")
+        checked_slots = checked.build_slot_map()
+        for file_hash in native:
+            if read_raw(checked, checked_slots, file_hash) != jobs[file_hash]:
+                raise RuntimeError(f"card dictionary {file_hash:016X} failed read-back after staging")
     return written, refused
 
 
@@ -135,39 +154,48 @@ def relocate_text(package, output: Path, dropped: dict[int, Path], log) -> tuple
     return written, refused
 
 
-def repair_talent_dictionary(game: Path, catalog, output: Path, log,
+def repair_card_dictionaries(game: Path, catalog, output: Path, log,
                              skip: set[str] = frozenset()) -> tuple[list[dict], list[dict]]:
-    """Repair an earlier patch's enlarged dictionary even when its strings are already English."""
+    """Repair an earlier patch's enlarged card dictionaries even when their strings are already English."""
     from wxq_patch import adaptive
     from wxq_patch.qtsvfs import QtsPackage
     from qts_relocate import read_raw
 
-    if TALENT_DICTIONARY not in catalog.known:
+    wanted = [h for h in NATIVE_CHUNK_KEYS if h in catalog.known]
+    if not wanted:
         return [], []
     discovered, _skipped = adaptive.discover(game, catalog)
     reports, skipped = [], []
     for source in discovered:
-        if source.package_id in skip or TALENT_DICTIONARY not in source.entries:
+        if source.package_id in skip:
             continue
         staged = output / source.package_id
         package = QtsPackage(staged) if staged.exists() else source
-        entry = package.entries[TALENT_DICTIONARY]
-        if entry.chunk_size == TALENT_CHUNK_SIZE:
-            continue
         slots = package.build_slot_map()
-        raw = read_raw(package, slots, TALENT_DICTIONARY)
-        if raw is None or _talent_slots(entry, slots.get(TALENT_DICTIONARY, {}), len(raw)) is None:
+        jobs, unmeasured = {}, []
+        for file_hash in wanted:
+            entry = package.entries.get(file_hash)
+            if entry is None or entry.chunk_size == NATIVE_CHUNK_SIZE:
+                continue
+            raw = read_raw(package, slots, file_hash)
+            if raw is None or _native_slots(file_hash, entry, slots.get(file_hash, {}), len(raw)) is None:
+                unmeasured.append(f"{file_hash:016X}")
+            else:
+                jobs[file_hash] = raw
+        if unmeasured:
             skipped.append({"package_id": source.package_id, "mode": "relocated-text",
-                            "considered_count": 1, "dropped_count": 1,
-                            "dropped": [f"{TALENT_DICTIONARY:016X}"]})
-            log(f"package {source.package_id}: Talent Card dictionary layout is unmeasured; repair skipped")
+                            "considered_count": len(unmeasured) + len(jobs), "dropped_count": len(unmeasured),
+                            "dropped": unmeasured})
+            log(f"package {source.package_id}: {len(unmeasured)} card dictionary layouts are unmeasured;"
+                f" repair skipped ({', '.join(unmeasured)})")
+        if not jobs:
             continue
-        written, refused = write_assets(_package_output(source, output), {TALENT_DICTIONARY: raw})
+        written, refused = write_assets(_package_output(source, output), jobs)
         if refused:
-            raise RuntimeError("Verified Talent Card dictionary repair was refused")
+            raise RuntimeError(f"Verified card dictionary repair was refused: {', '.join(refused)}")
         reports.append({"package_id": source.package_id, "mode": "relocated-text",
                         "stage_report": {"status": "repaired", "replacement_count": len(written)}})
-        log(f"package {source.package_id}: repaired Talent Card dictionary chunk layout")
+        log(f"package {source.package_id}: repaired {len(written)} card dictionary chunk layouts")
     return reports, skipped
 
 
@@ -184,8 +212,8 @@ def exclude_extra_chunks(package, replacements: Path, work: Path, log) -> tuple[
 
     New chunks need native lookup keys, and the stock stager would invent random ones. These tables
     are handled later by ``relocate_text``, usually by enlarging the chunk size. Always route the
-    Talent Card dictionary through that pass too: it uses a measured second-chunk key and restores
-    the original chunk size. Returns the pruned directory and the excluded hashes.
+    card dictionaries in NATIVE_CHUNK_KEYS through that pass too: they gain chunks under measured
+    native keys and keep the original chunk size. Returns the pruned directory and the excluded hashes.
     """
     slots = package.build_slot_map()
     target = work / "safe-replacements" / package.package_id
@@ -196,7 +224,7 @@ def exclude_extra_chunks(package, replacements: Path, work: Path, log) -> tuple[
     for path in replacements.glob("*.assets"):
         file_hash = int(path.stem, 16)
         entry = package.entries.get(file_hash)
-        if entry and file_hash in slots and (file_hash == TALENT_DICTIONARY
+        if entry and file_hash in slots and (file_hash in NATIVE_CHUNK_KEYS
                 or math.ceil(path.stat().st_size / entry.chunk_size) > len(slots[file_hash])):
             excluded.append(path.stem.upper())
             continue
