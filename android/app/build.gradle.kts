@@ -68,6 +68,14 @@ android {
         ndk { abiFilters += "arm64-v8a" }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    // Checked-in key so every PC signs the patcher identically and installs update in place.
+    signingConfigs.getByName("debug") {
+        storeFile = rootProject.file("signing/debug.keystore")
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+    }
+    buildTypes.getByName("release") { signingConfig = signingConfigs.getByName("debug") }
     buildFeatures { aidl = true; buildConfig = true }
     // The runtime contains Python packages such as _backends; AAPT's default skips these directories.
     androidResources { ignoreAssetsPattern = "" }
