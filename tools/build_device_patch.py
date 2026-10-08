@@ -171,7 +171,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     from wxq_patch import adaptive
     from wxq_patch.unity_package_installer import capacity_report, stage_unity_package
     from qts_relocate import install_btree_slot_map
-    from device_extensions import exclude_extra_chunks, extend_graphics, relocate_text, repair_talent_dictionary
+    from device_extensions import exclude_extra_chunks, extend_graphics, relocate_text, repair_card_dictionaries
     from languages import for_catalog
 
     install_btree_slot_map()
@@ -389,9 +389,9 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     packages += graphics
     graphics_skipped += graphics_skipped_extra
 
-    # Already-English tables produce no replacement plan. Repair the old oversized Talent Card
-    # chunk separately so running the new patcher over its predecessor also fixes the grid.
-    repaired, repair_skipped = repair_talent_dictionary(game, loaded_catalog, output, log, skip=rebuilt)
+    # Already-English tables produce no replacement plan. Repair the old oversized card-dictionary
+    # chunks separately so running the new patcher over its predecessor also fixes the card labels.
+    repaired, repair_skipped = repair_card_dictionaries(game, loaded_catalog, output, log, skip=rebuilt)
     packages += repaired
     text_skipped += repair_skipped
 
