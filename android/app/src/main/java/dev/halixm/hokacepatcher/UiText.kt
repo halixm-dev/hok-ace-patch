@@ -125,6 +125,8 @@ object UiText {
         "Error details" to "Rincian galat",
         "Copy error details" to "Salin rincian galat",
         "Error details copied" to "Rincian galat disalin",
+        "The game is installed but hidden or switched off in this phone's main space, for example by Hide apps. Show it again, open it once, close it, then tap Try again." to "Game terpasang, tetapi disembunyikan atau dinonaktifkan di ruang utama ponsel ini, misalnya oleh fitur Sembunyikan aplikasi. Tampilkan lagi, buka sekali, tutup, lalu ketuk Coba lagi.",
+        "The game is installed only in Dual App. Install it in the phone's main space too, open it once and finish all downloads, close it, then tap Try again." to "Game hanya terpasang di Aplikasi Ganda. Pasang juga di ruang utama ponsel, buka sekali dan selesaikan semua unduhan, tutup game, lalu ketuk Coba lagi.",
         "The game is not installed in this phone's main space. Install it there (Dual App alone is not enough), open it once and finish all downloads, close it, then tap Try again." to "Game belum terpasang di ruang utama ponsel ini. Pasang game di sana (Aplikasi Ganda saja tidak cukup), buka sekali dan selesaikan semua unduhan, tutup game, lalu ketuk Coba lagi."
     )
 
