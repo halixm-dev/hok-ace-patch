@@ -124,7 +124,8 @@ object UiText {
         "Checking other Android profiles for the game" to "Memeriksa game di profil Android lain",
         "Error details" to "Rincian galat",
         "Copy error details" to "Salin rincian galat",
-        "Error details copied" to "Rincian galat disalin"
+        "Error details copied" to "Rincian galat disalin",
+        "The game is not installed in this phone's main space. Install it there (Dual App alone is not enough), open it once and finish all downloads, close it, then tap Try again." to "Game belum terpasang di ruang utama ponsel ini. Pasang game di sana (Aplikasi Ganda saja tidak cukup), buka sekali dan selesaikan semua unduhan, tutup game, lalu ketuk Coba lagi."
     )
 
     fun text(context: Context, source: String): String = translate(PatchLanguage.current(context), source)

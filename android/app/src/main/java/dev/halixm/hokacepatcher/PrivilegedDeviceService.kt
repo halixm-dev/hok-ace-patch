@@ -15,6 +15,8 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
         const val GAME = "com.tencent.tmgp.osgame"
         const val FIXTURE = "io.github.hokace.fixture"
         const val PROTOCOL_VERSION = 9
+        /** The UI matches on it; keep it free of "Shizuku" and "permission". */
+        const val GAME_MISSING = "The game is not installed for the phone's main user"
         private const val MAX_DIAGNOSTIC = 16384
     }
 
@@ -80,8 +82,13 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
 
     private fun gameApk(): File {
         requireShell()
-        val paths = command(listOf("/system/bin/pm", "path", "--user", "0", installerPackage))
-            .lineSequence().filter { it.isNotBlank() }.toList()
+        val listing = try { command(listOf("/system/bin/pm", "path", "--user", "0", installerPackage)) }
+        catch (error: IllegalStateException) {
+            // `pm path` exits 1 and prints nothing when the package is not installed for that user.
+            if (error.message == "Device command failed (1):") error("$GAME_MISSING ($installerPackage)")
+            throw error
+        }
+        val paths = listing.lineSequence().filter { it.isNotBlank() }.toList()
         check(paths.size == 1 && paths[0].startsWith("package:/data/app/") &&
             paths[0].endsWith("/base.apk")) { "Game is absent or uses unsupported split APKs" }
         return File(paths.single().removePrefix("package:"))
