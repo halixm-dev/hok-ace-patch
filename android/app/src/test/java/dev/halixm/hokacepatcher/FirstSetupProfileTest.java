@@ -56,7 +56,7 @@ public final class FirstSetupProfileTest {
 
     @Test public void refusalsAvoidTheShizukuAdviceKeywords() {
         for (String value : new String[] {FirstSetupPackagePolicy.OTHER_PROFILE, FirstSetupPackagePolicy.UNCHECKED_PROFILE,
-                InstalledGameVerifier.DIFFERENT_APP}) {
+                InstalledGameVerifier.DIFFERENT_APP, PrivilegedDeviceService.GAME_MISSING}) {
             assertFalse(value.toLowerCase().contains("shizuku"));
             assertFalse(value.toLowerCase().contains("permission"));
         }
