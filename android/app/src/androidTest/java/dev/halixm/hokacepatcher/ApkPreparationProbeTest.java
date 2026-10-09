@@ -78,6 +78,8 @@ public final class ApkPreparationProbeTest {
         @Override public void clearSessionTemp(String session, String relative) { throw unsupported(); }
         @Override public void restoreWatchdogDirectory(String relative) { throw unsupported(); }
         @Override public void validateFirstSetupSource(String sha) { throw new UnsupportedOperationException(); }
+        // No other Android profiles in this fixture; preparation may ask before copying.
+        @Override public void checkGameProfiles() { }
         @Override public boolean firstSetupGameAbsent() { throw unsupported(); }
         @Override public void removeGameForFirstSetup(String sha) { throw unsupported(); }
         @Override public String installFirstSetupGame(ParcelFileDescriptor source, long length) { throw unsupported(); }

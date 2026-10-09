@@ -14,7 +14,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     companion object {
         const val GAME = "com.tencent.tmgp.osgame"
         const val FIXTURE = "io.github.hokace.fixture"
-        const val PROTOCOL_VERSION = 8
+        const val PROTOCOL_VERSION = 9
         private const val MAX_DIAGNOSTIC = 16384
     }
 
@@ -222,10 +222,41 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
 
     private fun requireNoOtherGameUsers() {
         val users = FirstSetupPackagePolicy.users(command(listOf("/system/bin/pm", "list", "users")))
+        val dumped by lazy { profileStates() }
         users.filter { it != 0 }.forEach { user ->
-            check(!FirstSetupPackagePolicy.containsPackage(command(listOf("/system/bin/pm", "list", "packages",
-                "--user", user.toString(), installerPackage)), installerPackage)) { "The game is installed in another Android profile; first setup refused" }
+            val listing = try {
+                command(listOf("/system/bin/pm", "list", "packages", "--user", user.toString(), installerPackage))
+            } catch (error: IllegalStateException) {
+                if (!FirstSetupPackagePolicy.profileDenied(error.message.orEmpty(), user)) throw error
+                null
+            }
+            val installed = if (listing != null) FirstSetupPackagePolicy.containsPackage(listing, installerPackage)
+                else dumped?.let { it[user] ?: error("${FirstSetupPackagePolicy.UNCHECKED_PROFILE} (user $user); first setup refused") }
+                    ?: false
+            check(!installed) { "${FirstSetupPackagePolicy.OTHER_PROFILE} (user $user); first setup refused" }
         }
+    }
+
+    /**
+     * Every profile's install state as system_server records it, for profiles shell may not list itself;
+     * null when the package is on the device in no profile at all.
+     */
+    private fun profileStates(): Map<Int, Boolean>? {
+        // `exit 0`: grep finds nothing when the package is gone, which the -u listing below then decides.
+        val script = "/system/bin/dumpsys package $installerPackage | " +
+            "/system/bin/grep -E '${FirstSetupPackagePolicy.DUMPSYS_FILTER}'; exit 0"
+        FirstSetupPackagePolicy.profileStates(command(listOf("/system/bin/sh", "-c", script), timeoutSeconds = 60),
+            installerPackage)?.let { return it }
+        // No record in the dump: absent from every profile only if the retained-record listing agrees.
+        check(!FirstSetupPackagePolicy.containsPackage(command(listOf("/system/bin/pm", "list", "packages",
+            "-u", installerPackage)), installerPackage)) { "${FirstSetupPackagePolicy.UNCHECKED_PROFILE}; first setup refused" }
+        return null
+    }
+
+    /** Read-only: the first-setup profile refusal, run before preparation spends minutes copying the game. */
+    @Synchronized override fun checkGameProfiles() {
+        requireShell()
+        requireNoOtherGameUsers()
     }
 
     @Synchronized override fun validateFirstSetupSource(expectedSourceSha256: String) {

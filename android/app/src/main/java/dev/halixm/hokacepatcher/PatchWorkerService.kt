@@ -43,7 +43,8 @@ class PatchWorkerService : Service() {
         }
         if (message.isNotBlank()) {
             val time = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date())
-            recentMessages.addLast("$time  ${message.take(2000)}")
+            // A stack trace in the 180 dp live log scrolls its own cause out of view; the trace keeps it whole.
+            recentMessages.addLast("$time  ${ErrorSummary.cause(message).take(2000)}")
             while (recentMessages.size > 40) recentMessages.removeFirst()
         }
         value.put("messages", JSONArray(recentMessages.toList()))
