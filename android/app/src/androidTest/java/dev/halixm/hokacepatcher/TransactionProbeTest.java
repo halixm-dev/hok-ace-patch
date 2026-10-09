@@ -80,6 +80,7 @@ public final class TransactionProbeTest {
         @Override public String probeGame(byte[] value) { throw new UnsupportedOperationException(); }
         @Override public String snapshotGame(ParcelFileDescriptor destination, long budget) { throw new UnsupportedOperationException(); }
         @Override public void validateFirstSetupSource(String sha) { throw new UnsupportedOperationException(); }
+        @Override public void checkGameProfiles() { throw new UnsupportedOperationException(); }
         @Override public boolean firstSetupGameAbsent() { throw new UnsupportedOperationException(); }
         @Override public void removeGameForFirstSetup(String sha) { throw new UnsupportedOperationException(); }
         @Override public String installFirstSetupGame(ParcelFileDescriptor source, long length) { throw new UnsupportedOperationException(); }
