@@ -40,6 +40,37 @@ object FirstSetupPackagePolicy {
         error.contains("SecurityException") &&
             Regex("does not have permission to access user $user(?![0-9])").containsMatchIn(error)
 
+    /** Why the main user cannot see an installed game; read back from [userStates] inside an error message. */
+    enum class Missing { HIDDEN, OTHER_PROFILE_ONLY, ABSENT }
+
+    private val userLine = Regex("^\\s*User ([0-9]+): (.*)$")
+    private val stateField = Regex("\\b(installed|hidden|suspended|enabled)=([^ ;)]+)")
+
+    /** `user N: installed=.. hidden=.. suspended=.. enabled=..` per `User N:` line of a filtered dump, for error text. */
+    fun userStates(output: String): String {
+        val users = output.lineSequence().mapNotNull { line ->
+            val user = userLine.find(line) ?: return@mapNotNull null
+            "user ${user.groupValues[1]}: " + stateField.findAll(user.groupValues[2]).joinToString(" ") { it.value }
+        }.toList()
+        return if (users.isEmpty()) "no package record" else users.joinToString("; ")
+    }
+
+    /**
+     * Classify a [userStates] summary. Hidden (or disabled until used, `enabled=4`) packages are filtered out of
+     * `pm path` and app lookups exactly like absent ones, which is how an installed game reads as missing.
+     */
+    fun missingReason(summary: String): Missing {
+        val users = Regex("user ([0-9]+): ([^;)]*)").findAll(summary).associate { match ->
+            match.groupValues[1].toInt() to stateField.findAll(match.groupValues[2]).associate { it.groupValues[1] to it.groupValues[2] }
+        }
+        val main = users[0]
+        return when {
+            main?.get("installed") == "true" && (main["hidden"] == "true" || main["enabled"] == "4") -> Missing.HIDDEN
+            users.any { (id, fields) -> id != 0 && fields["installed"] == "true" } -> Missing.OTHER_PROFILE_ONLY
+            else -> Missing.ABSENT
+        }
+    }
+
     /**
      * Per-profile install state from `dumpsys package <target>` filtered by [DUMPSYS_FILTER], or null
      * when the dump has no record of the package. system_server writes it, so it covers profiles shell

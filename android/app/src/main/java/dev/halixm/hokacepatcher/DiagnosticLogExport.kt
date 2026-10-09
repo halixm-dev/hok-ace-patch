@@ -186,7 +186,7 @@ class DiagnosticLogExport(private val context: Context) {
     private fun packageSummary(name: String): String {
         val packages = context.packageManager
         val info = try { packages.getPackageInfo(name, 0) } catch (_: PackageManager.NameNotFoundException) {
-            return "not installed"
+            return unavailableSummary(name)
         }
         val application = checkNotNull(info.applicationInfo)
         val debuggable = application.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
@@ -194,6 +194,16 @@ class DiagnosticLogExport(private val context: Context) {
         return "${info.versionName} (${info.longVersionCode}), debuggable $debuggable, enabled ${application.enabled}, " +
             "splits ${application.splitSourceDirs?.size ?: 0}, installer $installer, " +
             "installed ${stamp(info.firstInstallTime)}, updated ${stamp(info.lastUpdateTime)}"
+    }
+
+    /** A package this user cannot see: hidden here, only in another profile, or truly absent. */
+    private fun unavailableSummary(name: String): String {
+        val record = try { context.packageManager.getPackageInfo(name, PackageManager.MATCH_UNINSTALLED_PACKAGES) }
+            catch (_: PackageManager.NameNotFoundException) { return "not installed" }
+        val here = (record.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_INSTALLED != 0
+        return "not available to this user (" + (if (here) "installed here but hidden or switched off"
+            else "not installed here; another profile or kept data holds a record") +
+            "), ${record.versionName} (${record.longVersionCode})"
     }
 
     /** Only the named build and ROM properties: never serial numbers or account data. */

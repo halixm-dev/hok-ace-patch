@@ -408,8 +408,14 @@ class MainActivity : Activity() {
                     ui("The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files.")
             message.contains("Shizuku worker connection timed out") ->
                 "Shizuku is running, but the patcher's helper did not start. Open Shizuku, stop it and start it again, then return here and tap Try again. If it happens again, save a log for help. Keep the game closed."
-            message.contains(PrivilegedDeviceService.GAME_MISSING) ->
-                "The game is not installed in this phone's main space. Install it there (Dual App alone is not enough), open it once and finish all downloads, close it, then tap Try again."
+            message.contains(PrivilegedDeviceService.GAME_MISSING) -> when (FirstSetupPackagePolicy.missingReason(message)) {
+                FirstSetupPackagePolicy.Missing.HIDDEN ->
+                    "The game is installed but hidden or switched off in this phone's main space, for example by Hide apps. Show it again, open it once, close it, then tap Try again."
+                FirstSetupPackagePolicy.Missing.OTHER_PROFILE_ONLY ->
+                    "The game is installed only in Dual App. Install it in the phone's main space too, open it once and finish all downloads, close it, then tap Try again."
+                FirstSetupPackagePolicy.Missing.ABSENT ->
+                    "The game is not installed in this phone's main space. Install it there (Dual App alone is not enough), open it once and finish all downloads, close it, then tap Try again."
+            }
             message.contains(FirstSetupPackagePolicy.OTHER_PROFILE) ->
                 "The game is also installed in another Android profile, such as Dual App or a work profile. Remove it from that profile, then tap Try again. Keep the game closed."
             message.contains(FirstSetupPackagePolicy.UNCHECKED_PROFILE) ->

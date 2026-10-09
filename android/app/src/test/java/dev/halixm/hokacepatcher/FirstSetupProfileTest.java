@@ -54,6 +54,34 @@ public final class FirstSetupProfileTest {
         catch (IllegalArgumentException expected) { }
     }
 
+    private static String user(int id, String installed, String hidden, int enabled) {
+        return "    User " + id + ": ceDataInode=1 installed=" + installed + " hidden=" + hidden +
+            " suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=" + enabled +
+            " instant=false virtual=false quarantined=false\n";
+    }
+
+    private static FirstSetupPackagePolicy.Missing reason(String dump) {
+        // As the UI sees it: the summary travels inside the worker's error message.
+        return POLICY.missingReason(PrivilegedDeviceService.GAME_MISSING + " (" + GAME + "; " + POLICY.userStates(dump) + ")");
+    }
+
+    @Test public void userStatesKeepOnlyTheFieldsThatDecideVisibility() {
+        assertEquals("user 0: installed=true hidden=true suspended=false enabled=0; " +
+            "user 999: installed=false hidden=false suspended=false enabled=0",
+            POLICY.userStates("  Package [" + GAME + "] (abc):\n" + user(0, "true", "true", 0) + user(999, "false", "false", 0)));
+        assertEquals("no package record", POLICY.userStates(""));
+    }
+
+    @Test public void missingGameIsClassifiedByTheMainUsersState() {
+        String header = "  Package [" + GAME + "] (abc):\n";
+        assertEquals(FirstSetupPackagePolicy.Missing.HIDDEN, reason(header + user(0, "true", "true", 0) + user(999, "false", "false", 0)));
+        assertEquals(FirstSetupPackagePolicy.Missing.HIDDEN, reason(header + user(0, "true", "false", 4)));
+        assertEquals(FirstSetupPackagePolicy.Missing.OTHER_PROFILE_ONLY, reason(header + user(0, "false", "false", 0) + user(999, "true", "false", 0)));
+        assertEquals(FirstSetupPackagePolicy.Missing.ABSENT, reason(header + user(0, "false", "false", 0) + user(999, "false", "false", 0)));
+        assertEquals(FirstSetupPackagePolicy.Missing.ABSENT, reason(""));
+        assertEquals(FirstSetupPackagePolicy.Missing.ABSENT, POLICY.missingReason(PrivilegedDeviceService.GAME_MISSING + " (" + GAME + "; states unreadable)"));
+    }
+
     @Test public void refusalsAvoidTheShizukuAdviceKeywords() {
         for (String value : new String[] {FirstSetupPackagePolicy.OTHER_PROFILE, FirstSetupPackagePolicy.UNCHECKED_PROFILE,
                 InstalledGameVerifier.DIFFERENT_APP, PrivilegedDeviceService.GAME_MISSING}) {
