@@ -42,7 +42,7 @@ Keep 16 KiB support unclaimed until the dependency binaries and a suitable devic
 
 ### Source-built compression and FreeType variant
 
-The `-PfullCodecs` development build selects local source-built LZ4 4.3.2,
+The default (full-codec) build selects local source-built LZ4 4.3.2,
 Zstandard 0.22.0 (both C and CFFI bindings), and FreeType 2.9.1. It does not change their
 versions or patch upstream source. Use the same NDK/API/ARM64 headers as the codec builds.
 The compression recipe uses the upstream CFFI generator with an explicitly selected Android
@@ -141,7 +141,7 @@ It records expected identities before publishing new files, so an interrupted wr
 retried without adopting an unknown partial file.
 
 ```bat
-android\gradlew.bat -p android :app:writeRuntimeDependencyInventory -PfullCodecs
+android\gradlew.bat -p android :app:writeRuntimeDependencyInventory
 .venv\Scripts\python.exe android\native\download_maven_sources.py android\app\build\reports\release-runtime-dependencies.json --output artifacts\android-maven-sources
 .venv\Scripts\python.exe android\native\audit_maven.py android\app\build\reports\release-runtime-dependencies.json --published artifacts\android-maven-sources --notice-output android\native\licenses\Maven-source-header-NOTICES.txt --report artifacts\android-maven-published-source-inventory.json
 .venv\Scripts\python.exe android\native\package_sources.py --sources artifacts\android-native-build --compression-sources artifacts\android-dependency-build --freetype-sources artifacts\android-dependency-build --maven-sources artifacts\android-maven-sources --output artifacts\android-codec-maven-source-companion.zip

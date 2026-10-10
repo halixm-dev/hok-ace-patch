@@ -102,8 +102,11 @@ The Chaquopy build interpreter is the repository's `.venv/Scripts/python.exe`.
 android\gradlew.bat -p android :app:assembleDebug :fixture:assembleDebug :app:assembleDebugAndroidTest
 ```
 
-This default build diagnoses available Python/native modules and refuses full scratch builds
-unless every codec loads. To include the three locally cross-built graphics bindings:
+The default build packages every codec, so it needs the locally built wheels in
+`android\wheels` and fails at the pip step without them. `-PfullCodecs=false` builds the
+minimal diagnostic baseline instead: it diagnoses available Python/native modules, and its
+`engine_preflight` refuses to patch because the graphics bindings are missing. Never hand
+that build to a tester. To build the three cross-built graphics bindings:
 
 ```bat
 .venv\Scripts\python.exe android\native\build_wheels.py --ndk <SDK>\ndk\28.2.13676358 ^
@@ -116,7 +119,7 @@ and FreeType. Run the two additional recipes in
 [`native/THIRD_PARTY.md`](native/THIRD_PARTY.md), then build:
 
 ```bat
-android\gradlew.bat -p android -PfullCodecs :app:assembleDebug :app:assembleDebugAndroidTest
+android\gradlew.bat -p android :app:assembleDebug :app:assembleDebugAndroidTest
 .venv\Scripts\python.exe tools\research\check_android_native.py android\app\build\outputs\apk\debug\app-debug.apk --report artifacts\android-aligned-native-inventory.json
 ```
 
@@ -124,7 +127,7 @@ The measured source-built APK passes the static ELF check for all 84 libraries a
 alignment. Neither check proves loading on a physical 16 KiB device. Compression codec and
 full both-layer offline checks pass on the existing 4 KiB Android 12 phone; no live translation
 acceptance or broad page-size support follows from those checks.
-The minimal build without `fullCodecs` still uses repository compression wheels and is a
+The minimal `-PfullCodecs=false` build still uses repository compression wheels and is a
 diagnostic baseline. Earlier complete-codec builds used those wheels too; their six static
 alignment failures are retained as historical evidence rather than shipped in the current
 complete-codec configuration.

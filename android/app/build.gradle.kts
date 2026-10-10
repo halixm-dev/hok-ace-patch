@@ -6,6 +6,10 @@ plugins {
     id("com.chaquo.python")
 }
 
+// Every codec ships by default: without the graphics bindings engine_preflight refuses to patch.
+// -PfullCodecs=false builds the minimal diagnostic baseline instead.
+val fullCodecs = findProperty("fullCodecs")?.toString()?.let { it.isEmpty() || it.toBoolean() } ?: true
+
 val engineAssets = layout.buildDirectory.dir("generated/engine-assets")
 val stageEngineAssets by tasks.registering(Sync::class) {
     into(engineAssets)
@@ -87,7 +91,7 @@ chaquopy {
         buildPython("../../.venv/Scripts/python.exe")
         pip {
             // These Android wheels differ from desktop pins: prove fixture parity before release.
-            if (project.hasProperty("fullCodecs")) {
+            if (fullCodecs) {
                 install(rootProject.file("wheels/lz4-4.3.2-cp312-cp312-android_24_arm64_v8a.whl").absolutePath)
                 install(rootProject.file("wheels/zstandard-0.22.0-cp312-cp312-android_24_arm64_v8a.whl").absolutePath)
             } else {
@@ -97,7 +101,7 @@ chaquopy {
             install("pypinyin==0.55.0")
             install("archspec==0.2.6")
             // Graphics bindings are a measured gate, not silently replaced by text-only support.
-            if (project.hasProperty("fullCodecs")) {
+            if (fullCodecs) {
                 options("--find-links", rootProject.file("wheels").absolutePath)
                 install("astc-encoder-py==0.1.12")
                 install("texture2ddecoder==1.0.6")
