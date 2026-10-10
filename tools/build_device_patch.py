@@ -95,9 +95,10 @@ def _drop_uncatalogued_tables(plans, catalog, counts, log) -> list:
                 continue
             seen = per_asset.get(file_hash, {})
             counts["tables"] -= 1
-            counts["records"] -= seen.get("records", 0)
-            counts["translated"] -= seen.get("translated", 0)
-            counts["unknown"] -= seen.get("unknown", 0)
+            # The census omits a key whose count is zero: a catalog that translates every string the
+            # scan met reports no "unknown" at all.
+            for key in ("records", "translated", "unknown"):
+                counts[key] = counts.get(key, 0) - seen.get(key, 0)
             path.unlink()
             dropped += 1
             log(f"package {package.package_id}: {file_hash:016X} is a table the catalog has no record "
