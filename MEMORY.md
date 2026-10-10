@@ -865,3 +865,46 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   `20490C29132CD09B`), the only two real CJK strings in them, with no ref; already there in the 10-03 1.4.0.2
   layer. Not rewritten: these are the checksum-protected bins whose rewrite empties the encyclopedia grid.
   The card art's bottom-band `效果` on the same screen is the uncatalogued package-`15` band text.
+
+## 2026-10-10 — the Career atlas: the offset port put 9 English labels on other sprites
+
+- **Report.** User screenshot (`tasks/T14/evidence/career_screen_2026-10-10.png`): `我的棋手` beside the
+  chessplayer count on the Career screen. Only the count is `TimiText`; the label is the sprite
+  `Image_1904551913` of `CareerAtlas` = texture **`13C19E4E4486B31C`** (package `19`, downloaded layer only,
+  1024x1024 ASTC 4x4, 1 048 576 B). Its Sprite objects and Texture2D header are **`4AA2B26FF28CB65D`**;
+  the lobby atlases' are `22BD565B3703EDA9` (`C9F49510F2F67402`) and `9F240FDA0FA58988` (`E86DF43167CA2143`).
+  Package `0` `55989B6B5917A7D9` (10 MB) looks like the path→hash manifest (its row for `4AA2B26FF28CB65D`
+  lists pathID `B0975C8A83A08957`) but was not decoded; no hash of the `.resS` path matched.
+- **Cause.** The catalog's 13-region `.blocks` edit is drawn on the PC layout; the port wrote it at the PC
+  offsets. Device rects (today): 11 of 13 regions moved (stubborn_bronze and order_silver by 1 px; glory_gold
+  and total_achievement_points in place). Overwritten non-region sprites today: `Image_981211366` (dashed
+  rules, 75 %), `Image_1134586325` (dark circle, 46 %), `Image_410780920` (`我的皮肤`, 100 %),
+  `Image_1343071809` (QQ icon, 50 %), `Image_1487341597`, `Image_1281642236`, `Image_1862878375`,
+  `Image_1434219398`, `Image_494086371`, `Image_2043579572`, `Image_1136439694`. The 10-03 pristine atlas
+  (216 sprites) was laid out differently from both, so the bug predates the update.
+- **No clean post-update atlas exists.** Both 10-10 pulls (11:25, 11:50) are byte-identical and carry the
+  10-08 patch. The 10-03 sprites are the same art: of 215 shared sprites every one has the same size, and
+  all but the damaged ones agree within a premultiplied mean of 5.3 (126 under 1); only 34 are pixel-exact,
+  because the atlas was re-packed at other block phases.
+- **The port itself is not deterministic across platforms.** Re-porting today's layer (patched on 10-08)
+  differs from it in 6 blocks, and from that day's 11:50 staged copy in 1: a re-run over an atlas another
+  encoder wrote re-encodes some blocks. Same-process runs are byte-identical.
+- **Fix (offline, 2026-10-10).** Sprite-aware port (`mobile_graphics.port_atlas`, rects read each run by
+  `sprite_table.sprite_rects`), restoration crops of 19 sprites from the 10-03 dump, and two repo-drawn
+  labels: MY SKINS (`我的皮肤`, no catalog entry) and TOTAL PROFIT (`总盈利`). Labels are assembled from the
+  catalog's ACHIEVEMENT POINTS glyphs; the best of ~40 Windows serif fonts fitted to those glyphs still
+  had a mean alpha error of 48, so no font is used. The two lines of ACHIEVEMENT POINTS sit 19.5 rows apart;
+  a half-pixel resample to align them blurred every stem and was dropped for a whole-row offset.
+  Numbers in `docs/compose/spec/texture-translation.md`, *Regioned atlases*.
+- **Labels hand-polished (2026-10-10, later).** The glyph-assembled renders first shipped with a grey fringe
+  (composited over transparent black: 205 and 412 edge pixels below RGB 245), caught by
+  `tasks/T15/validate_assets.py` and fixed. The user then polished both in `tasks/T15/edit/` (new K, bolder
+  SKINS, native L/R/F, 5 alpha pixels touched in MY's M); those PNGs ship and are no longer regenerated. An
+  earlier image-agent delivery in `tasks/T15/delivered/` (a hand-drawn K, per its NOTES.md) was overwritten
+  by a copy without looking first and is lost.
+- **Device verdict (2026-10-10): the Career screen looks right.** `patcher_core` run headless (English,
+  session pruning off): fresh pull of game data 1.5.0.1 into session `20261010-151438` (backup
+  `device-backup.tar` there), the build staged exactly one texture — the atlas, package `19` — since
+  the phone already held everything else, pushed it and restored the normal APK. The pushed atlas is
+  byte-identical to `port_atlas`'s output with the hand-polished labels; the sprite layout matched the
+  morning's. Other screens that draw the moved sprites were not walked.

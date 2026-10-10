@@ -162,6 +162,16 @@ catalog and 592x824 on the device, so the pass aligns the two images and copies 
 (`splice_label`). It counts as applied, but as a correctness fix: which screen draws it is not
 established, so it is not evidence of anything visible.
 
+"Applied" also never said *where*. The Career atlas `13C19E4E4486B31C` counted as one applied texture
+from the day its edit shipped while 9 of its 13 English labels landed on other sprites: the catalog drew
+the patch on the PC atlas layout and the port wrote it at the PC offsets (`我的棋手` stayed Chinese on the
+Career screen). Since 2026-10-10 a regioned atlas is placed by the device's own sprite table, the sprites
+the old port overwrote are redrawn, and the count is unchanged: still one texture, now with its 13
+labels at their own sprites plus the two this repo draws (*Translated outside the catalog*).
+**Device-verified 2026-10-10 on the Career screen**: pushed alone (package `19`, one texture, session
+`20261010-151438`), and the user reports the screen reads right. Other screens drawing the moved
+sprites were not walked.
+
 ### Text — the staged tables plus what the append takes out of package `1`'s prime layer
 
 Text applies four ways: staged in place (`full`, falling back to `fit-only`), relocated to the end of the
@@ -227,6 +237,12 @@ Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 - `UNITY_TEXT_PACKAGES` is **empty** — package `19`'s Unity prefab labels stay untouched — and
   `EXCLUDED_PACKAGES` is `{"10", "14"}`, the skill editor's labels and the gameplay scripts, where the
   Chinese is logic rather than display text.
+
+Two images are this repo's own, not the catalog's: on the Career atlas `13C19E4E4486B31C`,
+`Image_410780920` `我的皮肤` → **MY SKINS** (no catalog entry) and `Image_920603129` `总盈利` → **TOTAL
+PROFIT** (the text table's "Total profit"), in `resources/sprites/` (`mobile_graphics.ATLAS_LABELS`). They
+are drawn into a texture the catalog already edits, so they add no texture to the count. Every language
+uses them. Device-verified on the Career screen, 2026-10-10 (English).
 
 Resource tokens `{Energy}`, `{LordExp}` and `{LordHp}` are expanded to `Energy`, `Chessplayer EXP` and
 `Chessplayer HP` in the staged replacements and in the assets the rebuild and extra-text passes
@@ -329,7 +345,12 @@ The other 396 applied textures carry the English edit. Two gaps are specific to 
   several, already drawn in the art, so nothing is missing but the *rendering*: this is the largest
   visible gap left and it needs a pass that draws text in the band's own font, colour and position,
   because no catalog payload exists to copy. Nothing in this repo draws text.
-- Every texture outside `resources/catalog/` and every text table outside the staged packages.
+- The Career atlas's round `胜利` / `失败` badges (`13C19E4E4486B31C`, around 760,150 and 235,210; their
+  sprite names are not looked up). The catalog has no edit for them and this repo draws none.
+- The `国服` badge on the "National server Chess Player" avatar frame (`国服骑手头像框`): no catalog edit,
+  texture not located.
+- Every texture outside `resources/catalog/` (bar the two Career labels above) and every text table outside
+  the staged packages.
 - The prime-only remainder no catalog entry covers at all: **2084** of package `1`'s 2492 prime-only
   assets and **535** of package `1050016095`'s 606. This is the honest measure of what is not merely
   untranslated but uncatalogued, and it is what a future catalog import would have to grow into.
