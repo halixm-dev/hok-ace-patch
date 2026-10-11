@@ -167,7 +167,7 @@ def graphics_oracle(engine_root: str, session_root: str) -> str:
         raise PatchError("Development oracle must be supplied to scratch data separately")
     resources = session / "oracle" / "resources"
     resources.mkdir(parents=True, exist_ok=True)
-    for name in ("catalog", "runtime"):
+    for name in ("catalog", "runtime", "sprites"):
         if not (resources / name).exists():
             (resources / name).symlink_to(root / name, target_is_directory=True)
     previous = sys.argv

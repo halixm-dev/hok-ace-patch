@@ -23,5 +23,6 @@ interface IPrivilegedDeviceService {
     String installFirstSetupGame(in ParcelFileDescriptor source, long length) = 16;
     void validateFirstSetupSource(String expectedSourceSha256) = 17;
     String estimateGameSnapshot() = 18;
+    void checkGameProfiles() = 19;
     void destroy() = 16777114;
 }

@@ -242,6 +242,8 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
     a texture the codec refuses is otherwise invisible in the run's summary.
     """
     import mobile_graphics as mg
+    from qts_relocate import read_raw
+    from sprite_table import REGION_SPRITE_ASSETS, sprite_rects
     from wxq_patch.qtsvfs import QtsPackage
 
     graphics = mg.catalog_graphics(catalog.graphics)
@@ -254,7 +256,16 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
     for file_hash in wanted:
         chunks = _read_chunks(source_slots.get(file_hash, {}))
         raw = b"".join(mg.oodle_decompress(payload, slot.uncompressed_size) for slot, payload in chunks)
-        new = mg.english_raw(raw, graphics[file_hash], catalog_dir)
+        graphic = graphics[file_hash]
+        # A regioned atlas is ported at the device's own sprite rects, read from this package each run;
+        # without them english_raw refuses it rather than port at the PC offsets.
+        sprites = None
+        sprite_asset = REGION_SPRITE_ASSETS.get(int(graphic["hash"], 16))
+        if sprite_asset is not None and sprite_asset in package.entries:
+            table = read_raw(package, source_slots, sprite_asset)
+            if table:
+                sprites = sprite_rects(table, int(graphic["width"]), int(graphic["height"]))
+        new = mg.english_raw(raw, graphic, catalog_dir, sprites)
         if new is None or len(new) != len(raw):
             skipped.append(f"{file_hash:016X}")
         elif new != raw:  # equal means already English (patcher re-run)

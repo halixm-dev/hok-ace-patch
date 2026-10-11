@@ -54,6 +54,8 @@ class MainActivity : Activity() {
     }
     private val buttons = mutableListOf<Button>()
     @Volatile private var service: IPrivilegedDeviceService? = null
+    /** Raw text of the newest `ERROR:` an on-screen task logged; cleared when the next task starts. */
+    private var lastTaskError = ""
     @Volatile private var destroyed = false
     private var busy = false
     private var automatic = false
@@ -389,6 +391,12 @@ class MainActivity : Activity() {
         buttons.forEach { it.isEnabled = !busy && !live && !automatic }
         home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required"))
             friendlyFailure(state?.optString("error").orEmpty()) else "")
+        home.errorDetails(when {
+            live -> ""
+            // The worker's own raw error first: the automatic flow also logs it, already explained, as an ERROR.
+            state?.optString("status") in setOf("error", "recovery_required") -> state?.optString("error").orEmpty()
+            else -> lastTaskError
+        })
     }
 
     private fun friendlyFailure(message: String): String {
@@ -400,10 +408,27 @@ class MainActivity : Activity() {
                     ui("The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files.")
             message.contains("Shizuku worker connection timed out") ->
                 "Shizuku is running, but the patcher's helper did not start. Open Shizuku, stop it and start it again, then return here and tap Try again. If it happens again, save a log for help. Keep the game closed."
-            message.contains("Shizuku", true) || message.contains("permission", true) ->
-                "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed."
+            message.contains(PrivilegedDeviceService.GAME_MISSING) -> when (FirstSetupPackagePolicy.missingReason(message)) {
+                FirstSetupPackagePolicy.Missing.HIDDEN ->
+                    "The game is installed but hidden or switched off in this phone's main space, for example by Hide apps. Show it again, open it once, close it, then tap Try again."
+                FirstSetupPackagePolicy.Missing.OTHER_PROFILE_ONLY ->
+                    "The game is installed only in Dual App. Install it in the phone's main space too, open it once and finish all downloads, close it, then tap Try again."
+                FirstSetupPackagePolicy.Missing.ABSENT ->
+                    "The game is not installed in this phone's main space. Install it there (Dual App alone is not enough), open it once and finish all downloads, close it, then tap Try again."
+            }
+            message.contains(FirstSetupPackagePolicy.OTHER_PROFILE) ->
+                "The game is also installed in another Android profile, such as Dual App or a work profile. Remove it from that profile, then tap Try again. Keep the game closed."
+            message.contains(FirstSetupPackagePolicy.UNCHECKED_PROFILE) ->
+                "This phone has another Android profile, such as Dual App, that could not be checked for the game. Remove the game from Dual App, then tap Try again. If it happens again, save a log for help. Keep the game closed."
+            message.contains(InstalledGameVerifier.DIFFERENT_APP) ->
+                "The installed game app is not the saved app this check looks for. It is a different app, not a damaged one. If no patch was started, tap Try again. Otherwise check recovery options below, or save a log for help. Keep the game closed."
             message.contains("USER_RESTRICTED", true) ->
                 "The phone blocked installation. Unlock it and accept the install prompt. Open Technical tools for the full error."
+            // The command ran, so Shizuku is working; the phone itself refused the step.
+            message.contains("Device command failed") ->
+                "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help."
+            message.contains("Shizuku", true) || message.contains("permission", true) ->
+                "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed."
             else -> "Work stopped. Keep the game closed. Check recovery options below, or save a log for help."
         }
     }
@@ -662,6 +687,7 @@ class MainActivity : Activity() {
     private fun runTask(task: () -> Unit) {
         if (busy) return
         busy = true
+        lastTaskError = ""
         home.working(true)
         buttons.forEach { it.isEnabled = false }
         worker.execute {
@@ -681,6 +707,7 @@ class MainActivity : Activity() {
         DiagnosticTrace.event("ui", "Log: $message")
         runOnUiThread {
             if (!destroyed) {
+                if (message.startsWith("ERROR:")) lastTaskError = message.removePrefix("ERROR:").trim()
                 if (message.startsWith("ERROR:") || message.startsWith("Cannot ") || message.startsWith("Prepare game") || message.startsWith("No ")) home.message(if (message.startsWith("ERROR:") || message.startsWith("Cannot ")) friendlyFailure(message) else message)
                 output.append(message + "\n")
                 if (output.text.length > 32768) output.text = output.text.takeLast(32768)

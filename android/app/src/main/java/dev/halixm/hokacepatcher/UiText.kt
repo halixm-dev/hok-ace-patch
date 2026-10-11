@@ -68,6 +68,10 @@ object UiText {
         "Tap Start. We will check your game and prepare everything. Keep the game closed while we work." to "Ketuk Mulai. Game akan diperiksa dan semua file disiapkan. Jangan buka game selama proses.",
         "Shizuku is running, but the patcher's helper did not start. Open Shizuku, stop it and start it again, then return here and tap Try again. If it happens again, save a log for help. Keep the game closed." to "Shizuku berjalan, tetapi layanan pendukung patcher tidak mulai. Buka Shizuku, hentikan lalu jalankan lagi, kemudian kembali ke sini dan ketuk Coba lagi. Jika terulang, simpan log untuk bantuan. Jangan buka game.",
         "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed." to "Buka dan jalankan Shizuku, lalu izinkan HOK ACE. Kembali ke sini dan coba lagi. Jangan buka game.",
+        "The game is also installed in another Android profile, such as Dual App or a work profile. Remove it from that profile, then tap Try again. Keep the game closed." to "Game juga terpasang di profil Android lain, misalnya Aplikasi Ganda (Dual App) atau profil kerja. Hapus game dari profil tersebut, lalu ketuk Coba lagi. Jangan buka game.",
+        "This phone has another Android profile, such as Dual App, that could not be checked for the game. Remove the game from Dual App, then tap Try again. If it happens again, save a log for help. Keep the game closed." to "Ponsel ini memiliki profil Android lain, misalnya Aplikasi Ganda (Dual App), yang tidak dapat diperiksa. Hapus game dari Aplikasi Ganda, lalu ketuk Coba lagi. Jika terjadi lagi, simpan log untuk bantuan. Jangan buka game.",
+        "The installed game app is not the saved app this check looks for. It is a different app, not a damaged one. If no patch was started, tap Try again. Otherwise check recovery options below, or save a log for help. Keep the game closed." to "Aplikasi game yang terpasang bukan aplikasi tersimpan yang diperiksa. Aplikasinya berbeda, bukan rusak. Jika patch belum dimulai, ketuk Coba lagi. Jika sudah, periksa pilihan pemulihan di bawah atau simpan log untuk bantuan. Jangan buka game.",
+        "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help." to "Ponsel menolak satu langkah, meskipun Shizuku berjalan. Jangan buka game. Periksa pilihan pemulihan di bawah atau simpan log untuk bantuan.",
         "The phone blocked installation. Unlock it and accept the install prompt. Open Technical tools for the full error." to "Ponsel memblokir pemasangan. Buka kunci dan setujui permintaan pemasangan. Buka Alat teknis untuk melihat galat lengkap.",
         "Work stopped. Keep the game closed. Check recovery options below, or save a log for help." to "Proses terhenti. Jangan buka game. Periksa pilihan pemulihan di bawah atau simpan log untuk bantuan.",
         "The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files." to "Ponsel tidak melaporkan tambahan ruang yang diperlukan. Kosongkan ruang lain lalu coba lagi. Simpan file pemulihan.",
@@ -116,7 +120,14 @@ object UiText {
         "Game patch progress" to "Progres patch game",
         "Cancel preparation" to "Batalkan persiapan",
         "Stop after safe installation" to "Hentikan setelah pemasangan aman",
-        "Cancel and recover" to "Batalkan dan pulihkan"
+        "Cancel and recover" to "Batalkan dan pulihkan",
+        "Checking other Android profiles for the game" to "Memeriksa game di profil Android lain",
+        "Error details" to "Rincian galat",
+        "Copy error details" to "Salin rincian galat",
+        "Error details copied" to "Rincian galat disalin",
+        "The game is installed but hidden or switched off in this phone's main space, for example by Hide apps. Show it again, open it once, close it, then tap Try again." to "Game terpasang, tetapi disembunyikan atau dinonaktifkan di ruang utama ponsel ini, misalnya oleh fitur Sembunyikan aplikasi. Tampilkan lagi, buka sekali, tutup, lalu ketuk Coba lagi.",
+        "The game is installed only in Dual App. Install it in the phone's main space too, open it once and finish all downloads, close it, then tap Try again." to "Game hanya terpasang di Aplikasi Ganda. Pasang juga di ruang utama ponsel, buka sekali dan selesaikan semua unduhan, tutup game, lalu ketuk Coba lagi.",
+        "The game is not installed in this phone's main space. Install it there (Dual App alone is not enough), open it once and finish all downloads, close it, then tap Try again." to "Game belum terpasang di ruang utama ponsel ini. Pasang game di sana (Aplikasi Ganda saja tidak cukup), buka sekali dan selesaikan semua unduhan, tutup game, lalu ketuk Coba lagi."
     )
 
     fun text(context: Context, source: String): String = translate(PatchLanguage.current(context), source)
