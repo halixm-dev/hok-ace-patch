@@ -135,6 +135,7 @@ public final class FullCoordinatorProbeTest {
         @Override public String reinstallFixture(boolean abandon) { throw new UnsupportedOperationException(); }
         @Override public String probeGame(byte[] value) { throw new UnsupportedOperationException(); }
         @Override public void validateFirstSetupSource(String sha) { throw new UnsupportedOperationException(); }
+        @Override public void checkGameProfiles() { throw new UnsupportedOperationException(); }
         @Override public boolean firstSetupGameAbsent() { throw new UnsupportedOperationException(); }
         @Override public void removeGameForFirstSetup(String sha) { throw new UnsupportedOperationException(); }
         @Override public String installFirstSetupGame(ParcelFileDescriptor source, long length) { throw new UnsupportedOperationException(); }

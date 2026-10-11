@@ -1,6 +1,7 @@
 package dev.halixm.hokacepatcher
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.ParcelFileDescriptor
 import android.util.AtomicFile
 import com.chaquo.python.Python
@@ -8,6 +9,7 @@ import com.chaquo.python.android.AndroidPlatform
 import java.io.File
 import java.util.UUID
 import java.io.RandomAccessFile
+import java.security.MessageDigest
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import org.json.JSONObject
@@ -106,6 +108,11 @@ class ApkPreparation(private val context: Context) {
         val info = JSONObject(device.gameApkInfo())
         val bytes = info.getLong("bytes")
         check(bytes in 1..(3L * 1024 * 1024 * 1024)) { "Unsupported source APK size" }
+        // Only first setup cares about other profiles; refuse here rather than after minutes of preparation.
+        if (installedCertificate() != GameSigner.CERTIFICATE_SHA256) {
+            report("Checking other Android profiles for the game")
+            device.checkGameProfiles()
+        }
         report("Checking saved normal and access APKs")
         val cached = File(context.filesDir, "preparations").listFiles().orEmpty()
             .filter { File(it, "receipt.json").isFile }.sortedByDescending { it.lastModified() }
@@ -228,6 +235,13 @@ class ApkPreparation(private val context: Context) {
         check(normalFile.delete()) { "Cannot remove duplicate prepared normal APK" }
         return Prepared(directory, original, normal, access)
     }
+
+    /** The installed game's single signer, or null when Android will not say; null runs the profile check too. */
+    private fun installedCertificate(): String? = runCatching {
+        val signers = checkNotNull(context.packageManager.getPackageInfo(PrivilegedDeviceService.GAME,
+            PackageManager.GET_SIGNING_CERTIFICATES).signingInfo).apkContentsSigners
+        MessageDigest.getInstance("SHA-256").digest(signers.single().toByteArray()).joinToString("") { "%02x".format(it) }
+    }.getOrNull()
 
     /** The manifest's own android:debuggable, read by the engine's AXML parser; Android's view is ApkIdentity. */
     private fun manifestDeclaresDebuggable(apk: File): String = runCatching {

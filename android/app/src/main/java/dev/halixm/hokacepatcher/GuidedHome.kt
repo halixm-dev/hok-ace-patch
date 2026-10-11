@@ -1,6 +1,8 @@
 package dev.halixm.hokacepatcher
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
@@ -15,6 +17,7 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 
 /** One start action; show only work progress and checkpoints that need the user. */
 class GuidedHome(private val activity: Activity, private val invoke: (String) -> Unit) {
@@ -31,6 +34,14 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val stop = button("Stop safely", "stop-automatic") { invoke("stop") }
     private val spinner = android.widget.ProgressBar(activity)
     private val notice = text("", 18)
+    private var errorRaw = ""
+    private val errorText = text("", 14).apply { tag = "error-details"; setTextIsSelectable(true) }
+    private val errorBox = column().apply {
+        visibility = View.GONE
+        addView(text("Error details", 18))
+        addView(errorText)
+        addView(button("Copy error details", "copy-error") { copyError() })
+    }
     private val liveLog = text("", 15).apply { tag = "live-patch-log"; setTextIsSelectable(true) }
     private val logScroll = LogScrollView(activity).apply {
         addView(liveLog)
@@ -100,6 +111,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         root.addView(logCard)
         notice.tag = "friendly-notice"; notice.visibility = View.GONE
         root.addView(notice)
+        root.addView(errorBox)
         recovery.background = background(Color.rgb(255, 243, 224))
         recovery.setPadding(dp(16), dp(12), dp(16), dp(12))
         recovery.addView(text("Game won't open?", 23))
@@ -188,6 +200,23 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         DiagnosticTrace.event("screen", "Notice: $value")
         notice.text = ui(value); notice.visibility = View.VISIBLE
         notice.announceForAccessibility(notice.text)
+    }
+
+    /** Show the cause of <raw> on screen and keep all of it for copying; empty hides the box. */
+    fun errorDetails(raw: String) {
+        if (raw == errorRaw) return
+        errorRaw = raw
+        errorText.text = ErrorSummary.cause(raw)
+        errorBox.visibility = if (raw.isBlank()) View.GONE else View.VISIBLE
+    }
+
+    private fun copyError() {
+        if (errorRaw.isBlank()) return
+        activity.getSystemService(ClipboardManager::class.java)
+            .setPrimaryClip(ClipData.newPlainText("HOK ACE error", errorRaw))
+        DiagnosticTrace.event("ui", "Copied error details (${errorRaw.length} chars)")
+        // Android 13+ confirms a copy itself.
+        if (android.os.Build.VERSION.SDK_INT < 33) Toast.makeText(activity, ui("Error details copied"), Toast.LENGTH_SHORT).show()
     }
 
     fun technicalButton(label: String, callback: () -> Unit): Button = button(label, null, callback = callback).also {
