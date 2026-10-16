@@ -10,6 +10,16 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 
+## When a spec ships: promote it to a feature record
+
+`.scratch/` holds work in flight; a shipped feature's record lives in `docs/features/<feature-slug>.md`. When the last ticket of a spec lands:
+
+1. Create `docs/features/<feature-slug>.md` with the record shape: `## Report`, `## [S1] Problem`, `## [S2] Design`, `## [S3] Out of Scope`.
+2. Map the spec's sections: Problem → `[S1]`, Implementation Decisions → `[S2]`, Out of Scope → `[S3]`.
+3. Write a fresh `## Report`: what landed, the verification commands and their results, and the journey log (what was tried, the verdict, and what was withdrawn).
+4. Add no task list. The tickets' checklists stay behind; anything still owed is a sentence in the Report.
+5. Delete the `.scratch/<feature-slug>/` folder in the same change.
+
 ## When a skill says "publish to the issue tracker"
 
 Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).

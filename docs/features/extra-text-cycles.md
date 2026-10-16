@@ -270,14 +270,3 @@ the version-checking push tool can send only the package that differs.
 - **The `extra_text` coverage of assets the catalog does not carry.** Placeholder normalisation was
   measured and adds nothing (see the report), so the pass's reach is the catalog's, not an artefact of
   how it looks a string up.
-
-## Tasks
-
-- [x] T1: Resolve the note's fifteen short hashes against a dump and measure each one — acceptance: every hash resolves to exactly one asset, 14 in package `1` and `3F4DD9B1` in package `4`, and each asset's distinct/field/official counts are recorded (covers: S2)
-- [x] T2: Add `CANDIDATE_ASSETS` and `resolve_candidates` — acceptance: every 8-digit prefix in the queue resolves uniquely, an ambiguous or unknown token raises `UnknownCandidate` with the queue named, and a normal run plans exactly `SAFE_ASSETS` (covers: S1, S2)
-- [x] T3: Thread the enablement through both paths — acceptance: with `candidates={h}` package `1`'s rebuild reports 393 replacements against a 392 baseline, and with no candidates the summary is byte-for-byte the pre-change run's (covers: S1, S2)
-- [x] T4: Wire the CLI and the summary — acceptance: `--cycle-asset <hash>` enables it and logs what it is, `--cycle-asset` with an unknown hash exits with the queue printed, and `device_patch_summary.json` carries `cycle_assets` (covers: S2)
-- [x] T5: Record the census as `tools/research/extra_text_candidates.py` — acceptance: it reprints the report's table from a dump, ends with the plan-without-a-cycle check, and nothing in `app/` or `tools/` imports it (covers: S2)
-- [x] T6: Verify offline, per candidate — acceptance: four cycle runs differ from the baseline in exactly one content asset each (`1D13F7315D89BAC3` and `AF1FB540A2B8CB52` are the builder's path-carrying nodes), that asset is the one the cycle named, and its strings read back English (covers: S2)
-- [x] T7: Keep the app path working — acceptance: `app/hok_patcher.py --selftest` reports `ok: true`, `check_graphics.py` reports `all checks passed`, and `patcher_core.build_translation` is unchanged (covers: S2)
-- [x] T8: Build the four cycles and document the loop — acceptance: `artifacts/cycles/<hash>/out/` holds a complete patch per candidate, and `[S2]`'s loop names the backup, the cache-label pre-flight and the log to read (covers: S2)

@@ -141,9 +141,3 @@ reached the phone, and the run no longer hides it.
 - **Textures.** `graphics_skipped` already covers those, and this change does not touch it.
 - **Coverage claims.** The textures the mobile build does not carry, and the catalog's narrower card
   coverage, are documented in README and stay as they are.
-
-## Tasks
-
-- [x] T1: Add `text_skipped` to `build_patch`'s summary and log a line per package that lost tables — acceptance: on the 10:23 session dump a run writes `text_skipped` with one entry, `considered_count` 92 and 11 dropped hashes equal to the reproduced drop set, and the log names the package (covers: S2)
-- [x] T2: Add `count_untranslated_text` and wire both GUI sites — acceptance: the `translate` step detail and the final message each state how many text tables stay in Chinese, and with an empty `text_skipped` both read exactly as they do today (covers: S2; depends: T1)
-- [x] T3: Update AGENTS.md's `build_patch` contract and the README run description — acceptance: the documented payload lists `text_skipped` with its entry fields, and the constraints section says the text side reports what it could not apply (covers: S2; depends: T1)

@@ -108,6 +108,11 @@ one known table refusal. Evidence: `MEMORY.md`'s 2026-10-05 section.
   (`C40FFFB4C9180D66` alone holds 4522, e.g. "AI impersonates avatar 1181"). The fix belongs in the
   catalog (more `english_updates` rows), not in a pass here.
 
+### Still owed
+
+- T10 Walk the remaining screens in Indonesian after login: loading tips, Chessplayer page, Card menu,
+  arena artwork.
+
 ## [S1] Problem
 
 The patcher installs one language. An Indonesian catalog exists; the lobby's START GAME button is a
@@ -138,21 +143,3 @@ texture and needs an Indonesian image; and the resource tokens expand to English
   still hold Chinese (`README.md`'s known limits), so text switches only after the game's data is reset;
   textures switch on any run, which would leave MULAI GAME over English text. Both pickers say to clear
   the game's data before switching (measured in T8).
-
-## Tasks
-
-- [x] T1 `tools/languages.py`; payload fallback in `mobile_graphics`; per-language token terms through
-  `build_device_patch`, `package_rebuild`, `extra_text`, `device_extensions`; `language` in the summary.
-- [x] T2 MULAI GAME render and payloads; `tools/research/make_language_payloads.py`.
-- [x] T3 Windows language selector, saved setting, `--selftest` language, `build_exe.py` data.
-- [x] T4 Android language card, coordinator/journal/bridge plumbing, Gradle staging, storage estimate.
-- [x] T5 Offline Indonesian build against the 1.4.0.2 dump.
-- [x] T6 Docs: `AGENTS.md`, `README.md`, `android/README.md`, `translation-progress.md`, this record.
-- [x] T7 English regression byte-compare (HEAD `tools/` vs this change).
-- [x] T8 Measure a language switch over an already-English install; picker hints added.
-- [x] T9 Device cycle: Indonesian run on the phone; lobby shows MULAI GAME; the game starts and reads
-  Indonesian (launch and lobby; see *Device cycle*).
-- [x] T11 Device report: Effect Card filter label, Armed Power band, post-match QTS popup, Announcement
-  header — fixed and device-verified (see *Device report and fixes*).
-- [ ] T10 Walk the remaining screens in Indonesian after login: loading tips, Chessplayer page, Card menu,
-  arena artwork.

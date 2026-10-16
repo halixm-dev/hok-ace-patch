@@ -1,13 +1,13 @@
 # T11 — Independent, adversarial review of the spacing amendment (cc60205..b670d90)
 
 Reviewed commit: `b670d90` ("fix: space resource terms at the words they were glued to"), single commit,
-3 files (`tools/resource_tokens.py`, `README.md`, `docs/compose/spec/resource-token-expansion.md`).
+3 files (`tools/resource_tokens.py`, `README.md`, `docs/features/resource-token-expansion.md`).
 Read-only review: I modified nothing except this file. Feature base: `7cada8e`.
 
 **Snapshot caveat (environment churn during the review).** Another process ran concurrently in this
 workspace: it moved `dist\HOK ACE Patcher Data` out of the repo (to `D:\hok-verify-tokenfix\PatcherData-hold2`),
 then moved it back, rebuilt the exe (22:05:24), produced `run3`, and edited the spec **in the working tree**
-(6 insertions / 8 deletions, uncommitted; `git status` = `M docs/compose/spec/resource-token-expansion.md`,
+(6 insertions / 8 deletions, uncommitted; `git status` = `M docs/features/resource-token-expansion.md`,
 `?? tasks/`). Line numbers below are the **committed** b670d90 numbers; the working-tree spec has shifted by
 -2 after line ~46. Every corpus number below was re-read after the churn from the oracle at
 `dist\HOK ACE Patcher Data\sessions\20260929-212059\build\scan\replacements\1` (re-confirmed at read time:
@@ -21,7 +21,7 @@ earliest-match `find` loop) and compared it against both the module and the real
 
 ## Verdict 1 — SPEC COMPLIANCE: both criteria hold
 
-**T5 — MET** (`docs/compose/spec/resource-token-expansion.md:250`, rule at `:150-157`).
+**T5 — MET** (`docs/features/resource-token-expansion.md:250`, rule at `:150-157`).
 
 | Clause | Evidence |
 |---|---|
@@ -130,7 +130,7 @@ appears in the produced data.
   `glued`/`CurrentEnergy`/`IfEnergyis`/`energyobtained`/`HPand`/`319`/`376`/`minority of strings` hits only the
   spec (self-describing the amendment), the module comment, and `tasks/T7/progress.md` — the earlier review
   record for the pre-amendment range, an untracked artifact like this file, not shipping documentation.
-  `AGENTS.md:76`, `docs/compose/spec/standalone-patcher-app.md:185-190,204-207` mention the tokens but make no
+  `AGENTS.md:76`, `docs/features/standalone-patcher-app.md:185-190,204-207` mention the tokens but make no
   spacing claim, so nothing there went stale. `dist\…exe` freshness is T7's, not this amendment's.
 
 ---

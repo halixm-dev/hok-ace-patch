@@ -144,7 +144,7 @@ skips the push step entirely.
 
 Three documents record the gap as accepted rather than open: `README.md` (*Translation coverage*,
 *Known limits*), `AGENTS.md` (*Constraints*, *build_patch contract*), and
-`docs/compose/spec/standalone-patcher-app.md` (`[S3] Out of Scope`, plus its *Coverage difference from
+`docs/features/standalone-patcher-app.md` (`[S3] Out of Scope`, plus its *Coverage difference from
 the reference* section). This change falsifies all three.
 
 ## [S2] Design
@@ -572,53 +572,3 @@ Ground truth moves to `tools/research/check_graphics.py`, which is off the runti
 - Rewriting the graphics pass to emit compressed Oodle blocks. No Python Oodle compressor exists.
 - **On-device confirmation.** No phone is available this session, so the rendered result is unproven
   and the Report says so.
-
-## Tasks
-
-- [x] T1: Add `tools/mobile_graphics.py` — the ASTC/Oodle codec (`english_raw`, `astc_layout`,
-      `encode_astc`, `decode_astc`, `decode_pc`, `oodle_stored`, `oodle_decompress`) with the
-      `MISSING_METADATA` fallback for the six metadata-less hashes — acceptance: `english_raw` returns
-      changed bytes of the same length for a real `.blocks` BC7 4x4 entry, a `.blocks` RGBA32 entry and
-      a `.assets` entry from the catalog; returns `None` for a raw size no footprint fits; and resolves
-      all six metadata-less hashes to RGBA32 568x70 (covers: S2)
-- [x] T2: Add `tools/device_extensions.py` with `port_graphics` and `extend_graphics` — acceptance:
-      `port_graphics` over the dump's package 15 stages 299 textures into a fresh output directory while
-      the source package's index and shard are byte-identical before and after (covers: S2; depends: T1)
-- [x] T3: Call `extend_graphics(game, catalog, output, log)` in `build_patch` after the text staging
-      loop — acceptance: a full `build_patch` run over the dump returns `mode == "graphics"` entries for
-      packages 15/19/20 whose `replacement_count` totals 322, and the summary written to
-      `output/device_patch_summary.json` contains them (covers: S2; depends: T2)
-- [x] T4: Restore `count_translated` to `(text, images)` and update `patcher_core.build_translation`
-      and `hok_patcher.App.worker` — acceptance: given a summary holding both modes, text and images are
-      counted separately; a summary with only a `graphics` entry reports `0 text tables` and a non-zero
-      image count rather than being treated as "already installed" (covers: S2; depends: T3)
-- [x] T5: Restore the graphics dependencies in `requirements.txt` and the four PyInstaller flags in
-      `app/build_exe.py`, then rebuild — acceptance: `.venv` imports `astc_encoder`, `ooz` and
-      `texture2ddecoder`; `app/build_exe.py` succeeds; and the frozen exe's `--selftest` over the dump
-      completes with 322 textures staged instead of dying on the first one (covers: S2; depends: T3)
-- [x] T6: Add `tools/research/check_graphics.py` — acceptance: it compares all 44 previews (0.000), round-trips
-      `encode_astc`/`decode_astc`, resolves `astc_layout` for the dump's real raw sizes, and asserts that
-      a BC7 `.blocks` port changes no byte outside `patch_ranges`; it exits non-zero on any failure and
-      nothing in `app/` or `tools/` imports it (covers: S2; depends: T1)
-- [x] T7: Update `README.md`, `AGENTS.md` and `docs/compose/spec/standalone-patcher-app.md` —
-      acceptance: no document still claims textures are not translated, that the pipeline has no
-      `graphics` mode, or that the app reports text tables only; the app spec's `[S3]` deferral is marked
-      superseded (covers: S2; depends: T4)
-- [x] T8: Measure re-run safety and determinism — acceptance: a second `port_graphics` pass with the
-      first pass's output as its source reports 0 textures written, and two independent `build_patch`
-      runs over the same dump produce byte-identical shards (covers: S2; depends: T3)
-- [x] T9: In `build_patch`, remove `output/<package_id>` when a package ends with no `report` —
-      acceptance: after a run over the dump, the numeric directories under `<output>` are exactly the
-      package ids in `summary["packages"]`, and the previously-leaked package 1 directory is gone
-      (covers: S2; depends: T3)
-- [x] T10: Read a regioned atlas's device sprite table (`tools/sprite_table.py`, `REGION_SPRITE_ASSETS`)
-      — acceptance: `atlas_sprites.py table` reproduces the T14 handoff's rect tables from today's dump
-      and the 10-03 pristine dump (covers: S2 *Regioned atlases*)
-- [x] T11: Port a regioned atlas by sprite (`mobile_graphics.port_atlas`), wired through `port_graphics`
-      — acceptance: `check_graphics.py` passes offline (`[10]`) and with `--game` on both dumps; every
-      region at its device box; unmoved atlases byte-identical; a re-run changes nothing (depends: T10)
-- [x] T12: Restoration crops and the two label renders in `resources/sprites/`, staged by both packagers
-      — acceptance: `atlas_sprites.py restore --check` and `labels --check` pass; labels hand-polished
-      and validated by `tasks/T15/validate_assets.py` (depends: T11)
-- [x] T13: Device cycle — the Career screen, device-verified 2026-10-10 (one-texture push, session
-      `20261010-151438`); other screens drawing the moved sprites not walked (depends: T12)
