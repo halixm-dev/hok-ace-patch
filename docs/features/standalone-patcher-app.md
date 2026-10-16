@@ -10,6 +10,11 @@ commits: 7b9769b..9f151a8
 
 ## Report
 
+**Branding update (2026-10-16):** the Windows window title, header and build output are now
+`HOK ACE Language Patcher`. The settings path, working folder and taskbar identity stay
+stable so existing preferences and working data remain available. The original delivery names
+below are historical. The Android app uses the same product name.
+
 **What was built** — `hok-ace-android-en` is now a standalone, buildable Windows patcher app with the
 sibling project's layout and branding: `app/` (customtkinter GUI, USB device workflow, APK rewrite and
 v2 signing, PyInstaller build, icon generator), `resources/` copied verbatim (808 files — adb, catalog,

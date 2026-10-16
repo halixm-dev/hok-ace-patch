@@ -112,7 +112,7 @@ The normal pipeline is DLL-free because `REBUILD_PACKAGES = ()`. It still needs 
 
 ### Launcher identity (2026-10-05)
 
-Launcher name and notification title are **HOK ACE Patcher**; application ID, code namespace and
+Launcher name and notification title are **HOK ACE Language Patcher**; application ID, code namespace and
 instrumentation identity are `dev.halixm.hokacepatcher`. Current Android helpers and command examples
 follow that identity; older evidence in the lab notebook retains its measured package/process names. The launcher
 uses the user-supplied `foreground-icon.png` unchanged inside a 15% inset, an adaptive icon and

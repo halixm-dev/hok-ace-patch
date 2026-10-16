@@ -1,6 +1,6 @@
-# HOK ACE Patcher for Android
+# HOK ACE Language Patcher for Android
 
-Launcher name: **HOK ACE Patcher**. Application ID: `dev.halixm.hokacepatcher`.
+Launcher name: **HOK ACE Language Patcher**. Application ID: `dev.halixm.hokacepatcher`.
 The attached foreground artwork is packaged unchanged, inset 15% for adaptive-mask headroom;
 its background is white (`#FFFFFF`). The home screen no longer has the Test version badge.
 The old `io.github.hokace.patcher` package and private recovery data are retained separately;
@@ -89,7 +89,7 @@ The current gate and measured results are in
 
 The user reports full patch success; the retained session is `COMPLETE`, has no dirty packages or mutation intent, and records verified normal restoration. Evidence and the remaining acceptance gates are in the feature report. These are measurements from one run, not fixed minimum storage/RAM requirements. The watched-screen checklist, repeat-patch behavior, deliberate live interruption tests, another OEM and Android 15/16 KiB testing remain open.
 
-For normal use, install **HOK ACE Patcher** and **Shizuku**. The probe fixture and `androidTest` APK are development tools and are not needed for patching.
+For normal use, install **HOK ACE Language Patcher** and **Shizuku**. The probe fixture and `androidTest` APK are development tools and are not needed for patching.
 
 ## Build on Windows
 
@@ -179,7 +179,7 @@ precedes the bundled runtime in `sys.path`.
 Install `app/build/outputs/apk/debug/app-debug.apk`, the debug fixture APK, and the app's
 `androidTest` APK. MIUI may require **Install via USB**, the separate **USB debugging
 (Security settings)** option, and a prompt for each APK. Start Shizuku
-through wireless debugging, open **HOK ACE Patcher**, and authorize it. The normal process
+through wireless debugging, open **HOK ACE Language Patcher**, and authorize it. The normal process
 must fail to invoke `run-as`; an EACCES failure before exec is an expected denial on MIUI.
 
 ```bat

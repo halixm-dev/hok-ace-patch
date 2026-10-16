@@ -1,7 +1,7 @@
 """Build the single-file patcher exe with PyInstaller.
 
 Run from the project root:  .venv\\Scripts\\python.exe app\\build_exe.py
-Output: dist\\HOK ACE Mobile English Patcher.exe (PyInstaller scratch goes to build\\, safe to delete).
+Output: dist\\HOK ACE Language Patcher.exe (PyInstaller scratch goes to build\\, safe to delete).
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 APP = ROOT / "app"
 RESOURCES = ROOT / "resources"
-NAME = "HOK ACE Mobile English Patcher"
+NAME = "HOK ACE Language Patcher"
 
 # Stdlib modules the compiled translation runtime imports at run time; PyInstaller cannot see them.
 HIDDEN_IMPORTS = [
