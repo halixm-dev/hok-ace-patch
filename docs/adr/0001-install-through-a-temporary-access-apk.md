@@ -1,0 +1,3 @@
+# Install through a temporary access APK
+
+The patcher has to write translated packages into the override layer without root, so it re-signs the game's own APK, installs a debuggable access APK just long enough to write the override layer, then reinstalls the normal APK. Code injection into the APK and a prebaked APK carrying translated assets were both tried and both fail (an anti-cheat kill and `IsPrebuild errorCode:151`), and the access APK can never stay installed, because the game dies during Unity startup under a debuggable build. Evidence: [prime-rebuild.md, Out of Scope](../features/prime-rebuild.md#s3-out-of-scope) and [lab notebook §2 Cause B and §3 (2026-09-30)](../lab-notebook.md#3-the-debuggable-apk-that-stays-installed).

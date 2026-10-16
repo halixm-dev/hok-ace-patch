@@ -1,0 +1,3 @@
+# Never rewrite a config bin the catalog does not cover
+
+The client enforces the checksum a config bin stores, so rewriting one, even at identical length with only its refs re-pointed, makes the game drop everything that bin feeds: re-pointing the Talent Card grid's config emptied the grid in two device cycles. A config bin the catalog does not cover is therefore never rewritten, and the Talent Card regression was fixed in its card dictionary instead. Evidence: [prime-only-append.md, The Talent Card grid regression](../features/prime-only-append.md#the-talent-card-grid-regression-what-was-ruled-out-first) and [lab notebook 2026-10-03](../lab-notebook.md#2026-10-03--talent-card-regression-isolated-and-fixed).

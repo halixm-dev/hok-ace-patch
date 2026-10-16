@@ -1,7 +1,7 @@
 ---
 feature: indonesian-language
 status: delivered (device-verified: launch and lobby, 2026-10-05)
-updated: 2026-10-05
+updated: 2026-10-16
 branch: master
 ---
 
@@ -107,6 +107,15 @@ one known table refusal. Evidence: `docs/lab-notebook.md`'s 2026-10-05 section.
   Chinese source the Indonesian one also translates — mostly package `1`'s prime-only tables
   (`C40FFFB4C9180D66` alone holds 4522, e.g. "AI impersonates avatar 1181"). The fix belongs in the
   catalog (more `english_updates` rows), not in a pass here.
+- **Catalog review and remediation (2026-10-08).** A review of the Indonesian catalog found its ~1 069
+  reviewed strings sound and much of the rest unvetted machine translation: Quranic verses and Tafsir
+  commentary injected into skill and rule descriptions, context-blind false friends, `≥`/`≤` corrupted
+  to `£`, and drifting terms (`Kerusakan` beside `Damage`, the typo `Chesplains`). `c64281e` purged 52
+  hallucinated entries with curated ones, replaced the false friends, restored the symbols, normalized the
+  terms and shortened two lobby labels that wrapped or clipped (`Pemain`, `Hadiah`), validating all 39 011
+  entries; `90c952b` purged the remaining hallucinations and kept the Talent and combat-stat terms in
+  English; `ea84cd9` added `tools/research/apply_catalog_fixes.py` so the fixes survive an upstream
+  re-import. The standalone review doc that drove this was folded into [S2] below.
 
 ### Still owed
 
@@ -134,6 +143,25 @@ texture and needs an Indonesian image; and the resource tokens expand to English
   have to their payloads.
 - **One language per run.** Android reads the setting once per run and locks the picker while work is in
   progress; Windows disables it while a run is active.
+
+- **Indonesian catalog wording** (from the 2026-10-08 review; corrections go through
+  `tools/research/apply_catalog_fixes.py`, never a hand edit of the gzip):
+  - *Kept in English:* `Deploy`, `Combine`, `Level`/`Lv.`, `Hero`, `Skin`, `Skill`, `Passive`, `Ultimate`,
+    `Damage`, `True Damage`, `Physical Attack`, `Magic Attack`, `Physical Defense`, `Magic Defense`,
+    `Shield`, `Lifesteal`, `Spell Vamp`, `Crit`, `Buff`, `Debuff`, `Stack`, `Stun`, `Knockup`,
+    `Knockback`, `Stealth`, `Lineup`, `Tier`, `Reroll`, `Refresh`, `Shop`, `Diamond`, `Token`, `Coupon`,
+    `Chessplayer`.
+  - *Indonesian:* `Pemain` (player), `Ronde` (round), `Pengguna`/`Pemakai` (an item's wearer),
+    `Memberikan`/`Memperoleh` (grants, gains).
+  - *False friends, never written:* `hibah` (grants), `pemutar` (player), `kulit` (skin),
+    `kolam renang` (card pool), `wajik` (diamond), `pembawa berita` (wearer), `kebakaran rubah`
+    (Fox Fire), `cairan darah mantra` (Spell Vamp), `ruang suai` (Custom Room).
+  - *`使用`:* an imperative is `Gunakan`, a verb after `bisa`/`dapat`/`untuk` is `menggunakan`, a genuine
+    noun is `penggunaan`; a raw English `Usage` never stays in an Indonesian sentence.
+  - *Symbols:* a `£` the machine translation left in a condition is `≥` (or `≤` where the source reads
+    `<=`), and a corrupted circled digit is restored from the source.
+  - *Series labels* read `Seri <keyword>` (`Seri General`, `Seri Effect Card`), the order the terminology
+    table also writes.
 
 ## [S3] Out of Scope
 
