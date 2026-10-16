@@ -23,25 +23,21 @@ throughout: **`f15a72e` / Xiaomi M2007J3SG, Android 12 / MIUI 14**; game data **
 
 ## 1. Reading a crash
 
-The game suppresses tombstones, so logcat is not where a crash is answered.
+The triage steps are the runbook [`docs/runbooks/read-a-crash.md`](runbooks/read-a-crash.md). What
+was measured behind them:
 
-- `adb shell dumpsys activity exit-info com.tencent.tmgp.osgame` is the tool: `reason=2 (SIGNALED)` with
-  `status=11` (SIGSEGV) or `7` (SIGBUS), plus `pss` — 1.2–1.3 GB in the replay crash.
-- logcat says only `WIN DEATH` + `has died: fg TOP`; the `crash` buffer is empty and dropbox has no
-  `data_app_crash` for the package.
-- `Cache/Logs/*.logcompr` is encrypted. `bqLog/ccs_log/normal1.log` is plain text and readable with plain
-  adb, no `run-as`, under `/sdcard/Android/data/com.tencent.tmgp.osgame/files/` — but it is the bq/ccs
-  **network** log: it ends mid-ping at each crash and holds no stack. Same tree: `TGPA/` (anti-cheat) and
-  `Cache/Replay/<matchid>_<uid>_200_<build>_<date>.record.<pid>.lock`, one per watched match.
-- The client's `BrokenList.db` and `QtsVFS.log` are readable while the debuggable access APK is installed and
-  say whether it could read the files at all. Check that before assuming corruption.
-- **Launching with the network off is a poor diagnostic**: it also makes TPGA anti-cheat quit early
-  (`cloud.tgpa.qq.com` fails to resolve), which looks like a crash but is not one.
-- `pkgHash` is **not** content-derived — identical before and after reverting a 68 MB shard change — so it
-  cannot be used as a content-integrity check. A patched package does mount as an override:
-  `MountPackage 1, override, … pkgHash:<new> basePkgHash:<old>`; untouched packages mount with
-  `pkgHash == basePkgHash`.
-- `md5sum` over `run-as` does not work on this build (toybox has none); use `ls -l` sizes.
+- The game suppresses tombstones. logcat says only `WIN DEATH` + `has died: fg TOP`; the `crash` buffer is
+  empty and dropbox has no `data_app_crash` for the package. `dumpsys activity exit-info` does answer:
+  `reason=2 (SIGNALED)`, `status=11` or `7`, and `pss` 1.2–1.3 GB in the replay crash.
+- `Cache/Logs/*.logcompr` is encrypted. `bqLog/ccs_log/normal1.log` is the bq/ccs **network** log: it
+  ends mid-ping at each crash and holds no stack. The same tree carries `TGPA/` (anti-cheat) and one
+  `Cache/Replay/…record.<pid>.lock` per watched match.
+- With the network off, TPGA anti-cheat quits early (`cloud.tgpa.qq.com` fails to resolve), which looks
+  like a crash but is not one.
+- `pkgHash` is **not** content-derived: identical before and after reverting a 68 MB shard change. A
+  patched package mounts as `MountPackage 1, override, … pkgHash:<new> basePkgHash:<old>`; untouched
+  packages mount with `pkgHash == basePkgHash`.
+- toybox on this build has no `md5sum`, so hashing over `run-as` does not work.
 
 ## 2. Startup SIGBUS/SIGSEGV: two sufficient causes
 
@@ -622,36 +618,27 @@ resumed rather than restarted).
 
 ## 11. Operating discipline
 
-**Order of operations.** The patcher has **no completeness check** for the in-game download: `pull_game_data`
-only asserts that `files/QtsVFSCache/packages/1/1.info` contains `"version"`, and patching an incomplete set
-is what poisoned the game (§2 Cause A). Run the patcher only when the game has reached the login screen on its
-own; use `Cache/Update/NewVersionInfo.json` (`needDownloadSize == 0`) plus the downloaded package set as a
-sanity check, and treat a device data set well under ~2.8 GB as suspect. Write the translation **after** the
-in-game update finishes.
+The procedures this section used to hold are now runbooks:
+[`docs/runbooks/device-cycle.md`](runbooks/device-cycle.md) (order of operations, reading and writing the
+override layer, one change per cycle) and [`docs/runbooks/read-a-crash.md`](runbooks/read-a-crash.md) (the
+controls, bisecting, comparing builds). What was measured behind them:
 
-**Reading and writing game data.** `run-as com.tencent.tmgp.osgame` works **only while the debuggable access
-APK is installed**; pull or push `files/QtsVFSCache/packages/<id>/` before restoring the normal APK, or
-reinstall the access APK first. A patcher session keeps both sides of the patch:
-`<work>/sessions/<ts>/game/WXQ_Data/Package/builtin/<id>/` is the pre-patch device dump (the rollback source),
-`staged/<id>/` the patched output.
-
-**Habits this project paid for.**
-
-- **Run the control in the other direction before attributing a device failure to a change**: unpatched +
-  same APK, patched + clean APK. Both controls here were ~2 minutes each and neither was run first, which is
-  what cost two hours.
-- **Re-measure the load-bearing part** of a report that contradicts a durable claim — and re-read a confident
-  durable claim for *what it measured*, not just its answer. Both the project memory and a subagent's report
-  had been measured, against the downloaded layer only.
-- **Bisect upward** from the last known good when the answer is a subset: four cycles that each grew the
-  recovered set beat bisecting down from the full build, which would have produced three "still broken"
-  reports and been wrong about the first three assets.
+- `pull_game_data` only asserts that `files/QtsVFSCache/packages/1/1.info` contains `"version"`: there is no
+  completeness check for the in-game download, and patching an incomplete set is what poisoned the game
+  (§2 Cause A, 2.12 GB against a complete 2.86 GB).
+- `run-as com.tencent.tmgp.osgame` works only while the access APK is installed.
+- A patcher session keeps both sides of the patch: `<work>/sessions/<ts>/game/WXQ_Data/Package/builtin/<id>/`
+  is the pre-patch device dump (the rollback source), `staged/<id>/` the patched output.
+- The two controls (unpatched + same APK, patched + clean APK) took ~2 minutes each and neither was run
+  first, which cost two hours.
+- Both the project memory and a subagent's report had been measured against the override layer only.
+- Bisecting upward took four cycles that each grew the recovered set; bisecting down from the full build
+  would have produced three "still broken" reports and been wrong about the first three assets.
 - Reverting textures (three minutes) eliminated half the hypothesis space outright; more analysis of the
-  suspect did not. And compare **asset by asset, not file by file**, when checking a code change against a
-  device-validated build.
+  suspect did not.
 - `Start-Process -ArgumentList` with an array silently splits a path containing spaces, so a windowed
   PyInstaller exe falls through to its GUI branch and waits on a window forever; and `&` does not wait for a
-  GUI-subsystem exe, so `$LASTEXITCODE` is empty. Use one pre-quoted argument string with `-Wait`.
+  GUI-subsystem exe, so `$LASTEXITCODE` is empty. One pre-quoted argument string with `-Wait` works.
 
 **Open and unconfirmed.** Whether the Card Info view follows the 26 newly-applied wide panels **is for the
 device to show** — do not claim it. "Chessplayer" overlapping "Combat Power" in the header is a **text-length**
@@ -732,6 +719,15 @@ Claims that were believed, acted on, and turned out wrong — kept because the m
 | `GCloud blModified = [1]` / `GetAllSubpatchInfo ArraySize:[552]` are crash signatures | both appear on the unpatched control too | updater noise; the debug-build signature is *only prime mounts, no override mount* (§2) |
 | the DLL rebuild is content-identical: 3470 identical, 0 differ | the sweep covered under half of Tencent's 4866 entries | 3470 override-exact **and** 1392 prime-exact; the real difference is the index entry shape (§8) |
 
+
+## 2026-10-02 — a cycle staged from an older game-data version
+
+A cycle staged from the 1.4.0.1 `artifacts/game-dump` went onto a phone running 1.4.0.2. A staged package
+is a revision of one layer, so the push reverted every asset the game had changed in between, among them a
+34 KB Chinese config asset and a 13.5 KB English one. The load stopped at 0% and the game repaired itself
+with a download, removing the translation; the cycle gave no verdict on the asset it was testing. The
+same day a patch staged from the phone's own version launched and read English. Since then the dump's
+`1.info` is compared with the phone's before a push (`docs/runbooks/device-cycle.md`).
 
 ## 2026-10-03 — Talent Card regression isolated and fixed
 

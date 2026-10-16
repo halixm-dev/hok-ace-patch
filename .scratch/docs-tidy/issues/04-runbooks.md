@@ -10,9 +10,9 @@ Each source keeps a one-line pointer to its runbook in place of the moved text. 
 
 **Blocked by:** 02, 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Three runbooks exist, each written as ordered steps that end on a checkable completion criterion
-- [ ] The prime-rebuild record and the notebook hold pointers, not copies
-- [ ] No measurement is lost: evidence the procedures carried stays in the notebook
-- [ ] The reference check passes
+- [x] Three runbooks exist, each written as ordered steps that end on a checkable completion criterion
+- [x] The prime-rebuild record and the notebook hold pointers, not copies
+- [x] No measurement is lost: evidence the procedures carried stays in the notebook
+- [x] The reference check passes
