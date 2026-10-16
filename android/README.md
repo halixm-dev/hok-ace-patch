@@ -20,7 +20,7 @@ on the phone). The same choice immediately switches the patcher's interface betw
 Indonesian, including confirmations, recovery controls and notification actions. Raw technical logs
 stay unchanged for diagnosis. A run reads it once when it starts and records it in the session journal, and the card
 is locked while work is in progress. The engine carries `catalog/` and `catalog_id/` side by side,
-because the Indonesian catalog reads the English texture payloads it does not re-draw.
+because the Indonesian catalog reads the English catalog edits it does not re-draw.
 The home screen has one **Start** button. The visual theme follows [wxq.qq.com](https://wxq.qq.com/): lavender and
 ice-blue backgrounds, a geometric gradient hero, translucent white cards and violet-blue buttons.
 The hero is drawn locally; it needs no network or downloaded website artwork. Language choices,

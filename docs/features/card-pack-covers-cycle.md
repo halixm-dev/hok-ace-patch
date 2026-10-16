@@ -74,7 +74,7 @@ the asset is only offered when `--cycle-asset 9E45602F` names it.
 
 1. **Queue it.** Add `0x9E45602F1857539D` to `extra_text.CANDIDATE_ASSETS`, recording the measurement
    (60 distinct, 27 official, 60 with the derived forms, 252 fields; lab notebook, 2026-10-16). `resolve_candidates` then accepts it.
-2. **Let the append offer an enabled config asset.** `make_transform` exposes `transform.config`, the
+2. **Let the append offer an enabled config bin.** `make_transform` exposes `transform.config`, the
    `SAFE_ASSETS | candidates` set it already decides against. `add_prime_only` adds that set to
    `wanted`. With no cycle and an empty allowlist, the set is empty, so a normal run stages
    byte-identical packages. The `AGENTS.md` line that says the append "never asks about the
