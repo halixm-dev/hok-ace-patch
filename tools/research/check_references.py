@@ -10,7 +10,8 @@ placeholders (``<HASH>``, ``*``, ``{x}``), paths git ignores (build output, ``di
 references. Fenced code blocks in Markdown are skipped.
 
 A line that names an entry of ``RETIRED_NAMES`` fails too. Each docs move that
-retires a name adds the old name here.
+retires a name adds the old name here. A retired path (one with a ``/``) matches only at the repo root, which
+``RETIRED_CASES`` proves before every scan.
 
 ``.scratch/`` is work in flight -- its specs and tickets name the old and new homes on purpose -- so
 it is not scanned.
@@ -160,8 +161,29 @@ def _resolves(ref: Reference, known: set[str], suffixes: set[str]) -> bool:
 
 
 def _retired(name: str) -> re.Pattern[str]:
-    """``name`` as a whole path word: ``tasks/`` must not match inside ``subtasks/``."""
-    return re.compile(rf"(?<![\w.-]){re.escape(name)}")
+    """``name`` as a whole path word: ``tasks/`` must not match inside ``subtasks/``.
+
+    A retired path (one with a ``/``) names a repo-root entry, so it must not match under another
+    directory either: ``tasks/`` is not ``foo/tasks/``. A bare file name matches wherever it is.
+    """
+    before = r"[\w./-]" if "/" in name else r"[\w.-]"
+    return re.compile(rf"(?<!{before}){re.escape(name)}")
+
+
+# Lines a retired-name pattern must (True) or must not (False) match, checked before every scan.
+RETIRED_CASES: tuple[tuple[str, str, bool], ...] = (
+    ("tasks/", "see `tasks/T15/edit/`", True),
+    ("tasks/", "(tasks/T15)", True),
+    ("tasks/", "`subtasks/x`", False),
+    ("tasks/", "`foo/tasks/x`", False),
+    ("MEMORY.md", "read `MEMORY.md`", True),
+)
+
+
+def _retired_self_check() -> list[str]:
+    """The ``RETIRED_CASES`` the patterns get wrong, as failure lines."""
+    return [f"{SELF}: retired {name!r} {'misses' if want else 'matches'} {line!r}"
+            for name, line, want in RETIRED_CASES if bool(_retired(name).search(line)) != want]
 
 
 def _references(path: str, text: str, roots: set[str]) -> list[Reference]:
@@ -199,6 +221,9 @@ def _references(path: str, text: str, roots: set[str]) -> list[Reference]:
 
 
 def check() -> list[str]:
+    broken = _retired_self_check()
+    if broken:
+        return broken
     files = _repo_files()
     known = _known(files)
     roots = {p.split("/")[0] for p in files}
