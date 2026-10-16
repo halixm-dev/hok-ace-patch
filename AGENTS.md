@@ -98,7 +98,7 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 **Freezing**
 
 - `resources/runtime/` is precompiled bytecode; treat it as binary. A stdlib import it needs at freeze time goes in `HIDDEN_IMPORTS` in `app/build_exe.py`.
-- `app/build_exe.py` collects `astc_encoder`, `ooz` and `texture2ddecoder` explicitly and `pypinyin` with `--collect-all`; without them the exe builds but dies on the first texture. ([standalone-patcher-app](docs/features/standalone-patcher-app.md))
+- `app/build_exe.py` collects `astc_encoder`, `ooz` and `texture2ddecoder` explicitly and `pypinyin` with `--collect-all`; without them the exe builds but dies on the first texture. ([texture-translation](docs/features/texture-translation.md))
 
 ## Boundaries
 
