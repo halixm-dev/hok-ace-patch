@@ -10,7 +10,7 @@ branch: master
 ## Report
 
 **What was built** — one game keyword now reads one way, the default way. `tools/terminology.py` holds a
-glossary per language (`languages.Language.terms`) and `install()` wraps `adaptive.load_catalog`, so
+terminology table per language (`languages.Language.terms`) and `install()` wraps `adaptive.load_catalog`, so
 every catalog the pipeline loads has its targets corrected in memory before the runtime's `Catalog` is
 built from them. `build_patch` installs it next to `install_btree_slot_map()` and logs
 `glossary: N catalog strings now read 'Prepare', M … 'Steal'`. `catalog.json.gz` is not edited.
@@ -23,11 +23,10 @@ built from them. `build_patch` installs it next to `install_btree_slot_map()` an
 
 Steal and Prepare are the default names — the ones the catalog already uses most (the `夺取` link label
 reads Steal 7 times in 11, the `整备` label Prepare 45 times in 55). Plunder and Readiness are the
-unofficial community translation's names and are what the glossary removes. A first version of this
-change went the other way, to Plunder and Readiness; the user corrected it the same day.
+unofficial community translation's names and are what the terminology table removes.
 
 English and Indonesian both take it: the Indonesian catalog keeps these keywords in English ("Seri
-Steal", "Efek Prepare") with the same variants. Its glossary adds its own misreadings — "Efek Kejang"
+Steal", "Efek Prepare") with the same variants. Its table adds its own misreadings — "Efek Kejang"
 (Seizure in its medical sense), "PIunder" (Plunder with a capital I), "Efek steal╊" (lower case before
 the icon) and "╬Siap" (Indonesian for Ready) — and puts every **series** label in the Indonesian order,
 as the user chose: "╬Prepare Series" → "╬Seri Prepare", "═Temporary Level Series" → "═Seri Temporary
@@ -41,22 +40,25 @@ replacing a word, which is why a replacement may be a function of the match.
 | Check | Result |
 |---|---|
 | English catalog, `apply` over `unique` + `english_updates` | 40 targets now read Steal, 9 Prepare, 1 Deploy |
-| Same, Indonesian catalog with its own glossary | 36 Steal, 7 Prepare, 1 Deploy, 107 series labels to "Seri X"; 145 changed pairs |
-| Indonesian `系列` strings still in the English order afterwards | none as a label. Left: Indonesian prose that already reads "seri X" ("talent seri Prepare"), and one garbled card line, "4 Summon atau ╉Totem`</a>` seri Kartu Hero", whose name sits inside a link tag the glossary may not move |
+| Same, Indonesian catalog with its own terminology table | 36 Steal, 7 Prepare, 1 Deploy, 107 series labels to "Seri X"; 145 changed pairs |
+| Indonesian `系列` strings still in the English order afterwards | none as a label. Left: Indonesian prose that already reads "seri X" ("talent seri Prepare"), and one garbled card line, "4 Summon atau ╉Totem`</a>` seri Kartu Hero", whose name sits inside a link tag the terminology table may not move |
 | Markup and placeholders (`{…}`, `<…>`) of every changed pair | identical to the catalog's, both languages |
-| `adaptive.validate_translation(source, target)` on every changed pair | 0 pairs the catalog passed and the glossary fails, both languages |
+| `adaptive.validate_translation(source, target)` on every changed pair | 0 pairs the catalog passed and the terminology table fails, both languages |
 | Second `apply` over the result | 0 changes (idempotent) |
 | Entries containing `夺取` / `整备` with no Steal / Prepare | English 0 / 0; Indonesian 3 / 0, all Indonesian prose verbs (`curi`, `sedot`, `menyerap`), not the keyword's name |
-| `installed.apk` prime package `1`, all 497 catalog tables through `translate_table`, plain vs glossary catalog | 29 tables differ; "Readiness" 6 → 0, "Steal" 935 → 1062, "Prepare" 2607 → 2639, "Plunder" 166 → 118 (the rest are `掠夺`, see [S3]) |
+| `installed.apk` prime package `1`, all 497 catalog tables through `translate_table`, plain vs terminology-corrected catalog | 29 tables differ; "Readiness" 6 → 0, "Steal" 935 → 1062, "Prepare" 2607 → 2639, "Plunder" 166 → 118 (the rest are `掠夺`, see [S3]) |
 | Full `build_device_patch.py` on the pristine **1.6.0.1** layer (`pristine/20261016-101124/game`, `installed.apk` sha `29b3ee7e…`), English, against the same run with `terminology.install` stubbed out | exit 0 in 197 s; log `glossary: 9 catalog strings now read 'Prepare', 40 … 'Steal'`. Summaries identical apart from the words: `counts` (tables 94, records 186 735, translated 180 925, unknown 2539), every package's mode and `replacement_count` (package `1` full 83, relocated-text 11, added-from-apk 293; textures 302 + 22 + 1 + 1), `text_skipped`/`graphics_skipped` empty, `append_skipped` the same one asset (`3A70308AAF6F18F8`, encoder refusal) |
 | Same two runs, every staged asset read back through `QtsPackage` (62 401 assets) | name after the `╊` icon: Steal 203 → 291, Seizure 33 / Plunder 26 / Capture 25 / Snatch(ed) 4 / capturing 2 → 0 (Stolen 2); after `╬`: Prepare 1298 → 1326, Ready 22 / Readiness 6 → 0. "Soul Snatch" (`摄灵`) and "Spirit Extraction" unchanged |
 | Full `build_device_patch.py` on the same 1.6.0.1 layer, **Indonesian**, after the series rule | exit 0; log `glossary: 1 … 'Deploy', 7 … 'Prepare', 107 … 'Seri', 36 … 'Steal'`; tables 94, translated 180 949, `text_skipped`/`graphics_skipped` empty, `append_skipped` the same one asset. Staged labels after an icon: `╊` Steal 300 (no Plunder, Snatch, Capture), `╬` Prepare 1316 (no Ready, Readiness, Siap), no English-order "X Series" after any icon; series read `╪Seri Initiate` 10, `╫Seri Sacrifice` 10, `╬Seri Prepare` 10, `╨Seri Deploy` 8, `═Seri Temporary Level` 8, `╋Seri Flash` 4, `╉Seri Totem` 4, `╊Seri Steal` 4 |
 | Chinese `夺取`/`整备` still in the staged 1.6.0.1 packages | 114 occurrences, all in assets the pipeline does not translate (config bins outside the catalog, several withdrawn or candidates in `extra_text`) except one: table `EE5CF72D67A94C1F` carries 1.6.0.1's new wording of an achievement (`…英雄均与【整备】相关并最终夺冠`), which the catalog does not have yet |
-| `adaptive.scan` over an already-patched session layer (first version) | the scanner loads the glossary catalog through the wrapper: `already_english` moved, everything else equal |
-| Full `build_device_patch.py` run on that session layer | stops in `_drop_uncatalogued_tables` on `counts["unknown"]` **with or without** this change: an already-English layer gives the scanner no unknown strings, so the key is absent. Not this feature's bug; a pristine run was not possible (that day's `pristine/` tar is truncated) |
 
 Not yet device-verified. The change is text inside tables the pipeline already translates — no new
 asset, no new kind — so it carries the same risk as a catalog re-import.
+
+**Journey log**
+
+- First version pointed the keywords at Plunder and Readiness, the community names — the user corrected it to the default names the same day (lab notebook, 2026-10-16).
+- Full build on an already-patched session layer — stopped in `_drop_uncatalogued_tables` with or without this change, a latent bug fixed separately; the pristine 1.6.0.1 runs above replace it (lab notebook, 2026-10-16).
 
 ### Still owed
 
@@ -93,18 +95,18 @@ next. On the English catalog the `夺取` link label is "Steal" 7 times, "Plunde
 
 - **A phone already patched keeps the old words.** The scanner translates Chinese; a layer that is
   already English is left as it is, exactly as a newer catalog behaves. Clear the game's data (or
-  redownload it) before patching to get the glossary — the same rule as switching language.
-- Counts in the summary do not move: the glossary changes words inside tables that were already staged.
+  redownload it) before patching to get the terminology table — the same rule as switching language.
+- Counts in the summary do not move: the terminology table changes words inside tables that were already staged.
 
 ## [S3] Out of Scope
 
 - **`掠夺` keeps "Plunder"** ("Plunder Blade", "Tactics: Plunder", the Factionless series' "plunder 30
-  Levels"). It is a different word from the keyword, and the glossary is keyed on the keyword.
+  Levels"). It is a different word from the keyword, and the terminology table is keyed on the keyword.
 - **`偷取` keeps "Steal"** and **`备战` / `准备` keep "Prepare"** (the preparation phase) — different words
   that already read the default names.
 - **Other inconsistent keyword labels** measured on the same pass and not changed: `登场` beyond its one
   "Showtime series" label (a "Let's go." label remains), `复生` (Revive / Recovery / Revival / Resurrect), `退场` (Exit /
   Retire / Retreat), `合成` (Combine / upgraded), `往生图腾` / `因缘图腾` (several names). Each needs a
-  chosen name before it can join the glossary.
+  chosen name before it can join the terminology table.
 - Textures: a keyword drawn into an image is not text and is not reached here.
 - Editing `catalog.json.gz`: the catalog is the PC pipeline's file (`AGENTS.md`, *Boundaries*).

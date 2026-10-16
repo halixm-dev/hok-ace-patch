@@ -7,17 +7,13 @@ The Android home screen adopts the visual direction observed at https://wxq.qq.c
 light cards and violet-blue actions. `AceHeroDrawable` draws the artwork locally.
 No website images, fonts, network dependency or new library are required.
 
-Verification on 2026-10-06:
+**Journey log**
 
-| Check | Result |
-|---|---|
-| `android\\gradlew.bat -p android :app:assembleDebug :app:assembleDebugAndroidTest -PfullCodecs --offline` | PASS; final incremental build completed in 44 seconds |
-| Whitespace check on changed tracked UI files | PASS |
-| Deliverable | `artifacts/dev.halixm.hokacepatcher.apk` copied from the successful full-codec build |
-| Visual and existing `GuidedHomeProbeTest` runtime check | Not run: Medium_Phone_API_36 emulator repeatedly refused installation with `device is still booting`; connected physical phone was offline |
+- Theme build (full codecs, app and test APK) — passed; the emulator refused the install and the phone was offline, so nothing was looked at (lab notebook, 2026-10-06).
+- Follow-up (interface language, Shizuku installation, bounded logs) installed on the Xiaomi over the existing app — the phone refused the test APK, so the interface probes did not run (lab notebook, 2026-10-06).
 
-No phone or game operation was performed. Visual acceptance, including large-font layout,
-remains unverified. The temporary headless emulator was stopped after the failed installation attempts.
+No phone or game operation was performed in either: no game patch, game installation, Shizuku uninstall
+or game-data write. Visual acceptance, including large-font layout, remains unverified.
 
 ### Still owed
 
@@ -65,15 +61,3 @@ tail following is retained, including pausing follow when the user scrolls back.
 `InterfaceProbeTest` checks picker persistence/recreation, consent wording, storage-number retention,
 long-log scrolling and injected installed-app/Play/browser/failure routes without uninstalling Shizuku
 or invoking game operations.
-
-| Follow-up verification, 2026-10-06 | Result |
-|---|---|
-| Full-codec app and test APK build | PASS, 54 seconds; Kotlin and test sources compiled |
-| Changed tracked UI files whitespace check | PASS |
-| Connected Xiaomi activity-service check | No patcher service running before installation |
-| `adb -s f15a72e install -r` app update | Success, existing app data retained |
-| Separate test APK installation | Refused by phone: `INSTALL_FAILED_USER_RESTRICTED: Install canceled by user`; not retried |
-| Runtime interface and route probes | Not run because test APK installation was refused; behavior remains runtime-unverified |
-
-The updated full-codec deliverable is `artifacts/dev.halixm.hokacepatcher.apk`.
-No game patch, game installation, Shizuku uninstall, or game-data write was started.
