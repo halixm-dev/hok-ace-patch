@@ -175,10 +175,14 @@ def install() -> None:
     """Make `adaptive.load_catalog` return the catalog with its language's glossary applied.
 
     Idempotent. The scanner calls `load_catalog` by its module name, so the wrapper has to replace the
-    runtime's own function rather than be called beside it. The returned catalog carries
-    `terminology`, the per-term count of changed targets, for the run's log.
+    runtime's own function rather than be called beside it. Before the glossary it merges
+    `catalog_supplement`, the strings the game added after the catalog was built, so they obey the same
+    glossary. The returned catalog carries `terminology`, the per-term count of changed targets, and
+    `supplemented`, the number of strings added, for the run's log.
     """
     from wxq_patch import adaptive
+
+    import catalog_supplement
 
     if getattr(adaptive.load_catalog, "_terminology", False):
         return
@@ -188,9 +192,12 @@ def install() -> None:
 
         with gzip.open(Path(folder) / "catalog.json.gz", "rt", encoding="utf-8") as handle:
             data = json.load(handle)
-        changed = apply(data, for_catalog(folder).terms)
+        language = for_catalog(folder)
+        added = catalog_supplement.apply(data, language.code)
+        changed = apply(data, language.terms)
         catalog = adaptive.Catalog(data)
         catalog.terminology = changed
+        catalog.supplemented = added
         return catalog
 
     load_catalog._terminology = True

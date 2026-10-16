@@ -95,9 +95,9 @@ def _drop_uncatalogued_tables(plans, catalog, counts, log) -> list:
                 continue
             seen = per_asset.get(file_hash, {})
             counts["tables"] -= 1
-            counts["records"] -= seen.get("records", 0)
-            counts["translated"] -= seen.get("translated", 0)
-            counts["unknown"] -= seen.get("unknown", 0)
+            # The census omits a key it never counted: an already-English layer has no "unknown".
+            for key in ("records", "translated", "unknown"):
+                counts[key] = counts.get(key, 0) - seen.get(key, 0)
             path.unlink()
             dropped += 1
             log(f"package {package.package_id}: {file_hash:016X} is a table the catalog has no record "
@@ -186,6 +186,9 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
 
     loaded_catalog = adaptive.load_catalog(catalog)
     glossary = getattr(loaded_catalog, "terminology", None)  # absent when the runtime's loader ran
+    supplemented = getattr(loaded_catalog, "supplemented", 0)
+    if supplemented:
+        log(f"catalog supplement: {supplemented} strings the game added after the catalog was built")
     if glossary:
         log("glossary: " + ", ".join(f"{count} catalog strings now read {term!r}"
                                      for term, count in sorted(glossary.items())))

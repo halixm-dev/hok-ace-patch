@@ -831,3 +831,25 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   installed APK's three dex files byte for byte, so the sideload APK is the installed build with `classes3.dex`
   and the engine assets replaced, signed with a new key in `artifacts/android-sideload-key/` (not the original
   debug key: installing it over the original build needs an uninstall).
+
+## 2026-10-16 — 1.6.0.1: 2073 untranslated rows, supplied in code
+
+- **Phone on data 1.6.0.1** (APK still 1.1.1 / 774472). Pristine dump: `pristine/20261016-101124` (full
+  redownload). The offline build works on it unchanged (11 tables relocated, 293 + 71 appended, same
+  append refusal `3A70308AAF6F18F8` in English, `0196F0E230EC1C70` in Indonesian).
+- **Leftover census** (each catalog table in the staged output, rows whose value still holds CJK):
+  1.4.0.2 pristine 146 rows; 1.6.0.1 **2073 rows / 1184 distinct**, all in package `1`. Biggest:
+  `55EC8FF338904581` 627 and `F1034D3BC743ED49` 400 (leaderboard ranks 第一..第一百), `EE5CF72D67A94C1F`
+  553 (achievement titles `X(一)`..`X(十)`; 146 of the 167 bases are in the catalog, the rest are
+  `<Chessplayer>上大分`, which the catalog has only as `<Chessplayer>这波上大分`), `DD5B5EDFBB69FEED` 100
+  (UI). The 1.5.0.1 card rewordings recur in every per-mode card dictionary (6-13 rows each).
+- **Fix: `tools/catalog_supplement.py`**, merged by `terminology.install`'s loader, never overriding the
+  catalog. 2314 EN / 2313 ID strings, 0 `validate_translation` failures. Builds of the pristine 1.6.0.1
+  dump leave 0 CJK rows in catalog tables, `text_skipped` empty; package `1` keeps every chunk at
+  307200/16384 except the pre-existing `218D140500F68F37` in Indonesian (same as a no-supplement build).
+- **Fixed in passing:** `_drop_uncatalogued_tables` raised `KeyError: 'unknown'` on an already-English
+  layer (the 1.5.0.1 session dump), because the census omits keys it never counted.
+- **Owed: the device verdict.** Not pushed: the on-phone patcher app was mid-run when this was measured.
+  Screens to watch: achievement titles, the four weekly leaderboard rewards, King of Kings, a card
+  dictionary screen (Effect/Talent grid must still draw).
+
