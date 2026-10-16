@@ -16,6 +16,9 @@ Finish any pending game recovery and export needed diagnostics before uninstalli
 patcher. Uninstalling deletes its private recovery files. Then install the release APK and authorize Shizuku again.
 Subsequent private releases use the same release key and can update in place.
 
+The private release certificate's SHA-256 fingerprint is
+`91e25271c73e5dc7c241f9c0b7c4b8743e25bc54eb6d6e609f0cd58f0e42349c`.
+
 Release CI requires `ANDROID_RELEASE_KEYSTORE_BASE64`, `ANDROID_RELEASE_STORE_PASSWORD`,
 `ANDROID_RELEASE_KEY_ALIAS` and `ANDROID_RELEASE_KEY_PASSWORD`. Back up the original keystore
 and password securely; GitHub cannot return a stored secret. Unsigned local release builds never
@@ -30,8 +33,9 @@ are not retained. These controls follow [GitHub's Actions security guidance](htt
 Dependabot checks action updates weekly. Gitleaks scans full history on pushes and pull requests.
 The one scanner exception matches only historical prose about adopting verified recovery material.
 
-The pre-publication scan found no detected credentials across 107 commits after reviewing two
-false positives. The wrapper JAR matches Gradle's published checksum. The Android manifest and
+The pre-publication history and committed-source scans found no detected credentials after
+reviewing the documented false positives. See the [lab notebook evidence](docs/lab-notebook.md#2026-10-17--public-repository-and-android-release-automation).
+The wrapper JAR matches Gradle's published checksum. The Android manifest and
 exported worker/recovery providers were inspected for access restrictions. This is a targeted
 review, not a complete audit of the app, compiled runtime, dependencies or bundled native binaries.
 Release redistribution and broader device acceptance remain open in

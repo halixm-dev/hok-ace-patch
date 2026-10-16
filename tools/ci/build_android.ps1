@@ -21,7 +21,7 @@ $cmake = Join-Path $sdk 'cmake/3.22.1'
 $work = Join-Path $env:RUNNER_TEMP 'hok-ace-native'
 New-Item -ItemType Directory -Force $work, artifacts | Out-Null
 $target = Join-Path $work 'target-3.12.12-0-arm64-v8a.zip'
-Invoke-WebRequest 'https://chaquo.com/maven/com/chaquo/python/target/3.12.12-0/target-3.12.12-0-arm64-v8a.zip' -OutFile $target
+Invoke-WebRequest 'https://repo.maven.apache.org/maven2/com/chaquo/python/target/3.12.12-0/target-3.12.12-0-arm64-v8a.zip' -OutFile $target
 if ((Get-FileHash $target -Algorithm SHA256).Hash -ne '7A4A278EC1FED0E0D0359FBEC71D6D481D79A7EFBC8E2090267A91046417027A') {
     throw 'Chaquopy Python target checksum mismatch'
 }
