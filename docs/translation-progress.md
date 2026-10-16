@@ -2,20 +2,20 @@
 
 The coverage ledger: what the catalog covers, what reaches the phone and by which path, what is
 translated outside the catalog, and what is knowingly left Chinese. `AGENTS.md` carries the rules this
-state obeys and `docs/compose/spec/` the reasoning behind each pass; this file carries the running
+state obeys and `docs/features/` the reasoning behind each pass; this file carries the running
 counts, so it is the one that moves when coverage moves.
 
-Catalog counts verified 2026-10-01 at `cf1055e`. The per-layer counts are measurements over the downloaded
+Catalog counts verified 2026-10-01 at `cf1055e`. The per-layer counts are measurements over the override
 layer against game data **1.4.0.1**, each recorded with its command in the spec record named beside it.
 The phone has since updated to **1.4.0.2**, which changes two assets of package `1` and nothing else
-(`prime-only-append.md`, T11); every count below is unaffected by that, and a re-measurement should use the
+(`prime-only-append.md`, the empty `REBUILD_PACKAGES` run); every count below is unaffected by that, and a re-measurement should use the
 phone's own layer, not the 1.4.0.1 dump.
 
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, and one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`) — nothing else. The `extra_text` config-asset allowlist is empty since
-2026-10-05. There is no percentage: the build's own totals for tables, textures and config assets are not
+(`extra_text.SCRIPT_LABELS`) — nothing else. The `extra_text` config-bin allowlist is empty since
+2026-10-05. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
 
 A run reports four numbers through the app's `translate` step, all read from
@@ -33,11 +33,11 @@ across 6 packages**, with `text_skipped`, `graphics_skipped` and `append_skipped
 run `README.md` means by "a run applies all 395". A patch of that shape was put on the phone on
 2026-10-02, where the game launched under it and read English; a 1.4.0.1-staged build pushed onto that same
 phone stalled it at 0% and was repaired away by the game, which is why the layer's version is now a
-pre-flight check (`prime-rebuild.md`'s device test loop).
+pre-flight check (`docs/runbooks/device-cycle.md`).
 
 `REBUILD_PACKAGES` is now empty, so no package is laid out again and `QtsVFS.dll` has no caller in a
-normal run (`prime-only-append.md`, T11), and the text pass is gated to the catalog's tables (T12). The
-append needs only the pulled APK, not the builder (T13), so a run given the APK and no DLL stages
+normal run, the text pass is gated to the catalog's tables, and the append needs only the pulled APK,
+not the builder (all three in `prime-only-append.md`), so a run given the APK and no DLL stages
 byte-identical packages. The latest full run, staged from the fresh 1.4.0.2 snapshot and
 device-verified on 2026-10-03, reports **391 text tables and 395 images across the same 6 packages** — one
 table short of that rebuild, because the append's encoder cannot store `3A70308AAF6F18F8`, which
@@ -57,7 +57,7 @@ The skip is one of package `1`'s 298 prime-only tables refused by the append enc
 
 ### 2026-10-05: three device bugs fixed, counts moved
 
-The Indonesian device report (`MEMORY.md`, 2026-10-05) moved every count. Staged from the phone's own
+The Indonesian device report (`docs/lab-notebook.md`, 2026-10-05) moved every count. Staged from the phone's own
 1.4.0.2 layer with its APK, device-verified on the Xiaomi:
 
 | result | English | Indonesian |
@@ -117,12 +117,12 @@ added that the upstream catalog has no entry for: `tools/research/apply_catalog_
 | review renders | 44 | `previews/` |
 
 The pipeline does not use `unique` exactly as shipped: `tools/terminology.py` gives each keyword one
-name as the catalog loads (`docs/compose/spec/terminology-glossary.md`): the default *Steal* (`夺取`) and
+name as the catalog loads (`docs/features/terminology-table.md`): the default *Steal* (`夺取`) and
 *Prepare* (`整备`), replacing the community names Plunder and Readiness and the stray variants. On the
 English catalog that rewrites 40 targets to Steal, 9 to Prepare and 1 to Deploy; on the Indonesian one 36, 7
 and 1, and it also puts 107 Indonesian series labels in the Indonesian order ("Seri Prepare"). It changes words inside tables that are already counted, so no count below moves.
 
-Before the glossary, `tools/catalog_supplement.py` adds the strings the game introduced after the catalog
+Before the terminology table, `tools/catalog_supplement.py` adds the strings the game introduced after the catalog
 was built, into tables the catalog already covers, and only where `unique` has no entry of its own. Game
 data **1.6.0.1** (2026-10-16) left **2073 rows / 1184 distinct strings** of package `1`'s catalog tables
 Chinese, against 146 rows on the pristine 1.4.0.2 layer: an achievement-title system with numbered tiers
@@ -162,7 +162,7 @@ has to run over both.
 
 | where the edit exists | count | applied by |
 |---|---|---|
-| downloaded layer only | 322 | texture pass, in place |
+| override layer only | 322 | texture pass, in place |
 | both layers | 1 | whichever pass owns its package — once |
 | prime only — package `1050016095` | 71 | append — `qts_insert.add_assets` |
 | prime only — package `21` | 1 | append — `qts_insert.add_assets` |
@@ -227,7 +227,7 @@ Re-measure:
 .venv\Scripts\python.exe tools\research\check_graphics.py --game <dump> --table
 ```
 
-`check_graphics.py` sees the downloaded layer only; the APK's `assets/bin/Data/Package/builtin/` is
+`check_graphics.py` sees the override layer only; the APK's `assets/bin/Data/Package/builtin/` is
 `prime_probe.py`'s half of the census.
 
 ## Translated outside the catalog
@@ -274,7 +274,7 @@ SIGSEGV, the four chessplayer-skill assets remove the skill-description button, 
 stay out until a device cycle says otherwise.
 
 Fifteen further assets are named there as *not tried*. They were resolved to full hashes and measured
-against the downloaded layer (`tools/research/extra_text_candidates.py`, `extra-text-cycles.md`), and the
+against the override layer (`tools/research/extra_text_candidates.py`, `extra-text-cycles.md`), and the
 measurement says the fifteen are not fifteen equal opportunities. Four are display-label tables the
 catalog mostly or entirely covers, worth a cycle: `63922EF4D4C86526` 3 of 3 strings
 (Transmog / Treasure Hunt / Limited Time), `4CEF98BEC79CB48C` 4 of 12, `7E3F57D727FA8625` 1 of 1 (Props)
@@ -289,11 +289,11 @@ running and the rest wait until a cycle says the class is safe.
 
 A sixteenth candidate joined the queue on 2026-10-16: `9E45602F1857539D`, the card-pack covers behind
 Encyclopedia → Diamond Frenzy → Starting Lineup (the `逆天改命卡包` header and the hero label under every
-cover). It is prime-only, so it reaches the phone through the append, which now offers a config asset a
+cover). It is prime-only, so it reaches the phone through the append, which now offers a config bin a
 cycle enabled (`transform.config`). The catalog translates 27 of its 60 strings; the other 33 are short
 forms of its own longer strings that `catalog_supplement.derived` generates, so a cycle would translate
 all 60. **Withdrawn the same day:** appended, it empties the Starting Lineup grid; the control without it
-draws the grid (`docs/compose/spec/card-pack-covers-cycle.md`).
+draws the grid (`docs/features/card-pack-covers-cycle.md`).
 
 A cycle is now one variable by construction: `--cycle-asset <hash>` enables exactly one queued candidate,
 the run records it in `device_patch_summary.json`'s `cycle_assets`, and the hash joins `SAFE_ASSETS` only
@@ -308,11 +308,11 @@ detail pane and the Hero, Effect and Equipment tabs also work in the full Englis
 tile names still use the client's normal ellipsis. Rerunning the updated patcher repairs an older
 already-English copy. Counts remain **391 text tables and 395 applied textures**, with the one
 known append refusal below. Evidence and the withdrawn impossibility verdict are recorded in
-`docs/compose/spec/prime-only-append.md` T15.
+`docs/features/prime-only-append.md`'s Talent Card sections.
 
 ## Bahasa Indonesia
 
-`resources/catalog_id/` holds the Indonesian catalog (`docs/compose/spec/indonesian-language.md`). It has
+`resources/catalog_id/` holds the Indonesian catalog (`docs/features/indonesian-language.md`). It has
 the same 499 tables and 398 graphics entries as the English one, so its coverage counts are the English
 counts, and it carries the same 2026-10-10 update strings (1 089 added; its own 1.5.0.1 fixes already held
 the other three). An offline run against the pristine 1.4.0.2 snapshot and APK (2026-10-05), and the same counts from
@@ -394,5 +394,5 @@ Update it in the same change as the work when any of these moves a count:
 - a run comes back with `text_skipped`, `graphics_skipped` or `append_skipped` non-empty, which moves a
   count out of the applied column.
 
-Take the numbers from the run's own summary and from the record in `docs/compose/spec/`; never from
+Take the numbers from the run's own summary and from the record in `docs/features/`; never from
 memory. Where a number here disagrees with a run, the run is right and this file is stale.
