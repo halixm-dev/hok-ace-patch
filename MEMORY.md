@@ -874,7 +874,8 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   menu and ACE Encyclopedia normal, but **DF Starting Lineup draws empty**. The control's package `1`
   pushed back restores the grid. Content-correct offline, so this is the stale-checksum class again. The
   phone now runs the control build; device backup is in `D:\scratch\hok-cycle\backup\device-backup.tar`.
-- **Still owed on the control:** a full match (watch for `QTSFailureTips`), achievement titles, the weekly
-  leaderboards, King of Kings.
+- **Control match, 2026-10-16: passes.** The user played a match to its end on the control build, with no
+  `QTSFailureTips` popup; the phone's logcat holds no QTS-failure line either. Still owed: achievement
+  titles, the weekly leaderboards, King of Kings.
 - **Disk:** C: had 240 MB free and an offline build died there (`WinError 112`). Builds now go on D:.
 

@@ -31,9 +31,10 @@ phone.
 | T6 | cycle, package `1` only | startup, login, lobby, Card menu, ACE Encyclopedia | all normal, scan `errorCode=0` |
 | T6 | cycle | Encyclopedia DF → Starting Lineup | **empty grid**, still empty after a further 6 s |
 | rollback | control's package `1` | Encyclopedia DF → Starting Lineup | grid back |
+| T5 | control | a match, played to its end by the user | no `QTSFailureTips` popup; no QTS-failure line in logcat |
 
-Not watched: a match, the achievement titles, the weekly leaderboards and King of Kings. The control's
-own verdict on the 1.6.0.1 supplement is therefore still partial (`MEMORY.md`).
+Not watched: the achievement titles, the weekly leaderboards and King of Kings. The control's own
+verdict on the 1.6.0.1 supplement is therefore still partial (`MEMORY.md`).
 
 | what landed | where |
 |---|---|
@@ -179,5 +180,5 @@ goes first as the **control**, and the cycle build differs from it only by `--cy
 - [x] T2 `transform.config`, consumed by `add_prime_only`; `AGENTS.md` sentence updated
 - [x] T3 derived short forms in `catalog_supplement.py`, EN + ID, `check` clean
 - [x] T4 control and cycle builds on `D:`, offline acceptance in step 3 met (English)
-- [~] T5 control pushed and watched: startup and the Encyclopedia only; a match and the supplement's own screens are still owed
+- [~] T5 control pushed and watched: startup, the Encyclopedia and a full match pass; the supplement's own screens are still owed
 - [x] T6 cycle pushed and watched: **withdrawn**, empty Starting Lineup grid
