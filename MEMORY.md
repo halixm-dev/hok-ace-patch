@@ -875,7 +875,7 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   pushed back restores the grid. Content-correct offline, so this is the stale-checksum class again. The
   phone now runs the control build; device backup is in `D:\scratch\hok-cycle\backup\device-backup.tar`.
 - **Control match, 2026-10-16: passes.** The user played a match to its end on the control build, with no
-  `QTSFailureTips` popup; the phone's logcat holds no QTS-failure line either. Still owed: achievement
-  titles, the weekly leaderboards, King of Kings.
+  `QTSFailureTips` popup; the phone's logcat holds no QTS-failure line either. Achievement titles read in
+  English (user, same day). Still owed: the weekly leaderboards, King of Kings.
 - **Disk:** C: had 240 MB free and an offline build died there (`WinError 112`). Builds now go on D:.
 
