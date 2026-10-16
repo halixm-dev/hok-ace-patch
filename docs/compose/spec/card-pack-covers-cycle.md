@@ -32,8 +32,9 @@ phone.
 | T6 | cycle | Encyclopedia DF → Starting Lineup | **empty grid**, still empty after a further 6 s |
 | rollback | control's package `1` | Encyclopedia DF → Starting Lineup | grid back |
 | T5 | control | a match, played to its end by the user | no `QTSFailureTips` popup; no QTS-failure line in logcat |
+| T5 | control | achievement titles, checked by the user | English |
 
-Not watched: the achievement titles, the weekly leaderboards and King of Kings. The control's own
+Not watched: the weekly leaderboards and King of Kings. The control's own
 verdict on the 1.6.0.1 supplement is therefore still partial (`MEMORY.md`).
 
 | what landed | where |
