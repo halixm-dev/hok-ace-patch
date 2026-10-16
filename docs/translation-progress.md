@@ -5,7 +5,7 @@ translated outside the catalog, and what is knowingly left Chinese. `AGENTS.md` 
 state obeys and `docs/features/` the reasoning behind each pass; this file carries the running
 counts, so it is the one that moves when coverage moves.
 
-Catalog counts verified 2026-10-01 at `cf1055e`. The per-layer counts are measurements over the downloaded
+Catalog counts verified 2026-10-01 at `cf1055e`. The per-layer counts are measurements over the override
 layer against game data **1.4.0.1**, each recorded with its command in the spec record named beside it.
 The phone has since updated to **1.4.0.2**, which changes two assets of package `1` and nothing else
 (`prime-only-append.md`, the empty `REBUILD_PACKAGES` run); every count below is unaffected by that, and a re-measurement should use the
@@ -122,7 +122,7 @@ name as the catalog loads (`docs/features/terminology-table.md`): the default *S
 English catalog that rewrites 40 targets to Steal, 9 to Prepare and 1 to Deploy; on the Indonesian one 36, 7
 and 1, and it also puts 107 Indonesian series labels in the Indonesian order ("Seri Prepare"). It changes words inside tables that are already counted, so no count below moves.
 
-Before the glossary, `tools/catalog_supplement.py` adds the strings the game introduced after the catalog
+Before the terminology table, `tools/catalog_supplement.py` adds the strings the game introduced after the catalog
 was built, into tables the catalog already covers, and only where `unique` has no entry of its own. Game
 data **1.6.0.1** (2026-10-16) left **2073 rows / 1184 distinct strings** of package `1`'s catalog tables
 Chinese, against 146 rows on the pristine 1.4.0.2 layer: an achievement-title system with numbered tiers
@@ -162,7 +162,7 @@ has to run over both.
 
 | where the edit exists | count | applied by |
 |---|---|---|
-| downloaded layer only | 322 | texture pass, in place |
+| override layer only | 322 | texture pass, in place |
 | both layers | 1 | whichever pass owns its package — once |
 | prime only — package `1050016095` | 71 | append — `qts_insert.add_assets` |
 | prime only — package `21` | 1 | append — `qts_insert.add_assets` |
@@ -227,7 +227,7 @@ Re-measure:
 .venv\Scripts\python.exe tools\research\check_graphics.py --game <dump> --table
 ```
 
-`check_graphics.py` sees the downloaded layer only; the APK's `assets/bin/Data/Package/builtin/` is
+`check_graphics.py` sees the override layer only; the APK's `assets/bin/Data/Package/builtin/` is
 `prime_probe.py`'s half of the census.
 
 ## Translated outside the catalog
@@ -274,7 +274,7 @@ SIGSEGV, the four chessplayer-skill assets remove the skill-description button, 
 stay out until a device cycle says otherwise.
 
 Fifteen further assets are named there as *not tried*. They were resolved to full hashes and measured
-against the downloaded layer (`tools/research/extra_text_candidates.py`, `extra-text-cycles.md`), and the
+against the override layer (`tools/research/extra_text_candidates.py`, `extra-text-cycles.md`), and the
 measurement says the fifteen are not fifteen equal opportunities. Four are display-label tables the
 catalog mostly or entirely covers, worth a cycle: `63922EF4D4C86526` 3 of 3 strings
 (Transmog / Treasure Hunt / Limited Time), `4CEF98BEC79CB48C` 4 of 12, `7E3F57D727FA8625` 1 of 1 (Props)

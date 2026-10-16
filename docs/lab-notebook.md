@@ -260,7 +260,7 @@ Mail, quiz and notices were only ever tested together, so separating them costs 
 
 ## 6. Texture coverage
 
-The catalog holds **398 texture edits**. **323 are present in the downloaded layer and 75 absent**; the APK's
+The catalog holds **398 texture edits**. **323 are present in the override layer and 75 absent**; the APK's
 prime layer adds **73** more (72 in prime `1050016095`, 1 in prime `21`), and `C9E29F61B9E73713` is in both.
 Union = **395**, so only **three** exist in neither layer — `197CC5393D16E3CB`, `884E0B4581F47CF7`,
 `89C771ECFCDC7FBE`, all 404x564 BC7 `.blocks`. The one present-but-not-applied-historically is
@@ -272,7 +272,7 @@ Only 5 packages carry catalog hashes: `1` (text), `15` (299 card textures), `19`
 
 Census of every package index in a full 2.86 GB dump (277 readable of 278 dirs):
 
-| family | geometry | catalog | on device (downloaded layer) | role |
+| family | geometry | catalog | on device (override layer) | role |
 |---|---|---|---|---|
 | grid card art | 404x564 `.blocks` | 302 | 299 | the card, faction ribbon baked in — why the **grid** is English |
 | card-info portrait | 592x816 `.assets` | 15 | **1** | the tall card with the "Hero" band |
@@ -339,7 +339,7 @@ Reproducible offline with `tools/research/ribbon_id_hunt.py --game <dump>`.
 
 **The negative was superseded the same day.** The hunt censused the *downloaded dump only*: **26 of the 27**
 wide panels are in the APK's prime layer under the catalog's own ids (25 in prime `1050016095`,
-`7B4CC5DF48336D2D` in prime `21`), and the Sunset panel the hunt found is the only one in the downloaded
+`7B4CC5DF48336D2D` in prime `21`), and the Sunset panel the hunt found is the only one in the override
 layer. The method, the metric and the `0.05..2.45` floor are all still valid — what was wrong is the search
 space, not the search.
 
@@ -387,7 +387,7 @@ card. The text records serve rules-text references; the ribbon and the tabs are 
 the tabs from the catalog would need the mobile build's banner ids, which the catalog does not carry. Of the 8
 catalog tables carrying faction labels, only `DD5B5EDFBB69FEED` exists on the device; the other 7
 (`6B020594DCDC6806`, `B87B3E23D0591FD1`, `6649BBDD0B5C956F`, `6F2B902FC9DD911D`, `9F4541C6A6177C14`,
-`34EF6DE1C7140D93`, `86DCBFEE914DBB7C`) are absent from all 277 `builtin` packages.
+`34EF6DE1C7140D93`, `86DCBFEE914DBB7C`) are absent from all 277 prime packages.
 
 The Factionless faction has **no English name**, so its card bar reads the fallback `FACTION OF HERO 16` while
 the tab reads `Factionless`. No alias table was added for any of this: it is a reviewed record, and there was
@@ -703,8 +703,8 @@ Claims that were believed, acted on, and turned out wrong — kept because the m
 
 | superseded claim | why it was wrong | corrected to |
 |---|---|---|
-| 75 of the catalog's textures are absent from the mobile build | censused the **downloaded layer only** | 73 more are inside the APK; only 3 exist in neither (§6) |
-| the other factions' wide 568x304 panels are not in the build under any id; the gap is unfixable from this repo | same — downloaded layer only | 26 of 27 are in the APK's prime layer under the catalog's own ids (§6) |
+| 75 of the catalog's textures are absent from the mobile build | censused the **override layer only** | 73 more are inside the APK; only 3 exist in neither (§6) |
+| the other factions' wide 568x304 panels are not in the build under any id; the gap is unfixable from this repo | same — override layer only | 26 of 27 are in the APK's prime layer under the catalog's own ids (§6) |
 | Card Info renders the `592x816` portrait frame | inferred from layout; the views look alike | the wide `568x304` family, settled by ids and elimination (§6) |
 | the Chessplayer screen shows Chinese because the drop loop drops its tables (`b5cd724`) | that screen draws from the **prime** layer, which the in-place path never writes | the prime-layer gap; the drop loop is a separate real loss (§4, §7) |
 | the `extra_text` pass is blanket-unsafe | swept every asset at once | content-specific; four assets ship (§5) |
@@ -1893,7 +1893,7 @@ It settled it as absent (2026-10-09, same Infinix X678B, exported 18:58): the fi
 
 - **Report.** User screenshot (`tools/research/career_atlas/evidence/career_screen_2026-10-10.png`): `我的棋手` beside the
   chessplayer count on the Career screen. Only the count is `TimiText`; the label is the sprite
-  `Image_1904551913` of `CareerAtlas` = texture **`13C19E4E4486B31C`** (package `19`, downloaded layer only,
+  `Image_1904551913` of `CareerAtlas` = texture **`13C19E4E4486B31C`** (package `19`, override layer only,
   1024x1024 ASTC 4x4, 1 048 576 B). Its Sprite objects and Texture2D header are **`4AA2B26FF28CB65D`**;
   the lobby atlases' are `22BD565B3703EDA9` (`C9F49510F2F67402`) and `9F240FDA0FA58988` (`E86DF43167CA2143`).
   Package `0` `55989B6B5917A7D9` (10 MB) looks like the path→hash manifest (its row for `4AA2B26FF28CB65D`

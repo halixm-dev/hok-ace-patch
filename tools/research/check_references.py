@@ -37,7 +37,7 @@ ROOT = Path(__file__).resolve().parents[2]
 # Names a docs move has retired: any mention of one in a scanned file is a failure.
 RETIRED_NAMES: tuple[str, ...] = (
     "MEMORY.md", "docs/artifact-retention.md", "docs/compose", "docs/indonesian-translation-review.md",
-    "tasks/",
+    "tasks/", "terminology-glossary.md",
 )
 
 # Paths named on purpose while absent: an old name kept as history, a file inside a third-party
@@ -48,7 +48,6 @@ KNOWN_ABSENT: dict[str, str] = {
     "docs/FTL.TXT": "a path inside the FreeType archive",
     "tools/research/career_atlas/preview_sheet.png": "written by tools/research/career_atlas/validate_assets.py",
     "tools/research/career_atlas/preview_in_context.png": "written by tools/research/career_atlas/validate_assets.py",
-    "docs/adr": "created with the first ADR (docs/agents/domain.md)",
 }
 
 # Work in flight, which names old and new homes on purpose.
