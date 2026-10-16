@@ -1,7 +1,7 @@
 ---
 feature: texture-translation
 status: delivered
-updated: 2026-10-03
+updated: 2026-10-10
 branch: feat/texture-translation
 commits: 290f5d8..46ed048
 ---
@@ -54,6 +54,24 @@ are proven only against the shipped payloads, the review renders and the game du
 thing this document does not claim.
 
 **Journey log**
+
+- **The Career atlas was ported at the wrong offsets from the start (2026-10-10).** A user screenshot
+  showed `我的棋手` beside the chessplayer count on the Career screen. It is a sprite, `Image_1904551913`
+  of the `CareerAtlas` texture `13C19E4E4486B31C` (package `19`, downloaded layer, 1024x1024 ASTC 4x4),
+  and the catalog *has* an edit for it: 13 labelled sprites, applied on every run with nothing skipped.
+  But the edit is a `.blocks` patch drawn on the **PC** atlas layout, the mobile atlas packs the same
+  sprites elsewhere, and the block-for-block port lands each English label at its PC offset: 11 of the
+  13 regions moved (two by 1 px), so 9 labels were written onto other sprites — `MY CHESSPLAYERS` over
+  `SUPREME STAR`, `VIENTIANE KING` over the `我的皮肤` label, `ACHIEVEMENT POINTS` over the QQ icon and
+  a dashed rule. The pristine 10-03 atlas (before that week's update) was laid out differently from the
+  catalog too, so this was wrong from the day the edit shipped; "applied, 0 skipped" said nothing about
+  where it landed. The fix reads the device's own Sprite table each run and ports by sprite (*Regioned
+  atlases* below). Found through the Career Lua (package `10`) → the switch item's prefab → the sprite
+  names → the `CareerTimiAtlas` Sprite asset `4AA2B26FF28CB65D`, whose Texture2D header points at a
+  `.resS` file; no path→QTS hash scheme matched that name (xxh64, FNV, MD5, SHA-1, CRC64 over the usual
+  forms), so the pixel asset was found by decoding every 1 MB asset of both layers at 1024x1024 4x4 and
+  cropping a sprite rect. Tencent's SerializedFile header defeats UnityPy, but a Sprite record is plain:
+  a length-prefixed `Image_<id>`, 4-byte aligned, then `m_Rect` as four floats with y from the bottom.
 
 - **Android exposed an invalid synthetic fixture (2026-10-03).** The checker filled its
   synthetic ASTC buffers with arbitrary ramp bytes. Those are not valid ASTC blocks:
@@ -212,12 +230,89 @@ them into the set both texture paths use, so a run applies 398. `962747E1E5B73A9
 Armed Power, whose band read `大河流域` on the phone and reads *Riverlands* after the fix (device-verified,
 Indonesian build). An alias is a measurement, not a guess: one joins only with a band match like these.
 
+### Regioned atlases: port by sprite (2026-10-10)
+
+Three catalog textures carry `regions` — `{label, sprite, box}` per sprite of a Unity atlas — and their
+`.blocks` patches were drawn on the PC layout. Block-for-block porting assumes the device atlas puts each
+sprite where the PC one does, which holds for the lobby atlases `C9F49510F2F67402` and
+`E86DF43167CA2143` and fails for the Career atlas `13C19E4E4486B31C` (*Journey log*). So:
+
+- **The device's sprite table is a run-time input.** `sprite_table.REGION_SPRITE_ASSETS` maps each
+  regioned atlas to the asset holding its Sprite objects (all three in package `19`: `4AA2B26FF28CB65D`,
+  `22BD565B3703EDA9`, `9F240FDA0FA58988`), and `port_graphics` reads the rects from the device's copy each
+  run with `sprite_table.sprite_rects`. The layout has changed at least once (10-03 and 10-10 differ), so
+  no rect is hard-coded. Without a table, or with a region absent or a different size in it,
+  `english_raw` returns None and the texture is reported in `graphics_skipped`. There is no fallback to
+  the PC offsets: that fallback is the bug.
+- **Port by sprite** (`mobile_graphics.port_atlas`). Each region's English pixels are decoded out of the
+  payload's own runs at the region's PC box — refused if any of its blocks lies outside `patch_ranges` —
+  and composited into the same sprite's device box. Device boxes are not 4-aligned (589, 731, 466…), so
+  only the touched blocks are re-encoded, from the decoded device texture with the new pixels laid over
+  it. When nothing moved and there is no repo art to draw, `port_atlas` returns the offset port itself,
+  which keeps the two lobby atlases byte-identical to before.
+- **The old port's damage is repaired from data.** A patched phone already carries the offset port's
+  footprint, and the pass reads what the phone holds. The blocks of `patch_ranges` are therefore redrawn:
+  transparent, then each non-region sprite in them from `resources/sprites/<HASH>/restore/<sprite>.png`,
+  pristine crops from the 10-03 dump of every sprite the footprint meets under either known layout (19).
+  The 10-03 sprites are today's art: of 215 shared sprites, all but the damaged ones agree within a
+  premultiplied mean of 5.3 (ASTC phase noise), the same size every one. A crop is used only while the
+  device's pixels of that sprite *outside* the footprint still match it (`RESTORE_MATCH_MEAN` 12), so a
+  sprite Tencent redraws is left as the device has it rather than painted over with stale art; a sprite
+  with no crop keeps the device's pixels.
+- **Labels the catalog never had** (`mobile_graphics.ATLAS_LABELS`): `Image_410780920` `我的皮肤` → MY SKINS
+  (no catalog entry; a free translation) and `Image_920603129` `总盈利` → TOTAL PROFIT (the text table's
+  "Total profit"). They are `resources/sprites/<HASH>/labels/<sprite>.png`, assembled by
+  `tools/research/atlas_sprites.py labels` from the catalog's own ACHIEVEMENT POINTS glyphs (white, the
+  shape all in alpha), with K, L, R and F built from that face's own strokes. Fitting 40-odd system serif
+  fonts to the catalog glyphs left a mean alpha error of 48+ for the best, so no font was used. MY SKINS
+  keeps MY CHESSPLAYERS' first line pixel for pixel, so the Career switch's two states share it. Every
+  language uses them: the atlas's rank names are English in Indonesian too. The round `胜利` / `失败`
+  badges are not drawn. The renders are straight alpha, white to the edge: the first ones were composited
+  over transparent black, which greyed every antialiased edge pixel (205 and 412 of them) and would have
+  shown as a dark fringe; `tasks/T15/validate_assets.py` caught it and `render_label` no longer does it.
+  The user then polished both renders by hand (`tasks/T15/edit/`): a proper K and bolder SKINS, and
+  native L, R and F in a tighter TOTAL PROFIT, plus 5 touched-up alpha pixels in the M of MY (two
+  half-covered joins filled; nothing moved). Those PNGs are what ships; `atlas_sprites.py labels` now
+  writes drafts to `--out` only, and its `--check` verifies the shipped labels' format instead of
+  regenerating them. Checked: the T15 validator passes, `[10]` draws them at their device boxes (worst
+  mean 0.34 after ASTC), `--game` on today's layer passes, and the rebuilt exe's `--selftest` stages
+  exactly that atlas.
+- **Re-runs.** A touched block is re-encoded only when its decoded pixels do not already show the target
+  within `BLOCK_MATCH_MEAN` (6), which keeps a pristine block's own bytes. About 1500 blocks of the Career
+  atlas stay above that after encoding (ASTC gets no closer than a mean of 25 at some glyph edges), so a
+  re-run re-encodes them and gets the same bytes only because the encoder is deterministic for the same
+  input on one platform — the same property the offset port always had.
+
+Measured (all with `.venv`, Python 3.12):
+
+| case | result |
+|---|---|
+| today's phone layer (already carrying the offset port) | every region at its device box (worst mean 2.8); labels drawn (0.4, 0.6 before the fringe fix; 0.22 worst after, `[10]`); damaged sprites from mean 11-221 apart from their crops to ≤0.1; 4164 blocks change; a second run changes nothing; 0.9 s |
+| same layer with the offset port applied again first | ends 4 blocks apart from the first, decoded mean 0.000 |
+| pristine 10-03 layer (its own layout) vs. it after the offset port | 2082 blocks apart (the pristine input kept blocks already within 6 of the target), decoded mean 0.025; 224 isolated antialiased edge pixels differ by more than 16 |
+| `C9F49510F2F67402`, `E86DF43167CA2143`, both layers | byte-identical to the offset port |
+| a full offline `build_device_patch` run over today's layer with its APK | package `19` stages 14 textures, `graphics_skipped` empty; the staged atlas read back through the staged B-tree is exactly `port_atlas`'s output, and re-porting it changes nothing; index byte-identical |
+| frozen exe (`app\build_exe.py`) `--selftest` over today's layer | exit 0, `19` 14 textures; its staged atlas is byte-identical to the source run's, so the exe carries `sprites/`; re-run after the hand-polished labels landed, with the same result |
+| `check_graphics.py`; `--game` on today's layer; `--skip-slow --game` on the 10-03 layer | PASS (offline 95.5 s; today 156.8 s: 140 ported, 3 ported by sprite, 67 replaced, 185 already English, 3 absent; 10-03 45.1 s: 318 ported, 3 by sprite, 1 replaced, 1 spliced, 75 absent) |
+
+Out of reach here: `package_rebuild.make_transform` sees only `(hash, raw)` and has no package to read a
+sprite table from, so a rebuild of package `19` would refuse the atlas. Nothing rebuilds `19`
+(`REBUILD_PACKAGES` is empty), and refusing is the safe answer.
+
+**Device-verified 2026-10-10 on the Career screen.** Pushed by `patcher_core` as a single change — a
+fresh pull (game data 1.5.0.1, backup in session `20261010-151438`) staged exactly one texture, the
+Career atlas in package `19`, byte-identical to `port_atlas`'s output with the hand-polished labels,
+and the normal APK was restored. The user reports the Career screen looks right (Xiaomi M2007J3SG,
+Android 12, English). Other screens that may draw the moved sprites were not walked, so nothing is
+claimed about them.
+
 ### `english_raw` contract
 
-`english_raw(mobile_raw: bytes, graphic: dict, catalog: Path) -> bytes | None` returns **None**, not an
-exception, for anything it cannot handle: an unknown format, a raw size that no ASTC footprint fits, a
-mismatched `.assets` that will not align, or a `.blocks` payload that is neither a BC7 4x4 port nor an
-RGBA32 patch. `port_graphics` counts those as skipped and the run continues. A silently skipped texture
+`english_raw(mobile_raw: bytes, graphic: dict, catalog: Path, sprites: dict | None = None) -> bytes | None`
+returns **None**, not an exception, for anything it cannot handle: an unknown format, a raw size that no
+ASTC footprint fits, a mismatched `.assets` that will not align, a `.blocks` payload that is neither a BC7
+4x4 port nor an RGBA32 patch, or a regioned atlas without a device sprite table that carries every region
+at its own size. `port_graphics` counts those as skipped and the run continues. A silently skipped texture
 is strictly better than a failed patch run — the same reasoning the previous feature applied to
 unparseable text assets.
 
@@ -516,3 +611,14 @@ Ground truth moves to `tools/research/check_graphics.py`, which is off the runti
       acceptance: after a run over the dump, the numeric directories under `<output>` are exactly the
       package ids in `summary["packages"]`, and the previously-leaked package 1 directory is gone
       (covers: S2; depends: T3)
+- [x] T10: Read a regioned atlas's device sprite table (`tools/sprite_table.py`, `REGION_SPRITE_ASSETS`)
+      — acceptance: `atlas_sprites.py table` reproduces the T14 handoff's rect tables from today's dump
+      and the 10-03 pristine dump (covers: S2 *Regioned atlases*)
+- [x] T11: Port a regioned atlas by sprite (`mobile_graphics.port_atlas`), wired through `port_graphics`
+      — acceptance: `check_graphics.py` passes offline (`[10]`) and with `--game` on both dumps; every
+      region at its device box; unmoved atlases byte-identical; a re-run changes nothing (depends: T10)
+- [x] T12: Restoration crops and the two label renders in `resources/sprites/`, staged by both packagers
+      — acceptance: `atlas_sprites.py restore --check` and `labels --check` pass; labels hand-polished
+      and validated by `tasks/T15/validate_assets.py` (depends: T11)
+- [x] T13: Device cycle — the Career screen, device-verified 2026-10-10 (one-texture push, session
+      `20261010-151438`); other screens drawing the moved sprites not walked (depends: T12)

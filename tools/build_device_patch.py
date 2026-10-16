@@ -95,7 +95,8 @@ def _drop_uncatalogued_tables(plans, catalog, counts, log) -> list:
                 continue
             seen = per_asset.get(file_hash, {})
             counts["tables"] -= 1
-            # The census omits a key it never counted: an already-English layer has no "unknown".
+            # The census omits a key whose count is zero: a catalog that translates every string the
+            # scan met reports no "unknown" at all.
             for key in ("records", "translated", "unknown"):
                 counts[key] = counts.get(key, 0) - seen.get(key, 0)
             path.unlink()

@@ -6,6 +6,10 @@ plugins {
     id("com.chaquo.python")
 }
 
+// Every codec ships by default: without the graphics bindings engine_preflight refuses to patch.
+// -PfullCodecs=false builds the minimal diagnostic baseline instead.
+val fullCodecs = findProperty("fullCodecs")?.toString()?.let { it.isEmpty() || it.toBoolean() } ?: true
+
 val engineAssets = layout.buildDirectory.dir("generated/engine-assets")
 val stageEngineAssets by tasks.registering(Sync::class) {
     into(engineAssets)
@@ -18,6 +22,8 @@ val stageEngineAssets by tasks.registering(Sync::class) {
     from("../../resources/catalog") { into("engine/catalog"); rename { "$it.payload" } }
     // Indonesian borrows every texture payload it does not re-draw from catalog/ beside it.
     from("../../resources/catalog_id") { into("engine/catalog_id"); rename { "$it.payload" } }
+    // This repo's sprite art for the regioned atlases, read from beside the catalogs.
+    from("../../resources/sprites") { into("engine/sprites"); rename { "$it.payload" } }
     from("../../tools") {
         into("engine/tools")
         include("*.py")
@@ -68,6 +74,14 @@ android {
         ndk { abiFilters += "arm64-v8a" }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    // Checked-in key so every PC signs the patcher identically and installs update in place.
+    signingConfigs.getByName("debug") {
+        storeFile = rootProject.file("signing/debug.keystore")
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+    }
+    buildTypes.getByName("release") { signingConfig = signingConfigs.getByName("debug") }
     buildFeatures { aidl = true; buildConfig = true }
     // The runtime contains Python packages such as _backends; AAPT's default skips these directories.
     androidResources { ignoreAssetsPattern = "" }
@@ -87,7 +101,7 @@ chaquopy {
         buildPython("../../.venv/Scripts/python.exe")
         pip {
             // These Android wheels differ from desktop pins: prove fixture parity before release.
-            if (project.hasProperty("fullCodecs")) {
+            if (fullCodecs) {
                 install(rootProject.file("wheels/lz4-4.3.2-cp312-cp312-android_24_arm64_v8a.whl").absolutePath)
                 install(rootProject.file("wheels/zstandard-0.22.0-cp312-cp312-android_24_arm64_v8a.whl").absolutePath)
             } else {
@@ -97,7 +111,7 @@ chaquopy {
             install("pypinyin==0.55.0")
             install("archspec==0.2.6")
             // Graphics bindings are a measured gate, not silently replaced by text-only support.
-            if (project.hasProperty("fullCodecs")) {
+            if (fullCodecs) {
                 options("--find-links", rootProject.file("wheels").absolutePath)
                 install("astc-encoder-py==0.1.12")
                 install("texture2ddecoder==1.0.6")

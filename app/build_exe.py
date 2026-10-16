@@ -38,6 +38,9 @@ def build() -> None:
         # Indonesian: its own catalog.json.gz and re-drawn textures; every other texture payload is
         # read from catalog/ beside it (languages.payload_path), so the two must ship side by side.
         "--add-data", f"{RESOURCES / 'catalog_id'}{sep}catalog_id",
+        # This repo's own sprite art for the regioned atlases, read beside the catalogs
+        # (mobile_graphics.SPRITE_ART); without it the Career atlas loses its labels and repairs.
+        "--add-data", f"{RESOURCES / 'sprites'}{sep}sprites",
         "--add-data", f"{RESOURCES / 'qtsvfs'}{sep}qtsvfs",
         "--add-data", f"{RESOURCES / 'key' / 'cert.der'}{sep}key",
         "--add-data", f"{RESOURCES / 'key' / 'key.pk8'}{sep}key",
