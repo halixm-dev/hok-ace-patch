@@ -139,92 +139,23 @@ one build. Only a pair of staged builds, differing in one asset, supports a caus
 
 **Journey log**
 
-- The handoff's own figures did not survive measurement: it gave the override package as 26.8 MB where
-  disk says 29.3 MB, and 2494 prime-only where the count is 2492. Measuring before designing is what
-  produced `[S1]`, which is why the probe is committed rather than left in `%TEMP%`.
-- Two durable claims were wrong for the same reason — `check_graphics.py --game` prints `absent: 75` and
-  both `README.md` and project memory read that as "not in the mobile build". It is a census of the
-  downloaded layer, and the APK carries 73 more, including 26 of the 27 wide faction panels the Card
-  Info ribbon is drawn from. The tool's own wording was what invited the mistake, so the wording was
-  fixed too. Never conclude an asset is absent without counting `assets/bin/Data/Package/builtin/`.
-- The relocation pass was expected to be inert once package `1` is rebuilt, and it is — on the path where
-  the APK is available. On the path without one it is not, and that is the run that proves it recovers
-  the 11 tables. A pass can be worth porting precisely because it is dormant on today's data.
-- `QtsPackage.entries` over-reports a rebuilt package (703 against 701 real entries) because the dropped
-  builder records stay as dead space in the index. Asset counts have to go through the B-tree.
-- One entry, `56077AC5D3F0B677`, declares fewer bytes than its stream holds. Carrying the stream whole and
-  recording what was carried is the only self-consistent option, and truncating bytes we do not
-  understand would be the worse guess; it is named in `README.md` as the thing a device run has to settle.
-- Two hours went into a crash that was never this feature: run 1's launch *and* its revert test both ran
-  on the debuggable access APK, because the restore before them had failed and the failure was reported
-  only through `ui.log`, which the harness had stubbed to a no-op. The lesson is not "test on device" but
-  that any failure announced through a UI callback can be swallowed by a headless caller, so nothing that
-  decides whether the run worked may live there.
-- A rebuild that stages nothing is not evidence of a broken rebuild. `unreadable_assets: 701` plus
-  `translated: 4` came from a dump that was already patched, so every table was English and the transform
-  had nothing to change — `already_english: 260426` against a pristine dump's `2303` says so outright. A
-  dump's provenance has to be established before its build is believed, which is why the session from
-  21:31 was preserved: it is the only pristine copy of 1.4.0.1 this repo holds.
-- Restoring packages from such a dump is not the same as a fresh `pm clear`, and the difference is
-  measurable: the restored download pulls 2.667 GB where patched data pulls 2.737 GB, and control B boots
-  on it. That is what makes a revert test sound here, where the earlier one was not — it reverted to the
-  *previous patch's* output and so could neither convict nor clear anything.
-- The allowlist bisect was worth one device cycle per asset because each cycle started from the
-  configuration last known good rather than from the failing one. That makes the recovered set grow
-  monotonically and every verdict usable on its own, where bisecting down from the full build would have
-  produced a run of "still broken" and one usable answer at the end.
-- Ask for symptoms one at a time. "All four still broken" is one bit that costs a full cycle; the report
-  that split the start button and the encyclopedia from the skill button and the replay halved the search
-  in one message. The same report is what showed the four symptoms were two unrelated asset groups.
-- A failure that arrives *after* a screen has been up for thirty seconds needs the exit record, not
-  logcat: `dumpsys activity exit-info <pkg>` names the reason, the signal and the pss, while the client
-  suppresses tombstones and the game's own log (`Android/data/<pkg>/files/bqLog/...`, readable with plain
-  adb and no `run-as`) stops mid-network-ping.
-- Verifying a code change against a device-validated build has to compare **asset by asset**. The rebuilt
-  container is re-laid out on every build, so `1.db` and `1_0.db` differ between two builds with identical
-  content — 701 of 703 entries byte-identical, no metadata difference at all. The two that did differ are
-  the builder's own bookkeeping nodes, which carry the build machine's **absolute output path**
-  (`...\shipped` against `...\probe-final`); Tencent's builder embeds it, so no two rebuilds agree unless
-  they share an output directory.
-- Package `21` was left out of `REBUILD_PACKAGES` on the grounds that its APK copy is 511 MB and a rebuild
-  "recompresses all of it". That was the wrong number twice over. A rebuild lays out the *downloaded* copy:
-  4866 assets, 40.7 MB in, 48.1 MB out, 101 s. And cost was never what stopped it — the reader refused the
-  package. `read_raw` dispatched on the entry's compression id, which is 9 for 1285 of those 4866 entries,
-  and 9 was not in its list. Measured across packages 19, 20 and 21, id 9 is the same LZ4 block data as id
-  1 behind a 12-byte-longer entry descriptor: 62 of 62 sampled chunks decoded to exactly their declared
-  size, while id 4 (Oodle) refused LZ4 outright.
-- The chunk framing is per chunk and self-describing, so no list of ids can be complete. Twelve assets of
-  package `21` hold Zstandard frames — one of them, `7CCE483D88B236CF`, is an LZ4 chunk followed by a zstd
-  one, and three of the twelve declare id 1 or 4 while holding zstd. `read_raw` reads the payload's magic
-  first now, which is why `zstandard` is a run-time dependency. An entry's id is a hint; the payload is the
-  fact.
-- Rebuilding `21` exercised two behaviours for the first time. Four entries
-  (`B85AF970632CE322`, `C9ABDBDE9643A78C`, `CDE7C688F1E0185A`, `E5FBCD1C777EB18E`) have no chunks in either
-  layer, and one of them used to abort the whole package; they are now left out and named in
-  `entries_without_bytes`, which loses nothing the game could load, since an index entry pointing at
-  nothing is unreadable there too. Bytes that exist but will not decode still abort instead of being
-  dropped, because dropping those would revert the assets to the APK's revisions with nothing in the log to
-  say so. On this data `21` rebuilds to 4863 assets with 1 translated from the APK — the wide Central Plains
-  panel whose absence left the Card Info ribbon showing `❖ 河洛 ❖` while the grid card beside it was already
-  English — and the pipeline as a whole went from 128 s to 219 s.
-
-- Package `21` was rebuilt, put on the phone and withdrawn in the same session. It carries the wide
-  Central Plains panel `7B4CC5DF48336D2D`, so its rebuild is what turns that card's Card Info ribbon from
-  `❖ 河洛 ❖` into `Central Plains`, and it does: 4863 assets, 48.7 MB, mounted by the game, the panel read
-  back as English, the English ribbon seen on the phone. What it also does is break one card. With the
-  rebuilt package the Factionless hero Yixing draws as the game's grey placeholder — `TimiText`, a stray
-  `朵莉亚`, no art, no faction bar — and its Card Info panel comes out equally blank; restoring Tencent's
-  own copy of `21` draws that card correctly again, which is how the two states were told apart. So the
-  panel stays Chinese and `21` stays out of `REBUILD_PACKAGES`. The tempting explanation is the 511 MB,
-  and it is wrong: cost was never what stopped this, and for a package this size the rebuild is cheap.
-- What the rebuild does *not* explain is why one card goes, and the honest state of that is: unidentified.
-  Every asset of the rebuilt package is byte-identical to Tencent's for the 3470 entries that could be
-  compared, every entry's declared codec decodes its own payload, and no asset of the package mentions the
-  card in text at all — so the trigger is in the container, not the content: the four entries the rebuild
-  dropped (index entries with no chunks in either layer, `B85AF970632CE322`, `C9ABDBDE9643A78C`,
-  `CDE7C688F1E0185A`, `E5FBCD1C777EB18E`), the two u32 flag words `finalize` restores per entry, or the
-  descriptor layout the builder writes where Tencent's updater wrote a 12-byte-longer one. Narrowing that
-  is where a further attempt would start.
+- Designing from the handoff's figures: two did not survive measurement, so the probe that measured `[S1]` is committed. Lab notebook, 2026-09-30.
+- Reading `check_graphics.py --game`'s `absent: 75` as "not in the mobile build": wrong, it counts the downloaded layer only; the tool's wording was fixed. Lab notebook, 2026-09-30 (§6, §13).
+- Porting the relocation pass although a rebuild makes it inert: right, it is the no-APK path that recovers the 11 tables. Lab notebook, 2026-09-30 (§7).
+- Counting a rebuilt package's assets with `QtsPackage.entries`: over-reports; count through the B-tree. Lab notebook, 2026-09-30.
+- An entry that declares fewer bytes than its stream holds: carried whole and recorded rather than truncated. Lab notebook, 2026-09-30.
+- The crash after the first device push: the debuggable APK, not this feature; the restore failure was swallowed by a stubbed `ui.log`. Lab notebook, 2026-09-30 (§2, §3).
+- A rebuild that staged nothing: the dump was already patched; establish a dump's provenance before believing its build. Lab notebook, 2026-09-30.
+- Restoring packages from the preserved pristine dump as a baseline: sound, where the earlier revert to a previous patch's output was not. Lab notebook, 2026-09-30 (§9).
+- Bisecting the allowlist upward from the last known good build: each cycle's verdict stood on its own. Lab notebook, 2026-09-30 (§5, §11).
+- Asking for symptoms one at a time: split four symptoms into two unrelated asset groups. Lab notebook, 2026-09-30 (§5).
+- Reading a late crash from logcat: it says nothing; `dumpsys activity exit-info` names it. Lab notebook, 2026-09-30 (§1).
+- Comparing a rebuilt package with a device-validated one file by file: misleading; compare asset by asset. Lab notebook, 2026-09-30 (§5).
+- Leaving package `21` out on cost: the wrong reason; the reader refused codec-9 entries, now read. Lab notebook, 2026-10-01.
+- Dispatching `read_raw` on the entry's compression id: incomplete, framing is per chunk; it reads the payload's magic first, hence `zstandard`. Lab notebook, 2026-10-01.
+- Entries with no bytes in either layer: left out and named in `entries_without_bytes`; undecodable bytes still abort. Lab notebook, 2026-10-01.
+- Rebuilding package `21` and putting it on the phone: the ribbon read English but Yixing drew as the placeholder, so `21` was withdrawn. Lab notebook, 2026-10-01 (§8).
+- Why the rebuild costs that card: unidentified then; the later re-measure found the index entry shape. Lab notebook, 2026-10-01 (§8).
 
 ## [S1] Problem
 

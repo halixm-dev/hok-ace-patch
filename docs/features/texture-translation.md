@@ -59,64 +59,13 @@ thing this document does not claim.
   labels on other sprites; fixed and device-verified on the Career screen. Lab notebook, 2026-10-10; its
   evidence is in `tools/research/career_atlas/evidence/`. Its prototype `sprite_table.py` was superseded by
   `tools/sprite_table.py` plus `atlas_sprites.py table` and deleted.
-- **The Career atlas was ported at the wrong offsets from the start (2026-10-10).** A user screenshot
-  showed `我的棋手` beside the chessplayer count on the Career screen. It is a sprite, `Image_1904551913`
-  of the `CareerAtlas` texture `13C19E4E4486B31C` (package `19`, downloaded layer, 1024x1024 ASTC 4x4),
-  and the catalog *has* an edit for it: 13 labelled sprites, applied on every run with nothing skipped.
-  But the edit is a `.blocks` patch drawn on the **PC** atlas layout, the mobile atlas packs the same
-  sprites elsewhere, and the block-for-block port lands each English label at its PC offset: 11 of the
-  13 regions moved (two by 1 px), so 9 labels were written onto other sprites — `MY CHESSPLAYERS` over
-  `SUPREME STAR`, `VIENTIANE KING` over the `我的皮肤` label, `ACHIEVEMENT POINTS` over the QQ icon and
-  a dashed rule. The pristine 10-03 atlas (before that week's update) was laid out differently from the
-  catalog too, so this was wrong from the day the edit shipped; "applied, 0 skipped" said nothing about
-  where it landed. The fix reads the device's own Sprite table each run and ports by sprite (*Regioned
-  atlases* below). Found through the Career Lua (package `10`) → the switch item's prefab → the sprite
-  names → the `CareerTimiAtlas` Sprite asset `4AA2B26FF28CB65D`, whose Texture2D header points at a
-  `.resS` file; no path→QTS hash scheme matched that name (xxh64, FNV, MD5, SHA-1, CRC64 over the usual
-  forms), so the pixel asset was found by decoding every 1 MB asset of both layers at 1024x1024 4x4 and
-  cropping a sprite rect. Tencent's SerializedFile header defeats UnityPy, but a Sprite record is plain:
-  a length-prefixed `Image_<id>`, 4-byte aligned, then `m_Rect` as four floats with y from the bottom.
-
-- **Android exposed an invalid synthetic fixture (2026-10-03).** The checker filled its
-  synthetic ASTC buffers with arbitrary ramp bytes. Those are not valid ASTC blocks:
-  the ARM64 decoder crashed in `decode_intseq` / `decode_endpoints` at check 5, including
-  in a fresh process. `device_bytes` now encodes a known opaque background. The independent
-  untouched-block, deterministic-output and idempotence assertions remain. The corrected
-  full `--game` checker passed on Windows (130.4 s) and the Xiaomi Android 12 ARM64 spike
-  (120.9 s; instrumentation 121.807 s), each with 321 ported, one replaced, one spliced
-  and zero skipped downloaded textures. This fixes the research fixture only; it does not
-  establish decoder safety for malformed inputs or live-game acceptance of the Android port.
-- **The installer pushes directories, not the summary.** `build_patch` drops text tables one at a time
-  until a package stages or runs out; when it runs out, `report` stays `None` and the package is left
-  out of `packages` — but the last failed attempt has already written `output/<id>/`. On the dump that
-  copy for package 1 was a structurally valid package the size of its source with exactly one of its
-  15 replacements applied. It stayed harmless only because `packages == []` short-circuited the
-  install before the push; adding graphics entries made the run install, which would have shipped it
-  over the user's own package 1. Found by asking what `push_translation` actually iterates.
-- **Two of the three "failures" in the new checker were the checker's own.** It read only the *first*
-  chunk of each asset, so the three multi-chunk 1024x1024 textures looked like they had no resolvable
-  ASTC footprint (1024x1024 at 4x4 is 1 048 576 bytes across four chunks). And it asserted the
-  untouched-block invariant on `.assets` full replacements, which legitimately rewrite every byte. A
-  checker's false failure looks exactly like a product defect — verify the checker against a case you
-  have already reasoned about before believing it.
-- **The runtime cannot read the textures it patches.** `qtsvfs.QtsPackage.extract` raises
-  `Unsupported compression 4` for Oodle, which is what the scan's 612 `unreadable_assets` are, so
-  `native_verify._verify_structural` is unusable on this content. The substitute is to read the staged
-  package back through its own B-tree — the path the game uses — and compare to the intended bytes;
-  that verified all 299 textures of package 15 in 0.1 s.
-- **`wxq_patch.adaptive` has a graphics path of its own and it is dead here.** `scan` references
-  `apply_graphic_payload`, which applies `patch_ranges` and verifies `patched_sha256` over a whole
-  asset — meaningful only for PC-format data. Instrumenting a scan of the dump recorded **0** calls and
-  `counts["graphics"]` stayed 0. Nothing here builds on it, and this change leaves it alone.
-- **A frozen-exe timing anomaly cost hours and was pre-existing.** `--selftest` against the reused
-  session directory took over 560 s at about 2% CPU while the same work ran in 27–50 s elsewhere — and
-  a byte-identical fresh copy of that same tree, session directories and all, finished in 40 s. It
-  reproduces with the unmodified base commit's exe, and the app creates a fresh session directory on
-  every run, so it is an environment artefact rather than a shipping defect. Two methodology traps made
-  it worse: a `--windowed` exe launched with `&` returns immediately, and the orphan it leaves behind
-  then competes with the run being timed; and an empty log file proves nothing, because `selftest`
-  redirects stdout to a block-buffered handle. Build a same-flags replica and A/B it against the base
-  commit before blaming the change.
+- Porting a regioned atlas block for block at the catalog's PC offsets: wrong from the day it shipped, since "applied, 0 skipped" says nothing about where a label lands; now ported by the device's sprite table (*Regioned atlases* below). Lab notebook, 2026-10-10.
+- The checker's synthetic ASTC fixture on Android: not valid ASTC, it crashed the ARM64 decoder; it now encodes a known background, which fixes the fixture only. Lab notebook, 2026-10-03.
+- Trusting the summary to say what the installer pushes: it pushes directories, and a half-fitted package was left in `output/`; fixed. Lab notebook, 2026-09-30.
+- The new checker's first failures: two of three were the checker's own; verify a checker against a case already reasoned about. Lab notebook, 2026-09-30.
+- Verifying patched textures through the runtime: it cannot read Oodle, so the staged package is read back through its own B-tree. Lab notebook, 2026-09-30.
+- `wxq_patch.adaptive`'s own graphics path: dead on this content, left alone. Lab notebook, 2026-09-30.
+- A slow frozen-exe `--selftest`: a pre-existing environment artefact, not the change; A/B a same-flags replica against the base commit first. Lab notebook, 2026-09-30.
 
 ## [S1] Problem
 

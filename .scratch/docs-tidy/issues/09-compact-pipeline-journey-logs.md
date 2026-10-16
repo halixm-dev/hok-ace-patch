@@ -4,8 +4,8 @@
 
 **Blocked by:** 02, 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Every journey-log entry in these seven records is one line with a notebook date
-- [ ] Spot-check: each removed number can be found in the notebook
-- [ ] The reference check passes
+- [x] Every journey-log entry in these seven records is one line with a notebook date
+- [x] Spot-check: each removed number can be found in the notebook
+- [x] The reference check passes

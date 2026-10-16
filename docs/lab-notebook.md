@@ -745,6 +745,131 @@ pruned. Every round's verdict was **no critical finding**; the results the featu
   the catalog's own token-free text glues signs after a tag 56× (`</color></a>+10.`), so this was recorded as
   a convention collision, not a defect.
 
+From the feature record's journey log (folded here 2026-10-16):
+
+- **The oracle.** Session `dist\HOK ACE Patcher Data\sessions\20260929-212059` held both the game dump and a
+  pre-fix `build\scan\replacements` tree: a bit-exact oracle (the 3067 + 451 + 608 tokens, reproducing the
+  3384-field result). `Patcher.prune_old_sessions` (keeps the last two) deleted it during the install runs;
+  the built outputs under `D:\hok-verify-tokenfix` are what survive.
+- **An already-patched install cannot be re-patched by the normal flow.** `adaptive.scan` over the phone's
+  patched data reported `already_english` 125408 against 2304 on the clean dump, staged nothing, and
+  `build_patch` returned no packages, so the expansion had nothing to act on. The install pushed the shard
+  built from the clean dump instead.
+- **Grepping staged `*.db` shards says nothing about coverage:** the blobs are neither raw nor zlib/gzip, and
+  they keep superseded container data (207 raw token bytes, all inside blocks byte-identical to the pre-fix
+  build). Coverage is judged from `build\scan\replacements`.
+- **The copied spacing rule** (space only before a digit/placeholder and before `+`) left 319 strings with
+  the term glued to a word (`IfEnergyis negative`); it had been verified only as "the tokens are gone".
+- **The `Energy-` citation.** It read `Energy-` 69×: 66 are `Energy-Saving`, 1 `Energy-saving`, 1 `Energy-G…`,
+  and 1 a real glued sign. The catalog writes ` +{` 441× and ` -{` 23×, signs with a leading space, so the
+  first rule spaced all 66 sign sites the wrong way until review re-counted the literal.
+- **Build hazards.** `build_exe.py` runs PyInstaller with `--noconfirm` against `dist\`, where the app's
+  ~7.5 GB working folder lives, and cannot replace the exe while the app runs (`PermissionError: WinError 5`
+  in the final assembly). The folder was once moved under a live app; caught at once and reverted, nothing
+  written.
+
+## 2026-09-30 — texture port: the checker, the installer and the runtime
+
+From the texture-translation record's journey log (folded here 2026-10-16). Dump: the already-patched
+`dist/HOK ACE Patcher Data/sessions/20260929-224052/game`.
+
+- **The installer pushes directories, not the summary.** When the drop loop runs out, `report` stays `None`
+  but the last failed attempt has written `output/<id>/`. For package `1` that was a structurally valid
+  package the size of its source with 1 of its 15 replacements applied; only `packages == []`
+  short-circuiting the install kept it off the phone, and adding graphics entries would have shipped it.
+- **Two of the new checker's three "failures" were its own.** It read only the first chunk of each asset,
+  so the three multi-chunk 1024x1024 textures (1 048 576 B at 4x4 across four chunks) looked unresolvable,
+  and it asserted the untouched-block invariant on `.assets` full replacements, which rewrite every byte.
+- **The runtime cannot read the textures it patches.** `qtsvfs.QtsPackage.extract` raises `Unsupported
+  compression 4` for Oodle (the scan's 612 `unreadable_assets`), so `native_verify._verify_structural` is
+  unusable; reading the staged package back through its own B-tree verified all 299 textures of package
+  `15` in 0.1 s.
+- **`wxq_patch.adaptive`'s own graphics path is dead here.** An instrumented scan of the dump recorded 0
+  calls to `apply_graphic_payload`, and `counts["graphics"]` stayed 0.
+- **A frozen-exe timing anomaly, pre-existing.** `--selftest` against the reused session directory took
+  over 560 s at about 2% CPU against 27–50 s elsewhere; a byte-identical fresh copy of the tree finished in
+  40 s, and the base commit's exe reproduces it. Traps: a `--windowed` exe launched with `&` returns at
+  once and its orphan competes with the timed run; an empty log proves nothing, because `selftest`
+  redirects stdout to a block-buffered handle.
+
+## 2026-09-30 — text drop report: the loss is at staging
+
+From the text-drop-report record's journey log (folded here 2026-10-16); the drop counts are in §7.
+
+- The chessplayer names were never a catalog gap: the catalog maps 瑶妹→Yaria, 白歌→Bai Ge, 姜导→Director
+  Jiang, and the runtime translates every occurrence of each.
+- Not chased: which record the Chessplayer screen actually renders, which needs the game's own code or a phone
+  experiment. (The prime layer later answered it, §4.)
+- `git worktree add` was blocked by that session's sandbox, so the branch was cut in place after committing
+  the in-flight texture work.
+
+## 2026-09-30 — prime rebuild: what the build measured
+
+From the prime-rebuild record's journey log (folded here 2026-10-16); the device round is §2, §5 and §9.
+
+- **The handoff's figures did not survive measurement:** override package `1` 26.8 MB per the handoff,
+  29.3 MB on disk; 2494 prime-only per the handoff, 2492 counted.
+- **`QtsPackage.entries` over-reports a rebuilt package:** 703 against 701 real entries, because the dropped
+  builder records stay as dead space in the index. Count assets through the B-tree.
+- **`56077AC5D3F0B677` declares fewer bytes than its stream holds.** The rebuild carries the stream whole
+  and records what it carried.
+- **A rebuild that staged nothing came from an already-patched dump:** `unreadable_assets: 701`,
+  `translated: 4`, `already_english: 260426` against a pristine dump's `2303`.
+
+## 2026-10-01 — package 21 rebuilt, read and withdrawn
+
+From the prime-rebuild record's journey log (folded here 2026-10-16); the device result and the later
+re-measure are §8.
+
+- **It was left out on the wrong number.** The APK copy is 511 MB, but a rebuild lays out the downloaded
+  copy: 4866 assets, 40.7 MB in, 48.1 MB out, 101 s. The reader was what refused it: `read_raw` dispatched on
+  the compression id, which is 9 for 1285 of the 4866 entries. Across packages `19`, `20` and `21`, id 9 is
+  LZ4 block data behind a 12-byte-longer descriptor: 62 of 62 sampled chunks decoded to their declared
+  size, while id 4 (Oodle) refused LZ4.
+- **Framing is per chunk.** Twelve assets of package `21` hold Zstandard frames; `7CCE483D88B236CF` is an
+  LZ4 chunk followed by a zstd one, and three of the twelve declare id 1 or 4 while holding zstd.
+- **Entries without bytes.** `B85AF970632CE322`, `C9ABDBDE9643A78C`, `CDE7C688F1E0185A` and
+  `E5FBCD1C777EB18E` have no chunks in either layer; one used to abort the package. Left out, `21` rebuilds to
+  4863 assets with 1 translated from the APK, and the pipeline went from 128 s to 219 s.
+- **On the phone:** 4863 assets, 48.7 MB, mounted, the panel read back English and the English ribbon was
+  seen; Yixing drew as the placeholder (§8). At the time the trigger was unidentified: the 3470 comparable
+  entries were byte-identical and no asset named the card in text, which left the four dropped entries, the
+  two u32 flag words `finalize` restores, and the descriptor layout. §8's re-measure supersedes that.
+
+## 2026-10-01 — prime-only append: the first runs
+
+From the prime-only-append record's journey log (folded here 2026-10-16).
+
+- **A re-run duplicated the panel's index and shard B-tree key.** `QtsPackage.entries` is keyed by file
+  hash, so the duplicate showed only as two offsets under one key in the tree.
+- **The row-checksum guard's first reading was taken on our own output.** "The four validated assets are
+  unguarded" came from `hok-device-cycle/phone/`, a snapshot of our patched build (since deleted), and our
+  rewrite invalidates a bin's stored MD5. On a freshly pulled layer all of them answer true.
+- **The pristine download layer the earlier cleanup deleted was recovered from the phone** in one `tar`
+  stream over `run-as`.
+- **The blast radius was one package** on that build, because the other two holding prime-only catalog
+  content were rebuilt whole.
+- **A vacuous assertion.** `t7_rerun.py` asserted `"21" not in packages or packages`, which is always true;
+  review caught it. The real property is that the second run reports `21` not at all.
+
+## 2026-10-01 — extra-text cycles made one variable
+
+From the extra-text-cycles record's journey log (folded here 2026-10-16).
+
+- **The knob first reached `plan_package` only.** The extra-text pass skipped the packages a rebuild
+  replaced, package `1` among them, so a candidate enabled there alone was invisible. With `make_transform`
+  wired too, package `1`'s `replacement_count` moves 392 → 393 per cycle.
+- **A failed log capture is not a failed run.** PowerShell refused the log path (its parent did not
+  exist) but the process still staged; the next run into that directory found the appended asset already
+  there and correctly reported no `21`.
+- **The note's hashes are prefixes.** 14 of the 15 eight-digit forms are prefixes of package `1` assets,
+  and `3F4DD9B1` is in package `4`.
+- **`rewrites` and `official` differ:** a label repeated across rows counts once for coverage and several
+  times for rewriting.
+- **`3F4DD9B1D383FD83` is reachable:** `plan_package` selects it, so package `4` has no multi-shard problem.
+  It stays out of the queue because package `4` writes through `write_assets`, which does not read its
+  write back (§5).
+
 ## 2026-10-02 — a cycle staged from an older game-data version
 
 A cycle staged from the 1.4.0.1 `artifacts/game-dump` went onto a phone running 1.4.0.2. A staged package
@@ -753,6 +878,13 @@ is a revision of one layer, so the push reverted every asset the game had change
 with a download, removing the translation; the cycle gave no verdict on the asset it was testing. The
 same day a patch staged from the phone's own version launched and read English. Since then the dump's
 `1.info` is compared with the phone's before a push (`docs/runbooks/device-cycle.md`).
+
+The detail, from the extra-text-cycles record's journey log (folded here 2026-10-16): the candidate was
+`3914DBBFECD1E54D`, pushed from `artifacts/cycles/3914DBBFECD1E54D/out`. Against a backup taken before the
+push, the reverted assets were `9F3227B6D2226784` (34 832 B, 512 CJK either way), `0A3F6BAF53C9CA9D` (13 505 B,
+English either way) and the builder's bookkeeping nodes. A 44-byte label table is no startup dependency, so
+the stall says nothing about the candidate. Re-staged from the pristine 1.4.0.2 package `1`, the same cycle
+differs from the phone's baseline in exactly three assets: the candidate and the two bookkeeping nodes.
 
 ## 2026-10-03 — Talent Card regression isolated and fixed
 
@@ -807,6 +939,41 @@ reusable probes. See §12's local artifact retention; old full candidate builds 
 from the phone's version. Normal build code now initializes Tencent DLLs only when a rebuild
 package is named. With `REBUILD_PACKAGES=()`, an APK plus an absent builder directory passes
 the old-package repair check. Graphics offline checks pass.
+
+**The cycles in detail**, from the prime-only-append record (folded here 2026-10-16); scripts and evidence
+under `artifacts/device-cycle-t10/`:
+
+- **Arena Tiger's config row.** Field 4 of row `6363121` in `0AA59370241BFC22` sits beside
+  `$/BP/BP_636312.gl` and `ArtHub/Icon/Talent/Icon_Talent_ltmh`; checked with `check_arena_tiger.py` (two
+  entries without local bytes in each downloaded or staged copy). No device package was changed for it.
+- **Fresh baseline.** `pull_pristine.py`, after the user redownloaded and the game reached its Chinese login
+  screen: package `1` at version `1.4.0.2`, revision `0`; 653 package files across 252 directories SHA-256
+  verified against hashes taken on the phone; archive 2.53 GiB. The installed APK matched the cached normal
+  APK by SHA-256 before the access install. `compare_fresh_package.py`: all 401 readable assets
+  byte-identical to the previous package-1 dump (two entries without local bytes in both); against the
+  previous stage 307 identical, 94 differ, 297 only in the stage.
+- **UI control:** all 24 visible Talent labels Chinese (`节能商店`, `日落海新援`, `复印机` among them) and the
+  detail pane Chinese (`detail-captures/pristine-talent-grid.png`).
+- **`translated-map`** (only `C059EA43719099F1` replaced; 403 entries, 4064 keys in order, no duplicates):
+  **fails**, all 24 labels raw `#BE08...`, tabs and detail pane Chinese. No append and no extra-text in it.
+- **`one-name`** (only Arena Tiger's value, 277,697 B, one byte under the original): **works**; the tile
+  reads `Aren...`, the detail `擂台猛虎`.
+- **`append-legacy-map`** (appends only `A646ADD1CA0C1563`): built, never pushed.
+- **Full baseline offline** (`grid-regression/full-baseline/`, APK, no builder): 79 tables in place, 11
+  relocated, 4 allowlisted extras, 297 appended to package `1`; 395 textures; the one refusal
+  `3A70308AAF6F18F8`. Not pushed.
+- **`two-chunk-map`:** **works**; all 24 labels English (`Copier`, `Piggy`, `Duality`, `Prophet`, `Milestone`,
+  longer names clipped), the other 401 readable assets unchanged.
+- **Fix verification** (`grid-cycles/fix-verification.json`): 700 package-1 payloads byte-identical to the
+  baseline English build; a rerun on the fixed package stages nothing. Frozen-exe `--selftest` on fresh data:
+  79 in place, 11 relocated, 4 extras, 323 downloaded textures (no APK given).
+
+**Android exposed an invalid synthetic fixture**, from the texture-translation record (folded here
+2026-10-16). `check_graphics.py` filled its synthetic ASTC buffers with ramp bytes that are not valid ASTC
+blocks; the ARM64 decoder crashed in `decode_intseq` / `decode_endpoints` at check 5, in a fresh process too.
+With `device_bytes` encoding a known opaque background, the full `--game` check passed on Windows (130.4 s)
+and on the Xiaomi Android 12 ARM64 spike (120.9 s; instrumentation 121.807 s): 321 ported, 1 replaced, 1
+spliced, 0 skipped. It fixes the fixture only, and says nothing of decoder safety on malformed input.
 
 
 ## 2026-10-05 — Indonesian device report: four bugs, three causes
@@ -949,7 +1116,14 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   rules, 75 %), `Image_1134586325` (dark circle, 46 %), `Image_410780920` (`我的皮肤`, 100 %),
   `Image_1343071809` (QQ icon, 50 %), `Image_1487341597`, `Image_1281642236`, `Image_1862878375`,
   `Image_1434219398`, `Image_494086371`, `Image_2043579572`, `Image_1136439694`. The 10-03 pristine atlas
-  (216 sprites) was laid out differently from both, so the bug predates the update.
+  (216 sprites) was laid out differently from both, so the bug predates the update. The run had reported
+  the edit as applied with 0 skipped. Among the misplaced labels: `MY CHESSPLAYERS` over `SUPREME STAR`,
+  `VIENTIANE KING` over the `我的皮肤` label, `ACHIEVEMENT POINTS` over the QQ icon and a dashed rule.
+- **How the pixel asset was found** (from the texture-translation record, folded here 2026-10-16). No
+  path→QTS hash scheme matched the `.resS` name (xxh64, FNV, MD5, SHA-1, CRC64 over the usual forms), so
+  every 1 MB asset of both layers was decoded at 1024x1024 4x4 and a sprite rect cropped. Tencent's
+  SerializedFile header defeats UnityPy, but a Sprite record is plain: a length-prefixed `Image_<id>`,
+  4-byte aligned, then `m_Rect` as four floats with y from the bottom.
 - **No clean post-update atlas exists.** Both 10-10 pulls (11:25, 11:50) are byte-identical and carry the
   10-08 patch. The 10-03 sprites are the same art: of 215 shared sprites every one has the same size, and
   all but the damaged ones agree within a premultiplied mean of 5.3 (126 under 1); only 34 are pixel-exact,
@@ -1031,6 +1205,15 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   menu and ACE Encyclopedia normal, but **DF Starting Lineup draws empty**. The control's package `1`
   pushed back restores the grid. Content-correct offline, so this is the stale-checksum class again. The
   phone now runs the control build; device backup is in `D:\scratch\hok-cycle\backup\device-backup.tar`.
+- **Cycle detail** (from the card-pack-covers record, folded here 2026-10-16). Infinix X6853, Android 16,
+  English. Phone and dump `1.info` both `{"version":"1.6.0.1","revision":"0"}`; the backup (`packages` +
+  `Watchdog`) is 2.4 GB. Control push: `ScanJob done ... errorCode=0`. Cycle push: scan `errorCode=0`, and
+  Starting Lineup still empty after a further 6 s. Offline, `append_skipped` held the same single refusal
+  with its denominator 294 → 295, and the log read 293 → 294 "translated assets added from the APK". The
+  appended asset is byte-equal to a fresh `pb_text.rewrite` of the APK's copy and re-parses; the two CJK
+  code points a raw decode finds (`榑`, `贐`) are binary bytes the APK's copy holds too. Each record of the
+  bin pairs a cover icon (`ArtHub/Icon/CardCover/lcon_CardCover_NiTianGaiMing_BaiLiXuanCe`) with its group
+  label and its hero label; English and Indonesian measure the same 60 strings and 252 fields.
 - **Control match, 2026-10-16: passes.** The user played a match to its end on the control build, with no
   `QTSFailureTips` popup; the phone's logcat holds no QTS-failure line either. Achievement titles read in
   English (user, same day). Still owed: the weekly leaderboards, King of Kings.
