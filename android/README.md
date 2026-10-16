@@ -106,7 +106,11 @@ clean Windows runner. Pushes and pull requests produce development APK artifacts
 tags produce privately signed APKs and draft releases. See [automated builds](../README.md#automated-android-builds)
 and [security/signing](../SECURITY.md). Release builds no longer use the public debug signer.
 Local release builds are unsigned unless the four signing environment variables documented
-there are supplied. `patchVersionName` and `patchVersionCode` Gradle properties set CI versions.
+there are supplied. The root `VERSION` file defaults the patcher version to `1.6.0.1.1`
+(game data version plus patch revision); see [patch versions](../README.md#patch-versions).
+`patchVersionName` can override it with another five-part numeric version, and
+`patchVersionCode` sets Android's separate, increasing install number. CI release tags
+must match `VERSION`; CI supplies the install number from its workflow run number.
 
 ```bat
 android\gradlew.bat -p android :app:assembleDebug :fixture:assembleDebug :app:assembleDebugAndroidTest

@@ -1,12 +1,16 @@
 # Build every pinned ARM64 codec on a clean Windows runner, then verify the APK.
 param(
     [ValidateSet('Debug', 'Release')][string]$Variant = 'Debug',
-    [string]$VersionName = '0.1-ci',
+    [string]$VersionName = '',
     [int]$VersionCode = 1
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Set-Location (Resolve-Path "$PSScriptRoot/../..")
+if (-not $VersionName) { $VersionName = (Get-Content -LiteralPath VERSION -Raw).Trim() }
+if ($VersionName -notmatch '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$') {
+    throw 'Use a patch version such as 1.6.0.1.1'
+}
 
 function Invoke-Checked([string]$Program, [string[]]$Arguments) {
     & $Program @Arguments

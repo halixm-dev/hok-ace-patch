@@ -10,6 +10,12 @@ plugins {
 // -PfullCodecs=false builds the minimal diagnostic baseline instead.
 val fullCodecs = findProperty("fullCodecs")?.toString()?.let { it.isEmpty() || it.toBoolean() } ?: true
 
+val patchVersion = rootProject.file("../VERSION").readText().trim()
+val buildVersion = providers.gradleProperty("patchVersionName").orElse(patchVersion).get()
+require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+").matches(buildVersion)) {
+    "Patch version must be <game data version>.<revision>, for example 1.6.0.1.1"
+}
+
 val engineAssets = layout.buildDirectory.dir("generated/engine-assets")
 val stageEngineAssets by tasks.registering(Sync::class) {
     into(engineAssets)
@@ -70,7 +76,7 @@ android {
         minSdk = 30
         targetSdk = 35
         versionCode = providers.gradleProperty("patchVersionCode").orElse("1").get().toInt()
-        versionName = providers.gradleProperty("patchVersionName").orElse("0.1-feasibility").get()
+        versionName = buildVersion
         ndk { abiFilters += "arm64-v8a" }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
