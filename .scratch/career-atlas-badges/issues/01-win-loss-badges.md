@@ -5,7 +5,7 @@
 - Art: replace only the two Chinese characters (box x 18-108, y 30-80 of each 126x126 sprite), in the same metallic treatment; the ring, glow and script subtitle stay as they are. Default wording **WIN** / **LOSS** (the script already says Victory / Failure); a VICTORY / DEFEAT variant is the user's call. The full brief, starting copies and references are in `tools/research/career_atlas/` (`art_brief.md`, `edit/optional_badges/`, `originals/`).
 - Code: add both sprites to `mobile_graphics.ATLAS_LABELS` with their wording and the art under `resources/sprites/13C19E4E4486B31C/labels/`; `port_atlas` draws a label over its whole device box.
 - Check: `tools/research/career_atlas/validate_assets.py --delivered <dir>` passes, `atlas_sprites.py labels --check` and `check_graphics.py` (offline and `--game`) pass, the exe is rebuilt.
-- Device cycle (`docs/features/prime-rebuild.md`, "The device test loop"): the Career screen in both switch states and the match-history badges.
+- Device cycle (`docs/runbooks/device-cycle.md`): the Career screen in both switch states and the match-history badges.
 
 **Blocked by:** nothing; optional work
 

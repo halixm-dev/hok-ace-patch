@@ -33,7 +33,7 @@ across 6 packages**, with `text_skipped`, `graphics_skipped` and `append_skipped
 run `README.md` means by "a run applies all 395". A patch of that shape was put on the phone on
 2026-10-02, where the game launched under it and read English; a 1.4.0.1-staged build pushed onto that same
 phone stalled it at 0% and was repaired away by the game, which is why the layer's version is now a
-pre-flight check (`prime-rebuild.md`'s device test loop).
+pre-flight check (`docs/runbooks/device-cycle.md`).
 
 `REBUILD_PACKAGES` is now empty, so no package is laid out again and `QtsVFS.dll` has no caller in a
 normal run, the text pass is gated to the catalog's tables, and the append needs only the pulled APK,
