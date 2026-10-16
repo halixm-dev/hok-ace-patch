@@ -173,8 +173,11 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     from qts_relocate import install_btree_slot_map
     from device_extensions import exclude_extra_chunks, extend_graphics, relocate_text, repair_card_dictionaries
     from languages import for_catalog
+    from terminology import install as install_terminology
 
     install_btree_slot_map()
+    # Before the first load: the scanner and every pass after it load the catalog through this.
+    install_terminology()
     language = for_catalog(catalog)
     log(f"language: {language.name} ({catalog.name})")
 
@@ -182,6 +185,10 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     output.mkdir(parents=True, exist_ok=True)
 
     loaded_catalog = adaptive.load_catalog(catalog)
+    glossary = getattr(loaded_catalog, "terminology", None)  # absent when the runtime's loader ran
+    if glossary:
+        log("glossary: " + ", ".join(f"{count} catalog strings now read {term!r}"
+                                     for term, count in sorted(glossary.items())))
     packages = []
     graphics_skipped = []
     append_skipped = []
