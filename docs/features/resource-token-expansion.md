@@ -39,7 +39,7 @@ limitation.
 | Integrity sweep re-walking all 87 produced assets | PASS — `files=87 still_changing=0 further_changes=0 unparsable=0` |
 | `build_patch(..., fit_only_mode=True)` driver | PASS — 3384 expansions, 0 skips, package 1 `fit-only` 10 assets, counts unchanged, copied assets token-free |
 | Expected strings | `When the chess player levels up, Chessplayer EXP +{3|2}` present; `Gain {0|1} Energy` 22×; `Chessplayer HP` 608× |
-| Amendment T5/T6 (spacing): 58-check unit script including the boundary cases | PASS 58/58 |
+| Amendment (spacing): 58-check unit script including the boundary cases | PASS 58/58 |
 | Amendment: in-memory A/B over the pre-fix assets | PASS — 3384 fields in 26 assets; glued strings 57 → 57, i.e. all 319 the first rule introduced are gone |
 | Amendment: `--selftest` re-run (`D:\hok-verify-tokenfix\run2`) | PASS, 0.98 min; `expanded resource tokens in 3384 replacement strings`; counts identical to baseline; `full verified (72 assets)`, 15 dropped, mode `full` |
 | Amendment: grep + integrity sweep over the 87 produced assets | PASS — 0 tokens, no `token expand skipped`, glued strings 57, `still_changing=0 unparsable=0` |
@@ -55,8 +55,8 @@ limitation.
 | Installed on the device (`f15a72e`, M2007J3SG, game data version 1.3.0.4) | PASS — package 1 hashed **on the phone** after the push matches the shard built with the fix: `1.db` `a0df436f…`, `1_0.db` `fbff2ec6…`, against `6cb13b99…` / `9a8f62e1…` before. Watchdog cleared, normal APK restored |
 | On-device rendering (Card Info) | PASS — the user confirmed on the phone that the card text now renders in English |
 | Independent review of `7cada8e..149e25e` | No critical findings. Reviewer re-derived the expansion from the pre-fix assets: 3384 fields, output byte-identical to all 87 produced files |
-| Independent review of `cc60205..b670d90` | No critical findings. T5 and T6 both hold; the reviewer's independent walker+expander reproduced all 87 assets byte-for-byte and found the false `-` citation recorded above |
-| Independent review of the sign rule (on `b670d90` + the working tree) | No critical bug. Independent reproduction again exact (3384 fields, 87/87 identical to `run4`); the sign predicate holds on all 165 sites; found the stale T5 acceptance text and the tag-shielded class now recorded in [S2] |
+| Independent review of `cc60205..b670d90` | No critical findings. The spacing rule and its re-verification both hold; the reviewer's independent walker+expander reproduced all 87 assets byte-for-byte and found the false `-` citation recorded above |
+| Independent review of the sign rule (on `b670d90` + the working tree) | No critical bug. Independent reproduction again exact (3384 fields, 87/87 identical to `run4`); the sign predicate holds on all 165 sites; found the stale acceptance text for the spacing rule and the tag-shielded class now recorded in [S2] |
 
 Verified on the device: the card text renders in English. The user confirmed it on the phone
 (`f15a72e`) after the shard push, which closes the only item this document previously left

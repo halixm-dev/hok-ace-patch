@@ -70,7 +70,7 @@ changes what a cycle on them can buy: `3914DBBFECD1E54D` **cannot be cycled at a
 referenced by a single row, a draw type windowed for a month that ended a year before this build, so no
 live screen draws it — while `63922EF4D4C86526` is referenced with no date window and is cycleable. Both
 are now dropped from a normal run's plan, because the text pass stages the catalog's tables and nothing
-else (`prime-only-append.md`, T12): a diagnostic cycle enables it with `--cycle-asset`; promotion
+else (`prime-only-append.md`, the catalog gate): a diagnostic cycle enables it with `--cycle-asset`; promotion
 to `extra_text.SAFE_ASSETS` still requires a watched successful device verdict.
 
 Placeholder normalisation was measured as a way to reach more of them and added **nothing**: replacing
@@ -127,7 +127,7 @@ The app path still runs: `.venv\Scripts\python.exe app\hok_patcher.py --selftest
 artifacts\selftest-out` → `{"ok": true, "packages": [["1", 79], ["1", 11], ["1050016095", 1], ["15", 299],
 ["19", 22], ["20", 1], ["1", 4]]}`. The final `["1", 4]` is the extra-text pass reporting the four
 allowlisted assets, which is what the no-APK path does instead of the rebuild; `79` was `81` until the text
-pass was gated to the catalog's tables (`prime-only-append.md`, T12). And
+pass was gated to the catalog's tables (`prime-only-append.md`, the catalog gate). And
 `tools/research/check_graphics.py` → `all checks passed`, unaffected.
 
 **Journey log**

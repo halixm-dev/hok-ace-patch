@@ -73,7 +73,7 @@ empty `REBUILD_PACKAGES` left open: with no package laid out whole and no `QtsVF
 appended package mounts and behaves. The same device round turned up one symptom that is **not** this
 pass's: on the ACE Tournament encyclopedia's Talent Card grid every tile prints its raw `#BE08...` ref
 where a name belongs, while the same card's detail pane, its description and every other tab render
-English. T15 records this regression: a fresh unpatched baseline captured on 2026-10-03 renders the grid
+English. The Talent Card sections below record this regression: a fresh unpatched baseline captured on 2026-10-03 renders the grid
 names in Chinese, overturning the earlier claim that the client cannot resolve them.
 **Fixed 2026-10-03:** the same full English dictionary works with its original 307200-byte chunk size
 and a measured native key for a second chunk. The complete patch is installed and device-verified:
@@ -189,6 +189,42 @@ ships, which the build above does.
    `21` *not at all*, because its staged copy already holds the panel. Write the property that would
    fail, and check a claim against the artifact rather than against a summary of it.
 
+### The Talent Card grid regression: what was ruled out first
+
+The patched ACE Tournament encyclopedia's Talent Card grid printed raw `#BE08...` refs while its detail
+pane rendered English. The fix had to make the patched grid resolve its names while the detail pane and
+the other tabs kept working, on a device cycle staged from a fresh unpatched baseline. Three findings
+came before that baseline and are recorded only here.
+
+**Two config rewrites failed; do not repeat either.** Config `0AA59370241BFC22` was rewritten first for
+1811 of its 4064 refs and then for all 4064, re-pointing them at `23C9A9DEBB3BF40C`. Both cycles emptied
+the grid. Both kept the config at 409,893 bytes and chunk size 307200. They do not prove that the client
+rejects a namespace as such: changing the config also invalidated its stored checksum, and the two
+cycles cannot separate those effects. What they did show is the useful part. An emptied grid is exactly
+what the withdrawn `extra_text` assets do to the encyclopedia (`tools/extra_text.py`), so that withdrawal
+is a **reseal** problem, not a content problem: a config bin whose stored checksum no longer matches is
+rejected whole. That is why nothing here may rewrite `0AA59370241BFC22`.
+
+**The table-only revert was an insufficient control.** `C059EA43719099F1` defines all 4064 refs; the
+APK's `A646ADD1CA0C1563` defines 3069 of them. Reverting only `C059EA43719099F1` to its Chinese bytes
+left the rest of the staged package installed, the appended `A646ADD1CA0C1563` included, so the
+unchanged symptom did not establish that the client reads neither table. The fresh unpatched screenshot
+below disproves the claim that the Chinese grid also prints raw refs, and the dictionary-only cycles
+after it isolate the oversized chunk as the cause.
+
+**The user's example ref has a translated definition and a matching config reference (2026-10-03).**
+`#BE08801F0222C56A#` is **Arena Tiger**. In the saved pristine downloaded package `C059EA43719099F1`
+defines it as `擂台猛虎`, and the shipped stage defines the same key as `Arena Tiger`. The saved APK prime
+copy also defines it in `C059EA43719099F1` as `擂台猛虎`, and in `A646ADD1CA0C1563` as `Tiger in the
+ring`, a value the stage leaves unchanged. Config `0AA59370241BFC22` references the key in field 4 of row
+`6363121`, beside `$/BP/BP_636312.gl` and `ArtHub/Icon/Talent/Icon_Talent_ltmh`, and that row is the same
+in all three saved copies. So the ref is neither a missing catalog translation nor an unreferenced key;
+the check does not establish the client's lookup mechanism. Verification:
+`.venv\Scripts\python.exe -X utf8 artifacts\device-cycle-t10\check_arena_tiger.py`, report in
+`artifacts/device-cycle-t10/arena-tiger-check.json`: 403 pristine, 700 staged and 2873 saved prime
+entries scanned with zero decode failures (two entries without local bytes in each downloaded or staged
+copy). No device package was changed for this check.
+
 ### Fresh baseline pulled 2026-10-03
 
 The user reported that earlier dumps could contain previously patched files, so treating the whole saved
@@ -213,7 +249,7 @@ that old package-1 dump's readable content against the redownload, not the prove
 `artifacts/device-cycle-t10/detail-captures/pristine-talent-grid.png` shows all 24 visible labels in
 Chinese, including `节能商店`, `日落海新援` and `复印机`; the detail pane also reads Chinese. The normal APK
 remains installed and no patch has been pushed since the redownload. Compare with `talent-grid.png`,
-whose same visible labels are raw refs while its detail pane reads English. This withdraws T15's former
+whose same visible labels are raw refs while its detail pane reads English. This withdraws the former
 impossibility verdict and reopens it as a patch regression. The next device comparison must isolate
 changes from this working baseline rather than rewrite the checksum-protected grid config.
 
@@ -285,7 +321,9 @@ and its description in English. The narrow tile caption reads `Aren...`, normal 
 with no raw ref. Hero Card, Effect Card and Equipment Card remain populated and translated.
 Evidence: `full-fixed/{push.json,loaded.png,arena-tiger.png,hero-card.png,effect-card.png,
 equipment-card.png}`. `dumpsys package` confirms no `DEBUGGABLE` flag. The game is left on
-Arena Tiger with the normal APK installed. T15's acceptance is met.
+Arena Tiger with the normal APK installed. The Talent Card fix's acceptance is met: the patched
+grid resolves its names and the detail pane and other tabs still work, on a cycle staged from the
+fresh baseline.
 
 The updated executable was rebuilt successfully with Python 3.12.13. Its `--selftest` against
 fresh data reports `ok: true`: 79 in-place tables, 11 relocated, 4 safe extras and 323 downloaded
@@ -294,7 +332,7 @@ one repaired table. Source-pipeline checks cover the APK append and all 395 appl
 The full build retains the known one-table append refusal, without new skips. `py_compile` and
 `git diff --check` pass. No catalog, runtime, config bin or signing key was changed.
 
-T6 (the `pb_text.has_row_checksum` guard) was dropped during implementation; see Out of Scope.
+The planned `pb_text.has_row_checksum` guard was dropped during implementation; see Out of Scope.
 
 ### Review and local cleanup, 2026-10-03
 
@@ -314,7 +352,7 @@ removed outputs require rebuilding; the housekeeping section of `docs/lab-notebo
 
 Diamond Frenzy's Effect Card grid and detail pane print raw `#23F7...` refs on a patched phone. The
 refs are defined in `28D9F8B02CAA94E2`, one of the ten per-mode card dictionaries that the relocation
-pass still enlarged after T15 fixed the Talent one; each copy carries its own ref prefix. The user
+pass still enlarged after the fix above repaired the Talent one; each copy carries its own ref prefix. The user
 authorized minting their keys with the bundled builder the same way, offline: each throwaway build
 reproduced every key the device already had, the Talent keys included, before its new chunk keys were
 taken. `NATIVE_CHUNK_KEYS` now covers all eleven, `write_assets` gives each one chunks of 307200 bytes
@@ -325,14 +363,19 @@ and the repair of an old broken package is byte-identical to a fresh build. Devi
 
 ### Still owed
 
-- T14: Device cycle on the shipped configuration — acceptance: on the phone the game gets past startup **on the appended package** (no rebuild, no `QtsVFS.dll`) and the tables that existed only in the APK read English, the Card grid still draws Yixing with full art, and `files/QtsVFSCache/QtsVFS.log` plus `normal1.log` show no new fix set naming package `1` (covers: S2; device-gated). **Measured:** package `1` pushed as staged onto the 1.4.0.2 layer, the game starts, and the Chessplayer Card page — whose names are prime-only tables — reads English. **Owed:** the two logs and the Yixing draw.
-- T16: Adding new rows to dictionaries beyond the catalog remains unattempted. A missing
-  chunk-index key cannot be invented: no matching spare was found in either data layer. The
-  user-authorized offline builder diagnostic supplied one measured exception for the existing
-  `C059EA43719099F1` dictionary, which adds no rows and preserves all 4064 translated entries.
-  This does not authorize arbitrary dictionary expansion. The earlier inference that all eleven
-  enlarged chunks were accepted came from startup rather than per-table lookup and is withdrawn
-  for this dictionary; T15's one-chunk/two-chunk comparison proves its layout caused the regression.
+The device cycle on the shipped configuration is only half watched. Package `1`, pushed as staged onto
+the 1.4.0.2 layer with no rebuild and no `QtsVFS.dll`, gets the game past startup, and the Chessplayer
+Card page, whose names are prime-only tables, reads English. Nobody has yet checked that the Card grid
+still draws Yixing with full art on that build, or read `files/QtsVFSCache/QtsVFS.log` and `normal1.log`
+for a new fix set naming package `1`.
+
+Adding new rows to dictionaries beyond the catalog has not been attempted. A missing chunk-index key
+cannot be invented, and no matching spare was found in either data layer. The user-authorized offline
+builder diagnostic supplied one measured exception for the existing `C059EA43719099F1` dictionary,
+which adds no rows and keeps all 4064 translated entries; it does not license arbitrary dictionary
+expansion. The earlier inference that all eleven enlarged chunks were accepted came from startup rather
+than from a per-table lookup, and it is withdrawn for this dictionary: the one-chunk/two-chunk
+comparison above proves its layout caused the regression.
 
 ## [S1] Problem
 
@@ -504,4 +547,4 @@ and `graphics_skipped` keep their present meanings and are not folded together.
 - The game force-closing before the lobby (the handoff's L1/L2).
 - Re-signing, the manifest rename, and the APK rewrite path.
 - Splitting a leaf beneath an existing internal root, or an unmeasured page-table layout. Only
-  the single-root-leaf split measured in T10 is supported; other full trees are reported.
+  the measured single-root-leaf split (`Shard.split_root_leaf`) is supported; other full trees are reported.

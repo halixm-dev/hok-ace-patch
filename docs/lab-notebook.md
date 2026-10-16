@@ -1,13 +1,11 @@
 # Lab notebook — HOK ACE Mobile English Patcher
 
-This notebook is the single source for raw measurements and device verdicts. Other docs cite its
-entries by date (for example "lab notebook, 2026-10-05") instead of copying the numbers; a feature
-record carries the reasoning, this file carries the evidence. Topic sections come first, dated
-entries after.
-
-Measured evidence for this repo: what went on a phone, what the phone did, and which claim was withdrawn and
-why. `AGENTS.md` carries the rules that always apply; **where the two disagree, `AGENTS.md` wins**. This file
-is the record behind those rules, including the attempts that failed.
+This notebook is the single source for this repo's raw measurements and device verdicts: what went on a
+phone, what the phone did, and which claim was withdrawn and why, including the attempts that failed.
+Other docs cite its entries by date (for example "lab notebook, 2026-10-05") instead of copying the
+numbers. A feature record carries the reasoning and this file carries the evidence; `AGENTS.md` carries
+the rules that always apply, and this file is the record behind them, so **where the two disagree,
+`AGENTS.md` wins**. Topic sections come first, dated entries after.
 
 Distilled 2026-10-03 from this project's MiMoCode memory (`projects/be3989bb-…`, 719 lines, last written
 2026-10-01), reordered by subject. Dates in parentheses are when the measurement was made. Device of record
@@ -742,6 +740,19 @@ The former impossibility verdict was wrong. A fresh redownload (data 1.4.0.2; sn
 grid's Chinese names. Reverting one dictionary while retaining other patched assets was
 not a pristine control. Do not reuse that verdict.
 
+Ruled out before the fresh baseline. Config `0AA59370241BFC22` was rewritten for 1811 of its
+4064 refs, then for all 4064, re-pointed at `23C9A9DEBB3BF40C`; both kept 409,893 bytes and
+chunk size 307200, and both emptied the grid. Changing the config also invalidated its stored
+checksum, so the cycles cannot say whether the client rejects the namespace or the checksum.
+Do not repeat either rewrite. The table-only revert reverted `C059EA43719099F1` (all 4064 refs)
+but left the appended `A646ADD1CA0C1563` (3069 refs, APK prime) and the rest of the stage
+installed, which is why it could not show that the client reads neither table. Arena Tiger
+`#BE08801F0222C56A#`: `C059EA43719099F1` holds `擂台猛虎` in the pristine downloaded and APK
+copies and `Arena Tiger` in the stage; `A646ADD1CA0C1563` still defines it as `Tiger in the
+ring`, unchanged in the stage; config row `6363121`, field 4, references the key identically in
+all three copies (`artifacts/device-cycle-t10/arena-tiger-check.json`; 403 pristine, 700 staged,
+2873 prime entries, zero decode failures).
+
 `C059EA43719099F1` already defines all 4064 BE08 keys. Arena Tiger's
 `#BE08801F0222C56A#` is `擂台猛虎` in fresh data and `Arena Tiger` in our English table.
 Changing only that value works. Translating only the full dictionary fails when its
@@ -767,7 +778,7 @@ Hero/Effect/Equipment tabs remain populated and translated. Normal APK restored 
 `dumpsys package` shows no DEBUGGABLE flag. Evidence: `grid-cycles/full-fixed/`.
 Updated frozen exe selftests pass on fresh data and on the old patched package (one repair).
 Coverage counts unchanged: 391 staged text tables, 395 applied textures, one known table
-append refusal. T15 complete; no commit.
+append refusal. Talent Card fix complete; no commit.
 
 **Review and cleanup:** removed 18.1 GiB of obsolete generated artifact outputs, retaining
 fresh controls, original APK/source dumps, final fixed packages, screenshots, reports and
@@ -825,7 +836,7 @@ Reported on the Indonesian build installed by the Android patcher (Infinix X6853
 Kartu Efek: every grid caption and the detail pane's name and description are raw refs
 (`#23F7C87B1B68DA1C#`, `#23F7CDBFA1846C57#`), while the tabs and the "Terkait" line are translated.
 
-- **Cause: the T15 failure on the other card dictionaries.** Both refs are defined in `28D9F8B02CAA94E2`
+- **Cause: the 2026-10-03 Talent Card failure, on the other card dictionaries.** Both refs are defined in `28D9F8B02CAA94E2`
   (600 767 B, 2 chunks x 307200; `41B38BE39A60C211` is a 1.2 MB asset that references them). Each game mode
   carries its own copy of the card dictionary under its own ref prefix, and the relocation pass enlarged the
   chunk size of the ten that are not the Talent one. Offline Indonesian build on the 1.4.0.1 dump

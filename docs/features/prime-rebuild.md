@@ -46,8 +46,8 @@ the builder derives" has the counts, and `tools/research/key_derivation_probe.py
 **Later still: no package is rebuilt at all.** `REBUILD_PACKAGES` is now empty. Both packages this
 feature named — `1` for its 298 prime-only text tables and `1050016095` for its 71 prime-only textures —
 are covered by the append pass, which adds records to the container the game already reads instead of
-laying it out again, so QtsVFS.dll has no caller left in the pipeline. `prime-only-append.md`'s T11 and
-T12 measure what that costs and what it gains, asset by asset: packages `1050016095` and `21` come out
+laying it out again, so QtsVFS.dll has no caller left in the pipeline. `prime-only-append.md`'s runs with
+an empty `REBUILD_PACKAGES` and with the text pass gated to the catalog measure what that costs and what it gains, asset by asset: packages `1050016095` and `21` come out
 holding exactly what their rebuilds held, and so does package `1` on every catalog table. The first
 attempt reported **393 text tables against this rebuild's 392**, and the extra two were this rebuild's
 own rule working as intended rather than a gap: `3914DBBFECD1E54D` and `63922EF4D4C86526` are tables
@@ -353,11 +353,11 @@ entry whose token does not describe its content.
 
 That is what makes the harvest a whole record rather than most of one: a record taken from prime matches
 a builder-minted record in every field the stager itself writes. The append path has since dropped the
-builder for this reason (`prime-only-append.md`, T9): the keys come from prime, the payload is re-encoded
+builder for this reason (`prime-only-append.md`, the record harvested from prime): the keys come from prime, the payload is re-encoded
 by the encoder `write_assets` already uses, and the token rides along unused. What the builder remains
 the only source of is a chunk index the package does not already carry, which is why `write_assets` keeps
 the chunk count instead of adding one and why an append keeps prime's chunking. The measured
-Talent Card exception in `prime-only-append.md` T15 uses one offline-derived identity key to keep
+Talent Card exception in `prime-only-append.md`'s Talent Card sections uses one offline-derived identity key to keep
 its original chunk size, without adding dictionary rows or loading the builder during normal runs.
 
 ### Which packages are rebuilt
@@ -365,7 +365,7 @@ its original chunk size, without adding dictionary rows or loading the builder d
 `package_rebuild.REBUILD_PACKAGES` names the packages to lay out whole. It is **empty**: both packages
 this feature named — `1` for its 298 prime-only text tables and `1050016095` for its 71 prime-only
 textures — are now covered by the append pass, which adds records to the container the game already reads
-instead of rebuilding it (`prime-only-append.md`, T11). The rebuild stays for a package that has to be
+instead of rebuilding it (`prime-only-append.md`, the empty `REBUILD_PACKAGES` run). The rebuild stays for a package that has to be
 re-laid out rather than added to, and it is the only caller of QtsVFS.dll left. `21`, which holds the wide
 Central Plains panel, reaches the phone by append; a rebuild of it costs the Factionless card, and the
 journey log has the screen.

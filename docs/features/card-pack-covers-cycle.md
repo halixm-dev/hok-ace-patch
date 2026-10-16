@@ -14,11 +14,11 @@ without `--cycle-asset`, draws the grid (still Chinese) on the same phone minute
 control's package `1` back brought the grid back. This is the reseal failure `AGENTS.md` records for the
 encyclopedia withdrawals: the rewritten content is fine (it reads back and re-parses offline); the bin's
 stored checksum is not, so the client drops what it feeds. The hash is withdrawn in `tools/extra_text.py`
-and gone from `CANDIDATE_ASSETS`. T2 (`transform.config`) and T3 (the short forms) stay: both are inert
+and gone from `CANDIDATE_ASSETS`. `transform.config` and the derived short forms stay: both are inert
 without a cycle, and a way to reseal a bin would need both.
 
-T1-T4 landed on 2026-10-16 and both builds passed the offline acceptance below before they went on the
-phone.
+The candidate entry, `transform.config`, the short forms and both builds landed on 2026-10-16, and
+both builds passed the offline acceptance below before they went on the phone.
 
 ### Device log (Infinix X6853, Android 16, game data 1.6.0.1, English)
 
@@ -26,13 +26,13 @@ phone.
 |---|---|---|---|
 | version check | — | phone `packages/1/1.info` vs the dump | both `{"version":"1.6.0.1","revision":"0"}` |
 | backup | — | `packages` + `Watchdog` | `D:\scratch\hok-cycle\backup\device-backup.tar`, 2.4 GB |
-| T5 | control, all 7 packages | startup, QtsVFS scan | `ScanJob done ... errorCode=0`, no crash |
-| T5 | control | Encyclopedia DF: Basic Rules, Effect Card, Talent Card, Starting Lineup | all draw; Starting Lineup Chinese as expected |
-| T6 | cycle, package `1` only | startup, login, lobby, Card menu, ACE Encyclopedia | all normal, scan `errorCode=0` |
-| T6 | cycle | Encyclopedia DF → Starting Lineup | **empty grid**, still empty after a further 6 s |
+| control push | control, all 7 packages | startup, QtsVFS scan | `ScanJob done ... errorCode=0`, no crash |
+| control push | control | Encyclopedia DF: Basic Rules, Effect Card, Talent Card, Starting Lineup | all draw; Starting Lineup Chinese as expected |
+| cycle push | cycle, package `1` only | startup, login, lobby, Card menu, ACE Encyclopedia | all normal, scan `errorCode=0` |
+| cycle push | cycle | Encyclopedia DF → Starting Lineup | **empty grid**, still empty after a further 6 s |
 | rollback | control's package `1` | Encyclopedia DF → Starting Lineup | grid back |
-| T5 | control | a match, played to its end by the user | no `QTSFailureTips` popup; no QTS-failure line in logcat |
-| T5 | control | achievement titles, checked by the user | English |
+| control push | control | a match, played to its end by the user | no `QTSFailureTips` popup; no QTS-failure line in logcat |
+| control push | control | achievement titles, checked by the user | English |
 
 Not watched: the weekly leaderboards and King of Kings. The control's own
 verdict on the 1.6.0.1 supplement is therefore still partial (`docs/lab-notebook.md`).
@@ -99,7 +99,9 @@ from before this change wherever a catalog table holds one of them as a whole va
 
 ### Still owed
 
-- (partly done) T5 control pushed and watched: startup, the Encyclopedia and a full match pass; the supplement's own screens are still owed
+The control build has been pushed and watched only in part: startup, the Encyclopedia and a full match
+pass, but the 1.6.0.1 supplement's own screens, the weekly leaderboards and King of Kings, have not been
+looked at.
 
 ## [S1] Problem
 

@@ -274,8 +274,8 @@ sprite where the PC one does, which holds for the lobby atlases `C9F49510F2F6740
   native L, R and F in a tighter TOTAL PROFIT, plus 5 touched-up alpha pixels in the M of MY (two
   half-covered joins filled; nothing moved). Those PNGs are what ships; `atlas_sprites.py labels` now
   writes drafts to `--out` only, and its `--check` verifies the shipped labels' format instead of
-  regenerating them. Checked: the T15 validator passes, `[10]` draws them at their device boxes (worst
-  mean 0.34 after ASTC), `--game` on today's layer passes, and the rebuilt exe's `--selftest` stages
+  regenerating them. Checked: `tasks/T15/validate_assets.py` passes, `[10]` draws them at their
+  device boxes (worst mean 0.34 after ASTC), `--game` on today's layer passes, and the rebuilt exe's `--selftest` stages
   exactly that atlas.
 - **Re-runs.** A touched block is re-encoded only when its decoded pixels do not already show the target
   within `BLOCK_MATCH_MEAN` (6), which keeps a pristine block's own bytes. About 1500 blocks of the Career
@@ -440,7 +440,8 @@ only splices its ranges. Two consequences to state plainly:
 - An already-patched install yields `0` textures and no summary entry, so `build_patch` reports no
   packages and the app logs "already installed" — the same behaviour as text today.
 - Idempotence depends on `encode_astc` being deterministic for identical input. It is the same encoder
-  with the same cached context, and T8 measures it rather than assuming it.
+  with the same cached context, and the Report's six-run shard comparison measures it rather than
+  assuming it.
 
 ### The unreported staged package
 
@@ -521,7 +522,7 @@ graphics pass now does, so **both** places come back:
 - `app/build_exe.py`: `--collect-all astc_encoder`, `--collect-all texture2ddecoder`, `--collect-all ooz`,
   `--collect-data archspec`.
 
-Skipping the build-exe half is invisible at source-run time and fatal in the frozen exe, so T5 verifies
+Skipping the build-exe half is invisible at source-run time and fatal in the frozen exe, so the Report verifies it
 with a real build and a frozen `--selftest`, not `py_compile`.
 
 ### `install_btree_slot_map` re-check
