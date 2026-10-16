@@ -58,8 +58,8 @@ path, and the path *is* the language.
 
 **Device cycle (2026-10-05, Xiaomi M2007J3SG `f15a72e`, Android 12, game data 1.4.0.2)** — the phone
 already carried the English patch from the Android app's live run, so the cycle followed `prime-rebuild.md`'s
-device test loop with the Indonesian build rather than a normal app run (which would have changed no text,
-T8). Evidence: `artifacts/indonesian-device-cycle-20261005.log`, `artifacts/indonesian-lobby-20261005.png`,
+device test loop with the Indonesian build rather than a normal app run (which would have changed no text;
+see the language-switch row above). Evidence: `artifacts/indonesian-device-cycle-20261005.log`, `artifacts/indonesian-lobby-20261005.png`,
 `artifacts/indonesian-popup-20261005.png`.
 
 | Step | Result |
@@ -110,8 +110,9 @@ one known table refusal. Evidence: `docs/lab-notebook.md`'s 2026-10-05 section.
 
 ### Still owed
 
-- T10 Walk the remaining screens in Indonesian after login: loading tips, Chessplayer page, Card menu,
-  arena artwork.
+The device cycle covered launch and the lobby, and the device report's four fixes were verified on
+their own screens. The other screens have not yet been walked in Indonesian
+after login: the loading tips, the Chessplayer page, the Card menu and the arena artwork.
 
 ## [S1] Problem
 
@@ -142,4 +143,4 @@ texture and needs an Indonesian image; and the resource tokens expand to English
 - **Switching an already-patched install between languages.** The scanner only translates tables that
   still hold Chinese (`README.md`'s known limits), so text switches only after the game's data is reset;
   textures switch on any run, which would leave MULAI GAME over English text. Both pickers say to clear
-  the game's data before switching (measured in T8).
+  the game's data before switching (measured: the Report's language-switch row).

@@ -216,13 +216,14 @@ above that this invalidates are marked in place.
 Resource tokens were adopted afterwards by the `resource-token-expansion` feature:
 `tools/resource_tokens.py` expands `{Energy}`/`{LordExp}`/`{LordHp}` in the staged replacements after
 translation, so card text no longer renders hybrid. Three statements above therefore no longer
-describe the repository: `tools/` also holds `resource_tokens.py` (so the T1 acceptance listing is
-short by one file), the `[S3]` entry below is superseded, and the reference's `RESOURCE_TOKEN_FIX.md`
+describe the repository: `tools/` also holds `resource_tokens.py` (so the original listing of `tools/` —
+`axml_set_debuggable.py`, `build_device_patch.py`, `build_mobile_patch.py`, `qts_relocate.py` plus
+`research/` — is short by one file), the `[S3]` entry below is superseded, and the reference's `RESOURCE_TOKEN_FIX.md`
 is now attached rather than deferred.
 
 The app's own name is now written from the manifest as well: `tools/axml_label.py` names the app
-(`<application android:label>` and every component sharing that reference), so the T1 acceptance
-listing above is short by two files. `README.md` describes what that edit does and `AGENTS.md` what it
+(`<application android:label>` and every component sharing that reference), so that original
+listing of `tools/` is short by two files. `README.md` describes what that edit does and `AGENTS.md` what it
 is allowed to cost a run; the device cycle that would confirm the name on a launcher has not been run
 yet, so nothing here claims it.
 

@@ -5,7 +5,7 @@ updated: 2026-10-16
 branch: master
 ---
 
-# Terminology Glossary
+# Terminology Table
 
 ## Report
 
@@ -60,7 +60,8 @@ asset, no new kind — so it carries the same risk as a catalog re-import.
 
 ### Still owed
 
-- T4: Device cycle on a pristine layer — acceptance: a card with `╊` and one with `╬` read Steal and Prepare on the phone, and the encyclopedia keyword pages do too (covers: S2; depends: T2)
+No device cycle on a pristine layer has run yet. It would show a card carrying `╊` and one carrying `╬`
+reading Steal and Prepare on the phone, and the encyclopedia's keyword pages reading the same.
 
 ## [S1] Problem
 

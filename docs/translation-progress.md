@@ -8,7 +8,7 @@ counts, so it is the one that moves when coverage moves.
 Catalog counts verified 2026-10-01 at `cf1055e`. The per-layer counts are measurements over the downloaded
 layer against game data **1.4.0.1**, each recorded with its command in the spec record named beside it.
 The phone has since updated to **1.4.0.2**, which changes two assets of package `1` and nothing else
-(`prime-only-append.md`, T11); every count below is unaffected by that, and a re-measurement should use the
+(`prime-only-append.md`, the empty `REBUILD_PACKAGES` run); every count below is unaffected by that, and a re-measurement should use the
 phone's own layer, not the 1.4.0.1 dump.
 
 ## How progress is counted
@@ -36,8 +36,8 @@ phone stalled it at 0% and was repaired away by the game, which is why the layer
 pre-flight check (`prime-rebuild.md`'s device test loop).
 
 `REBUILD_PACKAGES` is now empty, so no package is laid out again and `QtsVFS.dll` has no caller in a
-normal run (`prime-only-append.md`, T11), and the text pass is gated to the catalog's tables (T12). The
-append needs only the pulled APK, not the builder (T13), so a run given the APK and no DLL stages
+normal run, the text pass is gated to the catalog's tables, and the append needs only the pulled APK,
+not the builder (all three in `prime-only-append.md`), so a run given the APK and no DLL stages
 byte-identical packages. The latest full run, staged from the fresh 1.4.0.2 snapshot and
 device-verified on 2026-10-03, reports **391 text tables and 395 images across the same 6 packages** — one
 table short of that rebuild, because the append's encoder cannot store `3A70308AAF6F18F8`, which
@@ -308,7 +308,7 @@ detail pane and the Hero, Effect and Equipment tabs also work in the full Englis
 tile names still use the client's normal ellipsis. Rerunning the updated patcher repairs an older
 already-English copy. Counts remain **391 text tables and 395 applied textures**, with the one
 known append refusal below. Evidence and the withdrawn impossibility verdict are recorded in
-`docs/features/prime-only-append.md` T15.
+`docs/features/prime-only-append.md`'s Talent Card sections.
 
 ## Bahasa Indonesia
 

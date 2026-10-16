@@ -637,19 +637,60 @@ The proposed first release targets **Android 11+ and arm64-v8a**, with Shizuku s
 
 The normal pipeline is DLL-free because `REBUILD_PACKAGES = ()`. It still needs the APK for prime-only assets. Removing the APK input would lose parity even if downloaded text and textures worked. Do not bundle Tencent's Windows builder into the Android app or invent a replacement builder.
 
+### The phased plan and its stop conditions
+
+The port was planned in five phases, each with an exit condition that had to hold before the next
+began. Phase 0 captured a reproducible, version-matched desktop control (commit, game and APK versions
+and SHA-256s, catalog and runtime hashes, the DLL-free offline run with the APK and no builder, and
+`check_graphics.py` with its `--game` form), with no Android writes; its run recorded 391 staged text
+tables, 395 applied textures and one known prime table refusal, numbers that depend on the data
+version. Phase 1 proved the Shizuku boundary: its exit was Shizuku controlling the existing access and
+restore chain on the target phone, and the plan's stop rule was to **stop the full-port path if `run-as`
+or the restore cannot be made reliable, and not to infer a workaround from shell UID alone**. Phase 2
+proved the engine and codecs offline: its exit was the full offline pipeline working on the phone with
+both data layers and no Windows binaries, and a text-only spike could diagnose progress but was not the
+Android deliverable. Phase 3 built the durable workflow: its exit was complete scratch-data runs, with
+deliberate failure injection recovering safely, before any live translation write. Phase 4 was device
+acceptance and release, behind the release gate in the table above: a user installs the patcher, starts
+Shizuku on the phone, completes the supported patch flow and launches the verified non-debuggable game
+without a PC or cable; translation on both layers matches the version-matched control; and an
+interrupted run has a usable recovery path.
+
+The implementation brief set four standing limits that still apply: keep `AGENTS.md`'s restrictions,
+the immutable catalog and runtime, Python 3.12, the game signing key, an empty `REBUILD_PACKAGES` and an
+empty `cycle_assets`; prove Shizuku `run-as`, install and restore and Android codec loading before
+building out the UI; run no destructive first-install or live game cycle without explicit authorization
+for that cycle; and claim no PC-free or full-pipeline support before the release gate passes.
+
 ### Still owed
 
-- Test permission denial, stopped Shizuku and OEM install prompts. Record exact failures and settings needed.
-- Inventory reachable imports; resolve every required native dependency for ARM64/CPython 3.12, recording versions, NDK configuration and applicable redistribution notices/source requirements.
-- Measure peak disk/RAM, thermal effects and elapsed time. Exercise 16 KB native loading separately.
-- Accept the saved emergency installer request through an actual user-assisted restore and independent installed-APK verification; APK verification must leave pending package rollback intact.
-- Refuse stale live layers, unsupported layouts, split APKs and nonempty rebuild configuration explicitly.
-- Run the existing `prime-rebuild.md` device loop with fresh matching data and watched screens: login, Chessplayer names/skills, Central Plains ribbon, Yixing art, Talent Card grid/search/detail (Arena Tiger), and populated Hero/Effect/Equipment tabs.
-- Verify actual pushed file hashes, prime-only content, skipped-counter parity and normal APK identity/debug flag after every run.
-- Rerun on already-English data: no duplicate append, no lossy texture drift, no unexplained staged packages. Test older broken dictionary repair in scratch data before a live repair cycle.
-- Test activity recreation, screen-off, app process death, Shizuku death, permission revocation, low space, installation failure and interruption between index/shard commits. Verify rollback/resume plus restore; reboot testing must preserve recovery files.
-- Test first official install only with explicit data-loss consent; then normal update and repeat-patch paths. Test the existing measured Xiaomi/MIUI Android 12 device first if available, plus another OEM and newer Android/page-size environment before claiming broad support.
-- Update this Report with actual commands/results, README with Android setup/build instructions, and coverage ledger only if measured counts move. Keep the Windows source/offline checks passing.
+Several gates are still open. Permission denial, a stopped Shizuku and OEM install prompts have not been
+tested through the full flow, so their exact failures and the settings each needs are not recorded. The
+reachable imports have not been fully inventoried: every native dependency for ARM64 and CPython 3.12
+still needs its version, NDK configuration and redistribution notices or source obligations recorded.
+Peak disk and RAM, thermal effects and elapsed time have not been measured, and 16 KB native loading has
+not been exercised on its own. The saved emergency installer request has not been accepted through a
+real user-assisted restore with independent installed-APK verification, which must leave a pending
+package rollback intact. The workflow does not yet refuse stale live layers, unsupported layouts, split
+APKs or a non-empty rebuild configuration explicitly.
+
+On the translation side, the `prime-rebuild.md` device loop has not been run on Android output with
+fresh matching data and watched screens: login, Chessplayer names and skills, the Central Plains
+ribbon, Yixing's art, the Talent Card grid, search and detail (Arena Tiger), and populated Hero, Effect
+and Equipment tabs. Each run's pushed file hashes, prime-only content, skipped-counter parity and normal
+APK identity and debug flag are not yet verified after every run. A rerun on already-English data still
+has to show no duplicate append, no lossy texture drift and no unexplained staged packages, and repair of
+an older broken dictionary has to pass in scratch data before a live repair cycle.
+
+The lifecycle matrix is also open: activity recreation, screen-off, app process death, Shizuku death,
+permission revocation, low space, installation failure and interruption between the index and shard
+commits, each needing rollback or resume plus restore, with reboot testing that keeps the recovery
+files. A first official install is to be tested only with explicit data-loss consent, followed by the
+normal update and repeat-patch paths, on the measured Xiaomi/MIUI Android 12 phone first and then on
+another OEM and a newer Android and page-size environment before any broad support is claimed. When
+those land, this Report takes the actual commands and results, README takes the Android setup and build
+instructions, and the coverage ledger changes only if measured counts move; the Windows source and
+offline checks keep passing throughout.
 
 ## [S1] Problem
 

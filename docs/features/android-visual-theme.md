@@ -21,7 +21,8 @@ remains unverified. The temporary headless emulator was stopped after the failed
 
 ### Still owed
 
-- Run existing UI probe and inspect rendered screenshots when a test device is available.
+The existing UI probe has not been run against this theme, and nobody has inspected its rendered
+screenshots; both wait for a test device.
 
 ## [S1] Problem
 
