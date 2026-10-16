@@ -69,7 +69,7 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 - **Install path**: re-sign, install the access APK, write the override layer, reinstall the normal APK. The access APK never stays installed, nor is it cached as the normal APK. ([ADR 0001](docs/adr/0001-install-through-a-temporary-access-apk.md))
 - **Update timing**: write the translation only after the in-game update finishes. ([ADR 0002](docs/adr/0002-write-the-translation-after-the-in-game-update.md))
 - **Normal APK**: the game's own file with only `AndroidManifest.xml` rewritten (debug flag, launcher name `APP_NAME`); any further edit needs a device cycle. The rename must never fail a run. ([standalone-patcher-app](docs/features/standalone-patcher-app.md), [device-cycle](docs/runbooks/device-cycle.md))
-- **Login**: re-signing breaks direct WeChat/QQ login; users log in via *Scan to login*. That limit is expected.
+- **Login**: re-signing breaks direct WeChat/QQ login; users log in via *Scan to login*, as expected.
 - **Working data** (~8 GB) goes to the user-chosen folder, never into this repo. `build/`, `dist/`, `.venv/` are generated and disposable.
 
 **Coverage and gating**
@@ -97,8 +97,8 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 
 **Freezing**
 
-- `resources/runtime/` is precompiled bytecode; treat it as binary. A stdlib import it needs at freeze time goes in `HIDDEN_IMPORTS` in `app/build_exe.py`.
-- `app/build_exe.py` collects `astc_encoder`, `ooz` and `texture2ddecoder` explicitly and `pypinyin` with `--collect-all`; without them the exe builds but dies on the first texture. ([texture-translation](docs/features/texture-translation.md))
+- **Runtime bytecode**: `resources/runtime/` is binary. A stdlib import it needs at freeze time goes in `HIDDEN_IMPORTS` in `app/build_exe.py`.
+- **Codec modules**: `app/build_exe.py` collects `astc_encoder`, `ooz` and `texture2ddecoder` explicitly and `pypinyin` with `--collect-all`; without them the exe builds but dies on the first texture. ([texture-translation](docs/features/texture-translation.md))
 
 ## Boundaries
 
@@ -118,9 +118,11 @@ Every kind of doc has one home. Write prose in the vocabulary of `GLOSSARY.md`.
 | Vocabulary | `GLOSSARY.md` | naming a concept |
 | Decisions | `docs/adr/` | changing an area an ADR names |
 | Feature records | `docs/features/` | changing a pass; update it in the same change |
-| Procedures | `docs/runbooks/` | running a device cycle, diagnosing an untranslated string, reading a crash |
-| Evidence | `docs/lab-notebook.md`, the single source for numbers and verdicts | questioning a number, or before re-running an experiment |
-| Coverage | `docs/translation-progress.md` (README keeps a summary) | a change moves a count; update it in the same change |
+| Device cycle | `docs/runbooks/device-cycle.md` | testing a change on a phone |
+| Untranslated string | `docs/runbooks/diagnose-untranslated.md` | a string stays Chinese |
+| Crash | `docs/runbooks/read-a-crash.md` | the game crashes |
+| Evidence | `docs/lab-notebook.md`, the single source for numbers and verdicts | before re-running an experiment |
+| Coverage | `docs/translation-progress.md` | a change moves a count; update it in the same change |
 | Staging contract | the `build_patch` docstring | editing the pipeline |
 | Work in flight | `.scratch/<feature>/`, committed | working a ticket |
 | Skill configuration | `docs/agents/` | read by the skills |
