@@ -87,6 +87,11 @@ corrected in this repo's code rather than in the catalog.
 | distinct Chinese → English strings (`catalog.unique`) | **39 011** | `catalog.json.gz` → `unique` |
 | review renders | 44 | `previews/` |
 
+The pipeline does not use `unique` exactly as shipped: `tools/terminology.py` gives each keyword one
+name as the catalog loads (`docs/compose/spec/terminology-glossary.md`): the default *Steal* (`夺取`) and
+*Prepare* (`整备`), replacing the community names Plunder and Readiness and the stray variants. On the
+English catalog that rewrites 40 targets to Steal and 9 to Prepare; on the Indonesian one 35 and 6. It changes words inside tables that are already counted, so no count below moves.
+
 `.blocks` and `.assets` are the two porting *kinds*, not text versus texture: every payload file in the
 catalog directory is a texture, and all 398 of them are in `catalog.graphics`.
 

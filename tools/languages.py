@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from resource_tokens import RESOURCE_TOKENS
+from terminology import ENGLISH_TERMS, INDONESIAN_TERMS, Term
 
 
 @dataclass(frozen=True)
@@ -24,9 +25,11 @@ class Language:
     catalog: str  # directory name under the resources folder
     # What {Energy}/{LordExp}/{LordHp} expand to, in the word order the catalog itself uses.
     resource_terms: dict[str, str] = field(default_factory=dict)
+    # The glossary `terminology` applies to the catalog as it loads: one translation per game term.
+    terms: tuple[Term, ...] = ()
 
 
-ENGLISH = Language("en", "English", "catalog", dict(RESOURCE_TOKENS))
+ENGLISH = Language("en", "English", "catalog", dict(RESOURCE_TOKENS), ENGLISH_TERMS)
 LANGUAGES: dict[str, Language] = {
     ENGLISH.code: ENGLISH,
     # The Indonesian catalog keeps the game's English terms but puts the head noun first: it writes
@@ -35,7 +38,7 @@ LANGUAGES: dict[str, Language] = {
         "{Energy}": "Energy",
         "{LordExp}": "EXP Chessplayer",
         "{LordHp}": "HP Chessplayer",
-    }),
+    }, INDONESIAN_TERMS),
 }
 DEFAULT_LANGUAGE = ENGLISH.code
 
