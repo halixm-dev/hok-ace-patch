@@ -1,0 +1,4367 @@
+{
+ ", 是否兑换{0}": {
+  "en": ", redeem {0}?",
+  "id": ", tukar {0}?"
+ },
+ "2、<color=#98cbff>支持规则</color>：玩家可对认为最有机会夺冠的选手进行支持，可同时支持多位选手，每次可支持100钻石，每名选手最多可支持50000钻石。": {
+  "en": "2. <color=#98cbff>Support Rules</color>: Players can support the contestant they think has the best chance of winning the Championship. They can support multiple contestants simultaneously, with each support costing 100 Diamonds, and each contestant can be supported with up to 50,000 Diamonds.",
+  "id": "2. <color=#98cbff>Aturan Dukungan</color>: Pemain bisa mendukung kontestan yang menurut mereka paling berpeluang menjadi Juara. Mereka bisa mendukung beberapa kontestan sekaligus, setiap dukungan memerlukan 100 Diamond, dan setiap kontestan bisa didukung hingga maksimal 50.000 Diamond."
+ },
+ "2、王中王子账号的初始段位为见习新秀，您可以重复挑战上王者段位。每个子账号达到王者段位都可获得钻石奖励。": {
+  "en": "2. A King of Kings sub-account starts at Apprentice Rookie, and you can climb to King Rank repeatedly. Each sub-account that reaches King Rank earns a Diamond reward.",
+  "id": "2. Sub-akun King of Kings dimulai dari Apprentice Rookie, dan kamu bisa naik ke Rank King berulang kali. Setiap sub-akun yang mencapai Rank King mendapat hadiah Diamond."
+ },
+ "3、<color=#98cbff>最终奖励规则</color>：最终奖励计算采用“赢家通吃”规则。\n支持成功的玩家最终获得钻石数=对夺冠选手支持的钻石数*夺冠选手返奖率\n各选手返奖率=（所有选手被支持钻石-第1名选手分红-第2名选手分红-第3名选手分红-比赛税收）/该选手被支持钻石数\n第1名选手分红=所有选手被支持钻石*第1名分红比例（0.3%），上限20万钻石\n第2名选手分红=所有选手被支持钻石*第2名分红比例（0.2%），上限10万钻石\n第3名选手分红=所有选手被支持钻石*第3名分红比例（0.1%），上限5万钻石\n比赛税收作为筹办比赛的系统花费=所有选手被支持钻石*5%": {
+  "en": "3. <color=#98cbff>Final Reward Rules</color>: Final rewards use the \"Winner Takes All\" rule.\nDiamonds received by successful supporters = Diamonds supported on the champion * champion's payout rate\nEach contestant's payout rate = (Diamonds supported on all contestants - 1st place dividend - 2nd place dividend - 3rd place dividend - match tax) / Diamonds supported on that contestant\n1st place dividend = Diamonds supported on all contestants * 1st place dividend rate (0.3%), capped at 200,000 Diamonds\n2nd place dividend = Diamonds supported on all contestants * 2nd place dividend rate (0.2%), capped at 100,000 Diamonds\n3rd place dividend = Diamonds supported on all contestants * 3rd place dividend rate (0.1%), capped at 50,000 Diamonds\nMatch tax, the system cost of hosting the match = Diamonds supported on all contestants * 5%",
+  "id": "3. <color=#98cbff>Aturan Hadiah Akhir</color>: Hadiah akhir menggunakan aturan \"Winner Takes All\".\nDiamond yang diterima pendukung yang berhasil = Diamond yang didukungkan ke juara * tingkat pembayaran juara\nTingkat pembayaran tiap kontestan = (Diamond yang didukungkan ke semua kontestan - dividen peringkat 1 - dividen peringkat 2 - dividen peringkat 3 - pajak pertandingan) / Diamond yang didukungkan ke kontestan tersebut\nDividen peringkat 1 = Diamond yang didukungkan ke semua kontestan * rasio dividen peringkat 1 (0,3%), maksimal 200.000 Diamond\nDividen peringkat 2 = Diamond yang didukungkan ke semua kontestan * rasio dividen peringkat 2 (0,2%), maksimal 100.000 Diamond\nDividen peringkat 3 = Diamond yang didukungkan ke semua kontestan * rasio dividen peringkat 3 (0,1%), maksimal 50.000 Diamond\nPajak pertandingan, biaya sistem penyelenggaraan pertandingan = Diamond yang didukungkan ke semua kontestan * 5%"
+ },
+ "3、使用王中王子账号排位，不享受段位助力保护（即低段位失败时的保护加分）。": {
+  "en": "3. Ranked games on a King of Kings sub-account do not get Rank boost protection (the protection points granted on losses at low Ranks).",
+  "id": "3. Ranked dengan sub-akun King of Kings tidak mendapat perlindungan Rank boost (poin perlindungan saat kalah di Rank rendah)."
+ },
+ "4、赛季结束时，会根据本赛季的王者段位达成数量，完成对应成就并获得唯一称号。每个赛季只会完成王者数最高的一个王中王成就，若已完成，则向下完成最近的王中王成就，直到所有相关成就均已完成。": {
+  "en": "4. At the end of the Season, achievements are completed and unique Titles granted based on how many times King Rank was reached this Season. Each Season completes only the one King of Kings achievement with the highest King count; if it is already completed, the next lower King of Kings achievement is completed instead, until all related achievements are completed.",
+  "id": "4. Saat Season berakhir, achievement diselesaikan dan Title unik diberikan berdasarkan berapa kali Rank King dicapai di Season ini. Setiap Season hanya menyelesaikan satu achievement King of Kings dengan jumlah King tertinggi; jika sudah selesai, achievement King of Kings terdekat di bawahnya yang diselesaikan, hingga semua achievement terkait selesai."
+ },
+ "5、新赛季开启后，上个赛季的所有王中王子账号清空，根据上个赛季所有账号之中达成的最高的段位来进行段位继承。": {
+  "en": "5. After the new Season starts, all King of Kings sub-accounts from the previous Season are cleared, and Rank inheritance is based on the highest Rank Achieved among all accounts in the previous Season.",
+  "id": "5. Setelah Season baru dimulai, semua sub-akun King of Kings dari Season sebelumnya dihapus, dan pewarisan Rank didasarkan pada Rank tertinggi yang Dicapai di antara semua akun pada Season sebelumnya."
+ },
+ "9月13日": {
+  "en": "Sep 13",
+  "id": "13 Sep"
+ },
+ "9月14日": {
+  "en": "Sep 14",
+  "id": "14 Sep"
+ },
+ "<color=#98cbff>一、时间：</color>\n<color=#FFFFFF>1.祈愿时间：2026年09月30日 00:00:00-2026年10月26日 23:59:59。\n2.兑换时间：2026年09月30日 00:00:00-2026年10月29日 23:59:59。\n注：10月26日祈愿时间结束后，线条小狗祈愿币将不可使用，请及时使用；10月26日后仅保留兑换商店，请拥有线条小狗积分的玩家们及时兑换，兑换时间结束后活动道具（线条小狗祈愿币，线条小狗积分）将被清空。</color>\n\n<color=#98cbff>二、祈愿规则：</color>\n<color=#FFFFFF>1.在活动界面消耗60点券购买6个爱心投送1天体验卡可获赠6个【线条小狗祈愿币】，每次祈愿消耗6个线条小狗祈愿币。活动期间，每人祈愿限1000次。\n2.祈愿福利： \n（1）祈愿福利1：首次进入奖池将会赠送线条小狗祈愿币×5，首抽仅需10点券；\n（2）祈愿福利2：每累计祈愿10次，可领线条小狗积分、表情奖励自选礼（限领前6次）\n3.兑换积分可用于在兑换商店中兑换指定奖励，详细兑换内容可前往兑换商店查看。\n4.重复获取：抽到已拥有的天幕、名片、特效、表情等不可重复获得的内容，将会自动转化为指定数量的线条小狗积分，具体重复转化数量如下：\n线条小狗天幕：150；线条小狗名片：98；线条小狗传送特效：45；线条小狗头像框：20；线条小狗聊天气泡：20；线条小狗个性戳戳：20,；表情：20。\n5.线条小狗天幕祈愿奖池限时开启，抽奖进度不会被其他祈愿活动继承。</color>\n\n<color=#98cbff>三、概率公示：</color>\n<color=#FFFFFF>天幕-线条小狗的旅行 1%\n线条小狗名片 1%\n传送特效-线条小狗出动 1%\n线条小狗头像框 1%\n线条小狗气泡 1%\n个性戳戳-接收心心 1%\n表情-扔心心 1%\n表情-接住心心 1%\n表情-挥手 1%\n表情-走了 1%\n线条小狗积分*38 6%\n亲密度道具-线条小狗拍立得*1 6.5%\n随机特效（1天）*1 14%\n线条小狗积分*18 26%\n线条小狗积分*8 37.5%</color>": {
+  "en": "<color=#98cbff>I. Time:</color>\n<color=#FFFFFF>1. Prayer period: 2026-09-30 00:00:00 - 2026-10-26 23:59:59.\n2. Redemption period: 2026-09-30 00:00:00 - 2026-10-29 23:59:59.\nNote: After the Prayer period ends on October 26, Line Puppy Prayer Coins can no longer be used, so please use them in time. After October 26 only the Exchange Shop remains; players holding Line Puppy Points should redeem them in time. When the redemption period ends, the event items (Line Puppy Prayer Coins, Line Puppy Points) will be cleared.</color>\n\n<color=#98cbff>II. Prayer Rules:</color>\n<color=#FFFFFF>1. On the event screen, spend 60 Coupons to buy 6 Love Delivery 1-Day Trial Cards and receive 6 [Line Puppy Prayer Coins] as a bonus. Each Prayer costs 6 Line Puppy Prayer Coins. Each player is limited to 1000 Prayers during the event.\n2. Prayer perks:\n(1) Perk 1: On first entering the prize pool you receive Line Puppy Prayer Coin x5, so your first draw costs only 10 Coupons;\n(2) Perk 2: Every 10 Prayers, claim Line Puppy Points and an Emote Reward Selectable Gift (first 6 times only)\n3. Exchange Points can be used to redeem specific rewards in the Exchange Shop; see the Exchange Shop for details.\n4. Duplicates: drawing a Sky Screen, Nameplate, Effect, Emote or other non-repeatable item you already own automatically converts it into a set number of Line Puppy Points, as follows:\nLine Puppy Sky Screen: 150; Line Puppy Nameplate: 98; Line Puppy Teleport Effect: 45; Line Puppy Avatar Frame: 20; Line Puppy Chat Bubble: 20; Line Puppy Personalized Poke: 20; Emote: 20.\n5. The Line Puppy Sky Screen Prayer pool is open for a limited time, and draw progress does not carry over to other Prayer events.</color>\n\n<color=#98cbff>III. Probability Disclosure:</color>\n<color=#FFFFFF>Sky Screen - Line Puppy's Journey 1%\nLine Puppy Nameplate 1%\nTeleport Effect - Line Puppy, Go! 1%\nLine Puppy Avatar Frame 1%\nLine Puppy Bubble 1%\nPersonalized Poke - Receive Hearts 1%\nEmote - Throw Hearts 1%\nEmote - Catch the Heart 1%\nEmote - Wave 1%\nEmote - I'm Leaving 1%\nLine Puppy Points x38 6%\nIntimacy Item - Line Puppy Instant Photo x1 6.5%\nRandom Effect (1 Day) x1 14%\nLine Puppy Points x18 26%\nLine Puppy Points x8 37.5%</color>",
+  "id": "<color=#98cbff>I. Waktu:</color>\n<color=#FFFFFF>1. Waktu Doa: 30 September 2026 00:00:00 - 26 Oktober 2026 23:59:59.\n2. Waktu Penukaran: 30 September 2026 00:00:00 - 29 Oktober 2026 23:59:59.\nCatatan: Setelah waktu Doa berakhir pada 26 Oktober, Koin Doa Line Puppy tidak bisa digunakan lagi, jadi segera gunakan. Setelah 26 Oktober hanya Exchange Shop yang tersisa; pemain yang memiliki Poin Line Puppy harap segera menukarnya. Setelah waktu penukaran berakhir, item event (Koin Doa Line Puppy, Poin Line Puppy) akan dihapus.</color>\n\n<color=#98cbff>II. Aturan Doa:</color>\n<color=#FFFFFF>1. Di layar event, habiskan 60 Kupon untuk membeli 6 Kartu Uji Coba 1 Hari Love Delivery dan dapatkan bonus 6 [Koin Doa Line Puppy]. Setiap Doa memakai 6 Koin Doa Line Puppy. Setiap pemain dibatasi 1000 Doa selama event.\n2. Bonus Doa:\n(1) Bonus 1: Saat pertama kali masuk prize pool kamu mendapat Koin Doa Line Puppy x5, jadi tarikan pertama hanya 10 Kupon;\n(2) Bonus 2: Setiap 10 Doa, klaim Poin Line Puppy dan Hadiah Emote Pilihan (hanya 6 kali pertama)\n3. Poin penukaran bisa digunakan untuk menukar hadiah tertentu di Exchange Shop; lihat Exchange Shop untuk detailnya.\n4. Duplikat: mendapatkan Sky Screen, Nameplate, Efek, Emote, atau item tidak berulang lain yang sudah kamu miliki akan otomatis diubah menjadi sejumlah Poin Line Puppy, sebagai berikut:\nSky Screen Line Puppy: 150; Nameplate Line Puppy: 98; Efek Teleportasi Line Puppy: 45; Bingkai Avatar Line Puppy: 20; Chat Bubble Line Puppy: 20; Personalized Poke Line Puppy: 20; Emote: 20.\n5. Prize pool Doa Sky Screen Line Puppy dibuka dalam waktu terbatas, dan progres tarikan tidak dibawa ke event Doa lainnya.</color>\n\n<color=#98cbff>III. Pengungkapan Peluang:</color>\n<color=#FFFFFF>Sky Screen - Perjalanan Line Puppy 1%\nNameplate Line Puppy 1%\nEfek Teleportasi - Line Puppy Beraksi 1%\nBingkai Avatar Line Puppy 1%\nBubble Line Puppy 1%\nPersonalized Poke - Terima Hati 1%\nEmote - Lempar Hati 1%\nEmote - Tangkap Hati 1%\nEmote - Lambaian 1%\nEmote - Aku Pergi 1%\nPoin Line Puppy x38 6%\nItem Intimacy - Foto Instan Line Puppy x1 6,5%\nEfek Acak (1 Hari) x1 14%\nPoin Line Puppy x18 26%\nPoin Line Puppy x8 37,5%</color>"
+ },
+ "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、可在搞点摇摇币活动中获取摇摇币。</color>\n<color=#FFFFFF>2、获取足够的摇摇币后可进行摇晃，需要的数量请查看提示。</color>\n<color=#FFFFFF>3、移动端可摇晃3次进行触发，此外点击人物卡以及活动标题均可以触发抽奖。</color>\n<color=#FFFFFF>4、所有奖励仅可获取1次，不要错过啦。</color>\n<color=#FFFFFF>5、还有如果大家喜欢这种风格，请给我们夺得过全国小学生绘画大赛金奖的美术同学点赞~我们下次可以再“抽象”一些。</color>": {
+  "en": "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Earn Shake Coins in the \"Get Shake Coins\" Event.</color>\n<color=#FFFFFF>2. Once you have enough Shake Coins, you can shake. Check the hints for the required amount.</color>\n<color=#FFFFFF>3. On mobile, shake 3 times to Trigger. You can also tap the character card or the Event title to trigger a draw.</color>\n<color=#FFFFFF>4. All rewards can only be obtained once. Don't miss out!</color>\n<color=#FFFFFF>5. Also, if you like this style, please give a like to our art team, who won the National Elementary School Painting Competition Gold Medal~ We can make it even more \"abstract\" next time.</color>",
+  "id": "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Dapatkan Shake Coin di Event \"Get Shake Coins\".</color>\n<color=#FFFFFF>2. Setelah Shake Coin-mu cukup, kamu bisa mengguncang. Lihat petunjuk untuk jumlah yang dibutuhkan.</color>\n<color=#FFFFFF>3. Di mobile, guncang 3 kali untuk Memicu. Kamu juga bisa mengetuk kartu karakter atau judul Event untuk memicu draw.</color>\n<color=#FFFFFF>4. Semua hadiah hanya bisa didapat sekali. Jangan sampai ketinggalan!</color>\n<color=#FFFFFF>5. Oh ya, kalau kamu suka gaya ini, kasih like untuk tim art kami yang memenangkan Medali Emas Lomba Melukis SD Nasional~ Lain kali kami bisa membuatnya lebih \"abstrak\" lagi.</color>"
+ },
+ "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成抉择之弈对局任务即可领取钻石奖励。</color>": {
+  "en": "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete Choice Chess match missions to claim Diamond rewards.</color>",
+  "id": "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi pertandingan Choice Chess untuk klaim hadiah Diamond.</color>"
+ },
+ "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、本活动为王者段位冲分送钻石活动，达到指定王者段位分数即可获得钻石奖励。</color>\n<color=#FFFFFF>2、活动时间：2026 年 9 月 30 日 — 2026 年 12 月 09 日。</color>\n<color=#FFFFFF>3、活动期间，王者段位分数达到对应档位，即可领取对应钻石奖励：王者 1000 分奖励 1000 钻石、王者 2000 分奖励 2000 钻石、王者 3000 分奖励 3000 钻石。</color>\n<color=#FFFFFF>4、每个档位奖励仅限领取 1 次，不可重复领取；例如通过王中王系统多次达成该分数档位，也不能重复领取对应奖励。</color>": {
+  "en": "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. This is a King Rank climbing event: reach the set King Rank scores to earn Diamond rewards.</color>\n<color=#FFFFFF>2. Event period: September 30, 2026 - December 09, 2026.</color>\n<color=#FFFFFF>3. During the event, when your King Rank score reaches a tier, claim that tier's Diamond reward: King 1000 points rewards 1000 Diamonds, King 2000 points rewards 2000 Diamonds, King 3000 points rewards 3000 Diamonds.</color>\n<color=#FFFFFF>4. Each tier's reward can be claimed only once; for example, reaching the same score tier several times through the King of Kings System does not let you claim its reward again.</color>",
+  "id": "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Event ini adalah event naik Rank King: capai skor Rank King tertentu untuk mendapat hadiah Diamond.</color>\n<color=#FFFFFF>2. Periode event: 30 September 2026 - 09 Desember 2026.</color>\n<color=#FFFFFF>3. Selama event, saat skor Rank King-mu mencapai suatu tingkat, klaim hadiah Diamond tingkat tersebut: King 1000 poin mendapat 1000 Diamond, King 2000 poin mendapat 2000 Diamond, King 3000 poin mendapat 3000 Diamond.</color>\n<color=#FFFFFF>4. Hadiah setiap tingkat hanya bisa diklaim 1 kali; misalnya, mencapai tingkat skor yang sama berkali-kali lewat Sistem King of Kings tidak membuatmu bisa mengklaim hadiahnya lagi.</color>"
+ },
+ "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、活动期间完成任务可领取对应奖励。</color>\n<color=#FFFFFF>2、每日任务将于每天0点刷新。</color>\n<color=#98cbff>二、对局翻牌结算加成</color>\n<color=#FFFFFF>活动期间内，每日参与万象大赛，前3次结算翻牌产出钻石翻倍。</color>": {
+  "en": "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete missions during the event to claim the matching rewards.</color>\n<color=#FFFFFF>2. Daily missions refresh at 00:00 every day.</color>\n<color=#98cbff>II. Match Card Flip Bonus</color>\n<color=#FFFFFF>During the event, Diamonds from your first 3 result Card Flips in the ACE Tournament each day are doubled.</color>",
+  "id": "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi selama event untuk klaim hadiah yang sesuai.</color>\n<color=#FFFFFF>2. Misi harian di-refresh pukul 00:00 setiap hari.</color>\n<color=#98cbff>II. Bonus Balik Kartu Pertandingan</color>\n<color=#FFFFFF>Selama event, Diamond dari 3 Balik Kartu hasil pertandingan pertama di ACE Tournament setiap hari jadi ganda.</color>"
+ },
+ "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、累计登录即可领取100钻石抵扣券。</color>\n<color=#FFFFFF>2、钻石抵扣券可前往每日王牌对决中使用。</color>": {
+  "en": "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Log in cumulatively to claim 100 Diamond Discount Coupons.</color>\n<color=#FFFFFF>2. Diamond Discount Coupons can be used in the daily Ace Duel.</color>",
+  "id": "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Login kumulatif untuk klaim 100 Diamond Discount Coupon.</color>\n<color=#FFFFFF>2. Diamond Discount Coupon bisa digunakan di Ace Duel harian.</color>"
+ },
+ "<color=#98cbff>一、生涯系统说明</color>\n\n1、生涯系统承载了您的各项游戏数据，可在主页面进行查看：游玩时长、对局总场次、获得点赞次数、王者印记拥有数量、本赛季棋手数据、成就数据以及最高段位王中王子账号的对局数据等内容。": {
+  "en": "<color=#98cbff>I. Career System Overview</color>\n\n1. The Career System records your various game data, viewable on the main page: playtime, total matches played, Likes received, Mark of Kings owned, this season's Chessplayer data, Achievement data, and match data of your highest-ranked King of Kings sub-account.",
+  "id": "<color=#98cbff>I. Ikhtisar Career System</color>\n\n1. Career System mencatat berbagai data game-mu, yang bisa dilihat di halaman utama: waktu bermain, total pertandingan, Like yang diterima, jumlah Mark of Kings, data Chessplayer season ini, data Achievement, dan data pertandingan sub-akun King of Kings dengan Rank tertinggi."
+ },
+ "<color=#98cbff>二、打赏奖励</color>\n<color=#FFFFFF>1、赛事回馈礼包的每周获取数量存在上限。达到上限后，本周内的后续打赏不再累计。每周一0:00该上限重置。\n2、赛事回馈礼包奖励内容及概率：34.04% 概率获得补签卡、42.55% 概率获得炫彩棒棒糖、6.81% 概率获得小动物捏捏、3.83% 概率获得高级点心礼盒、6.38% 概率获得任务加速券、6.38% 概率获得随机特效（有效期1天）。</color>": {
+  "en": "<color=#98cbff>II. Tipping Rewards</color>\n<color=#FFFFFF>1. There is a weekly limit on Event Rewards Gift Packs. After reaching it, further tips this week no longer accumulate. The limit resets every Monday at 0:00.\n2. Event Rewards Gift Pack contents and probabilities: 34.04% Check-In Makeup Card, 42.55% Colorful Lollipop, 6.81% Animal Squeeze, 3.83% Advanced Snack Box, 6.38% Mission Speed-Up Voucher, 6.38% Random Effect (valid for 1 day).</color>",
+  "id": "<color=#98cbff>II. Hadiah Tip</color>\n<color=#FFFFFF>1. Ada batas mingguan untuk Gift Pack Hadiah Event. Setelah mencapainya, tip selanjutnya minggu ini tidak akan terakumulasi lagi. Batas ini di-reset setiap Senin pukul 0:00.\n2. Isi dan peluang Gift Pack Hadiah Event: 34,04% Kartu Susulan Check-In, 42,55% Colorful Lollipop, 6,81% Animal Squeeze, 3,83% Advanced Snack Box, 6,38% Mission Speed-Up Voucher, 6,38% Efek Acak (berlaku 1 hari).</color>"
+ },
+ "<color=#98cbff>基础规则</color>\n1、好感度一共有六个等级，提升好感度等级可获得各种奖励。注意：限时体验棋手可以获得好感度，但无法领取好感度奖励。永久体验和已拥有棋手可领奖。\n2、使用棋手进行万象大赛排位赛可获得好感度，段位越高，比赛名次越高，获得的好感度越多。另外，完成与棋手的私聊互动，也可以获得好感度。": {
+  "en": "<color=#98cbff>Basic Rules</color>\n1. Favorability has six levels in total; raising your Favorability level earns various rewards. Note: limited-time trial Chessplayers can gain Favorability but cannot claim Favorability rewards. Permanent trial and owned Chessplayers can claim rewards.\n2. Using a Chessplayer in ACE Tournament ranked matches earns Favorability; the higher your Rank and placement, the more Favorability you gain. Completing private chat interactions with a Chessplayer also earns Favorability.",
+  "id": "<color=#98cbff>Aturan Dasar</color>\n1. Favorability memiliki total enam level; menaikkan level Favorability memberi berbagai hadiah. Catatan: Chessplayer uji coba waktu terbatas bisa mendapat Favorability tetapi tidak bisa klaim hadiah Favorability. Chessplayer uji coba permanen dan yang sudah dimiliki bisa klaim hadiah.\n2. Menggunakan Chessplayer di pertandingan ranked ACE Tournament memberi Favorability; makin tinggi Rank dan peringkatmu, makin banyak Favorability yang didapat. Menyelesaikan interaksi chat pribadi dengan Chessplayer juga memberi Favorability."
+ },
+ "<color=#98cbff>基础规则</color>\n1、好感度一共有六个等级，提升好感度等级可获得各种奖励。注意：限时体验棋手可以获得好感度，但无法领取好感度奖励。永久体验和已拥有棋手可领奖。\n2、使用棋手进行万象大赛排位赛可获得好感度，段位越高，比赛名次越高，获得的好感度越多。另外，完成与棋手的私聊互动，也可以获得好感度。\n3、好感度提升之后，会解锁棋手的各种事件。每个事件都有特定的达成条件，完成后，可以解锁棋手相关资料。": {
+  "en": "<color=#98cbff>Basic Rules</color>\n1. Favorability has six levels in total; raising your Favorability level earns various rewards. Note: limited-time trial Chessplayers can gain Favorability but cannot claim Favorability rewards. Permanent trial and owned Chessplayers can claim rewards.\n2. Using a Chessplayer in ACE Tournament ranked matches earns Favorability; the higher your Rank and placement, the more Favorability you gain. Completing private chat interactions with a Chessplayer also earns Favorability.\n3. Raising Favorability unlocks various Chessplayer events. Each event has specific completion conditions; once completed, it unlocks related Chessplayer information.",
+  "id": "<color=#98cbff>Aturan Dasar</color>\n1. Favorability memiliki total enam level; menaikkan level Favorability memberi berbagai hadiah. Catatan: Chessplayer uji coba waktu terbatas bisa mendapat Favorability tetapi tidak bisa klaim hadiah Favorability. Chessplayer uji coba permanen dan yang sudah dimiliki bisa klaim hadiah.\n2. Menggunakan Chessplayer di pertandingan ranked ACE Tournament memberi Favorability; makin tinggi Rank dan peringkatmu, makin banyak Favorability yang didapat. Menyelesaikan interaksi chat pribadi dengan Chessplayer juga memberi Favorability.\n3. Menaikkan Favorability membuka berbagai event Chessplayer. Setiap event memiliki syarat penyelesaian tertentu; setelah selesai, informasi terkait Chessplayer akan terbuka."
+ },
+ "<color=#98cbff>奖励领取规则：</color>\n1、每赢得一场当前模式下的对局，即可领取一份奖励。\n2、奖励领取次数上限每周增加3次，赛季切换后将重置此上限。": {
+  "en": "<color=#98cbff>Reward Claiming Rules:</color>\n1. For every match won in the current mode, you can claim one reward.\n2. The reward claim limit increases by 3 every week and resets when the Season changes.",
+  "id": "<color=#98cbff>Aturan Klaim Hadiah:</color>\n1. Setiap menang satu pertandingan di mode saat ini, kamu bisa klaim satu hadiah.\n2. Batas klaim hadiah bertambah 3 setiap minggu dan di-reset saat Season berganti."
+ },
+ "<color=#ffffff><b>唯一</b></color>。每2秒对周围1格敌人造成<color=#ffffff>20（+5%穿戴者最大生命值）点法术伤害</color>，并降低目标50%生命恢复和护盾效果，持续3秒。": {
+  "en": "<color=#ffffff><b>Unique</b></color>. Every 2 seconds, deal <color=#ffffff>20 (+5% of wearer's Max HP) Magic Damage</color> to enemies within 1 grid, and reduce the target's Health Recovery and Shield effects by 50% for 3 seconds.",
+  "id": "<color=#ffffff><b>Unique</b></color>. Setiap 2 detik, berikan <color=#ffffff>20 (+5% Max HP pemakai) Magic Damage</color> ke musuh dalam radius 1 petak, dan kurangi Health Recovery serta efek Shield target sebesar 50% selama 3 detik."
+ },
+ "<color=#ffffffbf>被动：</color>海月的生命恢复效果大幅降低，但获得护盾时会转化25%护盾值为最大生命值。\n<color=#ffffffbf>主动：</color>海月发出3枚琉璃法球，第1枚对目标敌人造成<color=#d487e4>100+150%法术攻击力的法术伤害</color>。随后2枚对附近敌人造成的伤害减半。": {
+  "en": "<color=#ffffffbf>Passive: </color>Haya's Health Recovery is significantly reduced, but when she gains a Shield, 25% of the Shield value is converted into Max HP.\n<color=#ffffffbf>Active: </color>Haya fires 3 glass orbs. The first deals <color=#d487e4>100+150% Magic Attack as Magic Damage</color> to the target enemy. The subsequent 2 orbs deal half Damage to nearby enemies.",
+  "id": "<color=#ffffffbf>Pasif: </color>Health Recovery Haya berkurang drastis, tetapi saat ia mendapatkan Shield, 25% nilai Shield dikonversi menjadi Max HP.\n<color=#ffffffbf>Aktif: </color>Haya menembakkan 3 orb kaca. Orb pertama memberikan <color=#d487e4>100+150% Magic Attack sebagai Magic Damage</color> ke musuh target. 2 orb berikutnya memberikan setengah damage ke musuh di sekitarnya."
+ },
+ "E人聚集(一)": {
+  "en": "Extroverts Assemble I",
+  "id": "Para Ekstrovert Berkumpul I"
+ },
+ "E人聚集(三)": {
+  "en": "Extroverts Assemble III",
+  "id": "Para Ekstrovert Berkumpul III"
+ },
+ "E人聚集(二)": {
+  "en": "Extroverts Assemble II",
+  "id": "Para Ekstrovert Berkumpul II"
+ },
+ "UI界面异常，请退回大厅重新进入祈愿界面": {
+  "en": "UI error. Please return to the lobby and reopen the Prayer screen",
+  "id": "Error UI. Kembali ke lobi lalu buka lagi layar Doa"
+ },
+ "{0}·{1}预览": {
+  "en": "{0}·{1} Preview",
+  "id": "Pratinjau {0}·{1}"
+ },
+ "{0}不足（": {
+  "en": "Not enough {0} (",
+  "id": "{0} tidak cukup ("
+ },
+ "{0}分{1}秒后本期竞猜截止": {
+  "en": "Predictions close in {0}m {1}s",
+  "id": "Prediksi ditutup dalam {0}m {1}d"
+ },
+ "{0}天后本期竞猜截止": {
+  "en": "Predictions close in {0} days",
+  "id": "Prediksi ditutup dalam {0} hari"
+ },
+ "{0}小时{1}分后本期竞猜截止": {
+  "en": "Predictions close in {0}h {1}m",
+  "id": "Prediksi ditutup dalam {0}j {1}m"
+ },
+ "{0}月{1}日{2}点 上架": {
+  "en": "Available on {0}/{1} at {2}:00",
+  "id": "Tersedia {1}/{0} pukul {2}:00"
+ },
+ "{0}，可以兑线条小狗天幕啦~": {
+  "en": "{0}, you can redeem the Line Puppy Sky Screen now~",
+  "id": "{0}, kamu sudah bisa menukar Sky Screen Line Puppy~"
+ },
+ "{0}，差{1}兑线条小狗天幕": {
+  "en": "{0}, {1} more to redeem the Line Puppy Sky Screen",
+  "id": "{0}, kurang {1} untuk menukar Sky Screen Line Puppy"
+ },
+ "{0}，来兑换商店看看~": {
+  "en": "{0}, come check out the Exchange Shop~",
+  "id": "{0}, ayo lihat Exchange Shop~"
+ },
+ "一共有{0}名棋友选择支持您，并用<quad path=ArtHub/Icon/Item/ZiChan/icon_huobi_zuanshi size=48>{1}坚定地为您加油！": {
+  "en": "{0} players supported you with <quad path=ArtHub/Icon/Item/ZiChan/icon_huobi_zuanshi size=48>{1}!",
+  "id": "{0} pemain mendukungmu dengan <quad path=ArtHub/Icon/Item/ZiChan/icon_huobi_zuanshi size=48>{1}!"
+ },
+ "一刹光辉(一)": {
+  "en": "A moment of brilliance I",
+  "id": "Momen kecemerlangan I"
+ },
+ "一刹光辉(三)": {
+  "en": "A moment of brilliance III",
+  "id": "Momen kecemerlangan III"
+ },
+ "一刹光辉(二)": {
+  "en": "A moment of brilliance II",
+  "id": "Momen kecemerlangan II"
+ },
+ "一直合成一直爽(一)": {
+  "en": "Combine Never Stops I",
+  "id": "Combine Never Stops I"
+ },
+ "一直合成一直爽(三)": {
+  "en": "Combine Never Stops III",
+  "id": "Combine Never Stops III"
+ },
+ "一直合成一直爽(二)": {
+  "en": "Combine Never Stops II",
+  "id": "Combine Never Stops II"
+ },
+ "万众瞩目(一)": {
+  "en": "The Center of Attention I",
+  "id": "The Center of Attention I"
+ },
+ "万众瞩目(三)": {
+  "en": "The Center of Attention III",
+  "id": "The Center of Attention III"
+ },
+ "万众瞩目(二)": {
+  "en": "The Center of Attention II",
+  "id": "The Center of Attention II"
+ },
+ "万象启幕(一)": {
+  "en": "The Vientiane Curtain Rises I",
+  "id": "The Vientiane Curtain Rises I"
+ },
+ "万象启幕(三)": {
+  "en": "The Vientiane Curtain Rises III",
+  "id": "The Vientiane Curtain Rises III"
+ },
+ "万象启幕(二)": {
+  "en": "The Vientiane Curtain Rises II",
+  "id": "The Vientiane Curtain Rises II"
+ },
+ "万象棋天天见(一)": {
+  "en": "Vientiane Chess Every Day I",
+  "id": "Vientiane Chess Every Day I"
+ },
+ "万象棋天天见(三)": {
+  "en": "Vientiane Chess Every Day III",
+  "id": "Vientiane Chess Every Day III"
+ },
+ "万象棋天天见(二)": {
+  "en": "Vientiane Chess Every Day II",
+  "id": "Vientiane Chess Every Day II"
+ },
+ "万象答王(一)": {
+  "en": "Vientiane Quiz King I",
+  "id": "Vientiane Quiz King I"
+ },
+ "万象答王(三)": {
+  "en": "Vientiane Quiz King III",
+  "id": "Vientiane Quiz King III"
+ },
+ "万象答王(二)": {
+  "en": "Vientiane Quiz King II",
+  "id": "Vientiane Quiz King II"
+ },
+ "三分钟训练即可领取闹闹": {
+  "en": "Train for just three minutes to claim Naonao",
+  "id": "Latihan tiga menit saja untuk klaim Naonao"
+ },
+ "上周成就大师排行榜排名第一": {
+  "en": "Ranked No. 1 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 1 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第一百": {
+  "en": "Ranked No. 100 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 100 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七": {
+  "en": "Ranked No. 7 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 7 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十": {
+  "en": "Ranked No. 70 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 70 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十一": {
+  "en": "Ranked No. 71 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 71 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十七": {
+  "en": "Ranked No. 77 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 77 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十三": {
+  "en": "Ranked No. 73 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 73 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十九": {
+  "en": "Ranked No. 79 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 79 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十二": {
+  "en": "Ranked No. 72 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 72 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十五": {
+  "en": "Ranked No. 75 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 75 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十八": {
+  "en": "Ranked No. 78 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 78 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十六": {
+  "en": "Ranked No. 76 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 76 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第七十四": {
+  "en": "Ranked No. 74 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 74 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三": {
+  "en": "Ranked No. 3 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 3 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十": {
+  "en": "Ranked No. 30 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 30 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十一": {
+  "en": "Ranked No. 31 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 31 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十七": {
+  "en": "Ranked No. 37 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 37 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十三": {
+  "en": "Ranked No. 33 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 33 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十九": {
+  "en": "Ranked No. 39 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 39 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十二": {
+  "en": "Ranked No. 32 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 32 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十五": {
+  "en": "Ranked No. 35 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 35 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十八": {
+  "en": "Ranked No. 38 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 38 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十六": {
+  "en": "Ranked No. 36 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 36 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第三十四": {
+  "en": "Ranked No. 34 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 34 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九": {
+  "en": "Ranked No. 9 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 9 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十": {
+  "en": "Ranked No. 90 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 90 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十一": {
+  "en": "Ranked No. 91 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 91 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十七": {
+  "en": "Ranked No. 97 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 97 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十三": {
+  "en": "Ranked No. 93 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 93 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十九": {
+  "en": "Ranked No. 99 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 99 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十二": {
+  "en": "Ranked No. 92 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 92 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十五": {
+  "en": "Ranked No. 95 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 95 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十八": {
+  "en": "Ranked No. 98 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 98 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十六": {
+  "en": "Ranked No. 96 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 96 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第九十四": {
+  "en": "Ranked No. 94 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 94 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二": {
+  "en": "Ranked No. 2 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 2 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十": {
+  "en": "Ranked No. 20 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 20 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十一": {
+  "en": "Ranked No. 21 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 21 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十七": {
+  "en": "Ranked No. 27 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 27 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十三": {
+  "en": "Ranked No. 23 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 23 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十九": {
+  "en": "Ranked No. 29 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 29 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十二": {
+  "en": "Ranked No. 22 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 22 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十五": {
+  "en": "Ranked No. 25 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 25 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十八": {
+  "en": "Ranked No. 28 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 28 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十六": {
+  "en": "Ranked No. 26 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 26 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第二十四": {
+  "en": "Ranked No. 24 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 24 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五": {
+  "en": "Ranked No. 5 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 5 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十": {
+  "en": "Ranked No. 50 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 50 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十一": {
+  "en": "Ranked No. 51 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 51 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十七": {
+  "en": "Ranked No. 57 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 57 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十三": {
+  "en": "Ranked No. 53 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 53 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十九": {
+  "en": "Ranked No. 59 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 59 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十二": {
+  "en": "Ranked No. 52 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 52 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十五": {
+  "en": "Ranked No. 55 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 55 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十八": {
+  "en": "Ranked No. 58 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 58 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十六": {
+  "en": "Ranked No. 56 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 56 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第五十四": {
+  "en": "Ranked No. 54 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 54 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八": {
+  "en": "Ranked No. 8 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 8 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十": {
+  "en": "Ranked No. 80 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 80 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十一": {
+  "en": "Ranked No. 81 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 81 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十七": {
+  "en": "Ranked No. 87 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 87 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十三": {
+  "en": "Ranked No. 83 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 83 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十九": {
+  "en": "Ranked No. 89 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 89 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十二": {
+  "en": "Ranked No. 82 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 82 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十五": {
+  "en": "Ranked No. 85 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 85 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十八": {
+  "en": "Ranked No. 88 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 88 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十六": {
+  "en": "Ranked No. 86 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 86 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第八十四": {
+  "en": "Ranked No. 84 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 84 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六": {
+  "en": "Ranked No. 6 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 6 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十": {
+  "en": "Ranked No. 60 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 60 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十一": {
+  "en": "Ranked No. 61 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 61 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十七": {
+  "en": "Ranked No. 67 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 67 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十三": {
+  "en": "Ranked No. 63 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 63 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十九": {
+  "en": "Ranked No. 69 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 69 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十二": {
+  "en": "Ranked No. 62 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 62 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十五": {
+  "en": "Ranked No. 65 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 65 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十八": {
+  "en": "Ranked No. 68 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 68 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十六": {
+  "en": "Ranked No. 66 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 66 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第六十四": {
+  "en": "Ranked No. 64 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 64 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十": {
+  "en": "Ranked No. 10 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 10 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十一": {
+  "en": "Ranked No. 11 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 11 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十七": {
+  "en": "Ranked No. 17 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 17 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十三": {
+  "en": "Ranked No. 13 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 13 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十九": {
+  "en": "Ranked No. 19 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 19 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十二": {
+  "en": "Ranked No. 12 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 12 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十五": {
+  "en": "Ranked No. 15 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 15 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十八": {
+  "en": "Ranked No. 18 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 18 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十六": {
+  "en": "Ranked No. 16 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 16 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第十四": {
+  "en": "Ranked No. 14 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 14 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四": {
+  "en": "Ranked No. 4 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 4 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十": {
+  "en": "Ranked No. 40 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 40 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十一": {
+  "en": "Ranked No. 41 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 41 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十七": {
+  "en": "Ranked No. 47 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 47 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十三": {
+  "en": "Ranked No. 43 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 43 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十九": {
+  "en": "Ranked No. 49 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 49 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十二": {
+  "en": "Ranked No. 42 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 42 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十五": {
+  "en": "Ranked No. 45 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 45 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十八": {
+  "en": "Ranked No. 48 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 48 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十六": {
+  "en": "Ranked No. 46 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 46 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周成就大师排行榜排名第四十四": {
+  "en": "Ranked No. 44 on last week's Achievement Master Leaderboard",
+  "id": "Peringkat 44 di Leaderboard Achievement Master minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第一": {
+  "en": "Ranked No. 1 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 1 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第一百": {
+  "en": "Ranked No. 100 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 100 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七": {
+  "en": "Ranked No. 7 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 7 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十": {
+  "en": "Ranked No. 70 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 70 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十一": {
+  "en": "Ranked No. 71 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 71 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十七": {
+  "en": "Ranked No. 77 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 77 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十三": {
+  "en": "Ranked No. 73 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 73 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十九": {
+  "en": "Ranked No. 79 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 79 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十二": {
+  "en": "Ranked No. 72 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 72 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十五": {
+  "en": "Ranked No. 75 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 75 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十八": {
+  "en": "Ranked No. 78 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 78 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十六": {
+  "en": "Ranked No. 76 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 76 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第七十四": {
+  "en": "Ranked No. 74 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 74 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三": {
+  "en": "Ranked No. 3 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 3 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十": {
+  "en": "Ranked No. 30 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 30 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十一": {
+  "en": "Ranked No. 31 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 31 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十七": {
+  "en": "Ranked No. 37 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 37 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十三": {
+  "en": "Ranked No. 33 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 33 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十九": {
+  "en": "Ranked No. 39 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 39 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十二": {
+  "en": "Ranked No. 32 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 32 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十五": {
+  "en": "Ranked No. 35 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 35 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十八": {
+  "en": "Ranked No. 38 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 38 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十六": {
+  "en": "Ranked No. 36 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 36 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第三十四": {
+  "en": "Ranked No. 34 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 34 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九": {
+  "en": "Ranked No. 9 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 9 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十": {
+  "en": "Ranked No. 90 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 90 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十一": {
+  "en": "Ranked No. 91 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 91 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十七": {
+  "en": "Ranked No. 97 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 97 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十三": {
+  "en": "Ranked No. 93 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 93 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十九": {
+  "en": "Ranked No. 99 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 99 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十二": {
+  "en": "Ranked No. 92 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 92 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十五": {
+  "en": "Ranked No. 95 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 95 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十八": {
+  "en": "Ranked No. 98 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 98 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十六": {
+  "en": "Ranked No. 96 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 96 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第九十四": {
+  "en": "Ranked No. 94 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 94 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二": {
+  "en": "Ranked No. 2 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 2 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十": {
+  "en": "Ranked No. 20 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 20 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十一": {
+  "en": "Ranked No. 21 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 21 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十七": {
+  "en": "Ranked No. 27 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 27 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十三": {
+  "en": "Ranked No. 23 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 23 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十九": {
+  "en": "Ranked No. 29 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 29 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十二": {
+  "en": "Ranked No. 22 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 22 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十五": {
+  "en": "Ranked No. 25 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 25 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十八": {
+  "en": "Ranked No. 28 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 28 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十六": {
+  "en": "Ranked No. 26 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 26 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第二十四": {
+  "en": "Ranked No. 24 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 24 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五": {
+  "en": "Ranked No. 5 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 5 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十": {
+  "en": "Ranked No. 50 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 50 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十一": {
+  "en": "Ranked No. 51 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 51 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十七": {
+  "en": "Ranked No. 57 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 57 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十三": {
+  "en": "Ranked No. 53 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 53 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十九": {
+  "en": "Ranked No. 59 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 59 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十二": {
+  "en": "Ranked No. 52 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 52 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十五": {
+  "en": "Ranked No. 55 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 55 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十八": {
+  "en": "Ranked No. 58 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 58 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十六": {
+  "en": "Ranked No. 56 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 56 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第五十四": {
+  "en": "Ranked No. 54 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 54 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八": {
+  "en": "Ranked No. 8 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 8 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十": {
+  "en": "Ranked No. 80 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 80 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十一": {
+  "en": "Ranked No. 81 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 81 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十七": {
+  "en": "Ranked No. 87 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 87 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十三": {
+  "en": "Ranked No. 83 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 83 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十九": {
+  "en": "Ranked No. 89 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 89 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十二": {
+  "en": "Ranked No. 82 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 82 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十五": {
+  "en": "Ranked No. 85 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 85 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十八": {
+  "en": "Ranked No. 88 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 88 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十六": {
+  "en": "Ranked No. 86 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 86 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第八十四": {
+  "en": "Ranked No. 84 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 84 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六": {
+  "en": "Ranked No. 6 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 6 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十": {
+  "en": "Ranked No. 60 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 60 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十一": {
+  "en": "Ranked No. 61 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 61 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十七": {
+  "en": "Ranked No. 67 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 67 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十三": {
+  "en": "Ranked No. 63 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 63 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十九": {
+  "en": "Ranked No. 69 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 69 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十二": {
+  "en": "Ranked No. 62 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 62 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十五": {
+  "en": "Ranked No. 65 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 65 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十八": {
+  "en": "Ranked No. 68 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 68 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十六": {
+  "en": "Ranked No. 66 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 66 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第六十四": {
+  "en": "Ranked No. 64 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 64 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十": {
+  "en": "Ranked No. 10 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 10 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十一": {
+  "en": "Ranked No. 11 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 11 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十七": {
+  "en": "Ranked No. 17 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 17 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十三": {
+  "en": "Ranked No. 13 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 13 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十九": {
+  "en": "Ranked No. 19 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 19 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十二": {
+  "en": "Ranked No. 12 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 12 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十五": {
+  "en": "Ranked No. 15 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 15 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十八": {
+  "en": "Ranked No. 18 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 18 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十六": {
+  "en": "Ranked No. 16 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 16 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第十四": {
+  "en": "Ranked No. 14 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 14 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四": {
+  "en": "Ranked No. 4 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 4 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十": {
+  "en": "Ranked No. 40 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 40 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十一": {
+  "en": "Ranked No. 41 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 41 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十七": {
+  "en": "Ranked No. 47 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 47 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十三": {
+  "en": "Ranked No. 43 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 43 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十九": {
+  "en": "Ranked No. 49 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 49 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十二": {
+  "en": "Ranked No. 42 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 42 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十五": {
+  "en": "Ranked No. 45 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 45 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十八": {
+  "en": "Ranked No. 48 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 48 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十六": {
+  "en": "Ranked No. 46 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 46 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周战力巅峰排行榜排名第四十四": {
+  "en": "Ranked No. 44 on last week's Power Peak Leaderboard",
+  "id": "Peringkat 44 di Leaderboard Power Peak minggu lalu"
+ },
+ "上周钻石狂潮大赢区排名前五十": {
+  "en": "Ranked in the top 50 of Diamond Frenzy's Big Win Zone last week",
+  "id": "Masuk top 50 Big Win Zone Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮小赢区排名前五十": {
+  "en": "Ranked in the top 50 of Diamond Frenzy's Small Win Zone last week",
+  "id": "Masuk top 50 Small Win Zone Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第一": {
+  "en": "Ranked No. 1 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 1 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第一百": {
+  "en": "Ranked No. 100 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 100 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七": {
+  "en": "Ranked No. 7 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 7 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十": {
+  "en": "Ranked No. 70 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 70 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十一": {
+  "en": "Ranked No. 71 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 71 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十七": {
+  "en": "Ranked No. 77 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 77 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十三": {
+  "en": "Ranked No. 73 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 73 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十九": {
+  "en": "Ranked No. 79 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 79 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十二": {
+  "en": "Ranked No. 72 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 72 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十五": {
+  "en": "Ranked No. 75 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 75 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十八": {
+  "en": "Ranked No. 78 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 78 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十六": {
+  "en": "Ranked No. 76 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 76 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第七十四": {
+  "en": "Ranked No. 74 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 74 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三": {
+  "en": "Ranked No. 3 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 3 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十": {
+  "en": "Ranked No. 30 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 30 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十一": {
+  "en": "Ranked No. 31 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 31 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十七": {
+  "en": "Ranked No. 37 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 37 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十三": {
+  "en": "Ranked No. 33 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 33 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十九": {
+  "en": "Ranked No. 39 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 39 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十二": {
+  "en": "Ranked No. 32 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 32 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十五": {
+  "en": "Ranked No. 35 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 35 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十八": {
+  "en": "Ranked No. 38 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 38 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十六": {
+  "en": "Ranked No. 36 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 36 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第三十四": {
+  "en": "Ranked No. 34 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 34 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九": {
+  "en": "Ranked No. 9 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 9 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十": {
+  "en": "Ranked No. 90 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 90 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十一": {
+  "en": "Ranked No. 91 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 91 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十七": {
+  "en": "Ranked No. 97 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 97 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十三": {
+  "en": "Ranked No. 93 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 93 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十九": {
+  "en": "Ranked No. 99 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 99 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十二": {
+  "en": "Ranked No. 92 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 92 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十五": {
+  "en": "Ranked No. 95 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 95 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十八": {
+  "en": "Ranked No. 98 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 98 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十六": {
+  "en": "Ranked No. 96 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 96 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第九十四": {
+  "en": "Ranked No. 94 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 94 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二": {
+  "en": "Ranked No. 2 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 2 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十": {
+  "en": "Ranked No. 20 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 20 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十一": {
+  "en": "Ranked No. 21 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 21 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十七": {
+  "en": "Ranked No. 27 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 27 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十三": {
+  "en": "Ranked No. 23 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 23 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十九": {
+  "en": "Ranked No. 29 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 29 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十二": {
+  "en": "Ranked No. 22 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 22 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十五": {
+  "en": "Ranked No. 25 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 25 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十八": {
+  "en": "Ranked No. 28 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 28 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十六": {
+  "en": "Ranked No. 26 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 26 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第二十四": {
+  "en": "Ranked No. 24 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 24 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五": {
+  "en": "Ranked No. 5 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 5 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十": {
+  "en": "Ranked No. 50 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 50 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十一": {
+  "en": "Ranked No. 51 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 51 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十七": {
+  "en": "Ranked No. 57 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 57 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十三": {
+  "en": "Ranked No. 53 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 53 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十九": {
+  "en": "Ranked No. 59 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 59 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十二": {
+  "en": "Ranked No. 52 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 52 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十五": {
+  "en": "Ranked No. 55 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 55 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十八": {
+  "en": "Ranked No. 58 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 58 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十六": {
+  "en": "Ranked No. 56 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 56 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第五十四": {
+  "en": "Ranked No. 54 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 54 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八": {
+  "en": "Ranked No. 8 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 8 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十": {
+  "en": "Ranked No. 80 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 80 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十一": {
+  "en": "Ranked No. 81 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 81 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十七": {
+  "en": "Ranked No. 87 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 87 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十三": {
+  "en": "Ranked No. 83 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 83 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十九": {
+  "en": "Ranked No. 89 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 89 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十二": {
+  "en": "Ranked No. 82 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 82 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十五": {
+  "en": "Ranked No. 85 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 85 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十八": {
+  "en": "Ranked No. 88 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 88 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十六": {
+  "en": "Ranked No. 86 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 86 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第八十四": {
+  "en": "Ranked No. 84 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 84 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六": {
+  "en": "Ranked No. 6 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 6 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十": {
+  "en": "Ranked No. 60 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 60 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十一": {
+  "en": "Ranked No. 61 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 61 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十七": {
+  "en": "Ranked No. 67 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 67 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十三": {
+  "en": "Ranked No. 63 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 63 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十九": {
+  "en": "Ranked No. 69 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 69 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十二": {
+  "en": "Ranked No. 62 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 62 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十五": {
+  "en": "Ranked No. 65 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 65 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十八": {
+  "en": "Ranked No. 68 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 68 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十六": {
+  "en": "Ranked No. 66 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 66 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第六十四": {
+  "en": "Ranked No. 64 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 64 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十": {
+  "en": "Ranked No. 10 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 10 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十一": {
+  "en": "Ranked No. 11 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 11 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十七": {
+  "en": "Ranked No. 17 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 17 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十三": {
+  "en": "Ranked No. 13 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 13 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十九": {
+  "en": "Ranked No. 19 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 19 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十二": {
+  "en": "Ranked No. 12 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 12 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十五": {
+  "en": "Ranked No. 15 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 15 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十八": {
+  "en": "Ranked No. 18 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 18 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十六": {
+  "en": "Ranked No. 16 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 16 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第十四": {
+  "en": "Ranked No. 14 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 14 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四": {
+  "en": "Ranked No. 4 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 4 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十": {
+  "en": "Ranked No. 40 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 40 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十一": {
+  "en": "Ranked No. 41 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 41 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十七": {
+  "en": "Ranked No. 47 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 47 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十三": {
+  "en": "Ranked No. 43 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 43 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十九": {
+  "en": "Ranked No. 49 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 49 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十二": {
+  "en": "Ranked No. 42 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 42 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十五": {
+  "en": "Ranked No. 45 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 45 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十八": {
+  "en": "Ranked No. 48 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 48 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十六": {
+  "en": "Ranked No. 46 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 46 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮排行榜排名第四十四": {
+  "en": "Ranked No. 44 on last week's Diamond Frenzy Leaderboard",
+  "id": "Peringkat 44 di Leaderboard Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮爽赢区排名前五十": {
+  "en": "Ranked in the top 50 of Diamond Frenzy's Great Win Zone last week",
+  "id": "Masuk top 50 Great Win Zone Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮稳赢区排名前五十": {
+  "en": "Ranked in the top 50 of Diamond Frenzy's Safe Win Zone last week",
+  "id": "Masuk top 50 Safe Win Zone Diamond Frenzy minggu lalu"
+ },
+ "上周钻石狂潮赢麻区排名前五十": {
+  "en": "Ranked in the top 50 of Diamond Frenzy's Winning Streak Zone last week",
+  "id": "Masuk top 50 Winning Streak Zone Diamond Frenzy minggu lalu"
+ },
+ "不差钱(一)": {
+  "en": "Money Is No Object I",
+  "id": "Money Is No Object I"
+ },
+ "不差钱(三)": {
+  "en": "Money Is No Object III",
+  "id": "Money Is No Object III"
+ },
+ "不差钱(二)": {
+  "en": "Money Is No Object II",
+  "id": "Money Is No Object II"
+ },
+ "临危受命(一)": {
+  "en": "Called Upon in a Crisis I",
+  "id": "Called Upon in a Crisis I"
+ },
+ "临危受命(三)": {
+  "en": "Called Upon in a Crisis III",
+  "id": "Called Upon in a Crisis III"
+ },
+ "临危受命(二)": {
+  "en": "Called Upon in a Crisis II",
+  "id": "Called Upon in a Crisis II"
+ },
+ "为范围内的友军增加6点物理和法术防御力；毒奶伤害提升至10+45%法术攻击力，恢复提升至10+45%法术攻击力": {
+  "en": "Increases Physical and Magic Defense of allies in range by 6; Toxic Heal damage increased to 10+45% Magic Attack, healing increased to 10+45% Magic Attack",
+  "id": "Meningkatkan Physical dan Magic Defense ally dalam jangkauan sebesar 6; damage Toxic Heal meningkat menjadi 10+45% Magic Attack, heal meningkat menjadi 10+45% Magic Attack"
+ },
+ "乔汐上大分": {
+  "en": "Qiao Xi Scores Big",
+  "id": "Qiao Xi Scores Big"
+ },
+ "乔汐上大分(一)": {
+  "en": "Qiao Xi Scores Big I",
+  "id": "Qiao Xi Scores Big I"
+ },
+ "乔汐上大分(三)": {
+  "en": "Qiao Xi Scores Big III",
+  "id": "Qiao Xi Scores Big III"
+ },
+ "乔汐上大分(二)": {
+  "en": "Qiao Xi Scores Big II",
+  "id": "Qiao Xi Scores Big II"
+ },
+ "买它！买它！(一)": {
+  "en": "Buy it! Buy it! I",
+  "id": "Beli! Beli! I"
+ },
+ "买它！买它！(三)": {
+  "en": "Buy it! Buy it! III",
+  "id": "Beli! Beli! III"
+ },
+ "买它！买它！(二)": {
+  "en": "Buy it! Buy it! II",
+  "id": "Beli! Beli! II"
+ },
+ "亲密度道具": {
+  "en": "Intimacy Item",
+  "id": "Item Intimacy"
+ },
+ "亲爱的玩家，恭喜您在本轮万象大赛取得佳绩！本场对局的支持奖池已按规则完成分红结算，相应钻石奖励已成功兑现，请查收～祝您在棋盘之上再创辉煌！": {
+  "en": "Dear Player, congrats on your great result in this ACE Tournament! The Support Prize Pool for this match has been settled as dividends under the rules, and your Diamond reward has been credited. Please check it~ May you shine on the board again!",
+  "id": "Pemain yang terhormat, selamat atas hasil hebatmu di ACE Tournament kali ini! Prize pool Dukungan pertandingan ini sudah dibagikan sebagai dividen sesuai aturan, dan hadiah Diamond-mu sudah dikreditkan. Silakan cek~ Semoga kamu bersinar lagi di papan!"
+ },
+ "亲爱的玩家，恭喜您在本轮钻石狂潮取得佳绩！本场对局的支持奖池已按规则完成分红结算，相应钻石奖励已成功兑现，请查收～祝您在棋盘之上再创辉煌！": {
+  "en": "Dear Player, congrats on your great result in this Diamond Frenzy! The Support Prize Pool for this match has been settled as dividends under the rules, and your Diamond reward has been credited. Please check it~ May you shine on the board again!",
+  "id": "Pemain yang terhormat, selamat atas hasil hebatmu di Diamond Frenzy kali ini! Prize pool Dukungan pertandingan ini sudah dibagikan sebagai dividen sesuai aturan, dan hadiah Diamond-mu sudah dikreditkan. Silakan cek~ Semoga kamu bersinar lagi di papan!"
+ },
+ "人形印钻(一)": {
+  "en": "A Human Diamond Printer I",
+  "id": "A Human Diamond Printer I"
+ },
+ "人形印钻(三)": {
+  "en": "A Human Diamond Printer III",
+  "id": "A Human Diamond Printer III"
+ },
+ "人形印钻(二)": {
+  "en": "A Human Diamond Printer II",
+  "id": "A Human Diamond Printer II"
+ },
+ "人气新星(一)": {
+  "en": "Rising Star I",
+  "id": "Rising Star I"
+ },
+ "人气新星(三)": {
+  "en": "Rising Star III",
+  "id": "Rising Star III"
+ },
+ "人气新星(二)": {
+  "en": "Rising Star II",
+  "id": "Rising Star II"
+ },
+ "人见人爱(一)": {
+  "en": "Loved by All I",
+  "id": "Dicintai Semua I"
+ },
+ "人见人爱(三)": {
+  "en": "Loved by All III",
+  "id": "Dicintai Semua III"
+ },
+ "人见人爱(二)": {
+  "en": "Loved by All II",
+  "id": "Dicintai Semua II"
+ },
+ "以武会友(一)": {
+  "en": "Friends Through Combat I",
+  "id": "Friends Through Combat I"
+ },
+ "以武会友(三)": {
+  "en": "Friends Through Combat III",
+  "id": "Friends Through Combat III"
+ },
+ "以武会友(二)": {
+  "en": "Friends Through Combat II",
+  "id": "Friends Through Combat II"
+ },
+ "众人拾柴(一)": {
+  "en": "Many Hands Make Light Work I",
+  "id": "Many Hands Make Light Work I"
+ },
+ "众人拾柴(三)": {
+  "en": "Many Hands Make Light Work III",
+  "id": "Many Hands Make Light Work III"
+ },
+ "众人拾柴(二)": {
+  "en": "Many Hands Make Light Work II",
+  "id": "Many Hands Make Light Work II"
+ },
+ "传说卡皇(一)": {
+  "en": "Legendary Card Emperor I",
+  "id": "Legendary Card Emperor I"
+ },
+ "传说卡皇(三)": {
+  "en": "Legendary Card Emperor III",
+  "id": "Legendary Card Emperor III"
+ },
+ "传说卡皇(二)": {
+  "en": "Legendary Card Emperor II",
+  "id": "Legendary Card Emperor II"
+ },
+ "你是懂表情的(一)": {
+  "en": "Emote Connoisseur I",
+  "id": "Emote Connoisseur I"
+ },
+ "你是懂表情的(三)": {
+  "en": "Emote Connoisseur III",
+  "id": "Emote Connoisseur III"
+ },
+ "你是懂表情的(二)": {
+  "en": "Emote Connoisseur II",
+  "id": "Emote Connoisseur II"
+ },
+ "使用棋手【玉环】，在万象大赛中最终夺冠时阵容有4个不同阵营（含无阵营）的英雄": {
+  "en": "Use Chessplayer [Yuhuan] to win the ACE Tournament with Heroes from 4 different Factions (Factionless included) in your final lineup",
+  "id": "Gunakan Chessplayer [Yuhuan] untuk memenangkan ACE Tournament dengan Hero dari 4 Faction berbeda (termasuk Factionless) di lineup akhir"
+ },
+ "依然退出": {
+  "en": "Exit Anyway",
+  "id": "Tetap Keluar"
+ },
+ "做一朵凋谢的小浪花": {
+  "en": "Become a Fading Little Wave",
+  "id": "Jadi Ombak Kecil yang Memudar"
+ },
+ "停不下来(一)": {
+  "en": "Can’t Stop Now I",
+  "id": "Can’t Stop Now I"
+ },
+ "停不下来(三)": {
+  "en": "Can’t Stop Now III",
+  "id": "Can’t Stop Now III"
+ },
+ "停不下来(二)": {
+  "en": "Can’t Stop Now II",
+  "id": "Can’t Stop Now II"
+ },
+ "光彩夺目(一)": {
+  "en": "Dazzling Brilliance I",
+  "id": "Dazzling Brilliance I"
+ },
+ "光彩夺目(三)": {
+  "en": "Dazzling Brilliance III",
+  "id": "Dazzling Brilliance III"
+ },
+ "光彩夺目(二)": {
+  "en": "Dazzling Brilliance II",
+  "id": "Dazzling Brilliance II"
+ },
+ "兑换后将发直接放给您，不可转赠": {
+  "en": "Delivered to you directly after redemption. Cannot be gifted.",
+  "id": "Langsung dikirim kepadamu setelah ditukar. Tidak bisa dihadiahkan."
+ },
+ "兑换时间：{0}": {
+  "en": "Redemption Time: {0}",
+  "id": "Waktu Penukaran: {0}"
+ },
+ "全力以赴的表演，会收获最热烈的掌声。（专属）": {
+  "en": "A performance that goes all out will receive the warmest applause. (Exclusive)",
+  "id": "Penampilan yang dikerahkan sepenuh hati akan mendapat tepuk tangan paling hangat. (Eksklusif)"
+ },
+ "全员百分百(一)": {
+  "en": "One hundred percent for all I",
+  "id": "Seratus persen untuk semua I"
+ },
+ "全员百分百(三)": {
+  "en": "One hundred percent for all III",
+  "id": "Seratus persen untuk semua III"
+ },
+ "全员百分百(二)": {
+  "en": "One hundred percent for all II",
+  "id": "Seratus persen untuk semua II"
+ },
+ "全服前9999名最强王者获得此称号": {
+  "en": "Granted to the top 9999 Strongest King players server-wide",
+  "id": "Diberikan kepada 9999 pemain Strongest King teratas di seluruh server"
+ },
+ "八方来财(一)": {
+  "en": "Fortune from All Directions I",
+  "id": "Fortune from All Directions I"
+ },
+ "八方来财(三)": {
+  "en": "Fortune from All Directions III",
+  "id": "Fortune from All Directions III"
+ },
+ "八方来财(二)": {
+  "en": "Fortune from All Directions II",
+  "id": "Fortune from All Directions II"
+ },
+ "兵器谱(一)": {
+  "en": "Book of Weapons I",
+  "id": "Book of Weapons I"
+ },
+ "兵器谱(三)": {
+  "en": "Book of Weapons III",
+  "id": "Book of Weapons III"
+ },
+ "兵器谱(二)": {
+  "en": "Book of Weapons II",
+  "id": "Book of Weapons II"
+ },
+ "冠绝天下(一)": {
+  "en": "Peerless Champion I",
+  "id": "Peerless Champion I"
+ },
+ "冠绝天下(三)": {
+  "en": "Peerless Champion III",
+  "id": "Peerless Champion III"
+ },
+ "冠绝天下(二)": {
+  "en": "Peerless Champion II",
+  "id": "Peerless Champion II"
+ },
+ "冲分钻石礼": {
+  "en": "Rank Climb Diamond Gift",
+  "id": "Hadiah Diamond Naik Rank"
+ },
+ "切换王中王": {
+  "en": "Switch King of Kings",
+  "id": "Ganti King of Kings"
+ },
+ "刷到停不下(一)": {
+  "en": "Can’t Stop Refreshing I",
+  "id": "Can’t Stop Refreshing I"
+ },
+ "刷到停不下(三)": {
+  "en": "Can’t Stop Refreshing III",
+  "id": "Can’t Stop Refreshing III"
+ },
+ "刷到停不下(二)": {
+  "en": "Can’t Stop Refreshing II",
+  "id": "Can’t Stop Refreshing II"
+ },
+ "刷到天荒地老(一)": {
+  "en": "Refresh Until the End of Time I",
+  "id": "Refresh Until the End of Time I"
+ },
+ "刷到天荒地老(三)": {
+  "en": "Refresh Until the End of Time III",
+  "id": "Refresh Until the End of Time III"
+ },
+ "刷到天荒地老(二)": {
+  "en": "Refresh Until the End of Time II",
+  "id": "Refresh Until the End of Time II"
+ },
+ "加入队伍可能会影响<color=#98cbff>独狼成就</color>（单排上王者）的达成。确定加入？": {
+  "en": "Joining a team may affect completing the <color=#98cbff>Lone Wolf achievement</color> (reach King solo). Join anyway?",
+  "id": "Bergabung ke tim dapat memengaruhi penyelesaian <color=#98cbff>achievement Lone Wolf</color> (capai King secara solo). Yakin bergabung?"
+ },
+ "助力王牌对决": {
+  "en": "Ace Duel Boost",
+  "id": "Ace Duel Boost"
+ },
+ "助力王牌对决奖励": {
+  "en": "Ace Duel Boost Rewards",
+  "id": "Hadiah Ace Duel Boost"
+ },
+ "勤修不辍(一)": {
+  "en": "Relentless Training I",
+  "id": "Relentless Training I"
+ },
+ "勤修不辍(三)": {
+  "en": "Relentless Training III",
+  "id": "Relentless Training III"
+ },
+ "勤修不辍(二)": {
+  "en": "Relentless Training II",
+  "id": "Relentless Training II"
+ },
+ "包发财(一)": {
+  "en": "Fortune in the Bag I",
+  "id": "Fortune in the Bag I"
+ },
+ "包发财(三)": {
+  "en": "Fortune in the Bag III",
+  "id": "Fortune in the Bag III"
+ },
+ "包发财(二)": {
+  "en": "Fortune in the Bag II",
+  "id": "Fortune in the Bag II"
+ },
+ "包大人(一)": {
+  "en": "The Big Spender I",
+  "id": "The Big Spender I"
+ },
+ "包大人(三)": {
+  "en": "The Big Spender III",
+  "id": "The Big Spender III"
+ },
+ "包大人(二)": {
+  "en": "The Big Spender II",
+  "id": "The Big Spender II"
+ },
+ "千招百式(一)": {
+  "en": "Myriad Moves I",
+  "id": "Myriad Moves I"
+ },
+ "千招百式(三)": {
+  "en": "Myriad Moves III",
+  "id": "Myriad Moves III"
+ },
+ "千招百式(二)": {
+  "en": "Myriad Moves II",
+  "id": "Myriad Moves II"
+ },
+ "印记收集者(一)": {
+  "en": "Mark Collector I",
+  "id": "Kolektor Tanda I"
+ },
+ "印记收集者(七)": {
+  "en": "Mark Collector VII",
+  "id": "Kolektor Tanda VII"
+ },
+ "印记收集者(三)": {
+  "en": "Mark Collector III",
+  "id": "Kolektor Tanda III"
+ },
+ "印记收集者(九)": {
+  "en": "Mark Collector IX",
+  "id": "Kolektor Tanda IX"
+ },
+ "印记收集者(二)": {
+  "en": "Mark Collector II",
+  "id": "Kolektor Tanda II"
+ },
+ "印记收集者(五)": {
+  "en": "Mark Collector V",
+  "id": "Kolektor Tanda V"
+ },
+ "印记收集者(八)": {
+  "en": "Mark Collector VIII",
+  "id": "Kolektor Tanda VIII"
+ },
+ "印记收集者(六)": {
+  "en": "Mark Collector VI",
+  "id": "Kolektor Tanda VI"
+ },
+ "印记收集者(十)": {
+  "en": "Mark Collector X",
+  "id": "Kolektor Tanda X"
+ },
+ "印记收集者(四)": {
+  "en": "Mark Collector IV",
+  "id": "Kolektor Tanda IV"
+ },
+ "参与电竞赛事活动获取": {
+  "en": "Obtained by taking part in esports events",
+  "id": "Didapat dengan mengikuti event esports"
+ },
+ "参与电竞赛事活动获取。": {
+  "en": "Obtained by taking part in esports events.",
+  "id": "Didapat dengan mengikuti event esports."
+ },
+ "参赛选手不能参与支持": {
+  "en": "Contestants cannot place support",
+  "id": "Kontestan tidak bisa memberi dukungan"
+ },
+ "发送验证码失败": {
+  "en": "Failed to send verification code",
+  "id": "Gagal mengirim kode verifikasi"
+ },
+ "口令专家(一)": {
+  "en": "Invite Code Expert I",
+  "id": "Ahli Kode Undangan I"
+ },
+ "口令专家(三)": {
+  "en": "Invite Code Expert III",
+  "id": "Ahli Kode Undangan III"
+ },
+ "口令专家(二)": {
+  "en": "Invite Code Expert II",
+  "id": "Ahli Kode Undangan II"
+ },
+ "可兑换次数不足": {
+  "en": "Not enough redemptions left",
+  "id": "Kesempatan tukar tidak cukup"
+ },
+ "史诗卡佬(一)": {
+  "en": "Epic Card Master I",
+  "id": "Epic Card Master I"
+ },
+ "史诗卡佬(三)": {
+  "en": "Epic Card Master III",
+  "id": "Epic Card Master III"
+ },
+ "史诗卡佬(二)": {
+  "en": "Epic Card Master II",
+  "id": "Epic Card Master II"
+ },
+ "同享常驻(一)": {
+  "en": "Sharing Is Here to Stay I",
+  "id": "Sharing Is Here to Stay I"
+ },
+ "同享常驻(三)": {
+  "en": "Sharing Is Here to Stay III",
+  "id": "Sharing Is Here to Stay III"
+ },
+ "同享常驻(二)": {
+  "en": "Sharing Is Here to Stay II",
+  "id": "Sharing Is Here to Stay II"
+ },
+ "听！潮汐的胜利之歌！": {
+  "en": "Listen! The tide's song of victory!",
+  "id": "Dengar! Lagu kemenangan sang ombak!"
+ },
+ "启程之证(一)": {
+  "en": "Proof of Departure I",
+  "id": "Proof of Departure I"
+ },
+ "启程之证(三)": {
+  "en": "Proof of Departure III",
+  "id": "Proof of Departure III"
+ },
+ "启程之证(二)": {
+  "en": "Proof of Departure II",
+  "id": "Proof of Departure II"
+ },
+ "命中之神(一)": {
+  "en": "God of Accuracy I",
+  "id": "God of Accuracy I"
+ },
+ "命中之神(三)": {
+  "en": "God of Accuracy III",
+  "id": "God of Accuracy III"
+ },
+ "命中之神(二)": {
+  "en": "God of Accuracy II",
+  "id": "God of Accuracy II"
+ },
+ "啥都试试(一)": {
+  "en": "Try everything I",
+  "id": "Coba semuanya I"
+ },
+ "啥都试试(三)": {
+  "en": "Try everything III",
+  "id": "Coba semuanya III"
+ },
+ "啥都试试(二)": {
+  "en": "Try everything II",
+  "id": "Coba semuanya II"
+ },
+ "善财童子(一)": {
+  "en": "Child of Fortune I",
+  "id": "Child of Fortune I"
+ },
+ "善财童子(三)": {
+  "en": "Child of Fortune III",
+  "id": "Child of Fortune III"
+ },
+ "善财童子(二)": {
+  "en": "Child of Fortune II",
+  "id": "Child of Fortune II"
+ },
+ "嗨起来(一)": {
+  "en": "Get high I",
+  "id": "Jadi tinggi I"
+ },
+ "嗨起来(三)": {
+  "en": "Get high III",
+  "id": "Jadi tinggi III"
+ },
+ "嗨起来(二)": {
+  "en": "Get high II",
+  "id": "Jadi tinggi II"
+ },
+ "回合开始时，获得1张【逐鹿】英雄牌；若上场战斗胜利，再获得1张场上【逐鹿】英雄的同名牌。": {
+  "en": "At the start of each Round, gain 1 [Zhulu Plateau] Hero card; if you won the previous combat, also gain 1 card with the same name as a [Zhulu Plateau] Hero on the board.",
+  "id": "Di awal Ronde, dapatkan 1 kartu Hero [Zhulu Plateau]; jika menang di pertempuran sebelumnya, dapatkan juga 1 kartu dengan nama yang sama dengan Hero [Zhulu Plateau] di papan."
+ },
+ "在【智勇双王】活动期间，《王者万象棋》和《王者荣耀》任意赛季分别达成过最强王者": {
+  "en": "During the [Kings of Wisdom and Courage] event, have reached Strongest King in any season of both Honor of Kings: Ace and Honor of Kings",
+  "id": "Selama event [Kings of Wisdom and Courage], pernah mencapai Strongest King di season mana pun pada Honor of Kings: Ace dan Honor of Kings"
+ },
+ "在万象大赛中，排位赛夺冠率": {
+  "en": "Championship Rate in ACE Tournament-Ranked",
+  "id": "Tingkat Juara di ACE Tournament-Ranked"
+ },
+ "在万象大赛的一局游戏中，在超过10回合都是第六名的情况下最终夺冠": {
+  "en": "In a single ACE Tournament match, win the Championship after being in 6th place for more than 10 Rounds",
+  "id": "Dalam satu pertandingan ACE Tournament, raih Juara setelah berada di peringkat 6 lebih dari 10 Ronde"
+ },
+ "在万象大赛的最后一回合中，我方上场的英雄均与【整备】相关并最终夺冠": {
+  "en": "In the final Round of the ACE Tournament, have all your deployed Heroes be related to [Prepare] and win the Championship",
+  "id": "Di Ronde terakhir ACE Tournament, semua Hero yang kamu turunkan terkait dengan [Prepare] dan menangkan Kejuaraan"
+ },
+ "在钻石狂潮、王牌对决和棋手竞猜玩法中，可使用本抵扣券减免100钻石。（钻石狂潮每次限用1张）": {
+  "en": "Use this coupon in Diamond Frenzy, Ace Duel and Chessplayer Predictions to reduce the cost by 100 Diamonds. (Diamond Frenzy: 1 coupon per entry)",
+  "id": "Gunakan kupon ini di Diamond Frenzy, Ace Duel, dan Prediksi Chessplayer untuk memotong 100 Diamond. (Diamond Frenzy: 1 kupon per masuk)"
+ },
+ "在钻石狂潮中，初始阵容三选一时，选择【逆天改命-米莱狄】初始卡包": {
+  "en": "In Diamond Frenzy, when choosing one of three starting lineups, select the [Defy Fate - Milady] starting Card Pack",
+  "id": "Di Diamond Frenzy, saat memilih satu dari tiga lineup awal, pilih Paket Kartu Awal [Defy Fate - Milady]"
+ },
+ "在钻石狂潮中，排位赛夺冠率": {
+  "en": "Championship Rate in Diamond Frenzy-Ranked",
+  "id": "Tingkat Juara di Diamond Frenzy-Ranked"
+ },
+ "在钻石狂潮和王牌对决玩法中，可使用本抵扣券减免1000钻石。（钻石狂潮每次限用1张）": {
+  "en": "Use this coupon in Diamond Frenzy and Ace Duel to reduce the cost by 1000 Diamonds. (Diamond Frenzy: 1 coupon per entry)",
+  "id": "Gunakan kupon ini di Diamond Frenzy dan Ace Duel untuk memotong 1000 Diamond. (Diamond Frenzy: 1 kupon per masuk)"
+ },
+ "在钻石狂潮和王牌对决玩法中，可使用本抵扣券减免5000钻石。（钻石狂潮每次限用1张）": {
+  "en": "Use this coupon in Diamond Frenzy and Ace Duel to reduce the cost by 5000 Diamonds. (Diamond Frenzy: 1 coupon per entry)",
+  "id": "Gunakan kupon ini di Diamond Frenzy dan Ace Duel untuk memotong 5000 Diamond. (Diamond Frenzy: 1 kupon per masuk)"
+ },
+ "在钻石狂潮和王牌对决玩法中，可使用本抵扣券减免500钻石。（钻石狂潮每次限用1张）": {
+  "en": "Use this coupon in Diamond Frenzy and Ace Duel to reduce the cost by 500 Diamonds. (Diamond Frenzy: 1 coupon per entry)",
+  "id": "Gunakan kupon ini di Diamond Frenzy dan Ace Duel untuk memotong 500 Diamond. (Diamond Frenzy: 1 kupon per masuk)"
+ },
+ "基于场上英雄、阵营（至少3名）获取一套梦幻手牌。": {
+  "en": "Obtain a set of dream cards based on the heroes and factions (at least 3) on the board.",
+  "id": "Dapatkan satu set kartu impian berdasarkan Hero dan faksi (minimal 3) di papan."
+ },
+ "夜以继日(一)": {
+  "en": "Night and day I",
+  "id": "Siang dan malam I"
+ },
+ "夜以继日(三)": {
+  "en": "Night and day III",
+  "id": "Siang dan malam III"
+ },
+ "夜以继日(二)": {
+  "en": "Night and day II",
+  "id": "Siang dan malam II"
+ },
+ "大腿带飞(一)": {
+  "en": "Hard Carry I",
+  "id": "Hard Carry I"
+ },
+ "大腿带飞(三)": {
+  "en": "Hard Carry III",
+  "id": "Hard Carry III"
+ },
+ "大腿带飞(二)": {
+  "en": "Hard Carry II",
+  "id": "Hard Carry II"
+ },
+ "大额开张(一)": {
+  "en": "Grand Opening I",
+  "id": "Pembukaan Akbar I"
+ },
+ "大额开张(三)": {
+  "en": "Grand Opening III",
+  "id": "Pembukaan Akbar III"
+ },
+ "大额开张(二)": {
+  "en": "Grand Opening II",
+  "id": "Pembukaan Akbar II"
+ },
+ "天下英雄(一)": {
+  "en": "Heroes Under Heaven I",
+  "id": "Heroes Under Heaven I"
+ },
+ "天下英雄(三)": {
+  "en": "Heroes Under Heaven III",
+  "id": "Heroes Under Heaven III"
+ },
+ "天下英雄(二)": {
+  "en": "Heroes Under Heaven II",
+  "id": "Heroes Under Heaven II"
+ },
+ "头号闺蜜(一)": {
+  "en": "First best friend I",
+  "id": "Sahabat pertama I"
+ },
+ "头号闺蜜(三)": {
+  "en": "First best friend III",
+  "id": "Sahabat pertama III"
+ },
+ "头号闺蜜(二)": {
+  "en": "First best friend II",
+  "id": "Sahabat pertama II"
+ },
+ "夺宝在成长之路达到2级后开启": {
+  "en": "Treasure Hunt unlocks at Growth Path level 2",
+  "id": "Treasure Hunt terbuka di Growth Path level 2"
+ },
+ "奶妈的自我修养(一)": {
+  "en": "The Healer's Code I",
+  "id": "The Healer's Code I"
+ },
+ "奶妈的自我修养(三)": {
+  "en": "The Healer's Code III",
+  "id": "The Healer's Code III"
+ },
+ "奶妈的自我修养(二)": {
+  "en": "The Healer's Code II",
+  "id": "The Healer's Code II"
+ },
+ "她总在海风最轻的时候出现。\n潮水远远认出她的脚步，便悄悄放软了声息；浪花也记得她裙摆的颜色，一朵接一朵，在蓝绿色的水影里亮起来。贝壳睡在细沙里，水母灯浮在透明的潮光中，银色小鱼从礁石缝后探出头，等她赤着脚跑来。\n她一来，海里便热闹起来。浪花追着她的裙摆，鱼群绕着她的脚步，连细小的泡沫也被风吹成一串轻亮的笑声。\n她有一份很轻松的小工作——偶尔替潮水找一找方向。\n听起来像是件了不起的事，可她总做得漫不经心。玩得忘了时间，潮水便慢悠悠地迟到一会儿；追鱼追得太远，浪花又会多绕几个弯。鲸鱼早已习惯，贝壳也不会抱怨，连海风都只是绕着她打转，等她从浪花的泡沫里回过神来。\n这时，她才想起手里的长杖。\n她手中的长杖并不威严，更像一件被潮水打磨过的玩具。轻轻一点，鱼群便绕着她游成发亮的弧线；随手一挥，浅蓝色的潮光便从裙摆下散开，像一场被海水藏起的笑。\n曾有人问她，为什么牵动潮水的人，看起来一点也不严肃。\n她歪着头想了想，眼睛里映着一整片摇晃的海光。\n“因为潮水自己知道要去哪里呀。”\n于是海面泛起蓝绿色的光。少女提着水母灯，赤足走过层层水影。她哼着无人听懂的歌，裙摆扫过浪花，鱼群追随她的脚步游向远处。等玩到尽兴，她才轻轻抬起长杖，像是替海风指了一个方向——\n潮水便沿着那一点蓝光，慢慢铺向海的深处。": {
+  "en": "She always appears when the sea breeze is at its gentlest.\nThe tide recognizes her footsteps from afar and quietly softens its voice; the waves remember the color of her skirt, and one after another they light up in the blue-green shadows of the water. Seashells sleep in the fine sand, jellyfish lanterns float in the clear glow of the tide, and little silver fish peek out from behind the reefs, waiting for her to come running barefoot.\nWhen she arrives, the sea comes alive. Waves chase her skirt, schools of fish circle her steps, and even the tiniest bubbles are blown by the wind into a string of light, bright laughter.\nShe has an easy little job: now and then, she helps the tide find its way.\nIt sounds like something important, but she always does it absent-mindedly. When she plays and forgets the time, the tide arrives a little late; when she chases fish too far, the waves take a few extra turns. The whales are long used to it, the seashells never complain, and even the sea breeze just circles around her, waiting for her to come back to her senses from the foam of the waves.\nOnly then does she remember the long staff in her hand.\nThe staff in her hand is not majestic at all; it is more like a toy polished by the tide. A light tap, and the fish swim around her in a shining arc; a casual wave, and pale-blue tidelight spreads out from beneath her skirt, like laughter hidden by the sea.\nSomeone once asked her why the one who guides the tides doesn't look serious at all.\nShe tilted her head and thought for a moment, a whole sea of swaying light reflected in her eyes.\n\"Because the tide already knows where it wants to go.\"\nAnd so the sea glows blue-green. The girl carries her jellyfish lantern and walks barefoot across layer upon layer of watery shadow. She hums a song no one understands, her skirt brushing the waves, the fish following her steps out into the distance. When she has played to her heart's content, she gently raises her staff, as if pointing the sea breeze in a direction—\nand the tide follows that single point of blue light, slowly spreading into the depths of the sea.",
+  "id": "Ia selalu muncul saat angin laut berembus paling lembut.\nOmbak mengenali langkahnya dari jauh dan diam-diam melirihkan suaranya; buih ombak pun ingat warna roknya, dan satu per satu menyala di antara bayangan air yang biru kehijauan. Kerang tidur di pasir halus, lentera ubur-ubur melayang dalam cahaya pasang yang jernih, dan ikan-ikan kecil keperakan mengintip dari balik celah karang, menunggunya berlari datang tanpa alas kaki.\nBegitu ia datang, laut pun menjadi ramai. Buih ombak mengejar roknya, kawanan ikan mengitari langkahnya, bahkan gelembung terkecil pun ditiup angin menjadi untaian tawa yang ringan dan cerah.\nIa punya pekerjaan kecil yang santai: sesekali membantu pasang menemukan arahnya.\nKedengarannya seperti tugas penting, tapi ia selalu mengerjakannya sambil lalu. Kalau ia asyik bermain sampai lupa waktu, pasang pun datang sedikit terlambat; kalau ia mengejar ikan terlalu jauh, ombak pun berbelok beberapa kali lebih banyak. Paus sudah lama terbiasa, kerang tak pernah mengeluh, bahkan angin laut hanya berputar-putar di sekitarnya, menunggunya tersadar dari buih ombak.\nBaru saat itulah ia teringat pada tongkat panjang di tangannya.\nTongkat di tangannya sama sekali tidak terlihat agung; lebih mirip mainan yang diasah oleh pasang. Sekali ketuk pelan, kawanan ikan berenang mengitarinya membentuk lengkungan berkilau; sekali ayun santai, cahaya pasang biru muda menyebar dari bawah roknya, seperti tawa yang disembunyikan laut.\nPernah ada yang bertanya kepadanya, mengapa orang yang menggerakkan pasang sama sekali tidak terlihat serius.\nIa memiringkan kepala dan berpikir sejenak, matanya memantulkan seluruh cahaya laut yang bergoyang.\n\"Karena pasang sendiri tahu ke mana ia harus pergi.\"\nMaka permukaan laut pun berkilau biru kehijauan. Gadis itu membawa lentera ubur-ubur, berjalan tanpa alas kaki melewati lapis demi lapis bayangan air. Ia bersenandung lagu yang tak dimengerti siapa pun, roknya menyapu buih ombak, dan kawanan ikan mengikuti langkahnya ke kejauhan. Setelah puas bermain, barulah ia mengangkat tongkatnya pelan, seolah menunjukkan arah kepada angin laut—\ndan pasang pun mengikuti setitik cahaya biru itu, perlahan menghampar ke kedalaman laut."
+ },
+ "好礼相赠(一)": {
+  "en": "A Fine Gift I",
+  "id": "A Fine Gift I"
+ },
+ "好礼相赠(三)": {
+  "en": "A Fine Gift III",
+  "id": "A Fine Gift III"
+ },
+ "好礼相赠(二)": {
+  "en": "A Fine Gift II",
+  "id": "A Fine Gift II"
+ },
+ "姜导上大分": {
+  "en": "Director Jiang Scores Big",
+  "id": "Director Jiang Scores Big"
+ },
+ "姜导上大分(一)": {
+  "en": "Director Jiang Scores Big I",
+  "id": "Director Jiang Scores Big I"
+ },
+ "姜导上大分(三)": {
+  "en": "Director Jiang Scores Big III",
+  "id": "Director Jiang Scores Big III"
+ },
+ "姜导上大分(二)": {
+  "en": "Director Jiang Scores Big II",
+  "id": "Director Jiang Scores Big II"
+ },
+ "嬴律上大分": {
+  "en": "Ying Lü Scores Big",
+  "id": "Ying Lü Scores Big"
+ },
+ "嬴律上大分(一)": {
+  "en": "Ying Lü Scores Big I",
+  "id": "Ying Lü Scores Big I"
+ },
+ "嬴律上大分(三)": {
+  "en": "Ying Lü Scores Big III",
+  "id": "Ying Lü Scores Big III"
+ },
+ "嬴律上大分(二)": {
+  "en": "Ying Lü Scores Big II",
+  "id": "Ying Lü Scores Big II"
+ },
+ "子账号达到王者段位\n均可领取奖励": {
+  "en": "Every sub-account that reaches King Rank\ncan claim rewards",
+  "id": "Setiap sub-akun yang mencapai Rank King\nbisa klaim hadiah"
+ },
+ "孙小宾上大分": {
+  "en": "Sun Xiaobin Scores Big",
+  "id": "Sun Xiaobin Scores Big"
+ },
+ "孙小宾上大分(一)": {
+  "en": "Sun Xiaobin Scores Big I",
+  "id": "Sun Xiaobin Scores Big I"
+ },
+ "孙小宾上大分(三)": {
+  "en": "Sun Xiaobin Scores Big III",
+  "id": "Sun Xiaobin Scores Big III"
+ },
+ "孙小宾上大分(二)": {
+  "en": "Sun Xiaobin Scores Big II",
+  "id": "Sun Xiaobin Scores Big II"
+ },
+ "安琪拉上大分": {
+  "en": "Angela Scores Big",
+  "id": "Angela Scores Big"
+ },
+ "安琪拉上大分(一)": {
+  "en": "Angela Scores Big I",
+  "id": "Angela Scores Big I"
+ },
+ "安琪拉上大分(三)": {
+  "en": "Angela Scores Big III",
+  "id": "Angela Scores Big III"
+ },
+ "安琪拉上大分(二)": {
+  "en": "Angela Scores Big II",
+  "id": "Angela Scores Big II"
+ },
+ "完成1局抉择之弈": {
+  "en": "Complete 1 Choice Chess match",
+  "id": "Selesaikan 1 pertandingan Choice Chess"
+ },
+ "完成3局抉择之弈": {
+  "en": "Complete 3 Choice Chess matches",
+  "id": "Selesaikan 3 pertandingan Choice Chess"
+ },
+ "完成任务领取钻石抵扣券": {
+  "en": "Complete missions to claim Diamond Discount Coupons",
+  "id": "Selesaikan misi untuk klaim Diamond Discount Coupon"
+ },
+ "完成好奇鬼和彩蛋猎人成就": {
+  "en": "Complete the Curious Mind and Easter Egg Hunter achievements",
+  "id": "Selesaikan achievement Curious Mind dan Easter Egg Hunter"
+ },
+ "完成生涯历程相关的所有成就": {
+  "en": "Complete all Career Journey achievements",
+  "id": "Selesaikan semua achievement Career Journey"
+ },
+ "完成钻石狂潮相关的所有成就": {
+  "en": "Complete all Diamond Frenzy achievements",
+  "id": "Selesaikan semua achievement Diamond Frenzy"
+ },
+ "完美橱窗(一)": {
+  "en": "Perfect Showcase I",
+  "id": "Perfect Showcase I"
+ },
+ "完美橱窗(七)": {
+  "en": "Perfect Showcase VII",
+  "id": "Perfect Showcase VII"
+ },
+ "完美橱窗(三)": {
+  "en": "Perfect Showcase III",
+  "id": "Perfect Showcase III"
+ },
+ "完美橱窗(九)": {
+  "en": "Perfect Showcase IX",
+  "id": "Perfect Showcase IX"
+ },
+ "完美橱窗(二)": {
+  "en": "Perfect Showcase II",
+  "id": "Perfect Showcase II"
+ },
+ "完美橱窗(五)": {
+  "en": "Perfect Showcase V",
+  "id": "Perfect Showcase V"
+ },
+ "完美橱窗(八)": {
+  "en": "Perfect Showcase VIII",
+  "id": "Perfect Showcase VIII"
+ },
+ "完美橱窗(六)": {
+  "en": "Perfect Showcase VI",
+  "id": "Perfect Showcase VI"
+ },
+ "完美橱窗(十)": {
+  "en": "Perfect Showcase X",
+  "id": "Perfect Showcase X"
+ },
+ "完美橱窗(四)": {
+  "en": "Perfect Showcase IV",
+  "id": "Perfect Showcase IV"
+ },
+ "对局时长": {
+  "en": "Match Duration",
+  "id": "Durasi Pertandingan"
+ },
+ "对局时间：": {
+  "en": "Match time:",
+  "id": "Waktu pertandingan:"
+ },
+ "对局结算点赞奖励": {
+  "en": "Match Results Like Reward",
+  "id": "Hadiah Like Hasil Pertandingan"
+ },
+ "对局背景音乐，可用于所有棋盘。\n\n排兵布阵，奇谋尽出，在瞬息万变中战个痛快！\n\n「东风吹，战鼓擂！」": {
+  "en": "Game Background Music, can be used for all chessboards. Deploy your troops, use your cunning plans, and fight to your heart's content in the ever-changing battle! \"The East Wind blows, the war drums beat!\"",
+  "id": "Game Latar Belakang Musik, dapat digunakan untuk semua papan catur. Deploy Pasukanmu, gunakan rencana licikmu, dan lawan isi hatimu dalam pertempuran yang terus berubah! \"The East Wind pukulan, drum perang mengalahkan! \""
+ },
+ "对方正忙，暂时无法成为您的私教": {
+  "en": "The player is busy and cannot become your coach right now",
+  "id": "Pemain sedang sibuk dan belum bisa menjadi pelatihmu"
+ },
+ "对该选手的支持金额已达上限": {
+  "en": "Your support for this player has reached the limit",
+  "id": "Dukunganmu untuk pemain ini sudah mencapai batas"
+ },
+ "小妲己上大分": {
+  "en": "Xiao Little Daji Scores Big",
+  "id": "Xiao Little Daji Scores Big"
+ },
+ "小妲己上大分(一)": {
+  "en": "Xiao Little Daji Scores Big I",
+  "id": "Xiao Little Daji Scores Big I"
+ },
+ "小妲己上大分(三)": {
+  "en": "Xiao Little Daji Scores Big III",
+  "id": "Xiao Little Daji Scores Big III"
+ },
+ "小妲己上大分(二)": {
+  "en": "Xiao Little Daji Scores Big II",
+  "id": "Xiao Little Daji Scores Big II"
+ },
+ "已为您自动使用合适的抵扣券": {
+  "en": "A suitable Discount Coupon has been applied automatically",
+  "id": "Kupon Diskon yang sesuai telah digunakan otomatis"
+ },
+ "已扩大搜寻范围：最强王者{0}分及以上": {
+  "en": "Search range expanded: Strongest King {0} points and above",
+  "id": "Cakupan pencarian diperluas: Strongest King {0} poin ke atas"
+ },
+ "已达最大数量，设置为最大数量": {
+  "en": "Maximum reached; set to the maximum",
+  "id": "Jumlah maksimum tercapai; diatur ke maksimum"
+ },
+ "已选奖励{0}/{1}个": {
+  "en": "Rewards selected {0}/{1}",
+  "id": "Hadiah dipilih {0}/{1}"
+ },
+ "带飞队长(一)": {
+  "en": "Carry Captain I",
+  "id": "Carry Captain I"
+ },
+ "带飞队长(三)": {
+  "en": "Carry Captain III",
+  "id": "Carry Captain III"
+ },
+ "带飞队长(二)": {
+  "en": "Carry Captain II",
+  "id": "Carry Captain II"
+ },
+ "常小娥上大分": {
+  "en": "Chang Xiao'e Scores Big",
+  "id": "Chang Xiao'e Scores Big"
+ },
+ "常小娥上大分(一)": {
+  "en": "Chang Xiao'e Scores Big I",
+  "id": "Chang Xiao'e Scores Big I"
+ },
+ "常小娥上大分(三)": {
+  "en": "Chang Xiao'e Scores Big III",
+  "id": "Chang Xiao'e Scores Big III"
+ },
+ "常小娥上大分(二)": {
+  "en": "Chang Xiao'e Scores Big II",
+  "id": "Chang Xiao'e Scores Big II"
+ },
+ "常胜将军(一)": {
+  "en": "victorious general I",
+  "id": "jenderal pemenang I"
+ },
+ "常胜将军(三)": {
+  "en": "victorious general III",
+  "id": "jenderal pemenang III"
+ },
+ "常胜将军(二)": {
+  "en": "victorious general II",
+  "id": "jenderal pemenang II"
+ },
+ "常驻粉丝(一)": {
+  "en": "Fan for Life I",
+  "id": "Fan for Life I"
+ },
+ "常驻粉丝(三)": {
+  "en": "Fan for Life III",
+  "id": "Fan for Life III"
+ },
+ "常驻粉丝(二)": {
+  "en": "Fan for Life II",
+  "id": "Fan for Life II"
+ },
+ "幻梦星彩(一)": {
+  "en": "Dreamy Star I",
+  "id": "Dreamy Star I"
+ },
+ "幻梦星彩(三)": {
+  "en": "Dreamy Star III",
+  "id": "Dreamy Star III"
+ },
+ "幻梦星彩(二)": {
+  "en": "Dreamy Star II",
+  "id": "Dreamy Star II"
+ },
+ "庄小鱼上大分": {
+  "en": "Zhuang Xiaoyu Scores Big",
+  "id": "Zhuang Xiaoyu Scores Big"
+ },
+ "庄小鱼上大分(一)": {
+  "en": "Zhuang Xiaoyu Scores Big I",
+  "id": "Zhuang Xiaoyu Scores Big I"
+ },
+ "庄小鱼上大分(三)": {
+  "en": "Zhuang Xiaoyu Scores Big III",
+  "id": "Zhuang Xiaoyu Scores Big III"
+ },
+ "庄小鱼上大分(二)": {
+  "en": "Zhuang Xiaoyu Scores Big II",
+  "id": "Zhuang Xiaoyu Scores Big II"
+ },
+ "开启后将授权王者万象棋获取您的王者荣耀同平台账号中的好友亲密度，并继承至王者万象棋中，您与好友的亲密度仅会继承一次。;授权后不可关闭，您与好友的亲密度仅会继承一次。": {
+  "en": "Enabling this authorizes Honor of Kings: Ace to access the Friend Intimacy from your Honor of Kings account on the same platform and inherit it into Honor of Kings: Ace. Intimacy with friends is inherited only once.;Cannot be disabled after authorization. Intimacy with friends is inherited only once.",
+  "id": "Mengaktifkan ini memberi izin Honor of Kings: Ace untuk mengambil Friend Intimacy dari akun Honor of Kings kamu di platform yang sama dan mewarisinya ke Honor of Kings: Ace. Intimacy dengan teman hanya diwariskan sekali.;Tidak bisa dinonaktifkan setelah diberi izin. Intimacy dengan teman hanya diwariskan sekali."
+ },
+ "开启王中王组队作战可能会影响<color=#98cbff>独狼成就</color>（单排上王者）的达成。确定开启？": {
+  "en": "Enabling King of Kings team play may affect completing the <color=#98cbff>Lone Wolf achievement</color> (reach King solo). Enable it?",
+  "id": "Mengaktifkan main tim King of Kings dapat memengaruhi penyelesaian <color=#98cbff>achievement Lone Wolf</color> (capai King secara solo). Yakin aktifkan?"
+ },
+ "开局<color=#98cbff>随机5名</color>棋手，选择其一。": {
+  "en": "At the start of the match, <color=#98cbff>5 Random</color> Chessplayers will be offered for you to choose one.",
+  "id": "Di awal pertandingan, <color=#98cbff>5 Chessplayer Acak</color> akan disediakan untuk kamu pilih salah satu."
+ },
+ "开黑团长(一)": {
+  "en": "Squad Leader I",
+  "id": "Ketua Regu I"
+ },
+ "开黑团长(三)": {
+  "en": "Squad Leader III",
+  "id": "Ketua Regu III"
+ },
+ "开黑团长(二)": {
+  "en": "Squad Leader II",
+  "id": "Ketua Regu II"
+ },
+ "弈星上大分": {
+  "en": "Yixing Scores Big",
+  "id": "Yixing Scores Big"
+ },
+ "弈星上大分(一)": {
+  "en": "Yixing Scores Big I",
+  "id": "Yixing Scores Big I"
+ },
+ "弈星上大分(三)": {
+  "en": "Yixing Scores Big III",
+  "id": "Yixing Scores Big III"
+ },
+ "弈星上大分(二)": {
+  "en": "Yixing Scores Big II",
+  "id": "Yixing Scores Big II"
+ },
+ "当前子账号未达到王者段位": {
+  "en": "This sub-account has not reached King Rank",
+  "id": "Sub-akun ini belum mencapai Rank King"
+ },
+ "当前编号已被其他玩家抢先使用，您的下次刷新将免费": {
+  "en": "This ID was just taken by another player. Your next refresh is free",
+  "id": "ID ini baru saja diambil pemain lain. Refresh berikutnya gratis"
+ },
+ "彩戏师(一)": {
+  "en": "Master of Spectacle I",
+  "id": "Master of Spectacle I"
+ },
+ "彩戏师(三)": {
+  "en": "Master of Spectacle III",
+  "id": "Master of Spectacle III"
+ },
+ "彩戏师(二)": {
+  "en": "Master of Spectacle II",
+  "id": "Master of Spectacle II"
+ },
+ "彩虹屁大师(一)": {
+  "en": "Master Flatterer I",
+  "id": "Master Flatterer I"
+ },
+ "彩虹屁大师(三)": {
+  "en": "Master Flatterer III",
+  "id": "Master Flatterer III"
+ },
+ "彩虹屁大师(二)": {
+  "en": "Master Flatterer II",
+  "id": "Master Flatterer II"
+ },
+ "得心应手(一)": {
+  "en": "Effortless Mastery I",
+  "id": "Effortless Mastery I"
+ },
+ "得心应手(三)": {
+  "en": "Effortless Mastery III",
+  "id": "Effortless Mastery III"
+ },
+ "得心应手(二)": {
+  "en": "Effortless Mastery II",
+  "id": "Effortless Mastery II"
+ },
+ "心路历程(一)": {
+  "en": "Journey of the Heart I",
+  "id": "Journey of the Heart I"
+ },
+ "心路历程(三)": {
+  "en": "Journey of the Heart III",
+  "id": "Journey of the Heart III"
+ },
+ "心路历程(二)": {
+  "en": "Journey of the Heart II",
+  "id": "Journey of the Heart II"
+ },
+ "忠实观众(一)": {
+  "en": "Loyal Viewer I",
+  "id": "Penonton Setia I"
+ },
+ "忠实观众(三)": {
+  "en": "Loyal Viewer III",
+  "id": "Penonton Setia III"
+ },
+ "忠实观众(二)": {
+  "en": "Loyal Viewer II",
+  "id": "Penonton Setia II"
+ },
+ "快聊选手(一)": {
+  "en": "Quick Chat Regular I",
+  "id": "Quick Chat Biasa I"
+ },
+ "快聊选手(三)": {
+  "en": "Quick Chat Regular III",
+  "id": "Quick Chat Biasa III"
+ },
+ "快聊选手(二)": {
+  "en": "Quick Chat Regular II",
+  "id": "Quick Chat Biasa II"
+ },
+ "快速成长(一)": {
+  "en": "Rapid Growth I",
+  "id": "Rapid Growth I"
+ },
+ "快速成长(三)": {
+  "en": "Rapid Growth III",
+  "id": "Rapid Growth III"
+ },
+ "快速成长(二)": {
+  "en": "Rapid Growth II",
+  "id": "Rapid Growth II"
+ },
+ "恭喜获得<color=#ed6962ff>{0}x{1}</color>，首抽仅需<color=#ed6962ff>{2}{3}</color>": {
+  "en": "You got <color=#ed6962ff>{0}x{1}</color>! Your first draw costs only <color=#ed6962ff>{2}{3}</color>",
+  "id": "Selamat, kamu dapat <color=#ed6962ff>{0}x{1}</color>! Tarikan pertama hanya <color=#ed6962ff>{2}{3}</color>"
+ },
+ "恭喜获胜！前往玩法大厅领取奖励吧！": {
+  "en": "Victory! Head to the Mode Lobby to claim your rewards!",
+  "id": "Menang! Pergi ke Lobi Mode untuk klaim hadiahmu!"
+ },
+ "您当前位于{0}，仍有玩家处于{1}。提前退出可能导致结算排名低于预期，请确认。": {
+  "en": "You are currently at {0}, while some players are still at {1}. Leaving early may result in a lower final placement than expected. Please confirm.",
+  "id": "Kamu saat ini di {0}, sementara masih ada pemain di {1}. Keluar lebih awal dapat membuat peringkat akhir lebih rendah dari perkiraan. Harap konfirmasi."
+ },
+ "成长之路(一)": {
+  "en": "Growth Path I",
+  "id": "Growth Path I"
+ },
+ "成长之路(三)": {
+  "en": "Growth Path III",
+  "id": "Growth Path III"
+ },
+ "成长之路(二)": {
+  "en": "Growth Path II",
+  "id": "Growth Path II"
+ },
+ "我就要它(一)": {
+  "en": "I want it I",
+  "id": "Aku mau I"
+ },
+ "我就要它(三)": {
+  "en": "I want it III",
+  "id": "Aku mau III"
+ },
+ "我就要它(二)": {
+  "en": "I want it II",
+  "id": "Aku mau II"
+ },
+ "我有钥(一)": {
+  "en": "I have the key I",
+  "id": "Aku punya kuncinya I"
+ },
+ "我有钥(三)": {
+  "en": "I have the key III",
+  "id": "Aku punya kuncinya III"
+ },
+ "我有钥(二)": {
+  "en": "I have the key II",
+  "id": "Aku punya kuncinya II"
+ },
+ "我爱我家(一)": {
+  "en": "Home Sweet Home I",
+  "id": "Rumahku Istanaku I"
+ },
+ "我爱我家(三)": {
+  "en": "Home Sweet Home III",
+  "id": "Rumahku Istanaku III"
+ },
+ "我爱我家(二)": {
+  "en": "Home Sweet Home II",
+  "id": "Rumahku Istanaku II"
+ },
+ "我要验牌(一)": {
+  "en": "Show Me the Cards I",
+  "id": "Show Me the Cards I"
+ },
+ "我要验牌(三)": {
+  "en": "Show Me the Cards III",
+  "id": "Show Me the Cards III"
+ },
+ "我要验牌(二)": {
+  "en": "Show Me the Cards II",
+  "id": "Show Me the Cards II"
+ },
+ "战斗开始时，将敌方等级最高的英雄复制，临时加入我方战场。": {
+  "en": "At the start of combat, Copy the Enemy's highest-Level Hero and add them to your battlefield temporarily.",
+  "id": "Di awal pertarungan, salin Hero Musuh dengan Level tertinggi dan tambahkan sementara ke medan pertempuranmu."
+ },
+ "戳到你了(一)": {
+  "en": "Got You! I",
+  "id": "Kena Kamu! I"
+ },
+ "戳到你了(三)": {
+  "en": "Got You! III",
+  "id": "Kena Kamu! III"
+ },
+ "戳到你了(二)": {
+  "en": "Got You! II",
+  "id": "Kena Kamu! II"
+ },
+ "所托不再非人": {
+  "en": "Trust No Longer Misplaced",
+  "id": "Trust No Longer Misplaced"
+ },
+ "打出后获得累积的钻石（当前{810299Diamond:0|0}）和全体英雄等级（当前{810299Level:0}）。持有时：胜利钻石<color=#99DEB0>+{0|10}</color>、等级<color=#99DEB0>+20</color>；失败钻石<color=#99DEB0>+{0|3}</color>、等级<color=#99DEB0>+60</color>；平局不计入。": {
+  "en": "After playing, you will get the accumulated Diamonds (currently {810299Diamond:0|0}) and the Level of all heroes (currently {810299Level:0}). While held: Win Diamond<color=#99DEB0>+{0|10}</color>, Level<color=#99DEB0>+20</color>; Loss Diamond<color=#99DEB0>+{0|3}</color>, Level<color=#99DEB0>+60</color>; draws are not counted.",
+  "id": "Setelah dimainkan, kamu akan mendapatkan diamond yang terkumpul (saat ini {810299Diamond:0|0}) dan Level semua hero (saat ini {810299Level:0}). Saat dipegang: Menang Diamond<color=#99DEB0>+{0|10}</color>, Level<color=#99DEB0>+20</color>; Kalah Diamond<color=#99DEB0>+{0|3}</color>, Level<color=#99DEB0>+60</color>; seri tidak dihitung."
+ },
+ "扔心心表情": {
+  "en": "Throw Hearts Emote",
+  "id": "Emote Lempar Hati"
+ },
+ "扩容一下(一)": {
+  "en": "Room for More I",
+  "id": "Room for More I"
+ },
+ "扩容一下(七)": {
+  "en": "Room for More VII",
+  "id": "Room for More VII"
+ },
+ "扩容一下(三)": {
+  "en": "Room for More III",
+  "id": "Room for More III"
+ },
+ "扩容一下(九)": {
+  "en": "Room for More IX",
+  "id": "Room for More IX"
+ },
+ "扩容一下(二)": {
+  "en": "Room for More II",
+  "id": "Room for More II"
+ },
+ "扩容一下(五)": {
+  "en": "Room for More V",
+  "id": "Room for More V"
+ },
+ "扩容一下(八)": {
+  "en": "Room for More VIII",
+  "id": "Room for More VIII"
+ },
+ "扩容一下(六)": {
+  "en": "Room for More VI",
+  "id": "Room for More VI"
+ },
+ "扩容一下(十)": {
+  "en": "Room for More X",
+  "id": "Room for More X"
+ },
+ "扩容一下(四)": {
+  "en": "Room for More IV",
+  "id": "Room for More IV"
+ },
+ "扶我起来(一)": {
+  "en": "Help Me Up I",
+  "id": "Bantu Aku Bangun I"
+ },
+ "扶我起来(三)": {
+  "en": "Help Me Up III",
+  "id": "Bantu Aku Bangun III"
+ },
+ "扶我起来(二)": {
+  "en": "Help Me Up II",
+  "id": "Bantu Aku Bangun II"
+ },
+ "抄作业大师(一)": {
+  "en": "Copy Homework Master I",
+  "id": "Copy Homework Master I"
+ },
+ "抄作业大师(三)": {
+  "en": "Copy Homework Master III",
+  "id": "Copy Homework Master III"
+ },
+ "抄作业大师(二)": {
+  "en": "Copy Homework Master II",
+  "id": "Copy Homework Master II"
+ },
+ "抉择之弈活动奖励": {
+  "en": "Choice Chess Event Rewards",
+  "id": "Hadiah Event Choice Chess"
+ },
+ "抉择之弈进入前3名": {
+  "en": "Finish in the Top 3 in Choice Chess",
+  "id": "Finis di Top 3 di Choice Chess"
+ },
+ "投降后排名": {
+  "en": "Rank after surrender",
+  "id": "Peringkat setelah menyerah"
+ },
+ "披星戴月(一)": {
+  "en": "Clad in Stars and Moonlight I",
+  "id": "Clad in Stars and Moonlight I"
+ },
+ "披星戴月(三)": {
+  "en": "Clad in Stars and Moonlight III",
+  "id": "Clad in Stars and Moonlight III"
+ },
+ "披星戴月(二)": {
+  "en": "Clad in Stars and Moonlight II",
+  "id": "Clad in Stars and Moonlight II"
+ },
+ "抵扣券抵扣": {
+  "en": "Coupon Discount",
+  "id": "Potongan Kupon"
+ },
+ "抽奖需要{0}个{1}，去搞点摇摇币~": {
+  "en": "A draw needs {0} {1}. Go get some Shake Coins~",
+  "id": "Draw butuh {0} {1}. Ayo cari Shake Coin~"
+ },
+ "拉拉队教练(一)": {
+  "en": "The cheerleader coach I",
+  "id": "Pelatih pemandu sorak I"
+ },
+ "拉拉队教练(三)": {
+  "en": "The cheerleader coach III",
+  "id": "Pelatih pemandu sorak III"
+ },
+ "拉拉队教练(二)": {
+  "en": "The cheerleader coach II",
+  "id": "Pelatih pemandu sorak II"
+ },
+ "拍卖大师(一)": {
+  "en": "Auction Master I",
+  "id": "Auction Master I"
+ },
+ "拍卖大师(三)": {
+  "en": "Auction Master III",
+  "id": "Auction Master III"
+ },
+ "拍卖大师(二)": {
+  "en": "Auction Master II",
+  "id": "Auction Master II"
+ },
+ "拍卖新秀(一)": {
+  "en": "Auction Rookie I",
+  "id": "Auction Rookie I"
+ },
+ "拍卖新秀(三)": {
+  "en": "Auction Rookie III",
+  "id": "Auction Rookie III"
+ },
+ "拍卖新秀(二)": {
+  "en": "Auction Rookie II",
+  "id": "Auction Rookie II"
+ },
+ "拥有【蔡文姬】5级卡牌": {
+  "en": "Own a Level 5 [Cai Yan] Card",
+  "id": "Miliki Kartu [Cai Yan] Level 5"
+ },
+ "持家有道(一)": {
+  "en": "A Knack for Saving I",
+  "id": "A Knack for Saving I"
+ },
+ "持家有道(三)": {
+  "en": "A Knack for Saving III",
+  "id": "A Knack for Saving III"
+ },
+ "持家有道(二)": {
+  "en": "A Knack for Saving II",
+  "id": "A Knack for Saving II"
+ },
+ "持有时每场战斗后累积奖励：\n胜利：钻石<color=#99DEB0>+{0|10}</color>、全体英雄等级<color=#99DEB0>+20</color>\n失败：钻石<color=#99DEB0>+{0|3}</color>、全体英雄等级<color=#99DEB0>+60</color>\n平局不计入。打出后领取全部累积（当前钻石{810299Diamond:0|0}，等级{810299Level:0}）。": {
+  "en": "Accumulate Rewards after each combat while held:\nWin: Diamonds <color=#99DEB0>+{0|10}</color>, All Hero Levels <color=#99DEB0>+20</color>\nLoss: Diamonds <color=#99DEB0>+{0|3}</color>, All Hero Levels <color=#99DEB0>+60</color>\nDraws do not count. Claim All accumulated Rewards upon playing (Current Diamonds {810299Diamond:0|0}, Levels {810299Level:0})."
+ },
+ "指定1名英雄，场上和其品阶相同的英雄等级+4。": {
+  "en": "Target 1 Hero. Increase the Level of all Heroes on the board with the same Tier by 4."
+ },
+ "指定场上1名10级以上的英雄，将其等级随机分配给其他英雄中等级最低的3名（不会分配给同一英雄）。": {
+  "en": "Designate 1 Hero of Level 10 or higher and randomly distribute their Level among the 3 lowest-Level Other Heroes (cannot be assigned to the same Hero)."
+ },
+ "指定移除一名英雄，获得能量。此英雄0/1/2/3觉醒进度时，获得3/6/9/12能量。": {
+  "en": "Designate a Hero to Remove and Gain Energy. Gain 3/6/9/12 Energy based on the Hero's 0/1/2/3 Awaken Progress.",
+  "id": "Tunjuk satu Hero untuk dihapus dan dapatkan Energy. Dapatkan 3/6/9/12 Energy berdasarkan Awaken Progress Hero 0/1/2/3."
+ },
+ "指法芬芳(一)": {
+  "en": "Flawless Fingertips I",
+  "id": "Flawless Fingertips I"
+ },
+ "指法芬芳(三)": {
+  "en": "Flawless Fingertips III",
+  "id": "Flawless Fingertips III"
+ },
+ "指法芬芳(二)": {
+  "en": "Flawless Fingertips II",
+  "id": "Flawless Fingertips II"
+ },
+ "挚爱亲朋(一)": {
+  "en": "Loved Ones I",
+  "id": "Orang Tersayang I"
+ },
+ "挚爱亲朋(三)": {
+  "en": "Loved Ones III",
+  "id": "Orang Tersayang III"
+ },
+ "挚爱亲朋(二)": {
+  "en": "Loved Ones II",
+  "id": "Orang Tersayang II"
+ },
+ "挥手表情": {
+  "en": "Wave Emote",
+  "id": "Emote Lambaian"
+ },
+ "接下来该我把控节奏了。（专属）": {
+  "en": "It is my turn to control the rhythm. (Exclusive)",
+  "id": "Sekarang giliranku mengendalikan ritme. (Eksklusif)"
+ },
+ "接住心心表情": {
+  "en": "Catch the Heart Emote",
+  "id": "Emote Tangkap Hati"
+ },
+ "接收心心": {
+  "en": "Receive Hearts",
+  "id": "Terima Hati"
+ },
+ "提供连接蓝牙设备服务，用于游戏内可使用蓝牙耳机进行语音聊天。": {
+  "en": "Provides connection to Bluetooth devices so you can use Bluetooth headsets for in-game voice chat.",
+  "id": "Menyediakan koneksi ke perangkat Bluetooth agar kamu bisa memakai headset Bluetooth untuk voice chat dalam game."
+ },
+ "支持已超过上限，最多每名玩家支持{0}钻石": {
+  "en": "Support limit exceeded: you can support each player with up to {0} Diamonds",
+  "id": "Batas dukungan terlampaui: maksimal {0} Diamond per pemain"
+ },
+ "收下线条小狗的爱心吧！（个性戳戳，可在组队界面对其他玩家使用）": {
+  "en": "Take Line Puppy's hearts! (Personalized Poke, can be used on other players in the team screen)",
+  "id": "Terima hati dari Line Puppy! (Personalized Poke, bisa digunakan ke pemain lain di layar tim)"
+ },
+ "整点活儿(一)": {
+  "en": "Put On a Show I",
+  "id": "Put On a Show I"
+ },
+ "整点活儿(三)": {
+  "en": "Put On a Show III",
+  "id": "Put On a Show III"
+ },
+ "整点活儿(二)": {
+  "en": "Put On a Show II",
+  "id": "Put On a Show II"
+ },
+ "新编号 {0}": {
+  "en": "New ID {0}",
+  "id": "ID Baru {0}"
+ },
+ "新编号已被占用，本次免费重试": {
+  "en": "The new ID is already taken. This retry is free",
+  "id": "ID baru sudah dipakai. Coba lagi gratis"
+ },
+ "施法获得可叠加的50+10%最大生命值的护盾，持续5秒": {
+  "en": "Casting the skill grants a stackable Shield equal to 50+10% Max HP, lasting 5 seconds.",
+  "id": "Cast skill untuk mendapatkan Shield yang bisa ditumpuk sebesar 50+10% Max HP, bertahan 5 detik."
+ },
+ "无限后手(一)": {
+  "en": "Endless Backup Plans I",
+  "id": "Endless Backup Plans I"
+ },
+ "无限后手(三)": {
+  "en": "Endless Backup Plans III",
+  "id": "Endless Backup Plans III"
+ },
+ "无限后手(二)": {
+  "en": "Endless Backup Plans II",
+  "id": "Endless Backup Plans II"
+ },
+ "日月行者在成长之路达到2级后开启": {
+  "en": "Sun & Moon Traveler unlocks at Growth Path level 2",
+  "id": "Sun & Moon Traveler terbuka di Growth Path level 2"
+ },
+ "日月行者尚未开启": {
+  "en": "Sun & Moon Traveler is not open yet",
+  "id": "Sun & Moon Traveler belum dibuka"
+ },
+ "旧编号 {0}，是否使用当前新编号": {
+  "en": "Old ID {0}. Use the new ID?",
+  "id": "ID Lama {0}. Gunakan ID baru ini?"
+ },
+ "明先生上大分": {
+  "en": "Mr. Ming Scores Big",
+  "id": "Mr. Ming Scores Big"
+ },
+ "明先生上大分(一)": {
+  "en": "Mr. Ming Scores Big I",
+  "id": "Mr. Ming Scores Big I"
+ },
+ "明先生上大分(三)": {
+  "en": "Mr. Ming Scores Big III",
+  "id": "Mr. Ming Scores Big III"
+ },
+ "明先生上大分(二)": {
+  "en": "Mr. Ming Scores Big II",
+  "id": "Mr. Ming Scores Big II"
+ },
+ "星耀无忧者(一)": {
+  "en": "Stars without fear I",
+  "id": "Bintang tanpa rasa takut I"
+ },
+ "星耀无忧者(三)": {
+  "en": "Stars without fear III",
+  "id": "Bintang tanpa rasa takut III"
+ },
+ "星耀无忧者(二)": {
+  "en": "Stars without fear II",
+  "id": "Bintang tanpa rasa takut II"
+ },
+ "昭君上大分": {
+  "en": "Zhaojun Scores Big",
+  "id": "Zhaojun Scores Big"
+ },
+ "昭君上大分(一)": {
+  "en": "Zhaojun Scores Big I",
+  "id": "Zhaojun Scores Big I"
+ },
+ "昭君上大分(三)": {
+  "en": "Zhaojun Scores Big III",
+  "id": "Zhaojun Scores Big III"
+ },
+ "昭君上大分(二)": {
+  "en": "Zhaojun Scores Big II",
+  "id": "Zhaojun Scores Big II"
+ },
+ "是否授权《王者万象棋》绑定您同平台的《王者荣耀》账号，获取账号信息以提供更好的游戏体验。\n授权内容：将《王者荣耀》好友关系与好友亲密度继承至《王者万象棋》。\n<color=#98CBFFFF>特别声明：亲密度仅首次授权时进行同步，后续不会再同步。</color>": {
+  "en": "Authorize Honor of Kings: Ace to link your Honor of Kings account on the same platform and obtain account info for a better game experience?\nAuthorization content: inherit your Honor of Kings friend list and Friend Intimacy into Honor of Kings: Ace.\n<color=#98CBFFFF>Special note: Intimacy is synced only on the first authorization and will not be synced again.</color>",
+  "id": "Izinkan Honor of Kings: Ace menautkan akun Honor of Kings kamu di platform yang sama untuk mendapatkan info akun demi pengalaman bermain yang lebih baik?\nKonten otorisasi: mewarisi daftar teman dan Intimacy teman Honor of Kings ke Honor of Kings: Ace.\n<color=#98CBFFFF>Catatan khusus: Intimacy hanya disinkronkan saat otorisasi pertama dan tidak akan disinkronkan lagi.</color>"
+ },
+ "显眼包(一)": {
+  "en": "Center of Attention I",
+  "id": "Center of Attention I"
+ },
+ "显眼包(三)": {
+  "en": "Center of Attention III",
+  "id": "Center of Attention III"
+ },
+ "显眼包(二)": {
+  "en": "Center of Attention II",
+  "id": "Center of Attention II"
+ },
+ "最佳搭子(一)": {
+  "en": "Best match I",
+  "id": "Pasangan terbaik I"
+ },
+ "最佳搭子(三)": {
+  "en": "Best match III",
+  "id": "Pasangan terbaik III"
+ },
+ "最佳搭子(二)": {
+  "en": "Best match II",
+  "id": "Pasangan terbaik II"
+ },
+ "最强大脑(一)": {
+  "en": "The strongest brain I",
+  "id": "Otak terkuat I"
+ },
+ "最强大脑(三)": {
+  "en": "The strongest brain III",
+  "id": "Otak terkuat III"
+ },
+ "最强大脑(二)": {
+  "en": "The strongest brain II",
+  "id": "Otak terkuat II"
+ },
+ "最强大脑(五)": {
+  "en": "The strongest brain V",
+  "id": "Otak terkuat V"
+ },
+ "最强大脑(四)": {
+  "en": "The strongest brain IV",
+  "id": "Otak terkuat IV"
+ },
+ "期间更有对局翻牌钻石加倍": {
+  "en": "Plus double Diamonds from Card Flips during the event",
+  "id": "Plus Diamond ganda dari Balik Kartu selama event"
+ },
+ "期间若目标走出能量球所处阵位，会被牵引回该阵位，到达时能量球将立即爆炸并消散，造成<color=#d487e4>[0]点法术伤害</color><color=#d487e4>（[1]+[2]%法术攻击力）</color>并<color=#ffffffbf>眩晕</color>周围的敌方单位2秒": {
+  "en": "During this period, if the target moves out of the Energy Ball's position, they will be pulled back to it. Upon arrival, the Energy Ball immediately detonates and dissipates, dealing <color=#d487e4>[0] Magic Damage</color><color=#d487e4> ([1]+[2]% Magic Attack)</color> and <color=#ffffffbf>stunning</color> surrounding enemy units for 2 seconds",
+  "id": "Selama periode ini, jika target bergerak keluar dari posisi Energy Ball, mereka akan ditarik kembali ke sana. Saat tiba, Energy Ball akan langsung meledak dan lenyap, memberikan <color=#d487e4>[0] Magic Damage</color><color=#d487e4> ([1]+[2]% Magic Attack)</color> dan <color=#ffffffbf>men-stun</color> unit musuh di sekitar selama 2 detik"
+ },
+ "期间若目标走出能量球所处阵位，会被牵引回该阵位，到达时能量球将立即爆炸并消散，造成[523302p1q1]+[523302p1q3/100]%法术攻击力的法术伤害并眩晕周围的敌方单位2秒": {
+  "en": "During this period, if the target moves out of the Energy Ball's position, they will be pulled back to it. Upon arrival, the Energy Ball immediately detonates and dissipates, dealing [523302p1q1]+[523302p1q3/100]% Magic Attack as Magic Damage and stunning surrounding enemy units for 2 seconds.",
+  "id": "Selama periode ini, jika target bergerak keluar dari posisi Energy Ball, mereka akan ditarik kembali ke sana. Saat tiba, Energy Ball akan langsung meledak dan lenyap, memberikan Magic Damage sebesar [523302p1q1]+[523302p1q3/100]% Magic Attack dan men-stun unit musuh di sekitar selama 2 detik."
+ },
+ "本期获奖人次": {
+  "en": "Winners This Period",
+  "id": "Pemenang Periode Ini"
+ },
+ "本期金牌奖励": {
+  "en": "Gold Rewards This Period",
+  "id": "Hadiah Gold Periode Ini"
+ },
+ "本次刷新免费": {
+  "en": "This refresh is free",
+  "id": "Refresh kali ini gratis"
+ },
+ "来啥打啥(一)": {
+  "en": "Ready for Anything I",
+  "id": "Ready for Anything I"
+ },
+ "来啥打啥(三)": {
+  "en": "Ready for Anything III",
+  "id": "Ready for Anything III"
+ },
+ "来啥打啥(二)": {
+  "en": "Ready for Anything II",
+  "id": "Ready for Anything II"
+ },
+ "来打我呀(一)": {
+  "en": "Come and hit me I",
+  "id": "Ayo pukul aku I"
+ },
+ "来打我呀(三)": {
+  "en": "Come and hit me III",
+  "id": "Ayo pukul aku III"
+ },
+ "来打我呀(二)": {
+  "en": "Come and hit me II",
+  "id": "Ayo pukul aku II"
+ },
+ "来自钻石狂潮的赛事回馈，打开礼包有几率获得以下道具的其中一个：随机特效（1天)*1、炫彩棒棒糖*1、任务加速券*1、高级点心礼盒、小动物捏捏、补签卡。": {
+  "en": "Event rewards from Diamond Frenzy. Open the Gift Pack for a chance to Obtain one of the following: Random Effect (1 day) x1, Colorful Lollipop x1, Mission Speed-Up Voucher x1, Advanced Snack Box, Animal Squeeze, or Check-In Makeup Card.",
+  "id": "Hadiah event dari Diamond Frenzy. Buka Gift Pack untuk berpeluang mendapatkan salah satu dari berikut: Random Effect (1 hari) x1, Colorful Lollipop x1, Mission Speed-Up Voucher x1, Advanced Snack Box, Animal Squeeze, atau Check-In Makeup Card."
+ },
+ "框王(一)": {
+  "en": "Frame King I",
+  "id": "Frame King I"
+ },
+ "框王(三)": {
+  "en": "Frame King III",
+  "id": "Frame King III"
+ },
+ "框王(二)": {
+  "en": "Frame King II",
+  "id": "Frame King II"
+ },
+ "步步高升(一)": {
+  "en": "Rising Through the Ranks I",
+  "id": "Rising Through the Ranks I"
+ },
+ "步步高升(三)": {
+  "en": "Rising Through the Ranks III",
+  "id": "Rising Through the Ranks III"
+ },
+ "步步高升(二)": {
+  "en": "Rising Through the Ranks II",
+  "id": "Rising Through the Ranks II"
+ },
+ "步步高升(五)": {
+  "en": "Rising Through the Ranks V",
+  "id": "Rising Through the Ranks V"
+ },
+ "步步高升(四)": {
+  "en": "Rising Through the Ranks IV",
+  "id": "Rising Through the Ranks IV"
+ },
+ "武凤上大分": {
+  "en": "Wu Feng Scores Big",
+  "id": "Wu Feng Scores Big"
+ },
+ "武凤上大分(一)": {
+  "en": "Wu Feng Scores Big I",
+  "id": "Wu Feng Scores Big I"
+ },
+ "武凤上大分(三)": {
+  "en": "Wu Feng Scores Big III",
+  "id": "Wu Feng Scores Big III"
+ },
+ "武凤上大分(二)": {
+  "en": "Wu Feng Scores Big II",
+  "id": "Wu Feng Scores Big II"
+ },
+ "段位达到王者时会解锁一个王中王子账号，可以重复挑战上王者段位": {
+  "en": "Reaching King Rank unlocks a King of Kings sub-account, letting you climb to King Rank again",
+  "id": "Mencapai Rank King membuka sub-akun King of Kings, sehingga kamu bisa naik ke Rank King lagi"
+ },
+ "每2秒对周围1格敌人造成<color=#ffffff>20（+5%穿戴者最大生命值）点法术伤害</color>，并降低目标50%生命恢复和护盾效果，持续3秒。": {
+  "en": "Every 2 seconds, deal <color=#ffffff>20 (+5% of wearer's Max HP) Magic Damage</color> to enemies within 1 grid and reduce their Health Recovery and Shield effects by 50% for 3 seconds.",
+  "id": "Setiap 2 detik, berikan <color=#ffffff>20 (+5% Max HP pemakai) Magic Damage</color> ke musuh dalam jarak 1 petak dan kurangi Health Recovery serta efek Shield mereka sebesar 50% selama 3 detik."
+ },
+ "每{0}抽可领1个自选礼包（<color=#ED6962>{1}</color>/{0}），已选自选礼包<color=#ED6962>{2}</color>/{3}个": {
+  "en": "Claim 1 Selectable Gift Pack every {0} draws (<color=#ED6962>{1}</color>/{0}). Selectable Gift Packs chosen: <color=#ED6962>{2}</color>/{3}",
+  "id": "Klaim 1 Gift Pack Pilihan setiap {0} tarikan (<color=#ED6962>{1}</color>/{0}). Gift Pack Pilihan dipilih: <color=#ED6962>{2}</color>/{3}"
+ },
+ "每抽取<color=#F8EE9A>10次</color>可获得自选礼包，最多领取<color=#F8EE9A>6次</color>": {
+  "en": "Every <color=#F8EE9A>10 draws</color> grant a Selectable Gift Pack, up to <color=#F8EE9A>6 times</color>",
+  "id": "Setiap <color=#F8EE9A>10 tarikan</color> memberi Gift Pack Pilihan, maksimal <color=#F8EE9A>6 kali</color>"
+ },
+ "每日获得1次万象大赛前三": {
+  "en": "Finish in the top 3 of an ACE Tournament match once daily",
+  "id": "Finis di top 3 ACE Tournament 1 kali setiap hari"
+ },
+ "每日进行1次组队对局": {
+  "en": "Play 1 team match daily",
+  "id": "Main 1 pertandingan tim setiap hari"
+ },
+ "每期结束后可以在这里查看竞猜结果，祝你好运~": {
+  "en": "Check the prediction results here after each period ends. Good luck~",
+  "id": "Lihat hasil prediksi di sini setelah tiap periode berakhir. Semoga beruntung~"
+ },
+ "每次祈愿有概率获得积分和限定天幕": {
+  "en": "Each Prayer has a chance to grant Points and a limited Sky Screen",
+  "id": "Setiap Doa berpeluang memberi Poin dan Sky Screen terbatas"
+ },
+ "比赛已开始": {
+  "en": "The match has already started",
+  "id": "Pertandingan sudah dimulai"
+ },
+ "水晶收集者(一)": {
+  "en": "Crystal Collector I",
+  "id": "Crystal Collector I"
+ },
+ "水晶收集者(七)": {
+  "en": "Crystal Collector VII",
+  "id": "Crystal Collector VII"
+ },
+ "水晶收集者(三)": {
+  "en": "Crystal Collector III",
+  "id": "Crystal Collector III"
+ },
+ "水晶收集者(九)": {
+  "en": "Crystal Collector IX",
+  "id": "Crystal Collector IX"
+ },
+ "水晶收集者(二)": {
+  "en": "Crystal Collector II",
+  "id": "Crystal Collector II"
+ },
+ "水晶收集者(五)": {
+  "en": "Crystal Collector V",
+  "id": "Crystal Collector V"
+ },
+ "水晶收集者(八)": {
+  "en": "Crystal Collector VIII",
+  "id": "Crystal Collector VIII"
+ },
+ "水晶收集者(六)": {
+  "en": "Crystal Collector VI",
+  "id": "Crystal Collector VI"
+ },
+ "水晶收集者(十)": {
+  "en": "Crystal Collector X",
+  "id": "Crystal Collector X"
+ },
+ "水晶收集者(四)": {
+  "en": "Crystal Collector IV",
+  "id": "Crystal Collector IV"
+ },
+ "永不言六(一)": {
+  "en": "Never Say Six I",
+  "id": "Never Say Six I"
+ },
+ "永不言六(三)": {
+  "en": "Never Say Six III",
+  "id": "Never Say Six III"
+ },
+ "永不言六(二)": {
+  "en": "Never Say Six II",
+  "id": "Never Say Six II"
+ },
+ "泡言泡语(一)": {
+  "en": "Bubble Babble I",
+  "id": "Bubble Babble I"
+ },
+ "泡言泡语(三)": {
+  "en": "Bubble Babble III",
+  "id": "Bubble Babble III"
+ },
+ "泡言泡语(二)": {
+  "en": "Bubble Babble II",
+  "id": "Bubble Babble II"
+ },
+ "洒洒水啦(一)": {
+  "en": "Easy Work I",
+  "id": "Easy Work I"
+ },
+ "洒洒水啦(三)": {
+  "en": "Easy Work III",
+  "id": "Easy Work III"
+ },
+ "洒洒水啦(二)": {
+  "en": "Easy Work II",
+  "id": "Easy Work II"
+ },
+ "活动货币，用于在线条小狗奖池兑换商店兑换奖励。": {
+  "en": "Event currency used to redeem rewards in the Line Puppy prize pool Exchange Shop.",
+  "id": "Mata uang Event untuk menukar hadiah di Exchange Shop prize pool Line Puppy."
+ },
+ "海内存知己(一)": {
+  "en": "A Friend Across the Seas I",
+  "id": "A Friend Across the Seas I"
+ },
+ "海内存知己(三)": {
+  "en": "A Friend Across the Seas III",
+  "id": "A Friend Across the Seas III"
+ },
+ "海内存知己(二)": {
+  "en": "A Friend Across the Seas II",
+  "id": "A Friend Across the Seas II"
+ },
+ "涟漪的形状从来不被定义。": {
+  "en": "The shape of the ripple is never defined.",
+  "id": "Bentuk riak tidak pernah didefinisikan."
+ },
+ "清仓(一)": {
+  "en": "Clearance Sale I",
+  "id": "Obral Cuci Gudang I"
+ },
+ "清仓(三)": {
+  "en": "Clearance Sale III",
+  "id": "Obral Cuci Gudang III"
+ },
+ "清仓(二)": {
+  "en": "Clearance Sale II",
+  "id": "Obral Cuci Gudang II"
+ },
+ "游戏人生(一)": {
+  "en": "Life Is a Game I",
+  "id": "Life Is a Game I"
+ },
+ "游戏人生(三)": {
+  "en": "Life Is a Game III",
+  "id": "Life Is a Game III"
+ },
+ "游戏人生(二)": {
+  "en": "Life Is a Game II",
+  "id": "Life Is a Game II"
+ },
+ "满勤王(一)": {
+  "en": "Perfect Attendance King I",
+  "id": "Perfect Attendance King I"
+ },
+ "满勤王(三)": {
+  "en": "Perfect Attendance King III",
+  "id": "Perfect Attendance King III"
+ },
+ "满勤王(二)": {
+  "en": "Perfect Attendance King II",
+  "id": "Perfect Attendance King II"
+ },
+ "炉火纯青(一)": {
+  "en": "Masterful I",
+  "id": "Mahir I"
+ },
+ "炉火纯青(三)": {
+  "en": "Masterful III",
+  "id": "Mahir III"
+ },
+ "炉火纯青(二)": {
+  "en": "Masterful II",
+  "id": "Mahir II"
+ },
+ "点击切换模式": {
+  "en": "Click to switch mode",
+  "id": "Klik untuk ganti mode"
+ },
+ "点赞成功，获得5钻石（本日剩余{0}/{1}次）": {
+  "en": "Liked! Got 5 Diamonds ({0}/{1} left today)",
+  "id": "Berhasil like! Dapat 5 Diamond (sisa {0}/{1} hari ini)"
+ },
+ "热情观众(一)": {
+  "en": "Enthusiastic Viewer I",
+  "id": "Enthusiastic Viewer I"
+ },
+ "热情观众(三)": {
+  "en": "Enthusiastic Viewer III",
+  "id": "Enthusiastic Viewer III"
+ },
+ "热情观众(二)": {
+  "en": "Enthusiastic Viewer II",
+  "id": "Enthusiastic Viewer II"
+ },
+ "牌界中坚(一)": {
+  "en": "Pillar of the Card Game I",
+  "id": "Pillar of the Card Game I"
+ },
+ "牌界中坚(三)": {
+  "en": "Pillar of the Card Game III",
+  "id": "Pillar of the Card Game III"
+ },
+ "牌界中坚(二)": {
+  "en": "Pillar of the Card Game II",
+  "id": "Pillar of the Card Game II"
+ },
+ "特邀大使(一)": {
+  "en": "Special Ambassador I",
+  "id": "Special Ambassador I"
+ },
+ "特邀大使(三)": {
+  "en": "Special Ambassador III",
+  "id": "Special Ambassador III"
+ },
+ "特邀大使(二)": {
+  "en": "Special Ambassador II",
+  "id": "Special Ambassador II"
+ },
+ "独树一帜(一)": {
+  "en": "One of a Kind I",
+  "id": "One of a Kind I"
+ },
+ "独树一帜(三)": {
+  "en": "One of a Kind III",
+  "id": "One of a Kind III"
+ },
+ "独树一帜(二)": {
+  "en": "One of a Kind II",
+  "id": "One of a Kind II"
+ },
+ "玉环上大分": {
+  "en": "Yuhuan Scores Big",
+  "id": "Yuhuan Scores Big"
+ },
+ "玉环上大分(一)": {
+  "en": "Yuhuan Scores Big I",
+  "id": "Yuhuan Scores Big I"
+ },
+ "玉环上大分(三)": {
+  "en": "Yuhuan Scores Big III",
+  "id": "Yuhuan Scores Big III"
+ },
+ "玉环上大分(二)": {
+  "en": "Yuhuan Scores Big II",
+  "id": "Yuhuan Scores Big II"
+ },
+ "王中王奖励": {
+  "en": "King of Kings Rewards",
+  "id": "Hadiah King of Kings"
+ },
+ "王中王奖励可领取": {
+  "en": "King of Kings rewards available",
+  "id": "Hadiah King of Kings tersedia"
+ },
+ "王牌对决-万象大赛分红发放": {
+  "en": "Ace Duel - ACE Tournament Dividend Distributed",
+  "id": "Dividen Ace Duel - ACE Tournament Dibagikan"
+ },
+ "王牌对决-钻石狂潮分红发放": {
+  "en": "Ace Duel - Diamond Frenzy Dividend Distributed",
+  "id": "Dividen Ace Duel - Diamond Frenzy Dibagikan"
+ },
+ "王牌对决·万象大赛在每天16:00-23:00开启，每整点在备战区选取段位分最高的6名玩家开启1场对局。参与选手对局排位分按五倍计算（输赢都按基础得分的五倍计算）。对局时刻如下：": {
+  "en": "Ace Duel · ACE Tournament opens daily from 16:00-23:00. On every hour, the 6 players with the highest Rank points in the preparation area are selected for 1 match. Participants' Ranked points count five times (wins and losses both count at five times the base score). Match times are as follows:",
+  "id": "Ace Duel · ACE Tournament dibuka setiap hari pukul 16:00-23:00. Setiap jam tepat, 6 pemain dengan poin Rank tertinggi di area persiapan dipilih untuk 1 pertandingan. Poin Ranked peserta dihitung lima kali lipat (menang maupun kalah dihitung lima kali skor dasar). Jadwal pertandingan sebagai berikut:"
+ },
+ "王牌对决对局分红": {
+  "en": "Ace Duel Match Dividend",
+  "id": "Dividen Pertandingan Ace Duel"
+ },
+ "王牌选手(一)": {
+  "en": "Ace Player I",
+  "id": "Pemain Ace I"
+ },
+ "王牌选手(三)": {
+  "en": "Ace Player III",
+  "id": "Pemain Ace III"
+ },
+ "王牌选手(二)": {
+  "en": "Ace Player II",
+  "id": "Pemain Ace II"
+ },
+ "王者{0}分": {
+  "en": "King {0} Points",
+  "id": "King {0} Poin"
+ },
+ "王者之路(一)": {
+  "en": "Path of Kings I",
+  "id": "Path of Kings I"
+ },
+ "王者之路(三)": {
+  "en": "Path of Kings III",
+  "id": "Path of Kings III"
+ },
+ "王者之路(二)": {
+  "en": "Path of Kings II",
+  "id": "Path of Kings II"
+ },
+ "王者无忧者(一)": {
+  "en": "King Carefree I",
+  "id": "King Carefree I"
+ },
+ "王者无忧者(三)": {
+  "en": "King Carefree III",
+  "id": "King Carefree III"
+ },
+ "王者无忧者(二)": {
+  "en": "King Carefree II",
+  "id": "King Carefree II"
+ },
+ "王者段位冲分有礼": {
+  "en": "King Rank Climb Rewards",
+  "id": "Hadiah Naik Rank King"
+ },
+ "王者段位冲分领钻石": {
+  "en": "Climb King Rank for Diamonds",
+  "id": "Naik Rank King, Dapat Diamond"
+ },
+ "班叔上大分": {
+  "en": "Uncle Ban Scores Big",
+  "id": "Uncle Ban Scores Big"
+ },
+ "班叔上大分(一)": {
+  "en": "Uncle Ban Scores Big I",
+  "id": "Uncle Ban Scores Big I"
+ },
+ "班叔上大分(三)": {
+  "en": "Uncle Ban Scores Big III",
+  "id": "Uncle Ban Scores Big III"
+ },
+ "班叔上大分(二)": {
+  "en": "Uncle Ban Scores Big II",
+  "id": "Uncle Ban Scores Big II"
+ },
+ "琉璃法球伤害提升至100+250%法术攻击力": {
+  "en": "Glazed Orb damage increased to 100+250% Magic Attack",
+  "id": "Damage Glazed Orb meningkat menjadi 100+250% Magic Attack"
+ },
+ "瑶妹上大分": {
+  "en": "Yao Scores Big",
+  "id": "Yao Scores Big"
+ },
+ "瑶妹上大分(一)": {
+  "en": "Yao Scores Big I",
+  "id": "Yao Scores Big I"
+ },
+ "瑶妹上大分(三)": {
+  "en": "Yao Scores Big III",
+  "id": "Yao Scores Big III"
+ },
+ "瑶妹上大分(二)": {
+  "en": "Yao Scores Big II",
+  "id": "Yao Scores Big II"
+ },
+ "生意头脑(一)": {
+  "en": "Business Sense I",
+  "id": "Business Sense I"
+ },
+ "生意头脑(三)": {
+  "en": "Business Sense III",
+  "id": "Business Sense III"
+ },
+ "生意头脑(二)": {
+  "en": "Business Sense II",
+  "id": "Business Sense II"
+ },
+ "由于当前编号已被占用，本次点击刷新后将免费为您整体刷新编号(VIP特权定制部分除外)": {
+  "en": "Your current ID is already taken, so this refresh will re-roll your whole ID for free (except digits customized with VIP privileges)",
+  "id": "ID kamu saat ini sudah dipakai, jadi refresh kali ini akan mengacak seluruh ID kamu secara gratis (kecuali digit yang dikustomisasi dengan hak VIP)"
+ },
+ "电竞选手": {
+  "en": "Esports Player",
+  "id": "Pemain Esports"
+ },
+ "登峰之路(一)": {
+  "en": "Road to the Summit I",
+  "id": "Road to the Summit I"
+ },
+ "登峰之路(三)": {
+  "en": "Road to the Summit III",
+  "id": "Road to the Summit III"
+ },
+ "登峰之路(二)": {
+  "en": "Road to the Summit II",
+  "id": "Road to the Summit II"
+ },
+ "登录即可领取钻石抵扣券": {
+  "en": "Log in to claim Diamond Discount Coupons",
+  "id": "Login untuk klaim Diamond Discount Coupon"
+ },
+ "白手起家(一)": {
+  "en": "Starting from scratch I",
+  "id": "Memulai dari nol I"
+ },
+ "白手起家(三)": {
+  "en": "Starting from scratch III",
+  "id": "Memulai dari nol III"
+ },
+ "白手起家(二)": {
+  "en": "Starting from scratch II",
+  "id": "Memulai dari nol II"
+ },
+ "白歌上大分": {
+  "en": "Bai Ge Scores Big",
+  "id": "Bai Ge Scores Big"
+ },
+ "白歌上大分(一)": {
+  "en": "Bai Ge Scores Big I",
+  "id": "Bai Ge Scores Big I"
+ },
+ "白歌上大分(三)": {
+  "en": "Bai Ge Scores Big III",
+  "id": "Bai Ge Scores Big III"
+ },
+ "白歌上大分(二)": {
+  "en": "Bai Ge Scores Big II",
+  "id": "Bai Ge Scores Big II"
+ },
+ "省钱新手(一)": {
+  "en": "Save the money I",
+  "id": "Hemat uangnya I"
+ },
+ "省钱新手(三)": {
+  "en": "Save the money III",
+  "id": "Hemat uangnya III"
+ },
+ "省钱新手(二)": {
+  "en": "Save the money II",
+  "id": "Hemat uangnya II"
+ },
+ "眼光独到(一)": {
+  "en": "A Discerning Eye I",
+  "id": "A Discerning Eye I"
+ },
+ "眼光独到(三)": {
+  "en": "A Discerning Eye III",
+  "id": "A Discerning Eye III"
+ },
+ "眼光独到(二)": {
+  "en": "A Discerning Eye II",
+  "id": "A Discerning Eye II"
+ },
+ "眼花缭乱(一)": {
+  "en": "Dazzling Display I",
+  "id": "Dazzling Display I"
+ },
+ "眼花缭乱(三)": {
+  "en": "Dazzling Display III",
+  "id": "Dazzling Display III"
+ },
+ "眼花缭乱(二)": {
+  "en": "Dazzling Display II",
+  "id": "Dazzling Display II"
+ },
+ "礼包或限时道具可使用": {
+  "en": "Gift packs or limited-time items available to use",
+  "id": "Ada gift pack atau item waktu terbatas yang bisa digunakan"
+ },
+ "禁用：": {
+  "en": "Disabled:",
+  "id": "Nonaktif:"
+ },
+ "积分足够时可兑换天幕大奖": {
+  "en": "Redeem the Sky Screen grand prize when you have enough Points",
+  "id": "Tukar hadiah utama Sky Screen saat Poin-mu cukup"
+ },
+ "稀有卡痴(一)": {
+  "en": "Rare Card Fanatic I",
+  "id": "Rare Card Fanatic I"
+ },
+ "稀有卡痴(三)": {
+  "en": "Rare Card Fanatic III",
+  "id": "Rare Card Fanatic III"
+ },
+ "稀有卡痴(二)": {
+  "en": "Rare Card Fanatic II",
+  "id": "Rare Card Fanatic II"
+ },
+ "竞拍强者(一)": {
+  "en": "Auction Ace I",
+  "id": "Auction Ace I"
+ },
+ "竞拍强者(三)": {
+  "en": "Auction Ace III",
+  "id": "Auction Ace III"
+ },
+ "竞拍强者(二)": {
+  "en": "Auction Ace II",
+  "id": "Auction Ace II"
+ },
+ "竞猜人次": {
+  "en": "Predictions Made",
+  "id": "Jumlah Prediksi"
+ },
+ "竞猜心仪棋手 瓜分竞猜奖池": {
+  "en": "Predict your favorite Chessplayer, share the Prediction Pool",
+  "id": "Tebak Chessplayer favoritmu, bagi Kolam Prediksi"
+ },
+ "第6/11回合，获得1张<color=#FFE897>命运馈赠</color>。\n<color=#FFE897>命运馈赠</color>：从2个馈赠中选择1个。": {
+  "en": "On Rounds 6/11, gain 1 <color=#FFE897>Fate Gift</color>.\n<color=#FFE897>Fate Gift</color>: Choose 1 of 2 gifts.",
+  "id": "Pada Ronde 6/11, dapatkan 1 <color=#FFE897>Fate Gift</color>.\n<color=#FFE897>Fate Gift</color>: Pilih 1 dari 2 hadiah."
+ },
+ "第6/11回合，获得1张秘技牌<b>命运馈赠</b>。": {
+  "en": "At Round 6/11, gain 1 Secret Technique card: <b>Fate Gift</b>.",
+  "id": "Di Ronde 6/11, dapatkan 1 kartu Secret Technique: <b>Fate Gift</b>."
+ },
+ "等待结果揭晓": {
+  "en": "Awaiting results",
+  "id": "Menunggu hasil diumumkan"
+ },
+ "系统送你一张钻石抵扣券，可以免费竞猜一次": {
+  "en": "The system gives you a Diamond Discount Coupon for one free prediction",
+  "id": "Sistem memberimu satu Diamond Discount Coupon untuk satu prediksi gratis"
+ },
+ "累抽奖励已领取完毕": {
+  "en": "All Multi-Draw rewards have been claimed",
+  "id": "Semua hadiah Multi-Draw sudah diklaim"
+ },
+ "累计获得任意20个不同棋手的代言人称号（前9999名达成者获得带编号的全明星代言人称号）": {
+  "en": "Obtain 20 different Chessplayer spokesperson titles in total (the first 9999 players to do so receive a numbered All-Star Spokesperson title)",
+  "id": "Dapatkan total 20 gelar juru bicara Chessplayer yang berbeda (9999 pemain pertama yang mencapainya mendapat gelar All-Star Spokesperson bernomor)"
+ },
+ "累计获得任意20个不同棋手的代言人称号，且为全服前9999名达成者": {
+  "en": "Obtain 20 different Chessplayer spokesperson titles in total and be among the first 9999 players server-wide to do so",
+  "id": "Dapatkan total 20 gelar juru bicara Chessplayer yang berbeda dan termasuk 9999 pemain pertama di seluruh server yang mencapainya"
+ },
+ "红包收割机(一)": {
+  "en": "Red Packet Harvester I",
+  "id": "Red Packet Harvester I"
+ },
+ "红包收割机(三)": {
+  "en": "Red Packet Harvester III",
+  "id": "Red Packet Harvester III"
+ },
+ "红包收割机(二)": {
+  "en": "Red Packet Harvester II",
+  "id": "Red Packet Harvester II"
+ },
+ "纳税大户(一)": {
+  "en": "Top Taxpayer I",
+  "id": "Top Taxpayer I"
+ },
+ "纳税大户(三)": {
+  "en": "Top Taxpayer III",
+  "id": "Top Taxpayer III"
+ },
+ "纳税大户(二)": {
+  "en": "Top Taxpayer II",
+  "id": "Top Taxpayer II"
+ },
+ "线条小狗出动": {
+  "en": "Line Puppy, Go!",
+  "id": "Line Puppy Beraksi"
+ },
+ "线条小狗商城": {
+  "en": "Line Puppy Store",
+  "id": "Toko Line Puppy"
+ },
+ "线条小狗商店有奖励可兑换": {
+  "en": "Rewards are available to exchange in the Line Puppy Shop.",
+  "id": "Hadiah bisa ditukar di Line Puppy Shop."
+ },
+ "线条小狗天幕祈愿上线": {
+  "en": "Line Puppy Sky Screen Prayer is live",
+  "id": "Doa Sky Screen Line Puppy telah hadir"
+ },
+ "线条小狗天幕祈愿在成长之路达到2级后开启": {
+  "en": "Line Puppy Sky Screen Prayer unlocks at Growth Path level 2",
+  "id": "Doa Sky Screen Line Puppy terbuka di Growth Path level 2"
+ },
+ "线条小狗天幕祈愿尚未开启": {
+  "en": "Line Puppy Sky Screen Prayer is not open yet",
+  "id": "Doa Sky Screen Line Puppy belum dibuka"
+ },
+ "线条小狗带你一起赴约~": {
+  "en": "Line Puppy takes you along on a date~",
+  "id": "Line Puppy mengajakmu pergi kencan~"
+ },
+ "线条小狗的旅行": {
+  "en": "Line Puppy's Journey",
+  "id": "Perjalanan Line Puppy"
+ },
+ "线条小狗祈愿币": {
+  "en": "Line Puppy Prayer Coin",
+  "id": "Koin Doa Line Puppy"
+ },
+ "线条小狗祈愿获取": {
+  "en": "Obtained from the Line Puppy Prayer",
+  "id": "Didapat dari Doa Line Puppy"
+ },
+ "线条小狗积分": {
+  "en": "Line Puppy Points",
+  "id": "Poin Line Puppy"
+ },
+ "线条小狗累抽奖励": {
+  "en": "Line Puppy Multi-Draw Rewards",
+  "id": "Hadiah Multi-Draw Line Puppy"
+ },
+ "线条小狗累抽礼包": {
+  "en": "Line Puppy Multi-Draw Gift Pack",
+  "id": "Gift Pack Multi-Draw Line Puppy"
+ },
+ "继续等待": {
+  "en": "Keep Waiting",
+  "id": "Tetap Menunggu"
+ },
+ "编号已刷新": {
+  "en": "ID refreshed",
+  "id": "ID telah di-refresh"
+ },
+ "翻一番(一)": {
+  "en": "Double Up I",
+  "id": "Double Up I"
+ },
+ "翻一番(三)": {
+  "en": "Double Up III",
+  "id": "Double Up III"
+ },
+ "翻一番(二)": {
+  "en": "Double Up II",
+  "id": "Double Up II"
+ },
+ "肝胆相照(一)": {
+  "en": "Sworn Loyalty I",
+  "id": "Sumpah Setia I"
+ },
+ "肝胆相照(三)": {
+  "en": "Sworn Loyalty III",
+  "id": "Sumpah Setia III"
+ },
+ "肝胆相照(二)": {
+  "en": "Sworn Loyalty II",
+  "id": "Sumpah Setia II"
+ },
+ "胜场次数": {
+  "en": "Matches Won",
+  "id": "Pertandingan Dimenangkan"
+ },
+ "能量球出现的伤害提升至100+120%法术攻击力，爆炸伤害提升至100+150%法术攻击力": {
+  "en": "Energy ball appearance damage increased to 100+120% Magic Attack, explosion damage increased to 100+150% Magic Attack",
+  "id": "Damage kemunculan bola Energy meningkat menjadi 100+120% Magic Attack, damage ledakan meningkat menjadi 100+150% Magic Attack"
+ },
+ "花钱不眨眼(一)": {
+  "en": "Big Spender I",
+  "id": "Big Spender I"
+ },
+ "花钱不眨眼(三)": {
+  "en": "Big Spender III",
+  "id": "Big Spender III"
+ },
+ "花钱不眨眼(二)": {
+  "en": "Big Spender II",
+  "id": "Big Spender II"
+ },
+ "英雄的法力值上限最低可降低至10点。": {
+  "en": "A Hero's max Mana can be reduced to a minimum of 10.",
+  "id": "Max Mana Hero bisa dikurangi hingga minimal 10."
+ },
+ "英雄知识": {
+  "en": "Hero Knowledge",
+  "id": "Pengetahuan Hero"
+ },
+ "荣光追迹者(一)": {
+  "en": "Glory Chaser I",
+  "id": "Glory Chaser I"
+ },
+ "荣光追迹者(三)": {
+  "en": "Glory Chaser III",
+  "id": "Glory Chaser III"
+ },
+ "荣光追迹者(二)": {
+  "en": "Glory Chaser II",
+  "id": "Glory Chaser II"
+ },
+ "荣耀会员(一)": {
+  "en": "Honor Member I",
+  "id": "Honor Member I"
+ },
+ "荣耀会员(七)": {
+  "en": "Honor Member VII",
+  "id": "Honor Member VII"
+ },
+ "荣耀会员(三)": {
+  "en": "Honor Member III",
+  "id": "Honor Member III"
+ },
+ "荣耀会员(九)": {
+  "en": "Honor Member IX",
+  "id": "Honor Member IX"
+ },
+ "荣耀会员(二)": {
+  "en": "Honor Member II",
+  "id": "Honor Member II"
+ },
+ "荣耀会员(五)": {
+  "en": "Honor Member V",
+  "id": "Honor Member V"
+ },
+ "荣耀会员(八)": {
+  "en": "Honor Member VIII",
+  "id": "Honor Member VIII"
+ },
+ "荣耀会员(六)": {
+  "en": "Honor Member VI",
+  "id": "Honor Member VI"
+ },
+ "荣耀会员(十)": {
+  "en": "Honor Member X",
+  "id": "Honor Member X"
+ },
+ "荣耀会员(四)": {
+  "en": "Honor Member IV",
+  "id": "Honor Member IV"
+ },
+ "获得1张<color=#FFE897>古币</color>。古币<color=#FFE897>只能对非【河洛】英雄主动使用</color>：随机变成其他同阶非【河洛】英雄，等级额外+7。": {
+  "en": "Gain 1 <color=#FFE897>Ancient Coin</color>. Ancient Coins <color=#FFE897>can only be used on non-Central Plains heroes</color>: Randomly transform into another non-Central Plains Hero of the same Tier, with an additional +7 levels.",
+  "id": "Dapatkan 1 <color=#FFE897>Ancient Coin</color>. Ancient Coin <color=#FFE897>hanya dapat digunakan pada hero non-Central Plains</color>: Berubah secara acak menjadi Hero non-Central Plains lain dengan Tier yang sama, dengan tambahan +7 level."
+ },
+ "获得1张天赋牌<color=#FFE897>体面离场</color>：指定移除一名英雄，获得能量。此英雄0/1/2/3觉醒进度时，获得3/6/9/12能量。": {
+  "en": "Gain the Talent Card <color=#FFE897>Graceful Exit</color>: Remove a target Hero to Gain Energy. Gain 3/6/9/12 Energy based on the Hero's 0/1/2/3 Awaken Progress.",
+  "id": "Dapatkan Talent Card <color=#FFE897>Graceful Exit</color>: Tunjuk satu Hero untuk dihapus dan dapatkan Energy. Dapatkan 3/6/9/12 Energy berdasarkan Awaken Progress Hero 0/1/2/3."
+ },
+ "获得奖励人次": {
+  "en": "Rewards Granted",
+  "id": "Jumlah Penerima Hadiah"
+ },
+ "获得好感度": {
+  "en": "Favorability Gained",
+  "id": "Favorability Didapat"
+ },
+ "蓝牙权限": {
+  "en": "Bluetooth Permission",
+  "id": "Izin Bluetooth"
+ },
+ "行走的能量黑洞(一)": {
+  "en": "Walking Energy Black Hole I",
+  "id": "Lubang Hitam Energy Berjalan I"
+ },
+ "行走的能量黑洞(三)": {
+  "en": "Walking Energy Black Hole III",
+  "id": "Lubang Hitam Energy Berjalan III"
+ },
+ "行走的能量黑洞(二)": {
+  "en": "Walking Energy Black Hole II",
+  "id": "Lubang Hitam Energy Berjalan II"
+ },
+ "西施随机向1个敌人所在位置释放持续3秒的能量球造成<color=#d487e4>50+100%法术攻击力的法术伤害</color>，3秒后能量球爆炸对这些单位造成<color=#d487e4>100+100%法术攻击力的法术伤害</color>。": {
+  "en": "Shi randomly casts an Energy ball lasting 3 seconds at an enemy's location, dealing <color=#d487e4>50+100% Magic Attack as Magic Damage</color>. After 3 seconds, the Energy ball explodes, dealing <color=#d487e4>100+100% Magic Attack as Magic Damage</color> to those units.",
+  "id": "Shi secara acak melemparkan bola Energy yang bertahan 3 detik ke lokasi 1 musuh, memberikan <color=#d487e4>Magic Damage sebesar 50+100% Magic Attack</color>. Setelah 3 detik, bola Energy meledak, memberikan <color=#d487e4>Magic Damage sebesar 100+100% Magic Attack</color> ke unit-unit tersebut."
+ },
+ "认真学习(一)": {
+  "en": "Study Hard I",
+  "id": "Belajar Keras I"
+ },
+ "认真学习(三)": {
+  "en": "Study Hard III",
+  "id": "Belajar Keras III"
+ },
+ "认真学习(二)": {
+  "en": "Study Hard II",
+  "id": "Belajar Keras II"
+ },
+ "该奖励最多领取1次~": {
+  "en": "This reward can be claimed only once~",
+  "id": "Hadiah ini hanya bisa diklaim 1 kali~"
+ },
+ "请注意，确认投降后您将按当前对局的最后一名进行结算，下方为当前投降后预期排名，请确认。": {
+  "en": "Note: after you surrender, you will be ranked last in this match. Your expected placement after surrendering is shown below. Please confirm.",
+  "id": "Perhatian: setelah menyerah, kamu akan dihitung sebagai peringkat terakhir di pertandingan ini. Perkiraan peringkatmu setelah menyerah ditampilkan di bawah. Harap konfirmasi."
+ },
+ "豪气干云(一)": {
+  "en": "Boldness Reaches the Clouds I",
+  "id": "Boldness Reaches the Clouds I"
+ },
+ "豪气干云(三)": {
+  "en": "Boldness Reaches the Clouds III",
+  "id": "Boldness Reaches the Clouds III"
+ },
+ "豪气干云(二)": {
+  "en": "Boldness Reaches the Clouds II",
+  "id": "Boldness Reaches the Clouds II"
+ },
+ "豪气抵扣(一)": {
+  "en": "Big-Spender Discount I",
+  "id": "Diskon Big-Spender I"
+ },
+ "豪气抵扣(三)": {
+  "en": "Big-Spender Discount III",
+  "id": "Diskon Big-Spender III"
+ },
+ "豪气抵扣(二)": {
+  "en": "Big-Spender Discount II",
+  "id": "Diskon Big-Spender II"
+ },
+ "财大气粗(一)": {
+  "en": "Money Talks I",
+  "id": "Money Talks I"
+ },
+ "财大气粗(三)": {
+  "en": "Money Talks III",
+  "id": "Money Talks III"
+ },
+ "财大气粗(二)": {
+  "en": "Money Talks II",
+  "id": "Money Talks II"
+ },
+ "财源滚滚(一)": {
+  "en": "money rolling in I",
+  "id": "uang mengalir deras I"
+ },
+ "财源滚滚(三)": {
+  "en": "money rolling in III",
+  "id": "uang mengalir deras III"
+ },
+ "财源滚滚(二)": {
+  "en": "money rolling in II",
+  "id": "uang mengalir deras II"
+ },
+ "购买<color=#ed6962ff>{0}x{1}</color>，可获赠<color=#ed6962ff>{2}{3}</color>，可参与祈愿获得奖励": {
+  "en": "Buy <color=#ed6962ff>{0}x{1}</color> to receive <color=#ed6962ff>{2}{3}</color> for Prayers that earn rewards",
+  "id": "Beli <color=#ed6962ff>{0}x{1}</color> untuk mendapat <color=#ed6962ff>{2}{3}</color> yang bisa dipakai Doa untuk mendapat hadiah"
+ },
+ "贴贴(一)": {
+  "en": "Tie Tie I",
+  "id": "Tie Tie I"
+ },
+ "贴贴(三)": {
+  "en": "Tie Tie III",
+  "id": "Tie Tie III"
+ },
+ "贴贴(二)": {
+  "en": "Tie Tie II",
+  "id": "Tie Tie II"
+ },
+ "赛季结束后的前9999名玩家获得此称号": {
+  "en": "Granted to the top 9999 players at the end of the Season",
+  "id": "Diberikan kepada 9999 pemain teratas saat Season berakhir"
+ },
+ "赢赢赢！(一)": {
+  "en": "Win, Win, Win! I",
+  "id": "Menang, menang, menang! I"
+ },
+ "赢赢赢！(三)": {
+  "en": "Win, Win, Win! III",
+  "id": "Menang, menang, menang! III"
+ },
+ "赢赢赢！(二)": {
+  "en": "Win, Win, Win! II",
+  "id": "Menang, menang, menang! II"
+ },
+ "走了表情": {
+  "en": "I'm Leaving Emote",
+  "id": "Emote Aku Pergi"
+ },
+ "超级假期": {
+  "en": "Super Holiday",
+  "id": "Super Holiday"
+ },
+ "超级假期活动奖励": {
+  "en": "Super Holiday Event Rewards",
+  "id": "Hadiah Event Super Holiday"
+ },
+ "超级假期钻石加码": {
+  "en": "Super Holiday Diamond Bonus",
+  "id": "Bonus Diamond Super Holiday"
+ },
+ "超级周末": {
+  "en": "Super Weekend",
+  "id": "Super Weekend"
+ },
+ "超级周末 钻石加码": {
+  "en": "Super Weekend Diamond Bonus",
+  "id": "Bonus Diamond Super Weekend"
+ },
+ "超级周末活动奖励": {
+  "en": "Super Weekend Event Rewards",
+  "id": "Hadiah Event Super Weekend"
+ },
+ "跟着线条小狗快乐出发吧！": {
+  "en": "Set off happily with Line Puppy!",
+  "id": "Ayo berangkat dengan gembira bersama Line Puppy!"
+ },
+ "路漫漫(一)": {
+  "en": "A Long Road Ahead I",
+  "id": "A Long Road Ahead I"
+ },
+ "路漫漫(三)": {
+  "en": "A Long Road Ahead III",
+  "id": "A Long Road Ahead III"
+ },
+ "路漫漫(二)": {
+  "en": "A Long Road Ahead II",
+  "id": "A Long Road Ahead II"
+ },
+ "躺赢(一)": {
+  "en": "Easy Carry I",
+  "id": "Easy Carry I"
+ },
+ "躺赢(三)": {
+  "en": "Easy Carry III",
+  "id": "Easy Carry III"
+ },
+ "躺赢(二)": {
+  "en": "Easy Carry II",
+  "id": "Easy Carry II"
+ },
+ "轻拳出击(一)": {
+  "en": "Pulling Punches I",
+  "id": "Pulling Punches I"
+ },
+ "轻拳出击(三)": {
+  "en": "Pulling Punches III",
+  "id": "Pulling Punches III"
+ },
+ "轻拳出击(二)": {
+  "en": "Pulling Punches II",
+  "id": "Pulling Punches II"
+ },
+ "输入的数量超过最大拥有数量，按拥有最大数量投注": {
+  "en": "The amount entered exceeds what you own; betting the maximum you own",
+  "id": "Jumlah yang dimasukkan melebihi yang kamu miliki; bertaruh dengan jumlah maksimum yang kamu miliki"
+ },
+ "输出拉满(一)": {
+  "en": "Maximum Damage I",
+  "id": "Damage Maksimum I"
+ },
+ "输出拉满(三)": {
+  "en": "Maximum Damage III",
+  "id": "Damage Maksimum III"
+ },
+ "输出拉满(二)": {
+  "en": "Maximum Damage II",
+  "id": "Damage Maksimum II"
+ },
+ "达到王者1000分": {
+  "en": "Reach King 1000 Points",
+  "id": "Capai King 1000 Poin"
+ },
+ "达到王者2000分": {
+  "en": "Reach King 2000 Points",
+  "id": "Capai King 2000 Poin"
+ },
+ "达到王者3000分": {
+  "en": "Reach King 3000 Points",
+  "id": "Capai King 3000 Poin"
+ },
+ "达到王者可获奖励": {
+  "en": "Reach King to earn rewards",
+  "id": "Capai King untuk dapat hadiah"
+ },
+ "达到王者可获得奖励": {
+  "en": "Reach King to earn rewards",
+  "id": "Capai King untuk dapat hadiah"
+ },
+ "达成指定王者分数领钻石": {
+  "en": "Reach set King scores to claim Diamonds",
+  "id": "Capai King score tertentu untuk klaim Diamond"
+ },
+ "过命兄弟(一)": {
+  "en": "Brothers through Life and Death I",
+  "id": "Brothers through Life and Death I"
+ },
+ "过命兄弟(三)": {
+  "en": "Brothers through Life and Death III",
+  "id": "Brothers through Life and Death III"
+ },
+ "过命兄弟(二)": {
+  "en": "Brothers through Life and Death II",
+  "id": "Brothers through Life and Death II"
+ },
+ "还活着(一)": {
+  "en": "Still Alive I",
+  "id": "Still Alive I"
+ },
+ "还活着(三)": {
+  "en": "Still Alive III",
+  "id": "Still Alive III"
+ },
+ "还活着(二)": {
+  "en": "Still Alive II",
+  "id": "Still Alive II"
+ },
+ "这次我们不浪费每一点等级": {
+  "en": "This time, not a single Level goes to waste",
+  "id": "Kali ini, tak ada satu Level pun yang terbuang"
+ },
+ "这波不亏(一)": {
+  "en": "Worth the Trade I",
+  "id": "Worth the Trade I"
+ },
+ "这波不亏(三)": {
+  "en": "Worth the Trade III",
+  "id": "Worth the Trade III"
+ },
+ "这波不亏(二)": {
+  "en": "Worth the Trade II",
+  "id": "Worth the Trade II"
+ },
+ "这里也可以进入王中王系统": {
+  "en": "You can also enter the King of Kings System here",
+  "id": "Kamu juga bisa masuk ke Sistem King of Kings di sini"
+ },
+ "连看之巅(一)": {
+  "en": "Peak Viewing Streak I",
+  "id": "Peak Viewing Streak I"
+ },
+ "连看之巅(三)": {
+  "en": "Peak Viewing Streak III",
+  "id": "Peak Viewing Streak III"
+ },
+ "连看之巅(二)": {
+  "en": "Peak Viewing Streak II",
+  "id": "Peak Viewing Streak II"
+ },
+ "追逐鱼群，与浪花同游。": {
+  "en": "Chase the fish and swim with the waves.",
+  "id": "Kejar kawanan ikan, berenang bersama ombak."
+ },
+ "选择{0}/{1}个棋手": {
+  "en": "Select Chessplayers {0}/{1}",
+  "id": "Pilih Chessplayer {0}/{1}"
+ },
+ "逐宝问珍(一)": {
+  "en": "Treasure Seeker I",
+  "id": "Treasure Seeker I"
+ },
+ "逐宝问珍(三)": {
+  "en": "Treasure Seeker III",
+  "id": "Treasure Seeker III"
+ },
+ "逐宝问珍(二)": {
+  "en": "Treasure Seeker II",
+  "id": "Treasure Seeker II"
+ },
+ "金牌奖励名单": {
+  "en": "Gold Reward List",
+  "id": "Daftar Hadiah Gold"
+ },
+ "金牌玩家{0}位：": {
+  "en": "{0} Gold players:",
+  "id": "{0} pemain Gold:"
+ },
+ "金牌获奖人数": {
+  "en": "Gold Winners",
+  "id": "Pemenang Gold"
+ },
+ "钞能力玩家(一)": {
+  "en": "Pay-to-Win Player I",
+  "id": "Pemain Pay-to-Win I"
+ },
+ "钞能力玩家(三)": {
+  "en": "Pay-to-Win Player III",
+  "id": "Pemain Pay-to-Win III"
+ },
+ "钞能力玩家(二)": {
+  "en": "Pay-to-Win Player II",
+  "id": "Pemain Pay-to-Win II"
+ },
+ "钻石大亨(一)": {
+  "en": "Diamond Tycoon I",
+  "id": "Diamond Tycoon I"
+ },
+ "钻石大亨(三)": {
+  "en": "Diamond Tycoon III",
+  "id": "Diamond Tycoon III"
+ },
+ "钻石大亨(二)": {
+  "en": "Diamond Tycoon II",
+  "id": "Diamond Tycoon II"
+ },
+ "钻石无忧者(一)": {
+  "en": "Diamond Carefree I",
+  "id": "Diamond Carefree I"
+ },
+ "钻石无忧者(三)": {
+  "en": "Diamond Carefree III",
+  "id": "Diamond Carefree III"
+ },
+ "钻石无忧者(二)": {
+  "en": "Diamond Carefree II",
+  "id": "Diamond Carefree II"
+ },
+ "钻石蒸发术(一)": {
+  "en": "Diamond Evaporation I",
+  "id": "Penguapan Diamond I"
+ },
+ "钻石蒸发术(三)": {
+  "en": "Diamond Evaporation III",
+  "id": "Penguapan Diamond III"
+ },
+ "钻石蒸发术(二)": {
+  "en": "Diamond Evaporation II",
+  "id": "Penguapan Diamond II"
+ },
+ "铁杆死党(一)": {
+  "en": "A good friend of the club I",
+  "id": "Teman baik klub I"
+ },
+ "铁杆死党(三)": {
+  "en": "A good friend of the club III",
+  "id": "Teman baik klub III"
+ },
+ "铁杆死党(二)": {
+  "en": "A good friend of the club II",
+  "id": "Teman baik klub II"
+ },
+ "铂金无忧者(一)": {
+  "en": "Platinum Carefree I",
+  "id": "Platinum Carefree I"
+ },
+ "铂金无忧者(三)": {
+  "en": "Platinum Carefree III",
+  "id": "Platinum Carefree III"
+ },
+ "铂金无忧者(二)": {
+  "en": "Platinum Carefree II",
+  "id": "Platinum Carefree II"
+ },
+ "镀闪·蔡文姬": {
+  "en": "Gilded Flash · Cai Yan",
+  "id": "Gilded Flash · Cai Yan"
+ },
+ "镜上大分": {
+  "en": "Jing Scores Big",
+  "id": "Jing Scores Big"
+ },
+ "镜上大分(一)": {
+  "en": "Jing Scores Big I",
+  "id": "Jing Scores Big I"
+ },
+ "镜上大分(三)": {
+  "en": "Jing Scores Big III",
+  "id": "Jing Scores Big III"
+ },
+ "镜上大分(二)": {
+  "en": "Jing Scores Big II",
+  "id": "Jing Scores Big II"
+ },
+ "长安舞榭(一)": {
+  "en": "Chang'an Pavilion I",
+  "id": "Chang'an Pavilion I"
+ },
+ "长安舞榭(三)": {
+  "en": "Chang'an Pavilion III",
+  "id": "Chang'an Pavilion III"
+ },
+ "长安舞榭(二)": {
+  "en": "Chang'an Pavilion II",
+  "id": "Chang'an Pavilion II"
+ },
+ "闹闹上大分": {
+  "en": "Naonao Scores Big",
+  "id": "Naonao Scores Big"
+ },
+ "闹闹上大分(一)": {
+  "en": "Naonao Scores Big I",
+  "id": "Naonao Scores Big I"
+ },
+ "闹闹上大分(三)": {
+  "en": "Naonao Scores Big III",
+  "id": "Naonao Scores Big III"
+ },
+ "闹闹上大分(二)": {
+  "en": "Naonao Scores Big II",
+  "id": "Naonao Scores Big II"
+ },
+ "阿离上大分": {
+  "en": "Arli Scores Big",
+  "id": "Arli Scores Big"
+ },
+ "阿离上大分(一)": {
+  "en": "Arli Scores Big I",
+  "id": "Arli Scores Big I"
+ },
+ "阿离上大分(三)": {
+  "en": "Arli Scores Big III",
+  "id": "Arli Scores Big III"
+ },
+ "阿离上大分(二)": {
+  "en": "Arli Scores Big II",
+  "id": "Arli Scores Big II"
+ },
+ "限时福利：每天前{1}次翻出钻石翻倍（{0} / {1}）": {
+  "en": "Limited-time perk: Diamonds from your first {1} flips each day are doubled ({0} / {1})",
+  "id": "Bonus waktu terbatas: Diamond dari {1} balik kartu pertama setiap hari jadi ganda ({0} / {1})"
+ },
+ "随叫随到(一)": {
+  "en": "Always on Call I",
+  "id": "Always on Call I"
+ },
+ "随叫随到(三)": {
+  "en": "Always on Call III",
+  "id": "Always on Call III"
+ },
+ "随叫随到(二)": {
+  "en": "Always on Call II",
+  "id": "Always on Call II"
+ },
+ "集卡新秀(一)": {
+  "en": "Rookie Card Collector I",
+  "id": "Rookie Card Collector I"
+ },
+ "集卡新秀(三)": {
+  "en": "Rookie Card Collector III",
+  "id": "Rookie Card Collector III"
+ },
+ "集卡新秀(二)": {
+  "en": "Rookie Card Collector II",
+  "id": "Rookie Card Collector II"
+ },
+ "零元GO(一)": {
+  "en": "Zero-Cost GO I",
+  "id": "Zero-Cost GO I"
+ },
+ "零元GO(三)": {
+  "en": "Zero-Cost GO III",
+  "id": "Zero-Cost GO III"
+ },
+ "零元GO(二)": {
+  "en": "Zero-Cost GO II",
+  "id": "Zero-Cost GO II"
+ },
+ "颜艺(一)": {
+  "en": "Master of Expressions I",
+  "id": "Master of Expressions I"
+ },
+ "颜艺(三)": {
+  "en": "Master of Expressions III",
+  "id": "Master of Expressions III"
+ },
+ "颜艺(二)": {
+  "en": "Master of Expressions II",
+  "id": "Master of Expressions II"
+ },
+ "飞行器自爆命中的友方单位获得飞行器法术攻击力300%的护盾与20%物理和法术吸血。": {
+  "en": "Allied units hit by the Aircraft's self-destruct gain a Shield equal to 300% of the Aircraft's Magic Attack and 20% Physical and Magic Vamp.",
+  "id": "Unit ally yang terkena self-destruct Aircraft mendapatkan Shield sebesar 300% Magic Attack Aircraft serta 20% Physical dan Magic Vamp."
+ },
+ "首次施法时制造水月幻境，每5秒为友军提供100点护盾和10点法力值，并对敌人造成0.5秒眩晕和5%最大生命值的真实伤害": {
+  "en": "Creates a Water Moon illusion upon the first cast, granting allies a 100-point Shield and 10 Mana every 5 seconds, while dealing a 0.5s Stun and True Damage equal to 5% Max HP to enemies",
+  "id": "Saat cast pertama, menciptakan ilusi Water Moon yang memberi ally Shield 100 poin dan 10 Mana setiap 5 detik, sekaligus memberikan Stun 0,5d dan True Damage sebesar 5% Max HP ke musuh"
+ },
+ "首次施法时制造水月幻境，每5秒为友军提供<color=#ffffff>[0]点护盾</color>和<color=#86ccfd>[1]点法力值</color>，并对敌人造成0.5秒眩晕和<color=#d487e4>[2]点法术伤害（[3]%最大生命值）</color>": {
+  "en": "Creates a Water Moon illusion upon the first cast, granting allies <color=#ffffff>[0] Shield</color> and <color=#86ccfd>[1] Mana</color> every 5 seconds, while dealing a 0.5s Stun and <color=#d487e4>[2] Magic Damage ([3]% Max HP)</color> to enemies",
+  "id": "Menciptakan ilusi Water Moon saat cast pertama, memberi ally <color=#ffffff>[0] Shield</color> dan <color=#86ccfd>[1] Mana</color> setiap 5 detik, sekaligus memberikan Stun 0,5d dan <color=#d487e4>[2] Magic Damage ([3]% Max HP)</color> ke musuh"
+ },
+ "首次施法时制造水月幻境，每5秒为友军提供[521130p1q1]点护盾和[521131p1q2]点法力值，并对敌人造成0.5秒眩晕和[521132p1q5/100]%最大生命值的法术伤害": {
+  "en": "Creates a Water Moon illusion on the first cast, providing allies with a [521130p1q1] Shield and [521131p1q2] Mana every 5s, while dealing a 0.5s Stun and [521132p1q5/100]% Max HP Magic Damage to enemies.",
+  "id": "Menciptakan ilusi Water Moon pada cast pertama, memberi ally Shield [521130p1q1] dan [521131p1q2] Mana setiap 5d, sekaligus memberikan Stun 0.5d dan Magic Damage [521132p1q5/100]% Max HP ke musuh."
+ },
+ "香香上大分": {
+  "en": "Xiangxiang Scores Big",
+  "id": "Xiangxiang Scores Big"
+ },
+ "香香上大分(一)": {
+  "en": "Xiangxiang Scores Big I",
+  "id": "Xiangxiang Scores Big I"
+ },
+ "香香上大分(三)": {
+  "en": "Xiangxiang Scores Big III",
+  "id": "Xiangxiang Scores Big III"
+ },
+ "香香上大分(二)": {
+  "en": "Xiangxiang Scores Big II",
+  "id": "Xiangxiang Scores Big II"
+ },
+ "马可上大分": {
+  "en": "Marco Scores Big",
+  "id": "Marco Scores Big"
+ },
+ "马可上大分(一)": {
+  "en": "Marco Scores Big I",
+  "id": "Marco Scores Big I"
+ },
+ "马可上大分(三)": {
+  "en": "Marco Scores Big III",
+  "id": "Marco Scores Big III"
+ },
+ "马可上大分(二)": {
+  "en": "Marco Scores Big II",
+  "id": "Marco Scores Big II"
+ },
+ "高光时刻(一)": {
+  "en": "Highlights I",
+  "id": "Sorotan I"
+ },
+ "高光时刻(三)": {
+  "en": "Highlights III",
+  "id": "Sorotan III"
+ },
+ "高光时刻(二)": {
+  "en": "Highlights II",
+  "id": "Sorotan II"
+ },
+ "黄金无忧者(一)": {
+  "en": "Gold Carefree I",
+  "id": "Gold Carefree I"
+ },
+ "黄金无忧者(三)": {
+  "en": "Gold Carefree III",
+  "id": "Gold Carefree III"
+ },
+ "黄金无忧者(二)": {
+  "en": "Gold Carefree II",
+  "id": "Gold Carefree II"
+ },
+ "鼓励师(一)": {
+  "en": "Encouragement teacher I",
+  "id": "Guru penyemangat I"
+ },
+ "鼓励师(三)": {
+  "en": "Encouragement teacher III",
+  "id": "Guru penyemangat III"
+ },
+ "鼓励师(二)": {
+  "en": "Encouragement teacher II",
+  "id": "Guru penyemangat II"
+ },
+ "），是否继续祈愿获得积分": {
+  "en": "). Continue Prayer to earn Points?",
+  "id": "). Lanjutkan Doa untuk mendapatkan Poin?"
+ }
+}

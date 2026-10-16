@@ -6,7 +6,9 @@ Two independent oracles, both in this repo:
   Decoding the payload at its declared geometry, flipping it vertically, and comparing pixel for
   pixel must give a zero difference -- that is what pins the row order and the BC7/RGBA32 handling.
 * every ``.blocks`` payload is a byte patch at known offsets, so porting it onto a device texture must
-  leave every byte outside ``graphic["patch_ranges"]`` bit-identical.
+  leave every byte outside ``graphic["patch_ranges"]`` bit-identical -- except a regioned atlas whose
+  device layout moved, which is ported sprite by sprite and may change only the blocks of the old
+  offsets and of its device sprite boxes (section 10, and ``atlas_blocks``).
 
 Run by hand from the project root:
 
@@ -33,9 +35,13 @@ sys.path.append(str(ROOT / "resources" / "runtime"))
 
 import mobile_graphics as mg  # noqa: E402
 from PIL import Image  # noqa: E402
+from sprite_table import REGION_SPRITE_ASSETS, sprite_rects  # noqa: E402
 from wxq_patch import adaptive  # noqa: E402
 
 CATALOG = ROOT / "resources" / "catalog"
+# A device sprite table recorded from the phone's game data of 2026-10-10 (atlas_sprites.py table), so
+# the sprite-aware port is exercised on a real moved layout without a dump.
+LAYOUT_FIXTURE = ROOT / "tools" / "research" / "fixtures" / "13C19E4E4486B31C_rects.json"
 PREVIEWS = CATALOG / "previews"
 ASTC_QUANTISATION_MEAN = 2.0  # ASTC 4x4 is lossy; a correct round trip stays well inside this
 ASTC_QUANTISATION_MAX = 48
@@ -172,6 +178,35 @@ def changed_blocks_outside(graphic: dict, raw: bytes, new: bytes, width: int,
     return outside
 
 
+def catalog_sprites(graphic: dict) -> dict[str, tuple[int, ...]] | None:
+    """A regioned atlas's sprite table as the catalog lays it out (the PC layout), else None.
+
+    Given this, a regioned atlas takes the offset port, which is what the synthetic checks assert.
+    """
+    if int(graphic["hash"], 16) not in REGION_SPRITE_ASSETS:
+        return None
+    return {r["sprite"]: tuple(r["box"]) for r in graphic["regions"]}
+
+
+def atlas_blocks(graphic: dict, sprites: dict[str, tuple[int, ...]]) -> set[int]:
+    """Raw-order 4x4 blocks the sprite-aware port may write: the old offsets plus every drawn box."""
+    width, height = int(graphic["width"]), int(graphic["height"])
+    allowed = {block for offset, length in graphic["patch_ranges"]
+               for block in range(offset // 16, (offset + length) // 16)}
+    names = [r["sprite"] for r in graphic["regions"]] + list(mg.ATLAS_LABELS.get(graphic["hash"], {}))
+    for name in names:
+        if name in sprites:
+            x0, y0, x1, y1 = sprites[name]
+            allowed.update(((height - 1 - y) // 4) * (width // 4) + x // 4
+                           for y in range(y0, y1) for x in range(x0, x1))
+    return allowed
+
+
+def blocks_outside(raw: bytes, new: bytes, allowed: set[int]) -> int:
+    return sum(1 for index in range(0, len(raw), 16)
+               if raw[index:index + 16] != new[index:index + 16] and index // 16 not in allowed)
+
+
 def outside_ranges(raw: bytes, new: bytes, ranges: list[tuple[int, int]]) -> int:
     return sum(
         1 for index, (before, after) in enumerate(zip(raw, new))
@@ -282,7 +317,8 @@ def check_block_patch(catalog) -> None:
     for graphic in blocks:
         width, height, fmt = mg._dimensions(graphic)
         raw = device_bytes(width, height, 4, 4)
-        new = mg.english_raw(raw, graphic, CATALOG)
+        sprites = catalog_sprites(graphic)
+        new = mg.english_raw(raw, graphic, CATALOG, sprites)
         if new is None:
             not_ported += 1
             continue
@@ -292,9 +328,9 @@ def check_block_patch(catalog) -> None:
             continue
         if outside_ranges(raw, new, ranges_of(graphic)):
             bad_outside += 1
-        if mg.english_raw(raw, graphic, CATALOG) != new:
+        if mg.english_raw(raw, graphic, CATALOG, sprites) != new:
             nondeterministic += 1
-        if mg.english_raw(new, graphic, CATALOG) != new:
+        if mg.english_raw(new, graphic, CATALOG, sprites) != new:
             not_idempotent += 1
     check(f"every .blocks entry ports ({len(blocks) - not_ported}/{len(blocks)})",
           not_ported == 0, f"{by_format}")
@@ -343,6 +379,9 @@ def check_unsupported(catalog) -> None:
     width, height, _ = mg._dimensions(wide)
     check("a BC7 patch on a non-4x4 device texture returns None",
           mg.english_raw(device_bytes(width, height, 8, 8), wide, CATALOG) is None)
+    atlas = catalog.graphics[next(iter(REGION_SPRITE_ASSETS))]
+    check("a regioned atlas without the device's sprite table returns None, never the PC offsets",
+          mg.english_raw(device_bytes(1024, 1024, 4, 4), atlas, CATALOG) is None)
 
 
 # --------------------------------------------------------------------------------------------
@@ -360,6 +399,7 @@ def device_rows(catalog, game: pathlib.Path) -> list[dict]:
     entry unreachable needs both.
     """
     from device_extensions import _read_chunks  # noqa: PLC0415
+    from qts_relocate import read_raw  # noqa: PLC0415
 
     packages, _ = adaptive.discover(game, catalog)
     present: dict[int, tuple] = {}
@@ -387,10 +427,16 @@ def device_rows(catalog, game: pathlib.Path) -> list[dict]:
             "detail": "",
         }
         if row["present"]:
-            _package, chunks = present[file_hash]
+            package, chunks = present[file_hash]
             row["raw"] = b"".join(mg.oodle_decompress(payload, slot.uncompressed_size)
                                   for slot, payload in _read_chunks(chunks))
-            new = mg.english_raw(row["raw"], graphic, CATALOG)
+            # The device's own sprite table, read the way port_graphics reads it.
+            sprites = None
+            sprite_asset = REGION_SPRITE_ASSETS.get(file_hash)
+            if sprite_asset is not None and sprite_asset in package.entries:
+                table = read_raw(package, package.build_slot_map(), sprite_asset)
+                sprites = sprite_rects(table, width, height) if table else None
+            new = mg.english_raw(row["raw"], graphic, CATALOG, sprites)
             ported = new is not None and len(new) == len(row["raw"])
             reason = skip_reason(graphic, len(row["raw"]), ported)
             if reason is not None:
@@ -398,6 +444,20 @@ def device_rows(catalog, game: pathlib.Path) -> list[dict]:
                 row["detail"] = reason
             elif new == row["raw"]:
                 row["outcome"] = "already English"
+            elif sprites is not None:
+                # A regioned atlas, ported at the device's sprite rects: it may write the old offsets
+                # (to restore them) and its drawn boxes, and nothing else.
+                row["outcome"] = "ported by sprite"
+                row["outside"] = blocks_outside(row["raw"], new, atlas_blocks(graphic, sprites))
+                row["idempotent"] = mg.english_raw(new, graphic, CATALOG, sprites) == new
+                # The same atlas carrying the old offset port must end as this one does: blocks may
+                # differ only where this input already showed the target and kept its own bytes.
+                payload = (CATALOG / graphic["payload"]).read_bytes()
+                other = mg.english_raw(mg._port_blocks(row["raw"], graphic, payload), graphic, CATALOG, sprites)
+                a, b = mg.decode_astc(new, width, height, 4, 4), mg.decode_astc(other, width, height, 4, 4)
+                row["from_damaged"] = (sum(1 for i in range(0, len(new), 16) if new[i:i + 16] != other[i:i + 16]),
+                                       sum(mg._premultiplied_diff(a, b, i) for i in range(0, len(a), 4))
+                                       / (width * height))
             elif graphic["payload"].endswith(".blocks"):
                 row["outcome"] = "ported"
                 row["outside"] = outside_ranges(row["raw"], new, ranges_of(graphic))
@@ -448,7 +508,8 @@ def check_game(catalog, game: pathlib.Path, *, table: bool = False) -> None:
             if row["detail"]:
                 print(f"      {row['outcome']}: {row['detail']}")
 
-    for outcome in ("ported", "replaced", "spliced", "already English", "skipped", "absent"):
+    for outcome in ("ported", "ported by sprite", "replaced", "spliced", "already English", "skipped",
+                    "absent"):
         count = len(by_outcome.get(outcome, []))
         if count:
             print(f"  {outcome}: {count}")
@@ -466,12 +527,25 @@ def check_game(catalog, game: pathlib.Path, *, table: bool = False) -> None:
     check("a label splice over its own output changes nothing", not not_idempotent,
           f"{len(spliced)} spliced" + (f", {not_idempotent} not idempotent" if not_idempotent else ""))
 
+    by_sprite = by_outcome.get("ported by sprite", [])
+    stray = [r["hash"] for r in by_sprite if r.get("outside")]
+    check("a sprite-aware atlas port touches only the old offsets and its drawn boxes", not stray,
+          f"{len(by_sprite)} atlases" + (f", stray blocks in {stray}" if stray else ""))
+    not_idempotent = [r["hash"] for r in by_sprite if not r.get("idempotent")]
+    check("a sprite-aware atlas port over its own output changes nothing", not not_idempotent,
+          f"{len(by_sprite)} atlases" + (f", {not_idempotent} not idempotent" if not_idempotent else ""))
+    apart = [(r["hash"], *r["from_damaged"]) for r in by_sprite]
+    check("the same atlas carrying the old offset port ends where this one does",
+          all(mean <= 0.1 for _h, _blocks, mean in apart),
+          "; ".join(f"{h}: {blocks} blocks differ, decoded mean {mean:.3f}" for h, blocks, mean in apart))
+
     accounted = sum(len(by_outcome.get(o, []))
-                    for o in ("ported", "replaced", "spliced", "already English", "skipped"))
+                    for o in ("ported", "ported by sprite", "replaced", "spliced", "already English",
+                              "skipped"))
     check("every texture the dump carries is ported, already English, or a documented skip",
           accounted == len(reachable),
-          f"{len(by_outcome.get('ported', []))} ported, {len(by_outcome.get('replaced', []))} "
-          f"replaced, {len(spliced)} spliced, "
+          f"{len(by_outcome.get('ported', []))} ported, {len(by_sprite)} ported by sprite, "
+          f"{len(by_outcome.get('replaced', []))} replaced, {len(spliced)} spliced, "
           f"{len(by_outcome.get('already English', []))} already English, "
           f"{len(by_outcome.get('skipped', []))} skipped; {len(by_outcome.get('absent', []))} of "
           f"{len(rows)} catalog entries are not in this dump (the downloaded layer -- run "
@@ -551,6 +625,86 @@ def check_splice(catalog) -> None:
           mg.english_raw(device_raw, {**graphic, "label_box": None}, CATALOG) is None)
 
 
+# --------------------------------------------------------------------------------------------
+# 10. the sprite-aware atlas port, on a recorded device layout
+# --------------------------------------------------------------------------------------------
+def crop_box(image: bytes, width: int, height: int, box) -> bytes:
+    """Top-down RGBA of <box> out of a decoded (bottom-up) texture."""
+    x0, y0, x1, y1 = box
+    out = bytearray()
+    for y in range(y0, y1):
+        at = ((height - 1 - y) * width + x0) * 4
+        out += image[at:at + (x1 - x0) * 4]
+    return bytes(out)
+
+
+def sprite_diff(image: bytes, width: int, height: int, box, pixels: bytes) -> float:
+    """Mean premultiplied difference between a decoded texture's top-down <box> and <pixels>."""
+    x0, y0, x1, y1 = box
+    total = count = 0
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            at, src = ((height - 1 - y) * width + x) * 4, ((y - y0) * (x1 - x0) + x - x0) * 4
+            total += max(
+                [abs(image[at + 3] - pixels[src + 3])]
+                + [abs(image[at + c] * image[at + 3] - pixels[src + c] * pixels[src + 3]) // 255
+                   for c in range(3)])
+            count += 1
+    return total / count
+
+
+def check_atlas(catalog) -> None:
+    print("\n[10] the Career atlas, ported at a recorded device layout")
+    import json  # noqa: PLC0415
+
+    graphic = catalog.graphics[0x13C19E4E4486B31C]
+    width, height = int(graphic["width"]), int(graphic["height"])
+    sprites = {name: tuple(box) for name, box in json.loads(LAYOUT_FIXTURE.read_text()).items()}
+    moved = [r["label"] for r in graphic["regions"] if sprites.get(r["sprite"]) != tuple(r["box"])]
+    check("the recorded layout moves catalog regions", bool(moved), f"{len(moved)} of {len(graphic['regions'])}")
+    raw = device_bytes(width, height, 4, 4)
+    new = mg.english_raw(raw, graphic, CATALOG, sprites)
+    check("the atlas ports", new is not None and len(new) == len(raw))
+    if new is None:
+        return
+    check("only the old offsets and the drawn boxes change",
+          blocks_outside(raw, new, atlas_blocks(graphic, sprites)) == 0)
+    decoded = mg.decode_astc(new, width, height, 4, 4)
+    payload = (CATALOG / graphic["payload"]).read_bytes()
+    english = bytes(mg.decode_astc(mg._port_blocks(raw, graphic, payload), width, height, 4, 4))
+    worst = max(sprite_diff(decoded, width, height, sprites[r["sprite"]],
+                            crop_box(english, width, height, r["box"])) for r in graphic["regions"])
+    check("every region's English stands at its device box", worst <= mg.BLOCK_MATCH_MEAN,
+          f"worst mean difference {worst:.2f}")
+    labels, restorations = mg.atlas_art(CATALOG, graphic["hash"], sprites)
+    drawn = max((sprite_diff(decoded, width, height, sprites[n], px) for n, px in labels.items()), default=99)
+    check("this repo's labels are drawn at their device boxes",
+          set(labels) == set(mg.ATLAS_LABELS[graphic["hash"]]) and drawn <= mg.BLOCK_MATCH_MEAN,
+          f"{sorted(labels)}, worst {drawn:.2f}")
+    check("restoration crops apply to the recorded layout", bool(restorations), f"{len(restorations)} crops")
+    check("the port is deterministic", mg.english_raw(raw, graphic, CATALOG, sprites) == new)
+    check("a re-run over its own output changes nothing", mg.english_raw(new, graphic, CATALOG, sprites) == new)
+    # A flat synthetic background is not the crops' art, so the same-art guard rightly declines every
+    # restoration here; what must agree is everything drawn. --game compares whole real atlases.
+    from_damaged = mg.english_raw(mg._port_blocks(raw, graphic, payload), graphic, CATALOG, sprites)
+    other = mg.decode_astc(from_damaged, width, height, 4, 4) if from_damaged else b""
+    boxes = [sprites[r["sprite"]] for r in graphic["regions"]] + [sprites[n] for n in labels]
+    apart = max((sprite_diff(other, width, height, box, crop_box(decoded, width, height, box))
+                 for box in boxes), default=99) if other else 99
+    check("input already carrying the old offset port draws what clean input draws", apart <= 1.0,
+          f"worst mean difference over {len(boxes)} drawn boxes {apart:.2f}")
+    check("the catalog's own layout takes the offset port byte for byte",
+          mg.english_raw(raw, graphic, CATALOG, catalog_sprites(graphic))
+          == mg._port_blocks(raw, graphic, payload))
+    region = graphic["regions"][0]
+    shrunk = {**sprites, region["sprite"]: (*sprites[region["sprite"]][:3], sprites[region["sprite"]][3] - 1)}
+    check("a region whose device sprite changed size is refused",
+          mg.english_raw(raw, graphic, CATALOG, shrunk) is None)
+    missing = {k: v for k, v in sprites.items() if k != region["sprite"]}
+    check("a region absent from the device table is refused",
+          mg.english_raw(raw, graphic, CATALOG, missing) is None)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--game", type=pathlib.Path,
@@ -573,6 +727,7 @@ def main() -> int:
     check_codec()
     check_layout(catalog)
     check_splice(catalog)
+    check_atlas(catalog)
     if args.skip_slow:
         print("\n[5][6][7] skipped (--skip-slow)")
     else:
