@@ -11,9 +11,9 @@ Hashes, dates, byte counts and device verdicts leave, because they already live 
 
 **Blocked by:** 03, 04, 05, 07, 08
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The instructions file is at or under about 12 KB
-- [ ] Every constraint removed or shortened has its evidence in a named home (spot-checked per ADR)
-- [ ] The placement table covers every row in the spec's Solution table
-- [ ] The reference check passes
+- [x] The instructions file is at or under about 12 KB
+- [x] Every constraint removed or shortened has its evidence in a named home (spot-checked per ADR)
+- [x] The placement table covers every row in the spec's Solution table
+- [x] The reference check passes
