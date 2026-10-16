@@ -1,0 +1,3 @@
+# Place a regioned atlas by the device's sprite table
+
+The catalog's edits to a regioned atlas are drawn on the PC layout, and the mobile Career atlas packs most of its sprites elsewhere, so porting those edits at the catalog's offsets wrote English labels onto other sprites from the day it shipped. Each region is now placed by the device's own sprite table, read every run; a missing table, or a region moved or resized there, refuses the texture rather than falling back to the PC offsets, because that fallback is the bug. Evidence: [texture-translation.md, journey log](../features/texture-translation.md) and [lab notebook 2026-10-10](../lab-notebook.md#2026-10-10--the-career-atlas-the-offset-port-put-9-english-labels-on-other-sprites).
