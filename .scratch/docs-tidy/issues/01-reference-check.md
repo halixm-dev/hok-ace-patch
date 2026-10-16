@@ -4,9 +4,9 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Passes on today's tree with an empty retired-names list
-- [ ] Reports a deliberately broken path, and a deliberately retired name, with file and line
-- [ ] Ignores paths under generated or gitignored roots (build output, dist, artifacts, work data), so dumps and outputs never count as references
-- [ ] Imports nothing from the app or the pipeline, and nothing imports it
+- [x] Passes on today's tree with an empty retired-names list
+- [x] Reports a deliberately broken path, and a deliberately retired name, with file and line
+- [x] Ignores paths under generated or gitignored roots (build output, dist, artifacts, work data), so dumps and outputs never count as references
+- [x] Imports nothing from the app or the pipeline, and nothing imports it
