@@ -1,7 +1,7 @@
 ---
 feature: standalone-patcher-app
 status: delivered
-updated: 2026-10-04
+updated: 2026-10-16
 branch: master
 commits: 7b9769b..9f151a8
 ---
@@ -9,16 +9,6 @@ commits: 7b9769b..9f151a8
 # Standalone Patcher App
 
 ## Report
-
-On 2026-10-04 the three summary accessors moved unchanged into `tools/patch_summary.py` so
-Android and Windows classify the four results identically. `patcher_core` re-exports the existing
-names, preserving the GUI API. Python 3.12 import/control check returns 391 text tables, 395 applied
-textures, one skipped table and zero skipped textures; accessor identity matches the shared module.
-The frozen application was rebuilt with `.venv/Scripts/python.exe app/build_exe.py` and passed
-`--selftest` against `dist/HOK ACE Patcher Data/pristine/20261003-173730/game`;
-`artifacts/android-port-windows-selftest/selftest.json` reports `ok: true`. Build and self-test
-logs are `artifacts/android-port-windows-build.log` and `artifacts/android-port-windows-selftest.log`.
-The self-test covers the downloaded dump without an APK input.
 
 **What was built** — `hok-ace-android-en` is now a standalone, buildable Windows patcher app with the
 sibling project's layout and branding: `app/` (customtkinter GUI, USB device workflow, APK rewrite and
@@ -50,48 +40,19 @@ Staging is text-tables-only — `full` mode with a `fit-only` fallback, no graph
 | Frozen exe `--selftest <empty dir> <out>` | PASS (expected failure) — loaded the bundled runtime and reached `wxq_patch\adaptive.py` before `ValueError: WXQ_Data/Package/builtin was not found` |
 
 At the original delivery, the real-dump self-test and end-to-end device flow were not run.
-The 2026-10-04 real-dump self-test above supersedes that historical limitation. Later device
+The 2026-10-04 real-dump self-test (journey log) supersedes that historical limitation. Later device
 and graphics evidence is recorded in the corresponding feature records. The repository has no
 general test suite.
 
 **Journey log**
 
-- **Android signing adapter (2026-10-03).** `apk_tools.sign_v2` accepts an optional RSA callable
-  and DER public key; its default still loads the existing PKCS#8 key through cryptography.
-  Crypto imports now occur only in that default branch. ZIP rewriting and the v2 digest/block
-  construction stay shared. The old implementation, new default and injected desktop RSA output
-  are byte-identical on the disposable fixture control (SHA-256 `eeb33a4e…26d3854b`), and
-  SDK `apksigner verify --verbose --print-certs` independently verifies v2 and the stable certificate.
-  The Android port delegates the one RSA operation to Java; its separate device proof is recorded
-  in `android-shizuku-patcher.md`.
-- This repo's `tools/` is an *earlier fork* of the sibling's pipeline: `axml_set_debuggable.py` and
-  `build_mobile_patch.py` are byte-identical, but `build_device_patch.py` had no `build_patch()`, no
-  `qts_relocate` re-run fix, and no staging guards. Coverage gaps (resource tokens, extra text,
-  textures) were left unadopted by explicit decision, not oversight; resource tokens were adopted
-  later — see *Coverage difference from the reference*.
-- `tools/research/axml_add_provider.py` imports `axml_set_debuggable` from `tools/`; running it as a
-  script puts only `tools/research/` on `sys.path`, so the move needed a one-line parent-directory
-  insert. Any future move of a script that shares helpers must check this.
-- Scanning `wxq_patch`'s bytecode showed it references only `lz4` (vendored) and `httpx` (an unused
-  `gemini` module) — none of UnityPy, `pypinyin`, `astc_encoder`, `ooz`, `texture2ddecoder` or
-  `archspec`. `requirements.txt` and `build_exe.py` were trimmed accordingly; the exe is 48.2 MB
-  against the sibling's 66.3 MB. **Partly reverted:** the texture pass does need `astc_encoder`, `ooz`,
-  `texture2ddecoder` and `archspec` after all, so those four came back in
-  `docs/features/texture-translation.md`. The scan was right about `wxq_patch` — the need is in the
-  new pass, not the runtime.
-- Two initial verification failures (embedded-certificate mismatch, debuggable attribute "missing")
-  were defects in the *test fixtures*, not the product: an APK v2 certificates field needs a second
-  length-prefix unwrap, and AXML requires resource-map entry *i* to name string-pool entry *i*. A
-  failing check is worth re-reading before it is believed.
-- Review left four non-critical findings, all pre-existing or inherited from the sibling rather than
-  introduced here: (a) `patcher_core.push_translation` pushes every numeric directory under `staged`,
-  so a package skipped via `report is None` could still have leftover files pushed to the phone;
-  (b) `install_btree_slot_map()`'s wrapper signature is `(self)` while the stock method is
-  `(self, wanted=None)`, safe only because `wxq_patch.pipeline` — its only 1-arg callers — is
-  unreachable from this app; (c) `--selftest` opens its log file before redirecting stdout, so a
-  missing output parent exits a windowed exe silently; (d) the relocated `apply_device_patch.sh`
-  computes `ROOT` one level too shallow. Re-check (a) and (b) if the app ever adopts the PC-side
-  pipeline.
+- This repo's `tools/` turned out to be an earlier fork of the sibling's pipeline, missing `build_patch()`, the `qts_relocate` re-run fix and the staging guards — adopted here; its coverage gaps were left by decision (lab notebook, 2026-09-29).
+- Moving the research scripts broke `axml_add_provider.py`'s import of a `tools/` helper — a one-line parent-directory insert (lab notebook, 2026-09-29).
+- A bytecode scan of `wxq_patch` trimmed the dependencies and the exe — right about the runtime, partly reverted when the texture pass needed four of them (lab notebook, 2026-09-29).
+- Two initial verification failures — defects in the test fixtures, not the product (lab notebook, 2026-09-29).
+- Review's four non-critical findings, all inherited from the sibling — left; re-check the first two if the app adopts the PC-side pipeline (lab notebook, 2026-09-29).
+- Android signing adapter: `apk_tools.sign_v2` takes an optional RSA callable — byte-identical output, verified by `apksigner` (lab notebook, 2026-10-03).
+- Summary accessors moved unchanged into `tools/patch_summary.py`, shared with Android — frozen exe `--selftest` on the pristine dump passed (lab notebook, 2026-10-04).
 
 ## [S1] Problem
 
