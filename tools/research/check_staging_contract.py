@@ -66,8 +66,7 @@ def check() -> list[str]:
                 for topic, names in CONTRACT.items() for name in names if name not in doc]
     text = INSTRUCTIONS.read_text(encoding="utf-8")
     failures += [f"AGENTS.md: restates the contract ({phrase!r})" for phrase in CONTRACT_ONLY if phrase in text]
-    lines = [line for line in text.splitlines() if all(p in line for p in POINTER[:2])]
-    if not any("docstring" in line for line in lines):
+    if not any(all(p in line for p in POINTER) for line in text.splitlines()):
         failures.append("AGENTS.md: no pointer naming `tools/build_device_patch.py`, `build_patch` and its docstring")
     return failures
 

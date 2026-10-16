@@ -238,12 +238,13 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       images that stay in Chinese, `assets - textures` as tables — so the app can say what stays Chinese
       and of which kind, rather than one total that means nothing.
     - After text relocation it calls
-      `device_extensions.extend_graphics(game, catalog, output, log, skip=rebuilt)`, which discovers the game packages afresh (a texture-heavy package usually stages
-      no text), ports every catalog edit present in them onto the device ASTC textures, and runs the
-      extra-text pass. `skip` keeps it off a package the rebuild already replaced whole, which no longer
-      matches the device's container. It returns `(reports, skipped)`: the reports become `packages`,
-      the skips become `graphics_skipped`. It then calls `repair_card_dictionaries` to repair an older
-      patch's already-English card dictionaries; successful repairs use `relocated-text` entries and
+      `device_extensions.extend_graphics(game, catalog, output, log, skip=rebuilt)`, which discovers
+      the game packages afresh (a texture-heavy package usually stages no text), ports every catalog
+      edit present in them onto the device ASTC textures, and runs the extra-text pass. `skip` keeps
+      it off a package the rebuild already replaced whole, which no longer matches the device's
+      container. It returns `(reports, skipped)`: the reports become `packages`, the skips become
+      `graphics_skipped`. It then calls `repair_card_dictionaries` to repair an older patch's
+      already-English card dictionaries; successful repairs use `relocated-text` entries and
       unmeasured layouts are reported in `text_skipped`. Last of all, with an APK, it calls
       `package_rebuild.add_prime_only(...)` — also keyed on `rebuilt` — so an appended asset lands on
       the copy the passes above staged instead of being overwritten by one.
