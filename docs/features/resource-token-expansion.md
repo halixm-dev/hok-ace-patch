@@ -65,6 +65,9 @@ unverified. Nothing about this feature is outstanding.
 
 **Journey log**
 
+- Three independent reviews, one per round — the first rule, the spacing amendment, the sign rule (T7,
+  T11, T13; 2026-09-29): no critical finding in any; each reproduced the 87 assets byte-for-byte. Their
+  measurements are in the lab notebook, 2026-09-29.
 - The tempting fix — rewriting the tokens in `catalog.json.gz` — is silently counterproductive: the
   runtime's `gemini.validate_translation` compares `{...}` placeholders between source and target and
   rejects the record, so the string stays Chinese. Expanded *after* translation is the whole design.
