@@ -21,6 +21,7 @@ import gzip
 import json
 import re
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -42,13 +43,14 @@ class Term:
     whose source contains <source>. A pattern that names a group `w` copies that word's case onto the
     replacement ("drains" -> "steals", "Seizure" -> "Steal"), unless <proper> is set, in which case the
     term is a name and keeps its capital everywhere; a pattern without one is a phrase fix whose
-    replacement is written as given. <keep> lists English phrases that translate a different word of
-    the same source and must survive the rewrite.
+    replacement is written as given. A replacement may also be a function of the match, for a rule
+    that rebuilds what it matched rather than replacing it. <keep> lists English phrases that
+    translate a different word of the same source and must survive the rewrite.
     """
 
     source: str
     canonical: str
-    variants: tuple[tuple[str, str], ...]
+    variants: tuple[tuple[str, str | Callable[[re.Match], str]], ...]
     keep: tuple[str, ...] = ()
     proper: bool = False
     _compiled: tuple = field(init=False, repr=False, compare=False)
@@ -72,7 +74,9 @@ class Term:
             parts[index] = text
         return "".join(parts)
 
-    def _cased(self, match: re.Match, replacement: str) -> str:
+    def _cased(self, match: re.Match, replacement: str | Callable[[re.Match], str]) -> str:
+        if callable(replacement):
+            return replacement(match)
         word = match.groupdict().get("w")
         if word is None or self.proper or word[:1].isupper() or _after_icon(match):
             return replacement
@@ -103,15 +107,39 @@ ENGLISH_TERMS: tuple[Term, ...] = (
         (r"(?P<w>\bReady\b)", "Prepare"),
         (r"\bPrepare series\b", "Prepare Series"),
     ), proper=True),
+    # 登场: Deploy everywhere but one series label, "Showtime series", in both catalogs.
+    Term("登场", "Deploy", (
+        (r"\bShowtime\b", "Deploy"),
+    ), proper=True),
 )
 
+def _indonesian_series(match: re.Match) -> str:
+    """"Prepare Series" -> "Seri Prepare": the Indonesian order, which the catalog already uses for most."""
+    name = match.group("name")
+    return f"Seri {name[:1].upper()}{name[1:]}"
+
+
 # The Indonesian catalog keeps the game's keywords in English ("Seri Steal", "Efek Prepare"), with the
-# same variants, so it takes the English glossary plus its own two misreadings of `夺取`: "Kejang"
-# (Seizure, in its medical sense) and "PIunder", Plunder spelled with a capital I.
+# same variants, so it takes the English glossary plus its own misreadings: of `夺取`, "Kejang" (Seizure,
+# in its medical sense), "PIunder" (Plunder with a capital I) and a lower-case name before its icon
+# ("Efek steal╊"); of `整备`, "Siap" (Indonesian for Ready) after its icon.
 INDONESIAN_TERMS: tuple[Term, ...] = ENGLISH_TERMS + (
     Term("夺取", "Steal", (
         (r"\bKejang\b", "Steal"),
         (r"\bPIunder\b", "Steal"),
+        (r"\bsteal(?=╊)", "Steal"),
+    )),
+    Term("整备", "Prepare", (
+        (r"(?<=╬)Siap\b", "Prepare"),
+    )),
+    # 系列 (a keyword's series): the catalog writes "Seri General" 55 times and "Seri Summon" 8, but
+    # "Prepare Series", "Initiate Series", "Deploy Series" and a dozen more in the English order. The
+    # name is the run of capitalised words before "Series" ("Temporary Level Series"), or one
+    # lower-case word ("blazing series" -> "Seri Blazing"); "Shield seri" has the Indonesian word in the
+    # English order. Last, so it sees the keyword names above.
+    Term("系列", "Seri", (
+        (r"(?P<name>(?:[A-Z][\w'-]* )*[A-Z][\w'-]*|[a-z][\w'-]*) [Ss]eries\b", _indonesian_series),
+        (r"(?P<name>(?:[A-Z][\w'-]* )*[A-Z][\w'-]*) seri\b", _indonesian_series),
     )),
 )
 
