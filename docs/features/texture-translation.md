@@ -55,6 +55,10 @@ thing this document does not claim.
 
 **Journey log**
 
+- Career-atlas sprite investigation and sprite-aware port (T14, 2026-10-10): the offset port had put 9
+  labels on other sprites; fixed and device-verified on the Career screen. Lab notebook, 2026-10-10; its
+  evidence is in `tools/research/career_atlas/evidence/`. Its prototype `sprite_table.py` was superseded by
+  `tools/sprite_table.py` plus `atlas_sprites.py table` and deleted.
 - **The Career atlas was ported at the wrong offsets from the start (2026-10-10).** A user screenshot
   showed `我的棋手` beside the chessplayer count on the Career screen. It is a sprite, `Image_1904551913`
   of the `CareerAtlas` texture `13C19E4E4486B31C` (package `19`, downloaded layer, 1024x1024 ASTC 4x4),
@@ -269,12 +273,12 @@ sprite where the PC one does, which holds for the lobby atlases `C9F49510F2F6740
   language uses them: the atlas's rank names are English in Indonesian too. The round `胜利` / `失败`
   badges are not drawn. The renders are straight alpha, white to the edge: the first ones were composited
   over transparent black, which greyed every antialiased edge pixel (205 and 412 of them) and would have
-  shown as a dark fringe; `tasks/T15/validate_assets.py` caught it and `render_label` no longer does it.
-  The user then polished both renders by hand (`tasks/T15/edit/`): a proper K and bolder SKINS, and
+  shown as a dark fringe; `tools/research/career_atlas/validate_assets.py` caught it and `render_label` no longer does it.
+  The user then polished both renders by hand (`tools/research/career_atlas/edit/`): a proper K and bolder SKINS, and
   native L, R and F in a tighter TOTAL PROFIT, plus 5 touched-up alpha pixels in the M of MY (two
   half-covered joins filled; nothing moved). Those PNGs are what ships; `atlas_sprites.py labels` now
   writes drafts to `--out` only, and its `--check` verifies the shipped labels' format instead of
-  regenerating them. Checked: `tasks/T15/validate_assets.py` passes, `[10]` draws them at their
+  regenerating them. Checked: `tools/research/career_atlas/validate_assets.py` passes, `[10]` draws them at their
   device boxes (worst mean 0.34 after ASTC), `--game` on today's layer passes, and the rebuilt exe's `--selftest` stages
   exactly that atlas.
 - **Re-runs.** A touched block is re-encoded only when its decoded pixels do not already show the target

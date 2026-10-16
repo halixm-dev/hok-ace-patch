@@ -1,8 +1,8 @@
-r"""Check polished T15 assets against the specs in handoff.md, and render previews to judge them by eye.
+r"""Check hand-finished Career-atlas art against the specs in art_brief.md, and render previews to judge it by eye.
 
 Needs only Pillow (``pip install pillow``); runs anywhere, with or without the rest of the repo:
 
-    python tasks/T15/validate_assets.py [--delivered tasks/T15/delivered]
+    python tools/research/career_atlas/validate_assets.py [--delivered tools/research/career_atlas/delivered]
 
 Every PNG in --delivered named after a sprite in SPECS is checked. Prints PASS/FAIL per rule, writes
 ``preview_sheet.png`` (each delivery beside the current render and its style reference, at 1x and 4x on

@@ -12,8 +12,9 @@ package at run time (``sprite_table.sprite_rects``). It also draws two kinds of 
   (``mobile_graphics.ATLAS_LABELS``). The first drafts were assembled here from the catalog's own English
   glyphs, so they share the labels' face, size and alpha, with the letters no catalog label carries
   built from parts of the same face (K, L, R, F). The user then polished both by hand (2026-10-10,
-  ``tasks/T15/edit/``), so the shipped PNGs are the source of truth: ``labels --out`` drafts elsewhere
-  and never writes over them.
+  ``tools/research/career_atlas/edit/``), so the shipped PNGs are the source of truth: ``labels --out``
+  drafts elsewhere and never writes over them. Check a changed label with
+  ``tools/research/career_atlas/validate_assets.py --delivered <dir>``.
 
 Subcommands, run by hand from the project root (``<pkg19>`` is a dump's ``WXQ_Data/Package/builtin/19``):
 

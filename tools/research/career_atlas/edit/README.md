@@ -27,12 +27,12 @@ runs the validator, shows you the previews, and integrates the changed ones.
   the script word as they are. Metallic gold/silver like the original characters.
 
 Style references and 8x enlargements are in `../reference_english/` and `../originals/`;
-`../context_atlas_after_port.png` shows the whole atlas as it ships now. More detail: `../handoff.md`.
+`../context_atlas_after_port.png` shows the whole atlas as it ships now. More detail: [art_brief.md](../art_brief.md).
 
 ## Check your work yourself (optional)
 
 ```bash
-python tasks/T15/validate_assets.py --delivered tasks/T15/edit
+python tools/research/career_atlas/validate_assets.py --delivered tools/research/career_atlas/edit
 ```
 
-It writes `tasks/T15/preview_sheet.png` and `tasks/T15/preview_in_context.png`.
+It writes `tools/research/career_atlas/preview_sheet.png` and `tools/research/career_atlas/preview_in_context.png`.
