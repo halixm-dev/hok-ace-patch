@@ -35,7 +35,7 @@ phone.
 | T5 | control | achievement titles, checked by the user | English |
 
 Not watched: the weekly leaderboards and King of Kings. The control's own
-verdict on the 1.6.0.1 supplement is therefore still partial (`MEMORY.md`).
+verdict on the 1.6.0.1 supplement is therefore still partial (`docs/lab-notebook.md`).
 
 | what landed | where |
 |---|---|
@@ -125,7 +125,7 @@ the asset is only offered when `--cycle-asset 9E45602F` names it.
 
 ### The cycle (one variable: this asset)
 
-The phone also owes a verdict on the 1.6.0.1 supplement build (`MEMORY.md`, 2026-10-16), so that build
+The phone also owes a verdict on the 1.6.0.1 supplement build (`docs/lab-notebook.md`, 2026-10-16), so that build
 goes first as the **control**, and the cycle build differs from it only by `--cycle-asset`.
 
 1. **Disk.** The work and output directories go on `D:`, e.g. `D:\scratch\hok-cycle\{control,cycle}`.
@@ -169,7 +169,7 @@ goes first as the **control**, and the cycle build differs from it only by `--cy
    - **Fail:** push the backup back, confirm the grid returns, and record the hash and its symptom among
      the withdrawn assets in `tools/extra_text.py`. The supplement entries from step 3 stay; they are
      harmless.
-   - **Either way:** update this record's Report, `MEMORY.md` and `docs/translation-progress.md`.
+   - **Either way:** update this record's Report, `docs/lab-notebook.md` and `docs/translation-progress.md`.
 
 ## [S3] Out of Scope
 

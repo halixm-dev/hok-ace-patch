@@ -423,5 +423,5 @@ The development platform harness, `tools/research/check_android_platform.py`, re
 matches installed development APK hashes to the inspected build, and checks codec loading without game access.
 Windows and Android share the four result counters in `tools/patch_summary.py`; the Windows
 GUI continues to consume them through `app/patcher_core.py`.
-See [local artifact retention](docs/artifact-retention.md) for what the 2026-10-03
+See the [lab notebook](docs/lab-notebook.md)'s housekeeping section for what the 2026-10-03
 cleanup retained and which historical outputs must be rebuilt before reuse.

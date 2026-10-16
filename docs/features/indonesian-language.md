@@ -85,7 +85,7 @@ bugs. Three were never Indonesian-specific: the English patch has them too.
 Two builds were pushed, both staged from the phone's own layer with the six patched packages restored to
 the pristine dump: A (both fixes, rule pages withheld) and B (A with every `SAFE_ASSETS` entry withheld).
 B is byte-identical to what the committed code stages. Final counts: **388 text tables, 398 textures**,
-one known table refusal. Evidence: `MEMORY.md`'s 2026-10-05 section.
+one known table refusal. Evidence: `docs/lab-notebook.md`'s 2026-10-05 section.
 
 **Journey log**
 

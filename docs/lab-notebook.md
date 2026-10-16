@@ -1,4 +1,9 @@
-# Project memory — HOK ACE Mobile English Patcher
+# Lab notebook — HOK ACE Mobile English Patcher
+
+This notebook is the single source for raw measurements and device verdicts. Other docs cite its
+entries by date (for example "lab notebook, 2026-10-05") instead of copying the numbers; a feature
+record carries the reasoning, this file carries the evidence. Topic sections come first, dated
+entries after.
 
 Measured evidence for this repo: what went on a phone, what the phone did, and which claim was withdrawn and
 why. `AGENTS.md` carries the rules that always apply; **where the two disagree, `AGENTS.md` wins**. This file
@@ -676,6 +681,37 @@ separating them costs one device cycle each.
   older, `.git`-less repo copy) was verified fully recoverable from history (5 differing tools at `e21ed33`,
   `9947ed1`, `c0581cb`, `c3f23b3`) before deletion.
 
+### Local artifact retention (2026-10-03)
+
+Cleanup on 2026-10-03 removed **18.1 GiB** of obsolete outputs. `artifacts/` remains gitignored;
+game dumps, APKs and generated patch packages are local inputs and evidence, not release source.
+
+Retained:
+
+| Material | Location | Purpose |
+|---|---|---|
+| Fresh 1.4.0.2 snapshot and its verified hashes | `dist/HOK ACE Patcher Data/pristine/20261003-173730/` | Known working Chinese control; future checksum research |
+| Current normal/access APKs and updated patcher executable | `dist/` and `dist/HOK ACE Patcher Data/` | Supported installation and restore path |
+| Full fixed patch, repair/rerun checks and native chunk-key donor | `dist/HOK ACE Patcher Data/grid-regression/` | Reproduce and verify the Talent Card fix |
+| Screenshots, device push hashes, logs and small measurement reports | `artifacts/shots/`, `artifacts/device-cycle-t10/`, other cycle evidence directories | Preserve successful and failed device verdicts |
+| Device push/capture tools and research probes | `artifacts/device-cycle-t9/`, `artifacts/device-cycle-t10/`, `artifacts/device-run/` | Reusable diagnostics; no imports from shipping code |
+| Older source dumps and original APK | `artifacts/game-dump*`, `artifacts/tencent-pristine-1.1.1.apk` | Historical comparisons; never treat a patched dump as pristine |
+| Small package-1 comparison specimens and key-probe inputs | `artifacts/cycles/base2/out/1`, `artifacts/cycles/3914DBBFECD1E54D/`, `artifacts/device-run/empty-rebuild/out/1`, `artifacts/device-cycle-t9/shipped-stage/` | Preserve the inputs needed by retained measurements |
+
+Removed repeated prime extractions, replacement scans, superseded full rebuilds, obsolete 1.4.0.1
+candidate patch outputs, duplicate selftest outputs, failed build logs, an unused PC installer, the
+old full-cycle diagnostic backup archive, and scratch commit/diff text. Small reports and screenshots
+were retained. The verified deletion inventory is `artifacts/cleanup-plan.json`.
+
+Older spec commands remain historical verification records. Their removed outputs must be rebuilt
+before reuse. In particular, an extra-text candidate needs a fresh build staged from the phone's own
+game-data version; the old candidate packages are neither retained as complete patches nor ready to
+push. This cleanup does not change candidate verdicts or the four-asset allowlist.
+
+Before deleting more, retain a reproducible source, the current restore APK, and the evidence behind
+device-gated decisions. Resolve every deletion target inside the intended artifact root and use native
+PowerShell file operations. Never delete the generated runtime/catalog resources or signing key.
+
 ## 13. Superseded claims
 
 Claims that were believed, acted on, and turned out wrong — kept because the middle column is the real lesson.
@@ -735,7 +771,7 @@ append refusal. T15 complete; no commit.
 
 **Review and cleanup:** removed 18.1 GiB of obsolete generated artifact outputs, retaining
 fresh controls, original APK/source dumps, final fixed packages, screenshots, reports and
-reusable probes. See `docs/artifact-retention.md`; old full candidate builds must be restaged
+reusable probes. See §12's local artifact retention; old full candidate builds must be restaged
 from the phone's version. Normal build code now initializes Tencent DLLs only when a rebuild
 package is named. With `REBUILD_PACKAGES=()`, an APK plus an absent builder directory passes
 the old-package repair check. Graphics offline checks pass.
