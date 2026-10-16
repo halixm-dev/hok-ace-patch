@@ -1,0 +1,2 @@
+# Upstream notice hashes require exact bytes on Windows as well as Linux.
+android/native/licenses/*.txt -text
