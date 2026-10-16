@@ -11,8 +11,8 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Six ADRs exist, each one paragraph, each using `GLOSSARY.md` terms
-- [ ] Each cites its record (and notebook entry by date where the verdict lives there)
-- [ ] The reference check passes
+- [x] Six ADRs exist, each one paragraph, each using `GLOSSARY.md` terms
+- [x] Each cites its record (and notebook entry by date where the verdict lives there)
+- [x] The reference check passes

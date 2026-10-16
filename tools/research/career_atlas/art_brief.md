@@ -134,7 +134,7 @@ Not part of the art task; recorded so the handoff is complete.
 3. Badges: add `Image_1611657762` / `Image_1795213190` to `mobile_graphics.ATLAS_LABELS` with their wording.
    `port_atlas` draws a label over its whole device box, so the delivered PNG replaces the sprite as is.
 4. Run `check_graphics.py` (offline and `--game`), rebuild the exe, and run a device cycle
-   (`docs/features/prime-rebuild.md`, "The device test loop"): the Career screen in both switch
+   (`docs/runbooks/device-cycle.md`): the Career screen in both switch
    states, Total Profit, and the match-history badges.
 
 ## Files here

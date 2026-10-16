@@ -113,7 +113,7 @@ def free_space(path: Path) -> int | None:
 
 - `docs/translation-progress.md` is the coverage ledger: how much of the catalog applies, what each data layer carries, what is translated outside the catalog, and what is knowingly left Chinese. It is the one file that moves with coverage, so it is updated in the same change as the work whenever a catalog re-import, a new pass or a `REBUILD_PACKAGES` change, a device cycle on the `extra_text` allowlist, or a run whose `text_skipped` / `graphics_skipped` / `append_skipped` is non-empty moves a count. A run's own summary outranks it.
 - Consult the record for a pass before changing that pass — why the code is shaped this way, and which attempt already failed, are in its `[S2]`, `[S3]` or journey log rather than in the code — and update it in the same change as the work.
-- `prime-rebuild.md` also holds the two procedures this file only demands: how to diagnose an untranslated string across both data layers, and the device test loop a device-gated change follows.
+- `docs/runbooks/` holds the procedures: `device-cycle.md` before a device-gated change goes on a phone, `diagnose-untranslated.md` when a string stays Chinese, `read-a-crash.md` when the game dies.
 
 ## Git
 
