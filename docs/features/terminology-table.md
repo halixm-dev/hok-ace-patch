@@ -1,5 +1,5 @@
 ---
-feature: terminology-glossary
+feature: terminology-table
 status: delivered
 updated: 2026-10-16
 branch: master
@@ -58,6 +58,10 @@ replacing a word, which is why a replacement may be a function of the match.
 Not yet device-verified. The change is text inside tables the pipeline already translates — no new
 asset, no new kind — so it carries the same risk as a catalog re-import.
 
+### Still owed
+
+- T4: Device cycle on a pristine layer — acceptance: a card with `╊` and one with `╬` read Steal and Prepare on the phone, and the encyclopedia keyword pages do too (covers: S2; depends: T2)
+
 ## [S1] Problem
 
 The catalog was translated string by string, so the same keyword reads differently from one card to the
@@ -103,11 +107,3 @@ next. On the English catalog the `夺取` link label is "Steal" 7 times, "Plunde
   chosen name before it can join the glossary.
 - Textures: a keyword drawn into an image is not text and is not reached here.
 - Editing `catalog.json.gz`: the catalog is the PC pipeline's file (`AGENTS.md`, *Boundaries*).
-
-## Tasks
-
-- [x] T1: Add `tools/terminology.py` with `Term`, `ENGLISH_TERMS`, `INDONESIAN_TERMS`, `apply` and `install` — acceptance: on both catalogs every changed pair keeps its markup and placeholders, passes `validate_translation` wherever the catalog did, and a second `apply` changes nothing (covers: S2)
-- [x] T2: Add `Language.terms` and call `install()` at the top of `build_patch` — acceptance: the run logs the glossary line and `adaptive.scan` sees the corrected catalog (covers: S2; depends: T1)
-- [x] T3: Translate the APK's pristine package `1` tables with and without the glossary — acceptance: the keyword strings read Steal / Prepare, no "Readiness" remains, and the remaining "Plunder" comes from `掠夺` (covers: S2; depends: T1)
-- [x] T5: Indonesian leftovers and series order — acceptance: on the Indonesian catalog no keyword label after `╊`/`╬` reads anything but Steal/Prepare, every series label in a `系列` string reads "Seri X", and every changed pair still validates (covers: S2; depends: T1)
-- [ ] T4: Device cycle on a pristine layer — acceptance: a card with `╊` and one with `╬` read Steal and Prepare on the phone, and the encyclopedia keyword pages do too (covers: S2; depends: T2)

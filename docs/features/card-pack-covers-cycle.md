@@ -97,6 +97,10 @@ from before this change wherever a catalog table holds one of them as a whole va
   `transform.graphics | transform.tables | transform.scripts`. So `--cycle-asset` alone would be a silent
   no-op for it.
 
+### Still owed
+
+- (partly done) T5 control pushed and watched: startup, the Encyclopedia and a full match pass; the supplement's own screens are still owed
+
 ## [S1] Problem
 
 The Starting Lineup grid is the one Diamond Frenzy screen that stays Chinese after a full 1.6.0.1 build.
@@ -174,12 +178,3 @@ goes first as the **control**, and the cycle build differs from it only by `--cy
 - Moving or rebuilding package `1` (`REBUILD_PACKAGES` stays empty).
 - The other per-mode encyclopedia copies, if a different mode carries its own covers bin. A pass on this
   one is not evidence for another hash.
-
-## Tasks
-
-- [x] T1 `CANDIDATE_ASSETS` entry for `9E45602F1857539D` with its measurement
-- [x] T2 `transform.config`, consumed by `add_prime_only`; `AGENTS.md` sentence updated
-- [x] T3 derived short forms in `catalog_supplement.py`, EN + ID, `check` clean
-- [x] T4 control and cycle builds on `D:`, offline acceptance in step 3 met (English)
-- [~] T5 control pushed and watched: startup, the Encyclopedia and a full match pass; the supplement's own screens are still owed
-- [x] T6 cycle pushed and watched: **withdrawn**, empty Starting Lineup grid

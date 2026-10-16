@@ -232,7 +232,7 @@ covers: `63922EF4D4C86526` is `幻化`/`夺宝`/`限时`, `7E3F57D727FA8625` is 
 damage identifiers the catalog reaches at most 9% of, so the labels are the cycles worth running. A cycle
 is one variable: `--cycle-asset <hash>` on the offline CLI enables exactly that asset for one run, the run
 names it in `device_patch_summary.json`'s `cycle_assets`, and the hash joins `SAFE_ASSETS` only once a
-phone has shown the screen it feeds. `docs/compose/spec/extra-text-cycles.md` holds the loop.
+phone has shown the screen it feeds. `docs/features/extra-text-cycles.md` holds the loop.
 
 Re-running the patcher is safe: `qts_relocate.install_btree_slot_map()` makes the scanner follow the
 shard's B-tree, so a second run reads the live chunks instead of superseded copies of relocated ones,

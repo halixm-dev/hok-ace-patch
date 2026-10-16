@@ -552,9 +552,9 @@ the pristine downloaded dump, with `selftest.json` reporting `ok: true`. Evidenc
 `artifacts/android-port-windows-selftest/selftest.json`. This self-test does not supply the APK;
 the earlier both-layer control remains the coverage comparison.
 
-Developer build/test commands and harness usage are in [`android/README.md`](../../../android/README.md).
+Developer build/test commands and harness usage are in [`android/README.md`](../../android/README.md).
 Native source hashes, build flags and redistribution inventory are in
-[`android/native/THIRD_PARTY.md`](../../../android/native/THIRD_PARTY.md).
+[`android/native/THIRD_PARTY.md`](../../android/native/THIRD_PARTY.md).
 The Windows APK signer now accepts an optional RSA callback; the default and callback outputs
 are byte-identical to its pre-change control. Translation engine and catalog/runtime/key resources
 were not edited. Coverage ledger counts did not move.
@@ -636,6 +636,20 @@ The proposed first release targets **Android 11+ and arm64-v8a**, with Shizuku s
 - Existing feature records, repository `MEMORY.md` and `docs/translation-progress.md`: measured restrictions, both data layers, append behavior and Talent Card repair.
 
 The normal pipeline is DLL-free because `REBUILD_PACKAGES = ()`. It still needs the APK for prime-only assets. Removing the APK input would lose parity even if downloaded text and textures worked. Do not bundle Tencent's Windows builder into the Android app or invent a replacement builder.
+
+### Still owed
+
+- Test permission denial, stopped Shizuku and OEM install prompts. Record exact failures and settings needed.
+- Inventory reachable imports; resolve every required native dependency for ARM64/CPython 3.12, recording versions, NDK configuration and applicable redistribution notices/source requirements.
+- Measure peak disk/RAM, thermal effects and elapsed time. Exercise 16 KB native loading separately.
+- Accept the saved emergency installer request through an actual user-assisted restore and independent installed-APK verification; APK verification must leave pending package rollback intact.
+- Refuse stale live layers, unsupported layouts, split APKs and nonempty rebuild configuration explicitly.
+- Run the existing `prime-rebuild.md` device loop with fresh matching data and watched screens: login, Chessplayer names/skills, Central Plains ribbon, Yixing art, Talent Card grid/search/detail (Arena Tiger), and populated Hero/Effect/Equipment tabs.
+- Verify actual pushed file hashes, prime-only content, skipped-counter parity and normal APK identity/debug flag after every run.
+- Rerun on already-English data: no duplicate append, no lossy texture drift, no unexplained staged packages. Test older broken dictionary repair in scratch data before a live repair cycle.
+- Test activity recreation, screen-off, app process death, Shizuku death, permission revocation, low space, installation failure and interruption between index/shard commits. Verify rollback/resume plus restore; reboot testing must preserve recovery files.
+- Test first official install only with explicit data-loss consent; then normal update and repeat-patch paths. Test the existing measured Xiaomi/MIUI Android 12 device first if available, plus another OEM and newer Android/page-size environment before claiming broad support.
+- Update this Report with actual commands/results, README with Android setup/build instructions, and coverage ledger only if measured counts move. Keep the Windows source/offline checks passing.
 
 ## [S1] Problem
 
@@ -815,66 +829,3 @@ Catalog and runtime are immutable consumed resources. Default `cycle_assets` rem
 - Removing signature conversion, fixing direct WeChat/QQ authentication, changing Tencent's updater or expanding translation coverage.
 - Assuming Shizuku makes the game data publicly readable, or treating `/sdcard/Android/data` logs as the private Qts package store.
 - Windows builder emulation, generic package-key derivation, or enabling previously withdrawn extra-text assets.
-
-## Tasks
-
-### Phase 0 — Capture a desktop control
-
-- [x] Record Git commit, source game/APK version and SHA-256, catalog/runtime hashes and the current pristine dump.
-- [x] Read the latest pass records and run the DLL-free offline pipeline with the matching APK and no builder input. Save summary and staged package hashes outside committed sources.
-- [x] Run `tools/research/check_graphics.py` and its `--game` form on the same data. Preserve the known Talent dictionary and prime-only asset checks.
-- [x] Use the run's own summary as baseline; measured control records 391 staged text tables and 395 applied textures with one known prime table refusal; these numbers are data-version dependent.
-
-**Exit:** reproducible, version-matched control and recovery material. No Android writes yet.
-
-### Phase 1 — Prove the Shizuku boundary first
-
-- [x] Create a minimal Android 11+/ARM64 app with Shizuku provider, authorization, binder death handling and an AIDL UserService.
-- [x] Log UID/SELinux context, discover the game's APK, stream/hash it, and test force-stop without modifying game data.
-- [x] Use a disposable debuggable fixture app to test `run-as` read/write, binary streaming, installed-session behavior and recovery. A separate normal patcher process calling `run-as` must fail as expected.
-- [x] On the actual game, only after explicit device-cycle authorization, install existing correctly signed access APK, read `1.info`, round-trip a harmless temporary probe as game UID, remove it and restore normal APK. Verify no DEBUGGABLE flag and successful game launch.
-- [ ] Test permission denial, stopped Shizuku and OEM install prompts. Record exact failures and settings needed.
-
-**Exit:** Shizuku controls the existing access/restore chain on the target phone. Stop the full-port path if `run-as` or restore cannot be made reliable; do not infer a workaround from shell UID alone.
-
-### Phase 2 — Prove engine and codec portability offline
-
-- [x] Embed Python 3.12, package runtime/catalog unchanged, and confirm Android LZ4 wins module resolution.
-- [ ] Inventory reachable imports; resolve every required native dependency for ARM64/CPython 3.12, recording versions, NDK configuration and applicable redistribution notices/source requirements.
-- [x] Run catalog loading, real package scanning, compression fixtures, append read-back and Talent dictionary fixtures on device scratch data without touching the live game.
-- [x] Adapt/run the graphics oracle through a development harness. Keep `tools/research/` outside shipping imports.
-- [x] Compare against the same desktop inputs: exact text/raw decompression/keys and unchanged ranges; texture output should be identical where reproducible. Any ARM encoder difference needs image-quality and idempotence evidence rather than silently accepting differing hashes.
-- [ ] Measure peak disk/RAM, thermal effects and elapsed time. Exercise 16 KB native loading separately.
-
-**Exit:** full offline pipeline works locally with both layers and no Windows binaries. A text-only spike may diagnose progress but is not the full Android deliverable.
-
-### Phase 3 — Build the durable mobile workflow
-
-- [x] Add coordinator, cache identity, foreground worker, storage estimator and session journal.
-- [x] Publish fully initialized patch journals before mutation; share draft filtering and refuse damaged published recovery state across preparation, consent, coordinators, recovery selection and export.
-- [x] Implement APK signing with the stable game key and verify installation independently.
-- [x] Implement streamed snapshot/apply, hash checks, per-package consistency and rollback, Watchdog cleanup and unconditional restore priority.
-- [x] Add first-run consent/update checkpoint, progress, four result counters, log export and emergency normal-APK installer.
-- [ ] Accept the saved emergency installer request through an actual user-assisted restore and independent installed-APK verification; APK verification must leave pending package rollback intact.
-- [ ] Refuse stale live layers, unsupported layouts, split APKs and nonempty rebuild configuration explicitly.
-
-**Exit:** complete scratch-data runs and deliberate failure injection recover safely before live translation writes.
-
-### Phase 4 — Device acceptance and release
-
-- [x] Complete one live full Android patch cycle on the Xiaomi Android 12: 391 text tables, 395 textures, one skipped text table, verified package payload and normal APK restore (2026-10-05).
-
-- [ ] Run the existing `prime-rebuild.md` device loop with fresh matching data and watched screens: login, Chessplayer names/skills, Central Plains ribbon, Yixing art, Talent Card grid/search/detail (Arena Tiger), and populated Hero/Effect/Equipment tabs.
-- [ ] Verify actual pushed file hashes, prime-only content, skipped-counter parity and normal APK identity/debug flag after every run.
-- [ ] Rerun on already-English data: no duplicate append, no lossy texture drift, no unexplained staged packages. Test older broken dictionary repair in scratch data before a live repair cycle.
-- [ ] Test activity recreation, screen-off, app process death, Shizuku death, permission revocation, low space, installation failure and interruption between index/shard commits. Verify rollback/resume plus restore; reboot testing must preserve recovery files.
-- [x] Prove a physical feasibility-app kill after a disposable fixture index rename and before acknowledgment: new-process journal load, real Shizuku byte rollback, Watchdog directory restore, exact read-back and no false APK completion.
-- [x] Prove actual connected foreground read-only verifier UserService death: retain pending verification intent, record a nonblank failure, and resolve only after a fresh independent normal-APK check. This does not accept full patch or server-loss recovery.
-- [ ] Test first official install only with explicit data-loss consent; then normal update and repeat-patch paths. Test the existing measured Xiaomi/MIUI Android 12 device first if available, plus another OEM and newer Android/page-size environment before claiming broad support.
-- [ ] Update this Report with actual commands/results, README with Android setup/build instructions, and coverage ledger only if measured counts move. Keep the Windows source/offline checks passing.
-
-**Release gate:** a user installs the Android patcher, starts Shizuku on the phone, completes the supported patch flow and launches the verified non-debuggable game without a PC or cable. Both-layer translation behavior matches the version-matched control, and an interrupted run has a usable recovery path.
-
-### Handoff prompt for the implementation session
-
-> Implement the plan in `docs/compose/spec/android-shizuku-patcher.md`, starting with Phase 0 and the minimal Phase 1/2 feasibility spikes. Preserve AGENTS.md restrictions, immutable catalog/runtime, Python 3.12, game signing key, empty REBUILD_PACKAGES and empty cycle_assets. Add the Android application alongside the Windows application. Prioritize proof of Shizuku run-as/install/restore and Android codec loading before building the full UI. Do not run destructive first-install or live game device cycles without explicit authorization for that cycle. Record observed results and blockers in the plan's Report, and do not claim PC-free/full pipeline support before the release gate passes.

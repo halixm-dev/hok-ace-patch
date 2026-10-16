@@ -4,10 +4,14 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Every record is in `docs/features/`, and `docs/compose/` no longer exists
-- [ ] No record carries a task-checklist section
-- [ ] The promotion step is in the issue-tracker config
-- [ ] Every reference to a moved record is updated (instructions, README, notebook, other records, research tools)
-- [ ] The old folder name is on the retired-names list and the reference check passes
+- [x] Every record is in `docs/features/`, and `docs/compose/` no longer exists
+- [x] No record carries a task-checklist section
+- [x] The promotion step is in the issue-tracker config
+- [x] Every reference to a moved record is updated (instructions, README, notebook, other records, research tools)
+- [x] The old folder name is on the retired-names list and the reference check passes
+
+## Comments
+
+- Implementation: the terminology record is now `docs/features/terminology-table.md`. Dropping the task lists kept their information: open (unchecked) items became a plain `### Still owed` list at the end of each Report, and `prime-only-append.md`'s dated evidence subsections, which had sat under `## Tasks`, moved to the end of its Report verbatim.

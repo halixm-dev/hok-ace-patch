@@ -412,7 +412,7 @@ constraint entirely, because the official builder re-lays out the package instea
 `package_id`, `mode`, `considered_count`, `dropped_count`, `dropped`), logs a line per package, and
 `count_untranslated_text` feeds both GUI sites. `dropped` is the plan minus what the staged directory holds,
 and it agrees set-for-set with `fit_summary.dropped_while_staging` — use that field as the cross-check.
-Feature doc `docs/compose/spec/text-drop-report.md`.
+Feature doc `docs/features/text-drop-report.md`.
 
 **`b5cd724`'s commit message and that feature's `[S1]` attribute the Chessplayer screen to this drop loop. That
 attribution is wrong** (the real cause is the prime layer, §4) — amend it.
@@ -503,7 +503,7 @@ Branch `feat/prime-rebuild`, base `e21ed33` (the tip of the also-unlanded `feat/
 `c0581cb` — `1341055` the port, `263631b` and `5bf1ab3` the post-review fixes, `c0581cb` the finalized
 document. **Deliberately left unlanded**: the user chose to keep the branch and test on a phone first, so
 nothing was merged into `master` (then still at `290f5d8`, four features behind). Feature doc
-`docs/compose/spec/prime-rebuild.md`; the method guide `docs/agent-guide-untranslated-strings.md` was
+`docs/features/prime-rebuild.md`; the method guide `docs/agent-guide-untranslated-strings.md` was
 rewritten in English in place. **Not verified on a phone at the time** — do not read the branch's existence as
 a device-tested result.
 
@@ -895,7 +895,7 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   catalog's ACHIEVEMENT POINTS glyphs; the best of ~40 Windows serif fonts fitted to those glyphs still
   had a mean alpha error of 48, so no font is used. The two lines of ACHIEVEMENT POINTS sit 19.5 rows apart;
   a half-pixel resample to align them blurred every stem and was dropped for a whole-row offset.
-  Numbers in `docs/compose/spec/texture-translation.md`, *Regioned atlases*.
+  Numbers in `docs/features/texture-translation.md`, *Regioned atlases*.
 - **Labels hand-polished (2026-10-10, later).** The glyph-assembled renders first shipped with a grey fringe
   (composited over transparent black: 205 and 412 edge pixels below RGB 245), caught by
   `tasks/T15/validate_assets.py` and fixed. The user then polished both in `tasks/T15/edit/` (new K, bolder

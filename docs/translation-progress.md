@@ -2,7 +2,7 @@
 
 The coverage ledger: what the catalog covers, what reaches the phone and by which path, what is
 translated outside the catalog, and what is knowingly left Chinese. `AGENTS.md` carries the rules this
-state obeys and `docs/compose/spec/` the reasoning behind each pass; this file carries the running
+state obeys and `docs/features/` the reasoning behind each pass; this file carries the running
 counts, so it is the one that moves when coverage moves.
 
 Catalog counts verified 2026-10-01 at `cf1055e`. The per-layer counts are measurements over the downloaded
@@ -117,7 +117,7 @@ added that the upstream catalog has no entry for: `tools/research/apply_catalog_
 | review renders | 44 | `previews/` |
 
 The pipeline does not use `unique` exactly as shipped: `tools/terminology.py` gives each keyword one
-name as the catalog loads (`docs/compose/spec/terminology-glossary.md`): the default *Steal* (`夺取`) and
+name as the catalog loads (`docs/features/terminology-table.md`): the default *Steal* (`夺取`) and
 *Prepare* (`整备`), replacing the community names Plunder and Readiness and the stray variants. On the
 English catalog that rewrites 40 targets to Steal, 9 to Prepare and 1 to Deploy; on the Indonesian one 36, 7
 and 1, and it also puts 107 Indonesian series labels in the Indonesian order ("Seri Prepare"). It changes words inside tables that are already counted, so no count below moves.
@@ -293,7 +293,7 @@ cover). It is prime-only, so it reaches the phone through the append, which now 
 cycle enabled (`transform.config`). The catalog translates 27 of its 60 strings; the other 33 are short
 forms of its own longer strings that `catalog_supplement.derived` generates, so a cycle would translate
 all 60. **Withdrawn the same day:** appended, it empties the Starting Lineup grid; the control without it
-draws the grid (`docs/compose/spec/card-pack-covers-cycle.md`).
+draws the grid (`docs/features/card-pack-covers-cycle.md`).
 
 A cycle is now one variable by construction: `--cycle-asset <hash>` enables exactly one queued candidate,
 the run records it in `device_patch_summary.json`'s `cycle_assets`, and the hash joins `SAFE_ASSETS` only
@@ -308,11 +308,11 @@ detail pane and the Hero, Effect and Equipment tabs also work in the full Englis
 tile names still use the client's normal ellipsis. Rerunning the updated patcher repairs an older
 already-English copy. Counts remain **391 text tables and 395 applied textures**, with the one
 known append refusal below. Evidence and the withdrawn impossibility verdict are recorded in
-`docs/compose/spec/prime-only-append.md` T15.
+`docs/features/prime-only-append.md` T15.
 
 ## Bahasa Indonesia
 
-`resources/catalog_id/` holds the Indonesian catalog (`docs/compose/spec/indonesian-language.md`). It has
+`resources/catalog_id/` holds the Indonesian catalog (`docs/features/indonesian-language.md`). It has
 the same 499 tables and 398 graphics entries as the English one, so its coverage counts are the English
 counts, and it carries the same 2026-10-10 update strings (1 089 added; its own 1.5.0.1 fixes already held
 the other three). An offline run against the pristine 1.4.0.2 snapshot and APK (2026-10-05), and the same counts from
@@ -394,5 +394,5 @@ Update it in the same change as the work when any of these moves a count:
 - a run comes back with `text_skipped`, `graphics_skipped` or `append_skipped` non-empty, which moves a
   count out of the applied column.
 
-Take the numbers from the run's own summary and from the record in `docs/compose/spec/`; never from
+Take the numbers from the run's own summary and from the record in `docs/features/`; never from
 memory. Where a number here disagrees with a run, the run is right and this file is stale.
