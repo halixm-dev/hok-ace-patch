@@ -2020,3 +2020,29 @@ It settled it as absent (2026-10-09, same Infinix X678B, exported 18:58): the fi
   English (user, same day). Still owed: the weekly leaderboards, King of Kings.
 - **Disk:** C: had 240 MB free and an offline build died there (`WinError 112`). Builds now go on D:.
 
+## 2026-10-17 — Public repository and Android release automation
+
+The GitHub repository was renamed to `halixm-dev/hok-ace-patch` and made public at the user's
+request. GitHub secret scanning, push protection, private vulnerability reporting, dependency
+alerts and automated dependency security fixes are enabled. Game re-signing material remains
+unchanged and intentionally public. A separately approved private patcher release signer is
+stored in Actions secrets; the ignored local backup is in `artifacts/release-signing/`.
+
+| Check | Evidence and verdict |
+|---|---|
+| Before public visibility | Gitleaks 8.30.1 scanned 107 commits across all fetched refs. Two findings were the same prose, `stable-key access APK, adopts/verifies `, rather than credentials. The exact-match exception passes the rescan. |
+| Committed source snapshot | Gitleaks directory scan of a `git archive` export passes with no detected credentials. Compiled/native binaries are not established safe by this scan. |
+| Gradle wrapper | Wrapper JAR and Gradle 8.9 distribution hashes match the upstream checksums; distribution checksum enforcement is now configured. |
+| Local Android build | `:app:testDebugUnitTest :app:lintDebug :app:assembleRelease` passes. All 18 unit tests pass; all 84 packaged native libraries pass the static ELF alignment check. No device cycle was performed. |
+| First clean-runner attempt | Failed because the Python target URL used the obsolete Chaquopy Maven location. Maven Central serves the pinned archive; its SHA-256 matches the existing verified local target. |
+| First signed candidate, `android-v0.1.0-rc.1` | Clean Windows build, tests, lint, ELF/ZIP alignment and APK v2 signature verification pass. Certificate fingerprint matches `SECURITY.md`. Source-companion packaging then refuses CRLF-converted upstream notice files; no draft release is created. |
+| Windows checkout correction | `.gitattributes` preserves notice bytes. A `core.autocrlf=true` checkout simulation matches every pinned notice hash; local packaging verifies all six original native source archives. |
+| Corrected clean development CI | [Run 38980046025](https://github.com/halixm-dev/hok-ace-patch/actions/runs/38980046025) passes, including full native builds, unit tests, lint, ELF/ZIP alignment, signer verification and source-companion packaging. APK and report artifacts uploaded. |
+| Corrected signed candidate, `android-v0.1.0-rc.2` | [Run 38980049065](https://github.com/halixm-dev/hok-ace-patch/actions/runs/38980049065) passes both build and release jobs. The draft contains `hok-ace-patch.apk`, `SHA256SUMS`, `hok-ace-patch-codec-sources.zip`, `android-native-alignment.json` and `release-runtime-dependencies.json`. Publication remains withheld for the documented release review. |
+
+Actions use pinned commits and read-only build tokens. Only the separate draft-release job
+has repository write permission. Tag builds use the private signer; unsigned local releases
+never fall back to the development key. Existing debug installations cannot update directly
+to the private signer. Device acceptance, complete redistribution/source review and the
+compiled-runtime/dependency security audit remain separate work.
+
