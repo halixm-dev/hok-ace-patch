@@ -56,66 +56,17 @@ path, and the path *is* the language.
 | GUI construct + picker (`hok_patcher.App`) | picker shows the saved language; choosing Indonesian writes `{"language": "id"}` without losing `work_dir`; `Patcher` resolves `resources\catalog_id` |
 | `android\gradlew.bat -p android --offline :app:assembleDebug :app:assembleDebugAndroidTest` | BUILD SUCCESSFUL; the APK carries `engine/catalog_id/*` and `tools/languages.py`, all in `engine/manifest.json` |
 
-**Device cycle (2026-10-05, Xiaomi M2007J3SG `f15a72e`, Android 12, game data 1.4.0.2)** — the phone
-already carried the English patch from the Android app's live run, so the cycle followed `prime-rebuild.md`'s
-device test loop with the Indonesian build rather than a normal app run (which would have changed no text;
-see the language-switch row above). Evidence: `artifacts/indonesian-device-cycle-20261005.log`, `artifacts/indonesian-lobby-20261005.png`,
-`artifacts/indonesian-popup-20261005.png`.
-
-| Step | Result |
-|---|---|
-| Installed game APK | `29b3ee7e…` — not the cached `installed.apk` (`b0b08f…`): the two differ only in `AndroidManifest.xml`, all 1625 other entries (every prime package included) identical, signed with the project key, not debuggable. The phone's own APK was used as the restore target and the access APK built from it |
-| First attempt, staged from the 10-03 pristine dump | **aborted before any write**: the phone held 731 package files against the dump's 653 — the game had downloaded more under the same `1.4.0.2` label, so a push from the dump would have reverted it. Normal APK restored and verified |
-| Build base | the phone's own layer, with the six English-patched packages (`1`, `15`, `19`, `20`, `21`, `1050016095`) put back to the dump's copies: in all six every asset outside the translation is byte-identical to the dump and the only extra entries are our own appends, so the game had not touched them |
-| Indonesian build on that base, `--apk phone.apk` | 391 tables, 395 textures, the same six packages; `append_skipped` the one known table. The newly downloaded packages hold no catalog content |
-| Push | fresh backup matched the base except exactly the six packages; 6 packages written, Watchdog cleared, on-phone read-back **12/12** SHA-256 match; normal APK restored (`29b3ee7e…`, no `DEBUGGABLE` flag). Rollback material kept in `dist/HOK ACE Patcher Data/id-device/` (`device-backup-2.tar`, `access-phone.apk`, `phone.apk`) |
-| Launch | game alive past 80 s (PID 11908); logcat has no QtsVFS error, fatal signal or `IsPrebuild` line; the session was still logged in |
-| Lobby | **MULAI GAME** on the start button; Indonesian labels (Toko, Harapan, Top-up Pertama, Peringkat, Kartu, Kesejahteraan, "Undang ke tim", "2 hari 3 jam", "Jangan tampilkan hari ini"). Labels still in English — Menu, Event, Trading Post, Growth Path, Battle Pass, Precious Prayer, Lineup, Chessplayer — are the Indonesian catalog's own values for those sources |
-
-**Device report and fixes (2026-10-05, evening)** — walking the screens after login turned up four
-bugs. Three were never Indonesian-specific: the English patch has them too.
-
-| reported | cause | fix | device verdict |
-|---|---|---|---|
-| Effect Card type filter shows `通用` | hard-coded in the Lua script `9BD30F0DF58B1FBF` (package `10`, prime-only) | `extra_text.SCRIPT_LABELS`, appended | chip reads **General** |
-| one effect card (Armed Power) keeps `-大河流域-` on its band | its catalog edit `884E0B4581F47CF7` is carried under `962747E1E5B73A93`; two more cards likewise | `mobile_graphics.DEVICE_REVISIONS` | band reads **Riverlands** |
-| `/未翻译UI/QTSFailureTips` popup after a match | the client's QTS-failure notice, raised while three rewritten config bins are in place | `SAFE_ASSETS` emptied | 2 of 2 matches with them, 0 of 1 without |
-| Announcement screen has no back arrow or title | rule pages `B5D856BFDF22400D` is `ResHelpSystemCfgDataBin`, read before the header is built | withdrawn from `SAFE_ASSETS` | "< pengumuman" with its back arrow |
-
-Two builds were pushed, both staged from the phone's own layer with the six patched packages restored to
-the pristine dump: A (both fixes, rule pages withheld) and B (A with every `SAFE_ASSETS` entry withheld).
-B is byte-identical to what the committed code stages. Final counts: **388 text tables, 398 textures**,
-one known table refusal. Evidence: `docs/lab-notebook.md`'s 2026-10-05 section.
-
 **Journey log**
 
-- The user supplied only `catalog.json.gz` and `mulai_game.png`. The catalog turned out to be a drop-in for
-  the English one rather than a new format: `adaptive.load_catalog(folder)` reads `folder/catalog.json.gz`,
-  and the `.blocks`/`.assets` files are texture payloads, not text.
-- Two textures draw START GAME in package `19`. Which one the lobby uses cannot be read from the data, so
-  both are re-drawn; they are the same pixels, so one render serves both.
-- No BC7 encoder is installed (only `texture2ddecoder`'s decoder), so the converter carries a small mode-6
-  encoder and re-encodes only the blocks the sprite touches. The device never sees BC7 — the texture pass
-  decodes it and re-encodes ASTC — so its job is only to carry the render into the catalog's format.
-- The user asked whether the token terms could be fixed in the catalog. They cannot: `translate_table`
-  requires matching placeholders, so a pre-expanded target trips `placeholders_changed` and the record is
-  dropped (`resource-token-expansion.md`). The terms became a per-language table instead.
-- **Measured gap: game-shipped English stays English.** The Indonesian catalog translates Chinese
-  sources (`unique`) and re-targets only the 29 750 `english_updates` rows the English catalog already had.
-  Records the game itself ships in English have no row, so `translate_table` leaves them as they are:
-  20 228 of 324 905 records in the staged tables (6%) are English text the English catalog maps from a
-  Chinese source the Indonesian one also translates — mostly package `1`'s prime-only tables
-  (`C40FFFB4C9180D66` alone holds 4522, e.g. "AI impersonates avatar 1181"). The fix belongs in the
-  catalog (more `english_updates` rows), not in a pass here.
-- **Catalog review and remediation (2026-10-08).** A review of the Indonesian catalog found its ~1 069
-  reviewed strings sound and much of the rest unvetted machine translation: Quranic verses and Tafsir
-  commentary injected into skill and rule descriptions, context-blind false friends, `≥`/`≤` corrupted
-  to `£`, and drifting terms (`Kerusakan` beside `Damage`, the typo `Chesplains`). `c64281e` purged 52
-  hallucinated entries with curated ones, replaced the false friends, restored the symbols, normalized the
-  terms and shortened two lobby labels that wrapped or clipped (`Pemain`, `Hadiah`), validating all 39 011
-  entries; `90c952b` purged the remaining hallucinations and kept the Talent and combat-stat terms in
-  English; `ea84cd9` added `tools/research/apply_catalog_fixes.py` so the fixes survive an upstream
-  re-import. The standalone review doc that drove this was folded into [S2] below.
+- The supplied catalog is a drop-in for the English one; its `.blocks`/`.assets` files are texture payloads, not text (lab notebook, 2026-10-05).
+- Two package-`19` textures draw START GAME and the data does not say which the lobby uses — both re-drawn from one render (lab notebook, 2026-10-05).
+- No BC7 encoder is installed — the converter carries a small mode-6 encoder for the blocks the sprite touches (lab notebook, 2026-10-05).
+- Fixing the token terms in the catalog — impossible, `placeholders_changed` drops the record; a per-language table instead (lab notebook, 2026-10-05).
+- Records the game itself ships in English stay English in Indonesian — measured at 6% of staged records; a catalog fix, not a pass ([S3]) (lab notebook, 2026-10-05).
+- Device cycle from the 10-03 pristine dump — aborted before any write, the phone held newer data under the same version label (lab notebook, 2026-10-05).
+- Device cycle from the phone's own layer — launch clean, lobby reads MULAI GAME and Indonesian labels (lab notebook, 2026-10-05).
+- Device report's four bugs (`通用` filter label, Armed Power's band, the QTS-failure popup, the Announcement header), three of them in English too — all fixed and verified on their screens (lab notebook, 2026-10-05).
+- Catalog review: hallucinated religious text, false friends, corrupted `≥`/`≤` and drifting terms — purged and normalized, made re-applicable by `tools/research/apply_catalog_fixes.py`; the wording rules are in [S2] (lab notebook, 2026-10-08).
 
 ### Still owed
 
