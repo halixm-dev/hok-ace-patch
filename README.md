@@ -12,7 +12,7 @@ if the language packages were modified inside the APK.
 |---|---|
 | `app/` | GUI (`hok_patcher.py`), workflow (`patcher_core.py`), APK signing (`apk_tools.py`), `build_exe.py`, `make_icon.py` |
 | `tools/` | Translation build pipeline: `languages.py` (the patch languages and their catalogs), `build_device_patch.py` (entry `build_patch`), prime rebuild against the APK (`package_rebuild.py`, `qts_builder.py`), append into an existing package (`qts_insert.py`), `device_extensions.py` (texture and relocation passes), extra-text pass (`extra_text.py`, `pb_text.py`, `unity_text.py`), `mobile_graphics.py` (ASTC/Oodle codec), `sprite_table.py` (a regioned atlas's device sprite rects), `build_mobile_patch.py`, `qts_relocate.py`, `resource_tokens.py`, `terminology.py` (keyword glossary), `axml_set_debuggable.py`, `axml_label.py` |
-| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, key derivation, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`, `make_language_payloads.py`, `atlas_sprites.py`, `check_references.py`. Off the runtime path; nothing here ships in the exe |
+| `tools/research/` | Reverse-engineering probes (hash emulation, descriptor probes, key derivation, AXML provider injection, archive extractors) and the offline tools: `check_graphics.py`, `render_texture.py`, `ribbon_id_hunt.py`, `browse_assets.py`, `prime_probe.py`, `make_language_payloads.py`, `atlas_sprites.py`, `check_references.py`, `check_staging_contract.py`. Off the runtime path; nothing here ships in the exe |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime, extracted from the PC patcher (Python 3.12 bytecode) |
 | `resources/catalog/` | English translation catalog (`catalog.json.gz`) and the English texture payloads (`.blocks` / `.assets`) the texture pass applies, plus `previews/` |
 | `resources/catalog_id/` | Indonesian catalog (`catalog.json.gz`) plus the textures it re-draws (`<HASH>.blocks`, `previews/<HASH>.png`); every other texture comes from `catalog/` |
@@ -278,6 +278,15 @@ list. Exit code 0 means clean; otherwise it prints one `file:line: reason` per f
 
 ```bat
 .venv\Scripts\python.exe tools\research\check_references.py
+```
+
+`tools/research/check_staging_contract.py` proves the staging summary contract lives in
+`build_patch`'s docstring in `tools/build_device_patch.py` and that `AGENTS.md` only points to it. It
+reads the docstring with `ast`, so it needs no runtime, and prints one line per failure; exit code 0
+means the contract is in place:
+
+```bat
+.venv\Scripts\python.exe tools\research\check_staging_contract.py
 ```
 
 ## Checking the texture pass
