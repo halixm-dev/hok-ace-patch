@@ -633,7 +633,7 @@ The proposed first release targets **Android 11+ and arm64-v8a**, with Shizuku s
 - `app/apk_tools.py`: streaming ZIP rewrite, 4-byte stored-entry alignment, certificate matching and APK v2 signing.
 - `tools/build_device_patch.py`, `package_rebuild.py`, `device_extensions.py`, `qts_relocate.py`, `mobile_graphics.py`, `qts_builder.py`: engine entry points and native dependency boundaries.
 - `requirements.txt` and `resources/runtime/`: Python 3.12 requirement; bundled LZ4 includes `_block.cp312-win_amd64.pyd` and `_version.cp312-win_amd64.pyd`.
-- Existing feature records, repository `MEMORY.md` and `docs/translation-progress.md`: measured restrictions, both data layers, append behavior and Talent Card repair.
+- Existing feature records, `docs/lab-notebook.md` and `docs/translation-progress.md`: measured restrictions, both data layers, append behavior and Talent Card repair.
 
 The normal pipeline is DLL-free because `REBUILD_PACKAGES = ()`. It still needs the APK for prime-only assets. Removing the APK input would lose parity even if downloaded text and textures worked. Do not bundle Tencent's Windows builder into the Android app or invent a replacement builder.
 
