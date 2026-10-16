@@ -1,4 +1,4 @@
-"""HOK ACE Mobile English Patcher: one-click English patch for a USB-connected Android phone."""
+"""HOK ACE Language Patcher: English or Indonesian translation for a USB-connected Android phone."""
 from __future__ import annotations
 
 import ctypes
@@ -16,7 +16,7 @@ from patcher_core import (BUNDLE, MIN_FREE_BYTES, STEPS, Adb, PatchError, Patche
                           count_untranslated_graphics, count_untranslated_text, free_space, languages,
                           load_language, load_work_dir, save_language, save_work_dir)
 
-APP_TITLE = "HOK ACE Mobile English Patcher"
+APP_TITLE = "HOK ACE Language Patcher"
 APP_VERSION = "1.1"
 
 # Palette
@@ -141,7 +141,7 @@ class App(ctk.CTk):
         if png.exists():
             image = ctk.CTkImage(Image.open(png), size=(52, 52))
             ctk.CTkLabel(header, image=image, text="").grid(row=0, column=0, rowspan=2, padx=(24, 14), pady=16)
-        ctk.CTkLabel(header, text="HOK ACE Mobile English Patcher", text_color=TEXT,
+        ctk.CTkLabel(header, text=APP_TITLE, text_color=TEXT,
                      font=ctk.CTkFont(size=20, weight="bold")).grid(row=0, column=1, sticky="sw", pady=(18, 0))
         ctk.CTkLabel(header, text="English or Indonesian translation for 王者万象棋 (Android) · no root required",
                      text_color=MUTED, font=ctk.CTkFont(size=12)).grid(row=1, column=1, sticky="nw", pady=(0, 16))

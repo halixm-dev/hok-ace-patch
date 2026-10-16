@@ -245,7 +245,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         background = AceHeroDrawable(activity.resources.displayMetrics.density)
         setPadding(dp(22), dp(20), dp(22), dp(20))
         addView(eyebrow("HONOR OF KINGS  /  ACE").apply { setTextColor(Color.rgb(224, 228, 255)) })
-        addView(text("HOK ACE Patcher", 32).apply {
+        addView(text(activity.getString(R.string.app_name), 32).apply {
             setTextColor(Color.WHITE); setLineSpacing(0f, 0.95f)
             typeface = Typeface.create("sans-serif-black", Typeface.NORMAL)
         })

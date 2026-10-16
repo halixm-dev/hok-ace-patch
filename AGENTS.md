@@ -1,4 +1,4 @@
-# HOK ACE Mobile English Patcher
+# HOK ACE Language Patcher
 
 Windows GUI that installs the English or Indonesian translation into 王者万象棋 (`com.tencent.tmgp.osgame`) on an Android phone over USB, without root. The Android app in `android/` runs the same pipeline on the phone through Shizuku.
 
@@ -10,14 +10,14 @@ Run from the project root:
 
 ```bat
 setup.bat      :: .venv + requirements.txt  (fallback: set PYTHON=C:\path\to\python3.12.exe first)
-build.bat      :: -> dist\HOK ACE Mobile English Patcher.exe
+build.bat      :: -> dist\HOK ACE Language Patcher.exe
 run.bat        :: run from source
 ```
 
 Headless runtime check (needs a dumped game directory):
 
 ```bat
-dist\HOK ACE Mobile English Patcher.exe --selftest <game-dir> <out-dir>
+"dist\HOK ACE Language Patcher.exe" --selftest <game-dir> <out-dir>
 ```
 
 No test suite. Verify changes with `run.bat` or `--selftest`. The texture codec has its own offline check, which needs neither a device nor a game dump:

@@ -80,7 +80,7 @@ class PatchWorkerService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = Notification.Builder(this, "patch")
             .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentTitle("HOK ACE Patcher").setContentText(UiText.progress(this, message).take(160))
+            .setContentTitle(getString(R.string.app_name)).setContentText(UiText.progress(this, message).take(160))
             .setContentIntent(open).setOngoing(true)
             .addAction(Notification.Action.Builder(null,
                 UiText.text(this, when (activeAction) { "prepare" -> "Cancel preparation"; "first_setup" -> "Stop after safe installation";

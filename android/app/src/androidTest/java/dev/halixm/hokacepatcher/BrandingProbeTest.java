@@ -20,7 +20,7 @@ public final class BrandingProbeTest {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         assertEquals("dev.halixm.hokacepatcher", context.getPackageName());
         ApplicationInfo app = context.getApplicationInfo();
-        assertEquals("HOK ACE Patcher", context.getPackageManager().getApplicationLabel(app).toString());
+        assertEquals("HOK ACE Language Patcher", context.getPackageManager().getApplicationLabel(app).toString());
         Drawable icon = context.getPackageManager().getApplicationIcon(app);
         assertTrue("Launcher icon must be adaptive", icon instanceof AdaptiveIconDrawable);
         AdaptiveIconDrawable adaptive = (AdaptiveIconDrawable) icon;

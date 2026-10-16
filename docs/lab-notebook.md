@@ -1,4 +1,4 @@
-# Lab notebook — HOK ACE Mobile English Patcher
+# Lab notebook — HOK ACE Language Patcher
 
 This notebook is the single source for this repo's raw measurements and device verdicts: what went on a
 phone, what the phone did, and which claim was withdrawn and why, including the attempts that failed.
