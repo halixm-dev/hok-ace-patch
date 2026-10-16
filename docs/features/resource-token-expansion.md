@@ -22,7 +22,7 @@ subset carry it.
 
 The catalog is deliberately untouched: expanding the tokens there trips `placeholders_changed` and
 the records are dropped. `README.md`, `AGENTS.md` and the delivered
-`docs/compose/spec/standalone-patcher-app.md` no longer describe the hybrid text as an accepted
+`docs/features/standalone-patcher-app.md` no longer describe the hybrid text as an accepted
 limitation.
 
 **Verification** — repo Python 3.12.13 (`.venv`), no test suite. All commands run from
@@ -130,7 +130,7 @@ Measured on this repo's present pipeline: a scan of the dumped game directory le
 
 Until this change the repo documented the defect as accepted rather than fixed — `README.md`
 (*Translation coverage*), `AGENTS.md` (*Constraints*), and
-`docs/compose/spec/standalone-patcher-app.md`, whose `[S3] Out of Scope` explicitly parked
+`docs/features/standalone-patcher-app.md`, whose `[S3] Out of Scope` explicitly parked
 "attaching the reference's `RESOURCE_TOKEN_FIX.md` work". All three are updated by the same change
 that implements this feature.
 
@@ -253,7 +253,7 @@ skipping an asset would quietly shrink coverage.
   change how many tables or records were translated. `patcher_core.count_translated` still reports
   text tables only, and the GUI wording stays as it is. **Superseded** — `count_translated` returns
   `(text tables, textures)` and the GUI reports both, per
-  `docs/compose/spec/texture-translation.md`.
+  `docs/features/texture-translation.md`.
 - **Spacing.** The first delivery copied the reference's narrower rule (space only before a
   digit/placeholder and before `+`) and left 319 strings with the term glued to an adjacent word —
   `IfEnergyis negative`, `theEnergyobtained this Round`, `CurrentEnergy:`. The boundary-aware rule
@@ -281,13 +281,3 @@ and package `1` staged `full` with `replacement_count` 72.
   it trips `placeholders_changed` and drops records.
 - Fixing the same defect at its source in the PC patcher pipeline that produces the catalog.
 - Graphics or texture coverage; the pipeline still has no `graphics` package mode.
-
-## Tasks
-
-- [x] T1: Add `tools/resource_tokens.py` with the token map, `expand_resource_tokens` and the self-contained `expand_tokens_in_message` — acceptance: on the two strings from [S1], `{Energy}`/`{LordExp}` expand to `Energy`/`Chessplayer EXP` with the documented spacing, `{HeroName}` and `{0|1}` are left untouched, and a re-walk of the output reports 0 further changes instead of raising (covers: S2)
-- [x] T2: Call `_expand_staged_tokens(plans, log)` in `build_patch` right after `adaptive.scan` — acceptance: a scan + expand over the dumped game directory leaves 0 `{Energy}`, 0 `{LordExp}` and 0 `{LordHp}` occurrences across all 87 assets in `scan/replacements/1`, and the log carries no `token expand skipped` line (covers: S2; depends: T1)
-- [x] T3: Full `build_patch` run into a work and output directory outside this repo — acceptance: `counts` match the pre-fix baseline exactly, `invalid_translation` is absent, package `1` still stages with mode `full` and a non-empty `replacement_count`, and the staged strings carry no resource tokens (covers: S2; depends: T2)
-- [x] T4: Update `README.md`, `AGENTS.md` and `docs/compose/spec/standalone-patcher-app.md` so the token limitation is no longer described as accepted — acceptance: no document still claims the tokens are left for the client to expand, and the `[S3]` entry that parked this work is marked superseded (covers: S2; depends: T2)
-- [x] T5: Replace the inherited spacing rule with the boundary-aware rule in [S2] — acceptance: `expand_resource_tokens` spaces a term glued to a preceding letter, digit or `}`, and to a following letter or a signed value (a `+`/`-` that introduces a digit or placeholder), while leaving markup, punctuation and a hyphen inside a compound alone; a re-run over the 87 produced assets finds no string with a substituted term glued to an adjacent word (covers: S2)
-- [x] T6: Re-verify the pipeline after the spacing change — acceptance: the same run reproduces `counts`, keeps package `1` in `full` mode at 72 assets, leaves 0 resource tokens and no `token expand skipped`, and the produced assets still re-walk to 0 changes (covers: S2; depends: T5)
-- [x] T7: Rebuild `dist\HOK ACE Mobile English Patcher.exe` from the changed pipeline — acceptance: the exe is newer than `tools/resource_tokens.py` and its `--selftest` reports package `1` at 72 assets (covers: S2; depends: T6) — the first attempt was blocked because the running app holds its own exe; once the app was closed the rebuild succeeded (exe 22:05:24 vs module 21:57:15, frozen `--selftest` exit 0, package `1` at 72)

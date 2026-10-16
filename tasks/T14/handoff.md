@@ -103,7 +103,7 @@ size. Before you rely on that, check that undamaged sprites match pixel for pixe
 
 ## Design (recommended; change it if the evidence says otherwise)
 
-Read `docs/compose/spec/texture-translation.md` first, especially `[S2]` "Why a `.blocks` patch maps
+Read `docs/features/texture-translation.md` first, especially `[S2]` "Why a `.blocks` patch maps
 block-for-block", "The label splice" and "`english_raw` contract". Its rule that a skipped texture beats
 a failed run still applies.
 
@@ -142,7 +142,7 @@ a failed run still applies.
    (`languages.payload_path`). Decide whether `catalog_id` gets its own renders for the new labels or
    uses English; the rank names are English in both.
 5. **Device cycle.** This is a texture change on a reviewed edit, so it follows the device test loop in
-   `docs/compose/spec/prime-rebuild.md` ("The device test loop"): build offline against a dump of the
+   `docs/features/prime-rebuild.md` ("The device test loop"): build offline against a dump of the
    phone's own game-data version, back up `packages` + `Watchdog`, push, and walk the screens. The
    minimum walk is the Career screen with both switch states (My Chessplayers / My Skins), the rank
    badges, Total Power, Total Profit and Achievement Points, plus whatever screens step 0 below finds.
@@ -165,9 +165,9 @@ a failed run still applies.
       catalog's own glyphs; staged by `build_exe.py` and `build.gradle.kts`. VICTORY / DEFEAT not done.
       Both languages use the English renders.
 - [x] T14.5 Device cycle: the Career screen looks right (2026-10-10, session `20261010-151438`, one-texture
-      push). Recorded in `sprite_table.py`, `mobile_graphics.py`, the spec and `MEMORY.md`.
+      push). Recorded in `sprite_table.py`, `mobile_graphics.py`, the spec and `docs/lab-notebook.md`.
 - [x] T14.6 Docs: `texture-translation.md`, `translation-progress.md`, `AGENTS.md`, `README.md`,
-      `MEMORY.md`. The 398 figure's meaning is unchanged.
+      `docs/lab-notebook.md`. The 398 figure's meaning is unchanged.
 
 ## Separate, still open
 

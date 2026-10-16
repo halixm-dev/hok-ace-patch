@@ -9,8 +9,8 @@ placeholders (``<HASH>``, ``*``, ``{x}``), paths git ignores (build output, ``di
 ``artifacts/``, ``work/``, the patcher's data folder) and anything outside the repo are not
 references. Fenced code blocks in Markdown are skipped.
 
-A line that names an entry of ``RETIRED_NAMES`` fails too. The list is empty until a docs move
-retires a name; the ticket that moves it adds the old name here.
+A line that names an entry of ``RETIRED_NAMES`` fails too. Each docs move that
+retires a name adds the old name here.
 
 ``.scratch/`` is work in flight -- its specs and tickets name the old and new homes on purpose -- so
 it is not scanned.
@@ -35,7 +35,7 @@ from urllib.parse import unquote
 ROOT = Path(__file__).resolve().parents[2]
 
 # Names a docs move has retired: any mention of one in a scanned file is a failure.
-RETIRED_NAMES: tuple[str, ...] = ()
+RETIRED_NAMES: tuple[str, ...] = ("MEMORY.md", "docs/artifact-retention.md", "docs/compose")
 
 # Paths named on purpose while absent: an old name kept as history, a file inside a third-party
 # archive, a script's output, a home created when first needed. Each goes once its mention does.

@@ -19,6 +19,10 @@ Verification on 2026-10-06:
 No phone or game operation was performed. Visual acceptance, including large-font layout,
 remains unverified. The temporary headless emulator was stopped after the failed installation attempts.
 
+### Still owed
+
+- Run existing UI probe and inspect rendered screenshots when a test device is available.
+
 ## [S1] Problem
 
 The plain utility screen did not resemble the game's website. Language selection, starting
@@ -72,10 +76,3 @@ or invoking game operations.
 
 The updated full-codec deliverable is `artifacts/dev.halixm.hokacepatcher.apk`.
 No game patch, game installation, Shizuku uninstall, or game-data write was started.
-
-## Tasks
-
-- [x] Inspect the live reference website.
-- [x] Implement native Android styling and offline hero artwork.
-- [x] Build the app and existing UI test APK.
-- [ ] Run existing UI probe and inspect rendered screenshots when a test device is available.

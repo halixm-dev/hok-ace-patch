@@ -1,4 +1,9 @@
-# Project memory — HOK ACE Mobile English Patcher
+# Lab notebook — HOK ACE Mobile English Patcher
+
+This notebook is the single source for raw measurements and device verdicts. Other docs cite its
+entries by date (for example "lab notebook, 2026-10-05") instead of copying the numbers; a feature
+record carries the reasoning, this file carries the evidence. Topic sections come first, dated
+entries after.
 
 Measured evidence for this repo: what went on a phone, what the phone did, and which claim was withdrawn and
 why. `AGENTS.md` carries the rules that always apply; **where the two disagree, `AGENTS.md` wins**. This file
@@ -412,7 +417,7 @@ constraint entirely, because the official builder re-lays out the package instea
 `package_id`, `mode`, `considered_count`, `dropped_count`, `dropped`), logs a line per package, and
 `count_untranslated_text` feeds both GUI sites. `dropped` is the plan minus what the staged directory holds,
 and it agrees set-for-set with `fit_summary.dropped_while_staging` — use that field as the cross-check.
-Feature doc `docs/compose/spec/text-drop-report.md`.
+Feature doc `docs/features/text-drop-report.md`.
 
 **`b5cd724`'s commit message and that feature's `[S1]` attribute the Chessplayer screen to this drop loop. That
 attribution is wrong** (the real cause is the prime layer, §4) — amend it.
@@ -503,7 +508,7 @@ Branch `feat/prime-rebuild`, base `e21ed33` (the tip of the also-unlanded `feat/
 `c0581cb` — `1341055` the port, `263631b` and `5bf1ab3` the post-review fixes, `c0581cb` the finalized
 document. **Deliberately left unlanded**: the user chose to keep the branch and test on a phone first, so
 nothing was merged into `master` (then still at `290f5d8`, four features behind). Feature doc
-`docs/compose/spec/prime-rebuild.md`; the method guide `docs/agent-guide-untranslated-strings.md` was
+`docs/features/prime-rebuild.md`; the method guide `docs/agent-guide-untranslated-strings.md` was
 rewritten in English in place. **Not verified on a phone at the time** — do not read the branch's existence as
 a device-tested result.
 
@@ -676,6 +681,37 @@ separating them costs one device cycle each.
   older, `.git`-less repo copy) was verified fully recoverable from history (5 differing tools at `e21ed33`,
   `9947ed1`, `c0581cb`, `c3f23b3`) before deletion.
 
+### Local artifact retention (2026-10-03)
+
+Cleanup on 2026-10-03 removed **18.1 GiB** of obsolete outputs. `artifacts/` remains gitignored;
+game dumps, APKs and generated patch packages are local inputs and evidence, not release source.
+
+Retained:
+
+| Material | Location | Purpose |
+|---|---|---|
+| Fresh 1.4.0.2 snapshot and its verified hashes | `dist/HOK ACE Patcher Data/pristine/20261003-173730/` | Known working Chinese control; future checksum research |
+| Current normal/access APKs and updated patcher executable | `dist/` and `dist/HOK ACE Patcher Data/` | Supported installation and restore path |
+| Full fixed patch, repair/rerun checks and native chunk-key donor | `dist/HOK ACE Patcher Data/grid-regression/` | Reproduce and verify the Talent Card fix |
+| Screenshots, device push hashes, logs and small measurement reports | `artifacts/shots/`, `artifacts/device-cycle-t10/`, other cycle evidence directories | Preserve successful and failed device verdicts |
+| Device push/capture tools and research probes | `artifacts/device-cycle-t9/`, `artifacts/device-cycle-t10/`, `artifacts/device-run/` | Reusable diagnostics; no imports from shipping code |
+| Older source dumps and original APK | `artifacts/game-dump*`, `artifacts/tencent-pristine-1.1.1.apk` | Historical comparisons; never treat a patched dump as pristine |
+| Small package-1 comparison specimens and key-probe inputs | `artifacts/cycles/base2/out/1`, `artifacts/cycles/3914DBBFECD1E54D/`, `artifacts/device-run/empty-rebuild/out/1`, `artifacts/device-cycle-t9/shipped-stage/` | Preserve the inputs needed by retained measurements |
+
+Removed repeated prime extractions, replacement scans, superseded full rebuilds, obsolete 1.4.0.1
+candidate patch outputs, duplicate selftest outputs, failed build logs, an unused PC installer, the
+old full-cycle diagnostic backup archive, and scratch commit/diff text. Small reports and screenshots
+were retained. The verified deletion inventory is `artifacts/cleanup-plan.json`.
+
+Older spec commands remain historical verification records. Their removed outputs must be rebuilt
+before reuse. In particular, an extra-text candidate needs a fresh build staged from the phone's own
+game-data version; the old candidate packages are neither retained as complete patches nor ready to
+push. This cleanup does not change candidate verdicts or the four-asset allowlist.
+
+Before deleting more, retain a reproducible source, the current restore APK, and the evidence behind
+device-gated decisions. Resolve every deletion target inside the intended artifact root and use native
+PowerShell file operations. Never delete the generated runtime/catalog resources or signing key.
+
 ## 13. Superseded claims
 
 Claims that were believed, acted on, and turned out wrong — kept because the middle column is the real lesson.
@@ -735,7 +771,7 @@ append refusal. T15 complete; no commit.
 
 **Review and cleanup:** removed 18.1 GiB of obsolete generated artifact outputs, retaining
 fresh controls, original APK/source dumps, final fixed packages, screenshots, reports and
-reusable probes. See `docs/artifact-retention.md`; old full candidate builds must be restaged
+reusable probes. See §12's local artifact retention; old full candidate builds must be restaged
 from the phone's version. Normal build code now initializes Tencent DLLs only when a rebuild
 package is named. With `REBUILD_PACKAGES=()`, an APK plus an absent builder directory passes
 the old-package repair check. Graphics offline checks pass.
@@ -895,7 +931,7 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   catalog's ACHIEVEMENT POINTS glyphs; the best of ~40 Windows serif fonts fitted to those glyphs still
   had a mean alpha error of 48, so no font is used. The two lines of ACHIEVEMENT POINTS sit 19.5 rows apart;
   a half-pixel resample to align them blurred every stem and was dropped for a whole-row offset.
-  Numbers in `docs/compose/spec/texture-translation.md`, *Regioned atlases*.
+  Numbers in `docs/features/texture-translation.md`, *Regioned atlases*.
 - **Labels hand-polished (2026-10-10, later).** The glyph-assembled renders first shipped with a grey fringe
   (composited over transparent black: 205 and 412 edge pixels below RGB 245), caught by
   `tasks/T15/validate_assets.py` and fixed. The user then polished both in `tasks/T15/edit/` (new K, bolder
