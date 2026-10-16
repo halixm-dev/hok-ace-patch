@@ -4,8 +4,8 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The docstring holds the full contract, and the instructions hold only a two-line pointer
-- [ ] The exe build and the offline graphics check pass unchanged
-- [ ] The reference check passes
+- [x] The docstring holds the full contract, and the instructions hold only a two-line pointer
+- [x] The exe build and the offline graphics check pass unchanged
+- [x] The reference check passes
