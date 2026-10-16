@@ -32,6 +32,7 @@ def build() -> None:
         "--distpath", str(ROOT / "dist"), "--workpath", str(ROOT / "build" / "pyinstaller"),
         "--specpath", str(ROOT / "build"),
         "--paths", str(APP), "--paths", str(ROOT / "tools"),
+        "--add-data", f"{ROOT / 'VERSION'}{sep}.",
         "--add-data", f"{RESOURCES / 'adb'}{sep}adb",
         "--add-data", f"{RESOURCES / 'runtime'}{sep}runtime",
         "--add-data", f"{RESOURCES / 'catalog'}{sep}catalog",

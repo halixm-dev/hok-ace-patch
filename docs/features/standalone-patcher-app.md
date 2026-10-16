@@ -10,6 +10,11 @@ commits: 7b9769b..9f151a8
 
 ## Report
 
+**Versioning (2026-10-17):** the root `VERSION` file sets the Windows header version,
+starting at `1.6.0.1.1` (game data version plus patch revision). PyInstaller bundles
+the file so source and frozen builds read the same version. See
+[patch versions](../../README.md#patch-versions) for increment rules.
+
 **Branding update (2026-10-16):** the Windows window title, header and build output are now
 `HOK ACE Language Patcher`. The settings path, working folder and taskbar identity stay
 stable so existing preferences and working data remain available. The original delivery names

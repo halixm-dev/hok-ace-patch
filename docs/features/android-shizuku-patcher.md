@@ -8,6 +8,11 @@ updated: 2026-10-16
 
 ## Report
 
+**Versioning (2026-10-17):** local and CI builds default to the root `VERSION` file,
+starting at `1.6.0.1.1` (game data version plus patch revision). Release tags must
+match that file. Android's install `versionCode` remains separate and increasing;
+see [patch versions](../../README.md#patch-versions).
+
 **Where it stands (2026-10-05).** The user ran a full patch from the Android app on the Xiaomi
 M2007J3SG (MIUI, Android 12, game data 1.4.0.2): live snapshot, build, apply and normal-APK restore
 completed, with the same coverage as the Windows control. It is one normal-path run. It does not

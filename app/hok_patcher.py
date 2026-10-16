@@ -17,7 +17,8 @@ from patcher_core import (BUNDLE, MIN_FREE_BYTES, STEPS, Adb, PatchError, Patche
                           load_language, load_work_dir, save_language, save_work_dir)
 
 APP_TITLE = "HOK ACE Language Patcher"
-APP_VERSION = "1.1"
+VERSION_FILE = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1])) / "VERSION"
+APP_VERSION = VERSION_FILE.read_text(encoding="utf-8").strip()
 
 # Palette
 BG = "#0f1117"
