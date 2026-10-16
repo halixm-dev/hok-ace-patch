@@ -1,0 +1,9 @@
+title = "HOK ACE public repository secret scan"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Historical prose about adopting verified recovery material, not a credential"
+regexTarget = "match"
+regexes = ['''^stable-key access APK, adopts/verifies $''']

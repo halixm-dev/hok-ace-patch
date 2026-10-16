@@ -1,5 +1,7 @@
 # HOK ACE Language Patcher
 
+Repository: [halixm-dev/hok-ace-patch](https://github.com/halixm-dev/hok-ace-patch).
+
 Install an English or Indonesian translation into 王者万象棋 (`com.tencent.tmgp.osgame`)
 on an Android phone, without root.
 
@@ -36,6 +38,20 @@ Use the APK and game data from the phone's current version. An older staged pack
 stall loading and cause the game to repair away the translation.
 
 ## Run or build from source
+
+### Automated Android builds
+
+| Trigger | Result |
+|---|---|
+| Push to `master`, pull request, or **Actions → Android APK → Run workflow** | Full-codec development APK and check reports under the run's artifacts |
+| Push a tag such as `android-v0.1.0` | Privately signed release APK, SHA-256, codec source companion and a draft GitHub release |
+
+CI runs Android unit tests, lint, native ELF alignment, APK ZIP alignment and signer verification.
+Artifacts expire after 14 days; draft release attachments remain. Release drafts need review before
+publication: device acceptance and redistribution checks in [Android dependency notices](android/native/THIRD_PARTY.md)
+remain open. See [signing and security](SECURITY.md) before switching from a development APK.
+
+### Windows build
 
 Use **Python 3.12**: the compiled translation runtime cannot load on another Python version.
 Run these commands from the repository root in Windows Command Prompt:

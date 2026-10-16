@@ -101,6 +101,13 @@ updates in place. It is the key earlier builds took from `%USERPROFILE%\.android
 pins AGP 8.7.3, Kotlin 2.0.0, Chaquopy 17.0.0 and Shizuku API/provider 13.1.5.
 The Chaquopy build interpreter is the repository's `.venv/Scripts/python.exe`.
 
+GitHub Actions also builds all six custom native components from their pinned sources on a
+clean Windows runner. Pushes and pull requests produce development APK artifacts; `android-v*`
+tags produce privately signed APKs and draft releases. See [automated builds](../README.md#automated-android-builds)
+and [security/signing](../SECURITY.md). Release builds no longer use the public debug signer.
+Local release builds are unsigned unless the four signing environment variables documented
+there are supplied. `patchVersionName` and `patchVersionCode` Gradle properties set CI versions.
+
 ```bat
 android\gradlew.bat -p android :app:assembleDebug :fixture:assembleDebug :app:assembleDebugAndroidTest
 ```

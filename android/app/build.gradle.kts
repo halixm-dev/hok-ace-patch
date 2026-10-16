@@ -69,8 +69,8 @@ android {
         applicationId = "dev.halixm.hokacepatcher"
         minSdk = 30
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1-feasibility"
+        versionCode = providers.gradleProperty("patchVersionCode").orElse("1").get().toInt()
+        versionName = providers.gradleProperty("patchVersionName").orElse("0.1-feasibility").get()
         ndk { abiFilters += "arm64-v8a" }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -81,7 +81,17 @@ android {
         keyAlias = "androiddebugkey"
         keyPassword = "android"
     }
-    buildTypes.getByName("release") { signingConfig = signingConfigs.getByName("debug") }
+    val releaseStore = providers.environmentVariable("ANDROID_RELEASE_KEYSTORE").orNull
+    if (releaseStore != null) {
+        signingConfigs.create("privateRelease") {
+            storeFile = file(releaseStore)
+            storePassword = providers.environmentVariable("ANDROID_RELEASE_STORE_PASSWORD").get()
+            keyAlias = providers.environmentVariable("ANDROID_RELEASE_KEY_ALIAS").get()
+            keyPassword = providers.environmentVariable("ANDROID_RELEASE_KEY_PASSWORD").get()
+        }
+        buildTypes.getByName("release") { signingConfig = signingConfigs.getByName("privateRelease") }
+    }
+    // Without private credentials, release builds stay unsigned. Never fall back to the public key.
     buildFeatures { aidl = true; buildConfig = true }
     // The runtime contains Python packages such as _backends; AAPT's default skips these directories.
     androidResources { ignoreAssetsPattern = "" }
