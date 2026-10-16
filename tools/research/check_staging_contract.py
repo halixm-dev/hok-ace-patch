@@ -4,7 +4,8 @@ The contract -- the summary's fields, the ``mode`` values and what each entry ca
 lists and the counters that read them, the pass order, the APK/builder gating -- changes in the same
 edit as the code only while it sits beside that code. This reads the docstring with ``ast`` (nothing is
 imported, so no runtime is needed) and confirms each piece of the contract is named there, and that
-``AGENTS.md`` names where the contract is without restating it.
+``AGENTS.md`` names where the contract is without restating it. A new ``mode`` is added to the code,
+to the docstring and to ``CONTRACT`` here in the same change, or this check and the docstring drift apart.
 
 Run by hand from the project root:
 
