@@ -74,7 +74,7 @@ all raw bytes to 8 MiB and each session directory to 256 entries. Oversized/link
 produce explicit messages. The readable application log is limited to its last 256 KiB.
 This export neither repairs records nor grants permission to resume the game.
 The current gate and measured results are in
-[`android-shizuku-patcher.md`](../docs/compose/spec/android-shizuku-patcher.md).
+[`android-shizuku-patcher.md`](../docs/features/android-shizuku-patcher.md).
 
 
 ## Latest live result (2026-10-05)

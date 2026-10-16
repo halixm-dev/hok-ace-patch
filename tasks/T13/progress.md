@@ -1,7 +1,7 @@
 # T13 — Independent review of the sign-branch amendment (uncommitted working tree on top of b670d90)
 
-Reviewed: the uncommitted working-tree change to `tools/resource_tokens.py` + `docs/compose/spec/resource-token-expansion.md`
-(`git status` = `M docs/compose/spec/resource-token-expansion.md`, `M tools/resource_tokens.py`, `?? tasks/`; diff vs
+Reviewed: the uncommitted working-tree change to `tools/resource_tokens.py` + `docs/features/resource-token-expansion.md`
+(`git status` = `M docs/features/resource-token-expansion.md`, `M tools/resource_tokens.py`, `?? tasks/`; diff vs
 b670d90 = 31 lines module + 41 lines spec, README **not** touched). Read-only review: I modified nothing except this file.
 The ~1-minute pipeline and the exe build were **not** re-run; all conclusions come from the pre-fix oracle, the on-disk
 runs, and my own independent implementation.
@@ -31,7 +31,7 @@ The **rule** changed correctly and the change is justified by evidence I re-deri
 correctly untouched in the output: run4 has `Energy-Saving` 66×, `Energy-saving` 1×, `Energy -Saving` 0×.
 
 **But T5's acceptance text was not updated** and now contradicts both the code and [S2]:
-`docs/compose/spec/resource-token-expansion.md:267` still reads "…to a following letter or `+`, **leaves `-`**,
+`docs/features/resource-token-expansion.md:267` still reads "…to a following letter or `+`, **leaves `-`**,
 markup and punctuation alone…", while `[S2]` (spec:164) and `_tail` (`tools/resource_tokens.py:39-52`) now space a
 sign-`-`. A reader taking T5 as the yardstick would score the shipped code as *failing* T5. Non-critical (documentation),
 but it must be resolved one way or the other — update T5's acceptance, or record the sign rule as its own task.
