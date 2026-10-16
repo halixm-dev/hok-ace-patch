@@ -54,6 +54,14 @@ SAFE_ASSETS: frozenset[int] = frozenset()
 #                        one's way back is a CANDIDATE_ASSETS cycle. All four withdrawals here are config
 #                        bins that store an MD5 the rewrite leaves stale, and the 2026-10-01 verdicts
 #                        that cleared them watched the replay crash only.
+#   0x9E45602F1857539D   card-pack covers (Encyclopedia > Diamond Frenzy > Starting Lineup: the
+#                        `逆天改命卡包` header and each cover's hero label). Prime-only, so the cycle
+#                        appended it (`transform.config`). Rewritten 60 of 60 strings, the grid draws
+#                        **empty**: no header, no covers. The same build without it (the control,
+#                        pushed first) draws the grid, and pushing the control's package 1 back brought
+#                        it back. Device cycle 2026-10-16, English, data 1.6.0.1, Infinix X6853. The
+#                        same reseal failure as the encyclopedia withdrawals above: the bin's content
+#                        is fine, its stored checksum is not.
 # The same class of edit broke the login screen (a Chinese string there is a lookup key rather than a
 # label), the Card menu (grey placeholder cards: hero role guide DD11D75B / CA340C43 / BBFD4BE9 /
 # CAC6E38D), and every package-19 prefab label tried (initial loading stalls; faction names rewrite as

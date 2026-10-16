@@ -242,6 +242,14 @@ and `3F4DD9B1D383FD83`, which is reachable but in package `4`, the package the n
 set is about **131 strings, of which the four label tables are 9**, so those four are the cycles worth
 running and the rest wait until a cycle says the class is safe.
 
+A sixteenth candidate joined the queue on 2026-10-16: `9E45602F1857539D`, the card-pack covers behind
+Encyclopedia → Diamond Frenzy → Starting Lineup (the `逆天改命卡包` header and the hero label under every
+cover). It is prime-only, so it reaches the phone through the append, which now offers a config asset a
+cycle enabled (`transform.config`). The catalog translates 27 of its 60 strings; the other 33 are short
+forms of its own longer strings that `catalog_supplement.derived` generates, so a cycle would translate
+all 60. **Withdrawn the same day:** appended, it empties the Starting Lineup grid; the control without it
+draws the grid (`docs/compose/spec/card-pack-covers-cycle.md`).
+
 A cycle is now one variable by construction: `--cycle-asset <hash>` enables exactly one queued candidate,
 the run records it in `device_patch_summary.json`'s `cycle_assets`, and the hash joins `SAFE_ASSETS` only
 once a cycle has looked at the screen it feeds. Four cycles were built offline; none has a verdict. A
@@ -291,6 +299,10 @@ The other 396 applied textures carry the English edit. Two gaps are specific to 
   **cannot be cycled at all**: the only asset in the game's 277 packages that references its key is a
   日月行者 draw-type row windowed 2025-09-10 to 2025-10-10, so no live screen can draw it. `63922EF4D4C86526`
   is referenced with no date window, so a cycle for it is possible.
+- **The Starting Lineup card-pack covers** (`9E45602F1857539D`, prime-only config bin): the section
+  header and the hero labels under each cover. Its device cycle was withdrawn on 2026-10-16: the rewritten
+  bin empties the grid, the reseal problem the other encyclopedia withdrawals hit. The side panel's pack
+  name is already English.
 - The one catalog table the append's encoder cannot store: `3A70308AAF6F18F8`, a 60-byte table whose LZ4
   block lands exactly on its own length, which this format cannot tell apart from a *stored* chunk.
 - What the four withdrawn `extra_text` assets used to translate: the ~11 000 AI opponent nicknames (now
