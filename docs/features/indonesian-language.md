@@ -72,7 +72,8 @@ path, and the path *is* the language.
 
 The device cycle covered launch and the lobby, and the device report's four fixes were verified on
 their own screens. The other screens have not yet been walked in Indonesian
-after login: the loading tips, the Chessplayer page, the Card menu and the arena artwork.
+after login: the loading tips, the Chessplayer page, the Card menu and the arena artwork. Each walk
+follows the [device cycle](../runbooks/device-cycle.md).
 
 ## [S1] Problem
 

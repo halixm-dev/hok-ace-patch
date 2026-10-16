@@ -54,7 +54,7 @@ real user-assisted restore with independent installed-APK verification, which mu
 package rollback intact. The workflow does not yet refuse stale live layers, unsupported layouts, split
 APKs or a non-empty rebuild configuration explicitly.
 
-On the translation side, the `prime-rebuild.md` device loop has not been run on Android output with
+On the translation side, the [device cycle](../runbooks/device-cycle.md) has not been run on Android output with
 fresh matching data and watched screens: login, Chessplayer names and skills, the Central Plains
 ribbon, Yixing's art, the Talent Card grid, search and detail (Arena Tiger), and populated Hero, Effect
 and Equipment tabs. Each run's pushed file hashes, prime-only content, skipped-counter parity and normal

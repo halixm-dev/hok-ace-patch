@@ -38,7 +38,7 @@ the dump's before a hand-driven push.
 
 ### What the measurement says
 
-`extra_text_candidates.py` over the downloaded layer (game data 1.4.0.1, `artifacts/game-dump`). Counts are
+`extra_text_candidates.py` over the override layer (game data 1.4.0.1, `artifacts/game-dump`). Counts are
 distinct Chinese strings the asset holds, and how many of those `catalog.unique` has an official English
 for — the share a cycle would translate.
 

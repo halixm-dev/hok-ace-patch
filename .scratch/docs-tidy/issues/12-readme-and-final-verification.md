@@ -4,10 +4,10 @@
 
 **Blocked by:** 09, 10, 11
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The README coverage section is a summary with a link to the ledger, and the layout section is current
-- [ ] No prose in tracked docs uses a term `GLOSSARY.md` lists under _Avoid_, except where quoting code
-- [ ] The reference check passes with every retired name listed
-- [ ] The exe build succeeds and the offline graphics check passes unchanged
-- [ ] The instructions file is still at or under about 12 KB
+- [x] The README coverage section is a summary with a link to the ledger, and the layout section is current
+- [x] No prose in tracked docs uses a term `GLOSSARY.md` lists under _Avoid_, except where quoting code
+- [x] The reference check passes with every retired name listed
+- [x] The exe build succeeds and the offline graphics check passes unchanged
+- [x] The instructions file is still at or under about 12 KB

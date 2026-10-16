@@ -140,7 +140,7 @@ one build. Only a pair of staged builds, differing in one asset, supports a caus
 **Journey log**
 
 - Designing from the handoff's figures: two did not survive measurement, so the probe that measured `[S1]` is committed. Lab notebook, 2026-09-30.
-- Reading `check_graphics.py --game`'s `absent: 75` as "not in the mobile build": wrong, it counts the downloaded layer only; the tool's wording was fixed. Lab notebook, 2026-09-30 (§6, §13).
+- Reading `check_graphics.py --game`'s `absent: 75` as "not in the mobile build": wrong, it counts the override layer only; the tool's wording was fixed. Lab notebook, 2026-09-30 (§6, §13).
 - Porting the relocation pass although a rebuild makes it inert: right, it is the no-APK path that recovers the 11 tables. Lab notebook, 2026-09-30 (§7).
 - Counting a rebuilt package's assets with `QtsPackage.entries`: over-reports; count through the B-tree. Lab notebook, 2026-09-30.
 - An entry that declares fewer bytes than its stream holds: carried whole and recorded rather than truncated. Lab notebook, 2026-09-30.
@@ -541,7 +541,7 @@ on this repo's own 1.4.0.1 data.
   and 535 of `1050016095`'s are uncovered and stay as they are; the extra-text pass only reaches
   allowlisted display assets.
 - **The three catalog edits no layer carries.** `197CC5393D16E3CB`, `884E0B4581F47CF7` and
-  `89C771ECFCDC7FBE` are in neither the downloaded layer nor the APK *under their own hash*. Their cards
+  `89C771ECFCDC7FBE` are in neither the override layer nor the APK *under their own hash*. Their cards
   are in package `15` under other hashes, and since 2026-10-05 `mobile_graphics.DEVICE_REVISIONS` applies
   them there (`texture-translation.md`).
   The design phase put this number at 75, from a census of the downloaded dump alone; 72 of those were
