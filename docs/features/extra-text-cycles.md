@@ -132,43 +132,12 @@ pass was gated to the catalog's tables (`prime-only-append.md`, the catalog gate
 
 **Journey log**
 
-- The knob first went into `plan_package` only, and that was wrong for fourteen of the fifteen. The
-  extra-text pass skips the packages a rebuild replaced whole — and package `1` is one — so a candidate
-  enabled there alone would have been invisible. The four allowlisted assets reach package `1` through
-  `rebuild_package`'s transform, which is why `make_transform` takes the same `candidates` set. The
-  signature of the fix is in the numbers: package `1`'s `replacement_count` moves 392 → 393 per cycle,
-  where before the fix it would not have moved at all.
-- A verification run looked like a regression and was not. The first cycle build reused an output
-  directory whose earlier invocation had lost its log capture (PowerShell refused the path because the
-  parent did not exist, but the process still ran and staged), so the second run found the staged copy
-  already holding the appended asset and — correctly — reported no `21` entry. `AGENTS.md` already says
-  an output directory reused across runs can hold a package the later run does not report; the lesson
-  here is just that a *failed log capture is not a failed run*, so a cycle needs a fresh directory.
-- The note's list is written in eight hex digits and the packages carry sixteen. Fourteen of the fifteen
-  are prefixes of assets in package `1` and one, `3F4DD9B1`, is in package `4`. Resolving them was the
-  first measurement, and it is why `resolve_candidates` matches on a prefix and refuses an ambiguous one
-  rather than requiring the full hash from whoever is running the cycle.
-- The census tool reports a candidate's `rewrites` (every field the pass would touch, duplicates
-  included) as well as its `official` (distinct strings that have a translation). The two differ — a
-  label repeated across rows counts once for coverage and several times for rewriting — and it is the
-  distinct count that says what a cycle changes on a screen.
-- `3F4DD9B1D383FD83` is **reachable**: `plan_package` selects it, so package `4` does not have the
-  multi-shard problem the note's other package-4 entries implied. It stays out of the queue anyway, for
-  the reason the note gives — package `4` writes through `write_assets`, which does not read its own
-  write back — and the measurement is recorded so the next attempt does not re-derive it.
-- **The first real push of a cycle failed, and the cause was the staging layer, not the asset.** The
-  cycle for `3914DBBFECD1E54D` was pushed from `artifacts/cycles/3914DBBFECD1E54D/out` — staged from
-  game data **1.4.0.1** — onto a phone running **1.4.0.2**. A staged package is a revision of one layer,
-  so it reverted the three assets that differ between the versions in package 1 (measured against a
-  backup taken before the push: `9F3227B6D2226784`, 34 832 B and 512 CJK either way; `0A3F6BAF53C9CA9D`,
-  13 505 B, English either way; plus the builder's bookkeeping nodes), along with the intended candidate.
-  The game stopped at **0% loading**, and on the next launch repaired itself with a download, reverting
-  the whole translation. **No verdict was produced for `3914DBBFECD1E54D`** — a 44-byte label table is not
-  a startup dependency, so the stall says nothing about it. The checks the next cycle carries: the
-  source's `<id>.info` version against the phone's before any write, and a push that touches only the
-  package the candidate lives in, since a rebuilt package also differs by the build path the builder
-  embeds. Re-staged from the pristine 1.4.0.2 package 1, the same cycle differs from the phone's baseline
-  in **exactly three assets** — the candidate and those two bookkeeping nodes.
+- Wiring the knob into `plan_package` alone: invisible for fourteen of the fifteen, which sat in a rebuilt package, so `make_transform` takes the same set. Lab notebook, 2026-10-01.
+- A verification run that looked like a regression: a reused output directory behind a failed log capture; a cycle needs a fresh directory. Lab notebook, 2026-10-01.
+- Resolving the note's eight-digit hashes: they are prefixes, so `resolve_candidates` matches a prefix and refuses an ambiguous one. Lab notebook, 2026-10-01.
+- Measuring a candidate by `rewrites` or by `official`: the distinct `official` count is what a cycle changes on screen. Lab notebook, 2026-10-01.
+- Whether `3F4DD9B1D383FD83` is reachable: it is, and stays out of the queue because package `4`'s write is not read back. Lab notebook, 2026-10-01.
+- The first real push of a cycle, staged from 1.4.0.1 onto a 1.4.0.2 phone: no verdict, the stale layer stalled loading; versions are now compared before a push. Lab notebook, 2026-10-02.
 
 ## [S1] Problem
 

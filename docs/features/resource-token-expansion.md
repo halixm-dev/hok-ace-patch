@@ -66,41 +66,15 @@ unverified. Nothing about this feature is outstanding.
 **Journey log**
 
 - Three independent reviews, one per round — the first rule, the spacing amendment, the sign rule (T7,
-  T11, T13; 2026-09-29): no critical finding in any; each reproduced the 87 assets byte-for-byte. Their
-  measurements are in the lab notebook, 2026-09-29.
-- The tempting fix — rewriting the tokens in `catalog.json.gz` — is silently counterproductive: the
-  runtime's `gemini.validate_translation` compares `{...}` placeholders between source and target and
-  rejects the record, so the string stays Chinese. Expanded *after* translation is the whole design.
-- The pre-existing session at `dist\HOK ACE Patcher Data\sessions\20260929-212059` carried both the game
-  dump and a pre-fix `build\scan\replacements` tree. That pair was a reusable, bit-exact oracle for this
-  expansion: the pre-fix assets held exactly the 3067 + 451 + 608 tokens and reproduce the 3384-field
-  result. It no longer exists — the app's own retention (`Patcher.prune_old_sessions`, which keeps the
-  last two sessions) deleted it during the install runs below, so the built outputs under
-  `D:\hok-verify-tokenfix` are all that survives of it. Re-pull the game data to recreate it.
-- An already-patched install cannot be re-patched by the normal flow. `adaptive.scan` over the phone's
-  patched data reported `already_english` 125408 against 2304 on the clean dump, staged nothing, and
-  `build_patch` returned no packages — so the token expansion, which runs on the *replacement* assets
-  after the scan, had nothing to act on. Installing this change on that phone therefore meant pushing
-  the shard built from the clean dump directly. The scan only ever translates tables that still hold
-  Chinese; a data reset is what puts them back.
-- Grepping the staged `*.db` shards says nothing about string coverage — their blobs are neither raw nor
-  zlib/gzip, and they retain superseded container data (207 raw token bytes, all inside blocks
-  byte-identical to the pre-fix build). Judge coverage from `build\scan\replacements` instead.
-- The reference implementation's spacing rule was copied verbatim, and that is also its flaw: it adds a
-  space only before a digit/placeholder and before `+`, leaving 319 strings with the term glued to an
-  adjacent word (`IfEnergyis negative`). Copying a rule that was verified only as "the tokens are gone"
-  is not the same as verifying the text it produces — the fix is the boundary-aware rule in [S2].
-- A measured-sounding corpus citation is not evidence until the literal is re-counted. The `-` half of
-  the first boundary rule was justified as "the catalog glues its minus (`Energy-` 69×)"; 66 of those 69
-  are `Energy-Saving`, a hyphenated compound, and only one is a real glued sign. The catalog in fact
-  writes ` +{` 441× and ` -{` 23×, i.e. signs *with* a leading space, so the rule was spaced the wrong
-  way for all 66 sign sites until review challenged the number rather than the conclusion.
-- Two build-time hazards, both hit while rebuilding the exe: `build_exe.py` runs PyInstaller with
-  `--noconfirm` against `dist\`, where the app's own ~7.5 GB working folder lives, and it cannot replace
-  `dist\HOK ACE Mobile English Patcher.exe` at all while the app is running (`PermissionError: WinError 5`
-  in the final assembly step). Move the working folder aside before building, and confirm no app process
-  holds the exe. Moving that folder under a live app is unsafe in general — it happened here, was caught
-  immediately, and was reverted with nothing written.
+  T11, T13): no critical finding in any; each reproduced the 87 assets byte-for-byte. Lab notebook, 2026-09-29.
+- Rewriting the tokens in `catalog.json.gz`: rejected, `validate_translation` drops the record, so the
+  expansion runs after translation. Lab notebook, 2026-09-29.
+- The pre-fix session as a bit-exact oracle: it worked, then the session pruner deleted it. Lab notebook, 2026-09-29.
+- Re-patching an already-patched install through the normal flow: nothing to stage, so the clean-dump shard was pushed directly. Lab notebook, 2026-09-29.
+- Grepping staged `*.db` shards for coverage: says nothing; judge from `build\scan\replacements`. Lab notebook, 2026-09-29.
+- The reference implementation's spacing rule, copied verbatim: left words glued; replaced by the boundary-aware rule in [S2]. Lab notebook, 2026-09-29.
+- The `Energy-` corpus citation: wrong on re-count, so signs are spaced like the catalog's. Lab notebook, 2026-09-29.
+- Rebuilding the exe beside the app's working folder or under a running app: two hazards; move the folder aside and close the app first. Lab notebook, 2026-09-29.
 
 ## [S1] Problem
 

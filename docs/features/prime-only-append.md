@@ -170,196 +170,33 @@ ships, which the build above does.
 
 **Journey log**
 
-1. A re-run into the same output duplicated the panel's index **and** shard B-tree key. `QtsPackage.entries`
-   is keyed by file hash, so the duplicate was invisible there and showed only as two offsets under one
-   key in the tree. The pass now subtracts what the staged copy already holds.
-2. The source fork's row-checksum guard was measured, dropped, and then re-measured. The first reading
-   (the four validated assets "unguarded") came from a device-cycle snapshot an earlier session left
-   behind — `hok-device-cycle/phone/`, our own patched build, since deleted with the rest of that
-   session's evidence — and rewriting one of those bins invalidates its stored MD5. On a freshly pulled
-   layer all of them answer true, so the guard cannot separate the withdrawn set from the validated one.
-3. The pristine download layer the earlier cleanup deleted was recovered from the phone itself (one
-   `tar` stream over `run-as`), which is what let every offline check here run against the real append
-   target instead of a package we synthesized.
-4. The handoff's "for every prime package" loop collapses to one package on this build, because the two
-   other packages holding prime-only content are already rebuilt whole. The blast radius is a property
-   of the catalog, not of the loop — worth re-measuring, not assuming, on another build.
-5. A passing assertion is not evidence. `t7_rerun.py` asserted `"21" not in packages or packages`, which
-   is vacuously true, and the review caught it; the run's real property is that the second run reports
-   `21` *not at all*, because its staged copy already holds the panel. Write the property that would
-   fail, and check a claim against the artifact rather than against a summary of it.
+- Re-running into the same output: duplicated the panel's B-tree key, so the pass now subtracts what the staged copy holds. Lab notebook, 2026-10-01.
+- The source fork's row-checksum guard: measured, dropped, re-measured on a fresh layer, and it cannot separate the withdrawn set from the validated one. Lab notebook, 2026-10-01.
+- Running the offline checks against the real append target: possible because the deleted pristine layer was recovered from the phone. Lab notebook, 2026-10-01.
+- The handoff's "for every prime package" loop: one package on that build; the blast radius is the catalog's, so re-measure it per build. Lab notebook, 2026-10-01.
+- A passing assertion as evidence: `t7_rerun.py`'s was vacuous; write the property that would fail. Lab notebook, 2026-10-01.
 
 ### The Talent Card grid regression: what was ruled out first
 
-The patched ACE Tournament encyclopedia's Talent Card grid printed raw `#BE08...` refs while its detail
-pane rendered English. The fix had to make the patched grid resolve its names while the detail pane and
-the other tabs kept working, on a device cycle staged from a fresh unpatched baseline. Three findings
-came before that baseline and are recorded only here.
+- Rewriting config `0AA59370241BFC22` to re-point its refs: emptied the grid twice; it is a reseal problem, so nothing here may rewrite that bin. Lab notebook, 2026-10-03.
+- Reverting only `C059EA43719099F1` as a control: insufficient, the rest of the stage stayed installed. Lab notebook, 2026-10-03.
+- Checking the user's example ref, Arena Tiger: translated and referenced in every copy, so neither a catalog gap nor an unreferenced key. Lab notebook, 2026-10-03.
+- A fresh unpatched baseline: its grid draws Chinese names, withdrawing the "the client cannot resolve them" verdict. Lab notebook, 2026-10-03.
+- Replacing only the dictionary with its full English bytes (`translated-map`): fails, so the dictionary alone reproduces the regression. Lab notebook, 2026-10-03.
+- Changing one value within the original chunk size (`one-name`): works, so the dictionary is read and English resolves without a reseal. Lab notebook, 2026-10-03.
+- The full English dictionary as two 307200-byte chunks with a builder-minted key (`two-chunk-map`): works; that is the shipped fix in `write_assets`. Lab notebook, 2026-10-03.
+- The full fixed patch on the phone: Talent grid and detail English, the other card tabs intact, normal APK restored. Lab notebook, 2026-10-03.
+- Review and cleanup: the builder now loads only when `REBUILD_PACKAGES` names a package; 18.1 GiB of outputs removed (retention in the notebook's housekeeping section). Lab notebook, 2026-10-03.
+- The planned `pb_text.has_row_checksum` guard: dropped during implementation; see Out of Scope.
+- The other ten card dictionaries, enlarged the same way: keys minted offline for all eleven, offline-verified, then device-verified on Diamond Frenzy's Effect Cards. Lab notebook, 2026-10-08.
 
-**Two config rewrites failed; do not repeat either.** Config `0AA59370241BFC22` was rewritten first for
-1811 of its 4064 refs and then for all 4064, re-pointing them at `23C9A9DEBB3BF40C`. Both cycles emptied
-the grid. Both kept the config at 409,893 bytes and chunk size 307200. They do not prove that the client
-rejects a namespace as such: changing the config also invalidated its stored checksum, and the two
-cycles cannot separate those effects. What they did show is the useful part. An emptied grid is exactly
-what the withdrawn `extra_text` assets do to the encyclopedia (`tools/extra_text.py`), so that withdrawal
-is a **reseal** problem, not a content problem: a config bin whose stored checksum no longer matches is
-rejected whole. That is why nothing here may rewrite `0AA59370241BFC22`.
-
-**The table-only revert was an insufficient control.** `C059EA43719099F1` defines all 4064 refs; the
-APK's `A646ADD1CA0C1563` defines 3069 of them. Reverting only `C059EA43719099F1` to its Chinese bytes
-left the rest of the staged package installed, the appended `A646ADD1CA0C1563` included, so the
-unchanged symptom did not establish that the client reads neither table. The fresh unpatched screenshot
-below disproves the claim that the Chinese grid also prints raw refs, and the dictionary-only cycles
-after it isolate the oversized chunk as the cause.
-
-**The user's example ref has a translated definition and a matching config reference (2026-10-03).**
-`#BE08801F0222C56A#` is **Arena Tiger**. In the saved pristine downloaded package `C059EA43719099F1`
-defines it as `擂台猛虎`, and the shipped stage defines the same key as `Arena Tiger`. The saved APK prime
-copy also defines it in `C059EA43719099F1` as `擂台猛虎`, and in `A646ADD1CA0C1563` as `Tiger in the
-ring`, a value the stage leaves unchanged. Config `0AA59370241BFC22` references the key in field 4 of row
-`6363121`, beside `$/BP/BP_636312.gl` and `ArtHub/Icon/Talent/Icon_Talent_ltmh`, and that row is the same
-in all three saved copies. So the ref is neither a missing catalog translation nor an unreferenced key;
-the check does not establish the client's lookup mechanism. Verification:
-`.venv\Scripts\python.exe -X utf8 artifacts\device-cycle-t10\check_arena_tiger.py`, report in
-`artifacts/device-cycle-t10/arena-tiger-check.json`: 403 pristine, 700 staged and 2873 saved prime
-entries scanned with zero decode failures (two entries without local bytes in each downloaded or staged
-copy). No device package was changed for this check.
-
-### Fresh baseline pulled 2026-10-03
-
-The user reported that earlier dumps could contain previously patched files, so treating the whole saved
-set as pristine was not justified. After the user redownloaded the data and the game reached its Chinese
-login screen, `artifacts/device-cycle-t10/pull_pristine.py` saved a separate snapshot under
-`dist/HOK ACE Patcher Data/pristine/20261003-173730/`. The phone reports package `1` version `1.4.0.2`,
-revision `0`. All 653 package files across 252 directories were SHA-256 verified against hashes taken
-on the phone before transfer; the archive is 2.53 GiB. This records the downloaded files present at the
-login screen, not a claim about every optional asset the client could download later. The installed APK
-matched the cached normal APK by SHA-256 before the access install, and the normal APK was restored in
-`finally`, with the absence of `DEBUGGABLE` checked. No translation was built or pushed.
-
-`check_arena_tiger.py --fresh <snapshot>/game/WXQ_Data/Package/builtin/1 --output
-artifacts/device-cycle-t10/arena-tiger-fresh.json` confirms `C059EA43719099F1` defines
-`#BE08801F0222C56A#` as `擂台猛虎` and config row `6363121` still references that key.
-`compare_fresh_package.py <snapshot>/game/WXQ_Data/Package/builtin/1` finds all 401 readable assets
-byte-identical to the previous package-1 dump, with two entries lacking local bytes in both; against
-the previous stage, 307 are identical, 94 differ and 297 assets exist only in the stage. This validates
-that old package-1 dump's readable content against the redownload, not the provenance of other old dumps.
-
-**UI control completed:** after the user logged in and opened Talent Card, a fresh ADB capture saved as
-`artifacts/device-cycle-t10/detail-captures/pristine-talent-grid.png` shows all 24 visible labels in
-Chinese, including `节能商店`, `日落海新援` and `复印机`; the detail pane also reads Chinese. The normal APK
-remains installed and no patch has been pushed since the redownload. Compare with `talent-grid.png`,
-whose same visible labels are raw refs while its detail pane reads English. This withdraws the former
-impossibility verdict and reopens it as a patch regression. The next device comparison must isolate
-changes from this working baseline rather than rewrite the checksum-protected grid config.
-
-### Isolated regression cycles started 2026-10-03
-
-`artifacts/device-cycle-t10/build_grid_cycle.py translated-map` copies the fresh package and replaces
-only `C059EA43719099F1` with its staged English bytes. Every other asset reads byte-identical to the
-fresh baseline; the 403-entry set is preserved. The table keeps all 4064 keys in their original order,
-has no duplicate keys, and loses no extra row fields. Its payload grows from 277,698 to 313,710 bytes
-and its single chunk from 307200 to 315392. `run_cycle.py` pushed it, checked the phone's version and
-read-back hashes, and restored `installed.apk`; evidence is under
-`artifacts/device-cycle-t10/grid-cycles/translated-map/`. **UI verdict: fails.** After unlocking and
-entering the game, the Talent Card page shows all 24 visible labels as raw `#BE08...` refs while the
-tabs and detail pane remain Chinese. `translated-map/verdict-grid.png` captures it. No prime-only
-assets were appended and no extra-text assets were translated in this test, so rewriting this
-downloaded dictionary alone reproduces the regression.
-
-Two additional diagnostic packages are built and read-back verified: `one-name`
-changes only the Arena Tiger value in the same downloaded table, keeping it within the original
-chunk size (277,697 bytes, one byte shorter than the original). **UI verdict: works.** The visible
-names return to Chinese, and the selected Arena Tiger tile shows `Aren...` while its detail pane remains
-Chinese (`擂台猛虎`). Evidence: `grid-cycles/one-name/verdict-grid.png` and `arena-tiger.png`.
-The one-row edit establishes that the dictionary is read and that changed English content can resolve
-without resealing its descriptor. Growing the full dictionary's single chunk is the leading remaining
-cause, not yet proven independently of its other changed values.
-`append-legacy-map`, not yet pushed, changes no existing asset and appends only `A646ADD1CA0C1563` from
-the APK-backed stage. These are controls to isolate the regression, not proposed shipping fixes.
-The full baseline pipeline completed offline against the fresh snapshot, with the APK and no builder,
-under `dist/HOK ACE Patcher Data/grid-regression/full-baseline/`. It stages 79 catalog tables in place,
-relocates 11, translates the four allowlisted extras, and appends 297 prime-only tables to package 1.
-All 395 catalog textures present in either layer are applied; the known 60-byte table
-`3A70308AAF6F18F8` is the one append refusal. This full build has not been pushed to the phone.
-
-`artifacts/device-cycle-t10/build_grid_two_chunks.py` prepares a different diagnostic: use Tencent's
-bundled builder for a one-asset throwaway donor, verify its chunk-0 key against the device's, then
-harvest its chunk-1 slot and append that chunk to the existing device container. All 4064 English rows
-are preserved, the original 307200 chunk size is kept, and every other asset must read back unchanged.
-The user authorized this offline diagnostic. The donor confirms chunk 0's native key
-`15A33357ECBFA5CC` and supplies chunk 1's `29157589AC92F155`. The two-chunk dictionary reads back
-byte-for-byte, with all other 401 readable assets unchanged. `run_cycle.py` verified the phone's
-hashes and restored the normal APK. **UI verdict: works.** All 24 visible labels resolve to
-English (`Copier`, `Piggy`, `Duality`, `Prophet`, `Milestone`, and clipped longer names); the
-unchanged Chinese detail pane remains intact. Screenshot: `two-chunk-map/verdict-grid.png`.
-
-The shipping fix in `device_extensions.write_assets` keeps this dictionary at 307200 bytes per
-chunk and uses the measured identity key for its second slot. It verifies existing keys, codec
-and slot framing, refuses unmeasured layouts or a third chunk, and reads the result back. Other
-assets retain their prior staging path; config `0AA59370241BFC22` remains byte-identical.
-`exclude_extra_chunks` always routes this dictionary to relocation, so the runtime stager cannot
-invent a new key. `repair_talent_dictionary` (now `repair_card_dictionaries`, see below) separately repairs an old enlarged chunk even when
-the already-English dictionary produces no translation plan. A normal run loads no builder DLL.
-
-Offline verification: the fresh full build with the APK and no builder stages the same 391 text
-tables and applies the same 395 textures, with the known one-table append refusal unchanged.
-Every payload of all 700 package-1 entries is byte-identical to the baseline English build.
-Only this dictionary's chunk layout changes. Repairing an older patched package yields the same
-700 payloads and two native-keyed chunks; rerunning on the fixed package stages no packages and
-reports no skips. Evidence: `grid-cycles/fix-verification.json`. The rebuilt frozen executable's
-`--selftest` against the older patched package returns `ok: true`, package 1 / 1 repaired table.
-
-### Full fixed patch verified on the phone, 2026-10-03
-
-`run_cycle.py --source <grid-regression>/full-fixed/out --expect-version 1.4.0.2 --label
-full-fixed --evidence artifacts/device-cycle-t10/grid-cycles` installs all six staged packages
-(1, 15, 19, 20, 21, 1050016095), verifies every changed file by device SHA-256, and restores the
-normal APK. The game starts and the full Talent Card page has English grid names and an English
-detail pane. Searching `Arena Tiger` returns one tier-2 tile; selecting it shows `Arena Tiger`
-and its description in English. The narrow tile caption reads `Aren...`, normal UI clipping,
-with no raw ref. Hero Card, Effect Card and Equipment Card remain populated and translated.
-Evidence: `full-fixed/{push.json,loaded.png,arena-tiger.png,hero-card.png,effect-card.png,
-equipment-card.png}`. `dumpsys package` confirms no `DEBUGGABLE` flag. The game is left on
-Arena Tiger with the normal APK installed. The Talent Card fix's acceptance is met: the patched
-grid resolves its names and the detail pane and other tabs still work, on a cycle staged from the
-fresh baseline.
-
-The updated executable was rebuilt successfully with Python 3.12.13. Its `--selftest` against
-fresh data reports `ok: true`: 79 in-place tables, 11 relocated, 4 safe extras and 323 downloaded
-textures (no APK is supplied to selftest). Against an older English package it reports exactly
-one repaired table. Source-pipeline checks cover the APK append and all 395 applied textures.
-The full build retains the known one-table append refusal, without new skips. `py_compile` and
-`git diff --check` pass. No catalog, runtime, config bin or signing key was changed.
-
-The planned `pb_text.has_row_checksum` guard was dropped during implementation; see Out of Scope.
-
-### Review and local cleanup, 2026-10-03
-
-All changed source and documentation files were reviewed directly against AGENTS.md. The OCR
-CLI was unavailable, so its deterministic preview/rule commands were not used. Review fixed an
-unnecessary builder initialization: even when a builder directory is supplied, `build_patch`
-loads the DLLs only if `REBUILD_PACKAGES` is non-empty. Verification with an APK and a nonexistent
-builder directory succeeds, repairs the older Talent dictionary, and retains the known append
-refusal. The graphics offline check passes all sections. The research key probe now follows the
-live B-tree slot map before comparing relocated content.
-
-Cleanup removed 18.1 GiB of repeated/generated outputs and kept source dumps, the final fixed
-patch, native donor, screenshots, reports and reusable tools. Historical commands referencing
-removed outputs require rebuilding; the housekeeping section of `docs/lab-notebook.md` records the retention policy.
-
-### The other ten card dictionaries, 2026-10-08
-
-Diamond Frenzy's Effect Card grid and detail pane print raw `#23F7...` refs on a patched phone. The
-refs are defined in `28D9F8B02CAA94E2`, one of the ten per-mode card dictionaries that the relocation
-pass still enlarged after the fix above repaired the Talent one; each copy carries its own ref prefix. The user
-authorized minting their keys with the bundled builder the same way, offline: each throwaway build
-reproduced every key the device already had, the Talent keys included, before its new chunk keys were
-taken. `NATIVE_CHUNK_KEYS` now covers all eleven, `write_assets` gives each one chunks of 307200 bytes
-(a third chunk for the two 600 KB copies), and `repair_card_dictionaries` repairs an earlier patch's
-enlarged copies. Offline: Indonesian and English builds leave no non-standard chunk size in package `1`,
-and the repair of an old broken package is byte-identical to a fresh build. Device verdict owed; see
-`docs/lab-notebook.md`'s 2026-10-08 section.
+What shipped from it: `device_extensions.write_assets` keeps every card dictionary at 307200 bytes per
+chunk and gives a new chunk the measured identity key in `NATIVE_CHUNK_KEYS`. It verifies the existing
+keys, codec and slot framing, refuses an unmeasured layout or a chunk index it holds no key for, and reads
+the result back; other assets keep their staging path, and config `0AA59370241BFC22` stays byte-identical.
+`exclude_extra_chunks` always routes these dictionaries to relocation, so the runtime stager cannot invent
+a key, and `repair_card_dictionaries` repairs an older patch's enlarged chunk even when the already-English
+dictionary yields no translation plan. A normal run loads no builder DLL.
 
 ### Still owed
 

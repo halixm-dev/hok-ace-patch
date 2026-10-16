@@ -20,23 +20,6 @@ without a cycle, and a way to reseal a bin would need both.
 The candidate entry, `transform.config`, the short forms and both builds landed on 2026-10-16, and
 both builds passed the offline acceptance below before they went on the phone.
 
-### Device log (Infinix X6853, Android 16, game data 1.6.0.1, English)
-
-| step | build | watched | result |
-|---|---|---|---|
-| version check | — | phone `packages/1/1.info` vs the dump | both `{"version":"1.6.0.1","revision":"0"}` |
-| backup | — | `packages` + `Watchdog` | `D:\scratch\hok-cycle\backup\device-backup.tar`, 2.4 GB |
-| control push | control, all 7 packages | startup, QtsVFS scan | `ScanJob done ... errorCode=0`, no crash |
-| control push | control | Encyclopedia DF: Basic Rules, Effect Card, Talent Card, Starting Lineup | all draw; Starting Lineup Chinese as expected |
-| cycle push | cycle, package `1` only | startup, login, lobby, Card menu, ACE Encyclopedia | all normal, scan `errorCode=0` |
-| cycle push | cycle | Encyclopedia DF → Starting Lineup | **empty grid**, still empty after a further 6 s |
-| rollback | control's package `1` | Encyclopedia DF → Starting Lineup | grid back |
-| control push | control | a match, played to its end by the user | no `QTSFailureTips` popup; no QTS-failure line in logcat |
-| control push | control | achievement titles, checked by the user | English |
-
-Not watched: the weekly leaderboards and King of Kings. The control's own
-verdict on the 1.6.0.1 supplement is therefore still partial (`docs/lab-notebook.md`).
-
 | what landed | where |
 |---|---|
 | the queue entry, with its measurement | `tools/extra_text.py` → `CANDIDATE_ASSETS[0x9E45602F1857539D]` |
@@ -65,37 +48,13 @@ The supplement's 34 short forms are in **both** builds, so the control is not by
 from before this change wherever a catalog table holds one of them as a whole value. That is on purpose
 (`[S2]` 3): they are catalog-wording strings and need no cycle. It is also why the control goes on first.
 
-### What was measured (2026-10-16, game data 1.6.0.1, APK 1.1.1 / 774472)
+**Journey log**
 
-- **The screen.** Encyclopedia → Diamond Frenzy → Starting Lineup draws its section header
-  (`逆天改命卡包`) and the hero label under every card cover (`百里玄策`, `狄仁杰`, …) in Chinese. The
-  side panel's pack name, "Defy Fate (Xuance)", is already English: it comes from the catalog table
-  `492C173C523F74EE`.
-- **The source.** `9E45602F1857539D`, package `1`, 29,529 bytes raw, one Oodle chunk (compression `4`).
-  It is a protobuf config bin and **not** a catalog table, and it exists **only in the APK** (prime). The
-  pristine 1.6.0.1 downloaded layer `pristine/20261016-101124` does not carry it. Each record pairs a
-  cover icon (`ArtHub/Icon/CardCover/lcon_CardCover_NiTianGaiMing_BaiLiXuanCe`) with its group label
-  (`逆天改命卡包`) and its hero label (`百里玄策`). A scan of every package in both layers finds the bare
-  header in this asset alone; everywhere else it is part of a longer string.
-- **What a rewrite would translate.** `pb_text.rewrite` with `extra_text.translator_for` finds 60
-  distinct Chinese strings. `catalog.unique` has an official English for 27, all hero names.
-  The other 33 are short forms whose wording the catalog already carries in a longer string:
-
-  | short form | count | derived from the catalog's own | example |
-  |---|---|---|---|
-  | `<pack>卡包` group header | 5 | `<color=#97DFFFFF><pack>卡包</color>`, tags dropped | `逆天改命卡包` → Defy Fate Card Pack |
-  | `<faction>-<hero>` | 12 | faction name + hero name, joined with ` - ` as the source's hyphen reads | `河洛-李白` → Central Plains - Li Bai |
-  | `<contract>(<faction>)` | 13 | `契约·<contract>(<faction>)` minus its `Contract: ` | `起舞(三分)` → Dance (Three Kingdoms) |
-  | bare hero name | 3 | `逆天改命(<hero>)` | `后裔` → Hou Yi, `哪吒`, `杨戬` |
-
-  With all 60 translated the rewrite touches 252 fields and grows the asset to 30,414 bytes, still one
-  chunk at its 307,200-byte chunk size. English and Indonesian measure the same.
-- **Why it is a cycle and not a fix.** The asset is a config bin outside the catalog. `AGENTS.md` forbids
-  rewriting one without a device cycle, and every such bin tried so far was withdrawn. One of those
-  failures blanked **this same Encyclopedia**. The asset is also prime-only, so it can reach the phone
-  only through the append. Today that pass never offers a config asset: `add_prime_only` filters on
-  `transform.graphics | transform.tables | transform.scripts`. So `--cycle-asset` alone would be a silent
-  no-op for it.
+- Finding the screen's source: `9E45602F1857539D`, a prime-only protobuf config bin outside the catalog, the only asset holding the bare header. Lab notebook, 2026-10-16.
+- Translating it from the catalog alone: 27 of its 60 strings; the other 33 are short forms of catalog strings, now derived in `catalog_supplement.py`. Lab notebook, 2026-10-16.
+- Treating it as a fix rather than a cycle: ruled out, it is an uncatalogued config bin, and prime-only, so the append had to learn to offer it (`transform.config`). Lab notebook, 2026-10-16.
+- The control build on the phone (Infinix X6853, 1.6.0.1): startup, the Diamond Frenzy Encyclopedia tabs, a full match and the achievement titles pass. Lab notebook, 2026-10-16.
+- The cycle build's package `1` on the phone: Starting Lineup draws empty, and the control's package `1` brings it back; withdrawn. Lab notebook, 2026-10-16.
 
 ### Still owed
 
@@ -114,7 +73,7 @@ Three code changes plus one cycle. On a normal run all three are inert: `SAFE_AS
 the asset is only offered when `--cycle-asset 9E45602F` names it.
 
 1. **Queue it.** Add `0x9E45602F1857539D` to `extra_text.CANDIDATE_ASSETS`, recording the measurement
-   above (60 distinct, 27 official, 60 with the derived forms, 252 fields). `resolve_candidates` then accepts it.
+   (60 distinct, 27 official, 60 with the derived forms, 252 fields; lab notebook, 2026-10-16). `resolve_candidates` then accepts it.
 2. **Let the append offer an enabled config asset.** `make_transform` exposes `transform.config`, the
    `SAFE_ASSETS | candidates` set it already decides against. `add_prime_only` adds that set to
    `wanted`. With no cycle and an empty allowlist, the set is empty, so a normal run stages

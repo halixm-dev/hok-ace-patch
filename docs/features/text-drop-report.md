@@ -42,18 +42,11 @@ with no `text_skipped` key at all, and the nothing-staged-with-loss path. Indepe
 
 **Journey log**
 
-- The names were never a catalog gap: the catalog maps 瑶妹→Yaria, 白歌→Bai Ge, 姜导→Director Jiang, and
-  the runtime translates every occurrence of each. The loss happens at staging, which is why the
-  catalog and the runtime both looked innocent.
-- Every table the drop loop gives up on is chessplayer domain: 11 of 92 on a fresh pull and 15 of 92 on
-  the older data, all Chessplayer/Skill/Talent/Secret text, with the two 600 KB tables dropped on every
-  run on disk. That domain-shaped loss is what makes one screen Chinese while its neighbours are English.
-- `fit_summary.dropped_while_staging` already held the answer and nothing read it. Its victim list agrees
-  set-for-set with plan-minus-staged, which is the cross-check that makes `dropped` trustworthy.
-- Deliberately not chased: which record the screen actually renders. That needs the game's own code or a
-  phone experiment, and the report is worth having without it.
-- `git worktree add` is blocked by this session's sandbox, so the branch was cut in place — after
-  committing the in-flight texture work, which is what kept the tree clean enough to do that.
+- Looking for the lost chessplayer names in the catalog: not a catalog gap; the loss happens at staging. Lab notebook, 2026-09-30.
+- What the drop loop gives up: only chessplayer-domain tables, which is why one screen stays Chinese among English ones. Lab notebook, 2026-09-30 (§7).
+- `fit_summary.dropped_while_staging` as the cross-check: it agrees set-for-set with plan-minus-staged, so `dropped` is trustworthy. Lab notebook, 2026-09-30 (§7).
+- Which record the screen actually renders: deliberately not chased; it needs the game's code or a phone, and the report stands without it. Lab notebook, 2026-09-30.
+- Cutting the branch in a worktree: blocked by the sandbox, so it was cut in place. Lab notebook, 2026-09-30.
 
 ## [S1] Problem
 
