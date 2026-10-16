@@ -1,6 +1,6 @@
-r"""Build tasks/T15's reference pack: the crops and previews the image-generation handoff points at.
+r"""Build the Career-atlas reference pack: the crops and previews ``art_brief.md`` points at.
 
-Run from the project root:  .venv\Scripts\python.exe tasks\T15\build_reference_pack.py
+Run from the project root:  .venv\Scripts\python.exe tools\research\career_atlas\build_reference_pack.py
 """
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools"))
 sys.path.insert(0, str(ROOT / "tools" / "research"))
 sys.path.append(str(ROOT / "resources" / "runtime"))
@@ -20,7 +20,7 @@ from PIL import Image  # noqa: E402
 from sprite_table import sprite_rects  # noqa: E402
 from wxq_patch.qtsvfs import QtsPackage  # noqa: E402
 
-OUT = ROOT / "tasks" / "T15"
+OUT = Path(__file__).resolve().parent
 DATA = ROOT / "dist" / "HOK ACE Patcher Data"
 TODAY = DATA / "sessions" / "20261010-115042" / "game" / "WXQ_Data" / "Package" / "builtin" / "19"
 PRISTINE = DATA / "pristine" / "20261003-173730" / "game" / "WXQ_Data" / "Package" / "builtin" / "19"

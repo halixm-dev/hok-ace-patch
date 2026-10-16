@@ -10,10 +10,10 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `tasks/` no longer exists
-- [ ] The validation script still runs from its new location against the shipped labels
-- [ ] The shipping rule, the texture record and the atlas tool point at the new path
-- [ ] The badge work is a `.scratch` ticket
-- [ ] `tasks/` is on the retired-names list and the reference check passes
+- [x] `tasks/` no longer exists
+- [x] The validation script still runs from its new location against the shipped labels
+- [x] The shipping rule, the texture record and the atlas tool point at the new path
+- [x] The badge work is a `.scratch` ticket
+- [x] `tasks/` is on the retired-names list and the reference check passes

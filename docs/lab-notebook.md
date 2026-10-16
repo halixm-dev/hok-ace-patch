@@ -733,6 +733,31 @@ Claims that were believed, acted on, and turned out wrong — kept because the m
 | the DLL rebuild is content-identical: 3470 identical, 0 differ | the sweep covered under half of Tencent's 4866 entries | 3470 override-exact **and** 1392 prime-exact; the real difference is the index entry shape (§8) |
 
 
+## 2026-09-29 — resource-token expansion: three independent reviews
+
+Read-only adversarial reviews (T7, T11, T13) of each round of `tools/resource_tokens.py`; their notes lived
+under the retired `tasks` folder and were folded here on 2026-10-16. Corpus throughout: the 87 pre-fix
+replacement assets of session `20260929-212059` (3067 `{Energy}` + 451 `{LordExp}` + 608 `{LordHp}`), since
+pruned. Every round's verdict was **no critical finding**; the results the feature record does not carry:
+
+- **First rule (`7cada8e..149e25e`).** A framing-only rewrite (parse and re-encode every length prefix, no
+  substitution) is byte-identical on all 87 assets, so the corpus has no non-canonical varints. Error paths:
+  field 0, wire types 3 and 6, a truncated varint, an overrunning length and truncated fixed64/fixed32 all
+  raise `NotMessage`; 15 levels of nesting still expand, 20 do not (the depth-16 cap). Exactly one nested
+  sub-message fails to walk and is left as is (`EBB4B2DDCD3E736F`, field path `[1,2]`, 1793 bytes, no
+  tokens), so an asset can be partly expanded. `read_bytes`/`write_bytes` sat outside the hook's `try`, so
+  an `OSError` still propagates: only a parse failure is contained.
+- **Spacing amendment (`cc60205..b670d90`).** Of 4126 token sites, 2595 follow a letter, digit or `}` and 440
+  precede a letter or `+`; all are spaced, and a second pass changes none of the 3384 strings. The cited
+  `Energy-` evidence did not exist (`Energy +2` and `Energy-2` both 0×). Latent gaps, all 0× in the corpus: a
+  following digit (`Energy5`), a non-ASCII letter, `%`, and brace-nested `{{Energy}}`, which is not a fixpoint.
+  The rebuilt exe's `run3` was byte-identical to the source `run2` on all 87 assets.
+- **Sign rule (`b670d90` + working tree).** All 165 token-side sign sites are followed by `{` or a digit, and
+  none of the 464 catalog ` +{` / ` -{` sites follows a token, so the citation is independent. 67 sites keep a
+  closing tag between term and sign (`{LordHp}</color>-10.`), which the one-character lookahead cannot reach;
+  the catalog's own token-free text glues signs after a tag 56× (`</color></a>+10.`), so this was recorded as
+  a convention collision, not a defect.
+
 ## 2026-10-03 — Talent Card regression isolated and fixed
 
 The former impossibility verdict was wrong. A fresh redownload (data 1.4.0.2; snapshot
@@ -915,7 +940,7 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
 
 ## 2026-10-10 — the Career atlas: the offset port put 9 English labels on other sprites
 
-- **Report.** User screenshot (`tasks/T14/evidence/career_screen_2026-10-10.png`): `我的棋手` beside the
+- **Report.** User screenshot (`tools/research/career_atlas/evidence/career_screen_2026-10-10.png`): `我的棋手` beside the
   chessplayer count on the Career screen. Only the count is `TimiText`; the label is the sprite
   `Image_1904551913` of `CareerAtlas` = texture **`13C19E4E4486B31C`** (package `19`, downloaded layer only,
   1024x1024 ASTC 4x4, 1 048 576 B). Its Sprite objects and Texture2D header are **`4AA2B26FF28CB65D`**;
@@ -945,9 +970,9 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   Numbers in `docs/features/texture-translation.md`, *Regioned atlases*.
 - **Labels hand-polished (2026-10-10, later).** The glyph-assembled renders first shipped with a grey fringe
   (composited over transparent black: 205 and 412 edge pixels below RGB 245), caught by
-  `tasks/T15/validate_assets.py` and fixed. The user then polished both in `tasks/T15/edit/` (new K, bolder
+  `tools/research/career_atlas/validate_assets.py` and fixed. The user then polished both in `tools/research/career_atlas/edit/` (new K, bolder
   SKINS, native L/R/F, 5 alpha pixels touched in MY's M); those PNGs ship and are no longer regenerated. An
-  earlier image-agent delivery in `tasks/T15/delivered/` (a hand-drawn K, per its NOTES.md) was overwritten
+  earlier image-agent delivery in `tools/research/career_atlas/delivered/` (a hand-drawn K, per its NOTES.md) was overwritten
   by a copy without looking first and is lost.
 - **Device verdict (2026-10-10): the Career screen looks right.** `patcher_core` run headless (English,
   session pruning off): fresh pull of game data 1.5.0.1 into session `20261010-151438` (backup
@@ -955,6 +980,19 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   the phone already held everything else, pushed it and restored the normal APK. The pushed atlas is
   byte-identical to `port_atlas`'s output with the hand-polished labels; the sprite layout matched the
   morning's. Other screens that draw the moved sprites were not walked.
+- **Handoff detail (T14, folded here 2026-10-16 when `tasks` was retired).** The label is drawn by
+  `UICarrerLordAndSkinDetaiSwitchItem` (prefab `E82B9527804B3DD5`, package `19`;
+  `SetSimilarSpriteByIndex(0)`, index 1 is `我的皮肤`), found from the Career Lua in package `10`
+  (`3A1EA40DF80897BF` AutoBind, `361A7A1C745B580E` class, `22DD0A0DE668B0BF` panel). The atlas's
+  SpriteAtlas is `BAE55973AA41FF81`; `4AA2B26FF28CB65D` holds 218 Sprites and points at
+  `assets/d8/d8e44faed20ba201548914e4792e1045.resS`. The device rects of both layouts are
+  `tools/research/career_atlas/evidence/13C19E4E4486B31C_rects.json` (10-10) and
+  `13C19E4E4486B31C_rects_pre-update-2026-10-03.json` beside it, each rendered with the catalog's PC boxes
+  (its `regions`) in yellow; `atlas_sprites.py table` reprints the comparison. The round badges sit around 760,150–830,220 (`胜利`, `Image_1611657762`) and
+  235,210–300,270 (`失败`, `Image_1795213190`). Two items stayed open: walking the other screens that draw the
+  moved sprites, and the `国服` badge of the "National server Chess Player" avatar frame (`国服骑手头像框`),
+  which has no catalog edit and whose texture was not located (method: frame prefab → sprite table → crop
+  scan). The badge translation is `.scratch/career-atlas-badges/issues/01-win-loss-badges.md`.
 ## 2026-10-16 — 1.6.0.1: 2073 untranslated rows, supplied in code
 
 - **Phone on data 1.6.0.1** (APK still 1.1.1 / 774472). Pristine dump: `pristine/20261016-101124` (full

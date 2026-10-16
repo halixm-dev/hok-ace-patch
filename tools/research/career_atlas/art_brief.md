@@ -1,9 +1,10 @@
-# T15 — Handoff: polish the Career atlas's new English labels (image-generation agent)
+# Career atlas art brief: the new English labels and the optional badges (image-generation agent)
 
 > **Status 2026-10-10: labels done.** The user polished MY SKINS and TOTAL PROFIT by hand in `edit/`;
 > they passed `validate_assets.py` and now ship in `resources/sprites/13C19E4E4486B31C/labels/`. Only
-> the optional badges remain open. `delivered/` holds just an earlier agent's NOTES.md: its PNGs were
-> overwritten and lost.
+> the optional badges remain open, tracked as `.scratch/career-atlas-badges/issues/01-win-loss-badges.md`.
+> `delivered/` holds just an earlier agent's NOTES.md: its PNGs were overwritten and lost. This brief was
+> the T15 handoff under the retired `tasks` folder (moved here 2026-10-16).
 
 Written 2026-10-10. You are an AI agent with image generation. Your job is **art only**: produce up to four
 small PNG sprites that a mobile game will draw. Another (coding) agent integrates them afterwards. Everything
@@ -21,7 +22,7 @@ round Victory/Defeat badges. Look at `context_atlas_after_port.png` first: it is
 
 ## Deliverables
 
-Put each file in `tasks/T15/delivered/`, named exactly as below. Sizes are exact and non-negotiable — the
+Put each file in `tools/research/career_atlas/delivered/`, named exactly as below. Sizes are exact and non-negotiable — the
 game draws each sprite into a fixed box, and a wrong size is refused.
 
 | priority | file | size (px) | replaces | text | style reference |
@@ -31,7 +32,7 @@ game draws each sprite into a fixed box, and a wrong size is refused.
 | 2 (optional) | `Image_1611657762.png` | 126 x 126 | `originals/zh_Image_1611657762_badge_胜利.png` | WIN | the badge itself |
 | 2 (optional) | `Image_1795213190.png` | 126 x 126 | `originals/zh_Image_1795213190_badge_失败.png` | LOSS | the badge itself |
 
-Plus `tasks/T15/delivered/NOTES.md`: for each file, how it was made (model/tool, prompts, any manual pixel
+Plus `tools/research/career_atlas/delivered/NOTES.md`: for each file, how it was made (model/tool, prompts, any manual pixel
 work), and a provenance statement — no font file or third-party artwork is embedded, and the output may be
 redistributed inside this open-source patcher.
 
@@ -100,7 +101,7 @@ apply to them.
 4. Run the validator (Pillow only):
 
    ```bash
-   python tasks/T15/validate_assets.py --delivered tasks/T15/delivered
+   python tools/research/career_atlas/validate_assets.py --delivered tools/research/career_atlas/delivered
    ```
 
    It prints PASS/FAIL per rule and writes `preview_sheet.png` (original | yours | current | style
@@ -118,7 +119,7 @@ apply to them.
 
 ## Do not
 
-- Do not change any file outside `tasks/T15/delivered/`. In particular, never touch `resources/catalog/`
+- Do not change any file outside `tools/research/career_atlas/delivered/`. In particular, never touch `resources/catalog/`
   (upstream data) or `resources/sprites/` (the coding agent integrates from your delivery).
 - Do not resize the canvas, add a background, or bake in a shadow.
 - Do not redraw other sprites, even if you think they could be better.
@@ -128,16 +129,13 @@ apply to them.
 Not part of the art task; recorded so the handoff is complete.
 
 1. Review `preview_sheet.png`, `preview_in_context.png` and NOTES.md with the user.
-2. `tools/research/atlas_sprites.py labels` currently *generates* the labels and `--check` fails on any
-   other pixels, and `AGENTS.md` says never to hand-edit `resources/sprites/`. Adopting curated art means
-   making that tool treat a curated PNG as the source (keep it under `tools/research/`, copy it into
-   `resources/sprites/13C19E4E4486B31C/labels/`, and have `--check` compare against it), and updating the
-   `AGENTS.md` rule and `texture-translation.md` in the same change.
+2. Done 2026-10-10 for the labels: `atlas_sprites.py labels` writes drafts to `--out` only, and its
+   `--check` verifies the shipped hand-finished labels' format instead of regenerating them.
 3. Badges: add `Image_1611657762` / `Image_1795213190` to `mobile_graphics.ATLAS_LABELS` with their wording.
    `port_atlas` draws a label over its whole device box, so the delivered PNG replaces the sprite as is.
-4. Run `check_graphics.py` (offline and `--game`), rebuild the exe (the one built on 2026-10-10 predates
-   the label fringe fix), and run the device cycle still owed by T14 (`texture-translation.md`, T13): the
-   Career screen in both switch states, Total Profit, and the match-history badges.
+4. Run `check_graphics.py` (offline and `--game`), rebuild the exe, and run a device cycle
+   (`docs/features/prime-rebuild.md`, "The device test loop"): the Career screen in both switch
+   states, Total Profit, and the match-history badges.
 
 ## Files here
 
@@ -150,3 +148,7 @@ Not part of the art task; recorded so the handoff is complete.
 | `current/` | the shipping glyph-assembled renders of MY SKINS and TOTAL PROFIT |
 | `validate_assets.py` | the checker and preview renderer |
 | `build_reference_pack.py` | regenerates everything above from the repo and the game dumps (coding agent only) |
+| `edit/` | the user's hand-finished labels as shipped, the optional badge starting copies, and `.start_sha256.json` (the starting hashes) |
+| `delivered/NOTES.md` | provenance notes from an earlier image-agent delivery whose PNGs were lost |
+| `final_in_atlas_after_astc.png` | the atlas with the new labels after an ASTC round trip |
+| `evidence/` | the Career-atlas investigation of 2026-10-10: the user's Career screenshot, both atlases with device rects (red) and catalog boxes (yellow), both rect tables as JSON, and pristine crops of the damaged non-catalog sprites |
