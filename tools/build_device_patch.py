@@ -161,7 +161,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
 
     - `catalog` decides the language. `languages.for_catalog` reads it from the directory name
       (`catalog` → English, `catalog_id` → Indonesian, anything else → English), and the run logs
-      `language: <name>`. A catalog that ships only some texture payloads borrows the rest from the
+      `language: <name>`. A catalog that ships only some catalog edits borrows the rest from the
       English one beside it. Nothing else names the language, so a caller picks one with
       `languages.catalog_dir(resources, code)` and passes that path.
     - It imports `wxq_patch` from whatever runtime directory the caller already put on `sys.path`; it
@@ -203,7 +203,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       logged and skipped, not reported as a result, and its directory is removed from `output/` so the
       directories there are exactly the reported packages — the installer pushes by directory, not by
       summary.
-    - A graphics package whose **every** texture was skipped also writes no directory, so it stays out
+    - A package of textures whose **every** texture was skipped also writes no directory, so it stays out
       of `packages`; it is reported instead in `graphics_skipped` (`package_id`, `mode`,
       `skipped_count`, `considered_count`, `skipped`). Without that list a skipped texture is invisible
       in the summary, which is how `C9E29F61B9E73713` stayed Chinese unnoticed.

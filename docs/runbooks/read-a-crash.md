@@ -13,8 +13,8 @@ evidence about the patch. The measurements behind these steps are in
 2. **Check which APK is installed.** If the access APK is still installed, that alone kills Unity
    startup with `signal 7`, and logcat shows only prime mounts with **no** `MountPackage … override` line.
    Reinstall the normal APK and launch again before anything else.
-3. **Check the game data is complete.** A startup crash on the normal APK with an incomplete data set looks
-   the same. Confirm `Cache/Update/NewVersionInfo.json` reads `needDownloadSize == 0` and the data set is
+3. **Check the game data is complete.** A startup crash on the normal APK with incomplete game data looks
+   the same. Confirm `Cache/Update/NewVersionInfo.json` reads `needDownloadSize == 0` and the game data is
    not well under ~2.8 GB. If it is short: `pm clear com.tencent.tmgp.osgame`, let the game download to the
    login screen, then patch again.
 4. **Check the client could read the files.** With the access APK installed, read
@@ -38,5 +38,5 @@ evidence about the patch. The measurements behind these steps are in
 
 ## Done when
 
-The crash is attributed to one cause — the access APK, an incomplete data set, or one named asset or
+The crash is attributed to one cause — the access APK, incomplete game data, or one named asset or
 change — by a control that reproduces it and one that does not, and that is recorded in the lab notebook.

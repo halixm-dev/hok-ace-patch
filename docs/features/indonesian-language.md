@@ -14,8 +14,8 @@ setting in both front ends. The pipeline is unchanged in shape: `build_patch` st
 path, and the path *is* the language.
 
 - `tools/languages.py` names the languages (`en` → `resources/catalog/`, `id` → `resources/catalog_id/`),
-  resolves a catalog directory to its language by name (`for_catalog`), and resolves a texture payload
-  (`payload_path`): the language's own file when it ships one, the English catalog's beside it otherwise.
+  resolves a catalog directory to its language by name (`for_catalog`), and resolves a catalog edit's
+  payload (`payload_path`): the language's own file when it ships one, the English catalog's beside it otherwise.
 - `resources/catalog_id/catalog.json.gz` is the Indonesian catalog from the PC pipeline: same schema,
   same 499 tables and 398 graphics entries as the English one, Indonesian targets.
 - The lobby's START GAME label is re-drawn as MULAI GAME. The art is
@@ -58,7 +58,7 @@ path, and the path *is* the language.
 
 **Journey log**
 
-- The supplied catalog is a drop-in for the English one; its `.blocks`/`.assets` files are texture payloads, not text (lab notebook, 2026-10-05).
+- The supplied catalog is a drop-in for the English one; its `.blocks`/`.assets` files are catalog edits, not text (lab notebook, 2026-10-05).
 - Two package-`19` textures draw START GAME and the data does not say which the lobby uses — both re-drawn from one render (lab notebook, 2026-10-05).
 - No BC7 encoder is installed — the converter carries a small mode-6 encoder for the blocks the sprite touches (lab notebook, 2026-10-05).
 - Fixing the token terms in the catalog — impossible, `placeholders_changed` drops the record; a per-language table instead (lab notebook, 2026-10-05).

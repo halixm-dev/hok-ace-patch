@@ -45,11 +45,11 @@ Force-close ~10 s into startup, before the login screen, `signal 7 (Bus error)` 
 (Segmentation fault)`. **Two unrelated causes carry the same signature**, so a startup crash is not by
 itself evidence about the patch — check `pkgFlags` first.
 
-### Cause A — an incomplete game-data set (2026-09-30)
+### Cause A — an incomplete game-data download (2026-09-30)
 
-The data set was caught mid-update, and Tencent's GCloud updater reacted with a same-version "cures" repair
+The game data was caught mid-update, and Tencent's GCloud updater reacted with a same-version "cures" repair
 (`server.json`: `from_version` 1.4.0.1 → `to_version` 1.4.0.1, `cfilesize` 9032772, `cmd5`
-`cd4f042483e9215e376b268fd147b7b6`), faulting while applying it. A fresh data set is **2.86 GB**; the broken
+`cd4f042483e9215e376b268fd147b7b6`), faulting while applying it. A fresh download is **2.86 GB**; the broken
 one was **2.12 GB** (~700 MB of packages missing). The game had updated 1.3.0.4 → 1.4.0.1 at ~08:32; the
 08:39 patch run pulled a 229 MB tar mid-update and was killed, and the 09:26 run patched the incomplete set.
 
@@ -151,7 +151,7 @@ Four UI failures reported on device after login (2026-09-30): (1) no game button
 They were **not** the updater (`total_need_download_size = 0 KB`), **not** the textures (every texture package
 reverted to pristine left all four), **not** the catalog tables (disabling every `extra_text` asset fixed 1–3
 while 388 tables stayed English), and **not** corruption (§2). A translated string is being used as data. The
-culprit pass is **`extra_text`/`pb_text`**, which rewrites CJK strings inside the 14 non-table config assets.
+culprit pass is **`extra_text`/`pb_text`**, which rewrites CJK strings inside the 14 non-table config bins.
 
 ### Symptoms 1–3: the display assets
 
@@ -583,8 +583,8 @@ All of this runs with no phone and, except where noted, no game dump.
 
 - `tools/research/check_graphics.py` is the texture codec's own offline check: section `[8]` prints a
   per-entry table (absent/skipped by default, `--table` for all), `[9]` exercises `splice_label` on a
-  synthetic revision. With `--game` it takes ~90 s. It still prints `absent: 75`, deliberately worded as "not
-  in this dump (the downloaded layer)".
+  synthetic revision. With `--game` it takes ~90 s. It still prints `absent: 75`, deliberately worded to say
+  the dump is the override layer only.
 - `tools/research/render_texture.py` renders a catalog payload or a device ASTC texture to PNG. Building
   contact sheets from it is how the 1994-vs-299 split in §6 was established — far cheaper than reasoning about
   previews.
@@ -908,7 +908,7 @@ From the extra-text-cycles record's journey log (folded here 2026-10-16).
 
 A cycle staged from the 1.4.0.1 `artifacts/game-dump` went onto a phone running 1.4.0.2. A staged package
 is a revision of one layer, so the push reverted every asset the game had changed in between, among them a
-34 KB Chinese config asset and a 13.5 KB English one. The load stopped at 0% and the game repaired itself
+34 KB Chinese config bin and a 13.5 KB English one. The load stopped at 0% and the game repaired itself
 with a download, removing the translation; the cycle gave no verdict on the asset it was testing. The
 same day a patch staged from the phone's own version launched and read English. Since then the dump's
 `1.info` is compared with the phone's before a push (`docs/runbooks/device-cycle.md`).
@@ -1652,7 +1652,7 @@ have not changed, so the translation coverage ledger remains unchanged.
 
 - The user supplied only `catalog.json.gz` and `mulai_game.png`. The catalog turned out to be a drop-in for
   the English one rather than a new format: `adaptive.load_catalog(folder)` reads `folder/catalog.json.gz`,
-  and the `.blocks`/`.assets` files are texture payloads, not text.
+  and the `.blocks`/`.assets` files are catalog edits, not text.
 - Two textures draw START GAME in package `19`. Which one the lobby uses cannot be read from the data, so
   both are re-drawn; they are the same pixels, so one render serves both.
 - No BC7 encoder is installed (only `texture2ddecoder`'s decoder), so the converter carries a small mode-6

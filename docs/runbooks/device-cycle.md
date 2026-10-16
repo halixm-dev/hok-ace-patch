@@ -12,8 +12,8 @@ measurements behind these steps are in [`docs/lab-notebook.md`](../lab-notebook.
 1. **Let the game finish its update.** Open the game and let it reach the login screen on its own; after a
    game update that means clearing the data (`pm clear com.tencent.tmgp.osgame`), downloading it again, and
    only then patching. The patcher has no completeness check of its own, so confirm it:
-   `Cache/Update/NewVersionInfo.json` reads `needDownloadSize == 0`, and the device data set is not well
-   under ~2.8 GB. Patching an incomplete set crashes startup.
+   `Cache/Update/NewVersionInfo.json` reads `needDownloadSize == 0`, and the device's game data is not
+   well under ~2.8 GB. Patching an incomplete set crashes startup.
 2. **Build offline against a dump of the phone's own version.** Compare
    `<dump>/WXQ_Data/Package/builtin/1/1.info` with the phone's `files/QtsVFSCache/packages/1/1.info`; they
    must name the same version. A staged package is a revision of one layer, so a dump from an older version

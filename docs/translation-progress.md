@@ -14,8 +14,8 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, and one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`) — nothing else. The `extra_text` config-asset allowlist is empty since
-2026-10-05. There is no percentage: the build's own totals for tables, textures and config assets are not
+(`extra_text.SCRIPT_LABELS`) — nothing else. The `extra_text` config-bin allowlist is empty since
+2026-10-05. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
 
 A run reports four numbers through the app's `translate` step, all read from
@@ -289,7 +289,7 @@ running and the rest wait until a cycle says the class is safe.
 
 A sixteenth candidate joined the queue on 2026-10-16: `9E45602F1857539D`, the card-pack covers behind
 Encyclopedia → Diamond Frenzy → Starting Lineup (the `逆天改命卡包` header and the hero label under every
-cover). It is prime-only, so it reaches the phone through the append, which now offers a config asset a
+cover). It is prime-only, so it reaches the phone through the append, which now offers a config bin a
 cycle enabled (`transform.config`). The catalog translates 27 of its 60 strings; the other 33 are short
 forms of its own longer strings that `catalog_supplement.derived` generates, so a cycle would translate
 all 60. **Withdrawn the same day:** appended, it empties the Starting Lineup grid; the control without it
