@@ -93,6 +93,17 @@ name as the catalog loads (`docs/compose/spec/terminology-glossary.md`): the def
 English catalog that rewrites 40 targets to Steal, 9 to Prepare and 1 to Deploy; on the Indonesian one 36, 7
 and 1, and it also puts 107 Indonesian series labels in the Indonesian order ("Seri Prepare"). It changes words inside tables that are already counted, so no count below moves.
 
+Before the glossary, `tools/catalog_supplement.py` adds the strings the game introduced after the catalog
+was built, into tables the catalog already covers, and only where `unique` has no entry of its own. Game
+data **1.6.0.1** (2026-10-16) left **2073 rows / 1184 distinct strings** of package `1`'s catalog tables
+Chinese, against 146 rows on the pristine 1.4.0.2 layer: an achievement-title system with numbered tiers
+(167 base titles, translated from the catalog's own names plus a Roman numeral), four weekly leaderboards
+ranked 1-100, King of Kings, the Line Puppy event, Ace Duel guessing, and reworded card texts. The
+supplement supplies **2314** English / **2313** Indonesian strings (the Indonesian catalog already had one
+of the 1.5.0.1 card fixes), every one passing `adaptive.validate_translation`; an offline build of the
+pristine 1.6.0.1 dump with the APK then leaves **0** Chinese rows in the catalog's tables, in both
+languages, with `text_skipped` empty. It adds rows to tables already counted, so no table count moves.
+
 `.blocks` and `.assets` are the two porting *kinds*, not text versus texture: every payload file in the
 catalog directory is a texture, and all 398 of them are in `catalog.graphics`.
 
