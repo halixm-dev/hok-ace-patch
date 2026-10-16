@@ -558,84 +558,27 @@ the frozen exe can rebuild on any machine. `pypinyin` joins `requirements.txt` a
 
 ### Which pass owns a string, and how to find out
 
-A string that is still Chinese is diagnosed from the data, in this order, rather than guessed at:
-
-1. **Capture the exact Chinese** — from the user's report, or `adb exec-out screencap -p > s.png`.
-2. **Look it up in the catalog**: `resources/catalog/catalog.json.gz`, where `unique` maps Chinese to
-   the PC patcher's official English. Set `PYTHONIOENCODING=utf-8` on Windows, or printing CJK raises
-   through cp1252.
-
-   ```python
-   import gzip, json
-   cat = json.load(gzip.open("resources/catalog/catalog.json.gz"))
-   print(cat["unique"].get("瑶妹"))   # -> "Yaria"
-   ```
-
-3. **Find the asset that holds it, in both layers**: the phone's dump for override, and
-   `package_rebuild.extract_prime` for prime. Read each candidate through
-   `QtsPackage(...).build_slot_map()` and `qts_relocate.read_raw`, then search those bytes for the
-   UTF-8 string. That gives the **package id** and the **file hash** (16 hex digits).
-4. **Classify what you found**:
-
-   | finding | the pass that owns it |
-   |---|---|
-   | `catalog.known`, asset prime-only | the append pass — it reaches the device copy without changing the container's shape; a rebuild (`REBUILD_PACKAGES`) is the fallback for a package that has to be re-laid out whole |
-   | `catalog.known`, asset in override | it should already apply; ask whether the stager dropped it for not fitting (`text_skipped`) and whether relocation recovered it |
-   | not a catalog table, protobuf display text | the extra-text allowlist, after a device cycle |
-   | a package-19 prefab, or a definition table | nothing safe — `[S3]` |
-   | not in either layer | the launcher or native code; it cannot be patched through game data |
-
-Beyond the prime layer, four things leave a string Chinese, and none of them is a missing
-translation: no catalog table covers the asset (the extra-text pass, or nothing); it is a prefab or a
-definition table, where a rewrite is unsafe; it comes from the launcher — the login title,
-`正在初始化游戏` — and is not in game data at all; or the translation exists and is **too long** for the
-mobile layout, which is a text-length problem rather than a missing string.
+Diagnosing a string that stays Chinese across both data layers is the runbook
+[`docs/runbooks/diagnose-untranslated.md`](../runbooks/diagnose-untranslated.md).
 
 ### The device test loop
 
-The game's data has to be fully updated to the login screen before a patch goes on — after a game
-update that means clearing the data, downloading it again, and only then patching. One change per
-cycle, and the cycle's verdict recorded before the next one starts:
-
-1. Build offline against a dump first: `tools/build_device_patch.py --runtime resources/runtime --game
-   <dump> --catalog resources/catalog --work <w> --output <o> --apk <apk> --builder resources/qtsvfs`.
-   It needs Python **3.12** — `resources/runtime/` is 3.12 bytecode. **The dump has to be the game-data
-   version the phone is running** — `<dump>/WXQ_Data/Package/builtin/1/1.info` against the phone's own
-   `files/QtsVFSCache/packages/1/1.info`. A staged package is a *revision of one layer*, so pushing one
-   from an older version reverts every asset the game changed in between, and the symptom is a load that
-   stops at 0% followed by the game repairing itself with a download. Tried on 2026-10-02: a cycle
-   staged from the 1.4.0.1 `artifacts/game-dump` went onto a 1.4.0.2 phone, reverting a 34 KB Chinese
-   config asset and a 13.5 KB English one, and produced no verdict on the asset being tested. Check the
-   version before the push, or the cycle is wasted and the phone loses its translation.
-2. Back up `packages` **and** `Watchdog`, so the cycle can be rolled back.
-3. Push the staged directories to `files/QtsVFSCache/packages/<id>/` and delete
-   `files/QtsVFSCache/Watchdog/*`; `app/patcher_core.py` holds the sequence.
-4. Open the game, read `adb logcat` for QtsVFS errors, and screenshot the login screen.
-5. Log in — *Scan to login*, since a re-signed APK cannot do direct WeChat/QQ login — and walk the
-   screens the change should have touched: the loading tips, the Chessplayer page, the lobby, the Card
-   menu, the arena artwork.
-6. Nothing is "translated" until the user has seen it after logging in. A staged file that reads back
-   correctly is not evidence about a screen.
+A device-gated change follows the runbook [`docs/runbooks/device-cycle.md`](../runbooks/device-cycle.md).
 
 ### Working rules
 
-- One change per device test, and the verdict — success or failure, symptom, date — recorded beside
-  the hash it concerns, in the code, not in a session log.
 - Use the PC catalog's official English. Translate freely only where no equivalent exists, and put
   that in `OFFICIAL_FIXES` with its reason.
 - Never change the length or the structure of a binary asset whose format is not understood, and
   always read a staged asset back before pushing it.
-- Check **both** layers before calling an asset unreachable. `check_graphics.py --game`'s `absent`
-  count is a census of the downloaded layer alone; `tools/research/prime_probe.py` is the census that
-  includes `assets/bin/Data/Package/builtin/`.
 
 ### Documentation
 
 The method above is ported from a handoff guide, `docs/agent-guide-untranslated-strings.md`, written
 from the predecessor project's experience on game data 1.3.0.4. It was rewritten in English in place
-during this work, and its lasting content — the diagnosis flow, the test loop and the working rules
-above, and the faction-tab next steps in `[S3]` — has since been folded into this document, so the
-guide itself is gone: its 1.3.0.4 figures are superseded by `[S1]` and the report, which are measured
+during this work, and its lasting content — the diagnosis flow and the test loop (now the two runbooks above), the
+working rules above, and the faction-tab next steps in `[S3]` — has since been folded into this repo,
+so the guide itself is gone: its 1.3.0.4 figures are superseded by `[S1]` and the report, which are measured
 on this repo's own 1.4.0.1 data.
 
 ## [S3] Out of Scope
@@ -681,6 +624,6 @@ on this repo's own 1.4.0.1 data.
 - **Coverage claims.** The result is the staged text tables plus the catalog's textures. The texture
   count is reported as *applied*, never as *covered*, and no run is described as a complete
   translation.
-- **Verified devices.** Nothing here is confirmed on a phone by this document. The device test loop in
-  `[S2]` runs after the port, one change per test, and no string or texture is claimed translated
+- **Verified devices.** Nothing here is confirmed on a phone by this document. The device-cycle
+  runbook (`docs/runbooks/device-cycle.md`) runs after the port, one change per test, and no string or texture is claimed translated
   until the user has seen it after login.

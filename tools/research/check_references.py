@@ -37,6 +37,7 @@ ROOT = Path(__file__).resolve().parents[2]
 # Names a docs move has retired: any mention of one in a scanned file is a failure.
 RETIRED_NAMES: tuple[str, ...] = (
     "MEMORY.md", "docs/artifact-retention.md", "docs/compose", "docs/indonesian-translation-review.md",
+    "tasks/",
 )
 
 # Paths named on purpose while absent: an old name kept as history, a file inside a third-party
@@ -45,8 +46,8 @@ KNOWN_ABSENT: dict[str, str] = {
     "docs/agent-guide-untranslated-strings.md": "folded into the prime-rebuild record; named as history",
     "tools/apply_device_patch.sh": "the standalone-app record's problem statement describes the old layout",
     "docs/FTL.TXT": "a path inside the FreeType archive",
-    "tasks/T15/preview_sheet.png": "written by tasks/T15/validate_assets.py",
-    "tasks/T15/preview_in_context.png": "written by tasks/T15/validate_assets.py",
+    "tools/research/career_atlas/preview_sheet.png": "written by tools/research/career_atlas/validate_assets.py",
+    "tools/research/career_atlas/preview_in_context.png": "written by tools/research/career_atlas/validate_assets.py",
     "docs/adr": "created with the first ADR (docs/agents/domain.md)",
 }
 
