@@ -165,9 +165,9 @@ a failed run still applies.
       catalog's own glyphs; staged by `build_exe.py` and `build.gradle.kts`. VICTORY / DEFEAT not done.
       Both languages use the English renders.
 - [x] T14.5 Device cycle: the Career screen looks right (2026-10-10, session `20261010-151438`, one-texture
-      push). Recorded in `sprite_table.py`, `mobile_graphics.py`, the spec and `MEMORY.md`.
+      push). Recorded in `sprite_table.py`, `mobile_graphics.py`, the spec and `docs/lab-notebook.md`.
 - [x] T14.6 Docs: `texture-translation.md`, `translation-progress.md`, `AGENTS.md`, `README.md`,
-      `MEMORY.md`. The 398 figure's meaning is unchanged.
+      `docs/lab-notebook.md`. The 398 figure's meaning is unchanged.
 
 ## Separate, still open
 

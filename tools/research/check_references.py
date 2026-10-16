@@ -35,7 +35,7 @@ from urllib.parse import unquote
 ROOT = Path(__file__).resolve().parents[2]
 
 # Names a docs move has retired: any mention of one in a scanned file is a failure.
-RETIRED_NAMES: tuple[str, ...] = ("docs/compose",)
+RETIRED_NAMES: tuple[str, ...] = ("MEMORY.md", "docs/artifact-retention.md", "docs/compose")
 
 # Paths named on purpose while absent: an old name kept as history, a file inside a third-party
 # archive, a script's output, a home created when first needed. Each goes once its mention does.

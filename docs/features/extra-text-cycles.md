@@ -29,7 +29,7 @@ verdicts had watched the replay crash only. The three were not bisected, so each
 queue. The pass now also carries `SCRIPT_LABELS`, an exact literal in a Lua UI script (the Effect Card
 filter's `通用`), which is not a config bin, was verified on its screen and across a match, and reaches the
 phone through the append because the script is prime-only. Symptoms and dates are beside the allowlist in
-`tools/extra_text.py`; the evidence is in `MEMORY.md`'s 2026-10-05 section.
+`tools/extra_text.py`; the evidence is in `docs/lab-notebook.md`'s 2026-10-05 section.
 
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the
 phone has since updated to 1.4.0.2, so they are no longer pushable as they stand. See the journey log's

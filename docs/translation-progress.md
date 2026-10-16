@@ -57,7 +57,7 @@ The skip is one of package `1`'s 298 prime-only tables refused by the append enc
 
 ### 2026-10-05: three device bugs fixed, counts moved
 
-The Indonesian device report (`MEMORY.md`, 2026-10-05) moved every count. Staged from the phone's own
+The Indonesian device report (`docs/lab-notebook.md`, 2026-10-05) moved every count. Staged from the phone's own
 1.4.0.2 layer with its APK, device-verified on the Xiaomi:
 
 | result | English | Indonesian |

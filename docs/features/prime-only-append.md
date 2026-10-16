@@ -308,7 +308,7 @@ live B-tree slot map before comparing relocated content.
 
 Cleanup removed 18.1 GiB of repeated/generated outputs and kept source dumps, the final fixed
 patch, native donor, screenshots, reports and reusable tools. Historical commands referencing
-removed outputs require rebuilding; `docs/artifact-retention.md` records the retention policy.
+removed outputs require rebuilding; the housekeeping section of `docs/lab-notebook.md` records the retention policy.
 
 ### The other ten card dictionaries, 2026-10-08
 
@@ -321,7 +321,7 @@ taken. `NATIVE_CHUNK_KEYS` now covers all eleven, `write_assets` gives each one 
 (a third chunk for the two 600 KB copies), and `repair_card_dictionaries` repairs an earlier patch's
 enlarged copies. Offline: Indonesian and English builds leave no non-standard chunk size in package `1`,
 and the repair of an old broken package is byte-identical to a fresh build. Device verdict owed; see
-`MEMORY.md`'s 2026-10-08 section.
+`docs/lab-notebook.md`'s 2026-10-08 section.
 
 ### Still owed
 

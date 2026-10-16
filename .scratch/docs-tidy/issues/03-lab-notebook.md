@@ -4,9 +4,9 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The notebook exists under `docs/`, the root memory file is gone, and no content is lost (a diff shows only the move, the header and the merged retention notes)
-- [ ] The artifact-retention doc is gone and its content is in the housekeeping section
-- [ ] Every reference is updated (instructions, README, records, research tools)
-- [ ] Both old names are on the retired-names list and the reference check passes
+- [x] The notebook exists under `docs/`, the root memory file is gone, and no content is lost (a diff shows only the move, the header and the merged retention notes)
+- [x] The artifact-retention doc is gone and its content is in the housekeeping section
+- [x] Every reference is updated (instructions, README, records, research tools)
+- [x] Both old names are on the retired-names list and the reference check passes
