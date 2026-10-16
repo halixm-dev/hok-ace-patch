@@ -12,3 +12,11 @@ android/.kotlin/
 android/**/build/
 android/local.properties
 android/wheels/
+*.keystore
+!android/signing/debug.keystore
+*.jks
+!resources/key/hok-ace-english.jks
+.env
+.env.*
+*.p12
+*.pfx

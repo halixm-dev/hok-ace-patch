@@ -1,0 +1,109 @@
+name: Android APK
+
+on:
+  push:
+    branches: [master]
+    tags: ['android-v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install build tools
+        run: |
+          python -m venv .venv
+          .venv/Scripts/python.exe -m pip install cffi==2.1.1 setuptools==80.9.0
+          if ($LASTEXITCODE -ne 0) { throw 'Python build dependencies failed' }
+          & "$env:ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager.bat" 'platforms;android-35' 'build-tools;35.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1'
+          if ($LASTEXITCODE -ne 0) { throw 'Android SDK installation failed' }
+      - name: Build and check development APK
+        if: ${{ !startsWith(github.ref, 'refs/tags/android-v') }}
+        run: ./tools/ci/build_android.ps1 -VersionCode $([int]$env:GITHUB_RUN_NUMBER + 1)
+      - name: Build and check privately signed release APK
+        if: startsWith(github.ref, 'refs/tags/android-v')
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}
+          ANDROID_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
+          ANDROID_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
+          ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+        run: |
+          if ($env:GITHUB_REF_NAME -notmatch '^android-v[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?$') { throw 'Use an android-v1.2.3 tag' }
+          if (-not $env:KEYSTORE_BASE64) { throw 'Private Android release signing secrets are missing' }
+          $env:ANDROID_RELEASE_KEYSTORE = Join-Path $env:RUNNER_TEMP 'release.keystore'
+          try {
+            [IO.File]::WriteAllBytes($env:ANDROID_RELEASE_KEYSTORE, [Convert]::FromBase64String($env:KEYSTORE_BASE64))
+            ./tools/ci/build_android.ps1 -Variant Release -VersionName $env:GITHUB_REF_NAME.Substring(9) -VersionCode $([int]$env:GITHUB_RUN_NUMBER + 1)
+          } finally {
+            Remove-Item -LiteralPath $env:ANDROID_RELEASE_KEYSTORE -Force -ErrorAction SilentlyContinue
+          }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-apk
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            artifacts/hok-ace-patch.apk
+            artifacts/SHA256SUMS
+            artifacts/hok-ace-patch-codec-sources.zip
+            artifacts/android-native-alignment.json
+            android/app/build/reports/release-runtime-dependencies.json
+      - name: Retain check reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-check-reports
+          if-no-files-found: ignore
+          path: |
+            android/app/build/reports/
+            android/app/build/test-results/
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/android-v')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: android-apk
+          path: download
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'EOF'
+          Automated ARM64 Android build. Requires Android 11+ and Shizuku.
+
+          Development acceptance and redistribution review remain open; review android/native/THIRD_PARTY.md before publishing. The component source companion is not a complete application source/license clearance.
+
+          This APK uses the private release signer. A debug-signed development install cannot update to it directly. Finish any recovery before changing installations.
+          EOF
+          gh release create "$RELEASE_TAG" --verify-tag --draft --title "HOK ACE Patch ${RELEASE_TAG#android-v}" --notes-file notes.md download/artifacts/* download/android/app/build/reports/release-runtime-dependencies.json
