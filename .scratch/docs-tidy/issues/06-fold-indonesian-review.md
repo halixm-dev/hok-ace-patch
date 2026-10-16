@@ -4,9 +4,9 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The standalone review doc is gone
-- [ ] The Indonesian record carries its directives and outcome
-- [ ] Any tool comment that loaded tables from the review doc names the record instead
-- [ ] The old doc name is on the retired-names list and the reference check passes
+- [x] The standalone review doc is gone
+- [x] The Indonesian record carries its directives and outcome
+- [x] Any tool comment that loaded tables from the review doc names the record instead
+- [x] The old doc name is on the retired-names list and the reference check passes
