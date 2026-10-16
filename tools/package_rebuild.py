@@ -132,6 +132,9 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
     transform.graphics = set(graphics)
     transform.tables = set(catalog.known)
     transform.scripts = set(extra_text.SCRIPT_LABELS)
+    # The config assets this run may rewrite: the allowlist plus a device cycle's candidates. Empty on a
+    # normal run while SAFE_ASSETS is, which is what keeps the append's output unchanged without a cycle.
+    transform.config = set(allowed)
     return transform
 
 
@@ -291,7 +294,9 @@ def add_prime_only(game: Path, apk: Path, transform, work: Path, output: Path,
             wanted = set(QtsPackage(index_dir).entries)
         except Exception:  # noqa: BLE001 - an index that will not read lists nothing to add
             continue
-        wanted &= transform.graphics | transform.tables | transform.scripts
+        # A prime-only config asset (`transform.config`) can reach the phone no other way: the
+        # extra-text pass reads the downloaded layer, which does not carry it.
+        wanted &= transform.graphics | transform.tables | transform.scripts | transform.config
         if not wanted:
             continue
         try:

@@ -5,6 +5,8 @@ reword strings in tables the catalog already covers leave those rows Chinese unt
 Game data 1.5.0.1 and 1.6.0.1 added about 1200 such strings to package `1`: an achievement-title system
 whose titles come in numbered tiers (`完美橱窗(二)`), four weekly leaderboards ranked 1 to 100, the King of
 Kings sub-account, the Line Puppy event, and card texts whose numbers changed. `apply` fills them in.
+`derived` adds the short forms the card-pack covers label each cover with (`逆天改命卡包`, `河洛-李白`),
+whose wording the catalog carries only inside its own longer strings; that bin itself was withdrawn.
 
 Three rules keep this from becoming a second catalog:
 
@@ -441,6 +443,24 @@ TIERED_TITLES = (
 TIERS = 10
 RANKS = 100
 
+# The card-pack covers bin `9E45602F1857539D` (Encyclopedia > Diamond Frenzy > Starting Lineup) labels
+# each cover with a short form of a name the catalog only has inside a longer string. Its device cycle
+# was withdrawn (2026-10-16, `extra_text`), so these reach only a catalog table that holds the same short
+# form; they stay because a catalog string never needs a cycle, and a resealed bin would need them. `derived` generates
+# the targets from those longer strings: a pack header from the catalog's coloured header, a contract
+# from its `契约·` form, a hero from its `逆天改命(<hero>)` pack name. The faction-hero labels have no
+# longer form anywhere, so their sources are listed and their targets joined from the catalog's own
+# faction and hero names.
+_PACK_HEADER = re.compile(r"<color=[^>]+>([^<]+卡包)</color>")
+_COLORED = re.compile(r"<color=[^>]+>([^<]+)</color>")
+_CONTRACT = re.compile(r"契约·([^()]+\([^()]+\))")
+_HERO_PACK = re.compile(r"逆天改命\(([^()]+)\)")
+_CONTRACT_PREFIX = "Contract: "
+FACTION_HEROES = (
+    "河洛-李白", "河洛-李信", "日落海-艾琳", "日落海-莱西奥", "三分-诸葛亮", "三分-甄姬",
+    "逐鹿-蒙犽", "逐鹿-嬴政", "逐鹿-扁鹊", "大河-韩信", "大河-刘邦", "大河-大司命",
+)
+
 
 def chinese_number(value: int) -> str:
     """<value> (1..100) the way the game writes it: 七, 十八, 七十五, 一百."""
@@ -464,6 +484,38 @@ def _title(unique: dict[str, str], zh: str) -> str | None:
     return text[:1].upper() + text[1:]
 
 
+def _inner(target: str, prefix: str, wrapped: str) -> str | None:
+    """The part of <target> that sits where <wrapped> does in the source's longer form, or None."""
+    if not target.startswith(prefix):
+        return None
+    rest = target[len(prefix):]
+    return rest[1:-1] if wrapped == "()" and rest.startswith("(") and rest.endswith(")") else rest
+
+
+def derived(unique: dict[str, str]) -> dict[str, str]:
+    """Short forms whose translation the catalog carries only inside a longer string of its own."""
+    out: dict[str, str] = {}
+    for zh, target in unique.items():
+        if match := _PACK_HEADER.fullmatch(zh):
+            inner = _COLORED.fullmatch(target)
+            if inner:
+                out[match[1]] = inner[1]
+        elif match := _CONTRACT.fullmatch(zh):
+            if target.startswith(_CONTRACT_PREFIX):
+                out[match[1]] = target[len(_CONTRACT_PREFIX):]
+        elif match := _HERO_PACK.fullmatch(zh):
+            pack = unique.get("逆天改命")
+            hero = _inner(target, f"{pack} ", "()") if pack else None
+            if hero:
+                out[match[1]] = hero
+    for zh in FACTION_HEROES:
+        faction, hero = zh.split("-", 1)
+        parts = unique.get(faction), unique.get(hero) or out.get(hero)
+        if all(parts):
+            out[zh] = f"{parts[0]} - {parts[1]}"
+    return out
+
+
 def entries(unique: dict[str, str], code: str) -> dict[str, str]:
     """Every supplementary (Chinese -> target) pair for language <code>, given the catalog's <unique> map."""
     index = 1 if code == "id" else 0
@@ -479,6 +531,8 @@ def entries(unique: dict[str, str], code: str) -> dict[str, str]:
             out.setdefault(zh, title)
         for tier in range(1, TIERS + 1):
             out[f"{zh}({chinese_number(tier)})"] = f"{title} ({_ROMAN[tier]})"
+    for zh, target in derived(unique).items():
+        out.setdefault(zh, target)
     return out
 
 

@@ -853,3 +853,28 @@ Kartu Efek: every grid caption and the detail pane's name and description are ra
   Screens to watch: achievement titles, the four weekly leaderboard rewards, King of Kings, a card
   dictionary screen (Effect/Talent grid must still draw).
 
+## 2026-10-16 — Starting Lineup covers: a prime-only config bin, queued for a cycle
+
+- **Screen:** Encyclopedia → Diamond Frenzy → Starting Lineup. The header `逆天改命卡包` and every hero label
+  under a cover are Chinese; the side panel ("Defy Fate (Xuance)", catalog table `492C173C523F74EE`) is
+  English. Phone on 1.6.0.1, but still carrying an older patch.
+- **Source: `9E45602F1857539D`**, package `1`, **APK only** (absent from the pristine 1.6.0.1 download),
+  29,529 B, one Oodle chunk at 307,200, not a catalog table. A substring sweep of both layers finds the
+  bare header nowhere else. Other hits were longer strings: `23套逆天改命卡包` in `B941DD41DB3C7A73` and the
+  newbie-reward candidate `41974B124E0053E0`, and an achievement sentence in `EE5CF72D67A94C1F`.
+- **Coverage:** 60 distinct strings; `catalog.unique` has 27 (hero names). The other 33 are short forms
+  of catalog strings: 5 `X卡包` headers from `<color=#97DFFFFF>X卡包</color>`, 13 contracts from `契约·X(Y)`,
+  3 heroes (`后裔`/`哪吒`/`杨戬`) from `逆天改命(H)`, and 12 `faction-hero` labels joined from the parts.
+  `catalog_supplement.derived` generates 34 new pairs per language (one extra: `神巫·云中神君`), with 0
+  validation failures. With them, 60/60, 252 fields, 30,414 B.
+- **Built:** control and `--cycle-asset 9E45602F` builds in `D:\scratch\hok-cycle`. They differ only by one
+  appended record in package `1` (720 → 721 entries, no other asset changed).
+- **Device verdict: WITHDRAWN.** Control (all 7 packages): startup clean, and the DF Encyclopedia Basic
+  Rules / Effect / Talent / Starting Lineup tabs all draw. Cycle (package `1` only): startup, lobby, Card
+  menu and ACE Encyclopedia normal, but **DF Starting Lineup draws empty**. The control's package `1`
+  pushed back restores the grid. Content-correct offline, so this is the stale-checksum class again. The
+  phone now runs the control build; device backup is in `D:\scratch\hok-cycle\backup\device-backup.tar`.
+- **Still owed on the control:** a full match (watch for `QTSFailureTips`), achievement titles, the weekly
+  leaderboards, King of Kings.
+- **Disk:** C: had 240 MB free and an offline build died there (`WinError 112`). Builds now go on D:.
+
