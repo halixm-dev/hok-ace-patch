@@ -373,7 +373,8 @@ Adding new rows to dictionaries beyond the catalog has not been attempted. A mis
 cannot be invented, and no matching spare was found in either data layer. The user-authorized offline
 builder diagnostic supplied one measured exception for the existing `C059EA43719099F1` dictionary,
 which adds no rows and keeps all 4064 translated entries; it does not license arbitrary dictionary
-expansion. The earlier inference that all eleven enlarged chunks were accepted came from startup rather
+expansion. Across Tencent's 75,605 entries only two chunk sizes are declared, 307200 and 16384, which
+is why a card dictionary keeps 307200-byte chunks and gains chunks rather than enlarging one. The earlier inference that all eleven enlarged chunks were accepted came from startup rather
 than from a per-table lookup, and it is withdrawn for this dictionary: the one-chunk/two-chunk
 comparison above proves its layout caused the regression.
 
