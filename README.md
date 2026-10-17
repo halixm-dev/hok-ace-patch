@@ -39,7 +39,7 @@ stall loading and cause the game to repair away the translation.
 
 ## Patch versions
 
-The root `VERSION` file sets the Windows and Android patcher version: **1.6.0.1.1**.
+The root `VERSION` file sets the Windows and Android patcher version: **1.6.0.1.2**.
 The first four numbers match the game's **data version**, rather than its APK version.
 The last number counts patch releases for that data version, starting at `1`.
 
