@@ -2120,3 +2120,175 @@ Existing upstream update identities win. Indonesian already says Combine and gai
 
 This supports the measured Yao correction, not arbitrary old wording or language switching. Further
 installed-text corrections need their own measured exact update identities.
+
+## 2026-10-17 — Offline staging performance baseline
+
+The user requested stage measurements before considering Rust for text/package processing.
+`.scratch/staging-performance/measure.py` wraps the real `build_patch` functions without
+changing shipping code. Python 3.12.13, Windows 11 build 26200, English catalog, saved pristine
+1.6.0.1 override layer (`dist/HOK ACE Patcher Data/pristine/20261016-101124/game`), cached
+`dist/HOK ACE Patcher Data/installed.apk`. Each invocation uses a fresh directory under
+`D:/scratch/hok-staging-performance/`; no phone access, source-dump write, or whole-package rebuild.
+
+Stage wall times below exclude nested measured stages, so catalog loading and extra text are
+not counted twice. Total excludes interpreter/import startup, USB transfers and installation.
+These are two sequential runs with normal Windows caching, not controlled cold-cache trials.
+They use lightweight timing wrappers, without cProfile. Raw results are
+`.scratch/staging-performance/run1.json` and `run2.json`; generated packages and full logs
+remain outside the repository. Timing variation is substantial; do not treat one run as a guarantee.
+
+| Stage (seconds elapsed) | Run 1 | Run 2 |
+|---|---:|---:|
+| Catalog loading and terminology, three loads | 1.280 | 1.329 |
+| Scan and translate text, excluding catalog load | 15.490 | 10.135 |
+| Catalog-only filtering | 0.006 | 0.003 |
+| Resource token expansion | 4.471 | 3.961 |
+| Text chunk eligibility | 0.290 | 0.225 |
+| Write text packages | 5.914 | 5.350 |
+| Relocate overflow text | 1.538 | 1.056 |
+| Extra text pass | 26.646 | 14.812 |
+| Texture pass and discovery, excluding catalog/extra text | 70.915 | 59.500 |
+| Repair card dictionaries | 12.786 | 8.817 |
+| Append APK-only assets, including their text and textures | 90.931 | 78.242 |
+| APK transform preparation | <0.001 | <0.001 |
+| Remaining orchestration/logging | 0.666 | 0.250 |
+| **Total elapsed** | **230.933** | **183.681** |
+| Process CPU time (not another elapsed stage) | 115.266 | 83.766 |
+
+Nested measurements below are already included above and must not be added to stage totals.
+Run 1 groups nested detail under the outer stage; run 2 groups it under the immediate measured
+stage to separate extra text from textures. Exclusive stage accounting is the same in both.
+
+| Measured work | Run 1 | Run 2 |
+|---|---:|---:|
+| Actual `adaptive.translate_table`, 503 calls across both layers | 5.978 s | 4.448 s |
+| `QtsPackage.build_slot_map`, 274 calls | 74.891 s | 61.341 s |
+| ASTC encoding, override textures | 7.498 s | 4.099 s |
+| ASTC encoding, APK-only textures | 50.727 s | 33.122 s |
+| APK extraction inside append | 11.262 s | 7.454 s |
+| Append and read-back verification | 7.166 s | 12.066 s |
+
+The extra-text pass makes 238 slot-map calls; run 2 spends 14.204 of its 14.812 s there.
+Card repair spends 8.165 of 8.817 s building five maps. Source inspection shows `plan_scripts`
+and `plan_package` build maps before establishing whether the package has any eligible asset;
+card repair similarly builds maps before checking whether a dictionary needs repair. These
+are candidates for filtering earlier, preserving all current gates and read-back verification.
+This measurement does not establish an optimization's safe behavior or achievable speedup.
+
+**Verdict:** actual table translation is only about 2.4–2.6% of total staging time on these
+inputs. Even eliminating that work entirely would save under 3%. Repeated package scanning,
+file handling and existing native texture encoding deserve investigation before a language
+rewrite. This Windows baseline does not measure Android/Shizuku performance.
+
+A third run with cProfile succeeds (191.746 s elapsed, 100.391 s process CPU). Its
+function timings are diagnostic only: profiling substantially inflates frequently called
+Python functions, and caching/scheduling also change between runs. `calls.prof` remains in
+`D:/scratch/hok-staging-performance/profile/`; the text export and stage timings are saved as
+`.scratch/staging-performance/calls.txt` and `profile.json`.
+
+| Profile evidence | Observation |
+|---|---|
+| Package maps | 274 calls; underlying chunk iterator yields 886,749 times; repeated parsing performs millions of integer reads. |
+| Extra-text planning | 120 `plan_scripts` calls and 118 `plan_package` calls, matching the 238 slot-map calls. |
+| File operations | Buffered writes 33.573 s, buffered reads 22.552 s, Windows file copy 13.499 s and file opens 12.343 s of internal time in this profiled run. These are not CPU-only timings. |
+| Native encoding | 3,654 calls to the existing ASTC compressor; 27.530 s internal time in this profiled run. |
+| Output equivalence | All three runs produce identical SHA-256 hashes for all 14 staged `.db` files, identical text counts, and identical text/append skip reports; `.scratch/staging-performance/verification.json`. |
+| Staging result | Each run stages 94 override text tables (183,250 translated records); no text tables skipped. Existing APK append encoder refusal `3A70308AAF6F18F8` remains. The scan's `graphics: 0` is not the texture-applied count. |
+| Scope | Measurement only. No optimization, Rust port, phone install or device cycle. |
+
+Reproduce from the repository root with Python 3.12, choosing a new external run directory:
+
+```powershell
+.venv/Scripts/python.exe -X utf8 .scratch/staging-performance/measure.py --game 'dist/HOK ACE Patcher Data/pristine/20261016-101124/game' --apk 'dist/HOK ACE Patcher Data/installed.apk' --run D:/scratch/hok-staging-performance/new-run
+```
+
+Add `--profile` only for call attribution; compare normal stage times without it.
+
+## 2026-10-17 — Skip unnecessary extra-text and card-repair chunk scans
+
+The user authorized optimizing the unnecessary scans identified above. `extra_text.plan_scripts`
+and `plan_package` now check the index for eligible, non-skipped assets with supported compression
+before building a slot map. Config eligibility remains `SAFE_ASSETS | candidates`. The config
+planner retains slot iteration order for jobs it does translate. `repair_card_dictionaries` checks
+the selected package index for non-native dictionary chunk sizes first, still preferring a staged
+package over the source. No slot-map cache is shared across package writes; required scans, layout
+checks, allowlist gates and read-back verification retain their existing paths.
+
+Two fresh offline English runs use the same dump, APK and timing script as the baseline above.
+Raw timings are `.scratch/staging-performance/optimized1.json` and `optimized2.json`. Working
+packages/logs remain under `D:/scratch/hok-staging-performance/optimized1` and `optimized2`.
+
+| Measurement | Baseline runs | Optimized runs |
+|---|---:|---:|
+| Slot-map calls, full staging | 274 / 274 | 31 / 31 |
+| Extra-text slot-map calls | 238 / 238 | 0 / 0 |
+| Card-repair slot-map calls | 5 / 5 | 0 / 0 |
+| Extra-text checks | 26.646 / 14.812 s | 0.996 / 0.744 s |
+| Card-repair checks | 12.786 / 8.817 s | 0.645 / 0.746 s |
+| Total offline staging elapsed | 230.933 / 183.681 s | 164.056 / 188.715 s |
+| Total process CPU | 115.266 / 83.766 s | 82.547 / 111.609 s |
+
+**Verdict:** removes 243 of 274 chunk scans (88.7%) on this input. The two targeted stages drop
+from 23.6–39.4 s combined to 1.5–1.6 s. Overall timing remains variable: the second optimized run
+spends 56.134 s in APK texture encoding, versus 25.222 s in the first optimized run. These are
+ordinary sequential Windows runs, not controlled paired trials, so claim the scan reduction and
+measured stage savings rather than a guaranteed overall percentage.
+
+| Verification | Result |
+|---|---|
+| Full staged-package equivalence | Both optimized runs match all 14 baseline `.db` SHA-256 hashes; full summary matches after normalizing only the per-run APK source paths. Evidence: `.scratch/staging-performance/optimized-verification.json`. |
+| Eligible-path and skip regressions | `.venv/Scripts/python.exe -X utf8 .scratch/staging-performance/check_scan_guards.py` passes nine checks: missing/skipped/unsupported scripts, eligible Lua read/rewrite, missing script chunks, config allowlist/candidate gates, eligible config translation, native card skip, staged-index precedence, required card repair, and unreadable-card reporting. |
+| Contract and references | `check_staging_contract.py` and `check_references.py` pass. |
+| Scope | Source change verified offline on Windows. No APK/executable rebuilt and no phone/device cycle performed. Coverage and skip verdicts are unchanged. |
+
+## 2026-10-17 — Optimized Android APK and PC pristine snapshot restored to Xiaomi
+
+The user requested building the optimized APK and restoring the PC's saved pristine data so their
+next patching run starts from that layer. Target: Xiaomi M2007J3SG, serial `f15a72e`. The phone's
+current data was patched; it was backed up, not used as the pristine source.
+
+| Check | Evidence and verdict |
+|---|---|
+| Build | Offline `:app:assembleDebug -PpatchVersionCode=30` passes; version `1.6.1.3`, code 30 matches the installed patcher for an in-place update. |
+| Packaged source | `extra_text.py`, `device_extensions.py` and `build_device_patch.py` inside the APK match source byte-for-byte. Content-addressed engine extraction selects the updated resource manifest. |
+| APK | `artifacts/staging-performance/hok-ace-patch-optimized-debug.apk`; SHA-256 `9ea6af25da9299b753810ec43c2d8109ac3d6635c86e156810865afa50852a61`. ADB update succeeds; installed APK has the same hash. |
+| Signer and native alignment | APK v2 signature verifies; certificate SHA-256 `aa67f1993e3a335ff798d085a3e818b12988739dd3d5e69f8bdd1be97f01c249`. All 84 native libraries pass ELF alignment; `zipalign -c -P 16 4` passes. |
+| Pristine source | PC snapshot `dist/HOK ACE Patcher Data/pristine/20261016-101124/device-backup.tar`. Its package hashes match the saved snapshot record; phone and source marker both `1.6.0.1`, revision `0`. |
+| Recovery backup | Current phone `packages` and `Watchdog`: 745 files archived and hash-verified before overwrite. Retained at `D:/scratch/hok-staging-performance/phone-pristine-20261017-retry/before-pristine.tar`, SHA-256 `c60d380b1c1aa2b19815bfb79bd1360a29a8e83acf96f724c84e7d008e638799`. |
+| Restore | Transferred archive hash verified, old directories moved aside, pristine archive extracted, all 553 restored file hashes and the full file set match the PC archive. Temporary phone files removed after verification; PC recovery backup retained. |
+| Normal game | Reinstalled normal APK; installed SHA-256 `29b3ee7e5a0d21de7d1282d704416402d341b651da95af2eeb5b274c818defdc` matches the saved recovery APK. `DEBUGGABLE` absent. Access APK is no longer installed. Phone reports 15 GB free. |
+| Next-run state | Existing patch session is `COMPLETE`, `normal_verified: true`, `packages_dirty: false`. Fresh patching takes a live snapshot of the restored pristine layer. No patch run or game launch was started by the agent. Phone timing and screen acceptance remain for the user's rerun. |
+
+The initial stdout-stream recovery backup hit its 300 s timeout before any game-data write; the
+normal APK was restored. Retry created the recovery archive on the phone and used ADB file transfer,
+which succeeded. Full restore receipt remains in the external retry directory; concise receipt is
+`.scratch/staging-performance/phone-restore.json`. The partial archive from the timed-out attempt
+is not a verified recovery backup.
+
+## 2026-10-17 — User's phone patch completed; optimized patcher restored afterward
+
+After reconnecting the Xiaomi, the patcher's visible log reports verified patch/normal-APK recovery
+after an interrupted final installation. Retained session `174600da-38c5-4b2e-abf2-0e791f8f2f04`
+is `COMPLETE`, `normal_verified: true`, `packages_dirty: false`. The game data was not rewritten
+again during this verification. The normal game APK's installed hash remains the verified
+`29b3ee7e5a0d21de7d1282d704416402d341b651da95af2eeb5b274c818defdc`; `DEBUGGABLE` is absent.
+
+| Evidence | Result |
+|---|---|
+| Retained run metrics | Status `complete`, elapsed 768.868 s (12 min 49 s), sampled RSS peak 1,655,092 KiB, process-lifetime high-water RSS 1,801,792 KiB, observed free-space decrease 5,887,877,120 bytes, maximum battery temperature 42.2 C, maximum thermal status 0. Lifetime high-water is not necessarily this run's peak; sampling can miss peaks. |
+| Visible phase log | Build begins 10:06:32, next access install begins 10:11:13: approximately 4 min 41 s for build. This is a log-derived interval, not an internal stage profile. Final recovery verified at 10:16:24. |
+| Staging summary | Same override census as the offline control: 94 tables, 183,250 translated records; no skipped text or textures; existing single APK-append encoder refusal remains. |
+| Build actually used | On reconnection the installed patcher hash is `956ec3a29e259e6f4495793f74032ade6d77a8a34f45af601e6161dfbb38724e`. Its packaged `extra_text.py`, `device_extensions.py` and contract lack the scan optimization, even after newline normalization. The cause of this intervening APK replacement is not established. These timings are therefore an older-code baseline, not an optimized phone benchmark. |
+| Optimized patcher reinstated | ADB in-place update succeeds; installed APK hash is again `9ea6af25da9299b753810ec43c2d8109ac3d6635c86e156810865afa50852a61`. Completed game data and retained session are preserved. No second patch run was started. |
+| Startup observation | Game process exists after launch; sampled AndroidRuntime/Unity error log has no lines. The screenshot shows the launcher, so this does not establish login/lobby or translated-screen acceptance. User screen checks remain pending. |
+
+Evidence is retained under `artifacts/staging-performance/phone-completed-session/` (journal,
+resource metrics and staging summary), with completion UI XML and the inspected installed APK
+beside it. The earlier cancelled session remains a separate record; its cancellation is not
+the completed session's final verdict.
+
+**User verdict, 2026-10-17: works.** After the completed patch was verified and the user was asked
+to open the game and check the translated screens, the user replied "Works". This establishes
+user-reported success for this phone/run; individual screens were not enumerated. The completed
+patch ran the older engine code, so this is not an optimized phone timing result. The optimized
+patcher remains installed for future runs.

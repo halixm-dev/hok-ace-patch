@@ -1,0 +1,81 @@
+Sat Oct 17 08:47:57 2026    D:/scratch/hok-staging-performance/profile/calls.prof
+
+         105746776 function calls (105381007 primitive calls) in 189.422 seconds
+
+   Ordered by: internal time
+   List reduced from 904 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      896   33.573    0.037   33.573    0.037 {method 'write' of '_io.BufferedWriter' objects}
+     3654   27.530    0.008   27.530    0.008 {method 'compress' of 'astcenc.ASTCContext' objects}
+6436/6334   22.552    0.004   22.744    0.004 {method 'read' of '_io.BufferedReader' objects}
+ 24226968   18.942    0.000   18.942    0.000 {built-in method _struct.unpack_from}
+      180   13.499    0.075   13.499    0.075 {built-in method _winapi.CopyFile2}
+     4728   12.343    0.003   12.391    0.003 {built-in method _io.open}
+   886749    4.790    0.000   30.831    0.000 wxq_patch\qtsvfs.py:112(iter_chunk_slots)
+      287    3.939    0.014   14.738    0.051 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:70(__init__)
+      567    3.468    0.006    3.468    0.006 {built-in method lz4.block._block.compress}
+      503    3.408    0.007   14.935    0.030 wxq_patch\adaptive.py:88(translate_table)
+  1752994    2.985    0.000    7.347    0.000 wxq_patch\qtsvfs.py:66(_skip_padding)
+ 17165156    2.972    0.000    6.164    0.000 wxq_patch\qtsvfs.py:47(_u32)
+       13    2.723    0.209   36.013    2.770 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:263(save)
+340618/388    2.717    0.000    6.473    0.017 D:\Projects\hok-ace-android-en\tools\resource_tokens.py:146(_walk)
+      971    1.736    0.002   13.986    0.014 wxq_patch\qtsvfs.py:75(parse_index)
+14706738/14705708    1.542    0.000    1.542    0.000 {built-in method builtins.len}
+   233215    1.466    0.000    6.230    0.000 wxq_patch\gemini.py:46(validate_translation)
+      274    1.267    0.005   48.759    0.178 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:352(build_slot_map)
+  1401727    1.189    0.000    2.384    0.000 wxq_patch\adaptive.py:42(fields)
+      147    0.973    0.007    0.973    0.007 {method 'find' of 'mmap.mmap' objects}
+      274    0.944    0.003    1.665    0.006 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:289(btree_offsets)
+  2204644    0.873    0.000    0.873    0.000 {method 'search' of 're.Pattern' objects}
+  1413540    0.803    0.000    0.803    0.000 {method 'findall' of 're.Pattern' objects}
+  2041375    0.785    0.000    0.989    0.000 D:\Projects\hok-ace-android-en\tools\resource_tokens.py:113(_varint)
+   933367    0.770    0.000    2.138    0.000 C:\Program Files\Xiaomi MiMo AI\resources\runtimes\win32-x64\python\Lib\collections\__init__.py:595(__init__)
+  2101839    0.769    0.000    0.966    0.000 wxq_patch\protobuf_i18n.py:16(decode_varint)
+      866    0.763    0.001    0.763    0.001 {method 'update' of '_hashlib.HASH' objects}
+      274    0.749    0.003   26.050    0.095 wxq_patch\qtsvfs.py:422(build_slot_map)
+   351191    0.729    0.000    0.729    0.000 {method 'extend' of 'bytearray' objects}
+   700803    0.694    0.000    0.694    0.000 <string>:2(__init__)
+
+
+Sat Oct 17 08:47:57 2026    D:/scratch/hok-staging-performance/profile/calls.prof
+
+         105746776 function calls (105381007 primitive calls) in 189.422 seconds
+
+   Ordered by: cumulative time
+   List reduced from 904 to 52 due to restriction <'qts|extra_text|device_extensions'>
+   List reduced from 52 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.137    0.137   87.795   87.795 D:\Projects\hok-ace-android-en\tools\device_extensions.py:291(extend_graphics)
+        5    0.050    0.010   71.711   14.342 D:\Projects\hok-ace-android-en\tools\device_extensions.py:237(port_graphics)
+      274    1.267    0.005   48.759    0.178 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:352(build_slot_map)
+       13    2.723    0.209   36.013    2.770 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:263(save)
+   886749    4.790    0.000   30.831    0.000 wxq_patch\qtsvfs.py:112(iter_chunk_slots)
+      274    0.749    0.003   26.050    0.095 wxq_patch\qtsvfs.py:422(build_slot_map)
+      287    3.939    0.014   14.738    0.051 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:70(__init__)
+      971    0.016    0.000   14.475    0.015 wxq_patch\qtsvfs.py:390(__init__)
+        1    0.019    0.019   14.436   14.436 D:\Projects\hok-ace-android-en\tools\extra_text.py:298(extend_text)
+      971    1.736    0.002   13.986    0.014 wxq_patch\qtsvfs.py:75(parse_index)
+        9    0.000    0.000   13.279    1.475 D:\Projects\hok-ace-android-en\tools\device_extensions.py:65(_package_output)
+      120    0.001    0.000    9.406    0.078 D:\Projects\hok-ace-android-en\tools\extra_text.py:223(plan_scripts)
+        1    0.005    0.005    8.523    8.523 D:\Projects\hok-ace-android-en\tools\device_extensions.py:157(repair_card_dictionaries)
+        4    0.009    0.002    7.708    1.927 D:\Projects\hok-ace-android-en\tools\qts_insert.py:56(add_assets)
+  1752994    2.985    0.000    7.347    0.000 wxq_patch\qtsvfs.py:66(_skip_padding)
+ 17165156    2.972    0.000    6.164    0.000 wxq_patch\qtsvfs.py:47(_u32)
+      118    0.012    0.000    3.694    0.031 D:\Projects\hok-ace-android-en\tools\extra_text.py:263(plan_package)
+      274    0.944    0.003    1.665    0.006 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:289(btree_offsets)
+      348    0.033    0.000    1.180    0.003 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:118(relocate)
+        1    0.003    0.003    1.050    1.050 D:\Projects\hok-ace-android-en\tools\device_extensions.py:144(relocate_text)
+        2    0.019    0.010    1.014    0.507 wxq_patch\qtsvfs.py:176(find_slot_position_references)
+      384    0.001    0.000    0.898    0.002 D:\Projects\hok-ace-android-en\tools\qts_insert.py:35(_encode)
+        1    0.002    0.002    0.814    0.814 D:\Projects\hok-ace-android-en\tools\device_extensions.py:86(write_assets)
+        1    0.003    0.003    0.802    0.802 D:\Projects\hok-ace-android-en\tools\device_extensions.py:210(exclude_extra_chunks)
+      348    0.250    0.001    0.486    0.001 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:93(_repoint)
+     1478    0.001    0.000    0.377    0.000 wxq_patch\qtsvfs.py:397(<genexpr>)
+     1287    0.091    0.000    0.353    0.000 wxq_patch\qtsvfs.py:51(_find_first_entry)
+   737430    0.151    0.000    0.278    0.000 D:\Projects\hok-ace-android-en\tools\qts_relocate.py:77(_u32)
+      833    0.008    0.000    0.250    0.000 wxq_patch\qtsvfs.py:436(extract)
+      661    0.001    0.000    0.155    0.000 D:\Projects\hok-ace-android-en\tools\device_extensions.py:258(<genexpr>)
+
+

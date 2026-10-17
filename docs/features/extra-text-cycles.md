@@ -2,6 +2,12 @@
 
 ## Report
 
+**2026-10-17: skip scans without eligible assets.** Script and config planners check the package
+index, skip set and supported codecs before building a chunk-slot map. Config planning still requires
+`SAFE_ASSETS` or that run's enabled candidates. Eligible assets follow the existing read/translate/write
+path; the script pass still runs in excluded config packages. Performance and output-equivalence
+evidence are recorded in the lab notebook's offline staging performance sections.
+
 The extra-text allowlist (`tools/extra_text.py` → `SAFE_ASSETS`) is device-gated: an asset joins it only
 after one cycle has put it on a phone and looked at the screen it feeds. The note beside it names
 fifteen further assets that have never been cycled, and until now a cycle meant editing the allowlist in
