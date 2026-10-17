@@ -2862,3 +2862,44 @@ Evidence in `.scratch/staging-performance/`: `astc-threads1.json`, `astc-threads
 **Verdict:** threaded encoding is byte-identical on Windows and cuts encode time about 2.3× at 12
 threads. ARM64 determinism and phone timing are not yet measured; run the probe test and a phone
 patch before claiming an Android speedup.
+
+## 2026-10-17 — Threaded ASTC phone benchmark
+
+The user requested a phone test of the threaded ASTC build: restore this PC's pristine layer and
+repatch. Xiaomi M2007J3SG (`f15a72e`, Android 12). To make room for the recovery archive, removed the
+regenerable offline outputs `changed-writes1`, `graphics-copy-slots1` and `append-source-slots1` at
+the user's instruction; their receipts remain in `.scratch/staging-performance/`.
+
+| Step | Result |
+|---|---|
+| Patcher | `artifacts/staging-performance/hok-ace-patch-threaded-astc-debug.apk`, SHA-256 `b737a2d6d58534f189232229eaaa0efc04928425a67fe066890e783c4400396e`, installed in place; engine `550cf67a7ddb16b50c9e61bf801af200789ccd03f221adc90584654f5671372a`. |
+| Android probes | `OK (5 tests)`. `testThreadedAstcMatchesSingleThread` used `ASTC_THREADS = 8`; 1-thread and 8-thread bytes match, and their SHA-256 `0d944ed8…` equals the Windows result for the same fixture. |
+| Recovery backup | Current translated layer, 745 files, hash-verified: `D:/scratch/hok-staging-performance/phone-benchmark-threaded/before-benchmark.tar`, SHA-256 `e40a03e79d92c133b607fbf4d4a539c8203965e11f9b5f16acb569e0b9601713`. |
+| Pristine restore | All 553 files of snapshot `20261016-101124` verified on the phone; data version `1.6.0.1` revision `0`; update receipt `needDownloadSize` 0; normal APK reinstalled. |
+| Patch | Production flow, English, session `3b54213f-01aa-4a83-baf9-f29ccdb78e26`. The final normal-APK install was interrupted; the patcher re-entered access, reinstalled and verified the normal APK, and reported recovery. |
+
+| Measurement | Previous optimized run (`bbf81617`) | Threaded ASTC run |
+|---|---:|---:|
+| Internal build timer (`metrics.json`) | 174.746 s | **63.252 s** (63.8% less) |
+| Visible build interval | 12:56:39 → 13:00:55 (4 min 16 s) | 15:41:05 → 15:42:54 (1 min 49 s) |
+| Patch resource timer | 554.604 s | 474.790 s, including about 2.6 min of final-install recovery |
+| Maximum sampled RSS | 771,200 KiB | 738,352 KiB |
+| Process-lifetime high-water RSS | 953,016 KiB | 1,026,392 KiB |
+| Maximum battery temperature / thermal status | 42.0 C / 0 | 37.0 C / 0 |
+
+| Correctness | Result |
+|---|---|
+| Staged bytes | All 14 staged `.db` SHA-256 hashes equal the previous phone run. |
+| Staging summary | Equal after replacing only session ids. |
+| App counters | 388 text tables, 398 applied textures; 1 skipped table, 0 skipped textures (unchanged). |
+| Final state | Journal `COMPLETE`, `normal_verified: true`, `packages_dirty: false`, no intents. Normal APK `29b3ee7e…`, `DEBUGGABLE` absent. |
+
+Single sequential runs, not paired trials; the resource-timer total includes the interrupted-install
+recovery, so compare the internal build timer. Receipts: `artifacts/staging-performance/phone-benchmark-threaded/`,
+`artifacts/staging-performance/android-threaded-astc-checks/`, and
+`.scratch/staging-performance/phone-threaded-verification.json`.
+
+**Verdict:** on the phone, threaded ASTC is byte-identical end to end and cuts the internal build
+from 174.7 s to 63.3 s. **User verdict, 2026-10-17:** after opening the game, the user replied
+"Works — translation looks right." Individual screens were not separately enumerated.
+
