@@ -161,6 +161,10 @@ switch and the newer-translation case do not depend on the updater and ship firs
   patcher ever staged, and the text pass finds Chinese in every text table it stages from it. A file
   that fails them, such as one the repair left half Chinese and half English, refuses the run with the
   clear-data message. Revisit once the first ticket shows what a real update leaves.
+  **Built 2026-10-18, per package and stricter:** textures have no text signal, so the delta now records
+  each changed asset's uncompressed SHA-256 on both sides, and `pristine_delta.accept_replaced` accepts a
+  package only when none of its files is at the staged bytes and none of those assets is still at its
+  staged bytes; the text signal is then required as well.
 - **When the update flow starts.** On an already-patched phone, when any of these holds: (i) a file the
   delta names changed since the install; (ii) `Watchdog/History.db` has merge events dated after the
   install; (iii) the user answers yes to "Did the game update, crash, or show Chinese text since the

@@ -31,6 +31,10 @@ object PristineDelta {
             } else "No pristine delta for this phone: built from the game files as they are")
         }
         val lines = mutableListOf("Rebuilt ${pristine.optInt("rebuilt")} files from the pristine delta")
+        val replaced = pristine.optJSONArray("replaced")
+        if (replaced != null && replaced.length() > 0) {
+            lines += "${replaced.length()} file(s) the game update replaced hold none of this patcher's translation; built from them as the update left them"
+        }
         val restored = pristine.optJSONArray("restored")
         if (restored != null && restored.length() > 0) {
             lines += "${restored.length()} file(s) this build leaves untranslated go back to their original bytes"

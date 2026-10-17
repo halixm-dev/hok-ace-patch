@@ -155,6 +155,20 @@ patcher"); checked by
 clears `Watchdog/` only when it writes something. A re-run of the same language and catalog writes
 nothing.
 
+### Repatch after an in-game update (2026-10-18)
+
+The delta carries an asset record (`pristine_delta.make(..., fingerprint=True)`, through
+`tools/asset_fingerprints.py`): per staged package, each asset the install changed, with the SHA-256 of
+its uncompressed bytes on both sides. When the rebuild leaves files unmatched, `restore_pristine` asks
+`pristine_delta.accept_replaced`, package by package. A package the update changed is taken as the new
+pristine, read as the update left it, only when none of its files is still at its staged bytes, its
+index and shards are all present (or the whole package is gone), and none of the recorded assets is
+still at its staged bytes. Any other package refuses the run with the clear-data message, as before.
+A run that accepted a replaced file must then pass the text signal (`check_first_delta`), and its new
+delta's pristine side is the update's bytes. A delta from before the asset record accepts no replaced
+file. Checked offline on the real 1.6.0.1 packages by `tools/research/check_update_repatch.py` (lab
+notebook, 2026-10-18, "Repatch after an in-game update, offline").
+
 ### Pipeline adaptation (`tools/`)
 
 `tools/build_device_patch.py` currently exposes only an argparse `main()`. It gains a programmatic

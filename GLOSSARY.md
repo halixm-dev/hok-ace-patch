@@ -26,6 +26,10 @@ _Avoid_: original, clean, unpatched data
 The pristine bytes an install overwrote, kept so a later run can rebuild the pristine layer from the files the install left unchanged.
 _Avoid_: restore delta, backup, undo
 
+**Replaced file**:
+A file the pristine delta names that a game update rewrote, so it matches neither side of its entry. It becomes the new pristine only when the delta's asset record shows none of this patcher's assets left in its package.
+_Avoid_: updated file, stale file
+
 **Prime-only**:
 Said of an asset the prime layer carries and the override layer does not.
 

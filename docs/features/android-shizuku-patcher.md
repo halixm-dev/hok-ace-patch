@@ -330,6 +330,12 @@ Kotlin only names the files (`PristineDelta.kt`).
 - A delta that no longer matches while no file is at a hash this patcher staged is stale (the data
   was cleared and a newer version downloaded): the run builds as a first install, under the text
   signal, and its delta replaces the stale one. The Windows patcher does the same.
+- After an in-game update (2026-10-18), a package the update changed is accepted as the new pristine
+  when `pristine_delta.accept_replaced` finds none of its files at the staged bytes and none of the
+  delta's recorded assets still translated in `snapshot/packages`. `_restore_pristine` returns those
+  files as `replaced`: they are left out of the pristine copy and its `sha256`, so the build reads them
+  from the snapshot. `build_snapshot` then requires the text signal, and `PristineDelta.describe` logs
+  the count. The session delta is made with `fingerprint=True`. Same rule as the Windows patcher.
 - `build_snapshot` writes the staged install's delta to the session (`pristine-delta.bin`).
   `promoteSessionDelta` makes the newest completed session's delta the patcher's own, right after the
   run completes and again at the next run's start (for a run whose last step recovery finished); a

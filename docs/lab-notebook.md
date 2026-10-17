@@ -3177,3 +3177,56 @@ built from the files a run writes rather than the whole set.
 **Verdict:** shipped for the Windows patcher. A same-version re-run transfers only the phone's hash
 list instead of about 2.9 GB. The first run after updating the patcher, and any run the check cannot
 trust, still does the full pull.
+
+## 2026-10-18 — Repatch after an in-game update, offline
+
+Question: after an update the game finished over a patched layer, can a run repatch without a clear,
+and when must it still refuse? Until now, any file the delta names at neither its staged nor its
+pristine bytes refused the run while some file still held this patcher's bytes. Text has a witness, the
+text signal, but textures have none, so the delta now records per staged package each asset the
+install changed: the SHA-256 of its uncompressed bytes on both sides (`tools/asset_fingerprints.py`,
+the header's `assets`). Old readers ignore the key. `pristine_delta.accept_replaced` takes a package
+the update changed as its new pristine only when none of its files is still at the staged bytes,
+index and shards are present (or the whole package is gone), and no recorded asset is still at its
+staged bytes. The run must then pass the text signal. Both patchers call it.
+
+The record on the real install of session `20261017-224744` (1.6.0.1): 787 assets in 7 packages
+(`1`: 387, `15`: 302, `1050016095`: 72, `19`: 22, `10`, `20`, `21`: 1 each). It takes 12.7–14.1 s on
+this PC, because stored chunks are compared first and only differing assets are decoded (43 s when
+decoding everything).
+
+`tools/research/check_update_repatch.py` fakes updates on copies of those real packages. It writes
+asset bytes in place with `device_extensions.write_assets`, which moves chunks and rewrites the index
+as a merge does:
+
+| Faked update | Decision |
+|---|---|
+| None | Rebuilds all 11 files the install changed |
+| A Chinese asset merged into package `10` over the patched copy | Refused: `10/10.db` still at staged bytes |
+| Packages `1` and `15` replaced (pristine plus a merged Chinese asset) | Accepted `1/1_0.db`, `15/15_0.db` (their indexes read as pristine) |
+| Repair put back 151 of the 302 textures in `15`, then a merge | Refused: 151 assets still translated |
+| Repair put back all 302, then a merge | Accepted `15/15_0.db` |
+| `21/21.db` still at staged bytes, its shard changed | Refused |
+| Package `1050016095` removed | Accepted |
+| `19/19_0.db` missing beside its index | Refused |
+| The replaced case with a delta made without the asset record | Refused for `1` and `15` |
+
+The Android bridge's `_restore_pristine` gives the same six decisions it was run on. Its pristine copy
+holds exactly the files in `sha256` at those hashes, and replaced files are left out, so the build reads
+them from the snapshot.
+
+The Windows patcher's own steps over the replaced case, with a fake phone, the real build and the
+cached APK:
+
+| Run | Pull | Rebuild | Build and checks | Push |
+|---|---|---|---|---|
+| 1 | Partial: 21 of 24 files copied from the install's session, 3 pulled (327.2 MB) | 2 replaced accepted, 8 rebuilt (4 already untranslated) | 49 s; text signal pristine; the new delta's pristine side of both replaced files equals the update's bytes | 3 files written, 11 already on the phone |
+| 2 | Partial: 0 pulled | 11 rebuilt from the new delta, nothing replaced | text signal pristine | Nothing written |
+
+Limits: the updates are faked. Whether a real update leaves packages clean (every translated asset
+repaired, or the package downloaded whole) or mixed, which still refuses, is ticket 01's open
+question. Not measured here: the asset record's time on the phone, and a device run.
+
+**Verdict:** shipped in both patchers, offline. After an update that leaves no trace of the translation
+in the packages it changed, a run repatches without a clear and pulls and pushes only what changed.
+Mixed packages and deltas made before the record still refuse.

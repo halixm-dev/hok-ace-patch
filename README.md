@@ -43,9 +43,12 @@ the original files back the same way an install writes a translation; nothing is
 game data is deleted. The patcher-signed app stays installed, so keep using **Scan to login**; for the
 official app, reinstall the game from the store.
 
-A run that cannot rebuild the untranslated files stops before it writes anything and tells you to
-clear the game's data: after a game update or repair changed a translated file, or on a phone
-another patcher (or a patcher version from before deltas) translated. Then clear the game's data,
+After a game update, run the patcher again. When the update rewrote a translated file, the patcher
+checks that package asset by asset: if none of its translation is left in it, it builds from the
+update's files and keeps a new delta against them. A run that cannot rebuild the untranslated files
+stops before it writes anything and tells you to clear the game's data: when an update left part of
+the translation in a file it changed, when the delta was made by patcher 1.6.1.5 or older (it has
+no asset record), or on a phone another patcher (or a patcher version from before deltas) translated. Then clear the game's data,
 let it download again to the login screen, close it and patch. Clearing data removes local game data
 and requires another login.
 

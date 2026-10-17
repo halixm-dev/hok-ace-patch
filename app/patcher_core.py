@@ -256,6 +256,8 @@ class Patcher:
         self.current: str | None = None
         self.data_version = ""
         self.keep = work / KEEP_DIR
+        # Files a game update replaced that `restore_pristine` took as the new pristine.
+        self.replaced: list[str] = []
 
     def run(self) -> dict:
         check_work_dir(self.work)
@@ -282,9 +284,9 @@ class Patcher:
             if self.remove:
                 return self.write_back_pristine(session, restored)
             summary, staged = self.build_translation(session)
-            if restored is None:
+            if restored is None or self.replaced:
                 self.check_first_delta(summary)
-                restored = []
+                restored = restored or []
             result = summary
             if staged or restored:
                 self.push_translation(session, staged, restored)
@@ -614,9 +616,18 @@ class Patcher:
         if not report.complete:
             for name, state in sorted(report.unmatched.items()):
                 self.log(f"  {name}: {state} since the last install")
-            self.log(f"  cannot rebuild from the pristine delta: {len(report.unmatched)} file(s) changed")
-            raise PatchError("The game files changed since the last patch (a game update or repair), so the "
-                             "patcher cannot rebuild the untranslated files.\n\n" + CLEAR_DATA)
+            accepted, refused = pristine_delta.accept_replaced(layer, delta or pending, report,
+                                                               fallback=pending if delta else None)
+            for package, reason in refused.items():
+                self.log(f"  package {package} cannot be read as untranslated: {reason}")
+            if refused:
+                self.log(f"  cannot rebuild from the pristine delta: {len(report.unmatched)} file(s) changed")
+                raise PatchError("The game files changed since the last patch (a game update or repair), so the "
+                                 "patcher cannot rebuild the untranslated files.\n\n" + CLEAR_DATA)
+            # The update's bytes stand as the new pristine; the text pass must still read them as such.
+            self.replaced = accepted
+            self.log(f"  {len(accepted)} file(s) the game update replaced hold none of this patcher's "
+                     "translation: building from them as the update left them")
         leftover = [name for name in translated if name not in report.rebuilt]
         if leftover:
             self.log(f"  still translated after the rebuild: {', '.join(leftover)}")
@@ -627,10 +638,13 @@ class Patcher:
         return report.rebuilt
 
     def check_first_delta(self, summary: dict) -> None:
-        """Refuse a first install over a layer the text pass did not read as pristine."""
+        """Refuse a first install, or a build over files an update replaced, the text pass did not read as pristine."""
         reason = pristine_delta.text_not_pristine(summary)
         if reason:
             self.log(f"  not the pristine layer: {reason}")
+            if self.replaced:
+                raise PatchError("The game update left some of this patcher's translation in the files it "
+                                 "changed, so the patcher cannot rebuild the untranslated files.\n\n" + CLEAR_DATA)
             raise PatchError("This phone is already translated (by an older patcher version or another "
                              "patcher), so the patcher cannot switch or update the translation without its "
                              "untranslated game files.\n\n" + CLEAR_DATA + "\n\n" + OTHER_PATCHER)
@@ -748,8 +762,8 @@ class Patcher:
         if untranslated:
             self.log(f"  {len(untranslated)} file(s) go back to their "
                      f"original bytes: {', '.join(untranslated)}")
-        delta = (pristine_delta.make(session / LAYER, staged, info=self._delta_info()) if staged
-                 else pristine_delta.Delta((), self._delta_info()))
+        delta = (pristine_delta.make(session / LAYER, staged, info=self._delta_info(), fingerprint=True)
+                 if staged else pristine_delta.Delta((), self._delta_info()))
         pristine_delta.write(delta, self.keep / PENDING_DELTA)
         pristine_delta.record_staged_hashes(self.keep / pristine_delta.STAGED_HASHES_NAME, delta.staged_hashes)
         # A file the phone already holds at these bytes (the pull recorded every file's SHA-256) is not

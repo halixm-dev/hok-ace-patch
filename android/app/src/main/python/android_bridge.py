@@ -294,8 +294,11 @@ def _restore_pristine(session: Path, keep: Path) -> dict:
     """Rebuild the files the kept delta names into the session's build-input copy, or refuse.
 
     Returns `{"mode": "rebuilt" | "first", "rebuilt": [...], "pristine": [...], "sha256": {...}}`, the
-    last naming the pristine SHA-256 of every file the copy holds. Raises PatchError, before any game
-    file is written, when the snapshot is neither at the delta's staged bytes nor at pristine.
+    last naming the pristine SHA-256 of every file the copy holds. `replaced` names the files a game
+    update rewrote that `pristine_delta.accept_replaced` takes as the new pristine: the build reads them
+    from the snapshot, and the text signal must then pass. Raises PatchError, before any game file is
+    written, when the snapshot is neither at the delta's staged bytes nor at pristine and no update
+    replaced it cleanly.
     """
     import pristine_delta
 
@@ -317,17 +320,22 @@ def _restore_pristine(session: Path, keep: Path) -> dict:
         # version: the delta describes a layer that is gone, and the text signal decides instead.
         shutil.rmtree(copy, ignore_errors=True)
         return {"mode": "first", "rebuilt": [], "pristine": [], "sha256": {}, "stale": len(report.unmatched)}
+    replaced: list[str] = []
     if not report.complete:
-        names = ", ".join(f"{name} ({state})" for name, state in sorted(report.unmatched.items()))
-        raise PatchError(f"The game files changed since the last patch (a game update or repair): {names}. "
-                         "The patcher cannot rebuild the untranslated files. " + CLEAR_DATA)
+        replaced, refused = pristine_delta.accept_replaced(packages, delta, report)
+        if refused:
+            names = ", ".join(f"{name} ({state})" for name, state in sorted(report.unmatched.items()))
+            reasons = "; ".join(f"package {package}: {reason}" for package, reason in refused.items())
+            raise PatchError(f"The game files changed since the last patch (a game update or repair): {names} "
+                             f"({reasons}). The patcher cannot rebuild the untranslated files. " + CLEAR_DATA)
     leftover = [name for name in translated if name not in report.rebuilt]
     if leftover:
         raise PatchError(f"Translated game files the patcher has no record of: {', '.join(leftover)}. "
                          + CLEAR_DATA)
-    return {"mode": "rebuilt", "rebuilt": report.rebuilt, "pristine": report.pristine,
-            "sha256": {entry.path: entry.pristine_sha256 for entry in delta.files if not entry.created},
-            "deleted": [entry.path for entry in delta.files if entry.created]}
+    return {"mode": "rebuilt", "rebuilt": report.rebuilt, "pristine": report.pristine, "replaced": replaced,
+            "sha256": {entry.path: entry.pristine_sha256 for entry in delta.files
+                       if not entry.created and entry.path not in replaced},
+            "deleted": [entry.path for entry in delta.files if entry.created and entry.path not in replaced]}
 
 
 def _link_build_input(session: Path, builtin: Path, restored: dict) -> None:
@@ -393,6 +401,11 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
         return json.dumps(summary)
     import pristine_delta
 
+    if restored.get("replaced"):
+        reason = pristine_delta.text_not_pristine(summary)
+        if reason:
+            raise PatchError(f"The game update left some of this patcher's translation in the files it changed "
+                             f"({reason}), so the patcher cannot rebuild the untranslated files. " + CLEAR_DATA)
     if restored["mode"] == "first":
         reason = pristine_delta.text_not_pristine(summary)
         if reason:
@@ -410,11 +423,12 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
     (session / "staged-hashes.json").write_text(json.dumps(hashes, indent=2), encoding="utf-8")
     delta = pristine_delta.make(builtin, output, info={
         "patcher": "android", "language": summary.get("language", language),
-        "made": time.strftime("%Y-%m-%dT%H:%M:%S")})
+        "made": time.strftime("%Y-%m-%dT%H:%M:%S")}, fingerprint=True)
     pristine_delta.write(delta, session / SESSION_DELTA)
     summary["pristine"] = {"mode": restored["mode"], "rebuilt": len(restored["rebuilt"]),
                            "already_pristine": len(restored["pristine"]), "restored": untranslated,
-                           "delta_bytes": delta.range_bytes, "stale": restored.get("stale", 0)}
+                           "delta_bytes": delta.range_bytes, "stale": restored.get("stale", 0),
+                           "replaced": restored.get("replaced", [])}
     return json.dumps(summary)
 
 
