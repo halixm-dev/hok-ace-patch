@@ -440,10 +440,13 @@ class Patcher:
         self.adb.exec_out_to_file(f"run-as {PACKAGE} tar -cf - -C files/QtsVFSCache packages Watchdog", backup)
         game = session / "game" / "WXQ_Data" / "Package"
         game.mkdir(parents=True)
+        # Extract straight into builtin/: renaming the folder afterwards fails at random on Windows,
+        # while a scanner still holds some of the 2 GB of files just written (seen 2026-10-17).
         with tarfile.open(backup) as tar:
             members = [m for m in tar.getmembers() if m.name.startswith("packages/") and m.isfile()]
+            for member in members:
+                member.name = "builtin/" + member.name.removeprefix("packages/")
             tar.extractall(game, members=members, filter="data")
-        (game / "packages").rename(game / "builtin")
         self.data_version = info.strip()
         self.done("pull", info.strip())
         return session
