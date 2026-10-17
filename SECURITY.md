@@ -8,29 +8,37 @@ Do not attach game APKs, recovery material, account credentials or unredacted de
 | Key | Purpose and limits |
 |---|---|
 | `resources/key/` | Intentionally shipped stable game re-signing key. It is public and cannot establish publisher identity. Never replace it during routine builds. |
-| Previous patcher key | Reused for CI release APKs so existing installations can update in place. No longer in the repository, but it was committed to public history in `60a8941` and must be treated as public: anyone can sign with it. Obtain APKs only from trusted download locations. |
-| CI release signing secrets | Configured with that same previous patcher key. Secret storage does not make an already-public key private. |
+| Current patcher key | Private. Held only by the maintainer and in the CI release secrets; never committed. Signs every release APK after 1.6.1.4, through APK Signature Scheme v3. |
+| `android/signing/patcher.lineage` | Proof of rotation from the previous patcher key to the current one. Holds certificates only, no private key, so it is committed. |
+| Previous patcher key | Public: it was committed to this repository's history, and anyone can sign with it. Kept in the lineage only so installs signed with it update in place. |
 
-CI releases now use the previous patcher key and can update matching development installs without
-uninstalling, preserving their private data. Android still requires compatible package/version
-metadata. Signing compatibility does not remove installer prompts, Shizuku authorization, or
-the patcher's explicit first-setup/data-loss consent. Normal/access game APKs continue to use
-the separate unchanged key in `resources/key/`.
+Release APKs are signed v3-only (minSdk is 30) with the current key and the lineage. An install
+signed with the previous key accepts the update and keeps its private data. Once a phone has
+installed a rotated release, Android refuses any later APK signed only with the previous key (the
+lineage withholds its rollback capability), so the public key can no longer take over that install.
+A phone that never updates stays exposed: anyone can still offer it an update signed with the
+previous key. Rotation does not remove installer prompts, Shizuku authorization, or the patcher's
+explicit first-setup/data-loss consent. Normal/access game APKs keep the separate key in `resources/key/`.
 
-The previous patcher certificate's SHA-256 fingerprint is
-`aa67f1993e3a335ff798d085a3e818b12988739dd3d5e69f8bdd1be97f01c249`.
-Earlier private-signer releases used `91e25271c73e5dc7c241f9c0b7c4b8743e25bc54eb6d6e609f0cd58f0e42349c`.
-An installation using that different signer cannot update directly to the previous key. Finish
-pending recovery and export needed diagnostics before any uninstall; uninstalling removes
+| Certificate | SHA-256 |
+|---|---|
+| Current patcher key | `555f2ff48b44a98395f6c305df13f74122545ab4eb57bb8f8d4267bf300b8ae5` |
+| Previous patcher key (1.6.1.4 and earlier) | `aa67f1993e3a335ff798d085a3e818b12988739dd3d5e69f8bdd1be97f01c249` |
+| Earlier private signer | `91e25271c73e5dc7c241f9c0b7c4b8743e25bc54eb6d6e609f0cd58f0e42349c` |
+
+An installation using the earlier private signer is not in the lineage and cannot update directly.
+Finish pending recovery and export needed diagnostics before any uninstall; uninstalling removes
 private recovery files. Existing published APKs do not change when CI secrets change.
 
 Release CI requires `ANDROID_RELEASE_KEYSTORE_BASE64`, `ANDROID_RELEASE_STORE_PASSWORD`,
-`ANDROID_RELEASE_KEY_ALIAS` and `ANDROID_RELEASE_KEY_PASSWORD`. Back up the original keystore
-and password securely; GitHub cannot return a stored secret. Locally, set `ANDROID_RELEASE_KEYSTORE`
-to the keystore path plus the same three password and alias variables; debug and release builds then
-both sign with the patcher key. Without them, debug builds use the PC's SDK debug key (they will
-not update over an installed patcher) and release builds stay unsigned. CI supplies the previous
-patcher key only to tag builds; push and pull-request APKs are signed with the runner's throwaway key.
+`ANDROID_RELEASE_KEY_ALIAS` and `ANDROID_RELEASE_KEY_PASSWORD`, holding the current key. Back up
+the keystore and its password securely; GitHub cannot return a stored secret, and losing the key
+ends in-place updates. `tools/ci/sign_android.ps1` applies the lineage after the Gradle build.
+Locally, set `ANDROID_RELEASE_KEYSTORE` to the keystore path plus the same three password and alias
+variables; Gradle then signs debug and release builds with the current key but without the lineage,
+so run `tools/ci/sign_android.ps1 -Apk <apk>` before installing over a phone still on the previous
+key. Without the variables, debug builds use the PC's SDK debug key and release builds stay
+unsigned. Push and pull-request APKs in CI are signed with the runner's throwaway key.
 
 ## Automation
 

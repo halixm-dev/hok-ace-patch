@@ -103,16 +103,18 @@ Install Android SDK platform 35, JDK 17+, and run the repository's `setup.bat` w
 Set `ANDROID_HOME` to the SDK and `JAVA_HOME` to the JDK.
 The patcher signing key is kept outside the repository. Set `ANDROID_RELEASE_KEYSTORE` (keystore
 path), `ANDROID_RELEASE_STORE_PASSWORD`, `ANDROID_RELEASE_KEY_ALIAS` and `ANDROID_RELEASE_KEY_PASSWORD`
-and both debug and release builds sign with it, so an installed patcher updates in place. Without
-them, debug builds use this PC's SDK debug key and release builds stay unsigned. Keep the key
-stable; see [security/signing](../SECURITY.md). The checked-in Gradle 8.9 wrapper
+and both debug and release builds sign with it. Gradle does not add the rotation lineage; before
+installing over a phone still on the previous key, run `tools/ci/sign_android.ps1 -Apk <apk>`.
+Without the variables, debug builds use this PC's SDK debug key and release builds stay unsigned.
+Keep the key stable; see [security/signing](../SECURITY.md). The checked-in Gradle 8.9 wrapper
 pins AGP 8.7.3, Kotlin 2.0.0, Chaquopy 17.0.0 and Shizuku API/provider 13.1.5.
 The Chaquopy build interpreter is the repository's `.venv/Scripts/python.exe`.
 
 GitHub Actions also builds all six custom native components from their pinned sources on a
 clean Windows runner. Pushes and pull requests produce development APK artifacts; `android-v*`
-tags produce APKs signed with the previous patcher key and draft releases. See [automated builds](../README.md#automated-android-builds)
-and [security/signing](../SECURITY.md). CI reuses the public development signer for update compatibility.
+tags produce APKs signed with the current patcher key plus `android/signing/patcher.lineage`, and draft
+releases. See [automated builds](../README.md#automated-android-builds) and [security/signing](../SECURITY.md).
+The lineage lets installs signed with the previous, public key update in place.
 Local release builds are unsigned unless the four signing environment variables documented
 there are supplied. The launcher name is **HOK ACE Patch**.
 The root `VERSION` file defaults the patcher version to `1.6.1.4`

@@ -81,7 +81,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     // The patcher key lives outside the repo. When the signing variables are set, debug and
-    // release builds both sign with it so an installed patcher updates in place.
+    // release builds both sign with it; tools/ci/sign_android.ps1 adds the rotation lineage.
     val releaseStore = providers.environmentVariable("ANDROID_RELEASE_KEYSTORE").orNull
     if (releaseStore != null) {
         signingConfigs.create("privateRelease") {

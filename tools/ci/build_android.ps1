@@ -35,6 +35,7 @@ Invoke-Checked $python @('android/native/build_freetype_wheel.py', '--ndk', $ndk
 Invoke-Checked './android/gradlew.bat' @('-p', 'android', '--no-daemon', ":app:assemble$Variant", ':app:testDebugUnitTest', ':app:lintDebug', ':app:writeRuntimeDependencyInventory', "-PpatchVersionName=$VersionName", "-PpatchVersionCode=$VersionCode")
 $apk = "android/app/build/outputs/apk/$($Variant.ToLower())/app-$($Variant.ToLower()).apk"
 if (-not (Test-Path $apk)) { throw 'Expected signed APK is missing' }
+if ($Variant -eq 'Release') { & "$PSScriptRoot/sign_android.ps1" -Apk $apk }
 Invoke-Checked $python @('tools/research/check_android_native.py', $apk, '--report', 'artifacts/android-native-alignment.json')
 Invoke-Checked "$sdk/build-tools/35.0.0/zipalign.exe" @('-c', '-P', '16', '4', $apk)
 Invoke-Checked "$sdk/build-tools/35.0.0/apksigner.bat" @('verify', '--verbose', '--print-certs', $apk)

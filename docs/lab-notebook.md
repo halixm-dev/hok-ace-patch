@@ -3092,3 +3092,18 @@ does not affect a switch. Which codec step differs is unmeasured.
 **Verdict:** pass for both. The Android patcher switches EN → ID → EN without a clear, with no repair
 and the login kept, and returns to the same bytes. Remove translation leaves a pristine, launchable
 layer, and the next patch run is an ordinary first install.
+
+## 2026-10-18 — Rotate the patcher signer with a v3 lineage
+
+The previous patcher key (`aa67f199…c249`) was committed to public history, so it was rotated to a
+new private key (RSA 4096, CN=HOK ACE Patch, SHA-256 `555f2ff4…8ae5`) kept outside the repository.
+`apksigner rotate` wrote `android/signing/patcher.lineage`; the previous signer keeps the installed-data
+capability and has shared-UID, permission, rollback and auth withheld. Release CI re-signs with
+`tools/ci/sign_android.ps1`: v3 only, `--rotation-min-sdk-version 28`, alignment preserved.
+
+| Check | Evidence and verdict |
+|---|---|
+| Lineage | `apksigner lineage --print-certs` lists signer 1 `aa67f199…` (installed data only) then signer 2 `555f2ff4…`. PASS. |
+| Re-signed APK | A copy of `artifacts/dev.halixm.hokacepatcher.apk` (1.6.1.4, previous key) re-signed by the script verifies with `--min-sdk-version 30`: v3 true, v1/v2/v3.1 false, one signer `555f2ff4…`, lineage `aa67f199…` → `555f2ff4…`. PASS. |
+| Alignment | `zipalign -c -P 16 4` passes on the re-signed copy. PASS. |
+| Device update | Not yet run: installing the rotated APK over the phone's 1.6.1.4 (previous key) without uninstalling, then refusing a previous-key APK over it. |
