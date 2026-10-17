@@ -45,6 +45,7 @@ translation engine nor the catalog, runtime or key resources, and the coverage l
 - Diagnostic trace and a fuller log export — compiled; not yet exported on a phone (lab notebook, 2026-10-06).
 - Users ran out of space after the first check passed: resolved sessions, the saved official APK and other versions' preparations are reclaimed, and the build estimate reserves only what the build writes ([S2]) — verified offline only (lab notebook, 2026-10-06).
 - Android 15 Infinix X6851 fails APK preparation on the access APK's debug identity — cause not yet measured (lab notebook, 2026-10-08).
+- The same failure on a moto g45 5G: the manifest diagnostic was always `false` (a `jarray` compared to `bytes`), and an `android:debuggable` out of resource-id order is never read by Android — the edit now re-sorts it ([S2]); not device-verified (lab notebook, 2026-10-17).
 - Dual App profile on two Transsion phones: shell may not name user 999 — the profile check falls back to `dumpsys package` ([S2]); unit-tested, not device-verified (lab notebook, 2026-10-09).
 - Game reported missing for the main user — the error now names hidden, other-profile or absent; the next log showed it absent (lab notebook, 2026-10-09).
 - `engine_preflight` refused every patch from an APK built without `-PfullCodecs` — full codecs became Gradle's default (lab notebook, 2026-10-09).

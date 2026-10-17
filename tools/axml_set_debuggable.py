@@ -164,16 +164,21 @@ def patch(manifest: bytes, debuggable: bool = True) -> bytes:
 
         element_name = strings[shift(name, inserted) if inserted is not None else name]
         if element_name == "application":
-            existing = next((a for a in attrs if a[1] == name_index), None)
-            if existing:
-                existing[2], existing[5], existing[6] = NO_INDEX, TYPE_INT_BOOLEAN, value
-            else:
+
+            def sort_key(a):
+                return res_ids[a[1]] if a[1] < len(res_ids) else 0xFFFFFFFF
+
+            # Android reads the attribute by resource id, so every attribute carrying the debuggable id
+            # is the flag, whichever string names it: a manifest edited by another tool can map the id
+            # twice, and Android takes the first one in id order.
+            existing = [a for a in attrs if sort_key(a) == DEBUGGABLE_RES_ID]
+            for a in existing:
+                a[2], a[5], a[6] = NO_INDEX, TYPE_INT_BOOLEAN, value
+            if not existing:
                 attrs.append([android_ns, name_index, NO_INDEX, 8, 0, TYPE_INT_BOOLEAN, value])
-
-                def sort_key(a):
-                    return res_ids[a[1]] if a[1] < len(res_ids) else 0xFFFFFFFF
-
-                attrs.sort(key=sort_key)
+            # Android walks the attributes in ascending resource-id order and skips any it has passed,
+            # so a flag left out of order is never seen. Sorting a sorted list keeps it byte-identical.
+            attrs.sort(key=sort_key)
             patched_application = True
             # fix id/class/style attribute indexes (1-based) after sorting
             id_index = class_index = style_index = 0
@@ -208,7 +213,11 @@ def is_debuggable(manifest: bytes) -> bool:
     patch() leaves a manifest byte-identical when the flag is already the value asked for, so this
     is exact: asking for true changes nothing only if it was true. A manifest with no debug attribute
     at all comes back changed, which is what keeps the official build from reading as debuggable.
+
+    Any buffer is accepted: a Java byte[] arrives from Chaquopy as a jarray, which never compares
+    equal to bytes, so it is copied first.
     """
+    manifest = bytes(manifest)
     return patch(manifest, debuggable=True) == manifest
 
 

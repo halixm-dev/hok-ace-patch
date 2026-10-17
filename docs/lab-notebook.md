@@ -2908,3 +2908,22 @@ recovery, so compare the internal build timer. Receipts: `artifacts/staging-perf
 from 174.7 s to 63.3 s. **User verdict, 2026-10-17:** after opening the game, the user replied
 "Works — translation looks right." Individual screens were not separately enumerated.
 
+
+## 2026-10-17 — Android 15 access APK not debuggable (moto g45 5G)
+
+A user's exported log (moto g45 5G, Android 15 API 35, app 1.6.1.3, game 1.1.1 `774472` sideloaded
+2026-09-15 through the package installer) failed APK preparation the way the Infinix X6851 did:
+`access not debuggable per Android (its manifest declares debuggable: false; normal manifest: false)`.
+
+| Finding | Evidence |
+|---|---|
+| The manifest half of that message was always `false` | Kotlin passed the manifest as a Java `byte[]`; Chaquopy hands Python a `jarray`, and `patch(x) == x` against it is never true. It said nothing about the bytes. `is_debuggable` now copies its argument to `bytes` first. |
+| The manifest edit is sound on our builds | On the cached `installed.apk` manifest and on rebuilt official, renamed and debug-cleared variants, `patch(…, True)` reads as debuggable both to `is_debuggable` and to a replica of Android's `RetrieveAttributes` walk; a 2 GB `rewrite_apk` reads the patched manifest back unchanged. |
+| A flag out of resource-id order is invisible to Android | Android walks `<application>`'s attributes once in ascending resource-id order. A manifest whose `android:debuggable` sits after higher ids (as a tool that appends without sorting leaves it) kept it there: the old `patch` flipped the value in place, and the replica walk still read **not debuggable** — the phone's symptom. `AttributeResolution.cpp` is identical in Android 14, 15 and 16, so the trigger is the phone's game APK, not Android 15. |
+
+Fix: `patch` now treats every `<application>` attribute carrying the debuggable resource id as the flag
+and always re-sorts the attributes; already-sorted manifests stay byte-identical (all four variants
+above). `prepare_game_apks` reads each written APK's manifest back and refuses an access manifest that
+is not debuggable. **Not device-verified**: the phone's own manifest was not in the log, so the
+out-of-order flag is the explanation that fits, not a measurement. If the next log still fails, its
+manifest line is now meaningful.
