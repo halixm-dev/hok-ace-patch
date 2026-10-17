@@ -224,11 +224,15 @@ def plan_scripts(package, skip: set[int]) -> dict[int, bytes]:
     """The SCRIPT_LABELS assets <package>'s own copy carries, read raw, for `rewrite_script`."""
     from qts_relocate import read_raw
 
+    wanted = [file_hash for file_hash in SCRIPT_LABELS
+              if file_hash not in skip and (entry := package.entries.get(file_hash)) is not None
+              and entry.compression in (1, 4)]
+    if not wanted:
+        return {}
     slots = package.build_slot_map()
     found = {}
-    for file_hash in SCRIPT_LABELS:
-        entry = package.entries.get(file_hash)
-        if entry is None or file_hash in skip or file_hash not in slots or entry.compression not in (1, 4):
+    for file_hash in wanted:
+        if file_hash not in slots:
             continue
         raw = read_raw(package, slots, file_hash)
         if raw is not None:
@@ -275,11 +279,15 @@ def plan_package(package, catalog, skip: set[int], log=None,
     from resource_tokens import RESOURCE_TOKENS, expand_tokens
 
     allowed = SAFE_ASSETS | candidates
+    wanted = {file_hash for file_hash in allowed
+              if file_hash not in skip and (entry := package.entries.get(file_hash)) is not None
+              and entry.compression in (1, 4)}
+    if not wanted:
+        return {}
     slots = package.build_slot_map()
     jobs: dict[int, bytes] = {}
     for file_hash in slots:
-        entry = package.entries.get(file_hash)
-        if entry is None or file_hash in skip or file_hash not in allowed or entry.compression not in (1, 4):
+        if file_hash not in wanted:
             continue
         raw = read_raw(package, slots, file_hash)
         if raw is None or not pb_text.CJK.search(raw.decode("utf-8", "ignore")):

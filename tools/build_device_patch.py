@@ -245,7 +245,11 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       container. It returns `(reports, skipped)`: the reports become `packages`, the skips become
       `graphics_skipped`. It then calls `repair_card_dictionaries` to repair an older patch's
       already-English card dictionaries; successful repairs use `relocated-text` entries and
-      unmeasured layouts are reported in `text_skipped`. Last of all, with an APK, it calls
+      unmeasured layouts are reported in `text_skipped`. Extra-text planners check asset eligibility
+      in the package index before scanning chunks; card repair scans chunks only if an indexed
+      dictionary has a non-native chunk size, using the staged index when present. These checks do
+      not change the allowlist, enabled candidates, pass order or summary counts.
+      Last of all, with an APK, it calls
       `package_rebuild.add_prime_only(...)` — also keyed on `rebuilt` — so an appended asset lands on
       the copy the passes above staged instead of being overwritten by one.
     """

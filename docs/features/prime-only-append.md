@@ -198,6 +198,13 @@ the result back; other assets keep their staging path, and config `0AA59370241BF
 a key, and `repair_card_dictionaries` repairs an older patch's enlarged chunk even when the already-English
 dictionary yields no translation plan. A normal run loads no builder DLL.
 
+**2026-10-17: skip unnecessary card-repair scans.** Repair checks the selected package's index for
+a known card dictionary with a non-native chunk size before building a chunk-slot map. A staged
+package's index takes precedence over the source, so a dictionary already repaired by relocation
+needs no further scan. Dictionaries that still need repair retain the existing layout checks,
+refusal reporting and read-back verification. Timing and byte-equivalence evidence are in the
+lab notebook's offline staging performance sections.
+
 ### Still owed
 
 The device cycle on the shipped configuration is only half watched. Package `1`, pushed as staged onto
