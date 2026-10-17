@@ -1,6 +1,6 @@
 # 03: Restyle the Windows patcher
 
-**What to build:** the Windows patcher follows `DESIGN.md` (see [spec](../spec.md)).
+**What to build:** the Windows patcher follows `DESIGN.md` (see [spec](../spec.md) and the [home screen brief](../home-screen-brief.md), which sets the layout and every state).
 
 - Light theme from `resources/ui/theme.json`; solid cards (`#F1F0FA`), 8 px corners, the hero as a locally drawn gradient image with the tagline and title.
 - One centred column: hero, ① Language, ② Start (device status and working folder above the Start button), log. The seven-row sidebar goes; progress is a bar and "Step N of 7 · <step>".
