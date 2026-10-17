@@ -200,10 +200,12 @@ class Adb:
 
 
 class Patcher:
-    def __init__(self, ui: Ui, work: Path, language: str = languages.DEFAULT_LANGUAGE):
+    def __init__(self, ui: Ui, work: Path, language: str = languages.DEFAULT_LANGUAGE, *, remove: bool = False):
+        """<remove> writes the pristine bytes back instead of a translation (Remove translation)."""
         self.ui = ui
         self.work = work
         self.language = languages.get(language)
+        self.remove = remove
         self.log = ui.log
         self.adb: Adb | None = None
         self.normal_apk: Path | None = None
@@ -215,7 +217,7 @@ class Patcher:
     def run(self) -> dict:
         check_work_dir(self.work)
         self.log(f"Working folder: {self.work}")
-        self.log(f"Language: {self.language.name}")
+        self.log("Removing the translation" if self.remove else f"Language: {self.language.name}")
         self.adb = Adb(self.work)
         self.wait_for_device()
         base_path = self.find_installed_apk()
@@ -234,6 +236,8 @@ class Patcher:
                 restored = self.restore_pristine(session)
             finally:
                 self.prune_old_sessions(self.work, keep=session)
+            if self.remove:
+                return self.write_back_pristine(session, restored)
             summary, staged = self.build_translation(session)
             if restored is None:
                 self.check_first_delta(summary)
@@ -363,6 +367,9 @@ class Patcher:
             clean = self.work / "normal-clean.apk"
             self.build_signed(local, clean, {"AndroidManifest.xml": wanted})
             clean.replace(local)
+        if self.remove and not mine:
+            raise PatchError("The game on this phone is the official build, which this patcher never "
+                             "translated, so there is nothing to remove.")
         if mine:
             self.log("The game uses the patcher-signed APK (signature matches).")
             self.normal_apk = local
@@ -550,6 +557,24 @@ class Patcher:
             return delta
         return None
 
+    def write_back_pristine(self, session: Path, restored: list[str] | None) -> dict:
+        """Remove translation: write every rebuilt pristine file back, with no new patch.
+
+        Goes through the same push as an install, so the delta it keeps is empty: the phone's files are
+        pristine, and the next patch run makes a fresh one. Refuses, before anything is written, when
+        the layer cannot be rebuilt or this patcher has no record of a translation on it.
+        """
+        if restored is None:
+            raise PatchError("This patcher has no record of a translation on this phone, so there is "
+                             "nothing to remove.\n\n" + OTHER_PATCHER)
+        self.skip("translate", "removing the translation")
+        if not restored:
+            self.skip("install", "already untranslated")
+            self.log("The game files are already untranslated.")
+            return {"packages": [], "removed": []}
+        self.push_translation(session, None, restored)
+        return {"packages": [], "removed": restored}
+
     def _delta_info(self) -> dict:
         return {"patcher": "windows", "language": self.language.code, "data_version": self.data_version,
                 "made": datetime.now().isoformat(timespec="seconds")}
@@ -596,7 +621,7 @@ class Patcher:
         for name in untranslated:
             files[name] = session / LAYER / name
         if untranslated:
-            self.log(f"  {len(untranslated)} file(s) this build leaves untranslated go back to their "
+            self.log(f"  {len(untranslated)} file(s) go back to their "
                      f"original bytes: {', '.join(untranslated)}")
         delta = (pristine_delta.make(session / LAYER, staged, info=self._delta_info()) if staged
                  else pristine_delta.Delta((), self._delta_info()))

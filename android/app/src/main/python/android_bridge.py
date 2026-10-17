@@ -418,6 +418,56 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
     return json.dumps(summary)
 
 
+def removal_bytes(engine_root: str, keep_root: str) -> int:
+    """The pristine bytes `build_removal` will rebuild: what Remove translation must reserve."""
+    _prepare(Path(engine_root).resolve())
+    delta = _read_delta(Path(keep_root))
+    return sum(entry.pristine_size for entry in delta.files) if delta else 0
+
+
+def build_removal(engine_root: str, session_root: str, keep_root: str) -> str:
+    """Remove translation: stage the rebuilt pristine files as the session's output, with no new patch.
+
+    The apply writes `out/` exactly as it writes a translation, with `snapshot/` as its rollback, and
+    the session's delta is empty, so once the run completes the phone's files are pristine and the next
+    patch run makes a fresh delta. Refuses, before any game file is written, when the snapshot cannot be
+    rebuilt or this patcher has no record of a translation on it.
+    """
+    root, session, keep = Path(engine_root).resolve(), Path(session_root).resolve(), Path(keep_root).resolve()
+    _prepare(root)
+    import pristine_delta
+    from mobile_snapshot import verify_snapshot
+
+    verify_snapshot(session / "snapshot")
+    output = session / "out"
+    if output.exists() or (session / "staged-hashes.json").exists():
+        raise PatchError("Removal requires a fresh session layout")
+    restored = _restore_pristine(session, keep)
+    if restored["mode"] != "rebuilt":
+        raise PatchError("This patcher has no record of a translation on this phone, so there is nothing "
+                         "to remove. " + OTHER_PATCHER)
+    if restored.get("deleted"):
+        raise PatchError("Removing a package file the patch created is not supported")
+    if not restored["rebuilt"]:
+        raise PatchError("The game files are already untranslated; there is nothing to remove.")
+    hashes = {}
+    for name in restored["rebuilt"]:
+        (output / name).parent.mkdir(parents=True, exist_ok=True)
+        (session / PRISTINE_COPY / name).replace(output / name)
+        hashes[name] = restored["sha256"][name]
+    summary = {"language": None, "counts": {}, "skipped_count": 0, "fit_only": False, "packages": [],
+               "text_skipped": [], "graphics_skipped": [], "append_skipped": [], "cycle_assets": [],
+               "removed": sorted(hashes)}
+    (output / "device_patch_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (session / "staged-hashes.json").write_text(json.dumps(hashes, indent=2), encoding="utf-8")
+    pristine_delta.write(pristine_delta.Delta((), {"patcher": "android", "removed": True,
+                                                   "made": time.strftime("%Y-%m-%dT%H:%M:%S")}),
+                         session / SESSION_DELTA)
+    summary["pristine"] = {"mode": "removed", "rebuilt": len(hashes),
+                           "already_pristine": len(restored["pristine"]), "restored": sorted(hashes)}
+    return json.dumps(summary)
+
+
 def keep_delta(engine_root: str, session_root: str, keep_root: str) -> str:
     """Make the session's delta the patcher's own, once its install is verified complete."""
     _prepare(Path(engine_root).resolve())

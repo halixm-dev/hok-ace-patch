@@ -42,6 +42,11 @@ object UiText {
         "Save log for help" to "Simpan log untuk bantuan",
         "01  /  YOUR TRANSLATION" to "01  /  BAHASA PILIHAN",
         "Language" to "Bahasa",
+        "Translation removed" to "Terjemahan dihapus",
+        "Remove translation" to "Hapus terjemahan",
+        "This patcher has no record of a translation on this phone, so there is nothing to remove." to "Patcher ini tidak punya catatan terjemahan di ponsel ini, jadi tidak ada yang dihapus.",
+        "The game on this phone is the official build, which this patcher never translated, so there is nothing to remove." to "Game di ponsel ini adalah versi resmi yang belum pernah diterjemahkan patcher ini, jadi tidak ada yang dihapus.",
+        "Remove the translation" to "Hapus terjemahan",
         "Switching languages? No need to clear: the patcher kept the original game files it changed." to "Mengganti bahasa? Tidak perlu menghapus data: patcher menyimpan file game asli yang diubahnya.",
         "Switching languages on a phone another patcher or an older version translated? Clear the game's data and download it again first." to "Mengganti bahasa di ponsel yang diterjemahkan patcher lain atau versi lama? Hapus data game dan unduh ulang terlebih dahulu.",
         "02  /  READY TO PLAY" to "02  /  SIAP BERMAIN",
@@ -174,8 +179,19 @@ object UiText {
         return source
     }
 
+    fun removeConfirmation(context: Context): String = if (PatchLanguage.current(context) == "id")
+        "Ini menulis kembali file game asli, sehingga game kembali berbahasa Tionghoa. Data game tidak dihapus dan " +
+            "tidak perlu mengunduh ulang.\n\nGame tetap memakai aplikasi bertanda tangan patcher: tetap gunakan Scan to " +
+            "login. Untuk aplikasi resmi, instal ulang game dari toko."
+    else "This writes the game's original files back, so the game reads in Chinese again. No game data is deleted " +
+        "and no download is needed.\n\nThe game keeps the patcher-signed app: keep using Scan to login. For the " +
+        "official app, reinstall the game from the store."
+
     fun completed(context: Context, state: JSONObject): String {
         if (PatchLanguage.current(context) != "id") return WorkerStatus.describe(state)
+        if (state.has("removed")) return "Terjemahan dihapus. Aplikasi game normal terverifikasi.\n" +
+            "File game asli dipulihkan: ${state.getInt("removed")}\n" +
+            "Tetap gunakan Scan to login. Untuk aplikasi resmi, instal ulang game dari toko."
         val counts = state.optJSONObject("counts") ?: return "Patch selesai. Aplikasi game normal terverifikasi; jumlah hasil tidak tersedia."
         return "Patch selesai. Aplikasi game normal terverifikasi.\n" +
             "Tabel teks diterapkan: ${counts.getInt("text_tables")}\n" +

@@ -164,8 +164,13 @@ class PatchCoordinator @JvmOverloads constructor(
         }
     }
 
-    /** Existing converted installs only. Official-signature conversion requires a separate consent flow. */
-    @JvmOverloads fun run(normalId: String, accessApk: File, sourceIdentity: ApkIdentity? = null): JSONObject = exclusive {
+    /**
+     * Existing converted installs only. Official-signature conversion requires a separate consent flow.
+     * <remove> is Remove translation: the build step stages the rebuilt pristine files instead of a
+     * translation, and everything else, the write-back and its rollback included, is the patch run's.
+     */
+    @JvmOverloads fun run(normalId: String, accessApk: File, sourceIdentity: ApkIdentity? = null,
+                          remove: Boolean = false): JSONObject = exclusive {
         EmergencyRestoreStore(context).requireResolved()
         val unfinished = SessionJournal.pending(sessions)
         check(unfinished.isEmpty()) { "Recover the unfinished session before starting another patch" }
@@ -195,7 +200,7 @@ class PatchCoordinator @JvmOverloads constructor(
         checkpoint()
         val journal = SessionJournal.create(sessions, normalId, engine.name)
         activeJournal.set(journal)
-        report("Language: ${PatchLanguage.name(language)}")
+        report(if (remove) "Removing the translation" else "Language: ${PatchLanguage.name(language)}")
         val transaction = GameFileTransaction(journal, device)
         val metrics = RunMetrics(context, File(journal.directory, "resource-metrics.json"))
         var metricStatus = "interrupted"
@@ -249,20 +254,30 @@ class PatchCoordinator @JvmOverloads constructor(
             journal.outcome(PatchPhase.SNAPSHOT_READY)
             install(journal, store.normal(normalId), false, PatchPhase.NORMAL_RESTORED_FOR_BUILD)
             checkpoint()
-            // With a kept pristine delta the estimate includes the build input's copy of the files it
-            // names, so the check below reserves it before the build makes it.
-            val buildEstimate = JSONObject(bridge("estimate_snapshot_build", engine.path,
-                journal.directory.path, store.normal(normalId).path, language, pristine.path))
-            check(buildEstimate.getInt("schema") == 2 && buildEstimate.getBoolean("estimate_only"))
-            val buildBytes = buildEstimate.getLong("additional_bytes")
-            check(buildBytes > 0) { "Invalid offline build storage estimate" }
-            val buildSpace = requireSpace("offline build and normal restore", buildBytes, normal.bytes)
-            journal.outcome(PatchPhase.BUILDING, JSONObject().put("build_storage_estimate", buildEstimate)
-                .put("build_storage_check", buildSpace).put("language", language))
-            report("Building text and graphics from the verified private snapshot")
-            // Refuses, before any game file is written, a layer it can neither rebuild nor read as pristine.
-            val summary = JSONObject(bridge("build_snapshot", engine.path, journal.directory.path,
-                store.normal(normalId).path, normalId, language, pristine.path))
+            val summary = if (remove) {
+                val copyBytes = bridge("removal_bytes", engine.path, pristine.path).toLong()
+                val space = requireSpace("original game files and normal restore", copyBytes, normal.bytes)
+                journal.outcome(PatchPhase.BUILDING, JSONObject().put("build_storage_check", space)
+                    .put("remove", true))
+                report("Rebuilding the original game files from the pristine delta")
+                // Refuses, before any game file is written, a layer it cannot rebuild.
+                JSONObject(bridge("build_removal", engine.path, journal.directory.path, pristine.path))
+            } else {
+                // With a kept pristine delta the estimate includes the build input's copy of the files it
+                // names, so the check below reserves it before the build makes it.
+                val buildEstimate = JSONObject(bridge("estimate_snapshot_build", engine.path,
+                    journal.directory.path, store.normal(normalId).path, language, pristine.path))
+                check(buildEstimate.getInt("schema") == 2 && buildEstimate.getBoolean("estimate_only"))
+                val buildBytes = buildEstimate.getLong("additional_bytes")
+                check(buildBytes > 0) { "Invalid offline build storage estimate" }
+                val buildSpace = requireSpace("offline build and normal restore", buildBytes, normal.bytes)
+                journal.outcome(PatchPhase.BUILDING, JSONObject().put("build_storage_estimate", buildEstimate)
+                    .put("build_storage_check", buildSpace).put("language", language))
+                report("Building text and graphics from the verified private snapshot")
+                // Refuses, before any game file is written, a layer it can neither rebuild nor read as pristine.
+                JSONObject(bridge("build_snapshot", engine.path, journal.directory.path,
+                    store.normal(normalId).path, normalId, language, pristine.path))
+            }
             summary.optJSONObject("pristine")?.let { PristineDelta.describe(it).forEach(report) }
             journal.outcome(PatchPhase.STAGED, JSONObject().put("counts", JSONObject(
                 bridge("result_counts", engine.path, summary.toString()))))

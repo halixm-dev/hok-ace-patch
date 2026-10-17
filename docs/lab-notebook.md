@@ -3020,3 +3020,17 @@ the rerun is the row above. Scripts and output: `dist/delta-check/`, not kept in
 **Verdict:** offline, a language switch over a layer this patcher wrote rebuilds the pristine files
 exactly and stages what a cleared phone would get. Whether the game accepts the re-patched layer
 without a repair is still unmeasured (ticket 08).
+
+## 2026-10-17 — Remove translation
+
+Ticket 06 of `.scratch/language-switch`. `tools/research/check_windows_repatch.py`: 11 cases OK, including
+Remove after an English install (both files back at pristine, empty delta kept, a second Remove writes
+nothing, a following Indonesian patch builds from the pristine layer) and Remove with no record refused.
+On the Xiaomi M2007J3SG (Android 12), `am instrument` of `RemovalRollbackProbeTest` and
+`PristineDeltaProbeTest`: OK (2 tests, 6.8 s). The removal probe cuts the write-back off after its first
+file (that file already pristine on the fake device), and rollback restores all three translated
+fixture files; a complete write-back leaves every named file at its pristine SHA-256, and `keep_delta`
+then keeps an empty delta. Fixture files only, with a fake device: no game file was written.
+
+**Verdict:** Remove translation reuses each patcher's install path and rolls back like a patch. Whether
+the game launches from the restored layer with no repair is unmeasured (the ticket's device cycle).

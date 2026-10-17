@@ -62,6 +62,8 @@ class MainActivity : Activity() {
     @Volatile private var destroyed = false
     private var busy = false
     private var automatic = false
+    /** The automatic flow ends in Remove translation rather than a patch. */
+    private var removing = false
     private var awaitingToken: String? = null
     private var awaitingAction: String? = null
     private var permissionRequested = false
@@ -114,11 +116,18 @@ class MainActivity : Activity() {
         waitingForShizuku = state?.getBoolean("waiting-shizuku") ?: false
         waitingForDownloads = state?.getString("waiting-downloads")
         automatic = (awaitingToken != null || waitingForShizuku || waitingForDownloads != null) && state?.getBoolean("automatic") == true
+        removing = automatic && state?.getBoolean("removing") == true
         home = GuidedHome(this) { key ->
             DiagnosticTrace.event("ui", "Tap $key; busy $busy automatic $automatic shizuku ${Shizuku.pingBinder()}")
             when (key) {
                 "check_update" -> checkAppUpdate()
                 "start" -> beginAutomatic()
+                "remove" -> if (!PristineDelta.held(this)) {
+                    home.message("This patcher has no record of a translation on this phone, so there is nothing to remove.")
+                } else if (!busy && !automatic && !PatchWorkerService.isWorking) {
+                    removing = true
+                    beginAutomatic()
+                }
                 "stop" -> AlertDialog.Builder(this).setTitle(ui("Stop safely?"))
                     .setMessage(ui("Keep the game closed. Any unfinished changes must be restored before you open it."))
                     .setNegativeButton(ui("Keep going"), null).setPositiveButton(ui("Stop and recover")) { _, _ ->
@@ -289,7 +298,7 @@ class MainActivity : Activity() {
         if (ensurePermission()) routeAutomatic()
     }
 
-    private fun stopAutomatic() { automatic = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null }
+    private fun stopAutomatic() { automatic = false; removing = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null }
 
     private fun openShizuku() {
         if (!ShizukuLauncher.open(this)) {
@@ -389,8 +398,11 @@ class MainActivity : Activity() {
                     val prepared = ApkPreparation(this).load(result.getString("preparation"))
                     runOnUiThread {
                         if (!automatic || destroyed) return@runOnUiThread
-                        if (prepared.requiresSignatureConversion) showFirstSetupConfirmation(prepared)
-                        else showPatchConfirmation(prepared)
+                        if (removing && prepared.requiresSignatureConversion) {
+                            stopAutomatic()
+                            home.message("The game on this phone is the official build, which this patcher never translated, so there is nothing to remove.")
+                        } else if (prepared.requiresSignatureConversion) showFirstSetupConfirmation(prepared)
+                        else showPatchConfirmation(prepared, removing)
                     }
                 }
             }
@@ -419,7 +431,9 @@ class MainActivity : Activity() {
             pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true)
             !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false))
             !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false))
-            state?.optString("status") == "complete" && !pending.getOrThrow() -> home.show("Translation added", UiText.completed(this, state), "Start another patch", "start", false)
+            state?.optString("status") == "complete" && !pending.getOrThrow() -> home.show(
+                if (state.has("removed")) "Translation removed" else "Translation added",
+                UiText.completed(this, state), "Start another patch", "start", false)
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped", friendlyFailure(state?.optString("error").orEmpty()), "Try again", "start", true)
             pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true)
             else -> home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
@@ -585,13 +599,15 @@ class MainActivity : Activity() {
         return dialog
     }
 
-    private fun showPatchConfirmation(prepared: ApkPreparation.Prepared): AlertDialog {
+    /** <remove> asks to confirm Remove translation, which writes the original game files back instead. */
+    private fun showPatchConfirmation(prepared: ApkPreparation.Prepared, remove: Boolean = false): AlertDialog {
         val confirmation = CheckBox(this).apply {
             tag = "update-confirmation"; text = ui("All in-game updates finished, and I closed the game")
         }
-        val dialog = AlertDialog.Builder(this).setTitle(ui("Start translation"))
-            .setMessage(UiText.patchConfirmation(this))
-            .setView(confirmation).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton(ui("Start patch"), null).create()
+        val dialog = AlertDialog.Builder(this).setTitle(ui(if (remove) "Remove translation" else "Start translation"))
+            .setMessage(if (remove) UiText.removeConfirmation(this) else UiText.patchConfirmation(this))
+            .setView(confirmation).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }
+            .setPositiveButton(ui(if (remove) "Remove the translation" else "Start patch"), null).create()
         dialog.show()
         run {
             val start = dialog.getButton(AlertDialog.BUTTON_POSITIVE); start.isEnabled = false
@@ -602,7 +618,7 @@ class MainActivity : Activity() {
                     runTask {
                         val request = PatchRequestStore(this).confirm(prepared, confirmation.isChecked)
                         runOnUiThread { startWorker(Intent(this, PatchWorkerService::class.java)
-                            .setAction("patch").putExtra("request", request)) }
+                            .setAction(if (remove) "remove" else "patch").putExtra("request", request)) }
                     }
                 }
             }
@@ -760,6 +776,7 @@ class MainActivity : Activity() {
         state.putBoolean("waiting-shizuku", waitingForShizuku)
         state.putString("waiting-downloads", waitingForDownloads)
         state.putBoolean("automatic", automatic)
+        state.putBoolean("removing", removing)
         state.putString("automatic-token", awaitingToken)
         state.putString("automatic-action", awaitingAction)
         state.putLong("automatic-since", awaitingSince)

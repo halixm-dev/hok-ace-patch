@@ -217,6 +217,34 @@ class Repatch(unittest.TestCase):
         self.assertEqual(sorted(self.patcher().restore_pristine(session)), ["1/1_0.db", "15/15_0.db"])
         self.assertEqual({name: (session / LAYER / name).read_bytes() for name in PRISTINE}, PRISTINE)
 
+    def test_remove_translation_then_patch_again(self):
+        patcher = self.patcher()
+        session = self.session()
+        patcher.restore_pristine(session)
+        self.install(patcher, session, ENGLISH, PRISTINE_SUMMARY, None)
+        remover = Patcher(Ui(), self.work, "en", remove=True)
+        remover.adb = FakeAdb(self.phone)
+        session = self.session()
+        result = remover.write_back_pristine(session, remover.restore_pristine(session))
+        self.assertEqual(sorted(result["removed"]), ["1/1_0.db", "15/15_0.db"])
+        self.assertEqual(self.phone_bytes(), PRISTINE)
+        self.assertEqual(pristine_delta.read(self.work / "pristine" / "delta.bin").files, ())
+        # Removing again finds nothing to write; a new patch run builds from the pristine layer.
+        session = self.session()
+        self.assertEqual(remover.write_back_pristine(session, remover.restore_pristine(session))["removed"], [])
+        patcher = self.patcher()
+        session = self.session()
+        self.assertEqual(patcher.restore_pristine(session), [])
+        self.install(patcher, session, INDONESIAN, PRISTINE_SUMMARY, [])
+        self.assertEqual(self.phone_bytes(), {**PRISTINE, **INDONESIAN})
+
+    def test_remove_without_a_record_is_refused(self):
+        remover = Patcher(Ui(), self.work, "en", remove=True)
+        remover.adb = FakeAdb(self.phone)
+        session = self.session()
+        with self.assertRaisesRegex(PatchError, "nothing to remove"):
+            remover.write_back_pristine(session, remover.restore_pristine(session))
+
     def test_holds_delta(self):
         self.assertFalse(patcher_core.holds_delta(self.work))
         patcher = self.patcher()

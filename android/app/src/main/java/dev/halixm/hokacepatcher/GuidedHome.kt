@@ -35,6 +35,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val spinner = android.widget.ProgressBar(activity)
     private val notice = text("", 18)
     private val languageNote = text("", 15).apply { tag = "language-note" }
+    private val removeButton = button("Remove translation", "remove-translation") { invoke("remove") }
     private var errorRaw = ""
     private val errorText = text("", 14).apply { tag = "error-details"; setTextIsSelectable(true) }
     private val errorBox = column().apply {
@@ -102,6 +103,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         languageCard.addView(text("Language", 23))
         showLanguageNote()
         languageCard.addView(languageNote)
+        languageCard.addView(removeButton)
         languageCard.addView(languages)
         root.addView(languageCard)
         val card = card()
@@ -193,6 +195,8 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
 
     /** Whether switching needs a clear: not once the patcher keeps a pristine delta for the phone. */
     private fun showLanguageNote() {
+        // Remove translation needs the delta, so it is offered only while one is kept.
+        removeButton.visibility = if (PristineDelta.held(activity)) View.VISIBLE else View.GONE
         languageNote.text = ui(if (PristineDelta.held(activity)) {
             "Switching languages? No need to clear: the patcher kept the original game files it changed."
         } else {
@@ -203,6 +207,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     /** A run reads the language once at its start, so the choice is locked while work is in progress. */
     fun languageEnabled(value: Boolean) {
         if (value) showLanguageNote()
+        removeButton.isEnabled = value
         for (index in 0 until languages.childCount) languages.getChildAt(index).apply {
             isEnabled = value; alpha = if (value) 1f else 0.55f
         }

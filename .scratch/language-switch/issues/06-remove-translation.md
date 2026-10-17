@@ -11,6 +11,23 @@
 
 **Status:** ready-for-agent
 
-- [ ] Remove translation in the Windows patcher and the Android patcher
-- [ ] Android rollback verified on an interrupted write-back (fixture probe)
+- [x] Remove translation in the Windows patcher and the Android patcher
+- [x] Android rollback verified on an interrupted write-back (fixture probe)
 - [ ] Device cycle: after Remove, the lobby is Chinese, the game launches with no repair, and a new patch run succeeds without a clear
+
+## Comments
+
+2026-10-17, implemented. Windows: `Patcher(remove=True)`, `write_back_pristine`, the Remove
+Translation button (`check_windows_repatch.py`: remove then patch again; remove with no record
+refused). Android: `android_bridge.removal_bytes` / `build_removal`, `PatchCoordinator.run(remove =)`,
+the worker's `remove` action, the Language-card button and the remove form of the confirmation;
+`RemovalRollbackProbeTest` passes on the Xiaomi M2007J3SG (with `PristineDeltaProbeTest`, 2 tests in
+6.8 s).
+
+- Afterwards the kept delta is empty rather than absent: the next patch run rebuilds nothing, builds
+  from the pristine layer and keeps a fresh delta. It skips the text signal, which only a run with no
+  delta needs; the staged-hash check still runs.
+- Refusals come after the pull and before any game file is written (the same timing as 03/04).
+- A phone already untranslated: Windows writes nothing and says so; Android stops with that message
+  (no apply cycle).
+- The device cycle is still owed.

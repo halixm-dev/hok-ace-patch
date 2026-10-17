@@ -153,14 +153,17 @@ class PatchWorkerService : Service() {
                         else EmergencyRestoreStore(this).verify(emergency, normal, worker::verifyRecoveryInstalled)
                         state(JSONObject().put("status", "verified").put("action", "verify"))
                     }
-                    "patch" -> {
+                    "patch", "remove" -> {
                         val prepared = PatchRequestStore(this).claim(checkNotNull(intent.getStringExtra("request")))
                         check(!cancelRequested.get() && !retiring.get()) { "Patch cancelled before access" }
-                        val summary = worker.run(prepared.normal.sha256, prepared.accessFile, prepared.source)
+                        val summary = worker.run(prepared.normal.sha256, prepared.accessFile, prepared.source,
+                            remove = intent.action == "remove")
                         val root = EngineAssets.prepare(this)
-                        state(JSONObject().put("status", "complete").put("counts", JSONObject(
+                        val result = JSONObject().put("status", "complete").put("counts", JSONObject(
                             com.chaquo.python.Python.getInstance().getModule("android_bridge").callAttr(
-                                "result_counts", root.path, summary.toString()).toString())))
+                                "result_counts", root.path, summary.toString()).toString()))
+                        summary.optJSONArray("removed")?.let { result.put("removed", it.length()) }
+                        state(result)
                     }
                     else -> error("Unsupported worker request")
                 }

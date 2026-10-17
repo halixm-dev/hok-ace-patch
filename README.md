@@ -37,6 +37,12 @@ and the log says `rebuilt N files from the pristine delta`. Each patcher keeps i
 switch with the patcher that translated the phone last. The Windows patcher can also make a first
 delta from a working folder that still holds the session of an earlier install.
 
+To go back to the untranslated game, use **Remove Translation** (Windows, under Start Patch) or
+**Remove translation** (Android, on the Language card, shown while the patcher keeps a delta). It writes
+the original files back the same way an install writes a translation; nothing is downloaded and no
+game data is deleted. The patcher-signed app stays installed, so keep using **Scan to login**; for the
+official app, reinstall the game from the store.
+
 A run that cannot rebuild the untranslated files stops before it writes anything and tells you to
 clear the game's data: after a game update or repair changed a translated file, or on a phone
 another patcher (or a patcher version from before deltas) translated. Then clear the game's data,

@@ -17,7 +17,11 @@ object WorkerStatus {
         "setup_ready" -> "Game setup finished. Translation has not started. Prepare game files again, then confirm the update checkpoint to patch."
         "setup_cancelled" -> "Setup stopped. The original game app was verified. Translation has not started." +
             if (value.optBoolean("data_loss_may_have_happened")) " Local data may need downloading again." else ""
-        "complete" -> value.optJSONObject("counts")?.let { counts ->
+        "complete" -> if (value.has("removed")) {
+            "Translation removed. Normal game app verified.\n" +
+                "Original game files restored: ${value.getInt("removed")}\n" +
+                "Keep using Scan to login. For the official app, reinstall the game from the store."
+        } else value.optJSONObject("counts")?.let { counts ->
             "Patch complete. Normal game app verified.\n" +
                 "Text tables applied: ${counts.getInt("text_tables")}\n" +
                 "Images applied: ${counts.getInt("applied_textures")}\n" +

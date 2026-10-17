@@ -21,6 +21,9 @@ object PristineDelta {
 
     /** Log lines for `build_snapshot`'s `pristine` report. */
     fun describe(pristine: JSONObject): List<String> {
+        if (pristine.optString("mode") == "removed") {
+            return listOf("Restoring ${pristine.optInt("rebuilt")} original game files")
+        }
         if (pristine.optString("mode") != "rebuilt") {
             val stale = pristine.optInt("stale")
             return listOf(if (stale > 0) {

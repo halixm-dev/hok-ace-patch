@@ -120,6 +120,7 @@ class App(ctk.CTk):
             self.iconbitmap(str(icon))
         self.messages: queue.Queue = queue.Queue()
         self.busy = False
+        self.removing = False
         self.rows: dict[str, StepRow] = {}
         self.work_dir = load_work_dir()
         self.language = load_language()
@@ -230,6 +231,10 @@ class App(ctk.CTk):
                                     height=46, width=180, corner_radius=12,
                                     font=ctk.CTkFont(size=15, weight="bold"), command=self.start)
         self.button.grid(row=0, column=0, rowspan=2)
+        self.remove_button = ctk.CTkButton(action, text="Remove Translation", fg_color=SURFACE_2,
+                                           hover_color=BORDER, height=30, width=180, corner_radius=10,
+                                           font=ctk.CTkFont(size=12), command=self.confirm_remove)
+        self.remove_button.grid(row=2, column=0, pady=(8, 0))
         self.status = ctk.CTkLabel(action, text="Ready. Connect your phone and click Start Patch.", text_color=TEXT,
                                    anchor="w", font=ctk.CTkFont(size=13))
         self.status.grid(row=0, column=1, sticky="ew", padx=(16, 0))
@@ -345,11 +350,24 @@ class App(ctk.CTk):
             pass
         self.after(100, self.pump)
 
-    def start(self) -> None:
+    def confirm_remove(self) -> None:
+        if Dialog.show(
+            self, "Remove translation",
+            "This writes the game's original files back to the phone, so the game reads in Chinese again. "
+            "No game data is deleted and no download is needed.\n\nThe game keeps the patcher-signed app: "
+            "keep using 'Scan to login'. For the official app, reinstall the game from the store.\n\n"
+            "Remove the translation?",
+            confirm=True, danger=True,
+        ):
+            self.start(remove=True)
+
+    def start(self, remove: bool = False) -> None:
+        self.removing = remove
         self.busy = True
         for row in self.rows.values():
             row.set("pending")
         self.button.configure(state="disabled", text="Running…")
+        self.remove_button.configure(state="disabled")
         self.folder_button.configure(state="disabled")
         self.language_picker.configure(state="disabled")
         self.progress.configure(mode="indeterminate")
@@ -358,7 +376,15 @@ class App(ctk.CTk):
 
     def worker(self) -> None:
         try:
-            summary = Patcher(self, self.work_dir, self.language).run()
+            summary = Patcher(self, self.work_dir, self.language, remove=self.removing).run()
+            if self.removing:
+                removed = len(summary.get("removed", []))
+                detail = (f"{removed} game file{'s' if removed != 1 else ''} restored. " if removed
+                          else "The game files were already untranslated. ")
+                self.messages.put(("done", (True, detail + "The game reads in Chinese again.\n\nLogin: keep using "
+                                            "'Scan to login'. For the official app, reinstall the game from "
+                                            "the store.")))
+                return
             text, images = count_translated(summary)
             dropped_text = count_untranslated_text(summary)
             skipped = count_untranslated_graphics(summary)
@@ -389,11 +415,13 @@ class App(ctk.CTk):
         self.progress.configure(mode="determinate")
         self.progress.set(1 if ok else 0)
         self.button.configure(state="normal", text="Run Again" if ok else "Try Again")
+        self.remove_button.configure(state="normal")
         self.folder_button.configure(state="normal")
         self.language_picker.configure(state="normal")
         self.show_work_dir()
         self.show_language_note()
-        self.status.configure(text="Done! Translation installed." if ok else "Failed. See the log for details.",
+        done = "Done! Translation removed." if self.removing else "Done! Translation installed."
+        self.status.configure(text=done if ok else "Failed. See the log for details.",
                               text_color=SUCCESS if ok else DANGER)
         self.log(("\nSUCCESS: " if ok else "\nFAILED: ") + message)
         Dialog.show(self, "Done" if ok else "Failed", message)

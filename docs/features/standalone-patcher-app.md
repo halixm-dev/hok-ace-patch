@@ -128,6 +128,12 @@ is `tools/pristine_delta.py`, shared with the Android patcher; `patcher_core` dr
   either delta's staged bytes. A file the previous delta named and this build no longer stages is
   pushed back at its pristine bytes, so no file keeps the old language.
 - The LANGUAGE card says no clear is needed while the working folder keeps a delta.
+- **Remove Translation** (ticket 06, a secondary button under Start Patch, behind a confirmation):
+  `Patcher(remove=True)` runs the same steps up to `restore_pristine`, skips the build and pushes the
+  rebuilt pristine files through `push_translation`, keeping an empty delta. It refuses, before any
+  write, an official-signature game, a phone this patcher has no record of, and the clear-data cases
+  above; a phone already untranslated writes nothing. The final message says to keep using Scan to
+  login and to reinstall from the store for the official app.
 - Checks: `tools/research/check_pristine_delta.py` (with `--game` for the real round trip and
   switches) and `tools/research/check_windows_repatch.py`. Not run against a phone (ticket 08).
 
