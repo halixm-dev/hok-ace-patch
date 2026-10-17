@@ -1,6 +1,6 @@
 # 04: Restyle the Android patcher
 
-**What to build:** the Android patcher follows `DESIGN.md` (see [spec](../spec.md)).
+**What to build:** the Android patcher follows `DESIGN.md` (see [spec](../spec.md) and the [home screen brief](../home-screen-brief.md), which sets the layout and every state).
 
 - Colours, glass cards and 8 px corners from `resources/ui/theme.json`, replacing the values in `GuidedHome.kt`, `AceHeroDrawable.kt` and `res/values/styles.xml` (system bars, window background, accent).
 - Barlow and Barlow Condensed from `resources/fonts/`, copied into the APK by Gradle.

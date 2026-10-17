@@ -116,6 +116,7 @@ Every kind of doc has one home. Write prose in the vocabulary of `GLOSSARY.md`.
 |---|---|---|
 | Rules for every turn | `AGENTS.md` | always loaded |
 | Vocabulary | `GLOSSARY.md` | naming a concept |
+| Product | `PRODUCT.md`: users, purpose, voice | changing either patcher's interface or copy |
 | Design | `DESIGN.md`, for both patchers | changing either patcher's interface |
 | Decisions | `docs/adr/` | changing an area an ADR names |
 | Feature records | `docs/features/` | changing a pass; update it in the same change |
