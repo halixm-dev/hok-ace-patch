@@ -339,7 +339,7 @@ Kotlin only names the files (`PristineDelta.kt`).
   another patcher translated (both UI languages).
 - Not done: a layer patched before this shipped has no delta and no snapshot left to build one from
   (`releaseSession` deleted it), so its first repatch still needs a clear. `PristineDeltaProbeTest`
-  covers rebuild, the build-input layer and the refusals on fixture files; it has not run on a phone,
+  covers rebuild, the build-input layer and the refusals on fixture files and passes on a phone (lab notebook, "The pristine delta shipped"),
   and no switch has run on a phone (ticket 08).
 
 ### The phased plan and its stop conditions

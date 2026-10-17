@@ -15,7 +15,7 @@
 - [x] Delta kept after `finishApply`; staged-hash record kept
 - [x] Build-input copy, budgeted; rollback still writes `snapshot/`
 - [x] Refusals before the apply's access APK; Language card text in both UI languages
-- [x] `:app:assembleDebug :app:assembleDebugAndroidTest` pass; `PristineDeltaProbeTest` covers rebuild and refusal (written; not yet run on a phone)
+- [x] `:app:assembleDebug :app:assembleDebugAndroidTest` pass; `PristineDeltaProbeTest` covers rebuild and refusal (passes on a phone, 1 test in 3.0 s)
 
 ## Notes
 
@@ -30,4 +30,4 @@ folder; `keep_delta`), `build_storage.estimate(pristine_copy_bytes=)`, `Pristine
 delta". Refusals come from `build_snapshot`, after the snapshot's normal APK is back and before the
 apply's access APK, so no game file is written. The session delta is promoted once the run is
 `COMPLETE` (also at the next run's start, for a run recovery completed). `PristineDeltaProbeTest` is
-compiled but has not run on a phone.
+passes on the Xiaomi M2007J3SG (Android 12), 1 test in 3.0 s.
