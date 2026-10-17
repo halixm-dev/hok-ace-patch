@@ -394,7 +394,8 @@ only splices its ranges. Two consequences to state plainly:
   packages and the app logs "already installed" — the same behaviour as text today.
 - Idempotence depends on `encode_astc` being deterministic for identical input. It is the same encoder
   with the same cached context, and the Report's six-run shard comparison measures it rather than
-  assuming it.
+  assuming it. The context encodes with `ASTC_THREADS` (one per CPU); the full audited call sequence
+  is byte-identical at 1–12 threads (lab notebook, 2026-10-17, "Multi-threaded ASTC encoding").
 
 ### The unreported staged package
 

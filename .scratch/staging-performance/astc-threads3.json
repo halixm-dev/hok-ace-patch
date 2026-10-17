@@ -1,0 +1,46 @@
+{
+  "cpu_count": 12,
+  "results": [
+    {
+      "threads": 1,
+      "calls": 3654,
+      "mismatches": [],
+      "mismatch_count": 0,
+      "encode_wall_s": 26.948906000587158,
+      "large_encode_wall_s": 24.931679500092287
+    },
+    {
+      "threads": 2,
+      "calls": 3654,
+      "mismatches": [],
+      "mismatch_count": 0,
+      "encode_wall_s": 15.91330659922096,
+      "large_encode_wall_s": 14.518350100232055
+    },
+    {
+      "threads": 4,
+      "calls": 3654,
+      "mismatches": [],
+      "mismatch_count": 0,
+      "encode_wall_s": 15.296856600703904,
+      "large_encode_wall_s": 13.601659500040114
+    },
+    {
+      "threads": 8,
+      "calls": 3654,
+      "mismatches": [],
+      "mismatch_count": 0,
+      "encode_wall_s": 12.740499899286078,
+      "large_encode_wall_s": 10.74093980010366
+    },
+    {
+      "threads": 12,
+      "calls": 3654,
+      "mismatches": [],
+      "mismatch_count": 0,
+      "encode_wall_s": 11.420023600629065,
+      "large_encode_wall_s": 9.475002500490518
+    }
+  ],
+  "all_bytes_equal": true
+}
