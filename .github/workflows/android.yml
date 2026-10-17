@@ -50,7 +50,7 @@ jobs:
           ANDROID_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
           ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
         run: |
-          if ($env:GITHUB_REF_NAME -notmatch '^android-v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Use an android-v1.6.0.1.1 tag' }
+          if ($env:GITHUB_REF_NAME -notmatch '^android-v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Use an android-v1.6.1.1 tag' }
           if ($env:GITHUB_REF_NAME.Substring(9) -ne (Get-Content -LiteralPath VERSION -Raw).Trim()) { throw 'Release tag must match VERSION' }
           if (-not $env:KEYSTORE_BASE64) { throw 'Private Android release signing secrets are missing' }
           $env:ANDROID_RELEASE_KEYSTORE = Join-Path $env:RUNNER_TEMP 'release.keystore'

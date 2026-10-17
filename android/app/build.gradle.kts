@@ -12,8 +12,8 @@ val fullCodecs = findProperty("fullCodecs")?.toString()?.let { it.isEmpty() || i
 
 val patchVersion = rootProject.file("../VERSION").readText().trim()
 val buildVersion = providers.gradleProperty("patchVersionName").orElse(patchVersion).get()
-require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+").matches(buildVersion)) {
-    "Patch version must be <game data version>.<revision>, for example 1.6.0.1.1"
+require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+").matches(buildVersion)) {
+    "Patch version must have three game version numbers plus a revision, for example 1.6.1.1"
 }
 
 val engineAssets = layout.buildDirectory.dir("generated/engine-assets")

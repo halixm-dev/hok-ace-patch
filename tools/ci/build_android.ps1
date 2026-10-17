@@ -8,8 +8,8 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Set-Location (Resolve-Path "$PSScriptRoot/../..")
 if (-not $VersionName) { $VersionName = (Get-Content -LiteralPath VERSION -Raw).Trim() }
-if ($VersionName -notmatch '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$') {
-    throw 'Use a patch version such as 1.6.0.1.1'
+if ($VersionName -notmatch '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$') {
+    throw 'Use a patch version such as 1.6.1.1'
 }
 
 function Invoke-Checked([string]$Program, [string[]]$Arguments) {

@@ -10,8 +10,8 @@ import java.net.URL
 
 /** Release policy and transport failures run offline; no GitHub account or device needed. */
 class AppUpdateCheckerTest {
-    private val current = "1.6.0.1.1"
-    private val newer = "1.6.0.1.10"
+    private val current = "1.6.1.1"
+    private val newer = "1.6.1.10"
     private fun release(version: String = newer, assets: Boolean = true): String = """
         {"tag_name":"android-v$version","draft":false,"prerelease":false,"assets":[
         ${if (assets) """{"name":"hok-ace-patch.apk","state":"uploaded","size":42,
@@ -20,10 +20,20 @@ class AppUpdateCheckerTest {
 
     @Test fun versionsCompareEveryComponentNumerically() {
         assertTrue(AppUpdateChecker.compareVersions(newer, current) > 0)
-        assertTrue(AppUpdateChecker.compareVersions("1.10.0.0.0", "1.9.99.99.99") > 0)
-        assertEquals(0, AppUpdateChecker.compareVersions("01.6.0.1.1", current))
-        assertTrue(AppUpdateChecker.compareVersions("1.6.0.1.999999999999999999999", current) > 0)
-        assertTrue(AppUpdateChecker.compareVersions("1.5.99.99.99", current) < 0)
+        assertTrue(AppUpdateChecker.compareVersions("1.10.0.0", "1.9.99.99") > 0)
+        assertEquals(0, AppUpdateChecker.compareVersions("01.6.1.1", current))
+        assertTrue(AppUpdateChecker.compareVersions("1.6.1.999999999999999999999", current) > 0)
+        assertTrue(AppUpdateChecker.compareVersions("1.5.99.99", current) < 0)
+        assertTrue(AppUpdateChecker.compareVersions("1.6.2.1", "1.6.1.99") > 0)
+    }
+
+    @Test fun legacyVersionsCompareWithFourPartVersions() {
+        assertEquals(0, AppUpdateChecker.compareVersions("1.6.0.1.1", current))
+        assertEquals(0, AppUpdateChecker.compareVersions("1.0.6.1.1", current))
+        assertTrue(AppUpdateChecker.compareVersions("1.6.1.2", "1.6.0.1.1") > 0)
+        assertTrue(AppUpdateChecker.compareVersions(current, "1.4.0.2.99") > 0)
+        assertNotNull(AppUpdateChecker.parse("1.6.0.1.1", release()).downloadUrl)
+        assertNull(AppUpdateChecker.parse(current, release("1.6.0.1.1")).downloadUrl)
     }
 
     @Test fun onlyNewerStableAndroidReleaseOffersDownload() {
@@ -38,7 +48,7 @@ class AppUpdateCheckerTest {
     }
 
     @Test fun malformedVersionsAndBodiesNeverOfferAnUpdate() {
-        listOf("1.2.3", "1.6.0.1.2-beta", "1.6.0.1.-1", "1.6.0.1.2.3", "").forEach {
+        listOf("1.2.3", "1.6.1.2-beta", "1.6.1.-1", "1.6.1.2.3", "1.6.0.1.2.3", "").forEach {
             assertNull(AppUpdateChecker.parse(current, release(it)).downloadUrl)
         }
         listOf("garbage", "{}", "[]", release().replace("android-v", "v")).forEach {

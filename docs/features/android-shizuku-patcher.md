@@ -1,7 +1,7 @@
 ---
 feature: android-shizuku-patcher
 status: device-validation-in-progress
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 
 # Android patcher using Shizuku
@@ -9,9 +9,11 @@ updated: 2026-10-16
 ## Report
 
 **Versioning (2026-10-17):** local and CI builds default to the root `VERSION` file,
-starting at `1.6.0.1.1` (game data version plus patch revision). Release tags must
+currently `1.6.1.3` (three game version numbers plus patch revision). Release tags must
 match that file. Android's install `versionCode` remains separate and increasing;
-see [patch versions](../../README.md#patch-versions).
+see [patch versions](../../README.md#patch-versions). The launcher name is
+**HOK ACE Patch**. The update checker compares four-part versions and normalizes
+legacy five-part tags by omitting the extra middle zero.
 
 **Where it stands (2026-10-05).** The user ran a full patch from the Android app on the Xiaomi
 M2007J3SG (MIUI, Android 12, game data 1.4.0.2): live snapshot, build, apply and normal-APK restore
