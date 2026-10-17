@@ -3067,3 +3067,28 @@ in both languages, and English and Indonesian differ in `1/1.db`, `1/1_0.db` and
 **Verdict:** pass. The game accepts a re-patched override layer without a clear: no repair on launch,
 and the login survives a switch. A switch stages exactly what a cleared phone would get, including a
 newer catalog over the same language. The Android patcher's cycle is still owed.
+
+## 2026-10-18 — Language switch without a clear (Android patcher)
+
+Ticket 08's Android half and ticket 06's device cycle, Xiaomi M2007J3SG (`f15a72e`, Android 12),
+continuing from the Windows cycle above. The debug Android patcher was built from `7c576a7`, and its
+catalogs equal the repo's at that commit. `059ea71` landed afterwards and is not in it.
+
+| Step | Result |
+|---|---|
+| Remove translation (Windows, session `20261017-230156`) | `delta.bin` and `delta.pending.bin` deleted, `staged-hashes.json` kept. The 14 rebuilt files it wrote back equal `snapshot.json`'s pristine SHA-256. No repair, still logged in, Chinese lobby. `normal1.log` +20.6 KB, 0 hits for `QtsfFixer\|FixFile\|crc not match\|errorCode:361`. |
+| 1. English, Android (session `c16050a2…`) | First install (no delta on the Android patcher). Delta 14 files, 6.14 MB of ranges; its pristine side equals the snapshot for all 14, so Remove had left the layer pristine. No repair, still logged in, START GAME. `normal1.log` +21 KB, 0 hits. Ticket 06's last check: a new patch run after Remove succeeded without a clear. |
+| 2. Indonesian, Android | Rebuilt from the delta. Delta 14 files, 4.67 MB. The 9 files outside the texture packages are byte-identical to Indonesian built on the desktop from the pristine snapshot with the `7c576a7` catalog. No repair, still logged in, MULAI GAME. `normal1.log` +27.7 KB, 0 hits. |
+| 3. English, Android | Rebuilt from the delta. All 14 staged files are byte-identical to step 1. No repair, still logged in, START GAME. The log rotated at midnight; `normal2.log` (00:00:49–00:19:16) has 0 hits. |
+
+Side finding: the Android patcher's output differs from the Windows patcher's in five texture
+packages, `15/15_0.db`, `19/19_0.db`, `20/20_0.db`, `21/21_0.db` and `1050016095/1050016095_0.db`.
+Sizes are equal and the bytes differ. The phone engine is deterministic: its English equals the
+benchmark run's phone layer (`D:\scratch\hok-ticket08\before-restore.tar`) in 12 of 14 files, and only
+package `1` differs, which carries the catalog fixes. The difference predates the delta (the earlier
+desktop end-to-end ran the bridge on x86, not on the phone). Each patcher keeps its own delta, so it
+does not affect a switch. Which codec step differs is unmeasured.
+
+**Verdict:** pass for both. The Android patcher switches EN → ID → EN without a clear, with no repair
+and the login kept, and returns to the same bytes. Remove translation leaves a pristine, launchable
+layer, and the next patch run is an ordinary first install.

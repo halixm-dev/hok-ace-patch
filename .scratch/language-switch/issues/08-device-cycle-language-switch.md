@@ -11,8 +11,8 @@
 **Status:** ready-for-human
 
 - [x] Windows patcher: EN → ID → EN without a clear
-- [ ] Android patcher: EN → ID → EN without a clear
-- [x] Lab notebook verdict; indonesian-language record updated (Windows half)
+- [x] Android patcher: EN → ID → EN without a clear
+- [x] Lab notebook verdict; indonesian-language record updated (both patchers)
 
 ## Comments
 
@@ -23,3 +23,10 @@ bytes identical to a build from the pristine snapshot. The first Indonesian atte
 (a transient Windows lock on the extracted folder's rename), fixed in `48391f7` before the retry.
 Catalog fixes landed between the Indonesian and the second English step, so that step also covered a
 newer translation without a clear. The Android half is still owed.
+
+2026-10-18, Android half passed on the same phone, starting from the pristine layer ticket 06's
+Remove translation left (lab notebook, "Language switch without a clear (Android patcher)"). Each
+step launched with no repair and kept the login. The second English step staged bytes identical to the
+first. The Android patcher's texture packages differ from the Windows patcher's (an encoding
+difference that predates the delta), which does not matter here, because the two never share a delta.
+Done.

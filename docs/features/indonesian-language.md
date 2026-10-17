@@ -132,4 +132,4 @@ texture and needs an Indonesian image; and the resource tokens expand to English
   English text (measured: the Report's language-switch row). A phone the same patcher translated last is
   switched from its pristine delta without a clear: EN → ID → EN through the Windows patcher passed on
   a phone, with no repair and the login kept (lab notebook, 2026-10-17, "Language switch without a
-  clear"). The Android patcher's cycle is still owed.
+  clear"), and through the Android patcher ("Language switch without a clear (Android patcher)").

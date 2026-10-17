@@ -209,4 +209,5 @@ The pristine delta is what lets the patcher put pristine bytes back where a diff
   **Answered 2026-10-17: yes.** EN → ID → EN through the Windows patcher on the Xiaomi M2007J3SG: each
   step launched with no repair in `normal1.log`, the login survived, and each switch staged bytes
   identical to a build from the pristine snapshot (lab notebook, "Language switch without a clear").
-  The Android patcher writes the same bytes; its own cycle is still owed (ticket 08).
+  The Android patcher passed the same cycle the next day (lab notebook, "Language switch without a
+  clear (Android patcher)"), and Remove translation then a new patch run passed too (ticket 06).

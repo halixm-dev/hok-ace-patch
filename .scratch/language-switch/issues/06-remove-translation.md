@@ -13,7 +13,7 @@
 
 - [x] Remove translation in the Windows patcher and the Android patcher
 - [x] Android rollback verified on an interrupted write-back (fixture probe)
-- [ ] Device cycle: after Remove, the lobby is Chinese, the game launches with no repair, and a new patch run succeeds without a clear
+- [x] Device cycle: after Remove, the lobby is Chinese, the game launches with no repair, and a new patch run succeeds without a clear
 
 ## Comments
 
@@ -38,3 +38,9 @@ signals (the text signal included), and a second Remove is refused as "nothing t
 `push_translation` deletes `delta.bin` and `delta.pending.bin` when its delta has no files. Android:
 `keep_delta` deletes `delta.bin` for an empty session delta, which hides the Remove button.
 `check_windows_repatch.py` 11 OK; `RemovalRollbackProbeTest` updated and passing on the Xiaomi M2007J3SG (with `PristineDeltaProbeTest`).
+
+2026-10-17, device cycle passed on the Xiaomi M2007J3SG through the Windows patcher (lab notebook,
+"Language switch without a clear (Android patcher)"). Remove deleted `delta.bin` and
+`delta.pending.bin` and kept the staged-hash record. The 14 files it wrote back equal the pristine
+snapshot. The game launched with no repair, the login was kept, and the lobby was Chinese. The
+Android patcher's English first install then succeeded without a clear. Done.
