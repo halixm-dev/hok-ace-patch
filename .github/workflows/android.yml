@@ -107,4 +107,4 @@ jobs:
 
           This APK uses the previous patcher signing key, allowing updates over matching development installs without uninstalling. That legacy key is public; obtain APKs only from this repository. Game normal/access APKs retain their separate stable key. Installation and consent prompts are not removed by patcher signing.
           EOF
-          gh release create "$RELEASE_TAG" --verify-tag --draft --title "HOK ACE Patch ${RELEASE_TAG#android-v}" --notes-file notes.md download/artifacts/* download/android/app/build/reports/release-runtime-dependencies.json
+          gh release create "$RELEASE_TAG" --verify-tag --draft --title "HOK ACE Patch ${RELEASE_TAG#android-v}" --notes-file notes.md download/artifacts/hok-ace-patch.apk download/artifacts/SHA256SUMS download/artifacts/hok-ace-patch-codec-sources.zip
