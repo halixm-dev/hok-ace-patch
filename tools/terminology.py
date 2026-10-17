@@ -84,6 +84,11 @@ class Term:
 
 
 ENGLISH_TERMS: tuple[Term, ...] = (
+    # 合成: the href=13 keyword on Yao reads "upgraded" once in English and
+    # "Combine" in Indonesian. Match the label itself; prose upgrades still mean levels.
+    Term("合成", "Combine", (
+        (r"\bupgraded\b", "Combine"),
+    ), proper=True),
     # 夺取: take Levels from another Hero. "Steal" is the default name (the link label reads it 7 times
     # in 11); "Plunder" is the community translation's. `掠夺` is a different word and keeps its own
     # "Plunder" ("Plunder Blade"). "Soul Snatch" is `摄灵`, a different keyword drawn with the same
@@ -183,6 +188,7 @@ def install() -> None:
     from wxq_patch import adaptive
 
     import catalog_supplement
+    import catalog_updates
 
     if getattr(adaptive.load_catalog, "_terminology", False):
         return
@@ -195,6 +201,7 @@ def install() -> None:
         language = for_catalog(folder)
         added = catalog_supplement.apply(data, language.code)
         changed = apply(data, language.terms)
+        catalog_updates.apply(data, language.code)
         catalog = adaptive.Catalog(data)
         catalog.terminology = changed
         catalog.supplemented = added

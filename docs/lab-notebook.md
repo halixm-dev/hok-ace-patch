@@ -2077,3 +2077,46 @@ installation/consent flow was changed. Earlier private-signer APKs remain a diff
 | Compatible APK SHA-256 | `17caa4fc20a1a5dd7380a346733e47810e8b8f428f23ed313c3d2e9059b03f61` |
 | Device acceptance | No phone install was performed. Matching signer/package/version permits updating legacy installs; this does not remove Android installation prompts or the patcher's explicit consent. |
 
+
+## 2026-10-17 — Chano description and Yao Combine label
+
+The user reported Chano's untranslated card and requested that Yao's keyword read Combine.
+ADB screenshots from Xiaomi M2007J3SG show Chano's English name with a Chinese 30-damage description,
+and Yao's description saying `upgraded` while its footer says `Combine`.
+
+| Evidence | Result |
+|---|---|
+| Screenshots | `.scratch/untranslated-card/screen.png` (Chano), `.scratch/untranslated-card/yao-before.png` (Yao) |
+| Both-layer scan | `probe.py` reads the saved pristine 1.6.0.1 override layer and cached prime package 1. Updated 30/60 sources occur in catalog tables including `A07B2B9F994FB0ED` and `A336359CD92A858E`; the prime copies retain 25/50. |
+| Chano cause | Both catalogs lack the exact updated numeric placeholders. The real `adaptive.translate_table` leaves 30/60 Chinese before the fix. `catalog_supplement.TEXTS` now supplies both measured variants for both languages using the catalog's older wording with the new placeholders. |
+| Yao cause | English catalog maps `合成`, `href=13`, to `upgraded` once. Indonesian already uses Combine. A source-keyed terminology rule changes the measured label to Combine; other prose Upgrade wording is preserved. |
+| Targeted verification | `.venv/Scripts/python.exe -X utf8 .scratch/untranslated-card/verify_fixes.py` passes for both languages: 23 table copies across both layers, all 55 updated Chano occurrences translated, Yao checked in 22 table copies. Baseline assertions reproduce the missing Chano entries and English upgraded label. Placeholder/tag checks, validation of both new pairs, and terminology idempotence pass. |
+| Documentation references | `check_references.py` passes. |
+| Phone state | Normal APK is not debuggable; current private package bytes could not be read. Screenshots/search only; no APK replacement, data push or device cycle. These saved-layer checks do not establish the phone's current data revision. |
+| Full English staging | `build_device_patch.py` succeeds on the pristine 1.6.0.1 dump with the cached APK; output `artifacts/chano-yao-fix/out`. No skipped text tables; the existing single append encoder refusal remains. |
+| Staged read-back | `verify_staged.py` reads package 1 through `QtsPackage` / `read_raw`: all 55 updated Chano occurrences translated, Yao's corrected description present in all 11 override tables carrying it. Summary: 94 tables, 186735 records, 183250 translated, 214 unknown. This is an offline run, not phone acceptance. |
+| Android artifact | `android/gradlew.bat -p android --offline :app:assembleDebug` succeeds. ZIP verification confirms both modified Python modules match source byte-for-byte. Debug APK: `artifacts/chano-yao-fix/hok-ace-patch-chano-yao-debug.apk`, SHA-256 `c07ac0763d8ec0da5fbcd29f50d318e4e9f70bcf2a6dff49bce263d6d5d59a29`. No installation performed. |
+
+The correction adds no tables or textures and changes no allowlist or package layout policy.
+
+## 2026-10-17 — Rerun support for Yao's installed English description
+
+The user requested updating the existing translation by rerunning, without resetting game data.
+`tools/catalog_updates.py`, called after terminology at catalog load, adds 22 exact English update
+rows in memory: the two measured Yao keys in each of 11 package-1 catalog tables. Each update checks
+asset hash, row key and the full old English sentence; its target is the current catalog translation.
+Existing upstream update identities win. Indonesian already says Combine and gains no update rows.
+
+| Check | Evidence and verdict |
+|---|---|
+| Red reproduction | `check_rerun.py` translates actual pristine tables with the original catalog, then reruns with the corrected catalog. Before the update rows it fails: `23C9A9DEBB3BF40C: rerun kept upgraded`. |
+| Real-table regression | The same command passes all 11 old-English tables / 22 Yao rows; second translation is byte-identical. Different asset, key and previous sentence remain unchanged. |
+| Update safeguards | All new targets pass runtime validation. Reapplying the merge adds zero rows; an existing upstream identity is preserved; Indonesian data is unchanged. |
+| Actual rerun staging | Copied the already-patched package 1 from the 2026-10-16 control into `artifacts/rerun-translation/game`; it contains all 22 old upgraded sentences. Normal `build_device_patch.py` succeeds against it, with no APK and no pristine restore. The no-APK run intentionally leaves other prime-only content alone. |
+| Staged read-back | All 22 Yao descriptions now equal the current Combine translation, read through `QtsPackage` / `read_raw`. `text_skipped` empty. The staged rerun also picks up other current text corrections (274 records total, including Chano); no new catalog table or texture coverage. |
+| Android build | Offline `:app:assembleDebug` succeeds. ZIP contents of `catalog_updates.py`, `catalog_supplement.py` and `terminology.py` exactly match source. APK: `artifacts/rerun-translation/hok-ace-patch-rerun-debug.apk`, SHA-256 `e8ebd9b0d7b059f670307a8de981212638515aabc2992cbe36191a94d93765bb`. |
+| Repository checks | `check_references.py` and `git diff --check` pass. |
+| Device status | No installation or phone data write. On-phone acceptance of this rerun remains pending. |
+
+This supports the measured Yao correction, not arbitrary old wording or language switching. Further
+installed-text corrections need their own measured exact update identities.

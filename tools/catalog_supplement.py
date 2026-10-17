@@ -33,6 +33,12 @@ _MARKUP = re.compile(r"\{[^{}]*\}|%[sd]|<[^<>]*>")
 # zh -> (English, Indonesian). Grouped by where the game shows them.
 TEXTS: dict[str, tuple[str, str]] = {
     # Card and skill texts 1.6.0.1 reworded.
+    "你的召唤单位阵亡时，会对周围敌人造成{ResCardInfoDataBin_1771_17711_0: 30}点物理伤害。每次召唤还会额外提升该伤害。": (
+        "When your summoned units die, they deal {ResCardInfoDataBin_1771_17711_0: 30} Physical Damage to nearby enemies. Each Summon further increases this Damage.",
+        "Saat unit summon-mu mati, mereka memberikan {ResCardInfoDataBin_1771_17711_0: 30} Physical Damage ke musuh di dekatnya. Setiap Summon semakin meningkatkan damage ini."),
+    "你的召唤单位阵亡时，会对周围敌人造成{ResCardInfoDataBin_1771_17711_1: 60}点物理伤害。每次召唤还会额外提升该伤害。": (
+        "When your Summoned Unit is Defeated, it deals {ResCardInfoDataBin_1771_17711_1: 60} Physical Damage to nearby enemies. Each subsequent Summon further increases this Damage.",
+        "Saat Summoned Unit-mu dikalahkan, ia memberikan {ResCardInfoDataBin_1771_17711_1: 60} Physical Damage ke musuh di dekatnya. Setiap Summon berikutnya semakin meningkatkan damage ini."),
     "<color=#FFE897>你的召唤单位</color>等级+6。每回合开始时，再+6。": (
         "<color=#FFE897>Your summoned units</color> gain +6 levels. At the start of each Round, gain another +6.",
         "<color=#FFE897>Unit yang kau panggil</color> mendapatkan +6 level. Pada awal setiap Ronde, mendapatkan +6 lagi."),

@@ -1,7 +1,7 @@
 ---
 feature: terminology-table
 status: delivered
-updated: 2026-10-16
+updated: 2026-10-17
 branch: master
 ---
 
@@ -20,6 +20,15 @@ built from them. `build_patch` installs it next to `install_btree_slot_map()` an
 | `夺取` | `href=200`, icon `╊` | Plunder, Seizure, Capture, Snatch(ed), Siphon, drain, "to capture" | **Steal** (and steals / stolen / stealing) |
 | `整备` | `href=11`, icon `╬` | Ready, Readiness, Maintenance | **Prepare** (series: **Prepare Series**) |
 | `登场` | `href=1`, icon `╨` | one series label, "Showtime series" | **Deploy** |
+| `合成` | `href=13`, icon `╦` | Yao's English description says "upgraded" | **Combine** |
+
+The 2026-10-17 Yao screenshot confirms the description and its keyword footer disagree. The measured
+`upgraded` variant occurs once in the English catalog and nowhere in the Indonesian catalog for
+sources containing `合成`. The terminology rule corrects that label; prose `Upgrade` remains unchanged.
+The same investigation adds Chano's measured 30/60 damage descriptions to `catalog_supplement.TEXTS`
+for both languages, preserving their numeric placeholders. The older catalog sources use 25/50 and
+therefore do not match these updated strings. Verification and device status are recorded in the
+2026-10-17 Chano/Yao entry in `docs/lab-notebook.md`.
 
 Steal and Prepare are the default names — the ones the catalog already uses most (the `夺取` link label
 reads Steal 7 times in 11, the `整备` label Prepare 45 times in 55). Plunder and Readiness are the
@@ -90,12 +99,17 @@ next. On the English catalog the `夺取` link label is "Steal" 7 times, "Plunde
   with the corrected strings. Every pass reads the catalog through it: scan, `make_transform` and the
   append, `extend_graphics` and the extra-text pass.
 - **Per language.** `Language.terms`; Indonesian is `ENGLISH_TERMS` plus its own two fixes.
+- **Exact updates on rerun.** After terminology, `tools/catalog_updates.py` adds measured
+  `english_updates` rows in memory. Yao's correction matches the full previous English sentence,
+  asset hash and row key: 22 measured rows across 11 catalog tables in package 1. The runtime's
+  existing update path writes the current catalog target. Upstream update rows take precedence;
+  unknown tables, different keys and edited sentences do not match. Indonesian already says Combine.
 
 ### Consequences to expect
 
-- **A phone already patched keeps the old words.** The scanner translates Chinese; a layer that is
-  already English is left as it is, exactly as a newer catalog behaves. Clear the game's data (or
-  redownload it) before patching to get the terminology table — the same rule as switching language.
+- **Yao updates by rerunning the patch.** Install the APK containing `catalog_updates` and rerun
+  normally; no data reset is needed for his old `upgraded` sentence. Other previously installed
+  wording needs its own measured exact update rows; this does not enable arbitrary language switching.
 - Counts in the summary do not move: the terminology table changes words inside tables that were already staged.
 
 ## [S3] Out of Scope
@@ -106,7 +120,7 @@ next. On the English catalog the `夺取` link label is "Steal" 7 times, "Plunde
   that already read the default names.
 - **Other inconsistent keyword labels** measured on the same pass and not changed: `登场` beyond its one
   "Showtime series" label (a "Let's go." label remains), `复生` (Revive / Recovery / Revival / Resurrect), `退场` (Exit /
-  Retire / Retreat), `合成` (Combine / upgraded), `往生图腾` / `因缘图腾` (several names). Each needs a
+  Retire / Retreat), `往生图腾` / `因缘图腾` (several names). Each needs a
   chosen name before it can join the terminology table.
 - Textures: a keyword drawn into an image is not text and is not reached here.
 - Editing `catalog.json.gz`: the catalog is the PC pipeline's file (`AGENTS.md`, *Boundaries*).
