@@ -9,7 +9,7 @@ updated: 2026-10-17
 ## Report
 
 **Versioning (2026-10-17):** local and CI builds default to the root `VERSION` file,
-currently `1.6.1.4` (three game version numbers plus patch revision). Release tags must
+currently `1.6.1.5` (three game version numbers plus patch revision). Release tags must
 match that file. Android's install `versionCode` remains separate and increasing;
 see [patch versions](../../README.md#patch-versions). The launcher name is
 **HOK ACE Patch**. The update checker compares four-part versions and normalizes

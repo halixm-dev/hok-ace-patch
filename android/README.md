@@ -117,7 +117,7 @@ releases. See [automated builds](../README.md#automated-android-builds) and [sec
 The lineage lets installs signed with the previous, public key update in place.
 Local release builds are unsigned unless the four signing environment variables documented
 there are supplied. The launcher name is **HOK ACE Patch**.
-The root `VERSION` file defaults the patcher version to `1.6.1.4`
+The root `VERSION` file defaults the patcher version to `1.6.1.5`
 (three game version numbers plus patch revision); see [patch versions](../README.md#patch-versions).
 `patchVersionName` can override it with another four-part numeric version, and
 `patchVersionCode` sets Android's separate, increasing install number. CI release tags
