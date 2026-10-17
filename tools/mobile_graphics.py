@@ -24,6 +24,7 @@ counts the texture as skipped. A silently skipped texture is far better than a f
 from __future__ import annotations
 
 import math
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -110,6 +111,9 @@ RESTORE_MATCH_MEAN = 12.0
 # bytes and Python overhead; full images keep the uncached native path.
 ASTC_CACHE_MAX_INPUT = 4096
 ASTC_CACHE_ENTRIES = 512
+# Encoder worker threads per context. Each block is still encoded with the same
+# settings; the full audited call sequence is byte-identical at 1-12 threads.
+ASTC_THREADS = max(1, os.cpu_count() or 1)
 
 _contexts: dict[tuple[int, int], astc_encoder.ASTCContext] = {}
 
@@ -294,7 +298,7 @@ def splice_label(mobile_raw: bytes, graphic: dict, catalog: Path, width: int, he
 def _context(bx: int, by: int) -> astc_encoder.ASTCContext:
     if (bx, by) not in _contexts:
         config = astc_encoder.ASTCConfig(astc_encoder.ASTCProfile.LDR, bx, by, 1, 85)
-        _contexts[(bx, by)] = astc_encoder.ASTCContext(config)
+        _contexts[(bx, by)] = astc_encoder.ASTCContext(config, ASTC_THREADS)
     return _contexts[(bx, by)]
 
 

@@ -1,0 +1,38 @@
+{
+  "cpu_count": 12,
+  "results": [
+    {
+      "threads": 8,
+      "calls": 3654,
+      "mismatches": [],
+      "mismatch_count": 0,
+      "encode_wall_s": 13.087903400446521,
+      "large_encode_wall_s": 11.205094399716472
+    },
+    {
+      "threads": 4,
+      "calls": 3654,
+      "mismatches": [],
+      "mismatch_count": 0,
+      "encode_wall_s": 15.170421298855217,
+      "large_encode_wall_s": 13.443338500073878
+    },
+    {
+      "threads": 2,
+      "calls": 3654,
+      "mismatches": [],
+      "mismatch_count": 0,
+      "encode_wall_s": 16.63861809996888,
+      "large_encode_wall_s": 15.121948000160046
+    },
+    {
+      "threads": 1,
+      "calls": 3654,
+      "mismatches": [],
+      "mismatch_count": 0,
+      "encode_wall_s": 27.643554800073616,
+      "large_encode_wall_s": 25.726182199607138
+    }
+  ],
+  "all_bytes_equal": true
+}
