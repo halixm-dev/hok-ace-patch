@@ -3107,3 +3107,73 @@ capability and has shared-UID, permission, rollback and auth withheld. Release C
 | Re-signed APK | A copy of `artifacts/dev.halixm.hokacepatcher.apk` (1.6.1.4, previous key) re-signed by the script verifies with `--min-sdk-version 30`: v3 true, v1/v2/v3.1 false, one signer `555f2ff4…`, lineage `aa67f199…` → `555f2ff4…`. PASS. |
 | Alignment | `zipalign -c -P 16 4` passes on the re-signed copy. PASS. |
 | Device update | Not yet run: installing the rotated APK over the phone's 1.6.1.4 (previous key) without uninstalling, then refusing a previous-key APK over it. |
+
+## 2026-10-18 — Partial pull on the Windows patcher
+
+Question: an install writes 14 files, so why does every run pull the whole override layer (about 2.9 GB)?
+The build reads every package, and the pristine checks (`files_at`, the text signal) read the whole
+layer. What a run needs is the phone's exact bytes, not a fresh transfer of them. `Patcher.pull_changed`
+has the phone hash its layer (`run-as … find . -type f -exec sha256sum {} +`; toybox on this phone has
+`sha256sum`, only `md5sum` is missing) and copies each file that the previous session's `staged/` or
+layer copy holds at that SHA-256. It pulls the rest with `tar` in batches of at most
+`PULL_BATCH_CHARS` characters of names and checks each pulled file against the phone's hash. The
+session layer then equals the phone, so every later step reads the same bytes a full pull gives it.
+A session with no earlier `pull.json`, hash output that does not parse (any line that is not a digest
+and a plain layer path), or a failed or short transfer falls back to the full pull. Only the full
+pull writes `device-backup.tar`, so `bootstrap_delta` never picks a partial session.
+
+Offline, `tools/research/measure_partial_pull.py` against the working folder's session
+`20261017-224744` (1.6.0.1 r0):
+
+| Stand-in phone | Files | Reused | Pulled | Local cost |
+|---|---|---|---|---|
+| That session's layer with its `staged/` laid over it (a re-run after its install) | 741, 3031.7 MB | 741 | 0 | hash phone 4.5 s, match 3.5 s, copy 5.7 s |
+| The pristine snapshot `pristine/20261016-101124` (a phone after Remove translation) | 549, 2286.6 MB | 549 | 0 | match 3.8 s |
+
+`check_windows_repatch.py` (14 checks) runs the real `pull_game_data` against a fake phone. A first
+pull is full; a re-run after an install pulls nothing; a data update pulls exactly the changed and
+added files; a file the phone dropped is not carried over; garbled hashes, a `..` path and a truncated
+tar each fall back to the full pull and leave no `pull-*.tar`; 400 changed files go in several batches.
+The fallback check found a bug, fixed before commit: after a failed partial pull, the full pull's
+`mkdir` of `game/WXQ_Data/Package` raised `FileExistsError`.
+
+A file the previous session holds only in its pristine form, while the phone holds the translation, is
+pulled again. That happens after a run stopped between `restore_pristine` and the push. It costs one
+transfer and does not affect correctness.
+
+On the phone (Xiaomi M2007J3SG, Android 12, 1.6.0.1 r0), source runs of `Patcher.run` (English), each
+from the working tree, in order. The phone started translated by the Android patcher, which the Windows
+patcher has no delta for, so the first two runs refused; the Android patcher's Remove translation then
+gave it back pristine.
+
+| Run | Pull | Pristine | Push |
+|---|---|---|---|
+| `20261018-021756` | Full: 741 files, 3032.5 MB tar, 209 s (no earlier `pull.json`) | Refused: 6 files at recorded staged hashes, no delta, no bootstrap source | Nothing (refused) |
+| `20261018-022517` | Partial: 741 of 741 unchanged, pulling 0, 17 s (phone `sha256sum` plus local copy) | Refused, as above | Nothing (refused) |
+| *Android Remove translation (1.6.1.4)* | | 11 files restored, its delta deleted | |
+| `20261018-025809` | Partial: 730 unchanged, pulling 11, 919.2 MB, 57 s | No delta: first install | 3 already on the phone, 9 written; package 1050016095 (2 files) failed: the `adb` server dropped (cannot connect to daemon). The pending delta stayed |
+| `20261018-030412` | Partial: 0 pulled (the 9 written files matched the last session's `staged/`) | Rebuilt 9 from the pending delta, 5 already untranslated | 12 already on the phone, package 1050016095 written; delta of 14 files kept |
+| `20261018-030800` | Partial: 0 pulled, 23 s | Rebuilt 11, 3 already untranslated | 14 already on the phone, nothing written, `Watchdog/` left alone |
+| `20261018-031204` (Remove translation) | Partial: 0 pulled | Rebuilt 11, 3 already untranslated | 11 written back; delta deleted |
+
+Each build took 40 to 50 s and gave 388 text tables, 398 images and 1 table left in Chinese, the same
+counts as the Android patcher's install. The adb drop was outside the patcher (no other adb was running
+afterwards); it showed the pending delta working on a phone: the next run rebuilt the half-written
+layer and finished the install.
+
+Why the first runs refused: `bootstrap_delta` found no source. `20261017-224744`'s own backup holds 11
+files at recorded staged hashes (it was pulled from a phone already translated), and 5 of its staged
+`_0.db` files differ from the phone. `20261017-230156` has no `staged/`.
+
+Afterwards the Android patcher translated the phone to English again, so it holds its own delta as before.
+
+**Android patcher: not changed.** Its snapshot is a copy inside the phone, not a USB transfer, and
+it is also the rollback source: `GameFileTransaction.verifyOriginals` checks the whole file set,
+`Watchdog/` included, before it restores. Since the 2026-10-06 storage reclaim, a resolved session
+keeps no game data, so there is no earlier copy to reuse. Reusing one would mean keeping about 3 GB
+across runs, and that space is what the reclaim gave back to users. It would also need a rollback
+built from the files a run writes rather than the whole set.
+
+**Verdict:** shipped for the Windows patcher. A same-version re-run transfers only the phone's hash
+list instead of about 2.9 GB. The first run after updating the patcher, and any run the check cannot
+trust, still does the full pull.

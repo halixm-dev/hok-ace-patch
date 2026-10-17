@@ -2,14 +2,17 @@
 
     .venv\\Scripts\\python.exe tools\\research\\check_windows_repatch.py
 
-Covers `Patcher.restore_pristine`, `check_first_delta`, `bootstrap_delta` and `push_translation`:
+Covers `Patcher.pull_game_data`, `restore_pristine`, `check_first_delta`, `bootstrap_delta` and
+`push_translation`:
 a first install over pristine keeps a delta; the next run rebuilds the pristine layer from it; a changed
 file, a translated layer with no delta, or a layer the text pass does not read as pristine is refused
 before anything is written; a kept session bootstraps a first delta only when its backup was pristine;
-and an install cut off part way still rebuilds.
+and an install cut off part way still rebuilds. A pull with an earlier session pulls only the files
+whose SHA-256 no copy in that session holds, and anything it cannot trust falls back to the full pull.
 """
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import shutil
@@ -17,12 +20,13 @@ import sys
 import tarfile
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "app"))
 import patcher_core  # noqa: E402
-from patcher_core import LAYER, PENDING_DELTA, PatchError, Patcher  # noqa: E402
+from patcher_core import LAYER, PENDING_DELTA, PULL_RECORD, PatchError, Patcher  # noqa: E402
 import pristine_delta  # noqa: E402
 
 PRISTINE = {"1/1_0.db": bytes(range(256)) * 512, "1/1.db": b"index" * 400, "15/15_0.db": b"texture" * 900}
@@ -46,13 +50,39 @@ class Ui:
 
 
 class FakeAdb:
-    """Records pushes and copies them into <phone>, the way `cp` into packages/<id>/ would."""
+    """Records pushes and copies them into <phone>, the way `cp` into packages/<id>/ would.
 
-    def __init__(self, phone: Path, fail_after: int | None = None):
+    It also answers the pull: `1.info`, `sha256sum` over the layer and `tar` of the layer or of named
+    files. <garble> replaces the hash listing, <truncate> cuts every partial tar short.
+    """
+
+    def __init__(self, phone: Path, fail_after: int | None = None, *, garble: str | None = None,
+                 truncate: bool = False):
         self.phone, self.fail_after, self.pushed = phone, fail_after, []
+        self.garble, self.truncate, self.tars = garble, truncate, []
 
     def shell(self, command, check=True):
+        if command.endswith("packages/1/1.info") and (self.phone / "1/1.info").is_file():
+            return (self.phone / "1/1.info").read_text()
         return ""
+
+    def exec_out(self, command):
+        assert "sha256sum" in command, command
+        if self.garble is not None:
+            return self.garble
+        return "".join(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  ./{path.relative_to(self.phone).as_posix()}\n"
+                       for path in sorted(self.phone.rglob("*")) if path.is_file())
+
+    def exec_out_to_file(self, command, target):
+        whole = command.endswith(" packages Watchdog")
+        names = ([path.relative_to(self.phone).as_posix() for path in self.phone.rglob("*") if path.is_file()]
+                 if whole else command.split(" -C files/QtsVFSCache/packages ", 1)[1].split())
+        self.tars.append("whole" if whole else names)
+        with tarfile.open(target, "w") as tar:
+            for name in names:
+                tar.add(self.phone / name, arcname=f"packages/{name}" if whole else name)
+        if self.truncate and not whole:
+            target.write_bytes(target.read_bytes()[:512])
 
     def run(self, *args, check=True):
         if args[0] == "push":
@@ -251,6 +281,80 @@ class Repatch(unittest.TestCase):
         session = self.session()
         with self.assertRaisesRegex(PatchError, "nothing to remove"):
             remover.write_back_pristine(session, remover.restore_pristine(session))
+
+    def pull(self, adb: FakeAdb | None = None) -> tuple[Path, Patcher]:
+        """The real `pull_game_data`, against the fake phone."""
+        self.stamp += 1
+        patcher = self.patcher()
+        patcher.adb = adb or patcher.adb
+        stamp = f"20261018-{self.stamp:06d}"
+        with unittest.mock.patch.object(patcher_core, "datetime") as clock:
+            clock.now.return_value.strftime.return_value = stamp
+            session = patcher.pull_game_data()
+        self.assertEqual(self.layer_bytes(session), self.all_phone_bytes())
+        return session, patcher
+
+    def all_phone_bytes(self):
+        return {path.relative_to(self.phone).as_posix(): path.read_bytes()
+                for path in self.phone.rglob("*") if path.is_file()}
+
+    def layer_bytes(self, session: Path):
+        layer = session / LAYER
+        return {path.relative_to(layer).as_posix(): path.read_bytes() for path in layer.rglob("*") if path.is_file()}
+
+    def record(self, session: Path) -> dict:
+        return json.loads((session / PULL_RECORD).read_text(encoding="utf-8"))
+
+    def test_pull_only_what_changed(self):
+        _write(self.phone, {"1/1.info": b'{"version":"1.6.0.1","revision":"0"}'})
+        session, patcher = self.pull()
+        self.assertEqual(self.record(session)["mode"], "full")
+        self.assertEqual(patcher.adb.tars, ["whole"])
+        patcher.restore_pristine(session)
+        self.install(patcher, session, ENGLISH, PRISTINE_SUMMARY, None)
+
+        # The phone now holds the staged files and the session's layer is pristine: nothing to pull.
+        session, patcher = self.pull()
+        self.assertEqual(self.record(session)["mode"], "changed")
+        self.assertEqual(self.record(session)["pulled_files"], 0)
+        self.assertEqual(patcher.adb.tars, [])
+        self.assertFalse((session / "device-backup.tar").exists())
+        restored = patcher.restore_pristine(session)
+        self.assertEqual(sorted(restored), ["1/1_0.db", "15/15_0.db"])
+        self.install(patcher, session, ENGLISH, PRISTINE_SUMMARY, restored)
+
+        # A data update changes one file and adds another: exactly those come over.
+        _write(self.phone, {"1/1.db": b"index v2", "20/20_0.db": b"new package"})
+        session, patcher = self.pull()
+        self.assertEqual(patcher.adb.tars, [["1/1.db", "20/20_0.db"]])
+        self.assertEqual(self.record(session)["pulled_files"], 2)
+
+        # A file the phone no longer holds is not carried over from the earlier session.
+        (self.phone / "20/20_0.db").unlink()
+        self.pull()
+
+    def test_partial_pull_falls_back_to_the_full_pull(self):
+        _write(self.phone, {"1/1.info": b'{"version":"1.6.0.1","revision":"0"}'})
+        self.pull()
+        for version, (adb, reason) in enumerate([
+                (FakeAdb(self.phone, garble="sha256sum: not found\n"), "did not read"),
+                (FakeAdb(self.phone, garble=f"{'0' * 64}  ./../escape\n"), "did not read"),
+                (FakeAdb(self.phone, truncate=True), "")]):
+            # Each fallback becomes the next run's earlier session, so give each run a change to pull.
+            _write(self.phone, {"1/1.db": b"index v%d" % version})
+            session, patcher = self.pull(adb)
+            self.assertEqual(self.record(session)["mode"], "full", reason)
+            self.assertTrue(any("pulling everything" in line and reason in line for line in patcher.ui.lines))
+            self.assertEqual(list(session.glob("pull-*.tar")), [])
+
+    def test_partial_pull_batches_long_lists(self):
+        _write(self.phone, {"1/1.info": b'{"version":"1.6.0.1","revision":"0"}'})
+        self.pull()
+        _write(self.phone, {f"{n}/{n}_0.db": str(n).encode() for n in range(1000, 1400)})
+        session, patcher = self.pull()
+        self.assertGreater(len(patcher.adb.tars), 1)
+        self.assertTrue(all(len(" ".join(batch)) <= patcher_core.PULL_BATCH_CHARS for batch in patcher.adb.tars))
+        self.assertEqual(self.record(session)["pulled_files"], 400)
 
     def test_holds_delta(self):
         self.assertFalse(patcher_core.holds_delta(self.work))

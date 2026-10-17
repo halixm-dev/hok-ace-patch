@@ -166,8 +166,8 @@ The game's data has two layers, and this repo only ever writes to one of them.
 | **prime**, baked into the APK | `assets/bin/Data/Package/builtin/<id>/` | every asset as the APK was built |
 | **override**, downloaded | `files/QtsVFSCache/packages/<id>/` | only the assets that changed since that build |
 
-The game reads override first and falls back to prime. `Patcher.pull_game_data` pulls
-`files/QtsVFSCache packages Watchdog` and nothing else, `build_device_patch` stages only into that
+The game reads override first and falls back to prime. `Patcher.pull_game_data` reads
+`files/QtsVFSCache/packages` (plus `Watchdog` on a full pull) and nothing else, `build_device_patch` stages only into that
 layer, and `device_extensions.extend_graphics` reads only override packages. **An asset that exists
 only in the APK cannot be translated by this repo at all** — no text table and no texture.
 
