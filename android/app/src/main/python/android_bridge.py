@@ -333,6 +333,11 @@ def prepare_game_apks(engine_root: str, source_path: str, destination_path: str,
             rewrite_apk(apk_source, unsigned, {"AndroidManifest.xml": replacement})
             results[name] = json.loads(sign_with_java(str(root), str(unsigned), str(target), signer))
             unsigned.unlink()
+            with zipfile.ZipFile(target) as written:
+                if written.read("AndroidManifest.xml") != replacement:
+                    raise PatchError(f"The {name} APK does not carry the manifest written into it")
+            if name == "access" and not is_debuggable(replacement):
+                raise PatchError("The access manifest does not turn android:debuggable on")
         results["label_warning"] = label_warning
         return json.dumps(results)
     except BaseException:
