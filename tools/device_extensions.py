@@ -171,12 +171,15 @@ def repair_card_dictionaries(game: Path, catalog, output: Path, log,
             continue
         staged = output / source.package_id
         package = QtsPackage(staged) if staged.exists() else source
+        needs_repair = [file_hash for file_hash in wanted
+                        if (entry := package.entries.get(file_hash)) is not None
+                        and entry.chunk_size != NATIVE_CHUNK_SIZE]
+        if not needs_repair:
+            continue
         slots = package.build_slot_map()
         jobs, unmeasured = {}, []
-        for file_hash in wanted:
-            entry = package.entries.get(file_hash)
-            if entry is None or entry.chunk_size == NATIVE_CHUNK_SIZE:
-                continue
+        for file_hash in needs_repair:
+            entry = package.entries[file_hash]
             raw = read_raw(package, slots, file_hash)
             if raw is None or _native_slots(file_hash, entry, slots.get(file_hash, {}), len(raw)) is None:
                 unmeasured.append(f"{file_hash:016X}")
