@@ -2966,3 +2966,33 @@ kept in the repo.
 **Verdict:** keeping the pristine layer under a patch costs about 4–5 MB per install, against 898 MB for
 copies of the touched files. Offline only: nothing went on a phone, and whether the game accepts a
 re-patch over a restored layer without clearing its data is unmeasured.
+
+## 2026-10-17 — What the game's updater records, and what it checks
+
+Offline, for the repatch-after-update design (`.scratch/language-switch/spec.md`). Sources: the
+`Watchdog/` of the pristine 1.6.0.1 backup `dist/HOK ACE Patcher Data/pristine/20261016-101124/device-backup.tar`
+(taken right after a full re-download), strings in `resources/qtsvfs/QtsVFS.dll`, and
+`grid-regression/old-patched-game/1` (10-02, patched) against that pristine package `1`.
+
+| Question | Finding | Grade |
+|---|---|---|
+| Format of `Watchdog/*.db` | Not SQLite: the QtsVFS shard slot layout (`u32` self offset, `-1`, size, `u64` key, payload) behind a `qtsvfs-watchdog` header record at 0x3630. The repo's package readers do not open them; a slot scan does. | measured |
+| `BrokenList.db` | Header only, empty. | measured |
+| `PatchList.db` | 214 package names, nothing else; the backup holds 214 package `.db` files. | measured |
+| `StorageStatus.db` | 120 package names, each with a timestamp (2026-10-16 10:05:58 +07). | measured |
+| `History.db` | 214 merge events, 10:05:35–10:06:03, each `pkg|primeHash|baseHash|curHash|curHash|1|1`; 88 packages moved through 1–7 merges from their prime hash. The other 126 have no merge record (probably downloaded whole). 89 empty `builtin/Merge/<pkg>/` folders and one `CleanCopy/1060000000/`. | measured (field meanings inferred) |
+| Per-file checksum, size or version anywhere in `Watchdog` | None. It cannot say which files an update changed or expects. | measured |
+| How a diff applies | In place, asset by asset (`VFS_MergeDiffToPackage`, `PatchDiffPage`, `AddNodesAndBlocksAndMove`, `DelNodes`). Each asset is checked against the CRC the package stores for it: `PreCheck hdiff src crc mismatch`, then `dest crc mismatch`, then `Result package-hash mismatch`; the diff's source package hash must equal the package's current hash (`diffHeader_.GetSrcPackageHash() == overridePackage_->GetCurPackageHash()`). | inferred from DLL strings |
+| Does our write change a package's hash | No. Package `21` reads `8591676242410099349` in `0/0.db`'s INGQ table (277 packages), the value the 10-01 append cycle logged after our append. | measured |
+| Does our write change an asset's stored token | No: the stager never writes the 16-byte token at +52..+67. In the 10-02/10-16 pair, 188 of 404 shared assets changed that token (the updater's doing) and 34 kept it with different bytes (our translations). The token is not CRC32, any CRC64 variant or XXH64 of the raw or compressed bytes. | measured (algorithm unknown) |
+| What the updater does when a diff fails | Not logged anywhere in this repo. The repair path in the DLL is `BrokenList` → `fixfilelist.json` → `QtsfFixer::FixFile`, against each asset's stored CRC. | inferred |
+
+`errorCode:361` and the "binary diff" wording in ADR 0002 come from the upstream PC patcher's README
+(`9f151a8`) and entered this repo's docs in `d295e71`; no `QtsVFS.log`, `normal1.log` or repair log of a
+failed diff was ever saved here, and the force close after an update is a user report. No clean pair of
+pre- and post-update bytes of one package exists locally (the 10-16 copy is a fresh download).
+
+**Verdict:** our writes keep each package's hash and each asset's stored check values pristine while the
+bytes are ours, so a diff aimed at a patched asset would fail on its bytes; putting pristine bytes back
+before the update is what the design needs. Unverified until a device cycle captures an update over a
+patched layer.
