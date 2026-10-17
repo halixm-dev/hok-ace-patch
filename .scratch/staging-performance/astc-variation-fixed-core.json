@@ -1,0 +1,137 @@
+{
+  "python": "3.12.13 (main, Jul 18 2026, 17:08:38) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "audit": "D:\\scratch\\hok-staging-performance\\astc-audit1",
+  "sample": 1475,
+  "prime_sequence": false,
+  "requested_cpus": [
+    0,
+    0
+  ],
+  "batch_wall_seconds": [
+    2.3164562999736518,
+    2.332780700031435
+  ],
+  "trials": [
+    [
+      {
+        "sample": 0,
+        "wall_s": 0.23756819998379797,
+        "cpu_s": 0.1875,
+        "processor_before": 0,
+        "processor_after": 0,
+        "affinity_mask": 1,
+        "output_sha256": "032198a972b8841b19e2fafc9819be14a6cfc1cba45b9023222fa805b8c01224",
+        "matches_audit": true,
+        "encoder_metadata": {
+          "version": "0.1.12",
+          "threads": 1,
+          "backend_sha256": {
+            "_encoder_avx2.pyd": "d4cd289885af9f0b05d2043d5ab7dbbaa590cccf4615f8f32cebe8531549d769"
+          },
+          "config": {
+            "flags": 0,
+            "profile": 1,
+            "tune_partition_count_limit": 4,
+            "tune_block_mode_limit": 88,
+            "tune_refinement_limit": 4,
+            "tune_candidate_limit": 4,
+            "tune_db_limit": 40.287841796875
+          }
+        }
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.7708595000149217,
+        "cpu_s": 0.78125,
+        "processor_before": 0,
+        "processor_after": 0,
+        "affinity_mask": 1,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.7718489999824669,
+        "cpu_s": 0.75,
+        "processor_before": 0,
+        "processor_after": 0,
+        "affinity_mask": 1,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.7737477999762632,
+        "cpu_s": 0.703125,
+        "processor_before": 0,
+        "processor_after": 0,
+        "affinity_mask": 1,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      }
+    ],
+    [
+      {
+        "sample": 0,
+        "wall_s": 0.23017979998257942,
+        "cpu_s": 0.21875,
+        "processor_before": 0,
+        "processor_after": 0,
+        "affinity_mask": 1,
+        "output_sha256": "032198a972b8841b19e2fafc9819be14a6cfc1cba45b9023222fa805b8c01224",
+        "matches_audit": true,
+        "encoder_metadata": {
+          "version": "0.1.12",
+          "threads": 1,
+          "backend_sha256": {
+            "_encoder_avx2.pyd": "d4cd289885af9f0b05d2043d5ab7dbbaa590cccf4615f8f32cebe8531549d769"
+          },
+          "config": {
+            "flags": 0,
+            "profile": 1,
+            "tune_partition_count_limit": 4,
+            "tune_block_mode_limit": 88,
+            "tune_refinement_limit": 4,
+            "tune_candidate_limit": 4,
+            "tune_db_limit": 40.287841796875
+          }
+        }
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.789538300014101,
+        "cpu_s": 0.78125,
+        "processor_before": 0,
+        "processor_after": 0,
+        "affinity_mask": 1,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.770165599999018,
+        "cpu_s": 0.75,
+        "processor_before": 0,
+        "processor_after": 0,
+        "affinity_mask": 1,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.7730768000183161,
+        "cpu_s": 0.71875,
+        "processor_before": 0,
+        "processor_after": 0,
+        "affinity_mask": 1,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      }
+    ]
+  ],
+  "maximum_to_minimum_wall_ratio": 1.0251539409382964,
+  "ratio_limit": 1.5,
+  "time_variation_detected": false,
+  "all_outputs_match_audit": true
+}

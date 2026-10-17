@@ -1,0 +1,101 @@
+{
+  "saves": 13,
+  "results": [
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\1\\1_0.db",
+      "read_bytes": 29130752,
+      "write_bytes": 1835008,
+      "write_calls": 28,
+      "whole_file_write_bytes": 30867456
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\1050016095\\1050016095_0.db",
+      "read_bytes": 163840,
+      "write_bytes": 212992,
+      "write_calls": 4,
+      "whole_file_write_bytes": 278528
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\15\\15_0.db",
+      "read_bytes": 297648128,
+      "write_bytes": 69009408,
+      "write_calls": 1053,
+      "whole_file_write_bytes": 366477312
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\19\\19_0.db",
+      "read_bytes": 333185024,
+      "write_bytes": 4947968,
+      "write_calls": 76,
+      "whole_file_write_bytes": 336560128
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\20\\20_0.db",
+      "read_bytes": 204783616,
+      "write_bytes": 229376,
+      "write_calls": 4,
+      "whole_file_write_bytes": 204832768
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\1\\1_0.db",
+      "read_bytes": 30867456,
+      "write_bytes": 4685824,
+      "write_calls": 72,
+      "whole_file_write_bytes": 35422208
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\1\\1.db",
+      "read_bytes": 163840,
+      "write_bytes": 180224,
+      "write_calls": 3,
+      "whole_file_write_bytes": 180224
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\10\\10_0.db",
+      "read_bytes": 12353536,
+      "write_bytes": 98304,
+      "write_calls": 2,
+      "whole_file_write_bytes": 12353536
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\10\\10.db",
+      "read_bytes": 262144,
+      "write_bytes": 131072,
+      "write_calls": 2,
+      "whole_file_write_bytes": 262144
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\1050016095\\1050016095_0.db",
+      "read_bytes": 278528,
+      "write_bytes": 4718592,
+      "write_calls": 72,
+      "whole_file_write_bytes": 4915200
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\1050016095\\1050016095.db",
+      "read_bytes": 114688,
+      "write_bytes": 131072,
+      "write_calls": 2,
+      "whole_file_write_bytes": 131072
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\21\\21_0.db",
+      "read_bytes": 40730624,
+      "write_bytes": 131072,
+      "write_calls": 2,
+      "whole_file_write_bytes": 40763392
+    },
+    {
+      "path": "D:\\scratch\\hok-staging-performance\\changed-writes1\\out\\21\\21.db",
+      "read_bytes": 638976,
+      "write_bytes": 180224,
+      "write_calls": 3,
+      "whole_file_write_bytes": 638976
+    }
+  ],
+  "read_bytes": 950321152,
+  "write_bytes": 86491136,
+  "write_calls": 1323,
+  "whole_file_write_bytes": 1033682944,
+  "write_reduction_percent": 91.63272099031558
+}

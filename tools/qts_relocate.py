@@ -47,6 +47,8 @@ PAGE = 0x1000
 KEYS_PER_PAGE = 510
 LEAF_TYPE = 3
 FILE_GROWTH = 0x4000
+# Bound comparison memory and keep scattered metadata edits from rewriting payloads.
+WRITE_BLOCK = 64 * 1024
 # A chunk size is a whole number of these; write_assets rounds a re-cut chunk size up to one.
 CHUNK_ALIGN = 0x1000
 # Entry compression ids that hold LZ4 block data. 1 is what the packages this patch has always read
@@ -69,7 +71,18 @@ class TreeFull(RuntimeError):
 class Shard:
     def __init__(self, path: Path):
         self.path = path
-        self.data = bytearray(path.read_bytes())
+        with path.open("rb") as handle:
+            self.data = bytearray(handle.seek(0, 2))
+            handle.seek(0)
+            with memoryview(self.data) as buffer:
+                position = 0
+                while position < len(buffer):
+                    count = handle.readinto(buffer[position:])
+                    if not count:
+                        raise RuntimeError(f"{path.name}: shard shrank while reading")
+                    position += count
+            if handle.read(1):
+                raise RuntimeError(f"{path.name}: shard grew while reading")
         self.data_end = self._u32(0x08)
         self.leaves = self._active_leaf_pages()
         self.relocated = 0
@@ -265,7 +278,23 @@ class Shard:
         if len(self.data) < size:
             self.data.extend(b"\0" * (size - len(self.data)))
         struct.pack_into("<II", self.data, 0x08, self.data_end, size)
-        self.path.write_bytes(bytes(self.data[:size]))
+        try:
+            handle = self.path.open("r+b")
+        except FileNotFoundError:
+            handle = self.path.open("w+b")
+        with handle, memoryview(self.data) as buffer:
+            for start in range(0, size, WRITE_BLOCK):
+                end = min(start + WRITE_BLOCK, size)
+                previous = handle.read(end - start)
+                # bytearray equality uses a fast byte comparison; the temporary
+                # slice is bounded to WRITE_BLOCK, never the whole shard.
+                if self.data[start:end] != previous:
+                    handle.seek(start)
+                    with buffer[start:end] as block:
+                        if handle.write(block) != len(block):
+                            raise OSError(f"{self.path.name}: short shard write at {start:#x}")
+            if handle.seek(0, 2) != size:
+                handle.truncate(size)
 
 
 def chunk_size_for(length: int, chunk_size: int, chunk_count: int) -> int | None:
@@ -292,6 +321,39 @@ def btree_offsets(shard: Shard) -> dict[int, set[int]]:
         count = shard._u32(page + PAGE - 4) & 0xFFFF
         for i, key in enumerate(struct.unpack_from(f"<{count}I", shard.data, page)):
             offsets.setdefault(key, set()).add(shard._u32(page + (KEYS_PER_PAGE + i) * 4))
+    return offsets
+
+
+def _read_btree_offsets(path: Path) -> dict[int, set[int]]:
+    """Read live slot offsets without loading or copying the shard's payloads.
+
+    Read the current page table on every call: relocation and append can change
+    both the active pages and their values between successive slot-map builds.
+    Use the same active-leaf/self-id checks as Shard and btree_offsets.
+    """
+    offsets: dict[int, set[int]] = {}
+    leaves = 0
+    with path.open("rb") as handle:
+        handle.seek(0x30)
+        table = struct.unpack("<I", handle.read(4))[0]
+        handle.seek(table + 4)
+        rows = struct.unpack("<I", handle.read(4))[0]
+        for i in range(rows):
+            handle.seek(table + 24 + i * 24)
+            logical, active = struct.unpack("<II", handle.read(8))
+            handle.seek(active)
+            page = handle.read(PAGE)
+            self_id, _, _, tail = struct.unpack_from("<4I", page, PAGE - 16)
+            if tail >> 16 != LEAF_TYPE or self_id != logical:
+                continue
+            leaves += 1
+            count = tail & 0xFFFF
+            keys = struct.unpack_from(f"<{count}I", page)
+            values = struct.unpack_from(f"<{count}I", page, KEYS_PER_PAGE * 4)
+            for key, value in zip(keys, values):
+                offsets.setdefault(key, set()).add(value)
+    if not leaves:
+        raise RuntimeError(f"{path.name}: no active B-tree leaf pages found")
     return offsets
 
 
@@ -354,7 +416,7 @@ def install_btree_slot_map() -> None:
         if len(self.shard_paths) != 1:
             return slot_map
         try:
-            live = btree_offsets(Shard(self.shard_paths[0]))
+            live = _read_btree_offsets(self.shard_paths[0])
         except Exception:
             return slot_map
         stale = [(fh, cid) for fh, chunks in slot_map.items() for cid, slot in chunks.items()

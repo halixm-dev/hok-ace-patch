@@ -106,6 +106,8 @@ def main() -> None:
         (adaptive, "translate_table", "Translate tables"),
         (QtsPackage, "build_slot_map", "Build slot maps"),
         (qts_relocate, "read_raw", "Read/decompress assets"),
+        (qts_relocate.Shard, "__init__", "Load writable shards"),
+        (qts_relocate.Shard, "save", "Save writable shards"),
         (package_rebuild, "extract_prime", "Extract APK packages"),
         (qts_insert, "add_assets", "Append and verify package assets"),
         (mobile_graphics, "encode_astc", "ASTC encoding"),
@@ -143,6 +145,8 @@ def main() -> None:
         "unattributed_wall_s": wall - sum(row["wall_s"] for row in stages.values()),
         "counts": summary["counts"],
     }
+    if hasattr(mobile_graphics, "_encode_astc_cached"):
+        result["astc_small_input_cache"] = mobile_graphics._encode_astc_cached.cache_info()._asdict()
     (run / "timings.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps(result, indent=2), flush=True)
 

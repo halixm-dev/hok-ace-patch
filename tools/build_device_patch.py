@@ -179,7 +179,12 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       `tools/build_device_patch.py --cycle-asset` is the only way to set it, and it accepts only a hash
       on `extra_text.CANDIDATE_ASSETS`.
     - It calls `qts_relocate.install_btree_slot_map()` before scanning, so a re-run reads live chunks
-      rather than superseded copies of relocated ones.
+      rather than superseded copies of relocated ones. Its live-offset check reads the current
+      page table and tree pages without loading the shard payload; it caches no mutable tree state.
+      Writable `Shard` loads fill one bytearray directly; saves compare 64 KiB regions against the
+      current staged file and write only changed regions, restoring the same final file length.
+      Comparisons use bounded temporary buffers. Package layout, pass order and read-back checks
+      stay intact; no mutable disk state is cached between saves.
     - It returns exactly the payload written to `output/device_patch_summary.json`: `language` (the code
       `for_catalog` resolved), `counts`, `skipped_count`, `fit_only`, `packages`, `text_skipped`,
       `graphics_skipped`, `append_skipped` and `cycle_assets` — each `packages` entry carrying
@@ -242,7 +247,11 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       the game packages afresh (a texture-heavy package usually stages no text), ports every catalog
       edit present in them onto the device ASTC textures, and runs the extra-text pass. `skip` keeps
       it off a package the rebuild already replaced whole, which no longer matches the device's
-      container. It returns `(reports, skipped)`: the reports become `packages`, the skips become
+      container. ASTC encoding reuses at most 512 exact pixel/geometry results whose input is at most
+      4096 bytes; larger images keep the native path. Codec settings and texture gates are unchanged.
+      A texture package copied for the first time reuses its source chunk offsets, retargeted to
+      that identical copy; an existing output package is scanned afresh before relocation.
+      It returns `(reports, skipped)`: the reports become `packages`, the skips become
       `graphics_skipped`. It then calls `repair_card_dictionaries` to repair an older patch's
       already-English card dictionaries; successful repairs use `relocated-text` entries and
       unmeasured layouts are reported in `text_skipped`. Extra-text planners check asset eligibility
@@ -252,6 +261,8 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       Last of all, with an APK, it calls
       `package_rebuild.add_prime_only(...)` — also keyed on `rebuilt` — so an appended asset lands on
       the copy the passes above staged instead of being overwritten by one.
+      The append reuses its just-read prime source slot map within the same call; the source is
+      unchanged, and the written output still gets a fresh QtsPackage scan and read-back.
     """
     from wxq_patch import adaptive
     from wxq_patch.unity_package_installer import capacity_report, stage_unity_package

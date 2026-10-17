@@ -1,0 +1,67 @@
+{
+  "shard_bytes": 67108864,
+  "all_saved_hashes_equal": true,
+  "source_unchanged": true,
+  "results": [
+    {
+      "round": 1,
+      "mode": "legacy",
+      "load_wall_s": 0.4239889000018593,
+      "load_cpu_s": 0.078125,
+      "load_peak_python_bytes": 134218714,
+      "save_wall_s": 0.778900999983307,
+      "save_cpu_s": 0.09375,
+      "save_peak_extra_python_bytes": 134217870
+    },
+    {
+      "round": 1,
+      "mode": "direct",
+      "load_wall_s": 0.2050615000189282,
+      "load_cpu_s": 0.03125,
+      "load_peak_python_bytes": 67119221,
+      "save_wall_s": 0.7641879000002518,
+      "save_cpu_s": 0.0625,
+      "save_peak_extra_python_bytes": 9544
+    },
+    {
+      "round": 2,
+      "mode": "direct",
+      "load_wall_s": 0.13043390001985244,
+      "load_cpu_s": 0.03125,
+      "load_peak_python_bytes": 67119213,
+      "save_wall_s": 0.8120843000069726,
+      "save_cpu_s": 0.046875,
+      "save_peak_extra_python_bytes": 9544
+    },
+    {
+      "round": 2,
+      "mode": "legacy",
+      "load_wall_s": 0.16407070000423118,
+      "load_cpu_s": 0.046875,
+      "load_peak_python_bytes": 134218706,
+      "save_wall_s": 0.9123393000045326,
+      "save_cpu_s": 0.125,
+      "save_peak_extra_python_bytes": 134217894
+    },
+    {
+      "round": 3,
+      "mode": "legacy",
+      "load_wall_s": 0.1320560000021942,
+      "load_cpu_s": 0.0625,
+      "load_peak_python_bytes": 134218698,
+      "save_wall_s": 0.7901463000162039,
+      "save_cpu_s": 0.140625,
+      "save_peak_extra_python_bytes": 134217894
+    },
+    {
+      "round": 3,
+      "mode": "direct",
+      "load_wall_s": 0.3167200999741908,
+      "load_cpu_s": 0.03125,
+      "load_peak_python_bytes": 67119205,
+      "save_wall_s": 0.7965200000035111,
+      "save_cpu_s": 0.078125,
+      "save_peak_extra_python_bytes": 9544
+    }
+  ]
+}

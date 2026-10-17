@@ -165,7 +165,7 @@ not exercise prime-only append.
 | Investigate a game crash | [Read a crash](docs/runbooks/read-a-crash.md) |
 | Find asset browsing, rendering and research commands | [Lab notebook: offline tooling](docs/lab-notebook.md#10-offline-tooling) |
 | Check past measurements or retained artifacts | [Lab notebook](docs/lab-notebook.md) |
-| Work on the Android app | [Android README](android/README.md); [dependency notices and release requirements](android/native/THIRD_PARTY.md) |
+| Work on the Android app | [Android README](android/README.md); [app-private engine checks](android/README.md#device-boundary-checks); [dependency notices and release requirements](android/native/THIRD_PARTY.md) |
 | Learn project terms or constraints | [Glossary](GLOSSARY.md), [agent instructions](AGENTS.md), [decisions](docs/adr/) |
 | Continue unfinished work | `.scratch/`; [local issue tracker](docs/agents/issue-tracker.md) |
 
