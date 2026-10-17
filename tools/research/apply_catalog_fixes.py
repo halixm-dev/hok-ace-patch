@@ -3,7 +3,8 @@ r"""Re-apply this repo's catalog fixes and additions on top of whatever catalogs
 Two kinds of change, both keyed by the Chinese source string in a catalog's `unique` map:
 
 - the Indonesian fixes below (`CHANGE`, `ADD`): labels the user wants in English, and the 1.5.0.1 card
-  texts the catalog only knew in their earlier wording;
+  texts the catalog only knew in their earlier wording, and the Multi-Faction/General talent texts
+  (`SERIES_FIXES_ID`; `SERIES_FIXES_EN` repairs the English catalog's garbled Diversity Advantage);
 - `catalog_additions.json` beside this script: strings a game update added or rewrote that neither
   catalog has, each with an English (`en`) and an Indonesian (`id`) translation. It is generated from a
   scan of a pulled device dump and lists only strings the runtime's `validate_translation` accepts.
@@ -20,6 +21,30 @@ import gzip, io, json, pathlib, sys
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 ADDITIONS = json.loads((pathlib.Path(__file__).with_name("catalog_additions.json")).read_text(encoding="utf-8"))
 
+_G = "<color=#99DEB0>{}</color>".format
+# Diversity Advantage (多样性优势): both catalogs carry a garbled machine translation.
+DIVERSITY_ZH = f"{_G('多阵营系列')}\n战斗开始时，若己方有{_G('至少2个')}阵营，所有英雄获得{_G('20')}×阵营数的等级。"
+SERIES_FIXES_EN = {
+    DIVERSITY_ZH: f"{_G('Multi-Faction Series')}\nAt the start of Battle, if you have {_G('at least 2')} Factions,"
+                  f" All Heroes gain {_G('20')} × the number of Factions in levels.",
+}
+SERIES_FIXES_ID = {
+    DIVERSITY_ZH: f"{_G('Seri Multi-Faction')}\nDi awal Pertempuran, jika kamu punya {_G('minimal 2')} Faction,"
+                  f" semua Hero mendapatkan Level sebanyak {_G('20')} × jumlah Faction.",
+    f"{_G('多阵营系列')}\n回合开始时，你每有{_G('1个')}阵营，所有英雄等级{_G('+7')}。":
+        f"{_G('Seri Multi-Faction')}\nDi awal Ronde, untuk setiap {_G('1')} Faction yang kamu miliki,"
+        f" semua Hero mendapatkan {_G('+7')} Level.",
+    f"{_G('多阵营系列')}\n场上每存在{_G('1个')}不同阵营，己方英雄物理攻击力和法术攻击力{_G('+10%')}。":
+        f"{_G('Seri Multi-Faction')}\nUntuk setiap {_G('1')} Faction berbeda di papan, Hero kamu mendapatkan"
+        f" {_G('+10%')} Physical Attack dan Magic Attack.",
+    f"{_G('多阵营系列')}\n立即获得{_G('1张照影')}，回合开始时，每有{_G('1个')}阵营，获得{_G('1张照影')}。":
+        f"{_G('Seri Multi-Faction')}\nLangsung dapatkan {_G('1 Shadow-Cast')}. Di awal Ronde, dapatkan"
+        f" {_G('1 Shadow-Cast')} untuk setiap {_G('1 Faction')} yang kamu miliki.",
+    f"{_G('通用系列')}\n回合开始时，随机获得{_G('4张')}你{_G('人数最多阵营')}的英雄牌。":
+        f"{_G('Seri General')}\nDi awal Ronde, dapatkan {_G('4 Hero Card')} acak dari"
+        f" {_G('Faction dengan Hero terbanyak')} kamu.",
+}
+
 
 def indonesian_fixes(u: dict) -> tuple[dict, dict]:
     """The Indonesian catalog's own CHANGE and ADD sets, derived from its current `unique` map <u>."""
@@ -30,6 +55,9 @@ def indonesian_fixes(u: dict) -> tuple[dict, dict]:
     yao = "你的英雄<a href=13><color=#ffffff>╦<b>合成</b></color></a>提升的等级+1。"
     change[yao] = u[yao].replace("<b>ditingkatkan</b>", "<b>Combine</b>")
     assert "<b>Combine</b>" in change[yao]
+    # The Multi-Faction and General talent cards: the series label read "Seri Wajah Multi-"/"Seri Multi- Faction"
+    # and Diversity Advantage's text was machine-translation debris ("Di Leach2Oneone.♪ The camp").
+    change.update(SERIES_FIXES_ID)
 
     # Card texts the 1.5.0.1 update rewrote; the catalog only knows the earlier wording.
     add = {
@@ -66,7 +94,7 @@ def indonesian_fixes(u: dict) -> tuple[dict, dict]:
 def apply(path: pathlib.Path, lang: str) -> None:
     raw = gzip.open(path).read()
     u = json.loads(raw)["unique"]
-    change, add = indonesian_fixes(u) if lang == "id" else ({}, {})
+    change, add = indonesian_fixes(u) if lang == "id" else (dict(SERIES_FIXES_EN), {})
     upstream = [zh for zh, entry in ADDITIONS.items() if lang in entry and zh in u and u[zh] != entry[lang]]
     for zh, entry in ADDITIONS.items():
         if lang in entry and zh not in u:
