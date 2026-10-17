@@ -117,4 +117,32 @@ public final class PackageIoProbeTest {
         assertEquals(1, result.getInt("cache_hits"));
         assertTrue(result.getBoolean("same_native_bytes"));
     }
+
+    @Test public void testThreadedAstcMatchesSingleThread() throws Exception {
+        JSONObject result = run("""
+            import hashlib, json, random
+            import astc_encoder
+            import mobile_graphics as graphics
+            rng = random.Random(20261017)
+            images = [(bytes(rng.randrange(256) for _ in range(w * h * 4)), w, h, bx, by)
+                      for w, h, bx, by in ((256, 192, 4, 4), (130, 70, 4, 4), (96, 96, 8, 8))]
+            def encode_all(threads):
+                contexts = {}
+                out = []
+                for rgba, w, h, bx, by in images:
+                    if (bx, by) not in contexts:
+                        config = astc_encoder.ASTCConfig(astc_encoder.ASTCProfile.LDR, bx, by, 1, 85)
+                        contexts[(bx, by)] = astc_encoder.ASTCContext(config, threads)
+                    image = astc_encoder.ASTCImage(astc_encoder.ASTCType.U8, w, h, 1, rgba)
+                    out.append(contexts[(bx, by)].compress(image, astc_encoder.ASTCSwizzle()))
+                return out
+            single = encode_all(1)
+            threaded = encode_all(graphics.ASTC_THREADS)
+            assert single == threaded
+            result_json = json.dumps({'threads': graphics.ASTC_THREADS, 'images': len(images),
+                'same_bytes': True, 'sha256': hashlib.sha256(b''.join(single)).hexdigest()})
+            """);
+        assertTrue(result.getInt("threads") >= 1);
+        assertTrue(result.getBoolean("same_bytes"));
+    }
 }

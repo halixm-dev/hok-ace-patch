@@ -2826,3 +2826,39 @@ All 855 packaged payloads match their manifest and repository bytes, and researc
 Receipt: `.scratch/staging-performance/android-pr-artifact.json`. Reference, staging-contract and
 diff checks pass. This final build was not installed; the accepted phone benchmark remains evidence
 for the earlier engine, and the two later scan-reuse changes retain offline byte-equivalence evidence.
+
+## 2026-10-17 — Multi-threaded ASTC encoding
+
+Continuing the PR #11 optimization work. After the earlier changes, the 72 large APK-only images
+dominate staging (single-threaded native encoding). `astc_encoder.ASTCContext` takes a `threads`
+argument; `mobile_graphics` now passes `ASTC_THREADS = os.cpu_count()`. Settings (LDR, footprint,
+quality 85, swizzle) are unchanged.
+
+`probe_astc_threads.py` replays all 3,654 audited calls in order in a fresh process per thread count
+(the context keeps state between calls) and compares each output with the recorded native bytes.
+
+| Threads (i5-1235U, 12 logical CPUs) | Encode wall, two orders | Mismatches |
+|---|---|---:|
+| 1 | 27.64 / 26.95 s | 0 |
+| 2 | 16.64 / 15.91 s | 0 |
+| 4 | 15.17 / 15.30 s | 0 |
+| 8 | 13.09 / 12.74 s | 0 |
+| 12 | 11.42 s | 0 |
+
+Full offline staging (`D:/scratch/hok-staging-performance/astc-threads1`, same English catalog,
+pristine dump and cached APK): all 14 staged `.db` hashes and the complete normalized summary match
+the verified control. Total wall 118.5 s (previous receipt `append-source-slots1`: 169.4 s); APK-only
+encoding 9.0 s versus 76.6 s. That earlier 76.6 s matches the efficiency-core placement found above,
+so the fair comparison is roughly 20 s on performance cores to 9 s. Process CPU rose 121 → 136 s from
+thread overhead. `check_graphics.py` passes. A new Android probe,
+`PackageIoProbeTest.testThreadedAstcMatchesSingleThread`, requires identical bytes between a
+1-thread and an `ASTC_THREADS` context over three random images; it passes on Windows and compiles
+in `:app:assembleDebugAndroidTest`, but has **not** run on a phone (none attached).
+
+Evidence in `.scratch/staging-performance/`: `astc-threads1.json`, `astc-threads2.json`,
+`astc-threads3.json`, `astc-threads-run1.json`, `astc-threads-verification.json`. Reproduce:
+`.venv/Scripts/python.exe .scratch/staging-performance/probe_astc_threads.py D:/scratch/hok-staging-performance/astc-audit1 --threads 1,2,4,8 --output <receipt.json>`.
+
+**Verdict:** threaded encoding is byte-identical on Windows and cuts encode time about 2.3× at 12
+threads. ARM64 determinism and phone timing are not yet measured; run the probe test and a phone
+patch before claiming an Android speedup.
