@@ -133,6 +133,18 @@ of the 1.5.0.1 card fixes), every one passing `adaptive.validate_translation`; a
 pristine 1.6.0.1 dump with the APK then leaves **0** Chinese rows in the catalog's tables, in both
 languages, with `text_skipped` empty. It adds rows to tables already counted, so no table count moves.
 
+On 2026-10-17, Chano's live card exposed two missing numeric variants (30/60 damage, where the
+catalog has 25/50). Both languages now receive these two supplement entries. A targeted check across
+23 text-table copies in the saved override and prime layers translates all 55 occurrences of the
+updated descriptions per language. This does not add tables or textures. Yao's English `upgraded`
+keyword label now reads `Combine`; Indonesian already used `Combine`. These checks refine the
+earlier zero-leftover claim above; current device acceptance remains pending. Evidence is in the
+2026-10-17 Chano/Yao entry of `docs/lab-notebook.md`.
+
+Yao's old English description can now be corrected by rerunning with the updated patcher.
+`catalog_updates` adds exact old-to-current mappings for 22 measured rows in 11 existing catalog
+tables. This changes installed wording without clearing game data or adding asset coverage.
+
 `.blocks` and `.assets` are the two porting *kinds*, not text versus texture: every payload file in the
 catalog directory is a texture, and all 398 of them are in `catalog.graphics`.
 
