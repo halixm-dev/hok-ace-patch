@@ -78,7 +78,7 @@ def main() -> None:
         output = adb("install", "-r", str(apk.resolve()), timeout=180)
         (args.work / f"install-{label}.log").write_bytes(output)
         assert b"Success" in output, output
-    print("Running four app-private Android checks", flush=True)
+    print("Running five app-private Android checks", flush=True)
     output = adb("shell", "am", "instrument", "-w", "-r", "-e", "requireFullCodecs", "true",
                  "-e", "class", CLASSES, f"{PATCHER}.test/androidx.test.runner.AndroidJUnitRunner", timeout=300)
     (args.work / "instrumentation.log").write_bytes(output)
@@ -89,8 +89,8 @@ def main() -> None:
     assert after["patcher_sha256"] == file_hash(args.apk), "installed patcher differs"
     assert after["normal_apk_sha256"] == before["normal_apk_sha256"], "normal game APK changed"
     assert after["journals"] == before["journals"], "retained session changed"
-    assert b"OK (4 tests)" in output and b"FAILURES!!!" not in output, "Android tests failed"
-    report = {"status": "passed", "android_tests": 4, "installed_patcher_sha256": after["patcher_sha256"],
+    assert b"OK (5 tests)" in output and b"FAILURES!!!" not in output, "Android tests failed"
+    report = {"status": "passed", "android_tests": 5, "installed_patcher_sha256": after["patcher_sha256"],
               "normal_apk_sha256": after["normal_apk_sha256"], "normal_apk_unchanged": True,
               "retained_journals_unchanged": True, "game_data_commands_executed": False,
               "scope": "Tiny app-private fixtures and native checks; no full staging or device cycle."}
