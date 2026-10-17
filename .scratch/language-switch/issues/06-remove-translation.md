@@ -37,4 +37,4 @@ the worker's `remove` action, the Language-card button and the remove form of th
 signals (the text signal included), and a second Remove is refused as "nothing to remove". Windows:
 `push_translation` deletes `delta.bin` and `delta.pending.bin` when its delta has no files. Android:
 `keep_delta` deletes `delta.bin` for an empty session delta, which hides the Remove button.
-`check_windows_repatch.py` 11 OK; `RemovalRollbackProbeTest` updated, not yet re-run on a phone.
+`check_windows_repatch.py` 11 OK; `RemovalRollbackProbeTest` updated and passing on the Xiaomi M2007J3SG (with `PristineDeltaProbeTest`).

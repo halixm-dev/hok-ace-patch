@@ -3042,6 +3042,7 @@ instead of keeping an empty one. `tools/research/check_windows_repatch.py`: 11 c
 neither `delta.bin` nor `delta.pending.bin` is left, a second Remove is refused ("nothing to remove"), and
 the following patch run is a first install. That run is refused by a translated summary and builds
 Indonesian from a pristine one. `tools/research/check_pristine_delta.py`: 13 OK. `RemovalRollbackProbeTest`
-now expects `keep_delta` to delete `delta.bin`. It is not re-run on a phone yet.
+now expects `keep_delta` to delete `delta.bin`. On the Xiaomi M2007J3SG (Android 12), `am instrument` of
+`RemovalRollbackProbeTest` and `PristineDeltaProbeTest`: OK (2 tests, 4.4 s).
 
 **Verdict:** offline, Remove leaves the patcher in the same state as one that never translated the phone.
