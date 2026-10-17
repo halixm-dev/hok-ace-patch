@@ -3407,5 +3407,86 @@
  "搏命": {
   "en": "Risk One's Life",
   "id": "Mempertaruhkan Nyawa"
+ },
+ "使用后获得棋手乔汐3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Qiao Xi."
+ },
+ "使用后获得棋手吕无双3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Lu Wushuang."
+ },
+ "使用后获得棋手姜导3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Director Jiang."
+ },
+ "使用后获得棋手嬴律3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Ying Lu."
+ },
+ "使用后获得棋手孙小宾3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Sun Xiaobin."
+ },
+ "使用后获得棋手安琪拉3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Angela."
+ },
+ "使用后获得棋手常小娥3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Chang Xiao'e."
+ },
+ "使用后获得棋手庄小鱼3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Zhuang Xiaoyu."
+ },
+ "使用后获得棋手明先生3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Mr. Ming."
+ },
+ "使用后获得棋手昭君3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Zhaojun."
+ },
+ "使用后获得棋手武凤3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Wu Feng."
+ },
+ "使用后获得棋手玉环3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Yuhuan."
+ },
+ "使用后获得棋手班叔3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Uncle Ban."
+ },
+ "使用后获得棋手白歌3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Bai Ge."
+ },
+ "使用后获得棋手闹闹3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Naonao."
+ },
+ "使用后获得棋手香香3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Xiangxiang."
+ },
+ "使用后获得皮肤明先生·夜落电台3天体验时间。": {
+  "en": "Use to gain a 3-day trial of the Mr. Ming · Nightfall Radio Skin."
+ },
+ "使用{0|45}{Energy}，获得1张秘技牌<b>为我所用</b>。": {
+  "en": "Spend {0|45}{Energy} to gain 1 Secret Skill card <b>Use for My Own</b>."
+ },
+ "使用{0|45}{Energy}，获得1张秘技牌<color=#FFE897>为我所用</color>。": {
+  "en": "Spend {0|45}{Energy} to gain 1 Secret Skill card <color=#FFE897>Use for My Own</color>."
+ },
+ "每使用{0|45}{Energy}，获得1张秘技牌<b>为我所用</b>。": {
+  "en": "For every {0|45}{Energy} spent, gain 1 Secret Skill card <b>Use for My Own</b>."
+ },
+ "每使用{0|45}{Energy}，武凤获得1张<color=#FFE897>为我所用</color>。\n<color=#FFE897>为我所用</color>：随机获得本局其它棋手的1张秘技卡。": {
+  "en": "For every {0|45}{Energy} spent, Wu Feng gains 1 <color=#FFE897>Use for My Own</color>.\n<color=#FFE897>Use for My Own</color>: Randomly gain 1 Secret Skill card of another Chessplayer in this match."
+ },
+ "使用时限：当前赛季": {
+  "en": "Valid for: Current season"
+ },
+ "使用棋手: {0}": {
+  "en": "Chessplayer used: {0}"
+ },
+ "你每使用<color=#99DEB0>3张</color>效果牌，所有英雄等级<color=#99DEB0>+8</color>。": {
+  "en": "Every time you play <color=#99DEB0>3</color> Effect Cards, All Heroes gain <color=#99DEB0>+8</color> Levels."
+ },
+ "使用6张<color=#FFE897>即兴创作</color>": {
+  "en": "Play 6 <color=#FFE897>Improvisation</color> cards"
+ },
+ "本回合引导内容\n\n英雄觉醒：使用3张同名卡可以使英雄觉醒，觉醒后英雄的词条会大幅增强": {
+  "en": "Guide to the Round\n\nHero Awaken: Play 3 cards of the same name to Awaken a Hero. An Awakened Hero's Traits are greatly enhanced"
+ },
+ "本回合引导内容\n<color=#98CBFF>棋手技能：</color>比赛开始时，可选择1名棋手，不同的棋手有不同技能\n<color=#98CBFF>英雄觉醒：</color>使用3张相同英雄牌可以使英雄觉醒，觉醒后英雄的卡牌效果大幅增强": {
+  "en": "Guide to the Round\n<color=#98CBFF>Chessplayer Skill:</color> At the start of the match, choose 1 Chessplayer. Each Chessplayer has a different Skill\n<color=#98CBFF>Hero Awaken:</color> Play 3 copies of the same Hero card to Awaken that Hero. An Awakened Hero's card effects are greatly enhanced"
  }
 }
