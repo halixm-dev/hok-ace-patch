@@ -108,6 +108,9 @@ images), and the user reports the updated screens read English.
 corrected in this repo's code rather than in the catalog. The one exception is strings a game update
 added that the upstream catalog has no entry for: `tools/research/apply_catalog_fixes.py` adds them from
 `tools/research/catalog_additions.json`, and re-running it after an upstream re-import puts them back.
+The same script rewrites entries upstream carries as garbled machine translation from
+`tools/research/catalog_rewrites.json` (36 English, 138 Indonesian, including all 121 Diamond Frenzy
+talent texts); it changes wording only, so no count below moves.
 
 | what | count | where |
 |---|---|---|

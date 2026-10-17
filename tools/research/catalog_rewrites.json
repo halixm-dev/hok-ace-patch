@@ -1,0 +1,452 @@
+{
+ "<a href=11><color=#99DEB0>╬整备系列</color></a>\n你的英雄每次触发<a href=11><color=#99DEB0>╬整备</color></a>时，己方英雄<color=#99DEB0>+1.5%</color>最大生命值。": {
+  "en": "<a href=11><color=#99DEB0>╬Prepare Series</color></a>\nEach time your Hero triggers <a href=11><color=#99DEB0>╬Prepare</color></a>, your Heroes gain <color=#99DEB0>+1.5%</color> Max HP.",
+  "id": "<a href=11><color=#99DEB0>Seri ╬Prepare</color></a>\nSetiap kali Hero kamu memicu <a href=11><color=#99DEB0>╬Prepare</color></a>, Hero kamu mendapatkan <color=#99DEB0>+1.5%</color> Max HP."
+ },
+ "<a href=11><color=#99DEB0>╬整备系列</color></a>\n己方英雄触发<a href=11><color=#99DEB0>╬整备</color></a>时，所有英雄获得场上<a href=11><color=#99DEB0>╬整备</color></a>英雄数量x<color=#99DEB0>1.5</color>的等级。": {
+  "en": "<a href=11><color=#99DEB0>╬Prepare Series</color></a>\nWhen your Hero triggers <a href=11><color=#99DEB0>╬Prepare</color></a>, All Heroes gain Levels equal to the number of <a href=11><color=#99DEB0>╬Prepare</color></a> Heroes on the board x <color=#99DEB0>1.5</color>.",
+  "id": "<a href=11><color=#99DEB0>Seri ╬Prepare</color></a>\nSaat Hero kamu memicu <a href=11><color=#99DEB0>╬Prepare</color></a>, semua Hero mendapatkan Level sebanyak jumlah Hero <a href=11><color=#99DEB0>╬Prepare</color></a> di papan x <color=#99DEB0>1.5</color>."
+ },
+ "<a href=3130011><color=#99DEB0>═临时等级系列</color></a>\n己方英雄获得临时等级时，每获得<color=#99DEB0>10级</color>，额外随机分配<color=#99DEB0>1点</color>属性：双攻/攻击速度/双防中的随机<color=#99DEB0>1个</color>。": {
+  "en": "<a href=3130011><color=#99DEB0>═Temporary Level Series</color></a>\nWhen your Heroes gain Temporary Levels, every <color=#99DEB0>10 Levels</color> gained adds an extra <color=#99DEB0>1 point</color> to a random stat: <color=#99DEB0>1</color> of Physical and Magic Attack, Attack Speed, or Physical and Magic Defense.",
+  "id": "<a href=3130011><color=#99DEB0>Seri ═Temporary Level</color></a>\nSaat Hero kamu mendapatkan Temporary Level, setiap <color=#99DEB0>10 Level</color> yang didapat menambah <color=#99DEB0>1 poin</color> ke atribut acak: <color=#99DEB0>1</color> dari Physical dan Magic Attack, Attack Speed, atau Physical dan Magic Defense."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，己方英雄<color=#99DEB0>每次释放技能</color>，所有英雄获得<color=#99DEB0>1%</color>物理吸血和<color=#99DEB0>1%</color>法术吸血（上限<color=#99DEB0>30%</color>）。": {
+  "en": "<color=#99DEB0>General Series</color>\nOnce Battle starts, <color=#99DEB0>each time</color> your Hero casts a Skill, All Heroes gain <color=#99DEB0>1%</color> Physical Lifesteal and <color=#99DEB0>1%</color> Magic Lifesteal (up to <color=#99DEB0>30%</color>).",
+  "id": "<color=#99DEB0>Seri General</color>\nSetelah Pertempuran dimulai, <color=#99DEB0>setiap kali</color> Hero kamu menggunakan Skill, semua Hero mendapatkan <color=#99DEB0>1%</color> Physical Lifesteal dan <color=#99DEB0>1%</color> Magic Lifesteal (maksimal <color=#99DEB0>30%</color>)."
+ },
+ "不夜上元·律动": {
+  "en": "Sleepless Lantern Festival · Rhythm",
+  "id": "Festival Lampion Semalam Suntuk · Irama"
+ },
+ "云霄派对·暖场": {
+  "en": "Sky-High Party · Warm-Up",
+  "id": "Pesta Langit · Pemanasan"
+ },
+ "你的英雄每次触发<color=#99DEB0>╬整备</color>时，己方英雄<color=#99DEB0>+1.5%</color>最大生命值。": {
+  "en": "Each time your Hero triggers <color=#99DEB0>╬Prepare</color>, your Heroes gain <color=#99DEB0>+1.5%</color> Max HP.",
+  "id": "Setiap kali Hero kamu memicu <color=#99DEB0>╬Prepare</color>, Hero kamu mendapatkan <color=#99DEB0>+1.5%</color> Max HP."
+ },
+ "召唤单位时（召唤物，图腾），它额外获得<color=#99DEB0>100</color>+其召唤者等级x<color=#99DEB0>80%</color>的═临时等级。每回合前<color=#99DEB0>15</color>个召唤单位获得╧完美复生。": {
+  "en": "When a unit is summoned (summons, Totems), it gains an extra <color=#99DEB0>100</color> + its summoner's Level x <color=#99DEB0>80%</color> ═Temporary Level. The first <color=#99DEB0>15</color> summoned units each Round gain ╧Perfect Revive.",
+  "id": "Saat unit dipanggil (Summon, Totem), unit itu mendapatkan tambahan <color=#99DEB0>100</color> + Level pemanggilnya x <color=#99DEB0>80%</color> ═Temporary Level. <color=#99DEB0>15</color> unit Summon pertama setiap Ronde mendapatkan ╧Perfect Revive."
+ },
+ "同时每0.5秒<color=#86ccfd>削减目标敌人5点法力值</color>": {
+  "en": "Also, every 0.5s <color=#86ccfd>reduces the target enemy Mana by 5</color>",
+  "id": "Selain itu, setiap 0.5 detik <color=#86ccfd>mengurangi 5 Mana musuh target</color>"
+ },
+ "回合开始时，获得0{Energy}。每在当前棋手等级停留1回合，额外获得1{Energy}，至多4{Energy}。": {
+  "en": "At the start of the Round, gain 0 {Energy}. For each Round you stay at your current Chessplayer Level, gain an extra 1 {Energy}, up to 4 {Energy}.",
+  "id": "Di awal Ronde, dapatkan 0 {Energy}. Untuk setiap Ronde kamu bertahan di Level Chessplayer saat ini, dapatkan tambahan 1 {Energy}, maksimal 4 {Energy}."
+ },
+ "回合开始时，随机获得<color=#99DEB0>4张</color>你人数最多阵营的英雄牌。": {
+  "en": "At the start of the Round, randomly gain <color=#99DEB0>4</color> Hero cards from your most populated Faction.",
+  "id": "Di awal Ronde, dapatkan <color=#99DEB0>4</color> Hero Card acak dari Faction dengan Hero terbanyak kamu."
+ },
+ "在S1赛季中达到王者段位1000分，获得【S1限定表情】": {
+  "en": "Reach 1000 points at King Rank in Season S1 to obtain 【S1 Limited Emote】",
+  "id": "Capai 1000 poin di Rank King pada Season S1 untuk mendapatkan 【Emote Terbatas S1】"
+ },
+ "己方英雄获得临时等级时，每获得<color=#99DEB0>10级</color>，额外随机分配<color=#99DEB0>1点</color>属性：双攻/攻击速度/双防中的随机<color=#99DEB0>1个</color>。": {
+  "en": "When your Heroes gain Temporary Levels, every <color=#99DEB0>10 Levels</color> gained adds an extra <color=#99DEB0>1 point</color> to a random stat: <color=#99DEB0>1</color> of Physical and Magic Attack, Attack Speed, or Physical and Magic Defense.",
+  "id": "Saat Hero kamu mendapatkan Temporary Level, setiap <color=#99DEB0>10 Level</color> yang didapat menambah <color=#99DEB0>1 poin</color> ke atribut acak: <color=#99DEB0>1</color> dari Physical dan Magic Attack, Attack Speed, atau Physical dan Magic Defense."
+ },
+ "己方英雄触发<color=#99DEB0>╬整备</color>时，所有英雄获得场上<color=#99DEB0>╬整备</color>英雄数量x<color=#99DEB0>1.5</color>的等级。": {
+  "en": "When your Hero triggers <color=#99DEB0>╬Prepare</color>, All Heroes gain Levels equal to the number of <color=#99DEB0>╬Prepare</color> Heroes on the board x <color=#99DEB0>1.5</color>.",
+  "id": "Saat Hero kamu memicu <color=#99DEB0>╬Prepare</color>, semua Hero mendapatkan Level sebanyak jumlah Hero <color=#99DEB0>╬Prepare</color> di papan x <color=#99DEB0>1.5</color>."
+ },
+ "战斗开始时，若己方有<color=#99DEB0>至少2个</color>阵营，所有英雄获<color=#99DEB0>20</color>×阵营数的等级。": {
+  "en": "At the start of Battle, if you have <color=#99DEB0>at least 2</color> Factions, All Heroes gain <color=#99DEB0>20</color> × the number of Factions in Levels.",
+  "id": "Di awal Pertempuran, jika kamu punya <color=#99DEB0>minimal 2</color> Faction, semua Hero mendapatkan Level sebanyak <color=#99DEB0>20</color> × jumlah Faction."
+ },
+ "若你战斗失败2次，获得9{LordExp}。": {
+  "en": "If you lose 2 Battles, gain 9 {LordExp}.",
+  "id": "Jika kamu kalah dalam 2 Pertempuran, dapatkan 9 {LordExp}."
+ },
+ "若你战斗胜利2次，获得10{Energy}。": {
+  "en": "If you win 2 Battles, gain 10 {Energy}.",
+  "id": "Jika kamu menang dalam 2 Pertempuran, dapatkan 10 {Energy}."
+ },
+ "限定远程。攻击速度<color=#99DEB0>+60%</color>、暴击率<color=#99DEB0>+30%</color>，攻击速度上限突破至<color=#99DEB0>6.0</color>。\n普通攻击额外分裂<color=#99DEB0>2</color>道，每道造成<color=#99DEB0>60%</color>物理伤害。": {
+  "en": "Ranged only. Attack Speed <color=#99DEB0>+60%</color>, Crit Rate <color=#99DEB0>+30%</color>, and the Attack Speed cap rises to <color=#99DEB0>6.0</color>.\nBasic attacks split into <color=#99DEB0>2</color> extra projectiles, each dealing <color=#99DEB0>60%</color> Physical Damage.",
+  "id": "Khusus jarak jauh. Attack Speed <color=#99DEB0>+60%</color>, Crit Rate <color=#99DEB0>+30%</color>, dan batas Attack Speed naik menjadi <color=#99DEB0>6.0</color>.\nSerangan dasar terpecah menjadi <color=#99DEB0>2</color> proyektil tambahan, masing-masing memberikan <color=#99DEB0>60%</color> Physical Damage."
+ },
+ "回合开始时，若上次战斗胜利，获得2{Energy}和1次临时刷新。": {
+  "en": "At the start of the Round, if you won the last Battle, gain 2 {Energy} and 1 Temporary Refresh.",
+  "id": "Di awal Ronde, jika kamu memenangkan Pertempuran terakhir, dapatkan 2 {Energy} dan 1 Refresh sementara."
+ },
+ "<color=#99DEB0>通用系列</color>\n击败<color=#99DEB0>3名</color>敌人后，召唤<color=#99DEB0>1</color>只等级为已击败英雄之和的熊灵。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSetelah mengalahkan <color=#99DEB0>3</color> musuh, Summon <color=#99DEB0>1</color> Bear Spirit dengan Level sebesar total Level Hero yang dikalahkan."
+ },
+ "<color=#ffffff><b>复制</b></color>：获得1张原始同名英雄牌。": {
+  "id": "<color=#ffffff><b>Salin</b></color>: Dapatkan 1 Hero Card asli dengan nama yang sama."
+ },
+ "梦魇钩锁": {
+  "id": "Nightmare Hook"
+ },
+ "获得1张蔡文姬和1张扁鹊。共战时，扁鹊会固定对蔡文姬释放技能，使之不再普攻，而是获得50%移速并在敌方附近游走。并使蔡文姬的技能获得扁鹊技能【万变灵药】的效果*<color=#00FF00>120%</color>，效果可叠加。": {
+  "id": "Dapatkan 1 kartu Cai Yan dan 1 kartu Dr Bian. Saat bertarung bersama, Dr Bian selalu menggunakan Skill pada Cai Yan, sehingga Cai Yan tidak lagi menyerang dasar, melainkan mendapatkan 50% Movement Speed dan bergerak di dekat musuh. Skill Cai Yan juga mendapatkan efek Skill Dr Bian 【Ever-Changing Elixir】 * <color=#00FF00>120%</color>, dan efeknya bisa menumpuk."
+ },
+ "首次施法制造4个分身，会在机关傀儡施法时朝着目标发射1道激光造成[0]%物理攻击力的物理伤害": {
+  "id": "Cast pertama menciptakan 4 klon, yang menembakkan 1 laser ke target setiap kali Mechanical Puppet menggunakan Skill, memberikan Physical Damage sebesar [0]% Physical Attack."
+ },
+ "<a href=100><color=#99DEB0>╋闪现系列</color></a>\n回合开始时，你每有<color=#99DEB0>1名</color><a href=100><color=#99DEB0>╋闪现</color></a>英雄，所有英雄等级<color=#99DEB0>+7</color>。": {
+  "id": "<a href=100><color=#99DEB0>Seri ╋Flash</color></a>\nDi awal Ronde, untuk setiap <color=#99DEB0>1</color> Hero <a href=100><color=#99DEB0>╋Flash</color></a> yang kamu punya, Semua Hero mendapat <color=#99DEB0>+7</color> level."
+ },
+ "<a href=100><color=#99DEB0>╋闪现系列</color></a>\n场上每有<color=#99DEB0>1名</color><a href=100><color=#99DEB0>╋闪现</color></a>英雄，己方英雄获得<color=#99DEB0>15%</color>暴击率和<color=#99DEB0>15%</color>暴击伤害。": {
+  "id": "<a href=100><color=#99DEB0>Seri ╋Flash</color></a>\nUntuk setiap <color=#99DEB0>1</color> Hero <a href=100><color=#99DEB0>╋Flash</color></a> di papan, Hero-mu mendapat <color=#99DEB0>15%</color> Crit Rate dan <color=#99DEB0>15%</color> Critical Damage."
+ },
+ "<a href=10><color=#99DEB0>╫牺牲系列</color></a>\n你在战斗中<a href=16><color=#99DEB0>╧复生</color></a>的英雄，会无敌<color=#99DEB0>3秒</color>，并且获得<color=#99DEB0>300%</color>攻击速度和<color=#99DEB0>100%</color>暴击率（不可叠加）。": {
+  "en": "<a href=10><color=#99DEB0>╫Sacrifice Series</color></a>\nYour Heroes that <a href=16><color=#99DEB0>╧Revive</color></a> in Battle become Invincible for <color=#99DEB0>3s</color> and gain <color=#99DEB0>300%</color> Attack Speed and <color=#99DEB0>100%</color> Crit Rate (does not stack).",
+  "id": "<a href=10><color=#99DEB0>Seri ╫Sacrifice</color></a>\nHero kamu yang <a href=16><color=#99DEB0>╧Revive</color></a> dalam Pertempuran menjadi Invincible selama <color=#99DEB0>3 detik</color> dan mendapatkan <color=#99DEB0>300%</color> Attack Speed serta <color=#99DEB0>100%</color> Crit Rate (tidak menumpuk)."
+ },
+ "<a href=10><color=#99DEB0>╫牺牲系列</color></a>\n你的英雄触发<a href=10><color=#99DEB0>╫牺牲</color></a>时，所有英雄等级<color=#99DEB0>+8</color>。": {
+  "id": "<a href=10><color=#99DEB0>Seri ╫Sacrifice</color></a>\nSaat Hero-mu memicu <a href=10><color=#99DEB0>╫Sacrifice</color></a>, Semua Hero mendapat <color=#99DEB0>+8</color> level."
+ },
+ "<a href=10><color=#99DEB0>╫牺牲系列</color></a>\n己方英雄触发<a href=10><color=#99DEB0>╫牺牲</color></a>时，场上随机<color=#99DEB0>1名</color><a href=10><color=#99DEB0>╫牺牲</color></a>英雄获得<color=#99DEB0>该英雄总等级x35%的等级</color>。": {
+  "id": "<a href=10><color=#99DEB0>Seri ╫Sacrifice</color></a>\nSaat Hero-mu memicu <a href=10><color=#99DEB0>╫Sacrifice</color></a>, <color=#99DEB0>1</color> Hero <a href=10><color=#99DEB0>╫Sacrifice</color></a> Acak di papan mendapat <color=#99DEB0>Level setara 35% dari Total Level Hero tersebut</color>."
+ },
+ "<a href=10><color=#99DEB0>╫牺牲系列</color></a>\n战斗中，你<color=#99DEB0>第4次触发英雄的╫牺牲效果</color>时，所有已阵亡的╫牺牲英雄将会╧完美复生并获得<color=#99DEB0>200</color>临时等级。": {
+  "id": "<a href=10><color=#99DEB0>Seri ╫Sacrifice</color></a>\nDalam battle, saat kamu <color=#99DEB0>Memicu Efek ╫Sacrifice Hero untuk ke-4 kalinya</color>, semua hero ╫Sacrifice yang Dikalahkan akan ╧Perfectly Revive dan mendapat <color=#99DEB0>200</color> Temporary Level."
+ },
+ "<a href=10><color=#99DEB0>╫牺牲系列</color></a>\n立即获得<color=#99DEB0>4张</color><a href=10><color=#99DEB0>╫牺牲</color></a>英雄牌。你的英雄触发<a href=10><color=#99DEB0>╫牺牲</color></a>时，获得<color=#99DEB0>1张</color><a href=10><color=#99DEB0>╫牺牲</color></a>英雄牌（每回合最多<color=#99DEB0>4张</color>）。": {
+  "en": "<a href=10><color=#99DEB0>╫Sacrifice Series</color></a>\nImmediately gain <color=#99DEB0>4</color> <a href=10><color=#99DEB0>╫Sacrifice</color></a> Hero cards. When your Hero triggers <a href=10><color=#99DEB0>╫Sacrifice</color></a>, gain <color=#99DEB0>1</color> <a href=10><color=#99DEB0>╫Sacrifice</color></a> Hero card (max <color=#99DEB0>4</color> per Round).",
+  "id": "<a href=10><color=#99DEB0>Seri ╫Sacrifice</color></a>\nLangsung dapatkan <color=#99DEB0>4</color> kartu Hero <a href=10><color=#99DEB0>╫Sacrifice</color></a>. Saat Hero kamu memicu <a href=10><color=#99DEB0>╫Sacrifice</color></a>, dapatkan <color=#99DEB0>1</color> kartu Hero <a href=10><color=#99DEB0>╫Sacrifice</color></a> (maksimal <color=#99DEB0>4</color> per Ronde)."
+ },
+ "<a href=11><color=#99DEB0>╬整备系列</color></a>\n你的英雄触发<a href=11><color=#99DEB0>╬整备</color></a>时，所有英雄等级<color=#99DEB0>+3</color>。": {
+  "id": "<a href=11><color=#99DEB0>Seri ╬Prepare</color></a>\nSaat Hero-mu memicu <a href=11><color=#99DEB0>╬Prepare</color></a>, semua Hero mendapat <color=#99DEB0>+3</color> Level."
+ },
+ "<a href=11><color=#99DEB0>╬整备系列</color></a>\n立即获得<color=#99DEB0>3张</color><a href=11><color=#99DEB0>╬整备</color></a>英雄牌。你的英雄触发<a href=11><color=#99DEB0>╬整备</color></a>时，获得<color=#99DEB0>1张</color><a href=11><color=#99DEB0>╬整备</color></a>英雄牌（每回合最多<color=#99DEB0>3张</color>）。": {
+  "en": "<a href=11><color=#99DEB0>╬Prepare Series</color></a>\nImmediately gain <color=#99DEB0>3</color> <a href=11><color=#99DEB0>╬Prepare</color></a> Hero cards. When your Hero triggers <a href=11><color=#99DEB0>╬Prepare</color></a>, gain <color=#99DEB0>1</color> <a href=11><color=#99DEB0>╬Prepare</color></a> Hero card (max <color=#99DEB0>3</color> per Round).",
+  "id": "<a href=11><color=#99DEB0>Seri ╬Prepare</color></a>\nLangsung dapatkan <color=#99DEB0>3</color> kartu Hero <a href=11><color=#99DEB0>╬Prepare</color></a>. Saat Hero kamu memicu <a href=11><color=#99DEB0>╬Prepare</color></a>, dapatkan <color=#99DEB0>1</color> kartu Hero <a href=11><color=#99DEB0>╬Prepare</color></a> (maksimal <color=#99DEB0>3</color> per Ronde)."
+ },
+ "<a href=1><color=#99DEB0>╨登场系列</color></a>\n你的英雄每次触发<a href=1><color=#99DEB0>╨登场</color></a>时，等级最高的<color=#99DEB0>2个</color><a href=1><color=#99DEB0>╨登场</color></a>英雄<color=#99DEB0>+18级</color>。": {
+  "id": "<a href=1><color=#99DEB0>Seri ╨Deploy</color></a>\nSetiap kali Hero-mu memicu <a href=1><color=#99DEB0>╨Deploy</color></a>, <color=#99DEB0>2</color> Hero <a href=1><color=#99DEB0>╨Deploy</color></a> dengan level tertinggi mendapat <color=#99DEB0>+18 level</color>."
+ },
+ "<a href=1><color=#99DEB0>╨登场系列</color></a>\n你的英雄触发<a href=1><color=#99DEB0>╨登场</color></a>时，所有英雄等级<color=#99DEB0>+3</color>。": {
+  "id": "<a href=1><color=#99DEB0>Seri ╨Deploy</color></a>\nSaat hero-mu Memicu <a href=1><color=#99DEB0>╨Deploy</color></a>, Semua Hero mendapat <color=#99DEB0>+3</color> Level."
+ },
+ "<a href=1><color=#99DEB0>╨登场系列</color></a>\n每触发<color=#99DEB0>1次</color><a href=1><color=#99DEB0>╨登场</color></a>，己方英雄物理攻击力和法术攻击力<color=#99DEB0>+1.5%</color>。": {
+  "en": "<a href=1><color=#99DEB0>╨Deploy Series</color></a>\nEach time <color=#99DEB0>1</color> <a href=1><color=#99DEB0>╨Deploy</color></a> triggers, your Heroes gain <color=#99DEB0>+1.5%</color> Physical Attack and Magic Attack.",
+  "id": "<a href=1><color=#99DEB0>Seri ╨Deploy</color></a>\nSetiap kali <color=#99DEB0>1</color> <a href=1><color=#99DEB0>╨Deploy</color></a> terpicu, Hero kamu mendapatkan <color=#99DEB0>+1.5%</color> Physical Attack dan Magic Attack."
+ },
+ "<a href=1><color=#99DEB0>╨登场系列</color></a>\n立即获得<color=#99DEB0>2张</color><a href=1><color=#99DEB0>╨登场</color></a>英雄牌。回合开始时，随机获得<color=#99DEB0>4张</color><a href=1><color=#99DEB0>╨登场</color></a>英雄牌。": {
+  "id": "<a href=1><color=#99DEB0>Seri ╨Deploy</color></a>\nLangsung dapatkan <color=#99DEB0>2</color> kartu hero <a href=1><color=#99DEB0>╨Deploy</color></a>. Di awal Ronde, dapatkan <color=#99DEB0>4</color> kartu hero <a href=1><color=#99DEB0>╨Deploy</color></a> secara acak."
+ },
+ "<a href=200><color=#99DEB0>╊夺取系列</color></a>\n你的英雄触发<a href=200><color=#99DEB0>╊夺取</color></a>时，所有英雄等级<color=#99DEB0>+6</color>。": {
+  "en": "<a href=200><color=#99DEB0>╊Steal Series</color></a>\nWhen your Hero triggers <a href=200><color=#99DEB0>╊Plunder</color></a>, All Heroes gain <color=#99DEB0>+6</color> levels.",
+  "id": "<a href=200><color=#99DEB0>Seri ╊Steal</color></a>\nSaat Hero kamu memicu <a href=200><color=#99DEB0>╊Steal</color></a>, semua Hero mendapatkan <color=#99DEB0>+6</color> Level."
+ },
+ "<a href=200><color=#99DEB0>╊夺取系列</color></a>\n立即获得<color=#99DEB0>1张夺取援兵</color>。回合开始时，获得<color=#99DEB0>2张夺取援兵</color>：随机获得<color=#99DEB0>1张</color>具有<a href=200><color=#99DEB0>╊夺取</color></a>词条的英雄牌。": {
+  "id": "<a href=200><color=#99DEB0>Seri ╊Steal</color></a>\nLangsung dapatkan <color=#99DEB0>1 Steal Reinforcement</color>. Di awal Ronde, dapatkan <color=#99DEB0>2 Steal Reinforcement</color>: dapatkan <color=#99DEB0>1</color> Hero Card acak dengan tag <a href=200><color=#99DEB0>╊Steal</color></a>."
+ },
+ "<a href=3130011><color=#99DEB0>═临时等级系列</color></a>\n任意途径获得的<a href=3130011><color=#99DEB0>═临时等级</color></a>增加<color=#99DEB0>80%</color>，且获得临时等级的<color=#99DEB0>30%</color>立即可转化为永久等级。": {
+  "id": "<a href=3130011><color=#99DEB0>Seri ═Temporary Level</color></a>\n<a href=3130011><color=#99DEB0>═Temporary Level</color></a> yang didapat dari sumber apa pun bertambah <color=#99DEB0>80%</color>, dan <color=#99DEB0>30%</color> Temporary Level yang didapat langsung diubah menjadi level permanen."
+ },
+ "<a href=3130011><color=#99DEB0>═临时等级系列</color></a>\n战斗开始时，将<color=#99DEB0>200</color>临时等级随机分配给己方英雄。每回合增加<color=#99DEB0>100</color>临时等级。": {
+  "id": "<a href=3130011><color=#99DEB0>Seri ═Temporary Level</color></a>\nDi awal Battle, bagikan <color=#99DEB0>200</color> Temporary Level secara acak ke Hero ally. Jumlah ini bertambah <color=#99DEB0>100</color> Temporary Level setiap Ronde."
+ },
+ "<a href=3130011><color=#99DEB0>═临时等级系列</color></a>\n战斗开始时，己方所有英雄获得等同于其真实等级<color=#99DEB0>70%</color>的临时等级。": {
+  "en": "<a href=3130011><color=#99DEB0>═Temporary Level Series</color></a>\nAt the start of Battle, all your Heroes gain Temporary Levels equal to <color=#99DEB0>70%</color> of their actual Level.",
+  "id": "<a href=3130011><color=#99DEB0>Seri ═Temporary Level</color></a>\nDi awal Pertempuran, semua Hero kamu mendapatkan Temporary Level sebesar <color=#99DEB0>70%</color> dari Level asli mereka."
+ },
+ "<a href=321><color=#99DEB0>╉图腾系列</color></a>\n<color=#99DEB0>召唤╉图腾</color>，己方所有【大河】英雄获得相当于<a><color=#99DEB0>╉<b>图腾</b></color></a>等级<color=#99DEB0>60%</color>的<a>═临时等级</a>。": {
+  "en": "<a href=321><color=#99DEB0>╉Totem Series</color></a>\n<color=#99DEB0>Summon ╉Totem</color>: all your [Riverlands] Heroes gain <a><color=#99DEB0>╉<b>Totem</b></color></a> Level × <color=#99DEB0>60%</color> as <a>═Temporary Level</a>.",
+  "id": "<a href=321><color=#99DEB0>Seri ╉Totem</color></a>\n<color=#99DEB0>Summon ╉Totem</color>: semua Hero [Riverlands] kamu mendapatkan Level <a><color=#99DEB0>╉<b>Totem</b></color></a> × <color=#99DEB0>60%</color> sebagai <a>═Temporary Level</a>."
+ },
+ "<a href=321><color=#99DEB0>╉图腾系列</color></a>\n<color=#99DEB0>召唤╉图腾</color>，己方所有【大河】英雄获得相当于<a><color=#99DEB0>╉<b>图腾</b></color></a>等级的<a>═临时等级</a>。": {
+  "en": "<a href=321><color=#99DEB0>╉Totem Series</color></a>\n<color=#99DEB0>Summon ╉Totem</color>: all your [Riverlands] Heroes gain <a><color=#99DEB0>╉<b>Totem</b></color></a> Level as <a>═Temporary Level</a>.",
+  "id": "<a href=321><color=#99DEB0>Seri ╉Totem</color></a>\n<color=#99DEB0>Summon ╉Totem</color>: semua Hero [Riverlands] kamu mendapatkan Level <a><color=#99DEB0>╉<b>Totem</b></color></a> sebagai <a>═Temporary Level</a>."
+ },
+ "<a href=321><color=#99DEB0>╉图腾系列</color></a>\n己方<a href=321><color=#99DEB0>╉图腾</color></a>强化：<a href=324><color=#99DEB0>╉先知图腾</color></a>-额外获得<a href=3130011><color=#99DEB0>═临时等级</color></a>、<a href=323><color=#99DEB0>╉因缘图腾</color></a>-普攻/技能释放额外获得等级、<a href=322><color=#99DEB0>╉往生图腾</color></a>：增加己方物理及法术防御。": {
+  "id": "<a href=321><color=#99DEB0>Seri ╉Totem</color></a>\nPerkuat <a href=321><color=#99DEB0>╉Totems</color></a> milikmu: <a href=324><color=#99DEB0>╉Seer Totem</color></a> mendapat <a href=3130011><color=#99DEB0>═Temporary Levels</color></a> tambahan; <a href=323><color=#99DEB0>╉Destiny Totem</color></a> mendapat Level tambahan dari Basic Attack dan penggunaan Skill; <a href=322><color=#99DEB0>╉Afterlife Totem</color></a> meningkatkan Physical dan Magic Defense ally."
+ },
+ "<a href=3><color=#99DEB0>╪开团系列</color></a>\n你的英雄每次触发<a href=3><color=#99DEB0>╪开团</color></a>时，己方英雄永久<color=#99DEB0>+8%</color>攻击速度。": {
+  "id": "<a href=3><color=#99DEB0>Seri ╪Initiate</color></a>\nSetiap kali Hero-mu memicu <a href=3><color=#99DEB0>╪Initiate</color></a>, semua Hero ally mendapat <color=#99DEB0>+8%</color> Attack Speed secara permanen."
+ },
+ "<a href=3><color=#99DEB0>╪开团系列</color></a>\n你的英雄每次触发<a href=3><color=#99DEB0>╪开团</color></a>时，所有英雄等级<color=#99DEB0>+6</color>。": {
+  "id": "<a href=3><color=#99DEB0>Seri ╪Initiate</color></a>\nSetiap kali Hero-mu memicu <a href=3><color=#99DEB0>╪Initiate</color></a>, semua Hero mendapat <color=#99DEB0>+6</color> Level."
+ },
+ "<a href=3><color=#99DEB0>╪开团系列</color></a>\n你的英雄触发<a href=3><color=#99DEB0>╪开团</color></a>时，所有英雄等级永久<color=#99DEB0>+5</color>。": {
+  "id": "<a href=3><color=#99DEB0>Seri ╪Initiate</color></a>\nSaat hero-mu Memicu <a href=3><color=#99DEB0>╪Initiate</color></a>, Semua Hero mendapat <color=#99DEB0>+5</color> level secara permanen."
+ },
+ "<a href=3><color=#99DEB0>╪开团系列</color></a>\n立即获得<color=#99DEB0>2张</color><a href=3><color=#99DEB0>╪开团</color></a>英雄牌。己方单位触发<a href=3><color=#99DEB0>╪开团</color></a>时，获得<color=#99DEB0>1张</color><a href=3><color=#99DEB0>╪开团</color></a>英雄牌（每回合最多<color=#99DEB0>3张</color>）。": {
+  "id": "<a href=3><color=#99DEB0>Seri ╪Initiate</color></a>\nLangsung dapatkan <color=#99DEB0>2</color> kartu hero <a href=3><color=#99DEB0>╪Initiate</color></a>. Saat unit-mu Memicu <a href=3><color=#99DEB0>╪Initiate</color></a>, dapatkan <color=#99DEB0>1</color> Kartu Hero <a href=3><color=#99DEB0>╪Initiate</color></a> (maks <color=#99DEB0>3</color> per Ronde)."
+ },
+ "<color=#99DEB0>╥阿科米亚核心系列</color>\n<color=#99DEB0>╥阿科米亚核心</color>不再分配等级，转而每秒对<color=#99DEB0>1个</color>随机敌方单位造成<color=#99DEB0>3次核心等级×1</color>的真实伤害。": {
+  "id": "<color=#99DEB0>Seri ╥Arcomia Core</color>\n<color=#99DEB0>╥Arcomia Core</color> tidak lagi membagikan Level. Sebagai gantinya, setiap detik ia menyerang <color=#99DEB0>1</color> unit musuh acak dengan <color=#99DEB0>3 hit True Damage, masing-masing sebesar Level Core × 1</color>."
+ },
+ "<color=#99DEB0>低阶系列</color>\n回合开始时，若上阵<color=#99DEB0>5名</color>及以上<color=#99DEB0>1-3阶</color>的英雄，获得<color=#99DEB0>2张</color>点金：指定<color=#99DEB0>1名1-3阶</color>的英雄<color=#99DEB0>+40级</color>。": {
+  "id": "<color=#99DEB0>Seri Low-Tier</color>\nDi awal Ronde, jika kamu menurunkan <color=#99DEB0>5 atau lebih</color> Hero <color=#99DEB0>Tier 1-3</color>, dapatkan <color=#99DEB0>2</color> Midas Touch: pilih <color=#99DEB0>1 Hero Tier 1-3</color> untuk mendapatkan <color=#99DEB0>+40 Level</color>."
+ },
+ "<color=#99DEB0>古币系列</color>\n回合开始时获得<color=#99DEB0>1张</color>精致古币。场上每有<color=#99DEB0>1名</color>【河洛】英雄，你打出的古币/精致古币就会返回手牌<color=#99DEB0>1次</color>。每打出<color=#99DEB0>2次</color>古币/精致古币，所有英雄等级<color=#99DEB0>+2</color>。": {
+  "id": "<color=#99DEB0>Seri Ancient Coin</color>\nDi awal setiap Ronde, dapatkan <color=#99DEB0>1</color> Exquisite Ancient Coin. Untuk setiap <color=#99DEB0>1</color> Hero [Central Plains] di papan, Ancient Coin atau Exquisite Ancient Coin yang kamu mainkan kembali ke tangan <color=#99DEB0>1 kali tambahan</color>. Untuk setiap <color=#99DEB0>2</color> Ancient Coin atau Exquisite Ancient Coin yang dimainkan, semua Hero mendapatkan <color=#99DEB0>2 Level</color>."
+ },
+ "<color=#99DEB0>古币系列</color>\n打出古币时有概率<color=#99DEB0>额外触发2-4次</color>。你的古币额外提供<color=#99DEB0>8级</color>。": {
+  "id": "<color=#99DEB0>Seri Ancient Coin</color>\nAncient Coin berpeluang <color=#99DEB0>terpicu 2-4 kali tambahan</color>. Ancient Coin kamu memberikan tambahan <color=#99DEB0>8 Level</color>."
+ },
+ "<color=#99DEB0>召唤系列</color>\n召唤单位（召唤物、图腾）时，额外获得<color=#99DEB0>100</color>+召唤者等级×<color=#99DEB0>80%</color>的<a href=3130011><color=#99DEB0>═临时等级</color></a>，每回合前<color=#99DEB0>15</color>个召唤单位获得<color=#99DEB0>╧完美复生</color>。": {
+  "en": "<color=#99DEB0>Summon Series</color>\nWhen summoning a unit (summons, Totems), gain an extra <color=#99DEB0>100</color> + the summoner's Level × <color=#99DEB0>80%</color> <a href=3130011><color=#99DEB0>═Temporary Level</color></a>. The first <color=#99DEB0>15</color> summoned units each Round gain <color=#99DEB0>╧Perfect Revive</color>.",
+  "id": "<color=#99DEB0>Seri Summon</color>\nSaat memanggil unit (Summon, Totem), dapatkan tambahan <color=#99DEB0>100</color> + Level pemanggil × <color=#99DEB0>80%</color> <a href=3130011><color=#99DEB0>═Temporary Level</color></a>. <color=#99DEB0>15</color> unit Summon pertama setiap Ronde mendapatkan <color=#99DEB0>╧Perfect Revive</color>."
+ },
+ "<color=#99DEB0>召唤系列</color>\n战斗中入场的召唤物存活<color=#99DEB0>8秒</color>后，<color=#99DEB0>变为其召唤者（无卡牌效果）</color>并保留等级，每场战斗最多<color=#99DEB0>10次</color>。": {
+  "id": "<color=#99DEB0>Seri Summon</color>\nSummon yang masuk saat Pertempuran dan bertahan <color=#99DEB0>8 detik</color> <color=#99DEB0>berubah menjadi pemanggilnya (tanpa efek kartu)</color> dan mempertahankan Level-nya. Maksimal <color=#99DEB0>10 kali</color> per Pertempuran."
+ },
+ "<color=#99DEB0>召唤系列</color>\n每召唤<color=#99DEB0>1个</color>单位（仅召唤物、<a href=321><color=#99DEB0>╉图腾</color></a>），和召唤者同阵营的己方英雄获得<color=#99DEB0>2%</color>最大生命值（上限<color=#99DEB0>40%</color>）。": {
+  "id": "<color=#99DEB0>Seri Summon</color>\nSetiap kali <color=#99DEB0>1</color> unit dipanggil (hanya Summon dan <a href=321><color=#99DEB0>╉Totem</color></a>), Hero sekutu dari Faction yang sama dengan pemanggil mendapatkan <color=#99DEB0>2%</color> Max HP (maksimal <color=#99DEB0>40%</color>)."
+ },
+ "<color=#99DEB0>召唤系列</color>\n每召唤<color=#99DEB0>1个</color>单位（仅召唤物，<a href=321><color=#99DEB0>╉图腾</color></a>），下回合开始时所有英雄等级<color=#99DEB0>+3</color>。": {
+  "id": "<color=#99DEB0>Seri Summon</color>\nUntuk setiap <color=#99DEB0>1</color> unit yang dipanggil (hanya Summon dan <a href=321><color=#99DEB0>╉Totem</color></a>), semua Hero mendapatkan <color=#99DEB0>+3</color> Level di awal Ronde berikutnya."
+ },
+ "<color=#99DEB0>召唤系列</color>\n立即获得<color=#99DEB0>4张</color>召唤、<a href=321><color=#99DEB0>╉图腾</color></a>系列英雄牌。<color=#99DEB0>召唤单位时（含召唤物，<a href=321><color=#99DEB0>╉图腾</color></a>）</color>，获得<color=#99DEB0>1张</color>召唤、<a href=321><color=#99DEB0>╉图腾</color></a>系列英雄牌（每回合最多<color=#99DEB0>4张</color>）。": {
+  "id": "<color=#99DEB0>Seri Summon</color>\nLangsung dapatkan <color=#99DEB0>4</color> Hero Card seri Summon atau <a href=321><color=#99DEB0>╉Totem</color></a>. <color=#99DEB0>Saat memanggil unit (termasuk Summon dan <a href=321><color=#99DEB0>╉Totem</color></a>)</color>, dapatkan <color=#99DEB0>1</color> Hero Card seri Summon atau <a href=321><color=#99DEB0>╉Totem</color></a> (maksimal <color=#99DEB0>4</color> per Ronde)."
+ },
+ "<color=#99DEB0>合成系列</color>\n合成英雄时随机额外获得<color=#99DEB0>6-66级</color>。累计获得<color=#99DEB0>300级</color>时（每名英雄限<color=#99DEB0>1次</color>），场上等级最低的英雄<color=#99DEB0>+60级</color>。": {
+  "id": "<color=#99DEB0>Seri Combine</color>\nSaat meng-Combine Hero, Hero itu mendapatkan tambahan <color=#99DEB0>6-66 Level</color> secara acak. Setelah total <color=#99DEB0>300 Level</color> didapat dengan cara ini (maksimal <color=#99DEB0>sekali</color> per Hero), Hero dengan Level terendah di papan mendapatkan <color=#99DEB0>60 Level</color>."
+ },
+ "<color=#99DEB0>合成系列</color>\n合成英雄时，己方所有英雄<color=#99DEB0>+4级</color>。": {
+  "en": "<color=#99DEB0>Combine Series</color>\nWhen you Combine a Hero, all your Heroes gain <color=#99DEB0>+4 Levels</color>.",
+  "id": "<color=#99DEB0>Seri Combine</color>\nSaat kamu meng-Combine Hero, semua Hero kamu mendapatkan <color=#99DEB0>+4 Level</color>."
+ },
+ "<color=#99DEB0>多阵营系列</color>\n回合开始时，你每有<color=#99DEB0>1个</color>阵营，所有英雄等级<color=#99DEB0>+7</color>。": {
+  "id": "<color=#99DEB0>Seri Multi-Faction</color>\nDi awal Ronde, untuk setiap <color=#99DEB0>1</color> Faction yang kamu miliki, semua Hero mendapatkan <color=#99DEB0>+7</color> Level."
+ },
+ "<color=#99DEB0>多阵营系列</color>\n场上每存在<color=#99DEB0>1个</color>不同阵营，己方英雄物理攻击力和法术攻击力<color=#99DEB0>+10%</color>。": {
+  "id": "<color=#99DEB0>Seri Multi-Faction</color>\nUntuk setiap <color=#99DEB0>1</color> Faction berbeda di papan, Hero kamu mendapatkan <color=#99DEB0>+10%</color> Physical Attack dan Magic Attack."
+ },
+ "<color=#99DEB0>多阵营系列</color>\n战斗开始时，若己方有<color=#99DEB0>至少2个</color>阵营，所有英雄获得<color=#99DEB0>20</color>×阵营数的等级。": {
+  "en": "<color=#99DEB0>Multi-Faction Series</color>\nAt the start of Battle, if you have <color=#99DEB0>at least 2</color> Factions, All Heroes gain <color=#99DEB0>20</color> × the number of Factions in levels.",
+  "id": "<color=#99DEB0>Seri Multi-Faction</color>\nDi awal Pertempuran, jika kamu punya <color=#99DEB0>minimal 2</color> Faction, semua Hero mendapatkan Level sebanyak <color=#99DEB0>20</color> × jumlah Faction."
+ },
+ "<color=#99DEB0>多阵营系列</color>\n立即获得<color=#99DEB0>1张照影</color>，回合开始时，每有<color=#99DEB0>1个</color>阵营，获得<color=#99DEB0>1张照影</color>。": {
+  "id": "<color=#99DEB0>Seri Multi-Faction</color>\nLangsung dapatkan <color=#99DEB0>1 Shadow-Cast</color>. Di awal Ronde, dapatkan <color=#99DEB0>1 Shadow-Cast</color> untuk setiap <color=#99DEB0>1 Faction</color> yang kamu miliki."
+ },
+ "<color=#99DEB0>契约系列</color>\n回合开始时，获得<color=#99DEB0>2张契约系列</color>天赋的对应英雄卡（需要激活契约天赋）。": {
+  "id": "<color=#99DEB0>Seri Contract</color>\nDi awal Ronde, dapatkan <color=#99DEB0>2</color> Hero Card yang sesuai dengan Talent seri Contract (Talent Contract harus aktif)."
+ },
+ "<color=#99DEB0>契约系列</color>\n激活契约天赋时，回合开始场上每有<color=#99DEB0>1名</color>英雄，己方所有英雄等级<color=#99DEB0>+3</color>。契约英雄获得的等级翻倍。": {
+  "id": "<color=#99DEB0>Seri Contract</color>\nSaat Talent Contract aktif, di awal Ronde, untuk setiap <color=#99DEB0>1</color> Hero di papan, semua Hero kamu mendapatkan <color=#99DEB0>+3</color> Level. Hero Contract mendapatkan Level dua kali lipat."
+ },
+ "<color=#99DEB0>契约系列</color>\n羁绊英雄共战时，任意一方每击败<color=#99DEB0>1名</color>敌方英雄，双方物理攻击力、法术攻击力<color=#99DEB0>+5%</color>（上限<color=#99DEB0>60%</color>）。": {
+  "id": "<color=#99DEB0>Seri Contract</color>\nSaat Hero yang terikat bertarung bersama, untuk setiap <color=#99DEB0>1</color> Hero musuh yang dikalahkan salah satunya, keduanya mendapatkan <color=#99DEB0>+5%</color> Physical Attack dan Magic Attack (maksimal <color=#99DEB0>60%</color>)."
+ },
+ "<color=#99DEB0>契约系列</color>\n羁绊英雄共战时，战斗开始时羁绊英雄双方获取己方其他英雄等级之和×<color=#99DEB0>30%</color>的等级。": {
+  "id": "<color=#99DEB0>Seri Contract</color>\nSaat Hero yang terikat bertarung bersama, di awal Pertempuran keduanya mendapatkan Level sebesar <color=#99DEB0>30%</color> dari total Level Hero kamu yang lain."
+ },
+ "<color=#99DEB0>契约系列</color>\n羁绊英雄共战时，每<color=#99DEB0>2秒</color>临时提升其<color=#99DEB0>8%</color>物理攻击力和法术攻击力（上限<color=#99DEB0>80%</color>）。": {
+  "en": "<color=#99DEB0>Contract Series</color>\nWhen bonded Heroes fight together, they gain <color=#99DEB0>8%</color> Physical Attack and Magic Attack every <color=#99DEB0>2 seconds</color> for the Battle (up to <color=#99DEB0>80%</color>).",
+  "id": "<color=#99DEB0>Seri Contract</color>\nSaat Hero yang terikat bertarung bersama, mereka mendapatkan <color=#99DEB0>8%</color> Physical Attack dan Magic Attack setiap <color=#99DEB0>2 detik</color> selama Pertempuran (maksimal <color=#99DEB0>80%</color>)."
+ },
+ "<color=#99DEB0>契约系列</color>\n羁绊英雄共战时，每次升级<color=#99DEB0>额外+4级</color>。": {
+  "id": "<color=#99DEB0>Seri Contract</color>\nSaat Hero yang terikat bertarung bersama, mereka mendapatkan <color=#99DEB0>+4 Level tambahan</color> setiap kali naik Level."
+ },
+ "<color=#99DEB0>战术牌系列</color>\n打出战术牌时，己方全体英雄等级 <color=#99DEB0>+10</color>。你获取的所有战术牌变为超·增强版。": {
+  "id": "<color=#99DEB0>Seri Tactics Card</color>\nSaat memainkan Tactics Card, semua Hero kamu mendapatkan <color=#99DEB0>+10</color> Level. Semua Tactics Card yang kamu dapatkan menjadi versi Super-Enhanced."
+ },
+ "<color=#99DEB0>护盾系列</color>\n<color=#99DEB0>你的单位护盾被击破</color>时，对周围敌人造成自身最大生命值<color=#99DEB0>20%</color>的法术伤害，并回复<color=#99DEB0>5%</color>最大生命值。": {
+  "id": "<color=#99DEB0>Seri Shield</color>\nSaat <color=#99DEB0>Shield unit kamu hancur</color>, unit itu memberikan Magic Damage sebesar <color=#99DEB0>20%</color> Max HP-nya ke musuh di sekitar dan memulihkan <color=#99DEB0>5%</color> Max HP-nya."
+ },
+ "<color=#99DEB0>护盾系列</color>\n己方单位获得护盾、护盾被击破时，该单位生命值上限永久<color=#99DEB0>+80</color>。": {
+  "id": "<color=#99DEB0>Seri Shield</color>\nSetiap kali unit kamu mendapatkan Shield atau Shield-nya hancur, unit itu mendapatkan <color=#99DEB0>80 Max HP</color> secara permanen."
+ },
+ "<color=#99DEB0>效果牌系列</color>\n你每使用<color=#99DEB0>3张</color>效果牌，所有英雄等级<color=#99DEB0>+8</color>。": {
+  "id": "<color=#99DEB0>Seri Effect Card</color>\nUntuk setiap <color=#99DEB0>3</color> Effect Card yang kamu gunakan, semua Hero mendapatkan <color=#99DEB0>+8</color> Level."
+ },
+ "<color=#99DEB0>效果牌系列</color>\n你每使用<color=#99DEB0>8张</color>效果牌，获得<color=#99DEB0>1张</color>突破（指定<color=#99DEB0>1名低于5阶</color>的英雄<color=#99DEB0>+75级</color>）。": {
+  "en": "<color=#99DEB0>Effect Card Series</color>\nFor every <color=#99DEB0>8</color> Effect Cards you use, gain <color=#99DEB0>1</color> Breakthrough (Target <color=#99DEB0>1 Hero below Tier 5</color> to gain <color=#99DEB0>+75</color> Levels).",
+  "id": "<color=#99DEB0>Seri Effect Card</color>\nUntuk setiap <color=#99DEB0>8</color> Effect Card yang kamu gunakan, dapatkan <color=#99DEB0>1</color> Breakthrough (pilih <color=#99DEB0>1 Hero di bawah Tier 5</color> untuk mendapatkan <color=#99DEB0>+75</color> Level)."
+ },
+ "<color=#99DEB0>效果牌系列</color>\n对英雄使用效果牌时，使其额外获得<color=#99DEB0>1</color>项随机属性：<color=#99DEB0>10%</color>攻击速度/<color=#99DEB0>1%</color>物理、法术吸血/<color=#99DEB0>1点</color>物理、法术防御。": {
+  "id": "<color=#99DEB0>Seri Effect Card</color>\nSaat menggunakan Effect Card pada Hero, Hero itu mendapatkan tambahan <color=#99DEB0>1</color> stat acak: <color=#99DEB0>10%</color> Attack Speed / <color=#99DEB0>1%</color> Physical/Magic Lifesteal / <color=#99DEB0>1</color> Physical/Magic Defense."
+ },
+ "<color=#99DEB0>效果牌系列</color>\n对英雄使用效果牌时，使其额外获得<color=#99DEB0>1</color>项随机属性：<color=#99DEB0>15%</color>攻击速度/<color=#99DEB0>3%</color>物理、法术吸血/<color=#99DEB0>3点</color>物理、法术防御。": {
+  "en": "<color=#99DEB0>Effect Card Series</color>\nWhen using an Effect Card on a Hero, they gain an additional <color=#99DEB0>1</color> random stat: <color=#99DEB0>15%</color> Attack Speed / <color=#99DEB0>3%</color> Physical/Magic Lifesteal / <color=#99DEB0>3</color> Physical/Magic Defense.",
+  "id": "<color=#99DEB0>Seri Effect Card</color>\nSaat menggunakan Effect Card pada Hero, Hero itu mendapatkan tambahan <color=#99DEB0>1</color> stat acak: <color=#99DEB0>15%</color> Attack Speed / <color=#99DEB0>3%</color> Physical/Magic Lifesteal / <color=#99DEB0>3</color> Physical/Magic Defense."
+ },
+ "<color=#99DEB0>无阵营系列</color>\n场上存在【无阵营】英雄时，己方英雄击败敌方英雄掠夺其<color=#99DEB0>30级</color>；每掠夺<color=#99DEB0>200级</color>，己方全体英雄永久<color=#99DEB0>+50级</color>（上限<color=#99DEB0>+300级</color>）。": {
+  "id": "<color=#99DEB0>Seri Factionless</color>\nSaat ada Hero [Factionless] di papan, Hero kamu merampas <color=#99DEB0>30</color> Level dari Hero musuh yang dikalahkan; untuk setiap <color=#99DEB0>200</color> Level yang dirampas, semua Hero kamu mendapatkan <color=#99DEB0>+50</color> Level permanen (maksimal <color=#99DEB0>+300</color>)."
+ },
+ "<color=#99DEB0>无阵营系列</color>\n场上每存在<color=#99DEB0>1名</color>【无阵营】英雄，【无阵营】英雄获得<color=#99DEB0>33%</color>攻击速度、<color=#99DEB0>33</color>物理及法术攻击力、<color=#99DEB0>333</color>生命值。": {
+  "id": "<color=#99DEB0>Seri Factionless</color>\nUntuk setiap <color=#99DEB0>1</color> Hero [Factionless] di papan, Hero [Factionless] mendapatkan <color=#99DEB0>33%</color> Attack Speed, <color=#99DEB0>33</color> Physical Attack dan Magic Attack, serta <color=#99DEB0>333</color> HP."
+ },
+ "<color=#99DEB0>无阵营系列</color>\n打出【无阵营】英雄时，等级最高的<color=#99DEB0>3个</color>【无阵营】英雄等级<color=#99DEB0>+15</color>。": {
+  "id": "<color=#99DEB0>Seri Factionless</color>\nSaat kamu memainkan Hero [Factionless], <color=#99DEB0>3</color> Hero [Factionless] dengan Level tertinggi mendapatkan <color=#99DEB0>+15</color> Level."
+ },
+ "<color=#99DEB0>无阵营系列</color>\n立即获得<color=#99DEB0>2张无阵营</color>英雄牌。回合开始时，随机获得<color=#99DEB0>4张无阵营</color>英雄牌。": {
+  "id": "<color=#99DEB0>Seri Factionless</color>\nLangsung dapatkan <color=#99DEB0>2 Factionless</color> Hero Card. Di awal Ronde, dapatkan <color=#99DEB0>4 Factionless</color> Hero Card acak."
+ },
+ "<color=#99DEB0>草根系列</color>\n回合开始时，若场上<color=#99DEB0>只有1-3阶英雄</color>，随机获得<color=#99DEB0>3张</color>场上的英雄牌。": {
+  "id": "<color=#99DEB0>Seri Grassroots</color>\nDi awal Ronde, jika di papan <color=#99DEB0>hanya ada Hero Tier 1-3</color>, dapatkan <color=#99DEB0>3</color> Hero Card acak dari Hero di papan."
+ },
+ "<color=#99DEB0>草根系列</color>\n场上每有<color=#99DEB0>1名1-3阶的英雄</color>，回合开始时所有英雄等级<color=#99DEB0>+3</color>。": {
+  "id": "<color=#99DEB0>Seri Grassroots</color>\nUntuk setiap <color=#99DEB0>1 Hero Tier 1-3</color> di papan, semua Hero mendapatkan <color=#99DEB0>+3</color> Level di awal Ronde."
+ },
+ "<color=#99DEB0>草根系列</color>\n战斗开始时，<color=#99DEB0>1-3阶英雄</color>获得其等级×<color=#99DEB0>1%</color>的伤害加成，上限<color=#99DEB0>30%</color>。": {
+  "id": "<color=#99DEB0>Seri Grassroots</color>\nDi awal Pertempuran, <color=#99DEB0>Hero Tier 1-3</color> mendapatkan bonus Damage sebesar Level-nya × <color=#99DEB0>1%</color>, maksimal <color=#99DEB0>30%</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n你的英雄每次合成时，获得<color=#99DEB0>3%</color>攻击速度、<color=#99DEB0>3%</color>暴击率、<color=#99DEB0>3%</color>最大生命值。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSetiap kali Hero kamu Combine, dapatkan <color=#99DEB0>3%</color> Attack Speed, <color=#99DEB0>3%</color> Crit Rate, dan <color=#99DEB0>3%</color> Max HP."
+ },
+ "<color=#99DEB0>通用系列</color>\n你累计阵亡<color=#99DEB0>3名</color>英雄时，立即召唤<color=#99DEB0>1名</color>满装备的<color=#99DEB0>5阶</color>英雄，其等级为已阵亡英雄等级之和（可突破等级上限至<color=#99DEB0>3000</color>）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSaat total <color=#99DEB0>3</color> Hero kamu sudah gugur, langsung Summon <color=#99DEB0>1</color> Hero <color=#99DEB0>Tier 5</color> dengan equipment lengkap. Level-nya sebesar total Level Hero yang gugur (bisa melewati batas Level hingga <color=#99DEB0>3000</color>)."
+ },
+ "<color=#99DEB0>通用系列</color>\n击败<color=#99DEB0>3名</color>敌方英雄后，召唤<color=#99DEB0>1</color>只熊灵，等级为击败英雄之和。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSetelah mengalahkan <color=#99DEB0>3</color> Hero musuh, Summon <color=#99DEB0>1</color> Bear Spirit dengan Level sebesar total Level Hero yang dikalahkan."
+ },
+ "<color=#99DEB0>通用系列</color>\n可上阵人数<color=#99DEB0>+1</color>，己方英雄获得<color=#99DEB0>3%</color>的伤害加成。": {
+  "id": "<color=#99DEB0>Seri General</color>\nBatas unit di papan <color=#99DEB0>+1</color>, Hero kamu mendapatkan bonus Damage <color=#99DEB0>3%</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时获得<color=#99DEB0>1张</color>战歌：指定<color=#99DEB0>1名低于5阶</color>英雄<a href=3130011><color=#99DEB0>═临时等级</color></a><color=#99DEB0>+65</color>。战斗胜利则永久获得，失败/平局获得一半。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, dapatkan <color=#99DEB0>1</color> War Song: pilih <color=#99DEB0>1 Hero di bawah Tier 5</color> untuk mendapatkan <a href=3130011><color=#99DEB0>═Temporary Level</color></a> <color=#99DEB0>+65</color>. Didapat permanen jika menang Pertempuran; setengahnya jika kalah/seri."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时，全体英雄等级<color=#99DEB0>+7</color>×（场上最高品阶与最低品阶的差）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, semua Hero mendapatkan <color=#99DEB0>+7</color> Level × (selisih Tier tertinggi dan terendah di papan)."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时，场上每存在1种品阶的英雄，所有英雄等级<color=#99DEB0>+5</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, untuk setiap Tier Hero yang ada di papan, semua Hero mendapatkan <color=#99DEB0>+5</color> Level."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时，场上每存在一种品阶，所有英雄等级<color=#99DEB0>+5</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, untuk setiap Tier yang ada di papan, semua Hero mendapatkan <color=#99DEB0>+5</color> Level."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时，己方英雄获得己方所有英雄品阶之和×<color=#99DEB0>1.5</color>的等级。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, Hero kamu mendapatkan Level sebesar total Tier semua Hero kamu ×<color=#99DEB0>1.5</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时，己方英雄获得己方所有英雄品阶之和的等级。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, Hero kamu mendapatkan Level sebesar total Tier semua Hero kamu."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时，第一排每有<color=#99DEB0>1名</color>英雄，所有英雄等级<color=#99DEB0>+3</color>；最后一排每有<color=#99DEB0>1名</color>英雄，所有英雄等级<color=#99DEB0>+2</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, untuk setiap <color=#99DEB0>1</color> Hero di baris depan, semua Hero mendapatkan <color=#99DEB0>+3</color> Level; untuk setiap <color=#99DEB0>1</color> Hero di baris belakang, semua Hero mendapatkan <color=#99DEB0>+2</color> Level."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时，若你有不少于<color=#99DEB0>4名</color>同阵营英雄，所有英雄等级<color=#99DEB0>+20</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, jika kamu punya minimal <color=#99DEB0>4 Hero</color> dari Faction yang sama, semua Hero +<color=#99DEB0>20</color> Level."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时，获得<color=#99DEB0>2张招才引援</color>（指定<color=#99DEB0>1名</color>英雄，发现<color=#99DEB0>5张</color>其同阵营英雄牌，从中选择<color=#99DEB0>1张</color>）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, dapatkan <color=#99DEB0>2 Recruitment Aid</color> (pilih <color=#99DEB0>1</color> Hero, temukan <color=#99DEB0>5</color> Hero Card dari Faction yang sama, lalu pilih <color=#99DEB0>1</color>)."
+ },
+ "<color=#99DEB0>通用系列</color>\n回合开始时，随机获得<color=#99DEB0>4张</color>你<color=#99DEB0>人数最多阵营</color>的英雄牌。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Ronde, dapatkan <color=#99DEB0>4 Hero Card</color> acak dari <color=#99DEB0>Faction dengan Hero terbanyak</color> kamu."
+ },
+ "<color=#99DEB0>通用系列</color>\n场上同一阵营英雄达到<color=#99DEB0>4名</color>时，该阵营英雄获得<color=#99DEB0>10%</color>伤害加成、<color=#99DEB0>10%</color>伤害减免；每多<color=#99DEB0>1名</color>加成再<color=#99DEB0>+1%</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSaat kamu punya <color=#99DEB0>4</color> Hero dari Faction yang sama di papan, mereka mendapatkan <color=#99DEB0>10%</color> Damage Bonus dan <color=#99DEB0>10%</color> Damage Reduction; setiap <color=#99DEB0>Hero</color> tambahan menaikkan bonus ini sebesar <color=#99DEB0>+1%</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n己方所有英雄可穿戴装备上限突破至<color=#99DEB0>4</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSemua Hero kamu kini bisa memakai hingga <color=#99DEB0>4</color> equipment."
+ },
+ "<color=#99DEB0>通用系列</color>\n己方每阵亡<color=#99DEB0>1个</color>单位，下回合开始，所有英雄等级<color=#99DEB0>+3</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nUntuk setiap <color=#99DEB0>1</color> unit kamu yang gugur, semua Hero mendapatkan <color=#99DEB0>+3</color> Level di awal Ronde berikutnya."
+ },
+ "<color=#99DEB0>通用系列</color>\n己方英雄每释放<color=#99DEB0>1次</color>技能，所有英雄等级<color=#99DEB0>+1</color>。": {
+  "en": "<color=#99DEB0>General Series</color>\nEach time your Hero casts a Skill <color=#99DEB0>1 time</color>, All Heroes gain <color=#99DEB0>+1</color> Level.",
+  "id": "<color=#99DEB0>Seri General</color>\nSetiap kali Hero kamu menggunakan Skill <color=#99DEB0>1 kali</color>, semua Hero mendapatkan <color=#99DEB0>+1</color> Level."
+ },
+ "<color=#99DEB0>通用系列</color>\n己方英雄阵亡时召出灵体，对敌人施加<color=#99DEB0>3次</color>海浪打击（视为<color=#99DEB0>1次</color>技能）。每次海浪打击，己方英雄获得<color=#99DEB0>5%</color>最大生命值的护盾、<color=#99DEB0>3点</color>双抗。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSaat Hero kamu gugur, ia memanggil roh yang menyerang musuh dengan <color=#99DEB0>3</color> gelombang (dihitung sebagai <color=#99DEB0>1</color> Skill). Setiap gelombang memberi Hero kamu Shield sebesar <color=#99DEB0>5%</color> Max HP dan <color=#99DEB0>3</color> Physical Defense serta Magic Defense."
+ },
+ "<color=#99DEB0>通用系列</color>\n己方英雄阵亡时召出灵体，对敌人施加<color=#99DEB0>3次</color>海浪打击（视为<color=#99DEB0>1次</color>技能）。每次海浪打击，己方英雄获得<color=#99DEB0>5%</color>最大生命值的护盾以及<color=#99DEB0>3点</color>物理防御和法术防御（随护盾消失）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSaat Hero kamu gugur, ia memanggil roh yang memberikan <color=#99DEB0>3</color> gelombang damage ke musuh (dihitung sebagai <color=#99DEB0>1</color> Skill). Setiap gelombang memberi Hero kamu Shield sebesar <color=#99DEB0>5%</color> Max HP mereka dan <color=#99DEB0>3</color> Physical Defense serta Magic Defense (hilang bersama Shield)."
+ },
+ "<color=#99DEB0>通用系列</color>\n己方英雄阵亡时，召唤<color=#99DEB0>1名</color>与自身品阶和等级相同的英雄（无卡牌效果）。每回合最多<color=#99DEB0>5</color>次。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSaat Hero kamu gugur, Summon <color=#99DEB0>1</color> Hero dengan Tier dan Level yang sama (tanpa efek kartu). Maksimal <color=#99DEB0>5</color> kali per Ronde."
+ },
+ "<color=#99DEB0>通用系列</color>\n己方英雄阵亡时，随机召唤<color=#99DEB0>1</color>只与己方最高等级英雄相同等级的<color=#99DEB0>始祖熊灵/猩红石像/蔚蓝石像</color>，每场最多召唤<color=#99DEB0>3</color>只。": {
+  "en": "<color=#99DEB0>General Series</color>\nWhen your Hero falls, randomly Summon <color=#99DEB0>1</color> <color=#99DEB0>Primordial Bear Spirit/Scarlet Statue/Azure Statue</color> at the Level of your highest-Level Hero. Max <color=#99DEB0>3</color> per Battle.",
+  "id": "<color=#99DEB0>Seri General</color>\nSaat Hero kamu gugur, Summon <color=#99DEB0>1</color> <color=#99DEB0>Primordial Bear Spirit/Scarlet Statue/Azure Statue</color> secara acak dengan Level setara Hero kamu yang Level-nya tertinggi. Maksimal <color=#99DEB0>3</color> per Pertempuran."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗中己方仅剩<color=#99DEB0>3名</color>英雄时，随机召唤<color=#99DEB0>1名2000级</color>满装备的<color=#99DEB0>5阶</color>英雄（无卡牌效果）出战。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSaat Hero kamu tinggal <color=#99DEB0>3</color> dalam Pertempuran, Summon <color=#99DEB0>1</color> Hero <color=#99DEB0>Tier 5</color> acak dengan equipment lengkap (Level 2000, tanpa efek kartu) untuk ikut bertarung."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始后，<color=#99DEB0>每9秒将随机敌方2个单位变猪</color>，持续<color=#99DEB0>3秒</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSetelah Pertempuran dimulai, <color=#99DEB0>ubah 2 unit musuh acak menjadi babi setiap 9 detik</color> selama <color=#99DEB0>3 detik</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，你的英雄获得<color=#99DEB0>35</color><a href=3130011><color=#99DEB0>═临时等级</color></a>。战斗结束时，存活英雄的此等级转化为永久等级。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, Hero kamu mendapatkan <color=#99DEB0>35</color> <a href=3130011><color=#99DEB0>═Temporary Level</color></a>. Di akhir Pertempuran, Level ini menjadi Level permanen bagi Hero yang selamat."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，全体英雄获得<color=#99DEB0>1000点</color>最大生命值、<color=#99DEB0>60点</color>物理和法术攻击力。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, semua Hero mendapatkan <color=#99DEB0>1000</color> Max HP dan <color=#99DEB0>60</color> Physical Attack serta Magic Attack."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，吞噬己方<color=#99DEB0>最后一排</color>所有英雄，获得其双倍真实等级并记录。开战后，随机召唤<color=#99DEB0>1名4-5阶</color>英雄（无卡牌效果、等级上限为<color=#99DEB0>9999</color>），使之获得记录等级，并获得适配装备。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, Devour semua Hero kamu di <color=#99DEB0>baris belakang</color>, lalu catat Level asli mereka dua kali lipat. Setelah Pertempuran dimulai, Summon <color=#99DEB0>1 Hero Tier 4-5</color> acak tanpa efek kartu dengan batas Level <color=#99DEB0>9999</color>. Hero yang dipanggil mendapatkan Level yang dicatat dan equipment yang sesuai."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，复制对方等级最高的<color=#99DEB0>3名</color>英雄加入战斗。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, salin <color=#99DEB0>3</color> Hero lawan dengan Level tertinggi untuk ikut bertarung."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，将<color=#99DEB0>1200</color><a href=3130011><color=#99DEB0>═临时等级</color></a>随机分配给你的英雄。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, bagikan <color=#99DEB0>1200</color> <a href=3130011><color=#99DEB0>═Temporary Level</color></a> secara acak ke Hero kamu."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，己方所有英雄会随机获得<color=#99DEB0>1件</color>特殊装备。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, semua Hero kamu mendapatkan <color=#99DEB0>1</color> Special Equipment acak."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，己方每阵亡<color=#99DEB0>2名</color>英雄，随机在己方战场内召唤<color=#99DEB0>命运图腾</color>：消灭击败该图腾的敌人。每场最多<color=#99DEB0>2</color>次。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, untuk setiap <color=#99DEB0>2</color> Hero kamu yang gugur, Summon <color=#99DEB0>Destiny Totem</color> di sisi kamu: musuh yang menghancurkannya ikut tersingkir. Maksimal <color=#99DEB0>2</color> kali per pertandingan."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，己方英雄移动速度提升<color=#99DEB0>30%</color>，造成伤害的<color=#99DEB0>15%</color>会转化为真实伤害，同时<color=#99DEB0>免疫减速效果</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, Movement Speed Hero kamu naik <color=#99DEB0>30%</color>, <color=#99DEB0>15%</color> damage yang diberikan menjadi True Damage, dan mereka <color=#99DEB0>kebal terhadap efek slow</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，等级最高的<color=#99DEB0>3名</color>英雄额外获得<color=#99DEB0>100%</color>生命值上限（仅提升上限）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, <color=#99DEB0>3</color> Hero dengan Level tertinggi mendapatkan tambahan <color=#99DEB0>100%</color> Max HP (hanya menaikkan batas)."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，等级最高的那名英雄获得持续<color=#99DEB0>15秒</color>的“开局狂飙”效果。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, Hero dengan Level tertinggi mendapatkan efek \"Opening Sprint\" selama <color=#99DEB0>15 detik</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗开始时，英雄<color=#99DEB0>模型缩小</color>，攻击速度<color=#99DEB0>+60%</color>，暴击率<color=#99DEB0>+50%</color>，生命值上限<color=#99DEB0>-30%</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDi awal Pertempuran, Hero <color=#99DEB0>menyusut</color>, Attack Speed <color=#99DEB0>+60%</color>, Crit Rate <color=#99DEB0>+50%</color>, dan Max HP <color=#99DEB0>-30%</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n战斗胜利时，你存活的英雄获得<color=#99DEB0>600点</color>最大生命值以及<color=#99DEB0>60点</color>物理和法术攻击力。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSaat memenangkan Pertempuran, Hero kamu yang selamat mendapatkan <color=#99DEB0>600</color> Max HP dan <color=#99DEB0>60</color> Physical Attack serta Magic Attack."
+ },
+ "<color=#99DEB0>通用系列</color>\n生命值最高的英雄每秒恢复<color=#99DEB0>4%</color>最大生命值，并获得<color=#99DEB0>40%</color>攻击速度、<color=#99DEB0>40%</color>物理攻击力、<color=#99DEB0>40%</color>法术攻击力。": {
+  "id": "<color=#99DEB0>Seri General</color>\nHero dengan HP tertinggi memulihkan <color=#99DEB0>4%</color> Max HP-nya per detik dan mendapatkan <color=#99DEB0>40%</color> Attack Speed, <color=#99DEB0>40%</color> Physical Attack, dan <color=#99DEB0>40%</color> Magic Attack."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张</color>场上英雄牌，你的英雄合计每提升<color=#99DEB0>25级</color>，获得<color=#99DEB0>1张</color>场上英雄牌（每回合最多<color=#99DEB0>2张</color>）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1</color> Hero Card dari Hero di papan. Untuk setiap <color=#99DEB0>25 Level</color> yang didapat Hero kamu secara total, dapatkan <color=#99DEB0>1</color> Hero Card dari Hero di papan (maksimal <color=#99DEB0>2</color> per Ronde)."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张</color>潜影袭击：指定<color=#99DEB0>1名</color>英雄，其在战斗开始时进入隐身状态，物理和法术攻击力<color=#99DEB0>+40%</color>，持续<color=#99DEB0>10秒</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1</color> Shadow Strike: pilih <color=#99DEB0>1</color> Hero. Di awal Pertempuran, Hero itu masuk Stealth dan mendapatkan <color=#99DEB0>+40%</color> Physical Attack dan Magic Attack selama <color=#99DEB0>10 detik</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张</color>照影，己方英雄击败敌方时，获得<color=#99DEB0>1张</color>照影（每回合最多<color=#99DEB0>2张</color>）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1</color> Afterimage. Saat Hero kamu mengalahkan musuh, dapatkan <color=#99DEB0>1</color> Afterimage (maksimal <color=#99DEB0>2</color> per Ronde)."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张</color>蚕食：指定<color=#99DEB0>1名</color>英雄，该英雄每次攻击敌方英雄时，将其等级的<color=#99DEB0>2%</color>偷取给自己（<color=#99DEB0>至少1级</color>）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1</color> Encroach: pilih <color=#99DEB0>1</color> Hero. Setiap kali Hero itu menyerang Hero musuh, ia mencuri <color=#99DEB0>2%</color> Level musuh (<color=#99DEB0>minimal 1 Level</color>)."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张</color>越阶登顶：指定<color=#99DEB0>1名1-3阶</color>英雄随机变为不在场的<color=#99DEB0>5阶</color>英雄，觉醒并保留当前等级（含临时等级，且可突破等级上限）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1</color> Tier-Up Summit: pilih <color=#99DEB0>1 Hero Tier 1-3</color> untuk berubah secara acak menjadi Hero <color=#99DEB0>Tier 5</color> yang tidak ada di papan. Hero itu di-Awaken dan mempertahankan Level saat ini (termasuk Temporary Level, dan bisa melewati batas Level)."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张军团进化</color>：使用后，所有英雄等级<color=#99DEB0>+32%</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1 Legion Evolution</color>: setelah digunakan, semua Hero mendapatkan <color=#99DEB0>+32%</color> Level."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张时光虹吸</color>：指定英雄在战斗开始时获得<color=#99DEB0>8%×当前回合数的法术吸血</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1 Time Siphon</color>: Hero yang dipilih mendapatkan <color=#99DEB0>Magic Lifesteal 8% × nomor Ronde saat ini</color> di awal Pertempuran."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张激昂奋战</color>：指定英雄每承受<color=#99DEB0>2500点</color>伤害，恢复自身<color=#99DEB0>12%最大生命值</color>（最多触发<color=#99DEB0>5次</color>）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1 Passionate Combat</color>: setiap menerima <color=#99DEB0>2500 Damage</color>, Hero yang dipilih memulihkan <color=#99DEB0>12% Max HP-nya</color> (maksimal terpicu <color=#99DEB0>5 kali</color>)."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张登神之路</color>：指定英雄在战斗中每击败<color=#99DEB0>1名</color>敌人获得<color=#99DEB0>25%攻击速度和3%物理吸血</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1 Path to Godhood</color>: Hero yang dipilih mendapatkan <color=#99DEB0>25% Attack Speed dan 3% Physical Lifesteal</color> untuk setiap <color=#99DEB0>1</color> musuh yang dikalahkan dalam Pertempuran."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张直击本源</color>：指定英雄会将<color=#99DEB0>0.5%</color>×自身等级的伤害<color=#99DEB0>转化为真实伤害</color>，最高<color=#99DEB0>50%</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1 Direct Source</color>: Hero yang dipilih mengubah <color=#99DEB0>0.5%</color> × Level-nya dari damage menjadi <color=#99DEB0>True Damage</color>, maksimal <color=#99DEB0>50%</color>."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张超新星闪耀</color>：指定<color=#99DEB0>1名</color>英雄等级<color=#99DEB0>+170</color>，其余英雄等级<color=#99DEB0>+45</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1 Supernova Shine</color>: pilih <color=#99DEB0>1</color> Hero untuk mendapatkan <color=#99DEB0>+170</color> Level, dan semua Hero lain mendapatkan <color=#99DEB0>+45</color> Level."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张飞升</color>：指定<color=#99DEB0>1名低于5阶</color>的英雄等级<color=#99DEB0>+380</color>，该英雄之后每回合提升<color=#99DEB0>15级</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1 Ascension</color>: pilih <color=#99DEB0>1 Hero di bawah Tier 5</color> untuk menaikkan Level-nya sebesar <color=#99DEB0>380</color>. Setelah itu Hero tersebut mendapatkan <color=#99DEB0>15 Level</color> setiap Ronde."
+ },
+ "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>2张</color>场上英雄牌，己方英雄被击败时，获得<color=#99DEB0>1张</color>场上英雄牌（每回合最多<color=#99DEB0>3张</color>）。": {
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>2</color> Hero Card dari Hero di papan. Saat Hero kamu dikalahkan, dapatkan <color=#99DEB0>1</color> Hero Card dari Hero di papan (maksimal <color=#99DEB0>3</color> per Ronde)."
+ },
+ "<color=#99DEB0>通用系列</color>\n等级最高的<color=#99DEB0>2名</color>己方英雄首次阵亡后，会随机以<color=#99DEB0>1%</color>、<color=#99DEB0>10%</color>、<color=#99DEB0>20%</color>、<color=#99DEB0>30%</color>的生命值<a href=16><color=#99DEB0>╧复生</color></a>。": {
+  "en": "<color=#99DEB0>General Series</color>\nAfter the <color=#99DEB0>2</color> allied Heroes with the highest Level fall for the first time, they return with <color=#99DEB0>1%</color>, <color=#99DEB0>10%</color>, <color=#99DEB0>20%</color>, or <color=#99DEB0>30%</color> HP at random (<a href=16><color=#99DEB0>╧Revive</color></a>).",
+  "id": "<color=#99DEB0>Seri General</color>\nSetelah <color=#99DEB0>2</color> Hero kamu dengan Level tertinggi gugur untuk pertama kali, mereka hidup kembali dengan <color=#99DEB0>1%</color>, <color=#99DEB0>10%</color>, <color=#99DEB0>20%</color>, atau <color=#99DEB0>30%</color> HP secara acak (<a href=16><color=#99DEB0>╧Revive</color></a>)."
+ },
+ "<color=#99DEB0>通用系列</color>\n若同阶的英雄数量达到<color=#99DEB0>4</color>，这些英雄获得<color=#99DEB0>6</color>×品阶数的伤害加成、伤害减免率。（若多个品阶同时达标，则其中随机 1 个品阶生效）": {
+  "id": "<color=#99DEB0>Seri General</color>\nJika kamu punya <color=#99DEB0>4</color> Hero dengan Tier yang sama, Hero itu mendapatkan Damage Bonus dan Damage Reduction sebesar <color=#99DEB0>6</color> × Tier mereka. Jika beberapa Tier memenuhi syarat, hanya 1 Tier acak yang mendapat efeknya."
+ },
+ "<color=#99DEB0>通用系列</color>\n英雄合成时等级额外<color=#99DEB0>+25</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nSaat Hero Combine, Hero itu mendapatkan tambahan <color=#99DEB0>+25</color> Level."
+ },
+ "<color=#99DEB0>通用系列</color>\n获得<color=#99DEB0>1张共鸣</color>：场上每有<color=#99DEB0>1名1-3阶</color>英雄，所有英雄等级<color=#99DEB0>+6%</color>。": {
+  "id": "<color=#99DEB0>Seri General</color>\nDapatkan <color=#99DEB0>1 Resonance</color>: untuk setiap <color=#99DEB0>1 Hero Tier 1-3</color> di papan, semua Hero mendapatkan <color=#99DEB0>+6%</color> Level."
+ }
+}
