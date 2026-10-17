@@ -2046,3 +2046,19 @@ never fall back to the development key. Existing debug installations cannot upda
 to the private signer. Device acceptance, complete redistribution/source review and the
 compiled-runtime/dependency security audit remain separate work.
 
+
+## 2026-10-17 — Restore previous patcher signer for compatible updates
+
+The user requested the previous patcher key for CI releases. All four release signing secrets
+now reference `android/signing/debug.keystore`, alias `androiddebugkey`. The key was already
+public; keeping it in Actions secrets does not make it private. No game signing material or
+installation/consent flow was changed. Earlier private-signer APKs remain a different identity.
+
+| Check | Evidence and verdict |
+|---|---|
+| Compatible APK | The checksum-verified published `android-v1.6.0.1.1` APK was re-signed locally as `artifacts/hok-ace-patch-compatible.apk`; no unfinished source changes were built into it. |
+| Signer | SDK apksigner verifies v2 and certificate SHA-256 `aa67f1993e3a335ff798d085a3e818b12988739dd3d5e69f8bdd1be97f01c249`, matching the previous patcher key. |
+| Contents and alignment | Every decoded ZIP entry matches the published original; SDK `zipalign -c -P 16 4` passes. |
+| Compatible APK SHA-256 | `17caa4fc20a1a5dd7380a346733e47810e8b8f428f23ed313c3d2e9059b03f61` |
+| Device acceptance | No phone install was performed. Matching signer/package/version permits updating legacy installs; this does not remove Android installation prompts or the patcher's explicit consent. |
+

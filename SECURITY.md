@@ -8,21 +8,26 @@ Do not attach game APKs, recovery material, account credentials or unredacted de
 | Key | Purpose and limits |
 |---|---|
 | `resources/key/` | Intentionally shipped stable game re-signing key. It is public and cannot establish publisher identity. Never replace it during routine builds. |
-| `android/signing/debug.keystore` | Public development key, used only for debug APKs. Anyone can sign an APK with it; use trusted download locations. |
-| Private Android release keystore | Separate patcher publisher identity. Stored in GitHub Actions secrets; never bundled in the APK or committed. |
+| `android/signing/debug.keystore` | Previous patcher key, intentionally reused for debug and CI release APKs so existing installations can update in place. This key is public; anyone can sign with it. Obtain APKs only from trusted download locations. |
+| CI release signing secrets | Configured with that same previous patcher key. Secret storage does not make an already-public key private. |
 
-A privately signed release cannot update an existing debug-signed patcher installation.
-Finish any pending game recovery and export needed diagnostics before uninstalling the development
-patcher. Uninstalling deletes its private recovery files. Then install the release APK and authorize Shizuku again.
-Subsequent private releases use the same release key and can update in place.
+CI releases now use the previous patcher key and can update matching development installs without
+uninstalling, preserving their private data. Android still requires compatible package/version
+metadata. Signing compatibility does not remove installer prompts, Shizuku authorization, or
+the patcher's explicit first-setup/data-loss consent. Normal/access game APKs continue to use
+the separate unchanged key in `resources/key/`.
 
-The private release certificate's SHA-256 fingerprint is
-`91e25271c73e5dc7c241f9c0b7c4b8743e25bc54eb6d6e609f0cd58f0e42349c`.
+The previous patcher certificate's SHA-256 fingerprint is
+`aa67f1993e3a335ff798d085a3e818b12988739dd3d5e69f8bdd1be97f01c249`.
+Earlier private-signer releases used `91e25271c73e5dc7c241f9c0b7c4b8743e25bc54eb6d6e609f0cd58f0e42349c`.
+An installation using that different signer cannot update directly to the previous key. Finish
+pending recovery and export needed diagnostics before any uninstall; uninstalling removes
+private recovery files. Existing published APKs do not change when CI secrets change.
 
 Release CI requires `ANDROID_RELEASE_KEYSTORE_BASE64`, `ANDROID_RELEASE_STORE_PASSWORD`,
 `ANDROID_RELEASE_KEY_ALIAS` and `ANDROID_RELEASE_KEY_PASSWORD`. Back up the original keystore
-and password securely; GitHub cannot return a stored secret. Unsigned local release builds never
-fall back to the public development key.
+and password securely; GitHub cannot return a stored secret. Local release builds remain unsigned
+unless signing environment variables are supplied. CI supplies the previous patcher key explicitly.
 
 ## Automation
 

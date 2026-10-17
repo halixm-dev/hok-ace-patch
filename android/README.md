@@ -103,8 +103,8 @@ The Chaquopy build interpreter is the repository's `.venv/Scripts/python.exe`.
 
 GitHub Actions also builds all six custom native components from their pinned sources on a
 clean Windows runner. Pushes and pull requests produce development APK artifacts; `android-v*`
-tags produce privately signed APKs and draft releases. See [automated builds](../README.md#automated-android-builds)
-and [security/signing](../SECURITY.md). Release builds no longer use the public debug signer.
+tags produce APKs signed with the previous patcher key and draft releases. See [automated builds](../README.md#automated-android-builds)
+and [security/signing](../SECURITY.md). CI reuses the public development signer for update compatibility.
 Local release builds are unsigned unless the four signing environment variables documented
 there are supplied. The root `VERSION` file defaults the patcher version to `1.6.0.1.1`
 (game data version plus patch revision); see [patch versions](../README.md#patch-versions).

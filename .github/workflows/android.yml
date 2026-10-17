@@ -42,7 +42,7 @@ jobs:
       - name: Build and check development APK
         if: ${{ !startsWith(github.ref, 'refs/tags/android-v') }}
         run: ./tools/ci/build_android.ps1 -VersionCode $([int]$env:GITHUB_RUN_NUMBER + 1)
-      - name: Build and check privately signed release APK
+      - name: Build and check release APK
         if: startsWith(github.ref, 'refs/tags/android-v')
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}
@@ -105,6 +105,6 @@ jobs:
 
           Development acceptance and redistribution review remain open; review android/native/THIRD_PARTY.md before publishing. The component source companion is not a complete application source/license clearance.
 
-          This APK uses the private release signer. A debug-signed development install cannot update to it directly. Finish any recovery before changing installations.
+          This APK uses the previous patcher signing key, allowing updates over matching development installs without uninstalling. That legacy key is public; obtain APKs only from this repository. Game normal/access APKs retain their separate stable key. Installation and consent prompts are not removed by patcher signing.
           EOF
           gh release create "$RELEASE_TAG" --verify-tag --draft --title "HOK ACE Patch ${RELEASE_TAG#android-v}" --notes-file notes.md download/artifacts/* download/android/app/build/reports/release-runtime-dependencies.json
