@@ -107,7 +107,8 @@ still installs the access APK and puts the normal one back, as a run with nothin
   pristine delta` or the reason it could not).
 - **Vocabulary.** **Pristine layer** and **Pristine delta** are in `GLOSSARY.md`.
 
-- **Decided while implementing 02–05 (2026-10-17), for the spec owner to confirm:**
+- **Decided while implementing 02–05 (2026-10-17), confirmed by the spec owner (2026-10-17).** Refusals
+  come after the pull and before any game file is written (see [Solution](#solution)). Also:
   - A file the last install translated and the new build no longer stages goes back to the phone at
     its rebuilt pristine bytes; otherwise it would keep the old language. No case today (both languages
     stage the same 14 files).
@@ -120,6 +121,8 @@ still installs the access APK and puts the normal one back, as a run with nothin
     signal. Without this, the clear the refusal asks for would be refused again.
   - The text signal is `pristine_delta.text_not_pristine`: the tables the text pass planned equal
     `counts["tables"]`, the catalog tables it read.
+  - An install that leaves the phone's files pristine (Remove translation) deletes the kept delta
+    rather than keeping an empty one, so the next run is a first install under both pristine signals.
 
 ## Testing
 

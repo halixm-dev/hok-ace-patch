@@ -3034,3 +3034,14 @@ then keeps an empty delta. Fixture files only, with a fake device: no game file 
 
 **Verdict:** Remove translation reuses each patcher's install path and rolls back like a patch. Whether
 the game launches from the restored layer with no repair is unmeasured (the ticket's device cycle).
+
+## 2026-10-17 — Remove translation deletes the delta
+
+The spec owner changed one decision from the entry above: after Remove, each patcher deletes its delta
+instead of keeping an empty one. `tools/research/check_windows_repatch.py`: 11 cases OK. After Remove,
+neither `delta.bin` nor `delta.pending.bin` is left, a second Remove is refused ("nothing to remove"), and
+the following patch run is a first install. That run is refused by a translated summary and builds
+Indonesian from a pristine one. `tools/research/check_pristine_delta.py`: 13 OK. `RemovalRollbackProbeTest`
+now expects `keep_delta` to delete `delta.bin`. It is not re-run on a phone yet.
+
+**Verdict:** offline, Remove leaves the patcher in the same state as one that never translated the phone.

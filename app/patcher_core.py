@@ -560,9 +560,10 @@ class Patcher:
     def write_back_pristine(self, session: Path, restored: list[str] | None) -> dict:
         """Remove translation: write every rebuilt pristine file back, with no new patch.
 
-        Goes through the same push as an install, so the delta it keeps is empty: the phone's files are
-        pristine, and the next patch run makes a fresh one. Refuses, before anything is written, when
-        the layer cannot be rebuilt or this patcher has no record of a translation on it.
+        Goes through the same push as an install, which then deletes the delta: the phone's files are
+        pristine, and the next patch run is a first install that makes a fresh one. Refuses, before
+        anything is written, when the layer cannot be rebuilt or this patcher has no record of a
+        translation on it.
         """
         if restored is None:
             raise PatchError("This patcher has no record of a translation on this phone, so there is "
@@ -641,9 +642,16 @@ class Patcher:
             self.log(f"  package {package_id} installed")
         self.adb.shell(f"run-as {PACKAGE} sh -c 'rm -rf files/QtsVFSCache/Watchdog/*'")
         self.adb.shell(f"rm -rf {REMOTE_TMP}", check=False)
-        os.replace(self.keep / PENDING_DELTA, self.keep / pristine_delta.DELTA_NAME)
-        self.log(f"  kept a pristine delta of {len(delta.files)} files "
-                 f"({delta.range_bytes / 1e6:.2f} MB of original bytes)")
+        if delta.files:
+            os.replace(self.keep / PENDING_DELTA, self.keep / pristine_delta.DELTA_NAME)
+            self.log(f"  kept a pristine delta of {len(delta.files)} files "
+                     f"({delta.range_bytes / 1e6:.2f} MB of original bytes)")
+        else:
+            # The phone's files are pristine again, so the next run is a first install under both
+            # pristine signals, exactly as on a phone this patcher never translated.
+            (self.keep / pristine_delta.DELTA_NAME).unlink(missing_ok=True)
+            (self.keep / PENDING_DELTA).unlink(missing_ok=True)
+            self.log("  the game files are untranslated; no pristine delta is kept")
         self.done("install")
 
     def restore_normal_apk(self) -> None:

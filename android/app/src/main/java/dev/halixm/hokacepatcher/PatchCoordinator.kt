@@ -107,7 +107,9 @@ class PatchCoordinator @JvmOverloads constructor(
         if (delta.isFile) {
             runCatching {
                 val kept = JSONObject(bridge("keep_delta", enginePath, newest.directory.path, pristine.path))
-                report("Kept a pristine delta of ${kept.getInt("files")} files for the next language switch")
+                val files = kept.getInt("files")
+                report(if (files > 0) "Kept a pristine delta of $files files for the next language switch"
+                       else "The game files are untranslated; no pristine delta is kept")
             }.onFailure { report("Could not keep the pristine delta (${it.javaClass.simpleName}); " +
                 "switching languages will need the game's data cleared") }
         }

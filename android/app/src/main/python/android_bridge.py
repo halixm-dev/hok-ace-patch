@@ -429,8 +429,8 @@ def build_removal(engine_root: str, session_root: str, keep_root: str) -> str:
     """Remove translation: stage the rebuilt pristine files as the session's output, with no new patch.
 
     The apply writes `out/` exactly as it writes a translation, with `snapshot/` as its rollback, and
-    the session's delta is empty, so once the run completes the phone's files are pristine and the next
-    patch run makes a fresh delta. Refuses, before any game file is written, when the snapshot cannot be
+    the session's delta is empty, so once the run completes `keep_delta` deletes the patcher's delta:
+    the phone's files are pristine, and the next patch run is a first install. Refuses, before any game file is written, when the snapshot cannot be
     rebuilt or this patcher has no record of a translation on it.
     """
     root, session, keep = Path(engine_root).resolve(), Path(session_root).resolve(), Path(keep_root).resolve()
@@ -469,14 +469,21 @@ def build_removal(engine_root: str, session_root: str, keep_root: str) -> str:
 
 
 def keep_delta(engine_root: str, session_root: str, keep_root: str) -> str:
-    """Make the session's delta the patcher's own, once its install is verified complete."""
+    """Make the session's delta the patcher's own, once its install is verified complete.
+
+    An empty delta (Remove translation) deletes the patcher's delta instead: the phone's files are
+    pristine, so the next run is a first install under both pristine signals.
+    """
     _prepare(Path(engine_root).resolve())
     import pristine_delta
 
     session, keep = Path(session_root).resolve(), Path(keep_root).resolve()
     delta = pristine_delta.read(session / SESSION_DELTA)
     pristine_delta.record_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME, delta.staged_hashes)
-    pristine_delta.write(delta, keep / pristine_delta.DELTA_NAME)
+    if delta.files:
+        pristine_delta.write(delta, keep / pristine_delta.DELTA_NAME)
+    else:
+        (keep / pristine_delta.DELTA_NAME).unlink(missing_ok=True)
     return json.dumps({"files": len(delta.files), "bytes": delta.range_bytes})
 
 

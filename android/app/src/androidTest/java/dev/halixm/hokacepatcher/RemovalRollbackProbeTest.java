@@ -194,10 +194,10 @@ public final class RemovalRollbackProbeTest {
             String name = names.next();
             assertEquals(name, identities.getJSONArray(name).getString(1), hash(device.files.get("packages/" + name)));
         }
-        // The session's delta is empty: once promoted, the phone has nothing left to rebuild.
+        // The session's delta is empty: promoting it deletes the patcher's delta, so the next run is a
+        // first install.
+        assertTrue(new File(keep, "delta.bin").isFile());
         python.getModule("android_bridge").callAttr("keep_delta", engine.getPath(), second.getDirectory().getPath(), keep.getPath());
-        assertEquals(0, python.getModule("pristine_delta").callAttr("read",
-            python.getModule("pathlib").callAttr("Path", new File(keep, "delta.bin").getPath()))
-            .get("files").asList().size());
+        assertFalse(new File(keep, "delta.bin").exists());
     }
 }

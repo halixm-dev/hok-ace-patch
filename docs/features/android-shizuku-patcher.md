@@ -340,7 +340,8 @@ Kotlin only names the files (`PristineDelta.kt`).
   form and sends the worker `remove`. `PatchCoordinator.run(remove = true)` swaps the estimate and
   build for `removal_bytes` (reserved) and `build_removal`, which moves the rebuilt pristine files into
   `out/` with an empty session delta; the write-back, its `snapshot/` rollback and the delta promotion
-  are the patch run's. The result reads "Translation removed" with the Scan to login and store note.
+  are the patch run's. Promoting an empty delta deletes the kept one (`keep_delta`), so the next patch
+  run is a first install and the button hides. The result reads "Translation removed" with the Scan to login and store note.
   `RemovalRollbackProbeTest` cuts a write-back off after its first file and checks the rollback
   restores the translated bytes, then checks a complete one leaves every file pristine (passes on a
   phone).

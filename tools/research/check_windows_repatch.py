@@ -228,15 +228,22 @@ class Repatch(unittest.TestCase):
         result = remover.write_back_pristine(session, remover.restore_pristine(session))
         self.assertEqual(sorted(result["removed"]), ["1/1_0.db", "15/15_0.db"])
         self.assertEqual(self.phone_bytes(), PRISTINE)
-        self.assertEqual(pristine_delta.read(self.work / "pristine" / "delta.bin").files, ())
-        # Removing again finds nothing to write; a new patch run builds from the pristine layer.
+        self.assertFalse((self.work / "pristine" / "delta.bin").exists())
+        self.assertFalse((self.work / "pristine" / PENDING_DELTA).exists())
+        self.assertFalse(patcher_core.holds_delta(self.work))
+        # Removing again has no record to remove from; a new patch run is a first install, which the
+        # pristine signals accept and which a translated summary would refuse.
         session = self.session()
-        self.assertEqual(remover.write_back_pristine(session, remover.restore_pristine(session))["removed"], [])
+        with self.assertRaisesRegex(PatchError, "nothing to remove"):
+            remover.write_back_pristine(session, remover.restore_pristine(session))
         patcher = self.patcher()
         session = self.session()
-        self.assertEqual(patcher.restore_pristine(session), [])
-        self.install(patcher, session, INDONESIAN, PRISTINE_SUMMARY, [])
+        self.assertIsNone(patcher.restore_pristine(session))
+        with self.assertRaisesRegex(PatchError, "already translated"):
+            patcher.check_first_delta(PATCHED_SUMMARY)
+        self.install(patcher, session, INDONESIAN, PRISTINE_SUMMARY, None)
         self.assertEqual(self.phone_bytes(), {**PRISTINE, **INDONESIAN})
+        self.assertEqual(sorted(self.patcher().restore_pristine(self.session())), sorted(INDONESIAN))
 
     def test_remove_without_a_record_is_refused(self):
         remover = Patcher(Ui(), self.work, "en", remove=True)
