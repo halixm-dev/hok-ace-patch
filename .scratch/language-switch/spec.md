@@ -205,5 +205,8 @@ The pristine delta is what lets the patcher put pristine bytes back where a diff
 
 ## Open questions
 
-- Does the game accept a re-patched override layer without clearing, with no repair on launch? The
-  ordinary re-run over an already-patched layer suggests it does, but no switch has been run on a phone.
+- ~~Does the game accept a re-patched override layer without clearing, with no repair on launch?~~
+  **Answered 2026-10-17: yes.** EN → ID → EN through the Windows patcher on the Xiaomi M2007J3SG: each
+  step launched with no repair in `normal1.log`, the login survived, and each switch staged bytes
+  identical to a build from the pristine snapshot (lab notebook, "Language switch without a clear").
+  The Android patcher writes the same bytes; its own cycle is still owed (ticket 08).

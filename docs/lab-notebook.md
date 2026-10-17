@@ -3046,3 +3046,24 @@ now expects `keep_delta` to delete `delta.bin`. On the Xiaomi M2007J3SG (Android
 `RemovalRollbackProbeTest` and `PristineDeltaProbeTest`: OK (2 tests, 4.4 s).
 
 **Verdict:** offline, Remove leaves the patcher in the same state as one that never translated the phone.
+
+## 2026-10-17 — Language switch without a clear (Windows patcher)
+
+Ticket 08 of `.scratch/language-switch`, Windows half. Xiaomi M2007J3SG (`f15a72e`, Android 12). The
+patcher ran from source (`run.bat`, `master` at `7d6f8bd`, then `48391f7`), working folder
+`D:\HOK ACE Patcher Data\cache\HOK ACE Patcher Data`.
+
+| Step | Result |
+|---|---|
+| Starting layer | English from the Android patcher's benchmark run (no delta on either patcher). A scratch script pushed the pristine snapshot `20261016-101124` (1.6.0.1 r0) back through the access APK instead of a clear: all 549 package files equal `snapshot.json`; `Watchdog/` from the same tar; `needDownloadSize` 0; normal APK reinstalled. Previous layer saved: `D:\scratch\hok-ticket08\before-restore.tar` (2 936 564 736 B). |
+| 1. English (session `20261017-214255`) | First install; text signal read the layer as pristine. 388 text tables and 398 textures applied, 1 table left Chinese. Delta 14 files, 6.14 MB of pristine ranges (5 124 701 B file). Launcher `Honor of Kings: ACE`; no repair; Scan to login; START GAME. `normal1.log` +19.6 KB, 0 hits for `QtsfFixer\|FixFile\|crc not match\|errorCode:361`. |
+| 2. Indonesian, attempt 1 (`20261017-215340`) | Stopped in `pull_game_data`: renaming the extracted `packages/` to `builtin/` failed; the same rename succeeded minutes later (a transient Windows file lock). Nothing written. The pull grew to 2.76 GB from 2.29 GB after the game's first launch. Fixed in `48391f7` (extract straight into `builtin/`). |
+| 2. Indonesian (`20261017-220303`) | Rebuilt from the delta. The 14 staged files are byte-identical to `dist/delta-check/from-pristine-id`. New delta 14 files, 4.67 MB (3 870 198 B). No repair, **still logged in**, MULAI GAME with Indonesian text. `normal1.log` +29 KB, 0 hits. |
+| 3. English (`20261017-224744`) | Rebuilt from the delta. Catalog commits `6a7c196`, `a047035`, `74b49b2` landed between steps 2 and 3, so this English differs from step 1's in `1/1.db` and `1/1_0.db`. Its 14 staged files are byte-identical to English built from the pristine snapshot with the same catalog (`D:\scratch\hok-ticket08\from-pristine-en-now`). Delta 14 files, 6.14 MB. No repair, still logged in, START GAME. `normal1.log` +38 KB, 0 hits. |
+
+Each build writes 14 files. 3 of them (`15/15.db`, `19/19.db`, `20/20.db`) stay at their pristine bytes
+in both languages, and English and Indonesian differ in `1/1.db`, `1/1_0.db` and `19/19_0.db`.
+
+**Verdict:** pass. The game accepts a re-patched override layer without a clear: no repair on launch,
+and the login survives a switch. A switch stages exactly what a cleared phone would get, including a
+newer catalog over the same language. The Android patcher's cycle is still owed.

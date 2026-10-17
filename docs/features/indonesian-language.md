@@ -120,7 +120,10 @@ texture and needs an Indonesian image; and the resource tokens expand to English
 - Translating the strings the game ships in English (the measured gap above): needs catalog rows.
 - Re-drawing other English texture edits in Indonesian: each needs its own render under `previews/` and a
   `LABELS` entry.
-- **Switching an already-patched install between languages.** The scanner only translates tables that
-  still hold Chinese (`README.md`'s known limits), so text switches only after the game's data is reset;
-  textures switch on any run, which would leave MULAI GAME over English text. Both pickers say to clear
-  the game's data before switching (measured: the Report's language-switch row).
+- **Switching a phone this patcher did not translate last.** The scanner only translates tables that
+  still hold Chinese (`README.md`'s known limits), so over a layer with no pristine delta text switches
+  only after the game's data is reset, while textures switch on any run and would leave MULAI GAME over
+  English text (measured: the Report's language-switch row). A phone the same patcher translated last is
+  switched from its pristine delta without a clear: EN → ID → EN through the Windows patcher passed on
+  a phone, with no repair and the login kept (lab notebook, 2026-10-17, "Language switch without a
+  clear"). The Android patcher's cycle is still owed.
