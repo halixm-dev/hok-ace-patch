@@ -20,7 +20,7 @@
 clear"). The phone was first put back on the pristine 1.6.0.1 snapshot through the access APK instead
 of a clear. Each step launched with no repair, the login survived both switches, and each switch staged
 bytes identical to a build from the pristine snapshot. The first Indonesian attempt failed in the pull
-(a transient Windows lock on the extracted folder's rename), fixed in `48391f7` before the retry.
+(a transient Windows lock on the extracted folder's rename), fixed in `f1ec4de` before the retry.
 Catalog fixes landed between the Indonesian and the second English step, so that step also covered a
 newer translation without a clear. The Android half is still owed.
 

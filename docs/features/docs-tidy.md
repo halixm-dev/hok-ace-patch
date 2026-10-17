@@ -3,7 +3,7 @@ feature: docs-tidy
 status: delivered
 updated: 2026-10-16
 branch: docs-tidy
-commits: 5855baf..the docs-tidy tip
+commits: 4195409..the docs-tidy tip
 ---
 
 # Docs Tidy
