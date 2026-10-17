@@ -2927,3 +2927,42 @@ above). `prepare_game_apks` reads each written APK's manifest back and refuses a
 is not debuggable. **Not device-verified**: the phone's own manifest was not in the log, so the
 out-of-order flag is the explanation that fits, not a measurement. If the next log still fails, its
 manifest line is now meaningful.
+
+## 2026-10-17 — Reverse delta from a staged layer back to the pristine one
+
+Asked whether a language switch could skip clearing the game's data by keeping only what the patch
+changed. Offline, `HEAD` `65b11fe`: `build_device_patch.py` over the pristine 1.6.0.1 snapshot
+`dist/HOK ACE Patcher Data/pristine/20261016-101124/game` with the cached `installed.apk`
+(`29b3ee7e…`), `--catalog resources\catalog`; exit 0 in 75 s, 10 packages, `text_skipped` and
+`graphics_skipped` empty, `append_skipped` one table (unchanged). The 14 staged `.db` files were each
+compared with their pristine original in 4 KiB blocks, then 64-byte sub-blocks, coalescing changed
+runs closer than 256 bytes. The reverse delta is the pristine bytes of every overwritten range, the
+pristine bytes past the staged length, and the pristine length; sizes are zlib level 6.
+
+| Staged file | Pristine | Staged | Ranges | Overwritten | Appended | Delta (zlib) |
+|---|---:|---:|---:|---:|---:|---:|
+| `1/1_0.db` | 29.1 MB | 35.4 MB | 89 | 6.02 MB | 6.29 MB | 5.09 MB |
+| `15/15_0.db` | 297.6 MB | 366.5 MB | 12 | 0.03 MB | 68.83 MB | 0.01 MB |
+| `19/19_0.db` | 333.2 MB | 336.6 MB | 31 | 0.01 MB | 3.38 MB | <0.01 MB |
+| `20/20_0.db` | 204.8 MB | 204.8 MB | 3 | <0.01 MB | 0.05 MB | <0.01 MB |
+| `1050016095/1050016095_0.db` | 0.2 MB | 4.9 MB | 5 | 0.02 MB | 4.75 MB | <0.01 MB |
+| the other 9: `1/1.db`, `10/10.db`, `10/10_0.db`, `15/15.db`, `19/19.db`, `20/20.db`, `21/21.db`, `21/21_0.db`, `1050016095/1050016095.db` | 60.8 MB | 60.9 MB | 0–56 each | 0.07 MB | 0.07 MB | 0.01 MB |
+| **All 14** | **925.7 MB** (zlib 898.3 MB) | | | **6.14 MB** | **83.36 MB** | **5.12 MB** (raw 6.14 MB) |
+
+Round trip: each pristine file rebuilt from its staged file plus the delta alone (truncate to the
+pristine length, re-append the pristine tail, write back each range) matches the pristine SHA-256,
+14 of 14. No staged file is shorter than its pristine original, and 83 of the 89 MB the patch adds
+is appended past the pristine end; the in-place 6.1 MB is almost all `1_0.db`.
+
+The same build with `--catalog resources\catalog_id` (exit 0, 10 packages, the same skip lists)
+stages the same 14 files: 76 ranges in `1/1_0.db` instead of 89, **4.67 MB** overwritten, 84.48 MB
+appended, delta **3.87 MB** zlib (raw 4.67 MB), round trip 14 of 14. The two languages overwrite
+different ranges of `1/1_0.db`, so a delta made for one does not describe the other's install. (A first
+Indonesian attempt failed with `WinError 112`: the C: scratchpad ran out of disk; re-run on D:.)
+
+Scripts and output: the session scratchpad's `delta/measure_delta.py` and `delta/roundtrip.py`, not
+kept in the repo.
+
+**Verdict:** keeping the pristine layer under a patch costs about 4–5 MB per install, against 898 MB for
+copies of the touched files. Offline only: nothing went on a phone, and whether the game accepts a
+re-patch over a restored layer without clearing its data is unmeasured.
