@@ -194,6 +194,20 @@ precedes the bundled runtime in `sys.path`.
 
 ## Device boundary checks
 
+For engine optimization checks, install only the app and its `androidTest` APK, then run:
+
+```bat
+adb shell am instrument -w -r -e requireFullCodecs true ^
+    -e class dev.halixm.hokacepatcher.EngineProbeTest,dev.halixm.hokacepatcher.NativeDependencyProbeTest,dev.halixm.hokacepatcher.PackageIoProbeTest ^
+    dev.halixm.hokacepatcher.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+These four checks load the packaged codecs and use tiny app-private fixtures. They verify 64 KiB
+changed-region writes, zero writes on an unchanged save, root splitting with 600 records, live
+B-tree offsets, and small ASTC reuse against the native encoder. They need no Shizuku or fixture
+APK and execute no game installation, game-data write or patch coordinator. Full staging and
+watched game-screen acceptance remain separate checks.
+
 Install `app/build/outputs/apk/debug/app-debug.apk`, the debug fixture APK, and the app's
 `androidTest` APK. MIUI may require **Install via USB**, the separate **USB debugging
 (Security settings)** option, and a prompt for each APK. Start Shizuku

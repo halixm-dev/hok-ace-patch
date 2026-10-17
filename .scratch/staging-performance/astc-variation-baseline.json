@@ -1,0 +1,102 @@
+{
+  "python": "3.12.13 (main, Jul 18 2026, 17:08:38) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "audit": "D:\\scratch\\hok-staging-performance\\astc-audit1",
+  "sample": 1475,
+  "trials": [
+    [
+      {
+        "sample": 0,
+        "wall_s": 0.32708369998726994,
+        "cpu_s": 0.328125,
+        "output_sha256": "032198a972b8841b19e2fafc9819be14a6cfc1cba45b9023222fa805b8c01224",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.9610021999978926,
+        "cpu_s": 0.90625,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.8959771000081673,
+        "cpu_s": 0.875,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.9015069000015501,
+        "cpu_s": 0.859375,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      }
+    ],
+    [
+      {
+        "sample": 0,
+        "wall_s": 0.2550354999839328,
+        "cpu_s": 0.265625,
+        "output_sha256": "032198a972b8841b19e2fafc9819be14a6cfc1cba45b9023222fa805b8c01224",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.9043719999899622,
+        "cpu_s": 0.90625,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.8187111000006553,
+        "cpu_s": 0.765625,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.9021672999951988,
+        "cpu_s": 0.875,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      }
+    ],
+    [
+      {
+        "sample": 0,
+        "wall_s": 0.2346389000013005,
+        "cpu_s": 0.234375,
+        "output_sha256": "032198a972b8841b19e2fafc9819be14a6cfc1cba45b9023222fa805b8c01224",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.8813920999818947,
+        "cpu_s": 0.859375,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.8940988999966066,
+        "cpu_s": 0.890625,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      },
+      {
+        "sample": 1475,
+        "wall_s": 0.831253900018055,
+        "cpu_s": 0.828125,
+        "output_sha256": "017873bdc7a798daee4619e4e18364868c70217dc839627316397ed5775a6bfe",
+        "matches_audit": true
+      }
+    ]
+  ],
+  "maximum_to_minimum_wall_ratio": 1.1737989139235114,
+  "ratio_limit": 1.5,
+  "time_variation_detected": false,
+  "all_outputs_match_audit": true
+}

@@ -1,0 +1,95 @@
+{
+  "call_count": 3654,
+  "unique_inputs": 1481,
+  "repeated_calls": 2173,
+  "native_wall_s": 26.634201199165545,
+  "repeated_native_wall_s": 1.3238806990266312,
+  "unique_input_bytes": 81493984,
+  "unique_output_bytes": 6048016,
+  "bounded_reuse_models": [
+    {
+      "max_input_bytes": 4096,
+      "capacity": 128,
+      "hits": 1000,
+      "recorded_hit_native_wall_s": 0.4554950993624516,
+      "peak_input_output_bytes": 419840
+    },
+    {
+      "max_input_bytes": 4096,
+      "capacity": 256,
+      "hits": 1651,
+      "recorded_hit_native_wall_s": 0.7924506990530062,
+      "peak_input_output_bytes": 839680
+    },
+    {
+      "max_input_bytes": 4096,
+      "capacity": 512,
+      "hits": 2035,
+      "recorded_hit_native_wall_s": 1.0020194990211166,
+      "peak_input_output_bytes": 1679360
+    },
+    {
+      "max_input_bytes": 8192,
+      "capacity": 128,
+      "hits": 1025,
+      "recorded_hit_native_wall_s": 0.45578839944209903,
+      "peak_input_output_bytes": 999840
+    },
+    {
+      "max_input_bytes": 8192,
+      "capacity": 256,
+      "hits": 1676,
+      "recorded_hit_native_wall_s": 0.7927439991326537,
+      "peak_input_output_bytes": 1578480
+    },
+    {
+      "max_input_bytes": 8192,
+      "capacity": 512,
+      "hits": 2060,
+      "recorded_hit_native_wall_s": 1.002312799100764,
+      "peak_input_output_bytes": 2418160
+    },
+    {
+      "max_input_bytes": 16384,
+      "capacity": 128,
+      "hits": 1025,
+      "recorded_hit_native_wall_s": 0.45578839944209903,
+      "peak_input_output_bytes": 1023280
+    },
+    {
+      "max_input_bytes": 16384,
+      "capacity": 256,
+      "hits": 1676,
+      "recorded_hit_native_wall_s": 0.7927439991326537,
+      "peak_input_output_bytes": 1624400
+    },
+    {
+      "max_input_bytes": 16384,
+      "capacity": 512,
+      "hits": 2060,
+      "recorded_hit_native_wall_s": 1.002312799100764,
+      "peak_input_output_bytes": 2464080
+    },
+    {
+      "max_input_bytes": 65536,
+      "capacity": 128,
+      "hits": 1025,
+      "recorded_hit_native_wall_s": 0.45578839944209903,
+      "peak_input_output_bytes": 1159760
+    },
+    {
+      "max_input_bytes": 65536,
+      "capacity": 256,
+      "hits": 1676,
+      "recorded_hit_native_wall_s": 0.7927439991326537,
+      "peak_input_output_bytes": 1845920
+    },
+    {
+      "max_input_bytes": 65536,
+      "capacity": 512,
+      "hits": 2060,
+      "recorded_hit_native_wall_s": 1.002312799100764,
+      "peak_input_output_bytes": 2685600
+    }
+  ]
+}

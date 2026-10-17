@@ -2292,3 +2292,537 @@ to open the game and check the translated screens, the user replied "Works". Thi
 user-reported success for this phone/run; individual screens were not enumerated. The completed
 patch ran the older engine code, so this is not an optimized phone timing result. The optimized
 patcher remains installed for future runs.
+
+## 2026-10-17 — Read B-tree pages without loading shard payloads
+
+Continued the offline staging optimization from the saved profile. The live-slot wrapper called
+`btree_offsets(Shard(path))` on every single-shard slot-map build. `Shard` reads the whole file and
+copies it into a mutable bytearray, although this check needs only the page table and tree pages.
+`qts_relocate._read_btree_offsets` now reads those pages with seeks. The writable `Shard`, runtime
+chunk scanner, stale-slot replacement and append read-back verification retain their existing paths.
+Every check opens the current file afresh; there is no cache across package writes.
+
+| Targeted evidence | Result |
+|---|---|
+| Red reproduction | `.venv/Scripts/python.exe -X utf8 .scratch/staging-performance/check_btree_reads.py` initially fails only the bounded-read assertion: 1,048,576 bytes read for a tiny synthetic tree, against a 32,768-byte ceiling. |
+| Focused checks after change | Eight checks pass: active versus superseded physical pages, duplicate keys, bounded reads, fresh values after a write, absent leaves, truncated tree, wrong logical self-id, unreadable-tree fallback, and relocated-slot selection (some checks cover multiple properties). |
+| Real-shard differential | `measure_btree_reads.py` compares all 120 pristine shards plus seven verified staged shards from `optimized1/out`: all 127 live-offset maps equal the legacy implementation. |
+| Bytes returned by reads | Legacy 3,246,702,592 bytes; page reads 2,126,888 bytes (99.93% fewer). These are Python read bytes, not measured physical disk traffic. |
+| Paired elapsed time | Legacy 10.170 s; page reads 2.275 s. Alternating implementation order per shard; ordinary Windows cache and scheduling, one pass. This is the tree check alone, not total staging. |
+
+Raw per-shard paths, bytes and timings: `.scratch/staging-performance/tree-read-comparison.json`.
+Reproduce with Python 3.12 using `measure_btree_reads.py` with the pristine game directory and
+`D:/scratch/hok-staging-performance/optimized1/out` as positional directories, plus `--output <json>`.
+
+The first full English staging run uses the same pristine dump, cached APK and `measure.py` command
+as the baseline, with fresh external directory `D:/scratch/hok-staging-performance/tree-pages1`.
+Raw timings are `.scratch/staging-performance/tree-pages1.json`; verification is
+`.scratch/staging-performance/tree-pages-verification.json`. The real-shard comparison and small
+regression checks ran concurrently during part of this first run; it is not an isolated timing trial.
+
+| Full-run evidence | Result |
+|---|---|
+| Output equivalence | All 14 `.db` SHA-256 hashes equal the original `run1` baseline. Complete summary equals the previously baseline-verified `optimized1` control, normalizing only each run's prime-source path prefix. Counts and all skip lists are included. |
+| Gates retained | 31 slot-map calls; 94 staged override text tables; 183,250 translated records; no skipped text or textures; existing single append encoder refusal unchanged. |
+| First total elapsed / CPU | 270.807 s / 163.688 s. Earlier scan-optimized totals were 164.056 / 188.715 s. |
+| Native ASTC encoding | 118.960 s, versus 30.551 / 63.865 s in the earlier scan-optimized runs. These nested times are already included in total elapsed. |
+| Whole slot-map builds | 36.079 s, versus 43.157 / 32.854 s previously; this includes the unchanged chunk scanner and stale-slot recovery, not just the optimized tree check. |
+| Repository verification | Eight focused tree checks, nine existing scan-guard checks, reference check, staging-contract check and diff whitespace check pass. |
+
+A second full run, `D:/scratch/hok-staging-performance/tree-pages2`, ran without the concurrent
+real-shard benchmark. Raw timings are `.scratch/staging-performance/tree-pages2.json` and full
+verification is `.scratch/staging-performance/tree-pages2-verification.json`.
+
+| Measurement | Second run |
+|---|---:|
+| Total elapsed / process CPU | 200.174 / 129.578 s |
+| Whole slot-map builds, still 31 calls | 13.938 s |
+| Native ASTC encoding, both layers combined | 88.703 s |
+| Output equivalence | All 14 original package hashes and the complete normalized summary match again. |
+
+**Verdict:** removes whole-shard reads and mutable copies from the live-offset check, with measured
+paired read/time reduction and byte-identical staged output in both runs. Both full runs are slower
+overall than the earlier scan-optimized runs; native encoding and other work vary substantially.
+The repeat reduces whole slot-map time, but this establishes no end-to-end speedup or Android
+timing claim. Source-only optimization: no executable/APK build, phone install or device cycle.
+
+## 2026-10-17 — Small ASTC reuse
+
+The user requested investigating duplicate texture encoding next. `audit_astc.py` wraps the real
+encoder during full English staging against the same pristine dump and cached APK, preserving
+every native call. It saves exact RGBA inputs, geometry, encoded outputs and call order under
+`D:/scratch/hok-staging-performance/astc-audit1/`. That audit output matches all 14 original
+baseline package hashes and the full normalized summary (`astc-audit-verification.json`). Audit
+recording adds overhead, so its full elapsed time is diagnostic, not a fair uncached speed control.
+
+| Audit evidence | Result |
+|---|---:|
+| Native requests / exact unique inputs | 3,654 / 1,481 |
+| Repeated requests | 2,173 |
+| Total native encode time / repeated native time | 26.634 / 1.324 s |
+| Unique captured RGBA bytes / encoded bytes | 81,493,984 / 6,048,016 |
+| Model: 512 entries, inputs no larger than 4096 bytes | 2,035 hits; 1,679,360 bytes peak retained input + output payload |
+
+The repeats are mostly cheap strips. Most large images are unique on this input; the follow-up
+below identifies two repeated full-image inputs. Caching all large images would retain much more
+memory with little additional benefit. `mobile_graphics.encode_astc`
+now uses an LRU of at most 512 small results. Exact pixel bytes, width, height and both footprint
+dimensions are the key. Large images use the unchanged native function, encoder settings stay
+unchanged, and failures are not cached. Pixel input retention is bounded to 2 MiB, plus encoded
+outputs and Python overhead. The cache lives only in this process and stores no mutable package state.
+
+`check_astc_reuse.py` first fails its duplicate-request assertion (two native calls instead of one).
+After the change all eight focused checks pass: identical requests, changed pixels, changed geometry,
+changed footprint, large-image bypass, the 4096-byte boundary, failure retry and LRU eviction/capacity.
+
+The first isolated replay failed on sample 240 even with reuse disabled. Its native output differs
+when the audit's initial large 8x8-footprint image is omitted. A fresh process encoding that large
+image first reproduces the recorded bytes; beginning with a small 4x4-footprint strip does not.
+The cause inside the native library is not established; this first-request dependency was not changed.
+The corrected replay preserves the first
+native request (sample 0) before timing, empties the result cache each round, and alternates native
+versus reuse order. All 3,362 small requests match their recorded encoded bytes in all six passes.
+
+| Replay round | Uncached small encoding | Reused small encoding | Native calls before → after |
+|---|---:|---:|---:|
+| 1 | 1.764 s | 0.968 s | 3,362 → 1,327 |
+| 2 | 1.783 s | 0.950 s | 3,362 → 1,327 |
+| 3 | 1.738 s | 0.923 s | 3,362 → 1,327 |
+
+These are the small-input sequence only, excluding initial native setup and the expensive large
+images. The measured saving is about 0.8 s, not the majority of texture encoding or full staging.
+Evidence and reproduction scripts live in `.scratch/staging-performance/`: `astc-audit-summary.json`,
+`astc-replay.json`, `analyze_astc_audit.py` and `replay_astc.py`. The replay takes the external audit
+run directory and `--output <json>`; the audit accepts the existing `measure.py` arguments.
+
+The optimized full run uses a fresh `D:/scratch/hok-staging-performance/astc-reuse1` directory with
+the normal `measure.py` command, without audit recording or cProfile. The harness now includes the
+small-result cache counters in its timing JSON, outside the shipping staging summary.
+
+| Full-run verification | Result |
+|---|---|
+| Package bytes | All 14 `.db` SHA-256 hashes equal the original baseline. |
+| Complete summary | Equals the already baseline-verified control, normalizing only per-run prime-source paths; all counts, skips and package reports unchanged. |
+| Encoder work | 3,654 requests, 2,035 cache hits, 1,327 small misses and 292 larger native requests: 1,619 actual encodes instead of 3,654. Cache ends at its 512-entry limit. |
+| Full elapsed / CPU | 108.716 / 51.172 s. The audit run took 130.670 / 54.281 s, but recording and ordinary cache/scheduling differences prevent attributing that total difference to reuse. |
+| Regression and repo checks | Eight cache-boundary checks, eight tree-read checks and nine scan-guard checks pass; reference, staging-contract and diff whitespace checks pass. |
+| Evidence | `.scratch/staging-performance/astc-reuse1.json` and `astc-reuse-verification.json`. |
+
+**Verdict:** keep the bounded small-result reuse. It removes 2,035 native calls on this input,
+preserves all staged bytes and saves about 0.8 s in the paired small-input replay. It does not remove
+the expensive unique full-image work or establish an overall staging speedup. Coverage is unchanged.
+Source-only change: no executable/APK build, phone install or device cycle.
+
+## 2026-10-17 — Remaining duplicate encoding after bounded reuse
+
+The user requested continuing the offline duplicate-encoding investigation. Replayed the saved
+audit's call order through the existing 512-entry, 4096-byte LRU policy, without encoding again
+or staging another package. `remaining_astc_duplicates.py` reproduces the already verified 2,035
+hits and explains every repeated request that still reaches the native encoder.
+
+| Remaining reason | Duplicate calls | Recorded native work |
+|---|---:|---:|
+| Small input was evicted | 111 | 0.061 s |
+| Input exceeds the size limit | 27 | 0.261 s |
+| **Total** | **138** | **0.322 s** |
+
+Two of the 27 oversized repeats are full 568x304 images, 690,688 RGBA bytes each: sample 1438,
+seen again for texture `8479F18546A1B9B7`, costs 0.143 s; sample 1441, seen again for
+`BD31CADEBB589D0C`, costs 0.118 s. The other 25 oversized repeats cost just 0.000293 s combined.
+This corrects the earlier blanket statement that large images were all unique; most are unique,
+and these two repeated full images offer only 0.260 s of recorded work to avoid.
+
+**Verdict:** keep the current cache limit. Even eliminating every remaining duplicate would avoid
+only 0.322 s of encoder work in this audit, before reuse overhead; this is a recorded-work estimate,
+not a measured additional speedup. No further shipping-code change is justified by duplicate encoding.
+Package reads/writes and unique-image encoding remain better candidates for the next investigation.
+Evidence: `.scratch/staging-performance/astc-remaining-duplicates.json`; reproduction:
+`remaining_astc_duplicates.py <external-audit-run>/astc-audit.json --output <json>` with Python 3.12.
+No package writes, APK/executable build or phone access in this follow-up.
+
+## 2026-10-17 — Remove full-file temporary copies from writable shard I/O
+
+The user requested implementing the package-read/write optimization next. The saved profile
+identified substantial file handling costs; source inspection found `Shard.__init__` loaded an
+immutable full-file buffer and copied it into a bytearray, while `save` copied a full bytearray
+slice and then copied it again into bytes before writing. These temporary copies are unnecessary
+for the package writer's mutable buffer.
+
+`Shard` now determines the size through its open file handle, allocates one bytearray, and fills it
+with `readinto`. Short reads continue filling the remaining view; premature EOF or an extra byte
+after the expected end refuses a file that changed size during loading. Saving retains the original
+header updates, growth rounding, padding and bounded file length, but passes a memoryview to the
+existing write path. The view is released before returning so later appends can resize the data.
+No package state is shared across writers, no on-disk write is skipped, and append read-back stays.
+
+| Focused verification | Result |
+|---|---|
+| Red reproduction | `check_shard_io.py` fails two memory assertions before the change: loading a 4 MiB fixture peaks at 8,389,002 Python bytes; saving allocates 8,388,726 additional bytes. Byte/lifecycle checks already pass. |
+| After change | Seven I/O checks pass: load/save memory bounds, legacy bytes with growth and excess tail, repeated save/reload, failure-path outer-view release, short reads and changed-size refusal, zero padding and header growth. |
+| Real file benchmark | `measure_shard_io.py` generates one valid 64 MiB synthetic shard plus two disposable copies under `D:/scratch/hok-staging-performance/shard-io-pairs1`; three alternating legacy/direct trials, same last-byte edit. Every saved SHA-256 matches; source unchanged. Setup, copies and hashes are outside timings. |
+
+| 64 MiB shard measurement | Legacy | Direct buffer |
+|---|---:|---:|
+| Python allocation peak while loading | 128.001 MiB | 64.010 MiB |
+| Additional Python allocation peak while saving, no growth needed | 128.000 MiB | 9.32 KiB |
+| Load elapsed range, three trials | 0.132–0.424 s | 0.130–0.317 s |
+| Save elapsed range, three trials | 0.779–0.912 s | 0.764–0.812 s |
+| Load CPU range | 0.047–0.078 s | 0.031 s |
+| Save CPU range | 0.094–0.141 s | 0.047–0.078 s |
+
+Memory measurements use `tracemalloc`, not total process RSS; save peaks exclude the already
+allocated mutable shard and the benchmark needs no growth padding. The original buffer and other
+pipeline objects remain live. Wall times include normal Windows caching/scheduling and no fsync;
+the benchmark supports eliminating memory copies, not a guaranteed overall speedup.
+Raw paired evidence: `.scratch/staging-performance/shard-io-pairs.json`. Reproduce with Python 3.12:
+`measure_shard_io.py --work <new-external-directory> --output <json>`. The full staging harness now
+records nested `Load writable shards` and `Save writable shards` timings, already included in
+the exclusive stages and never added to them.
+
+Full English staging uses the same pristine dump and cached APK in a fresh
+`D:/scratch/hok-staging-performance/shard-io1` directory. Raw timings are
+`.scratch/staging-performance/shard-io1.json`; package hashes and full-summary verdict are
+`.scratch/staging-performance/shard-io-verification.json`.
+
+| Full-run verification | Result |
+|---|---|
+| Package bytes and summary | All 14 original baseline `.db` SHA-256 hashes match. Complete summary equals the previously baseline-verified control after normalizing only per-run prime-source paths. Counts, package reports and every skip list unchanged. |
+| Writable shard I/O | 13 loads, 1.683 s combined; 13 saves, 21.661 s combined. These nested values are already included in stage totals. |
+| Full elapsed / process CPU | 110.152 / 48.734 s, versus the preceding ASTC-reuse run's 108.716 / 51.172 s. Ordinary sequential runs, not controlled wall-time trials. |
+| Regression checks | All 32 pass: seven I/O, eight tree-read, nine scan-guard and eight ASTC-reuse checks. Reference, staging-contract and diff whitespace checks also pass. |
+
+**Verdict:** keep direct-buffer package I/O for the proven removal of full-size temporary copies
+and byte-identical results. No overall elapsed-time improvement established. No claim about total
+pipeline RSS or Android memory/performance; the allocation benchmark is a focused Windows check.
+Coverage unchanged; no executable/APK build, phone install or device cycle.
+
+## 2026-10-17 — Save only changed 64 KiB shard regions
+
+The user authorized continuing offline to investigate reduced disk writes. A deterministic 4 MiB
+fixture shows that the preceding `Shard.save` submits 4 MiB even when unchanged, and the same amount
+for a one-byte edit. `check_changed_writes.py` initially fails three write-volume/idempotence assertions;
+its byte-preservation checks already pass.
+
+`Shard.save` now opens the staged file for read/write, compares bounded 64 KiB regions with the full
+intended output buffer and writes only differing regions. It recreates a missing file, preserves
+the former writer's padding/header behavior and final length, and truncates an excess disk tail.
+An unchanged repeat save submits no writes. It compares current disk bytes afresh, so arbitrary
+in-memory edits and external disk differences need no dirty-range cache or write bookkeeping.
+Short writes raise; parent and per-write views release even when an exception traceback is retained.
+This changes staged-file I/O only; package layout, gates and read-back verification are unchanged.
+
+Nine changed-write checks pass: unchanged save, one-byte write bound and second-save idempotence,
+growth/header/distant edits against legacy bytes, missing-file recreation, extra-tail truncation,
+external same-size disk mutation, 600 appended records causing a root split, relocation live-slot
+repointing, and write-error/short-write buffer release. Together with the earlier checks, 41 pass.
+The old save-memory guard is updated from 128 to 256 KiB to allow bounded comparison buffers;
+full-file temporary copies remain prohibited by the assertion.
+
+`measure_shard_io.py --control whole` compares against the immediate preceding whole-buffer writer,
+without reintroducing the older whole-file memory copies. Three trials alternate implementation
+order, with setup/copies/hashes excluded. Every saved SHA-256 matches and source bytes stay unchanged.
+
+| 64 MiB fixture save, three trials | Whole-buffer writer | Changed-region writer |
+|---|---:|---:|
+| One-byte edit elapsed | 0.131–0.138 s | 0.027–0.031 s |
+| One-byte edit plus 8 MiB appended | 0.154–0.205 s | 0.036–0.077 s |
+| Extra Python allocation peak, one-byte edit | ~9.3 KiB | ~137.3 KiB |
+
+These ordinary Windows-cache measurements show the focused save improvement and its bounded-memory
+tradeoff; they exclude fsync and do not establish an Android or overall staging speedup. Evidence:
+`.scratch/staging-performance/changed-write-pairs.json` and `changed-write-growth.json`. Reproduce
+with `measure_shard_io.py --control whole [--append-mib 8] --work <new-external-dir> --output <json>`.
+
+Scratch housekeeping before this experiment: removed only the agent-generated, baseline-equivalent
+`D:/scratch/hok-staging-performance/shard-io1` and `astc-reuse1` directories after validating their
+saved receipts and checking resolved paths/reparse points. Their timing JSON and hash receipts remain
+in `.scratch/staging-performance/`. Original baseline controls, the pristine dump, all recovery
+backups and `astc-audit1` input recordings are retained. This freed space for a fresh full experiment;
+the removed package outputs were duplicates that can be regenerated, not recovery sources.
+
+Full English staging with the same pristine dump and cached APK runs in a fresh
+`D:/scratch/hok-staging-performance/changed-writes1` directory. `audit_shard_writes.py` wraps file
+handles only during `Shard.save`, counting reads and submitted writes without changing their bytes.
+For each save it records the final file size, which is exactly what the preceding whole-file writer
+would have submitted. This counterfactual does not require another legacy staging run. It excludes
+package copies, the compiled text stager's I/O, other index writes and APK extraction; these are
+shard-save counters, not total pipeline or physical disk traffic.
+
+| Full-run evidence | Result |
+|---|---|
+| Byte equivalence | All 14 original baseline `.db` SHA-256 hashes equal; the full normalized summary matches the verified control, including all counts, package reports and skip lists. |
+| Saves / whole-file equivalent | 13 / 1,033,682,944 write bytes |
+| Actual submitted writes | 86,491,136 bytes in 1,323 calls; **91.633% fewer write bytes** |
+| Comparison reads | 950,321,152 bytes returned by file reads |
+| Combined shard-save elapsed | 2.266 s, versus 21.661 s in the preceding whole-buffer staging run. Nested in stage totals; ordinary sequential Windows runs, not controlled paired staging trials. |
+| Full staging elapsed / CPU | 134.643 / 84.141 s, versus 110.152 / 48.734 s previously. |
+| APK ASTC encoding | 49.177 s, versus 20.930 s previously. Native encoding variation outweighs the save-time reduction; no overall speedup established. |
+| Regression and repo checks | All 41 pass (nine changed-write, seven I/O, eight tree-read, nine scan-guard, eight ASTC-reuse); references, staging contract and diff whitespace pass. |
+
+Raw evidence: `.scratch/staging-performance/changed-write-audit.json`, `changed-writes1.json` and
+`changed-writes-verification.json`. Reproduce the full audit using `audit_shard_writes.py` with the
+existing `measure.py` arguments and a new external run directory.
+
+**Verdict:** keep changed-region saves. The paired file benchmarks improve, actual staged bytes are
+identical, and submitted shard-save writes fall 91.6% on this input. It costs bounded comparison
+memory and extra reads; no Android or end-to-end performance claim. Coverage unchanged. No
+executable/APK build, phone install or device cycle.
+
+## 2026-10-17 — Optimized Android APK installed; isolated engine checks pass
+
+The user asked the agent to perform the next useful step after the offline optimizations. Built
+and verified the Android artifact, checked live update compatibility and clean retained sessions,
+updated only the development patcher, then ran app-private engine probes on the connected Xiaomi.
+The normal game APK was never replaced and no game-data command or patch coordinator was run.
+
+| Artifact / compatibility check | Result |
+|---|---|
+| Main build | Offline `:app:assembleDebug -PpatchVersionCode=30` passes; version 1.6.1.3/code 30 matches the installed development patcher for an in-place update. |
+| APK | `artifacts/staging-performance/hok-ace-patch-all-optimizations-debug.apk`; SHA-256 `28f8be573e882d96953cbfddb54611114d023de8c7eab3ca7f81530b8855e68e`. Installed hash matches. |
+| Packaged engine | All 855 manifest payloads match both manifest hashes and repository bytes. `qts_relocate.py`, `mobile_graphics.py` and `build_device_patch.py` extracted on the phone match source hashes; content-addressed engine id `ff5d8aa28fad5fc986033a2845e50bc8825e3ebd37239a448be41249437240db`. Research files are excluded. |
+| Signer / alignment | APK v2 signature verifies. Certificate SHA-256 `aa67f1993e3a335ff798d085a3e818b12988739dd3d5e69f8bdd1be97f01c249` matches the copied installed patcher. All 84 native libraries pass static 16 KiB ELF alignment; `zipalign -c -P 16 4` passes. This is not acceptance on a physical 16 KiB-page device. |
+| Test artifact | Offline `:app:assembleDebugAndroidTest -PpatchVersionCode=30` passes. `artifacts/staging-performance/package-io-androidTest.apk`, SHA-256 `b41afa784bedce2cc117779e4bc2152ae26a0de2f3a8157ac07561f1235a0322`; same signer. |
+
+Added `PackageIoProbeTest` under `androidTest`, using only a temporary directory in the target app's
+cache. The runner invokes this plus the existing `EngineProbeTest` and `NativeDependencyProbeTest`:
+
+| Android check | Result |
+|---|---|
+| Embedded runtime / core codecs | Pass: Python 3.12, full codec gate, catalog count, LZ4 and Zstandard round trips. |
+| Other native dependencies | Pass: frame codec, native Zstandard backend and FreeType rendering. |
+| Writable shard I/O | Pass: a one-byte edit submits 65,536 bytes; unchanged repeat submits zero. A 600-record root split saves byte-identically to the former full writer; both live-offset readers agree and buffer resizing works after save. |
+| Small ASTC reuse | Pass: repeated small input produces a cache hit and identical bytes to a fresh native encode on this phone. |
+| Runner | `OK (4 tests)`, 5.399 s reported test time. This is fixture runtime, not full patch/staging time. |
+
+MIUI initially rejected the separate test APK with `INSTALL_FAILED_USER_RESTRICTED` after the main
+patcher update succeeded. The user explicitly chose retry and approved installation on the phone;
+the retry succeeded. Both retained session journals are byte-identical to the initial pre-update
+state: the completed session remains `COMPLETE`, the cancelled session remains `CANCELLED`, both
+have `normal_verified: true`, `packages_dirty: false` and no mutation intent. The normal APK hash
+remains `29b3ee7e5a0d21de7d1282d704416402d341b651da95af2eeb5b274c818defdc`.
+
+Evidence: `.scratch/staging-performance/android-optimized-artifact.json`, `android-optimized-native.json`,
+`android-installed-engine.json`, `android-optimization-verification.json`, and raw before/after
+receipts plus `instrumentation.log` under `artifacts/staging-performance/android-optimization-checks-retry/`.
+The initial pre-update receipt and copied prior patcher APK are retained beside them. Build and
+isolated-check commands are documented in `android/README.md`; no test-only code is bundled into
+the normal app APK. Reference, staging-contract and diff whitespace checks pass.
+
+**Verdict:** optimized development patcher is installed and the targeted Android runtime checks
+pass. This is not a full patch run, pristine restore, device cycle, game-screen verdict or Android
+end-to-end performance measurement. Existing translated game data was left alone.
+
+## 2026-10-17 — Optimized phone benchmark preparation
+
+The user explicitly requested a phone benchmark, authorizing a verified backup of the working
+translation, restoration of the matching pristine layer and a real patch run. The fresh recovery
+archive is kept outside the repository. To reserve PC space, removed only the regenerable
+`D:/scratch/hok-staging-performance/tree-pages1` and `tree-pages2` output directories after checking
+their saved hash receipts, resolved allowlisted paths and absence of reparse points. Timing JSON
+and verification receipts remain in `.scratch/staging-performance/`; pristine and recovery data remain.
+
+The first restore preflight stopped before package writes because it searched private `files/` for
+the update receipt. It restored and hash-verified the normal APK. The actual receipt is
+`/sdcard/Android/data/com.tencent.tmgp.osgame/files/Cache/Update/NewVersionInfo.json`; its
+`needDownloadSize` is zero. `phone_benchmark_restore.py` now checks that exact external receipt.
+Both APK signers, installed optimized patcher identity, clean retained session journals and the
+pristine archive were verified before the retry. Live package 1 is version `1.6.0.1`, revision `0`,
+matching the pristine snapshot. No benchmark timing is established by these preparation steps.
+
+## 2026-10-17 — Optimized phone benchmark completes with identical staged bytes
+
+Restored all 553 pristine archive files and verified the normal APK before starting the real
+production patch flow on Xiaomi M2007J3SG (`f15a72e`, Android 12). Shizuku was stopped; started it
+with the command displayed by its own app, then the user explicitly granted HOK ACE access.
+Preparation reused verified cached APKs. The new session is
+`bbf81617-5ac4-4ad8-aaa2-3a295e27db8c`, engine
+`ff5d8aa28fad5fc986033a2845e50bc8825e3ebd37239a448be41249437240db`.
+
+The fresh pre-restore recovery archive contains 745 hash-verified files and remains at
+`D:/scratch/hok-staging-performance/phone-benchmark-20261017-run2/before-benchmark.tar`, SHA-256
+`f4551082144e41acc3bedbabfcfa53eb4168dfab1868e3d73f97ada0bd10e584`. Its receipt is
+`.scratch/staging-performance/phone-benchmark-restore.json`. The earlier recovery archive is retained too.
+
+| Measurement | Earlier phone run | Optimized phone run |
+|---|---:|---:|
+| Internal build timer (`metrics.json`) | 202.430 s | 174.746 s (13.7% less time) |
+| `build_snapshot` bridge, including input verification | 261.326 s | 233.408 s |
+| Patch resource timer | 768.868 s | 554.604 s (9 min 15 s) |
+| Maximum sampled RSS | 1,655,092 KiB (1,616.3 MiB) | 771,200 KiB (753.1 MiB; 53.4% lower) |
+| Process-lifetime high-water RSS | 1,801,792 KiB | 953,016 KiB |
+| Observed free-space decrease | 5,887,877,120 bytes | 5,762,338,816 bytes |
+| Maximum battery temperature / thermal status | 42.2 C / 0 | 42.0 C / 0 |
+| Resource samples / unavailable readings | 768 / 0 | 554 / 0 |
+
+These are single sequential runs, not controlled paired phone trials. The earlier total includes
+interrupted final-install recovery; do not attribute the total-time difference entirely to the engine
+optimizations. The resource timer starts after engine/APK preflight and session creation; it excludes
+the PC backup/pristine restore and initial APK preparation. This run's worker start to destruction is
+about 590 s (9 min 50 s). The internal build timer excludes snapshot/APK verification that precedes
+`build_scratch`. RSS is sampled once per second and can miss peaks; process high-water is lifetime-wide.
+Free-space observations can include other apps. USB charging was active; before patching, battery
+temperature was 38.7 C and charge 45%.
+
+| Correctness / recovery check | Result |
+|---|---|
+| Staged bytes | All 14 staged `.db` SHA-256 hashes exactly match the earlier phone run. |
+| Staging report | Entire summary matches after replacing only session UUIDs in paths. Override census remains 94 tables / 183,250 translated records. |
+| App counters | 388 text tables, 398 applied textures; one skipped table, zero skipped textures. The known APK-append encoder refusal remains; coverage is unchanged. |
+| Final journal | `COMPLETE`, `normal_verified: true`, `packages_dirty: false`; no mutation/recovery-normal intent. |
+| Installed game | SHA-256 `29b3ee7e5a0d21de7d1282d704416402d341b651da95af2eeb5b274c818defdc`; `DEBUGGABLE` absent. |
+| Installed optimized patcher | SHA-256 `28f8be573e882d96953cbfddb54611114d023de8c7eab3ca7f81530b8855e68e`. |
+| Startup observation | Normal game launches and process is still present afterward. Recent sampled AndroidRuntime/Unity error output is empty. User subsequently confirmed the translation looks right. |
+
+Raw small receipts, original/optimized sessions, logs and internal timers are retained under
+`artifacts/staging-performance/phone-benchmark-optimized/`. Reproduce read-only collection with
+`.scratch/staging-performance/capture_phone_benchmark.py`; the result checks are in
+`verify_phone_benchmark.py` and `.scratch/staging-performance/phone-benchmark-verification.json`.
+The receipt collector was corrected to treat legacy ADB `exec-out` missing-file messages as absent
+optional metrics, because that protocol can merge stderr and return zero. This affected local
+collection only; it did not interrupt the patch worker.
+
+**Verdict:** real optimized phone patch completed with identical output bytes and verified normal
+APK restoration. This run measured a shorter internal build and substantially lower sampled peak
+memory. After being asked to check login, lobby and cards, the user replied
+"Works — translation looks right" on 2026-10-17. This is user-reported screen acceptance for this
+optimized run; individual screens were not separately enumerated. The benchmark and device check
+are complete.
+
+## 2026-10-17 — Reuse texture chunk offsets only for an immediately created package copy
+
+After the user accepted the optimized phone run and requested further offline work, inspected the
+saved profile. Texture staging scanned each source package and then its newly copied output before
+relocation. That second scan discovers the same offsets in byte-identical files. `port_graphics` now
+retargets the pending source slots' paths to the copy if this call created it. If output already
+exists, the original fresh scan remains mandatory: earlier passes may have relocated chunks.
+There is no persistent slot-map cache, and package writers, codecs, texture gates and summary fields
+are unchanged. The `build_patch` contract and texture feature record were updated together.
+
+| Verification / measurement | Result |
+|---|---|
+| Targeted checks before the change | Four pass; the fresh-copy check fails on the unwanted second scan. |
+| Targeted checks after the change | All five pass: every chunk gets the output path and source offset for a new copy; an existing output uses its distinct current offsets; unchanged, refused and wrong-length textures do not copy/write. |
+| Full staging | Fresh external `D:/scratch/hok-staging-performance/graphics-copy-slots1`, English, the same pristine dump and cached normal APK. |
+| Output correctness | All 14 `.db` hashes match the original verified baseline. Full normalized summary, counts, package reports and skip lists match the retained control. Coverage is unchanged. |
+| Texture-stage slot scans | **8 → 4**; total measured slot-map calls **31 → 27**. |
+| Texture-stage slot-scan time | 11.256 s in preceding changed-write run; 4.589 s now. Ordinary sequential Windows runs, not controlled paired timing. |
+| Texture stage, exclusive of other measured stages | 38.915 s before; 37.016 s now. Nested slot-scan savings cannot simply be added to other stage measurements. |
+| Full elapsed / CPU | 102.033 / 47.703 s, versus 134.643 / 84.141 s before. APK ASTC time also changed from 49.177 to 20.951 s; do not attribute the overall difference to slot reuse. |
+| Regression checks | All 46 pass: previous 41 plus five fresh-copy checks. |
+
+Receipts: `.scratch/staging-performance/graphics-copy-slots1.json` and
+`graphics-copy-slots-verification.json`. Reproduce the focused checks with
+`.venv/Scripts/python.exe .scratch/staging-performance/check_graphics_copy_slots.py`; reproduce
+full staging with the existing `measure.py` arguments and a new external run directory.
+
+For disk space, removed only the agent-generated `D:/scratch/hok-staging-performance/run2` after
+re-hashing all 14 outputs against its retained receipt and checking the resolved exact path and
+absence of reparse points. Its timing/hash receipts remain in `.scratch/staging-performance/`, and
+its log was saved to `artifacts/staging-performance/run2-staging-before-cleanup.log`. Original
+`run1`, normalized control `optimized1`, latest changed-write output, pristine data and every phone
+recovery backup remain. No phone commands, Android builds or installations were performed here.
+
+**Verdict:** keep this narrow fresh-copy optimization. It removes four proven duplicate scans
+without changing staged bytes. Existing output still gets a fresh scan. Android timing and screen
+acceptance for this additional change are unmeasured; the accepted phone installation retains the
+previous optimized engine.
+
+## 2026-10-17 — Reuse the read-only prime slot map during append
+
+Continued offline at the user's request. `add_prime_only` already builds a prime package's slot map
+to read and translate its wanted assets, then `qts_insert.add_assets` scanned the same unchanged
+source again. It now passes that local map through the optional keyword-only `source_slots`.
+Direct callers that omit the keyword still scan their source normally. Output is still reopened
+through `QtsPackage`, scanned afresh and decoded for the mandatory appended-asset read-back. No
+cross-call cache, package layout, encoding setting, allowlist or append gating changed. Updated
+the staging contract and prime-only append feature record in the same edit.
+
+| Verification / measurement | Result |
+|---|---|
+| Targeted checks | Four pass: supplied source map avoids rescan and still uses fresh output slots for read-back; direct-call fallback scans; read-back mismatch raises; encoder refusal still skips the asset. Before implementation, the direct-call case passed and the three supplied-map cases failed on the unsupported keyword. |
+| Full offline staging | New external `D:/scratch/hok-staging-performance/append-source-slots1`, same English catalog, pristine dump and cached normal APK. |
+| Output | All 14 `.db` hashes match the original baseline. Full normalized summary, all counts and skip lists equal the verified control. |
+| Append slot scans | **12 → 8**; total measured slot-map calls **27 → 23**. Four mandatory fresh output scans remain. |
+| Append slot-scan time | 4.554 s before; 3.836 s now. Sequential Windows observations, not a controlled timing comparison. |
+| Full elapsed / CPU | 169.410 / 120.969 s, versus 102.033 / 47.703 s before. |
+| APK ASTC encode time | 76.586 s now, versus 20.951 s before; encoding inputs/settings and final output hashes are unchanged. Encoding variation dominates the total difference. No overall speedup established. |
+| Regression checks | All 50 pass: previous 46 plus four source-map checks. |
+
+Evidence: `.scratch/staging-performance/append-source-slots1.json` and
+`append-source-slots-verification.json`. Focused command:
+`.venv/Scripts/python.exe .scratch/staging-performance/check_append_source_slots.py`.
+Full run uses the existing `measure.py` command with a fresh external run directory.
+
+Freed space only by removing the regenerable `D:/scratch/hok-staging-performance/optimized2`
+directory after re-hashing its 14 outputs against the retained verification receipt, checking the
+resolved exact path and refusing reparse points. Its timing/hash receipts remain, and its log was
+copied to `artifacts/staging-performance/optimized2-staging-before-cleanup.log`. Original baseline
+`run1`, normalized control `optimized1`, current experiment outputs, pristine inputs and all phone
+recovery archives remain. No phone commands, APK build or install were run.
+
+**Verdict:** keep removal of four duplicate source scans, with unchanged output and read-back
+verification. No end-to-end speedup claim. Android timing and screen acceptance of this additional
+offline change remain unmeasured. The large observed ASTC timing variation remains a useful next
+offline investigation target.
+
+## 2026-10-17 — CPU core placement reproduces the ASTC timing swing
+
+The user requested investigation of image-encoding time variation. Used the diagnosing-bugs
+workflow against the retained real RGBA/ASTC audit recordings, without rebuilding packages or
+touching the phone. The replay invokes the unchanged native `_encode_astc`, preserving the audit's
+first 8x8 encode before the chosen inputs. All 72 final audit calls are the APK image sequence:
+70 unique inputs, none at or below the small-result cache's 4096-byte limit. Every replayed image
+is compared byte-for-byte with its recorded native output.
+
+The initial isolated large image (sample 1475) took 0.819–0.961 s over nine calls in three fresh
+processes. Three unrestricted full 72-image batches took 21.028, 22.066 and 21.925 s, so this quiet
+replay did not initially reproduce the saved staging profile's 20.951–76.586 s swing. Ranked
+suspects before controlled testing: CPU placement, power/contention, then initialization order.
+Changing only benchmark-process affinity reproduced the large difference, including in reversed
+order; this was then confirmed with the full image sequence.
+
+| Controlled replay | Result |
+|---|---|
+| Host | Intel Core i5-1235U; Windows `GetSystemCpuSetInformation` reports logical CPUs 0–3 in efficiency class 1, CPUs 4–11 in class 0. CPU 0 is the higher-performance class; CPU 11 is the efficiency class. |
+| One image, three encodes per fresh process; CPU order 0, 11, 11, 0 | Batch wall times 2.404, 8.535, 8.524, 2.581 s. Same output bytes in every case. |
+| Full 72-image replay, CPU 0 | **20.490 s wall / 19.203 s CPU**. |
+| Full 72-image replay, CPU 11 | **76.255 s wall / 73.172 s CPU**; **3.72×** the CPU-0 wall time. |
+| Encoder identity / settings | Both use astc-encoder-py 0.1.12, the identical `_encoder_avx2.pyd` SHA-256 `d4cd289885af9f0b05d2043d5ab7dbbaa590cccf4615f8f32cebe8531549d769`, one encoder thread, existing quality 85 and identical recorded configuration fields. |
+| Output | All 72 hashes equal between the two CPU placements and match the retained audit; no quality or content change. |
+| Repeat with fixed CPU 0, three identical encodes per process | 2.316 and 2.333 s totals; individual-call max/min ratio 1.025. Timing-variation detector passes at the 1.5 threshold. |
+
+`probe_astc_variation.py` deliberately exits nonzero when the comparable timing ratio exceeds 1.5,
+after saving all evidence. The mixed-core probes therefore fail that diagnostic assertion as
+intended; the fixed-core control passes. This is the reproducible performance signal, not a patcher
+test failure. Affinity is set only on disposable replay children and expires when they exit. No
+system power setting or production process affinity was changed. The Windows topology is captured
+read-only by `capture_cpu_topology.py`; the installed encoder's `encoder.py` and `encoder.pyi`
+provide local evidence for AVX2 dispatch and the default one-thread context.
+
+Evidence in `.scratch/staging-performance/`: `astc-variation-baseline.json`,
+`astc-variation-prime.json`, `astc-variation-affinity.json`, `astc-variation-prime-affinity.json`,
+`astc-variation-fixed-core.json`, `astc-cpu-topology.json`, and `astc-variation-verification.json`.
+Reproduce the intentionally red full comparison with:
+`.venv/Scripts/python.exe .scratch/staging-performance/probe_astc_variation.py D:/scratch/hok-staging-performance/astc-audit1 --prime-sequence --cpus 0,11 --output <receipt.json>`.
+For a short stable control, use `--cpus 0,0 --repeats 3` without `--prime-sequence`.
+The CPU ids are measured for this PC only; other machines require their own topology/allowed mask.
+
+**Verdict:** CPU placement alone reproduces the magnitude of the Windows encoder-time swing
+with identical inputs, binary, settings and output. This supports CPU scheduling as an explanation
+of the earlier timing variation; those historical runs did not record their cores, so their exact
+placement cannot be proven retrospectively. Compare future PC performance on the same CPU class
+and record process affinity. No codec-quality change or shipping fix is justified by this evidence.
+This is not an Android timing result, and no phone, APK or translation payload was changed.
+
+## 2026-10-17 — Final combined optimization build for PR preparation
+
+At the user's request to open one PR for the work, built the final combined source (including the
+two later slot-map reuse changes) offline with
+`android/gradlew.bat -p android --offline :app:assembleDebug :app:assembleDebugAndroidTest -PpatchVersionCode=30`.
+Both tasks pass. The resulting development APK SHA-256 is
+`6dcf4c62b1f9234f745897ae6a01a30d9b90811b50e5372b99c2e258089edd47`; engine manifest id is
+`d689b1bd5f47891650a64195652433e19bdeba6564c2c2fff95b806582b0fadd`.
+All 855 packaged payloads match their manifest and repository bytes, and research is excluded.
+Receipt: `.scratch/staging-performance/android-pr-artifact.json`. Reference, staging-contract and
+diff checks pass. This final build was not installed; the accepted phone benchmark remains evidence
+for the earlier engine, and the two later scan-reuse changes retain offline byte-equivalence evidence.

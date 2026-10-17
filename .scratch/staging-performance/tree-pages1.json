@@ -1,0 +1,180 @@
+{
+  "python": "3.12.13 (main, Jul 18 2026, 17:08:38) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "game": "D:\\Projects\\hok-ace-android-en\\dist\\HOK ACE Patcher Data\\pristine\\20261016-101124\\game",
+  "apk": "D:\\Projects\\hok-ace-android-en\\dist\\HOK ACE Patcher Data\\installed.apk",
+  "language": "en",
+  "profiled": false,
+  "wall_s": 270.80740920000244,
+  "cpu_s": 163.6875,
+  "stages_exclusive": {
+    "Catalog loading and terminology": {
+      "calls": 3,
+      "wall_s": 1.0771294000151101,
+      "cpu_s": 1.015625
+    },
+    "Prepare APK transforms": {
+      "calls": 1,
+      "wall_s": 9.90999978967011e-05,
+      "cpu_s": 0.0
+    },
+    "Scan and translate text": {
+      "calls": 1,
+      "wall_s": 14.190316799998982,
+      "cpu_s": 8.515625
+    },
+    "Catalog-only filtering": {
+      "calls": 1,
+      "wall_s": 0.0030953999958001077,
+      "cpu_s": 0.0
+    },
+    "Resource token expansion": {
+      "calls": 1,
+      "wall_s": 3.6734976999869104,
+      "cpu_s": 1.53125
+    },
+    "Text chunk eligibility": {
+      "calls": 1,
+      "wall_s": 0.29373689999920316,
+      "cpu_s": 0.15625
+    },
+    "Write text packages": {
+      "calls": 1,
+      "wall_s": 6.2562214999925345,
+      "cpu_s": 4.03125
+    },
+    "Relocate overflow text": {
+      "calls": 1,
+      "wall_s": 1.2237074000004213,
+      "cpu_s": 0.78125
+    },
+    "Extra text pass": {
+      "calls": 1,
+      "wall_s": 1.0966949999856297,
+      "cpu_s": 0.921875
+    },
+    "Texture pass and discovery": {
+      "calls": 1,
+      "wall_s": 74.89547340001445,
+      "cpu_s": 23.078125
+    },
+    "Repair card dictionaries": {
+      "calls": 1,
+      "wall_s": 1.095769499981543,
+      "cpu_s": 1.015625
+    },
+    "Append APK-only assets": {
+      "calls": 1,
+      "wall_s": 166.50163499999326,
+      "cpu_s": 122.484375
+    }
+  },
+  "details_inclusive_do_not_sum": {
+    "Scan and translate text / Discover packages": {
+      "calls": 1,
+      "wall_s": 3.903342799982056,
+      "cpu_s": 0.859375
+    },
+    "Scan and translate text / Build slot maps": {
+      "calls": 5,
+      "wall_s": 0.9873458000074606,
+      "cpu_s": 0.828125
+    },
+    "Scan and translate text / Translate tables": {
+      "calls": 99,
+      "wall_s": 5.658798199874582,
+      "cpu_s": 5.484375
+    },
+    "Text chunk eligibility / Build slot maps": {
+      "calls": 1,
+      "wall_s": 0.16494209997472353,
+      "cpu_s": 0.0625
+    },
+    "Write text packages / Build slot maps": {
+      "calls": 3,
+      "wall_s": 0.07747499999823049,
+      "cpu_s": 0.046875
+    },
+    "Relocate overflow text / Build slot maps": {
+      "calls": 2,
+      "wall_s": 0.06191469999612309,
+      "cpu_s": 0.046875
+    },
+    "Relocate overflow text / Read/decompress assets": {
+      "calls": 11,
+      "wall_s": 0.008023599977605045,
+      "cpu_s": 0.015625
+    },
+    "Texture pass and discovery / Discover packages": {
+      "calls": 1,
+      "wall_s": 0.7075493000156712,
+      "cpu_s": 0.5625
+    },
+    "Texture pass and discovery / Build slot maps": {
+      "calls": 8,
+      "wall_s": 8.52302740002051,
+      "cpu_s": 2.53125
+    },
+    "Texture pass and discovery / ASTC decoding": {
+      "calls": 21,
+      "wall_s": 0.15504150002379902,
+      "cpu_s": 0.078125
+    },
+    "Texture pass and discovery / ASTC encoding": {
+      "calls": 3582,
+      "wall_s": 11.925811100110877,
+      "cpu_s": 11.3125
+    },
+    "Texture pass and discovery / Read/decompress assets": {
+      "calls": 3,
+      "wall_s": 0.008171400026185438,
+      "cpu_s": 0.0
+    },
+    "Repair card dictionaries / Discover packages": {
+      "calls": 1,
+      "wall_s": 0.7643718000035733,
+      "cpu_s": 0.703125
+    },
+    "Append APK-only assets / Extract APK packages": {
+      "calls": 5,
+      "wall_s": 11.181421599991154,
+      "cpu_s": 2.03125
+    },
+    "Append APK-only assets / Build slot maps": {
+      "calls": 12,
+      "wall_s": 26.264150100032566,
+      "cpu_s": 9.296875
+    },
+    "Append APK-only assets / Read/decompress assets": {
+      "calls": 477,
+      "wall_s": 1.479074199538445,
+      "cpu_s": 0.1875
+    },
+    "Append APK-only assets / Translate tables": {
+      "calls": 404,
+      "wall_s": 2.729641300335061,
+      "cpu_s": 2.53125
+    },
+    "Append APK-only assets / Append and verify package assets": {
+      "calls": 4,
+      "wall_s": 8.74682549998397,
+      "cpu_s": 5.6875
+    },
+    "Append APK-only assets / ASTC encoding": {
+      "calls": 72,
+      "wall_s": 107.0341414999275,
+      "cpu_s": 102.1875
+    }
+  },
+  "unattributed_wall_s": 0.5000321000406984,
+  "counts": {
+    "unreadable_assets": 651,
+    "tables": 94,
+    "records": 186735,
+    "translated": 183250,
+    "graphics": 0,
+    "already_english": 2303,
+    "unknown": 214,
+    "unrecognized_tables": 1
+  }
+}

@@ -490,6 +490,35 @@ with no arguments. The only 1-argument callers are three functions inside `wxq_p
 only from `pipeline`'s own PC-side entry points. The narrowing is therefore safe here and no change is
 made to it.
 
+**2026-10-17: read only tree pages for the live-offset check.** The wrapper now reads the current
+page-table pointer, rows and tree pages through `qts_relocate._read_btree_offsets`, rather than
+constructing a writable `Shard` and loading its entire payload into a bytearray. Active-leaf type
+and logical self-id checks, duplicate-key offset sets, stale-slot replacement and the existing
+unreadable-tree fallback remain. Each map build opens the file afresh; no tree state survives a
+write. This changes only the live-offset check, not the runtime chunk scanner or package writers.
+Measurements and full offline output comparison are recorded in the lab notebook.
+
+**2026-10-17: reuse small identical ASTC results.** `encode_astc` retains at most 512 results
+whose RGBA input is at most 4096 bytes. The exact pixel bytes, width, height and block footprint
+form the key. The native encoder's profile, quality and swizzle stay fixed at their existing
+values. Larger images take the same native path, exceptions are not retained, and least-recently
+used results are evicted. Retained pixel inputs are bounded to 2 MiB, plus compressed results and
+Python overhead; no package or catalog state is retained. This process-local reuse also works
+across the override and prime texture passes. Audit, replay and staging evidence are in the
+lab notebook's small ASTC reuse section.
+The Android `PackageIoProbeTest` checks the packaged cache against the native encoder on the phone;
+this small app-private fixture does not establish full texture staging or screen acceptance.
+
+**2026-10-17: avoid scanning an identical fresh texture-package copy.** `port_graphics` already
+scans the source to read the catalog textures. When `_package_output` creates the output package
+in this call, it copies those exact index/shard bytes; the pending chunks keep their source
+offsets and every `ChunkSlot.shard_path` is retargeted to the copy. If the output directory already
+exists, the pass scans that package afresh, because text or another pass may have relocated its
+chunks. No slot map is retained across a write or between calls. Already-English and refused
+textures still create no output directory. Full offline staging removes four duplicate scans,
+with all 14 package hashes and the complete normalized summary unchanged. Evidence and timing
+limits are in the lab notebook; this change has not been built or installed on Android.
+
 ### Verification boundary
 
 This repo has no test suite, and the reference's own `unrelated_blocks_identical` field is the

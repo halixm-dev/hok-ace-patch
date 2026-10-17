@@ -1,0 +1,57 @@
+{
+  "session": "bbf81617-5ac4-4ad8-aaa2-3a295e27db8c",
+  "engine_id": "ff5d8aa28fad5fc986033a2845e50bc8825e3ebd37239a448be41249437240db",
+  "phase": "COMPLETE",
+  "normal_apk_sha256": "29b3ee7e5a0d21de7d1282d704416402d341b651da95af2eeb5b274c818defdc",
+  "patcher_apk_sha256": "28f8be573e882d96953cbfddb54611114d023de8c7eab3ca7f81530b8855e68e",
+  "normal_not_debuggable": true,
+  "all_14_staged_hashes_match_older_phone_run": true,
+  "full_summary_matches_after_session_path_normalization": true,
+  "counts": {
+    "text_tables": 388,
+    "applied_textures": 398,
+    "skipped_tables": 1,
+    "skipped_textures": 0
+  },
+  "old_metrics": {
+    "schema": 1,
+    "status": "complete",
+    "elapsed_seconds": 768.868,
+    "sample_interval_seconds": 1,
+    "samples": 768,
+    "initial_free_bytes": 13860175872,
+    "minimum_free_bytes": 7972298752,
+    "observed_free_space_decrease_bytes": 5887877120,
+    "maximum_sampled_rss_kib": 1655092,
+    "process_lifetime_high_water_rss_kib": 1801792,
+    "maximum_thermal_status": 0,
+    "maximum_battery_temperature_tenths_c": 422,
+    "unavailable_readings": 0
+  },
+  "new_metrics": {
+    "schema": 1,
+    "status": "complete",
+    "elapsed_seconds": 554.604,
+    "sample_interval_seconds": 1,
+    "samples": 554,
+    "initial_free_bytes": 15569362944,
+    "minimum_free_bytes": 9807024128,
+    "observed_free_space_decrease_bytes": 5762338816,
+    "maximum_sampled_rss_kib": 771200,
+    "process_lifetime_high_water_rss_kib": 953016,
+    "maximum_thermal_status": 0,
+    "maximum_battery_temperature_tenths_c": 420,
+    "unavailable_readings": 0
+  },
+  "old_internal_build_seconds": 202.42955065198475,
+  "new_internal_build_seconds": 174.74642733001383,
+  "internal_build_time_reduction_percent": 13.675435840671069,
+  "sampled_rss_reduction_percent": 53.40440289724076,
+  "comparison_limits": "Single sequential runs; older total includes interrupted final-install recovery. Internal build timer excludes pre-build snapshot/APK verification. RSS sampled once per second; HWM is process lifetime. Free space may include other apps. No controlled end-to-end speedup claim.",
+  "screen_verdict": "user-reported pass",
+  "user_verdict": {
+    "date": "2026-10-17",
+    "reply": "Works \u2014 translation looks right",
+    "scope": "Asked to check login, lobby and cards; individual screens not separately enumerated"
+  }
+}
