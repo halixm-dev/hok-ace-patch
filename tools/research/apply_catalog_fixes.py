@@ -4,7 +4,8 @@ Two kinds of change, both keyed by the Chinese source string in a catalog's `uni
 
 - the Indonesian fixes below (`CHANGE`, `ADD`): labels the user wants in English, and the 1.5.0.1 card
   texts the catalog only knew in their earlier wording, and the Multi-Faction/General talent texts
-  (`SERIES_FIXES_ID`; `SERIES_FIXES_EN` repairs the English catalog's garbled Diversity Advantage);
+  and Summon talent texts
+  (`SERIES_FIXES_ID`; `SERIES_FIXES_EN` repairs the English catalog's garbled Diversity Advantage and Twin Contract);
 - `catalog_additions.json` beside this script: strings a game update added or rewrote that neither
   catalog has, each with an English (`en`) and an Indonesian (`id`) translation. It is generated from a
   scan of a pulled device dump and lists only strings the runtime's `validate_translation` accepts.
@@ -24,9 +25,18 @@ ADDITIONS = json.loads((pathlib.Path(__file__).with_name("catalog_additions.json
 _G = "<color=#99DEB0>{}</color>".format
 # Diversity Advantage (多样性优势): both catalogs carry a garbled machine translation.
 DIVERSITY_ZH = f"{_G('多阵营系列')}\n战斗开始时，若己方有{_G('至少2个')}阵营，所有英雄获得{_G('20')}×阵营数的等级。"
+_TOTEM = "<a href=321>{}</a>".format(_G("╉图腾"))
+_TOTEM_ID = "<a href=321>{}</a>".format(_G("╉Totem"))
+_TEMP_LEVEL = "<a href=3130011>{}</a>".format
+# Twin Contract (双生契约): both catalogs carry a garbled machine translation.
+TWIN_CONTRACT_ZH = (f"{_G('召唤系列')}\n召唤单位（召唤物、图腾）时，额外获得{_G('100')}+召唤者等级×{_G('80%')}的"
+                    f"{_TEMP_LEVEL(_G('═临时等级'))}，每回合前{_G('15')}个召唤单位获得{_G('╧完美复生')}。")
 SERIES_FIXES_EN = {
     DIVERSITY_ZH: f"{_G('Multi-Faction Series')}\nAt the start of Battle, if you have {_G('at least 2')} Factions,"
                   f" All Heroes gain {_G('20')} × the number of Factions in levels.",
+    TWIN_CONTRACT_ZH: f"{_G('Summon Series')}\nWhen summoning a unit (summons, Totems), gain an extra {_G('100')}"
+                      f" + the summoner's Level × {_G('80%')} {_TEMP_LEVEL(_G('═Temporary Level'))}. The first"
+                      f" {_G('15')} summoned units each Round gain {_G('╧Perfect Revive')}.",
 }
 SERIES_FIXES_ID = {
     DIVERSITY_ZH: f"{_G('Seri Multi-Faction')}\nDi awal Pertempuran, jika kamu punya {_G('minimal 2')} Faction,"
@@ -43,6 +53,26 @@ SERIES_FIXES_ID = {
     f"{_G('通用系列')}\n回合开始时，随机获得{_G('4张')}你{_G('人数最多阵营')}的英雄牌。":
         f"{_G('Seri General')}\nDi awal Ronde, dapatkan {_G('4 Hero Card')} acak dari"
         f" {_G('Faction dengan Hero terbanyak')} kamu.",
+    TWIN_CONTRACT_ZH: f"{_G('Seri Summon')}\nSaat memanggil unit (Summon, Totem), dapatkan tambahan {_G('100')}"
+                      f" + Level pemanggil × {_G('80%')} {_TEMP_LEVEL(_G('═Temporary Level'))}. {_G('15')} unit"
+                      f" Summon pertama setiap Ronde mendapatkan {_G('╧Perfect Revive')}.",
+    f"{_G('召唤系列')}\n战斗中入场的召唤物存活{_G('8秒')}后，{_G('变为其召唤者（无卡牌效果）')}并保留等级，"
+    f"每场战斗最多{_G('10次')}。":
+        f"{_G('Seri Summon')}\nSummon yang masuk saat Pertempuran dan bertahan {_G('8 detik')}"
+        f" {_G('berubah menjadi pemanggilnya (tanpa efek kartu)')} dan mempertahankan Level-nya."
+        f" Maksimal {_G('10 kali')} per Pertempuran.",
+    f"{_G('召唤系列')}\n每召唤{_G('1个')}单位（仅召唤物、{_TOTEM}），和召唤者同阵营的己方英雄获得{_G('2%')}"
+    f"最大生命值（上限{_G('40%')}）。":
+        f"{_G('Seri Summon')}\nSetiap kali {_G('1')} unit dipanggil (hanya Summon dan {_TOTEM_ID}), Hero sekutu"
+        f" dari Faction yang sama dengan pemanggil mendapatkan {_G('2%')} Max HP (maksimal {_G('40%')}).",
+    f"{_G('召唤系列')}\n每召唤{_G('1个')}单位（仅召唤物，{_TOTEM}），下回合开始时所有英雄等级{_G('+3')}。":
+        f"{_G('Seri Summon')}\nUntuk setiap {_G('1')} unit yang dipanggil (hanya Summon dan {_TOTEM_ID}),"
+        f" semua Hero mendapatkan {_G('+3')} Level di awal Ronde berikutnya.",
+    f"{_G('召唤系列')}\n立即获得{_G('4张')}召唤、{_TOTEM}系列英雄牌。{_G(f'召唤单位时（含召唤物，{_TOTEM}）')}，"
+    f"获得{_G('1张')}召唤、{_TOTEM}系列英雄牌（每回合最多{_G('4张')}）。":
+        f"{_G('Seri Summon')}\nLangsung dapatkan {_G('4')} Hero Card seri Summon atau {_TOTEM_ID}."
+        f" {_G(f'Saat memanggil unit (termasuk Summon dan {_TOTEM_ID})')}, dapatkan {_G('1')} Hero Card seri"
+        f" Summon atau {_TOTEM_ID} (maksimal {_G('4')} per Ronde).",
 }
 
 
