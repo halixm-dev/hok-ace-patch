@@ -16,6 +16,11 @@ Three kinds of change, all keyed by the Chinese source string in a catalog's `un
   catalog has, each with an English (`en`) and an Indonesian (`id`) translation. It is generated from a
   scan of a pulled device dump and lists only strings the runtime's `validate_translation` accepts.
   An addition upstream has since translated is left to upstream and reported.
+- `catalog_english_fixes.json` beside this script: whole English strings mapped to their corrected form,
+  for a slip upstream repeats across hundreds of entries. It holds the verb uses of "Usage" (使用): an
+  in-game card is played ("play a Tactics Card"), anything else is used ("use Ancient Coins"), and the
+  noun uses ("Usage Rules", "upon Usage") stay. It applies to the English catalog's `unique` values and
+  to each `english_updates` row's new text, never to the row's previous text, which identifies the row.
 
 Edits only the named `unique` entries, byte-for-byte in the decompressed JSON, and checks that nothing
 else changed. Idempotent: a fix already present is left as it is. Run from the project root after
@@ -28,6 +33,8 @@ import gzip, io, json, pathlib, sys
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 ADDITIONS = json.loads((pathlib.Path(__file__).with_name("catalog_additions.json")).read_text(encoding="utf-8"))
 REWRITES = json.loads((pathlib.Path(__file__).with_name("catalog_rewrites.json")).read_text(encoding="utf-8"))
+ENGLISH_FIXES = json.loads(
+    (pathlib.Path(__file__).with_name("catalog_english_fixes.json")).read_text(encoding="utf-8"))
 
 
 def indonesian_fixes(u: dict) -> tuple[dict, dict]:
@@ -72,6 +79,32 @@ def indonesian_fixes(u: dict) -> tuple[dict, dict]:
     return change, add
 
 
+def english_fixes(out: bytes) -> tuple[bytes, int]:
+    """<out> with `ENGLISH_FIXES` applied to `unique` values and `english_updates` new texts; and the count.
+
+    The catalog is plain `json.dumps` output, so it is re-serialised whole; the round trip is checked
+    first, and afterwards that only those two fields changed.
+    """
+    data = json.loads(out)
+    assert json.dumps(data, ensure_ascii=False).encode() == out, "catalog no longer round-trips through json"
+    unique, rows = data["unique"], data["english_updates"]
+    fixed = 0
+    for zh, value in unique.items():
+        if value in ENGLISH_FIXES:
+            unique[zh] = ENGLISH_FIXES[value]
+            fixed += 1
+    for row in rows:
+        if row[3] in ENGLISH_FIXES:
+            row[3] = ENGLISH_FIXES[row[3]]
+            fixed += 1
+    before = json.loads(out)
+    assert [r[:3] + r[4:] for r in rows] == [r[:3] + r[4:] for r in before["english_updates"]]
+    assert unique.keys() == before["unique"].keys()
+    assert {k: v for k, v in data.items() if k not in ("unique", "english_updates")} == \
+        {k: v for k, v in before.items() if k not in ("unique", "english_updates")}
+    return json.dumps(data, ensure_ascii=False).encode(), fixed
+
+
 def apply(path: pathlib.Path, lang: str) -> None:
     raw = gzip.open(path).read()
     u = json.loads(raw)["unique"]
@@ -103,13 +136,17 @@ def apply(path: pathlib.Path, lang: str) -> None:
     expected["unique"].update(change)
     expected["unique"].update(add)
     assert json.loads(out) == expected, "something other than the named entries changed"
+    fixed = 0
+    if lang == "en":
+        out, fixed = english_fixes(out)
     if out != raw:
         buf = io.BytesIO()
         with gzip.GzipFile(fileobj=buf, mode="wb", mtime=0, compresslevel=9) as g:
             g.write(out)
         path.write_bytes(buf.getvalue())
     print(f"{path.parent.name}: {changed} changed, {len(missing)} added "
-          f"({sum(1 for k in missing if k in ADDITIONS)} from catalog_additions.json)")
+          f"({sum(1 for k in missing if k in ADDITIONS)} from catalog_additions.json), "
+          f"{fixed} strings fixed from catalog_english_fixes.json")
     for zh in upstream:
         print(f"  upstream now translates {zh[:30]!r}; its translation kept")
 

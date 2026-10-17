@@ -672,7 +672,7 @@
   "id": "<color=#98CBFF>Taiyi Zhenren</color> bisa <color=#98CBFF>╧Revive</color> Meng Tian agar terus memanggil prajurit."
  },
  "<color=#98CBFF>小妲己</color>的技能非常简单，它会在<color=#98CBFF>购买卡牌</color>、<color=#98CBFF>刷新商店</color>、使用<color=#98CBFF>效果卡</color>时提供额外收益。只要合理分配能量使用，就能轻松获得比其他人更大的收益。": {
-  "en": "<color=#98CBFF>Little Daji</color>'s Skill is simple: it provides Extra benefits when you <color=#98CBFF>Buy Card</color>, <color=#98CBFF>refresh the Shop</color>, or Usage <color=#98CBFF>Effect Card</color>. Manage your Energy wisely to gain a significant advantage over others.",
+  "en": "<color=#98CBFF>Little Daji</color>'s Skill is simple: it provides Extra benefits when you <color=#98CBFF>Buy Card</color>, <color=#98CBFF>refresh the Shop</color>, or play <color=#98CBFF>Effect Card</color>. Manage your Energy wisely to gain a significant advantage over others.",
   "id": "Skill <color=#98CBFF>Little Daji</color> itu simpel: memberikan keuntungan ekstra saat kamu <color=#98CBFF>Beli Kartu</color>, <color=#98CBFF>refresh Toko</color>, atau memakai <color=#98CBFF>Kartu Efek</color>. Kelola Energy dengan bijak untuk meraih keunggulan besar atas pemain lain."
  },
  "<color=#99DEB0>╥阿科米亚核心</color>等级<color=#99DEB0>+200</color>。场上英雄升级时，<color=#99DEB0>╥阿科米亚核心</color>会获得<color=#99DEB0>70%</color>的等级（仅真实等级）。": {
@@ -1245,27 +1245,27 @@
   "en": "Use a Skill to randomly obtain 1 Tier 1-5 <color=#ffffff>╆<b>Fleeting</b></color> Hero Card."
  },
  "使用棋手【小妲己】，在万象大赛中1回合内刷新15次": {
-  "en": "Usage chess player [Little Daji] to Refresh the Shop 15 times in 1 Round of the ACE Tournament",
+  "en": "Use chess player [Little Daji] to Refresh the Shop 15 times in 1 Round of the ACE Tournament",
   "id": "Gunakan Chessplayer [Little Daji] untuk me-refresh Toko 15 kali dalam 1 Ronde ACE Tournament"
  },
  "使用棋手【小妲己】，在万象大赛中一次秘技期间内，购买6张能量小于2的卡牌": {
-  "en": "Usage chess player [Little Daji] to Buy 6 Cards costing less than 2 Energy during one Secret Skill in the ACE Tournament",
+  "en": "Use chess player [Little Daji] to Buy 6 Cards costing less than 2 Energy during one Secret Skill in the ACE Tournament",
   "id": "Gunakan Chessplayer [Little Daji] untuk membeli 6 Kartu dengan cost kurang dari 2 Energy selama satu Secret Skill di ACE Tournament"
  },
  "使用棋手【小妲己】，在万象大赛中通过魅力无限额外打出5种以上不同的效果牌": {
-  "en": "Usage chess player [Little Daji] to Play more than 5 different additional Effect Cards through Infinite Charm in the ACE Tournament",
+  "en": "Use chess player [Little Daji] to Play more than 5 different additional Effect Cards through Infinite Charm in the ACE Tournament",
   "id": "Gunakan Chessplayer [Little Daji] untuk memainkan lebih dari 5 Kartu Efek tambahan yang berbeda melalui Infinite Charm di ACE Tournament"
  },
  "使用棋手【小妲己】，登上国服排行榜": {
-  "en": "Usage chess player [Little Daji] to reach the national rankings",
+  "en": "Use chess player [Little Daji] to reach the national rankings",
   "id": "Gunakan Chessplayer [Little Daji] untuk masuk peringkat nasional"
  },
  "使用棋手【小妲己】，登上市级排行榜": {
-  "en": "Usage chess player [Little Daji] to reach the city rankings",
+  "en": "Use chess player [Little Daji] to reach the city rankings",
   "id": "Gunakan Chessplayer [Little Daji] untuk masuk peringkat kota"
  },
  "使用棋手【小妲己】，登上省级排行榜": {
-  "en": "Usage chess player [Little Daji] to reach the provincial rankings",
+  "en": "Use chess player [Little Daji] to reach the provincial rankings",
   "id": "Gunakan Chessplayer [Little Daji] untuk masuk peringkat provinsi"
  },
  "光束命中时每0.5秒为安琪拉偷取敌方1级": {
@@ -3403,5 +3403,9 @@
  },
  "鲁班七号呼唤河豚飞艇朝战场投掷[0]枚炸弹。炸弹对命中敌人造成<color=#dfa15e>[1]点物理伤害</color><color=#dfa15e>（[2]+[3]%物理攻击力）</color>并留下弹坑。弹坑中的敌人每秒受到<color=#dfa15e>[4]点物理伤害</color><color=#dfa15e>（[5]%物理攻击力）</color>，并降低70%生命恢复效果，持续4秒，效果不可叠加。": {
   "id": "Luban No.7 memanggil kapal udara pufferfish yang menjatuhkan [0] bom ke arena. Bom memberikan <color=#dfa15e>[1] Physical Damage</color><color=#dfa15e>([2]+[3]% Physical Attack)</color> ke musuh yang terkena dan meninggalkan kawah. Musuh di dalam kawah menerima <color=#dfa15e>[4] Physical Damage</color><color=#dfa15e>([5]% Physical Attack)</color> per detik dan efek pemulihan HP-nya berkurang 70% selama 4 detik (efek tidak menumpuk)."
+ },
+ "搏命": {
+  "en": "Risk One's Life",
+  "id": "Mempertaruhkan Nyawa"
  }
 }
