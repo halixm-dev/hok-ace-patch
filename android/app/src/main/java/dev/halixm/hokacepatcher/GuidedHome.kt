@@ -55,6 +55,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         addView(logScroll)
     }
     val advanced = column()
+    private val updateButton = button("Check for updates", "check-app-update") { invoke("check_update") }
     private var next = "start"
     private var workerNotice = ""
     private var choosingLanguage = false
@@ -128,6 +129,8 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         advanced.visibility = View.GONE
         advanced.addView(text("For testing or support", 22))
         root.addView(advanced)
+        root.addView(text("${ui("Patcher version")}: ${BuildConfig.VERSION_NAME}", 14))
+        root.addView(updateButton)
         root.addView(text("COMMUNITY PATCHER  /  HOK ACE", 11).apply {
             gravity = Gravity.CENTER; letterSpacing = 0.12f
             setPadding(0, dp(24), 0, 0)
@@ -172,6 +175,11 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     fun working(value: Boolean) { primary.isEnabled = !value }
+
+    fun checkingUpdate(value: Boolean) {
+        updateButton.isEnabled = !value
+        updateButton.text = ui(if (value) "Checking for updates…" else "Check for updates")
+    }
 
     /** Show <code> as chosen without reporting it back as a new choice. */
     fun language(code: String) {

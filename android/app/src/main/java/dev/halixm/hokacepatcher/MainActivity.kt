@@ -33,6 +33,9 @@ import java.util.Date
 /** Feasibility UI: independent engine checks and explicit, fixed device probes. */
 class MainActivity : Activity() {
     private val worker = Executors.newSingleThreadExecutor()
+    private val updateWorker = Executors.newSingleThreadExecutor()
+    private var checkingUpdate = false
+    private var updateDialog: AlertDialog? = null
     private lateinit var home: GuidedHome
     private val actions = mutableMapOf<String, () -> Unit>()
     private lateinit var output: TextView
@@ -114,6 +117,7 @@ class MainActivity : Activity() {
         home = GuidedHome(this) { key ->
             DiagnosticTrace.event("ui", "Tap $key; busy $busy automatic $automatic shizuku ${Shizuku.pingBinder()}")
             when (key) {
+                "check_update" -> checkAppUpdate()
                 "start" -> beginAutomatic()
                 "stop" -> AlertDialog.Builder(this).setTitle(ui("Stop safely?"))
                     .setMessage(ui("Keep the game closed. Any unfinished changes must be restored before you open it."))
@@ -236,6 +240,41 @@ class MainActivity : Activity() {
             }
             false
         } catch (error: Exception) { stopAutomatic(); log("ERROR: ${error.message}"); false }
+    }
+
+    private fun checkAppUpdate() {
+        if (checkingUpdate || destroyed) return
+        checkingUpdate = true
+        home.checkingUpdate(true)
+        updateWorker.execute {
+            val result = AppUpdateChecker().check(BuildConfig.VERSION_NAME)
+            runOnUiThread {
+                if (destroyed || isFinishing) return@runOnUiThread
+                checkingUpdate = false
+                home.checkingUpdate(false)
+                updateDialog?.dismiss()
+                val dialog = AlertDialog.Builder(this).setTitle(ui("Patcher updates"))
+                    .setMessage(ui(result.message) + (result.version?.let { "\n${ui("Available version")}: $it" } ?: ""))
+                    .setNegativeButton(ui("Close"), null)
+                result.downloadUrl?.let { url ->
+                    dialog.setPositiveButton(ui("Download update")) { _, _ ->
+                        if (busy || automatic || PatchWorkerService.isWorking) {
+                            updateDialog = AlertDialog.Builder(this).setTitle(ui("Patcher updates"))
+                                .setMessage(ui("Finish patching or recovery before updating the patcher."))
+                                .setPositiveButton(ui("Close"), null).show()
+                        } else {
+                            try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                            catch (_: android.content.ActivityNotFoundException) {
+                                updateDialog = AlertDialog.Builder(this).setTitle(ui("Patcher updates"))
+                                    .setMessage(ui("No browser could open the download. Install a browser and try again."))
+                                    .setPositiveButton(ui("Close"), null).show()
+                            }
+                        }
+                    }
+                }
+                updateDialog = dialog.show()
+            }
+        }
     }
 
     private fun beginAutomatic() {
@@ -729,6 +768,8 @@ class MainActivity : Activity() {
     override fun onDestroy() {
         DiagnosticTrace.event("ui", "Activity destroyed; changing configuration $isChangingConfigurations")
         destroyed = true
+        updateDialog?.dismiss()
+        updateWorker.shutdownNow()
         statusHandler.removeCallbacks(refreshStatus)
         Shizuku.removeBinderReceivedListener(received)
         Shizuku.removeBinderDeadListener(died)
