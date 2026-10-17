@@ -24,6 +24,7 @@ counts the texture as skipped. A silently skipped texture is far better than a f
 from __future__ import annotations
 
 import math
+from functools import lru_cache
 from pathlib import Path
 
 import astc_encoder
@@ -104,6 +105,11 @@ BLOCK_MATCH_MEAN = 6.0
 # A restoration crop is used only while the device's copy of the sprite, outside the blocks the old port
 # wrote, still matches it this closely. The same art re-encoded at another block phase measured <= 5.3.
 RESTORE_MATCH_MEAN = 12.0
+
+# Repeated label strips are small. Bound retained pixels to 2 MiB, plus encoded
+# bytes and Python overhead; full images keep the uncached native path.
+ASTC_CACHE_MAX_INPUT = 4096
+ASTC_CACHE_ENTRIES = 512
 
 _contexts: dict[tuple[int, int], astc_encoder.ASTCContext] = {}
 
@@ -293,6 +299,19 @@ def _context(bx: int, by: int) -> astc_encoder.ASTCContext:
 
 
 def encode_astc(rgba: bytes, width: int, height: int, bx: int, by: int) -> bytes:
+    """Encode with unchanged settings, reusing only small exact-input results."""
+    if len(rgba) <= ASTC_CACHE_MAX_INPUT:
+        return _encode_astc_cached(rgba, width, height, bx, by)
+    return _encode_astc(rgba, width, height, bx, by)
+
+
+@lru_cache(maxsize=ASTC_CACHE_ENTRIES)
+def _encode_astc_cached(rgba: bytes, width: int, height: int, bx: int, by: int) -> bytes:
+    # Pixel bytes and all geometry are in the key; no package or catalog state.
+    return _encode_astc(rgba, width, height, bx, by)
+
+
+def _encode_astc(rgba: bytes, width: int, height: int, bx: int, by: int) -> bytes:
     image = astc_encoder.ASTCImage(astc_encoder.ASTCType.U8, width, height, 1, rgba)
     return _context(bx, by).compress(image, astc_encoder.ASTCSwizzle())
 

@@ -243,6 +243,8 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
     Returns ``{"considered": n, "written": n, "skipped": [hash, ...]}``. A package whose every edit
     is skipped writes nothing and creates no output directory, but still reports what it skipped:
     a texture the codec refuses is otherwise invisible in the run's summary.
+    A newly copied package uses the source's chunk offsets with paths retargeted to the copy;
+    an existing staged package gets a fresh slot scan because earlier passes may have relocated it.
     """
     import mobile_graphics as mg
     from qts_relocate import read_raw
@@ -276,8 +278,19 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
     written = len(pending)
     if pending:
         # Only copy the (large) package when something actually changes.
+        fresh_copy = not (output / package.package_id).exists()
         target = QtsPackage(_package_output(package, output))
-        target_slots = target.build_slot_map()
+        if fresh_copy:
+            # _package_output just copied these exact bytes. Offsets stay the same; point
+            # each slot at the copy. A pre-existing output may already have relocated chunks
+            # and must be scanned afresh instead. Nothing is retained after this write.
+            target_slots = {
+                file_hash: {slot.chunk_id: replace(slot, shard_path=target.package_dir / slot.shard_path.name)
+                            for slot, _payload in chunks}
+                for file_hash, chunks, _new in pending
+            }
+        else:
+            target_slots = target.build_slot_map()
         shard = Shard(target.shard_paths[0])
         for file_hash, chunks, new in pending:
             cursor = 0

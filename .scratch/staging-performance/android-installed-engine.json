@@ -1,0 +1,9 @@
+{
+  "installed_engine_modules_match_repository": {
+    "tools/build_device_patch.py": "c68fe4d44a6e5041c314fbd7966972dfa48e45d5b1184c383fbfef45621ed2c5",
+    "tools/mobile_graphics.py": "e2c3735536883a839e110ff0f7349684982430fcda5e3bfeb8e9397917cd0c0c",
+    "tools/qts_relocate.py": "6df44019de6e233334cc6c15cb6eef9e6dcad3af6a44da32fedb9acbe7040f9a"
+  },
+  "initial_journals_unchanged": true,
+  "normal_apk_unchanged_from_initial_state": true
+}

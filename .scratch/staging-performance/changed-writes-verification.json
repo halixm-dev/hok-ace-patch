@@ -1,0 +1,33 @@
+{
+  "run": "D:\\scratch\\hok-staging-performance\\changed-writes1",
+  "db_hashes": {
+    "1/1.db": "e806130aed7da74341c4c940f7fef06665482dea4670e17da8958910216a4733",
+    "1/1_0.db": "748961ea91459122853e7100d4c4758c3141a8ace716db0cbd0e287b0b2d44bf",
+    "10/10.db": "1b006e52c2c04aadfecad7c0aa073902fee00f107dfab9d824e4d19656619bb2",
+    "10/10_0.db": "75ed13e7d51c935ab1b520383aafe54d7d84e297c68eaed48bd323126f79b208",
+    "1050016095/1050016095.db": "74f02620f94a43295354abfb09f8fd8e81f38dab00f265e36c038451d632d81f",
+    "1050016095/1050016095_0.db": "f4cd2b6a51913e865ecea28376e5c2305f538123a3d222fc5892c3b451c0b378",
+    "15/15.db": "21dbda4aae1d06e68179f73a5764c9a3e7783b76c51468eb203c7985a22ad67e",
+    "15/15_0.db": "c6bb10693e3ebf2781f9afb2876abef457c3c273935e3cd2bfc7d63433754144",
+    "19/19.db": "c6cc5cc25497b16e1d27100e7c52cd3988b56160919f63e5751557a1107eba23",
+    "19/19_0.db": "e6d376bcff780449c26af27459fec352a32ad7fbf39bfa27acca8e34cdc8420f",
+    "20/20.db": "d57788ec8959402d76cb0263bb3e0b2a3845a7fa962868fd67d2d90ed0da0a47",
+    "20/20_0.db": "d8b4f4de212f247210fad51b1522438bf64614b25c9808e928d60489021428ab",
+    "21/21.db": "4e4308cbc16a16be94b670c1a986b08a0caa35c939e1f2d03a6b31671fb1adc1",
+    "21/21_0.db": "9524d688181e3d0fa9caf6952e6e33196850ffb3bdfbb61fd0f7b762861fd5b5"
+  },
+  "all_14_db_files_match_original_baseline": true,
+  "complete_normalized_summary_matches_verified_control": true,
+  "counts": {
+    "unreadable_assets": 651,
+    "tables": 94,
+    "records": 186735,
+    "translated": 183250,
+    "graphics": 0,
+    "already_english": 2303,
+    "unknown": 214,
+    "unrecognized_tables": 1
+  },
+  "wall_s": 134.6432904000103,
+  "slot_map_calls": 31
+}

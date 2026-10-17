@@ -53,11 +53,14 @@ def _encode(piece: bytes, compression: int) -> bytes | None:
     return None
 
 
-def add_assets(package_id: str, target: Path, assets: list[dict], source, log) -> list[str]:
+def add_assets(package_id: str, target: Path, assets: list[dict], source, log,
+               *, source_slots: dict | None = None) -> list[str]:
     """Add <assets> [{file_hash, raw}] to the single-shard package at <target>.
 
     <target> is a directory holding <package_id>.db and <package_id>_0.db; both are written in place.
     <source> is a ``QtsPackage`` that already carries every asset, and is only read.
+    <source_slots> may be the caller's map of that unchanged source from this same operation.
+    When omitted it is scanned here. The written target is always scanned anew for read-back.
 
     Returns the hashes written. An asset this pass cannot encode is left out and named in the log
     rather than failing the package: one rewrite that cannot be expressed must not cost the other
@@ -65,7 +68,8 @@ def add_assets(package_id: str, target: Path, assets: list[dict], source, log) -
     """
     from wxq_patch.qtsvfs import QtsPackage
 
-    source_slots = source.build_slot_map()
+    if source_slots is None:
+        source_slots = source.build_slot_map()
     source_index = source.index_path.read_bytes()
     index = Shard(target / f"{package_id}.db")
     shard = Shard(target / f"{package_id}_0.db")

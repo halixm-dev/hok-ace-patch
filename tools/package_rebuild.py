@@ -347,7 +347,7 @@ def add_prime_only(game: Path, apk: Path, transform, work: Path, output: Path,
         created = not staged_dir.is_dir()
         target = _package_output(device, output)
         try:
-            written = add_assets(package_id, target, assets, prime, log)
+            written = add_assets(package_id, target, assets, prime, log, source_slots=slots)
         except TreeFull as error:
             # The staged copy holds an untouched copy of the package; the installer pushes by
             # directory, so it must not stay there looking like a result.

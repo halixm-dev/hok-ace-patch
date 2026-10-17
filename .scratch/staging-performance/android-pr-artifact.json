@@ -1,0 +1,13 @@
+{
+  "apk": "D:\\Projects\\hok-ace-android-en\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk",
+  "sha256": "6dcf4c62b1f9234f745897ae6a01a30d9b90811b50e5372b99c2e258089edd47",
+  "engine_manifest_sha256": "d689b1bd5f47891650a64195652433e19bdeba6564c2c2fff95b806582b0fadd",
+  "payloads_verified": 855,
+  "all_payloads_match_manifest_and_repository": true,
+  "optimized_modules": {
+    "tools/build_device_patch.py": "1fd2a6f45ff4871588e8e7c35bd6eda9a3da095597bc81e64f290fb2d0b98309",
+    "tools/mobile_graphics.py": "e2c3735536883a839e110ff0f7349684982430fcda5e3bfeb8e9397917cd0c0c",
+    "tools/qts_relocate.py": "6df44019de6e233334cc6c15cb6eef9e6dcad3af6a44da32fedb9acbe7040f9a"
+  },
+  "research_not_bundled": true
+}

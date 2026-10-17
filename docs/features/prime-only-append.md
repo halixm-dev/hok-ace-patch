@@ -205,6 +205,26 @@ needs no further scan. Dictionaries that still need repair retain the existing l
 refusal reporting and read-back verification. Timing and byte-equivalence evidence are in the
 lab notebook's offline staging performance sections.
 
+**2026-10-17: avoid full-size temporary copies in writable shard I/O.** `Shard` allocates one
+bytearray and fills it through `readinto`, handling short reads and refusing a file whose size
+changes while it is loaded. `save` writes a memoryview bounded to the same declared size as before,
+then releases the view so later appends can resize the bytearray. Header updates, growth alignment,
+padding, B-tree edits and append read-back verification retain their existing paths.
+This removes temporary whole-file copies; it does not cache file contents across separate writers.
+Memory, timing and byte-equivalence evidence are in the lab notebook.
+
+**2026-10-17: save only changed regions.** `Shard.save` compares each 64 KiB region against the
+current staged file, writes changed regions from the mutable buffer, and preserves the preceding
+writer's final file length. An unchanged repeat save submits no data writes. Missing files are
+recreated; excess disk tails are truncated. Comparisons include the whole intended output, so
+direct buffer edits, relocated slots and root splits need no separate dirty-range bookkeeping.
+Each save reads current file bytes; no cached snapshot is used to decide whether to write. The
+extra comparison buffers are bounded, short writes raise, and views are released on errors.
+This changes staged-file I/O only: layout, asset gates and append read-back stay unchanged.
+`PackageIoProbeTest` also exercises the packaged implementation on Android using a tiny app-private
+fixture: changed writes, repeat-save idempotence, root splitting and live B-tree offsets. This is
+an engine check, separate from a full patch run or watched game-screen acceptance.
+
 ### Still owed
 
 The device cycle on the shipped configuration is only half watched. Package `1`, pushed as staged onto
@@ -342,6 +362,15 @@ alongside `relocate`/`_repoint`:
   append pass runs after `extend_graphics` and never touches a package that pass replaced whole.
 
 ### Failure behaviour
+
+**2026-10-17: reuse the unchanged prime source map within one append operation.**
+`add_prime_only` passes the slot map it just used to read prime assets into
+`qts_insert.add_assets(..., source_slots=slots)`. That source is read-only, so scanning it a second
+time cannot discover new offsets. Direct callers which omit the optional keyword still scan their
+own source. The written output is independently reopened as `QtsPackage`, scanned afresh and read
+back exactly as before; a mismatch still aborts. Nothing is cached across calls or writes.
+Full offline comparison and measured scan counts are recorded in the lab notebook. This additional
+optimization has not been built or installed on Android.
 
 | Condition | Behaviour |
 |---|---|

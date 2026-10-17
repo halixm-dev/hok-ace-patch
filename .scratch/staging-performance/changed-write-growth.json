@@ -1,0 +1,69 @@
+{
+  "shard_bytes": 67108864,
+  "control": "whole",
+  "append_mib": 8,
+  "all_saved_hashes_equal": true,
+  "source_unchanged": true,
+  "results": [
+    {
+      "round": 1,
+      "mode": "whole",
+      "load_wall_s": 0.07773140000062995,
+      "load_cpu_s": 0.03125,
+      "load_peak_python_bytes": 67119221,
+      "save_wall_s": 0.16514599998481572,
+      "save_cpu_s": 0.046875,
+      "save_peak_extra_python_bytes": 9524
+    },
+    {
+      "round": 1,
+      "mode": "direct",
+      "load_wall_s": 0.08590890001505613,
+      "load_cpu_s": 0.0625,
+      "load_peak_python_bytes": 67119221,
+      "save_wall_s": 0.035593500011600554,
+      "save_cpu_s": 0.03125,
+      "save_peak_extra_python_bytes": 140814
+    },
+    {
+      "round": 2,
+      "mode": "direct",
+      "load_wall_s": 0.059593799989670515,
+      "load_cpu_s": 0.046875,
+      "load_peak_python_bytes": 67119213,
+      "save_wall_s": 0.04308479998144321,
+      "save_cpu_s": 0.046875,
+      "save_peak_extra_python_bytes": 140814
+    },
+    {
+      "round": 2,
+      "mode": "whole",
+      "load_wall_s": 0.07887689999188296,
+      "load_cpu_s": 0.046875,
+      "load_peak_python_bytes": 67119213,
+      "save_wall_s": 0.20459680000203662,
+      "save_cpu_s": 0.078125,
+      "save_peak_extra_python_bytes": 9548
+    },
+    {
+      "round": 3,
+      "mode": "whole",
+      "load_wall_s": 0.08205920000909828,
+      "load_cpu_s": 0.046875,
+      "load_peak_python_bytes": 67119205,
+      "save_wall_s": 0.15412309998646379,
+      "save_cpu_s": 0.015625,
+      "save_peak_extra_python_bytes": 9548
+    },
+    {
+      "round": 3,
+      "mode": "direct",
+      "load_wall_s": 0.08617530000628904,
+      "load_cpu_s": 0.046875,
+      "load_peak_python_bytes": 67119205,
+      "save_wall_s": 0.07666089999838732,
+      "save_cpu_s": 0.078125,
+      "save_peak_extra_python_bytes": 140814
+    }
+  ]
+}

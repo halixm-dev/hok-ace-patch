@@ -1,0 +1,91 @@
+{
+  "first_native_sample_preserved": 0,
+  "small_requests": 3362,
+  "unique_small_inputs": 1216,
+  "results": [
+    {
+      "round": 1,
+      "mode": "native",
+      "wall_s": 1.763556099991547,
+      "cpu_s": 1.734375,
+      "native_calls": 3362,
+      "all_bytes_equal": true,
+      "cache": {
+        "hits": 0,
+        "misses": 0,
+        "maxsize": 512,
+        "currsize": 0
+      }
+    },
+    {
+      "round": 1,
+      "mode": "reuse",
+      "wall_s": 0.9675633999868296,
+      "cpu_s": 0.921875,
+      "native_calls": 1327,
+      "all_bytes_equal": true,
+      "cache": {
+        "hits": 2035,
+        "misses": 1327,
+        "maxsize": 512,
+        "currsize": 512
+      }
+    },
+    {
+      "round": 2,
+      "mode": "reuse",
+      "wall_s": 0.949657399993157,
+      "cpu_s": 0.9375,
+      "native_calls": 1327,
+      "all_bytes_equal": true,
+      "cache": {
+        "hits": 2035,
+        "misses": 1327,
+        "maxsize": 512,
+        "currsize": 512
+      }
+    },
+    {
+      "round": 2,
+      "mode": "native",
+      "wall_s": 1.782920900004683,
+      "cpu_s": 1.71875,
+      "native_calls": 3362,
+      "all_bytes_equal": true,
+      "cache": {
+        "hits": 0,
+        "misses": 0,
+        "maxsize": 512,
+        "currsize": 0
+      }
+    },
+    {
+      "round": 3,
+      "mode": "native",
+      "wall_s": 1.7384373000240885,
+      "cpu_s": 1.71875,
+      "native_calls": 3362,
+      "all_bytes_equal": true,
+      "cache": {
+        "hits": 0,
+        "misses": 0,
+        "maxsize": 512,
+        "currsize": 0
+      }
+    },
+    {
+      "round": 3,
+      "mode": "reuse",
+      "wall_s": 0.9232518000062555,
+      "cpu_s": 0.9375,
+      "native_calls": 1327,
+      "all_bytes_equal": true,
+      "cache": {
+        "hits": 2035,
+        "misses": 1327,
+        "maxsize": 512,
+        "currsize": 512
+      }
+    }
+  ]
+}

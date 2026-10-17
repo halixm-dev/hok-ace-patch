@@ -1,0 +1,2310 @@
+{
+  "apk": "D:\\Projects\\hok-ace-android-en\\artifacts\\staging-performance\\hok-ace-patch-all-optimizations-debug.apk",
+  "libraries": {
+    "lib/arm64-v8a/libchaquopy_java.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 152560,
+          "address": 168944,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 154448,
+          "address": 187216,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "lib/arm64-v8a/libcrypto_chaquopy.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 1704,
+          "address": 18088,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "lib/arm64-v8a/libcrypto_python.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 3361712,
+          "address": 3378096,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 3711240,
+          "address": 3744008,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "lib/arm64-v8a/libpython3.12.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 4790096,
+          "address": 4806480,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 5279048,
+          "address": 5311816,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "lib/arm64-v8a/libsqlite3_chaquopy.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 1704,
+          "address": 18088,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "lib/arm64-v8a/libsqlite3_python.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 861232,
+          "address": 877616,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 870072,
+          "address": 902840,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "lib/arm64-v8a/libssl_chaquopy.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 1688,
+          "address": 18072,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "lib/arm64-v8a/libssl_python.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 569552,
+          "address": 585936,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 607448,
+          "address": 640216,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/_bz2.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 76336,
+          "address": 92720,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 77472,
+          "address": 110240,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/_ctypes.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 200592,
+          "address": 216976,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 203008,
+          "address": 235776,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/_datetime.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 97520,
+          "address": 113904,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 99192,
+          "address": 131960,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/_lzma.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 236880,
+          "address": 253264,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 239456,
+          "address": 272224,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/_random.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 10944,
+          "address": 27328,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 11728,
+          "address": 44496,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/_sha2.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 40864,
+          "address": 57248,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 41696,
+          "address": 74464,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/_struct.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 40320,
+          "address": 56704,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 42400,
+          "address": 75168,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/binascii.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 21088,
+          "address": 37472,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 22048,
+          "address": 54816,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/java/chaquopy.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 769856,
+          "address": 786240,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 772192,
+          "address": 804960,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/math.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 59472,
+          "address": 75856,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 60832,
+          "address": 93600,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/mmap.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 21376,
+          "address": 37760,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 22344,
+          "address": 55112,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/bootstrap-native/arm64-v8a/zlib.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 38144,
+          "address": 54528,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 39440,
+          "address": 72208,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/ooz.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 116672,
+          "address": 133056,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 310944,
+          "address": 343712,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 327344,
+          "address": 376496,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/PIL/_imaging.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 455248,
+          "address": 471632,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 471264,
+          "address": 504032,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/PIL/_imagingft.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 24832,
+          "address": 41216,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 25928,
+          "address": 58696,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/PIL/_imagingmath.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 17296,
+          "address": 33680,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 18216,
+          "address": 50984,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/PIL/_imagingmorph.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 5008,
+          "address": 21392,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 5584,
+          "address": 38352,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/PIL/_imagingtk.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 7360,
+          "address": 23744,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 8040,
+          "address": 40808,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/astc_encoder/_encoder_neon.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 238992,
+          "address": 255376,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 543264,
+          "address": 576032,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 563288,
+          "address": 612440,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/astc_encoder/_encoder_none.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 241136,
+          "address": 257520,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 565760,
+          "address": 598528,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 585792,
+          "address": 634944,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/chaquopy/lib/libfreetype.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 199396,
+          "address": 215780,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 677168,
+          "address": 709936,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/chaquopy/lib/libjpeg_chaquopy.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 65536,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 479232,
+          "address": 544768,
+          "alignment": 65536,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/lz4/_version.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 7908,
+          "address": 24292,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 66592,
+          "address": 99360,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 67168,
+          "address": 116320,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/lz4/block/_block.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 16912,
+          "address": 33296,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 125264,
+          "address": 158032,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 126008,
+          "address": 175160,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/lz4/frame/_frame.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 35168,
+          "address": 51552,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 163200,
+          "address": 195968,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 164168,
+          "address": 213320,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/texture2ddecoder/_texture2ddecoder.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 129136,
+          "address": 145520,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 369008,
+          "address": 401776,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 384992,
+          "address": 434144,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/zstandard/_cffi.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 192276,
+          "address": 208660,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 938848,
+          "address": 971616,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 956824,
+          "address": 1005976,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/requirements-common.imy!/zstandard/backend_c.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 4,
+          "aligned_16k": true
+        },
+        {
+          "offset": 148512,
+          "address": 164896,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 832224,
+          "address": 864992,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 834032,
+          "address": 883184,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_asyncio.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 59696,
+          "address": 76080,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 61336,
+          "address": 94104,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_bisect.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 12096,
+          "address": 28480,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 12976,
+          "address": 45744,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_blake2.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 34704,
+          "address": 51088,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 35728,
+          "address": 68496,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_codecs_cn.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 123392,
+          "address": 139776,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 144496,
+          "address": 177264,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_codecs_hk.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 140432,
+          "address": 156816,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 153384,
+          "address": 186152,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_codecs_iso2022.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 17664,
+          "address": 34048,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 19592,
+          "address": 52360,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_codecs_jp.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 210160,
+          "address": 226544,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 259944,
+          "address": 292712,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_codecs_kr.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 118640,
+          "address": 135024,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 131552,
+          "address": 164320,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_codecs_tw.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 89920,
+          "address": 106304,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 106928,
+          "address": 139696,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_contextvars.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 2576,
+          "address": 18960,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 3096,
+          "address": 35864,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_csv.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 31584,
+          "address": 47968,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 32584,
+          "address": 65352,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_decimal.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 328432,
+          "address": 344816,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 330408,
+          "address": 363176,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_elementtree.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 66176,
+          "address": 82560,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 67912,
+          "address": 100680,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_hashlib.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 44816,
+          "address": 61200,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 47480,
+          "address": 80248,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_heapq.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 15376,
+          "address": 31760,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 15952,
+          "address": 48720,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_json.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 32880,
+          "address": 49264,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 33864,
+          "address": 66632,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_lsprof.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 19152,
+          "address": 35536,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 20152,
+          "address": 52920,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_md5.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 14176,
+          "address": 30560,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 14944,
+          "address": 47712,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_multibytecodec.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 33872,
+          "address": 50256,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 35136,
+          "address": 67904,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_multiprocessing.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 13072,
+          "address": 29456,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 14016,
+          "address": 46784,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_opcode.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 4112,
+          "address": 20496,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 4712,
+          "address": 37480,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_pickle.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 111968,
+          "address": 128352,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 114088,
+          "address": 146856,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_posixsubprocess.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 15216,
+          "address": 31600,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 16240,
+          "address": 49008,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_queue.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 11584,
+          "address": 27968,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 12440,
+          "address": 45208,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_sha1.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 11728,
+          "address": 28112,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 12496,
+          "address": 45264,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_sha3.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 23840,
+          "address": 40224,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 24664,
+          "address": 57432,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_socket.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 91408,
+          "address": 107792,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 93048,
+          "address": 125816,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_sqlite3.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 106592,
+          "address": 122976,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 111032,
+          "address": 143800,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_ssl.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 179440,
+          "address": 195824,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 210624,
+          "address": 243392,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_statistics.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 4192,
+          "address": 20576,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 4736,
+          "address": 37504,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_xxinterpchannels.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 24032,
+          "address": 40416,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 24992,
+          "address": 57760,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_xxsubinterpreters.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 13936,
+          "address": 30320,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 14920,
+          "address": 47688,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_xxtestfuzz.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 9824,
+          "address": 26208,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 10648,
+          "address": 43416,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/_zoneinfo.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 29392,
+          "address": 45776,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 30464,
+          "address": 63232,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/array.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 50160,
+          "address": 66544,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 52152,
+          "address": 84920,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/audioop.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 38624,
+          "address": 55008,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 39416,
+          "address": 72184,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/cmath.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 28336,
+          "address": 44720,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 29128,
+          "address": 61896,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/fcntl.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 13008,
+          "address": 29392,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 13704,
+          "address": 46472,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/ossaudiodev.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 24496,
+          "address": 40880,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 25304,
+          "address": 58072,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/pyexpat.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 211856,
+          "address": 228240,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 220896,
+          "address": 253664,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/resource.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 10624,
+          "address": 27008,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 11320,
+          "address": 44088,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/select.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 24752,
+          "address": 41136,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 25888,
+          "address": 58656,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/syslog.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 9744,
+          "address": 26128,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 10480,
+          "address": 43248,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/termios.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 20976,
+          "address": 37360,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 25400,
+          "address": 58168,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/unicodedata.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 1120624,
+          "address": 1137008,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 1122280,
+          "address": 1155048,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/xxlimited.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 7424,
+          "address": 23808,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 8136,
+          "address": 40904,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/xxlimited_35.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 6624,
+          "address": 23008,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 7288,
+          "address": 40056,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    },
+    "assets/chaquopy/stdlib-arm64-v8a.imy!/xxsubtype.cpython-312.so": {
+      "machine": 183,
+      "segments": [
+        {
+          "offset": 0,
+          "address": 0,
+          "alignment": 16384,
+          "flags": 5,
+          "aligned_16k": true
+        },
+        {
+          "offset": 5776,
+          "address": 22160,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        },
+        {
+          "offset": 6352,
+          "address": 39120,
+          "alignment": 16384,
+          "flags": 6,
+          "aligned_16k": true
+        }
+      ],
+      "aligned_16k": true
+    }
+  },
+  "all_load_segments_aligned_16k": true,
+  "limitations": "Static ELF alignment only; ZIP alignment, loader behavior and physical 16 KB device acceptance are separate checks."
+}
