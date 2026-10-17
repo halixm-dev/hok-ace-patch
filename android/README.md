@@ -112,7 +112,7 @@ clean Windows runner. Pushes and pull requests produce development APK artifacts
 tags produce APKs signed with the previous patcher key and draft releases. See [automated builds](../README.md#automated-android-builds)
 and [security/signing](../SECURITY.md). CI reuses the public development signer for update compatibility.
 Local release builds are unsigned unless the four signing environment variables documented
-there are supplied. The root `VERSION` file defaults the patcher version to `1.6.0.1.1`
+there are supplied. The root `VERSION` file defaults the patcher version to `1.6.0.1.2`
 (game data version plus patch revision); see [patch versions](../README.md#patch-versions).
 `patchVersionName` can override it with another five-part numeric version, and
 `patchVersionCode` sets Android's separate, increasing install number. CI release tags
