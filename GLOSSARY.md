@@ -18,6 +18,14 @@ _Avoid_: builtin, APK layer
 The packages the game downloads into its data directory, which this patcher rewrites.
 _Avoid_: downloaded layer, game data (when the layer is meant)
 
+**Pristine layer**:
+The override layer as the game downloaded it, before any patch.
+_Avoid_: original, clean, unpatched data
+
+**Pristine delta**:
+The pristine bytes an install overwrote, kept so a later run can rebuild the pristine layer from the files the install left unchanged.
+_Avoid_: restore delta, backup, undo
+
 **Prime-only**:
 Said of an asset the prime layer carries and the override layer does not.
 
@@ -87,6 +95,18 @@ _Avoid_: patched APK, game APK (when the re-signed copy is meant)
 **Access APK**:
 A debuggable copy of the normal APK, installed only long enough to write the override layer.
 _Avoid_: debug APK, data-access copy
+
+**Windows patcher**:
+The Windows app that installs the translation onto a phone connected over USB.
+_Avoid_: PC patcher, Windows GUI, Windows app, desktop patcher
+
+**Android patcher**:
+The app that installs the translation onto the phone it runs on.
+_Avoid_: Android app, mobile patcher
+
+**PC patcher**:
+The upstream patcher for the PC edition of the game, which produces the catalog and the translation runtime this project ships.
+_Avoid_: using it for the Windows patcher
 
 ### Verification
 
