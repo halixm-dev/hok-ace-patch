@@ -13,8 +13,8 @@ import customtkinter as ctk
 from PIL import Image
 
 from patcher_core import (BUNDLE, MIN_FREE_BYTES, STEPS, Adb, PatchError, Patcher, build_patch, count_translated,
-                          count_untranslated_graphics, count_untranslated_text, free_space, languages,
-                          load_language, load_work_dir, save_language, save_work_dir)
+                          count_untranslated_graphics, count_untranslated_text, free_space, holds_delta,
+                          languages, load_language, load_work_dir, save_language, save_work_dir)
 
 APP_TITLE = "HOK ACE Language Patcher"
 VERSION_FILE = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1])) / "VERSION"
@@ -211,11 +211,10 @@ class App(ctk.CTk):
         language.columnconfigure(0, weight=1)
         ctk.CTkLabel(language, text="LANGUAGE  ·  the translation installed into the game", text_color=MUTED,
                      font=ctk.CTkFont(size=10, weight="bold")).grid(row=0, column=0, sticky="sw", padx=18, pady=(12, 0))
-        # Measured: a pass over an already-English install changes no table, only the re-drawn textures.
-        ctk.CTkLabel(language, text="To switch a phone that is already translated, clear the game's data and "
-                                    "let it download again first.", text_color=MUTED, anchor="w", wraplength=330,
-                     justify="left", font=ctk.CTkFont(size=11)).grid(row=1, column=0, sticky="nw", padx=18,
-                                                                      pady=(0, 12))
+        self.language_note = ctk.CTkLabel(language, text="", text_color=MUTED, anchor="w", wraplength=330,
+                                          justify="left", font=ctk.CTkFont(size=11))
+        self.language_note.grid(row=1, column=0, sticky="nw", padx=18, pady=(0, 12))
+        self.show_language_note()
         names = {item.name: code for code, item in languages.LANGUAGES.items()}
         self.language_picker = ctk.CTkSegmentedButton(
             language, values=list(names), selected_color=ACCENT, selected_hover_color=ACCENT_HOVER,
@@ -263,6 +262,16 @@ class App(ctk.CTk):
                 text=f"{free / 1024**3:.1f} GB free on this drive" + ("" if enough else " — not enough, choose another drive"),
                 text_color=MUTED if enough else DANGER)
 
+    def show_language_note(self) -> None:
+        """Whether switching needs a clear: not once this folder holds the phone's pristine delta."""
+        if holds_delta(self.work_dir):
+            text = ("Switching languages needs no clear: the patcher kept the original game files it "
+                    "changed, and rebuilds them first.")
+        else:
+            text = ("To switch a phone translated by another patcher or an older version, clear the "
+                    "game's data and let it download again first.")
+        self.language_note.configure(text=text)
+
     def choose_folder(self) -> None:
         chosen = filedialog.askdirectory(parent=self, title="Choose a folder for the temporary game data",
                                          initialdir=str(self.work_dir if self.work_dir.exists() else self.work_dir.parent))
@@ -275,6 +284,7 @@ class App(ctk.CTk):
         self.work_dir = path
         save_work_dir(path)
         self.show_work_dir()
+        self.show_language_note()
 
     def choose_language(self, code: str) -> None:
         self.language = code
@@ -382,6 +392,7 @@ class App(ctk.CTk):
         self.folder_button.configure(state="normal")
         self.language_picker.configure(state="normal")
         self.show_work_dir()
+        self.show_language_note()
         self.status.configure(text="Done! Translation installed." if ok else "Failed. See the log for details.",
                               text_color=SUCCESS if ok else DANGER)
         self.log(("\nSUCCESS: " if ok else "\nFAILED: ") + message)

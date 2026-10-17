@@ -7,11 +7,18 @@ import json
 import platform
 import hashlib
 import runpy
+import shutil
 import sys
 import time
 from pathlib import Path
 
 REQUIRED_CODECS = ("lz4.block", "zstandard", "astc_encoder", "texture2ddecoder", "ooz")
+# In a session: the build input's rebuilt pristine files, and the delta of the install it stages.
+PRISTINE_COPY = "pristine"
+SESSION_DELTA = "pristine-delta.bin"
+CLEAR_DATA = ("Clear the game's data (Android Settings > Apps > the game > Storage > Clear data), open the "
+              "game and let it download again to the login screen, close it, then patch again.")
+OTHER_PATCHER = "If the Windows patcher patched this phone last, patch it with that patcher instead."
 
 
 class PatchError(Exception):
@@ -121,8 +128,12 @@ def build_scratch(engine_root: str, session_root: str, language: str = "en") -> 
     control = json.loads((session / "control.json").read_text(encoding="utf-8"))
     builtin = game / "WXQ_Data" / "Package" / "builtin"
     for name, expected in control["verified_source_files"].items():
+        # The layer links into the session's snapshot (and, after a pristine rebuild, its pristine
+        # copy), so a source must resolve inside the session rather than inside builtin itself.
+        if Path(name).is_absolute() or ".." in Path(name).parts:
+            raise PatchError("Invalid control input path")
         path = (builtin / name).resolve()
-        if not path.is_relative_to(builtin.resolve()):
+        if not path.is_relative_to(session):
             raise PatchError("Invalid control input path")
         with path.open("rb") as stream:
             actual = hashlib.file_digest(stream, "sha256").hexdigest()
@@ -245,9 +256,27 @@ def result_counts(engine_root: str, summary_json: str) -> str:
                        "skipped_textures": count_untranslated_graphics(summary)})
 
 
+def _read_delta(keep: Path) -> "pristine_delta.Delta | None":
+    """The pristine delta this patcher kept for the phone, or None."""
+    import pristine_delta
+
+    path = keep / pristine_delta.DELTA_NAME
+    if not path.is_file():
+        return None
+    try:
+        return pristine_delta.read(path)
+    except pristine_delta.DeltaError as error:
+        raise PatchError(f"The patcher's record of the untranslated game files is damaged ({error}). "
+                         + CLEAR_DATA) from error
+
+
 def estimate_snapshot_build(engine_root: str, session_root: str, normal_apk: str,
-                            language: str = "en") -> str:
-    """Read verified snapshot and APK metadata before creating any build work/output."""
+                            language: str = "en", keep_root: str | None = None) -> str:
+    """Read verified snapshot and APK metadata before creating any build work/output.
+
+    With a kept pristine delta (<keep_root>), the build input's copy of the files it names is reserved
+    too: `build_snapshot` rebuilds them beside the snapshot, which keeps the phone's actual bytes.
+    """
     root, session = Path(engine_root).resolve(), Path(session_root).resolve()
     _prepare(root)
     from mobile_snapshot import verify_snapshot
@@ -255,13 +284,82 @@ def estimate_snapshot_build(engine_root: str, session_root: str, normal_apk: str
 
     catalog = _catalog(root, language)
     manifest = verify_snapshot(session / "snapshot")
+    delta = _read_delta(Path(keep_root)) if keep_root else None
+    copy_bytes = sum(entry.pristine_size for entry in delta.files) if delta else 0
     return json.dumps(estimate(session / "snapshot/packages", catalog, Path(normal_apk), manifest,
-                               scratch=session))
+                               scratch=session, pristine_copy_bytes=copy_bytes))
+
+
+def _restore_pristine(session: Path, keep: Path) -> dict:
+    """Rebuild the files the kept delta names into the session's build-input copy, or refuse.
+
+    Returns `{"mode": "rebuilt" | "first", "rebuilt": [...], "pristine": [...], "sha256": {...}}`, the
+    last naming the pristine SHA-256 of every file the copy holds. Raises PatchError, before any game
+    file is written, when the snapshot is neither at the delta's staged bytes nor at pristine.
+    """
+    import pristine_delta
+
+    packages = session / "snapshot" / "packages"
+    known = pristine_delta.load_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME)
+    delta = _read_delta(keep)
+    if delta is None:
+        if pristine_delta.files_at(packages, known):
+            raise PatchError("This phone is already translated, and the patcher cannot rebuild its "
+                             "untranslated game files. " + CLEAR_DATA)
+        return {"mode": "first", "rebuilt": [], "pristine": [], "sha256": {}}
+    copy = session / PRISTINE_COPY
+    if copy.exists():
+        raise PatchError("Snapshot build requires a fresh session layout")
+    translated = pristine_delta.files_at(packages, known)
+    report = pristine_delta.rebuild(packages, delta, copy)
+    if not report.complete and not translated:
+        # Nothing this patcher wrote is left, as after clearing the game's data and downloading a newer
+        # version: the delta describes a layer that is gone, and the text signal decides instead.
+        shutil.rmtree(copy, ignore_errors=True)
+        return {"mode": "first", "rebuilt": [], "pristine": [], "sha256": {}, "stale": len(report.unmatched)}
+    if not report.complete:
+        names = ", ".join(f"{name} ({state})" for name, state in sorted(report.unmatched.items()))
+        raise PatchError(f"The game files changed since the last patch (a game update or repair): {names}. "
+                         "The patcher cannot rebuild the untranslated files. " + CLEAR_DATA)
+    leftover = [name for name in translated if name not in report.rebuilt]
+    if leftover:
+        raise PatchError(f"Translated game files the patcher has no record of: {', '.join(leftover)}. "
+                         + CLEAR_DATA)
+    return {"mode": "rebuilt", "rebuilt": report.rebuilt, "pristine": report.pristine,
+            "sha256": {entry.path: entry.pristine_sha256 for entry in delta.files if not entry.created},
+            "deleted": [entry.path for entry in delta.files if entry.created]}
+
+
+def _link_build_input(session: Path, builtin: Path, restored: dict) -> None:
+    """The build's layer: the snapshot, with every file the delta names read from the pristine copy."""
+    snapshot, copy = session / "snapshot" / "packages", session / PRISTINE_COPY
+    replaced = set(restored["sha256"]) | set(restored.get("deleted", []))
+    touched = {name.split("/")[0] for name in replaced}
+    builtin.mkdir(parents=True)
+    for entry in snapshot.iterdir():
+        if entry.name not in touched:
+            (builtin / entry.name).symlink_to(entry, target_is_directory=entry.is_dir())
+            continue
+        (builtin / entry.name).mkdir()
+        for item in entry.iterdir():
+            name = f"{entry.name}/{item.name}"
+            if name in replaced:
+                continue
+            (builtin / name).symlink_to(item, target_is_directory=item.is_dir())
+    for name in restored["sha256"]:
+        (builtin / name).symlink_to(copy / name)
 
 
 def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
-                   expected_apk_sha256: str, language: str = "en") -> str:
-    """Build a retained, rehashed snapshot using the independently verified recovery APK."""
+                   expected_apk_sha256: str, language: str = "en", keep_root: str | None = None) -> str:
+    """Build a retained, rehashed snapshot using the independently verified recovery APK.
+
+    With <keep_root>, the patcher's pristine delta first rebuilds the files it names into the session's
+    build-input copy (the snapshot keeps the phone's bytes for rollback), the build reads that pristine
+    layer, and the delta of the staged install is written to the session for `keep_delta`. With no
+    delta kept, a layer the text pass does not read as pristine is refused. Every refusal comes before
+    any game file is written.
+    """
     root, session, apk = Path(engine_root).resolve(), Path(session_root).resolve(), Path(normal_apk).resolve()
     _prepare(root)
     from mobile_snapshot import verify_snapshot
@@ -275,15 +373,61 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
     builtin = game / "WXQ_Data" / "Package" / "builtin"
     if game.exists() or (session / "normal.apk").exists() or (session / "control.json").exists():
         raise PatchError("Snapshot build requires a fresh session layout")
+    restored = (_restore_pristine(session, Path(keep_root)) if keep_root
+                else {"mode": "first", "rebuilt": [], "pristine": [], "sha256": {}})
     builtin.parent.mkdir(parents=True)
-    builtin.symlink_to(session / "snapshot" / "packages", target_is_directory=True)
+    if restored["mode"] == "rebuilt":
+        _link_build_input(session, builtin, restored)
+    else:
+        builtin.symlink_to(session / "snapshot" / "packages", target_is_directory=True)
     (session / "normal.apk").symlink_to(apk)
-    control = {"verified_source_files": {
-        name.removeprefix("packages/"): entry["sha256"]
-        for name, entry in manifest["files"].items() if name.startswith("packages/")
-    }, "apk": {"sha256": expected_apk_sha256}}
+    sources = {name.removeprefix("packages/"): entry["sha256"]
+               for name, entry in manifest["files"].items() if name.startswith("packages/")}
+    sources.update(restored["sha256"])
+    for name in restored.get("deleted", []):
+        sources.pop(name, None)
+    control = {"verified_source_files": sources, "apk": {"sha256": expected_apk_sha256}}
     (session / "control.json").write_text(json.dumps(control), encoding="utf-8")
-    return build_scratch(str(root), str(session), language)
+    summary = json.loads(build_scratch(str(root), str(session), language))
+    if keep_root is None:
+        return json.dumps(summary)
+    import pristine_delta
+
+    if restored["mode"] == "first":
+        reason = pristine_delta.text_not_pristine(summary)
+        if reason:
+            raise PatchError(f"This phone is already translated ({reason}), by an older patcher version or "
+                             "another patcher, so the patcher cannot switch or update the translation "
+                             "without its untranslated game files. " + CLEAR_DATA + " " + OTHER_PATCHER)
+    output = session / "out"
+    hashes = json.loads((session / "staged-hashes.json").read_text(encoding="utf-8"))
+    # A file the previous install translated and this build leaves alone goes back to pristine too.
+    untranslated = [name for name in restored["rebuilt"] if name not in hashes]
+    for name in untranslated:
+        (output / name).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(session / PRISTINE_COPY / name, output / name)
+        hashes[name] = restored["sha256"][name]
+    (session / "staged-hashes.json").write_text(json.dumps(hashes, indent=2), encoding="utf-8")
+    delta = pristine_delta.make(builtin, output, info={
+        "patcher": "android", "language": summary.get("language", language),
+        "made": time.strftime("%Y-%m-%dT%H:%M:%S")})
+    pristine_delta.write(delta, session / SESSION_DELTA)
+    summary["pristine"] = {"mode": restored["mode"], "rebuilt": len(restored["rebuilt"]),
+                           "already_pristine": len(restored["pristine"]), "restored": untranslated,
+                           "delta_bytes": delta.range_bytes, "stale": restored.get("stale", 0)}
+    return json.dumps(summary)
+
+
+def keep_delta(engine_root: str, session_root: str, keep_root: str) -> str:
+    """Make the session's delta the patcher's own, once its install is verified complete."""
+    _prepare(Path(engine_root).resolve())
+    import pristine_delta
+
+    session, keep = Path(session_root).resolve(), Path(keep_root).resolve()
+    delta = pristine_delta.read(session / SESSION_DELTA)
+    pristine_delta.record_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME, delta.staged_hashes)
+    pristine_delta.write(delta, keep / pristine_delta.DELTA_NAME)
+    return json.dumps({"files": len(delta.files), "bytes": delta.range_bytes})
 
 
 def prepare_game_apks(engine_root: str, source_path: str, destination_path: str, signer) -> str:

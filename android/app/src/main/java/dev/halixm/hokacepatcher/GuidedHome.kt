@@ -34,6 +34,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val stop = button("Stop safely", "stop-automatic") { invoke("stop") }
     private val spinner = android.widget.ProgressBar(activity)
     private val notice = text("", 18)
+    private val languageNote = text("", 15).apply { tag = "language-note" }
     private var errorRaw = ""
     private val errorText = text("", 14).apply { tag = "error-details"; setTextIsSelectable(true) }
     private val errorBox = column().apply {
@@ -99,7 +100,8 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         val languageCard = card()
         languageCard.addView(eyebrow("01  /  YOUR TRANSLATION"))
         languageCard.addView(text("Language", 23))
-        languageCard.addView(text("Switching languages? Clear the game's data and download it again first.", 15))
+        showLanguageNote()
+        languageCard.addView(languageNote)
         languageCard.addView(languages)
         root.addView(languageCard)
         val card = card()
@@ -189,8 +191,18 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         try { languages.check(button.id) } finally { choosingLanguage = false }
     }
 
+    /** Whether switching needs a clear: not once the patcher keeps a pristine delta for the phone. */
+    private fun showLanguageNote() {
+        languageNote.text = ui(if (PristineDelta.held(activity)) {
+            "Switching languages? No need to clear: the patcher kept the original game files it changed."
+        } else {
+            "Switching languages on a phone another patcher or an older version translated? Clear the game's data and download it again first."
+        })
+    }
+
     /** A run reads the language once at its start, so the choice is locked while work is in progress. */
     fun languageEnabled(value: Boolean) {
+        if (value) showLanguageNote()
         for (index in 0 until languages.childCount) languages.getChildAt(index).apply {
             isEnabled = value; alpha = if (value) 1f else 0.55f
         }

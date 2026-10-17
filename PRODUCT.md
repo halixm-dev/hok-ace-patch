@@ -49,8 +49,10 @@ affiliated with Tencent.
 
 - Coverage is partial: catalog text tables, catalog edits, two Career-atlas labels and one Lua label.
   Some game text always stays Chinese. Never call it a complete translation.
-- Switching language, or applying a newer translation, currently requires clearing the game's data
-  first. Repatching without a clear is specced (`.scratch/language-switch/`) but not shipped.
+- Switching language, or applying a newer translation, needs no clear on a phone the same patcher
+  translated: each keeps a pristine delta and rebuilds the untranslated files first. A phone the
+  other patcher (or a version from before deltas) translated, or one a game update changed, still
+  needs the game's data cleared. Repatching after an update without a clear is specced, not shipped.
 - First setup on an officially signed game deletes local game data and needs a fresh download
   (about 1.7–2.7 GB) and a new login. Consent checkboxes start unchecked.
 - The interface is in English or Indonesian, following the chosen translation. Technical logs stay

@@ -307,6 +307,41 @@ app carries its own; it is device-verified on the Infinix X6853.
   and extracts only the APK packages whose catalog content the override layer lacks, as
   `add_prime_only` does. The snapshot check also reserves the latest completed run's estimate.
 
+### Repatch from the pristine delta (2026-10-17)
+
+From [`.scratch/language-switch`](../../.scratch/language-switch/spec.md), ticket 04. The engine makes
+and applies the delta (`tools/pristine_delta.py`, staged into `engine/tools` with the other tools);
+Kotlin only names the files (`PristineDelta.kt`).
+
+- The delta lives in `filesDir/pristine/delta.bin`, with the staged-hash record
+  `staged-hashes.json` beside it, outside `sessions/`, so no release reclaims it.
+- `estimate_snapshot_build` takes the kept folder and reserves `pristine_copy_bytes`, the pristine size of
+  every file the delta names; `requireSpace` checks it before the build makes the copy.
+- `build_snapshot` rebuilds those files from `snapshot/packages` into the session's `pristine/` copy;
+  `snapshot/` keeps the phone's actual bytes, so rollback is unchanged. The build reads a layer of
+  symlinks: the snapshot, with the named files taken from the copy, and `control.json` names their
+  pristine SHA-256. A file the previous install translated and this build leaves alone is copied into
+  `out/` at its pristine bytes and written back like any staged file. The copy is deleted after the
+  build, with `work/`.
+- Refusals, all raised by `build_snapshot` after the normal APK is back and before the apply's access
+  APK goes on, so no game file is written: a named file at neither its staged nor its pristine bytes; a
+  file at a hash this patcher staged with no delta (or no entry) behind it; and, with no delta, a
+  build whose text pass does not read the layer as pristine (`pristine_delta.text_not_pristine`).
+- A delta that no longer matches while no file is at a hash this patcher staged is stale (the data
+  was cleared and a newer version downloaded): the run builds as a first install, under the text
+  signal, and its delta replaces the stale one. The Windows patcher does the same.
+- `build_snapshot` writes the staged install's delta to the session (`pristine-delta.bin`).
+  `promoteSessionDelta` makes the newest completed session's delta the patcher's own, right after the
+  run completes and again at the next run's start (for a run whose last step recovery finished); a
+  delta older than the newest completed session is discarded, never promoted. An interrupted run is
+  rolled back to `snapshot/`, which the old delta still describes.
+- The Language card says no clear is needed while a delta is kept, and otherwise to clear on a phone
+  another patcher translated (both UI languages).
+- Not done: a layer patched before this shipped has no delta and no snapshot left to build one from
+  (`releaseSession` deleted it), so its first repatch still needs a clear. `PristineDeltaProbeTest`
+  covers rebuild, the build-input layer and the refusals on fixture files; it has not run on a phone,
+  and no switch has run on a phone (ticket 08).
+
 ### The phased plan and its stop conditions
 
 The port was planned in five phases, each with an exit condition that had to hold before the next

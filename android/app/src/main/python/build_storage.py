@@ -49,13 +49,16 @@ def _prime_entries(apk: Path, scratch: Path) -> dict[str, set[int]]:
 
 
 def estimate(packages: Path | str, catalog: Path | str, apk: Path | str, manifest: dict,
-             scratch: Path | str | None = None) -> dict:
+             scratch: Path | str | None = None, pristine_copy_bytes: int = 0) -> dict:
     """Account for extracted prime, staged copies and replacement work; not a peak guarantee.
 
     Only a package that holds something this run can translate is staged, and the append reads only the
     APK packages whose catalog content the downloaded copy lacks, so those are what is reserved -- twice
-    for a staged package (output plus a staging attempt's copy).
+    for a staged package (output plus a staging attempt's copy). <pristine_copy_bytes> is the build
+    input's copy of the files a pristine delta rebuilds (0 without one).
     """
+    if type(pristine_copy_bytes) is not int or not 0 <= pristine_copy_bytes <= MAX_BYTES:
+        raise ValueError("Invalid pristine copy size")
     from wxq_patch.adaptive import load_catalog
     from wxq_patch.qtsvfs import QtsPackage
     from extra_text import SAFE_ASSETS, SCRIPT_LABELS, UNITY_TEXT_PACKAGES
@@ -122,7 +125,7 @@ def estimate(packages: Path | str, catalog: Path | str, apk: Path | str, manifes
     replacements = 4 * (source_payload_bytes + catalog_bytes)
     components = {"prime_index_bytes": index_bytes, "prime_extraction_bytes": prime_bytes,
                   "staged_package_bytes": staged_bytes, "staging_attempt_bytes": staged_bytes,
-                  "replacement_work_bytes": replacements}
+                  "replacement_work_bytes": replacements, "pristine_copy_bytes": pristine_copy_bytes}
     return {"schema": 2, "estimate_only": True, "components": components,
             "additional_bytes": sum(components.values()), "source_payload_bytes": source_payload_bytes,
             "catalog_bytes": catalog_bytes, "package_bytes": package_bytes,

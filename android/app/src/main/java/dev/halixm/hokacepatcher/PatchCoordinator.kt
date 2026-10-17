@@ -22,6 +22,8 @@ class PatchCoordinator @JvmOverloads constructor(
     fun interface InstalledApkVerifier { fun verify(expected: ApkIdentity) }
     private val store = RecoveryStore(context)
     private val sessions = File(context.filesDir, "sessions")
+    /** The pristine delta and the staged-hash record: outside sessions/, so no release reclaims them. */
+    private val pristine = PristineDelta.directory(context)
     private val cancelled = AtomicBoolean(false)
     private val activeJournal = AtomicReference<SessionJournal?>(null)
 
@@ -66,7 +68,10 @@ class PatchCoordinator @JvmOverloads constructor(
      */
     private fun releaseSession(directory: File): Long {
         var freed = 0L
-        for (name in listOf("snapshot.tar", "access.apk", "normal.apk", "game", "work")) freed += DurableFiles.deleteTree(File(directory, name))
+        // The session's pristine delta stays until a run promotes or discards it (promoteSessionDelta).
+        for (name in listOf("snapshot.tar", "access.apk", "normal.apk", "game", "work", PristineDelta.BUILD_COPY)) {
+            freed += DurableFiles.deleteTree(File(directory, name))
+        }
         for ((folder, keep) in listOf("snapshot" to "manifest.json", "out" to "device_patch_summary.json")) {
             File(directory, folder).listFiles().orEmpty().filter { it.name != keep }.forEach { freed += DurableFiles.deleteTree(it) }
         }
@@ -85,6 +90,29 @@ class PatchCoordinator @JvmOverloads constructor(
         .maxByOrNull { it.snapshot().getLong("created_ms") }?.snapshot()
         ?.optJSONObject("build_storage_estimate")?.takeIf { it.optInt("schema") == 2 }
         ?.optLong("additional_bytes")?.takeIf { it in 0..(8L * 1024 * 1024 * 1024) } ?: 0L
+
+    /**
+     * Coordinator lock held. Makes the newest completed session's pristine delta the patcher's own, then
+     * discards every session delta. A run promotes its own as soon as it completes; this catches one
+     * whose last step was finished by recovery. A delta older than the newest completed session no
+     * longer describes the phone and is never promoted.
+     */
+    private fun promoteSessionDelta(enginePath: String) {
+        val completed = sessions.listFiles().orEmpty()
+            .filter { it.isDirectory && !Files.isSymbolicLink(it.toPath()) }
+            .mapNotNull { runCatching { SessionJournal.load(it) }.getOrNull() }
+            .filter { it.phase == PatchPhase.COMPLETE }
+        val newest = completed.maxByOrNull { it.snapshot().getLong("created_ms") } ?: return
+        val delta = File(newest.directory, PristineDelta.SESSION_DELTA)
+        if (delta.isFile) {
+            runCatching {
+                val kept = JSONObject(bridge("keep_delta", enginePath, newest.directory.path, pristine.path))
+                report("Kept a pristine delta of ${kept.getInt("files")} files for the next language switch")
+            }.onFailure { report("Could not keep the pristine delta (${it.javaClass.simpleName}); " +
+                "switching languages will need the game's data cleared") }
+        }
+        for (journal in completed) runCatching { File(journal.directory, PristineDelta.SESSION_DELTA).delete() }
+    }
 
     /** Coordinator lock held. A damaged journal is left for recovery and export rather than guessed at. */
     private fun releaseResolvedSessions() {
@@ -158,6 +186,7 @@ class PatchCoordinator @JvmOverloads constructor(
         // Read once: the whole run builds one language even if the picker changes meanwhile.
         val language = PatchLanguage.current(context)
         verifyInstalled(installedSource)
+        promoteSessionDelta(engine.path)
         // Space the patch can reclaim goes before the first budget, so that budget is not short by it.
         releaseResolvedSessions()
         runCatching { ApkPreparation(context).releaseUnneeded(installedSource, accessApk.parentFile?.parentFile, report) }
@@ -220,8 +249,10 @@ class PatchCoordinator @JvmOverloads constructor(
             journal.outcome(PatchPhase.SNAPSHOT_READY)
             install(journal, store.normal(normalId), false, PatchPhase.NORMAL_RESTORED_FOR_BUILD)
             checkpoint()
+            // With a kept pristine delta the estimate includes the build input's copy of the files it
+            // names, so the check below reserves it before the build makes it.
             val buildEstimate = JSONObject(bridge("estimate_snapshot_build", engine.path,
-                journal.directory.path, store.normal(normalId).path, language))
+                journal.directory.path, store.normal(normalId).path, language, pristine.path))
             check(buildEstimate.getInt("schema") == 2 && buildEstimate.getBoolean("estimate_only"))
             val buildBytes = buildEstimate.getLong("additional_bytes")
             check(buildBytes > 0) { "Invalid offline build storage estimate" }
@@ -229,13 +260,16 @@ class PatchCoordinator @JvmOverloads constructor(
             journal.outcome(PatchPhase.BUILDING, JSONObject().put("build_storage_estimate", buildEstimate)
                 .put("build_storage_check", buildSpace).put("language", language))
             report("Building text and graphics from the verified private snapshot")
+            // Refuses, before any game file is written, a layer it can neither rebuild nor read as pristine.
             val summary = JSONObject(bridge("build_snapshot", engine.path, journal.directory.path,
-                store.normal(normalId).path, normalId, language))
+                store.normal(normalId).path, normalId, language, pristine.path))
+            summary.optJSONObject("pristine")?.let { PristineDelta.describe(it).forEach(report) }
             journal.outcome(PatchPhase.STAGED, JSONObject().put("counts", JSONObject(
                 bridge("result_counts", engine.path, summary.toString()))))
             // Apply and rollback read only out/, the snapshot and the hash lists; the extracted APK
             // packages and replacement trees would otherwise sit through both installs below.
             runCatching { DurableFiles.deleteTree(File(journal.directory, "work")) }
+            runCatching { DurableFiles.deleteTree(File(journal.directory, PristineDelta.BUILD_COPY)) }
             checkpoint()
             val hashes = JSONObject(File(journal.directory, "staged-hashes.json").readText())
             val originals = transaction.verifyOriginals().getJSONObject("files")
@@ -262,6 +296,7 @@ class PatchCoordinator @JvmOverloads constructor(
             transaction.finishApply(hashes)
             install(journal, store.normal(normalId), false, PatchPhase.COMPLETE)
             metricStatus = "complete"
+            promoteSessionDelta(engine.path)
             summary
         } catch (error: Throwable) {
             journal.recoveryRequired(error.message ?: error.javaClass.simpleName)

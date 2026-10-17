@@ -12,11 +12,27 @@
 
 **Status:** ready-for-agent
 
-- [ ] Delta kept after a verified install; staged-hash record kept
-- [ ] Rebuild before build; refusals before the access APK
-- [ ] Picker text and `README.md` updated
-- [ ] `run.bat` / `--selftest` checks of an offline switch
+- [x] Delta kept after a verified install; staged-hash record kept
+- [x] Rebuild before build; refusals before any game file is written (see Comments)
+- [x] Picker text and `README.md` updated
+- [x] Offline switch checks (`check_pristine_delta.py --game`, `check_windows_repatch.py`); `run.bat` against a phone is ticket 08
 
 ## Notes
 
 Update `docs/translation-progress.md` only if a count moves (it should not).
+
+## Comments
+
+2026-10-17, implemented in `app/patcher_core.py` (`restore_pristine`, `check_first_delta`,
+`push_translation`) and the GUI note (`show_language_note`).
+
+- Refusal timing: the check reads the pulled files, and `run-as` needs the access APK, so a refused run
+  installs it and restores the normal APK as usual; nothing is written to the game's data. The spec now
+  says "before any game file is written".
+- Windows has no rollback, so the new install's delta is written as `pristine/delta.pending.bin` before
+  the first push and replaces `delta.bin` after the last; the next run accepts each file at either
+  delta's staged bytes. A run cut off twice in a row can still leave a file neither describes, which
+  refuses.
+- A file the previous delta named and this build no longer stages is pushed back at its pristine bytes.
+- Sessions are pruned after `restore_pristine`, so the bootstrap (05) sees the two kept before this one.
+- Not run against a phone (ticket 08).

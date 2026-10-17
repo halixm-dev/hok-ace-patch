@@ -34,11 +34,22 @@ sys.path.append(str(BUNDLE / "runtime"))
 
 import apk_tools  # noqa: E402
 import languages  # noqa: E402
+import pristine_delta  # noqa: E402
 from axml_label import set_label  # noqa: E402
 from axml_set_debuggable import is_debuggable, patch as make_debuggable_manifest  # noqa: E402
 from build_device_patch import build_patch  # noqa: E402
 from qts_builder import find_builder_dir  # noqa: E402
 from patch_summary import count_translated, count_untranslated_graphics, count_untranslated_text  # noqa: E402
+
+# The session's copy of the override layer, where build_patch reads it.
+LAYER = Path("game") / "WXQ_Data" / "Package" / "builtin"
+# The delta of an install being written; it becomes the delta once the last write succeeds.
+PENDING_DELTA = "delta.pending.bin"
+# In the working folder: the pristine delta and the staged-hash record; never pruned.
+KEEP_DIR = "pristine"
+CLEAR_DATA = ("Clear the game's data on the phone (Settings > Apps > the game > Storage > Clear data), open "
+              "the game and let it download again to the login screen, close it, then run the patcher again.")
+OTHER_PATCHER = "If the Android patcher patched this phone last, patch it with that patcher instead."
 
 PLAY_PROTECT_HINT = "If Google Play Protect shows a pop-up on the phone, tap 'More details' -> 'Install anyway'."
 
@@ -126,6 +137,11 @@ def check_work_dir(path: Path) -> None:
                          f"needed (currently {free / 1024**3:.1f} GB). Choose a folder on another drive.")
 
 
+def holds_delta(work: Path) -> bool:
+    """Whether <work> keeps a pristine delta, so a translated phone can be repatched without a clear."""
+    return (work / KEEP_DIR / pristine_delta.DELTA_NAME).is_file()
+
+
 def apk_manifest(apk: Path) -> bytes:
     """The APK's binary AndroidManifest.xml."""
     with zipfile.ZipFile(apk) as archive:
@@ -193,6 +209,8 @@ class Patcher:
         self.normal_apk: Path | None = None
         self.debuggable_installed = False
         self.current: str | None = None
+        self.data_version = ""
+        self.keep = work / KEEP_DIR
 
     def run(self) -> dict:
         check_work_dir(self.work)
@@ -212,10 +230,17 @@ class Patcher:
             self.adb.install(debuggable)
             self.done("access")
             session = self.pull_game_data()
+            try:
+                restored = self.restore_pristine(session)
+            finally:
+                self.prune_old_sessions(self.work, keep=session)
             summary, staged = self.build_translation(session)
+            if restored is None:
+                self.check_first_delta(summary)
+                restored = []
             result = summary
-            if staged:
-                self.push_translation(staged)
+            if staged or restored:
+                self.push_translation(session, staged, restored)
             else:
                 self.skip("install", "nothing to change")
         except Exception:
@@ -412,9 +437,122 @@ class Patcher:
             members = [m for m in tar.getmembers() if m.name.startswith("packages/") and m.isfile()]
             tar.extractall(game, members=members, filter="data")
         (game / "packages").rename(game / "builtin")
-        self.prune_old_sessions(self.work, keep=session)
+        self.data_version = info.strip()
         self.done("pull", info.strip())
         return session
+
+    # ---------- pristine delta ----------
+    def _read_delta(self, name: str) -> pristine_delta.Delta | None:
+        path = self.keep / name
+        if not path.is_file():
+            return None
+        try:
+            return pristine_delta.read(path)
+        except pristine_delta.DeltaError as error:
+            raise PatchError(f"The patcher's record of the untranslated game files is damaged ({error}).\n\n"
+                             + CLEAR_DATA) from error
+
+    def restore_pristine(self, session: Path) -> list[str] | None:
+        """Rebuild the pristine layer in the session's copy, before anything is built or written.
+
+        Returns the files rebuilt from the pristine delta, or None when this patcher holds no delta for
+        the phone and the layer may be the pristine one (`check_first_delta` decides after the build).
+        Raises PatchError, with nothing written to the game data, when the layer can be neither.
+        """
+        layer = session / LAYER
+        delta = self._read_delta(pristine_delta.DELTA_NAME)
+        pending = self._read_delta(PENDING_DELTA)
+        if delta is None and pending is None:
+            delta = self.bootstrap_delta(session)
+        known = pristine_delta.load_staged_hashes(self.keep / pristine_delta.STAGED_HASHES_NAME)
+        translated = pristine_delta.files_at(layer, known)  # read before the rebuild changes them
+        if delta is None and pending is None:
+            if translated:
+                self.log("  this phone holds files this patcher wrote, but no record of their original bytes")
+                raise PatchError("This phone is already translated, and the patcher cannot rebuild its "
+                                 "untranslated game files.\n\n" + CLEAR_DATA)
+            self.log("  no pristine delta for this phone: building from the files as pulled")
+            return None
+        report = pristine_delta.rebuild(layer, delta or pending, layer, fallback=pending if delta else None)
+        if not report.complete and not translated:
+            # Nothing this patcher wrote is left, as after clearing the game's data and downloading a
+            # newer version: the delta describes a layer that is gone. The text signal decides instead.
+            self.log(f"  the pristine delta no longer matches ({len(report.unmatched)} file(s) differ) and no "
+                     f"file holds this patcher's translation: building from the files as pulled")
+            return None
+        if not report.complete:
+            for name, state in sorted(report.unmatched.items()):
+                self.log(f"  {name}: {state} since the last install")
+            self.log(f"  cannot rebuild from the pristine delta: {len(report.unmatched)} file(s) changed")
+            raise PatchError("The game files changed since the last patch (a game update or repair), so the "
+                             "patcher cannot rebuild the untranslated files.\n\n" + CLEAR_DATA)
+        leftover = [name for name in translated if name not in report.rebuilt]
+        if leftover:
+            self.log(f"  still translated after the rebuild: {', '.join(leftover)}")
+            raise PatchError("Some translated game files are not covered by the patcher's record.\n\n"
+                             + CLEAR_DATA)
+        self.log(f"  rebuilt {len(report.rebuilt)} files from the pristine delta"
+                 + (f" ({len(report.pristine)} already untranslated)" if report.pristine else ""))
+        return report.rebuilt
+
+    def check_first_delta(self, summary: dict) -> None:
+        """Refuse a first install over a layer the text pass did not read as pristine."""
+        reason = pristine_delta.text_not_pristine(summary)
+        if reason:
+            self.log(f"  not the pristine layer: {reason}")
+            raise PatchError("This phone is already translated (by an older patcher version or another "
+                             "patcher), so the patcher cannot switch or update the translation without its "
+                             "untranslated game files.\n\n" + CLEAR_DATA + "\n\n" + OTHER_PATCHER)
+
+    def bootstrap_delta(self, session: Path) -> pristine_delta.Delta | None:
+        """Make a first delta from a kept session, so a phone patched before deltas existed needs no clear.
+
+        A kept session qualifies when the phone's files equal its staged output and its backup reads as
+        pristine: no file at a staged hash this patcher recorded, and a text pass that read the pristine
+        text. Tried once per run, newest session first.
+        """
+        layer = session / LAYER
+        known = pristine_delta.load_staged_hashes(self.keep / pristine_delta.STAGED_HASHES_NAME)
+        for old in sorted((self.work / "sessions").iterdir(), reverse=True):
+            staged, backup = old / "staged", old / "device-backup.tar"
+            if old == session or not (staged / "device_patch_summary.json").is_file() or not backup.is_file():
+                continue
+            names = pristine_delta.package_files(staged)
+            if not names or not all((layer / name).is_file() and pristine_delta.sha256_file(layer / name)
+                                    == pristine_delta.sha256_file(staged / name) for name in names):
+                continue
+            try:
+                summary = json.loads((staged / "device_patch_summary.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if pristine_delta.text_not_pristine(summary):
+                continue
+            original = session / "bootstrap"
+            shutil.rmtree(original, ignore_errors=True)
+            wanted = {f"packages/{name}" for name in names}
+            try:
+                with tarfile.open(backup) as tar:
+                    members = [m for m in tar.getmembers() if m.name in wanted and m.isfile()]
+                    tar.extractall(original, members=members, filter="data")
+                source = original / "packages"
+                if len(members) != len(names) or pristine_delta.files_at(source, known):
+                    continue
+                delta = pristine_delta.make(source, staged, info={**self._delta_info(),
+                                                                  "bootstrapped_from": old.name})
+            except (OSError, tarfile.TarError):
+                continue
+            finally:
+                shutil.rmtree(original, ignore_errors=True)
+            pristine_delta.write(delta, self.keep / pristine_delta.DELTA_NAME)
+            pristine_delta.record_staged_hashes(self.keep / pristine_delta.STAGED_HASHES_NAME,
+                                                delta.staged_hashes)
+            self.log(f"  made a pristine delta from the kept session {old.name}")
+            return delta
+        return None
+
+    def _delta_info(self) -> dict:
+        return {"patcher": "windows", "language": self.language.code, "data_version": self.data_version,
+                "made": datetime.now().isoformat(timespec="seconds")}
 
     def build_translation(self, session: Path) -> tuple[dict, Path | None]:
         self.step("translate", "1-3 minutes")
@@ -446,19 +584,41 @@ class Patcher:
         self.done("translate", detail if (text or images or dropped_text or skipped) else "already installed")
         return summary, staged if summary["packages"] else None
 
-    def push_translation(self, staged: Path) -> None:
+    def push_translation(self, session: Path, staged: Path | None, restored: list[str]) -> None:
+        """Write the staged files, and the rebuilt pristine copy of any file this build no longer stages.
+
+        The new install's delta is kept as pending before the first write and becomes the delta once
+        the last write succeeds, so a run cut off part way leaves a layer the next run can still rebuild.
+        """
         self.step("install")
+        files = {name: staged / name for name in pristine_delta.package_files(staged)} if staged else {}
+        untranslated = [name for name in restored if name not in files]
+        for name in untranslated:
+            files[name] = session / LAYER / name
+        if untranslated:
+            self.log(f"  {len(untranslated)} file(s) this build leaves untranslated go back to their "
+                     f"original bytes: {', '.join(untranslated)}")
+        delta = (pristine_delta.make(session / LAYER, staged, info=self._delta_info()) if staged
+                 else pristine_delta.Delta((), self._delta_info()))
+        pristine_delta.write(delta, self.keep / PENDING_DELTA)
+        pristine_delta.record_staged_hashes(self.keep / pristine_delta.STAGED_HASHES_NAME, delta.staged_hashes)
+        packages: dict[str, list[str]] = {}
+        for name in files:
+            packages.setdefault(name.split("/")[0], []).append(name)
         self.adb.shell(f"rm -rf {REMOTE_TMP} && mkdir -p {REMOTE_TMP}")
-        for package_dir in sorted(p for p in staged.iterdir() if p.is_dir() and p.name.isdigit()):
-            remote = f"{REMOTE_TMP}/{package_dir.name}"
+        for package_id in sorted(packages, key=int):
+            remote = f"{REMOTE_TMP}/{package_id}"
             self.adb.shell(f"mkdir -p {remote}")
-            for file in sorted(package_dir.glob("*.db")):
-                self.adb.run("push", str(file), f"{remote}/{file.name}")
+            for name in sorted(packages[package_id]):
+                self.adb.run("push", str(files[name]), f"{REMOTE_TMP}/{name}")
             self.adb.shell(f"chmod -R 755 {REMOTE_TMP}")
-            self.adb.shell(f"run-as {PACKAGE} sh -c 'cp {remote}/* files/QtsVFSCache/packages/{package_dir.name}/'")
-            self.log(f"  package {package_dir.name} installed")
+            self.adb.shell(f"run-as {PACKAGE} sh -c 'cp {remote}/* files/QtsVFSCache/packages/{package_id}/'")
+            self.log(f"  package {package_id} installed")
         self.adb.shell(f"run-as {PACKAGE} sh -c 'rm -rf files/QtsVFSCache/Watchdog/*'")
         self.adb.shell(f"rm -rf {REMOTE_TMP}", check=False)
+        os.replace(self.keep / PENDING_DELTA, self.keep / pristine_delta.DELTA_NAME)
+        self.log(f"  kept a pristine delta of {len(delta.files)} files "
+                 f"({delta.range_bytes / 1e6:.2f} MB of original bytes)")
         self.done("install")
 
     def restore_normal_apk(self) -> None:
@@ -480,6 +640,7 @@ class Patcher:
 
     @staticmethod
     def prune_old_sessions(work: Path, keep: Path) -> None:
+        """Keep the last two sessions; run after `restore_pristine`, so `bootstrap_delta` sees two older ones."""
         sessions = sorted((work / "sessions").iterdir())
         for old in sessions[:-2]:
             if old != keep:

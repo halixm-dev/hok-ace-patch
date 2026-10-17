@@ -11,10 +11,23 @@
 
 **Status:** ready-for-agent
 
-- [ ] `tools/pristine_delta.py` with module docstring, type hints, `PatchError` for user-facing failures
-- [ ] Offline round-trip and switch check passes for both languages
-- [ ] Measured delta size recorded against the lab notebook's 5.12 / 3.87 MB
+- [x] `tools/pristine_delta.py` with module docstring, type hints, `PatchError` for user-facing failures
+- [x] Offline round-trip and switch check passes for both languages
+- [x] Measured delta size recorded against the lab notebook's 5.12 / 3.87 MB
 
 ## Notes
 
 The measurement scripts behind the lab notebook entry (2026-10-17, "Reverse delta…") were throwaway; the parameters there are the ones to use.
+
+## Comments
+
+2026-10-17, implemented. `tools/pristine_delta.py`; check `tools/research/check_pristine_delta.py`
+(13 synthetic cases; `--game` for the real data). On the pristine 1.6.0.1 snapshot: English 11 files
+rebuilt + 3 staged unchanged of 14, delta **5.12 MB** encoded (6.14 MB raw); Indonesian 11 + 3 of 14,
+**3.87 MB** (4.67 MB raw), the lab notebook's figures exactly. English → Indonesian, Indonesian → English
+and English → English each stage byte-identical files to a build from pristine. Refusals: one byte
+changed and truncated report `changed`, a deleted file `missing`, and none is touched. Beyond the
+ticket: `rebuild(..., fallback=)` (the Windows patcher's pending delta), `files_at`, the staged-hash
+record and `text_not_pristine` (the second pristine signal, from the summary: the text pass's planned
+tables equal `counts["tables"]`: 94 of 94 on pristine in both languages, 2 of 389 over an English
+layer). `DeltaError` is the module's failure; each front end turns it into its own `PatchError`.

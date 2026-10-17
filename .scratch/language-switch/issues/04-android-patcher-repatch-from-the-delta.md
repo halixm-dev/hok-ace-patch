@@ -12,11 +12,22 @@
 
 **Status:** ready-for-agent
 
-- [ ] Delta kept after `finishApply`; staged-hash record kept
-- [ ] Build-input copy, budgeted; rollback still writes `snapshot/`
-- [ ] Refusals before the access APK; Language card text in both UI languages
-- [ ] `:app:assembleDebug :app:assembleDebugAndroidTest` pass; an instrumentation probe covers rebuild and refusal
+- [x] Delta kept after `finishApply`; staged-hash record kept
+- [x] Build-input copy, budgeted; rollback still writes `snapshot/`
+- [x] Refusals before the apply's access APK; Language card text in both UI languages
+- [x] `:app:assembleDebug :app:assembleDebugAndroidTest` pass; `PristineDeltaProbeTest` covers rebuild and refusal (written; not yet run on a phone)
 
 ## Notes
 
 Update `docs/features/android-shizuku-patcher.md` in the same change.
+
+## Comments
+
+2026-10-17, implemented: `android_bridge` (`estimate_snapshot_build`/`build_snapshot` take the kept
+folder; `keep_delta`), `build_storage.estimate(pristine_copy_bytes=)`, `PristineDelta.kt`,
+`PatchCoordinator` (`promoteSessionDelta`), the Language card. Details in
+[android-shizuku-patcher](../../../docs/features/android-shizuku-patcher.md), "Repatch from the pristine
+delta". Refusals come from `build_snapshot`, after the snapshot's normal APK is back and before the
+apply's access APK, so no game file is written. The session delta is promoted once the run is
+`COMPLETE` (also at the next run's start, for a run recovery completed). `PristineDeltaProbeTest` is
+compiled but has not run on a phone.

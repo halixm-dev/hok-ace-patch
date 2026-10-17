@@ -29,10 +29,19 @@ each run reports what it actually applied and skipped.
 
 ### Updates and language changes
 
-Before applying a newer translation, switching languages, or patching after a game update,
-clear the game's data, let it download again to the login screen, then close it and patch.
-Clearing data removes local game data and requires another login. Re-running over translated
-text does not refresh those text tables.
+To switch languages or apply a newer translation, run the patcher again; there is no need
+to clear the game's data. After each install the patcher keeps a **pristine delta**, the original
+bytes it overwrote (about 5 MB, in `pristine\` in the working folder, or in the Android app's own
+storage). The next run rebuilds the untranslated files from it before building the new translation,
+and the log says `rebuilt N files from the pristine delta`. Each patcher keeps its own delta, so
+switch with the patcher that translated the phone last. The Windows patcher can also make a first
+delta from a working folder that still holds the session of an earlier install.
+
+A run that cannot rebuild the untranslated files stops before it writes anything and tells you to
+clear the game's data: after a game update or repair changed a translated file, or on a phone
+another patcher (or a patcher version from before deltas) translated. Then clear the game's data,
+let it download again to the login screen, close it and patch. Clearing data removes local game data
+and requires another login.
 
 Use the APK and game data from the phone's current version. An older staged package can
 stall loading and cause the game to repair away the translation.
@@ -126,6 +135,8 @@ There is no general test suite. Choose the check that matches your change:
 | Staging contract | `.venv\Scripts\python.exe tools\research\check_staging_contract.py` | Repository only |
 | Texture processing | `.venv\Scripts\python.exe tools\research\check_graphics.py` | Shipped assets; add `--game <game-dir>` to check a dump |
 | Indonesian texture edits | `.venv\Scripts\python.exe tools\research\make_language_payloads.py --check` | Shipped assets |
+| Pristine delta | `.venv\Scripts\python.exe tools\research\check_pristine_delta.py` | Repository only; add `--game <pristine game-dir> --apk <apk> --work <dir>` for the round trip and language switches |
+| Repatch without a clear (Windows) | `.venv\Scripts\python.exe tools\research\check_windows_repatch.py` | Repository only |
 | A change requiring screen verification | [Device cycle](docs/runbooks/device-cycle.md) | Phone and matching game data |
 
 Run both documentation checks after moving or renaming a doc. Offline checks verify file

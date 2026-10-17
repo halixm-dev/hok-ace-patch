@@ -69,6 +69,7 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 - **Install path**: re-sign, install the access APK, write the override layer, reinstall the normal APK. The access APK never stays installed, nor is it cached as the normal APK. ([ADR 0001](docs/adr/0001-install-through-a-temporary-access-apk.md))
 - **Update timing**: write the translation only after the in-game update finishes. ([ADR 0002](docs/adr/0002-write-the-translation-after-the-in-game-update.md))
 - **Normal APK**: the game's own file with only `AndroidManifest.xml` rewritten (debug flag, launcher name `APP_NAME`); any further edit needs a device cycle. The rename must never fail a run. ([standalone-patcher-app](docs/features/standalone-patcher-app.md), [device-cycle](docs/runbooks/device-cycle.md))
+- **Pristine delta**: after a verified install each patcher keeps the pristine bytes it overwrote (`tools/pristine_delta.py`), and a later run rebuilds the pristine layer from it before building. A run that can neither rebuild nor read the layer as pristine refuses before any game file is written. The delta always points at pristine; the two patchers never share one. ([language-switch spec](.scratch/language-switch/spec.md))
 - **Login**: re-signing breaks direct WeChat/QQ login; users log in via *Scan to login*, as expected.
 - **Working data** (~8 GB) goes to the user-chosen folder, never into this repo. `build/`, `dist/`, `.venv/` are generated and disposable.
 

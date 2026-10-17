@@ -2996,3 +2996,27 @@ pre- and post-update bytes of one package exists locally (the 10-16 copy is a fr
 bytes are ours, so a diff aimed at a patched asset would fail on its bytes; putting pristine bytes back
 before the update is what the design needs. Unverified until a device cycle captures an update over a
 patched layer.
+
+## 2026-10-17 — The pristine delta shipped
+
+Offline, uncommitted on `76d464d`, for `.scratch/language-switch` tickets 02–05. Pristine 1.6.0.1 snapshot
+`dist/HOK ACE Patcher Data/pristine/20261016-101124` with the cached `installed.apk`; no phone touched.
+
+| Check | Result |
+|---|---|
+| `tools/research/check_pristine_delta.py` (synthetic) | 13 cases OK |
+| Same, `--game` round trip | English: 11 files rebuilt + 3 staged unchanged of 14, delta **5.12 MB** encoded (6.14 MB raw); Indonesian: 11 + 3 of 14, **3.87 MB** (4.67 MB raw). Equal to the reverse-delta entry above. |
+| Switches via `rebuild`, then a build | English → Indonesian, Indonesian → English, English → English: each stages byte-identical files to a build from pristine |
+| Refusals | one byte changed and truncated → `changed`, deleted → `missing`; none touched |
+| Text signal (`text_not_pristine`) | from pristine: 94 of 94 catalog tables planned, both languages (reads pristine). Over an English layer: English and Indonesian builds plan none of the tables they read (scan census 389 tables, 2 planned before the uncatalogued drop) → refused |
+| `tools/research/check_windows_repatch.py` | 9 cases OK (first install, switch and back, changed file, translated layer without delta, other patcher's layer, bootstrap from a pristine session and not from a translated one, push cut off part way, stale delta after a clear onto newer data) |
+| Android bridge on desktop (scratchpad `android_e2e.py`) | English first install from a snapshot of the pristine backup equals the desktop build; `keep_delta` 14 files; Indonesian over a snapshot of that English layer reserves `pristine_copy_bytes` 925 663 232, rebuilds 11 (3 already pristine) and stages byte-identical to Indonesian from pristine; an English layer with no delta is refused by the text signal |
+| Android `:app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest` | BUILD SUCCESSFUL; `PristineDeltaProbeTest`'s Python body passes on desktop, not yet run on a phone |
+
+The first desktop end-to-end run failed with `TypeError: build_snapshot() takes from 4 to 5 positional
+arguments`: an older `build_snapshot` had been left below the new one in `android_bridge.py`. Removed;
+the rerun is the row above. Scripts and output: `dist/delta-check/`, not kept in the repo.
+
+**Verdict:** offline, a language switch over a layer this patcher wrote rebuilds the pristine files
+exactly and stages what a cleared phone would get. Whether the game accepts the re-patched layer
+without a repair is still unmeasured (ticket 08).

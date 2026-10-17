@@ -11,5 +11,12 @@
 
 **Status:** ready-for-agent
 
-- [ ] Bootstrap from a qualifying kept session, tried once per run with no delta
-- [ ] Offline check: a session over pristine bootstraps; a session over a patched layer does not
+- [x] Bootstrap from a qualifying kept session, tried once per run with no delta
+- [x] Offline check: a session over pristine bootstraps; a session over a patched layer does not
+
+## Comments
+
+2026-10-17, implemented as `Patcher.bootstrap_delta`. The backup's signals: none of its staged files at
+a recorded staged hash, and `text_not_pristine` of that session's own `device_patch_summary.json`. The
+check is `tools/research/check_windows_repatch.py` (bootstraps from a pristine session; refuses one
+over a translated layer).

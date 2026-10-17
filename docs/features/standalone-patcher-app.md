@@ -103,6 +103,34 @@ Branding is taken verbatim from the reference: window title and exe name
 source runs (the frozen exe gets it via PyInstaller `--paths`), and `resources/runtime/` is
 **appended** so the project's own stdlib wins over the runtime's bundled copy.
 
+### Repatch from the pristine delta (2026-10-17)
+
+From [`.scratch/language-switch`](../../.scratch/language-switch/spec.md), tickets 03 and 05. The delta
+is `tools/pristine_delta.py`, shared with the Android patcher; `patcher_core` drives it.
+
+- `<working folder>/pristine/` holds `delta.bin` and `staged-hashes.json` (every hash an install of
+  this patcher wrote); sessions are pruned, this folder never is.
+- `restore_pristine` runs right after the pull: it rebuilds the files the delta names in
+  `sessions/<stamp>/game` in place (`device-backup.tar` keeps the phone's bytes) and logs `rebuilt N
+  files from the pristine delta`. It refuses with the clear-data message when a named file is at
+  neither its staged nor its pristine bytes while some file still holds this patcher's translation,
+  or when a file is at a recorded staged hash with no delta entry behind it. When no file holds this
+  patcher's translation the delta is stale (the data was cleared, possibly onto a newer version) and
+  the run goes on as a first install.
+- A first install (no delta) is allowed only when `check_first_delta` finds the build read the layer
+  as pristine (`pristine_delta.text_not_pristine`); otherwise it refuses before the push, naming the
+  Android patcher as the one to use if it patched last.
+- `bootstrap_delta` (no delta kept) makes one from a kept session whose staged files equal the
+  phone's and whose backup reads as pristine, so a phone patched before deltas needs no clear.
+  Sessions are pruned after it, so it sees the two kept before the current one.
+- `push_translation` writes the new delta as `delta.pending.bin` before the first push and moves it
+  over `delta.bin` after the last, since Windows has no rollback; the next run accepts each file at
+  either delta's staged bytes. A file the previous delta named and this build no longer stages is
+  pushed back at its pristine bytes, so no file keeps the old language.
+- The LANGUAGE card says no clear is needed while the working folder keeps a delta.
+- Checks: `tools/research/check_pristine_delta.py` (with `--game` for the real round trip and
+  switches) and `tools/research/check_windows_repatch.py`. Not run against a phone (ticket 08).
+
 ### Pipeline adaptation (`tools/`)
 
 `tools/build_device_patch.py` currently exposes only an argparse `main()`. It gains a programmatic

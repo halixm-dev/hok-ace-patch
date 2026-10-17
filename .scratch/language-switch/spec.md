@@ -41,8 +41,9 @@ a language switch or a newer translation, the phone receives one write per stage
 normal install does, and nothing pristine is pushed back. Only the update flow writes pristine bytes
 to the phone.
 
-A run whose check fails stops before the access APK goes on and tells the user to clear the game's
-data. After an in-game update, the run uses the [Game updates](#game-updates) flow instead.
+A run whose check fails stops before any game file is written and tells the user to clear the game's
+data. (The check reads the pulled files, and the pull itself needs the access APK, so a refused run
+still installs the access APK and puts the normal one back, as a run with nothing to change does.) After an in-game update, the run uses the [Game updates](#game-updates) flow instead.
 
 ## Implementation Decisions
 
@@ -68,8 +69,8 @@ data. After an in-game update, the run uses the [Game updates](#game-updates) fl
   staged values, and verifies each rebuilt file against the pristine SHA-256 before the build reads it.
   A file whose bytes match neither the entry's staged nor its pristine values goes to the update flow's
   rules ([Game updates](#game-updates)); when no rule accepts it, the run raises a `PatchError` that
-  says to clear the game's data, before the access APK is installed, so a refused run never touches
-  the phone.
+  says to clear the game's data, before any game file is written, so a refused run never changes the
+  game's data.
 - **When a delta is made.** Only after the install is verified complete: Windows after
   `push_translation`, Android after `GameFileTransaction.finishApply`. It is written atomically and
   replaces the previous one only once it is durable. An interrupted install keeps the old delta, which
@@ -106,6 +107,20 @@ data. After an in-game update, the run uses the [Game updates](#game-updates) fl
   pristine delta` or the reason it could not).
 - **Vocabulary.** **Pristine layer** and **Pristine delta** are in `GLOSSARY.md`.
 
+- **Decided while implementing 02–05 (2026-10-17), for the spec owner to confirm:**
+  - A file the last install translated and the new build no longer stages goes back to the phone at
+    its rebuilt pristine bytes; otherwise it would keep the old language. No case today (both languages
+    stage the same 14 files).
+  - Windows writes the new delta as `delta.pending.bin` before the first push and makes it the delta
+    after the last, because a cut-off push has no rollback; the next run accepts either delta's staged
+    bytes per file. Android makes the delta during the build and promotes it once the run is
+    `COMPLETE`. Neither keeps a delta for an install that did not finish.
+  - A delta that does not match while no file is at a staged hash this patcher recorded is stale (the
+    data was cleared, possibly onto a newer version): the run builds as a first install under the text
+    signal. Without this, the clear the refusal asks for would be refused again.
+  - The text signal is `pristine_delta.text_not_pristine`: the tables the text pass planned equal
+    `counts["tables"]`, the catalog tables it read.
+
 ## Testing
 
 - Offline round trip, no device: for English and Indonesian builds over the pristine 1.6.0.1 snapshot,
@@ -115,7 +130,7 @@ data. After an in-game update, the run uses the [Game updates](#game-updates) fl
   Indonesian then English, and for English then English (a rerun).
 - Refusals: a named file one byte different, one truncated, one missing, and a layer patched by the
   other patcher each refuse with the clear-data message before
-  the access APK is installed.
+  any game file is written.
 - Device cycle ([device-cycle](../../docs/runbooks/device-cycle.md)): English install, then switch to
   Indonesian without clearing; the lobby reads MULAI GAME with Indonesian text, no in-game repair runs,
   and the login survives. Then switch back to English.
