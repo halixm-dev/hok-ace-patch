@@ -101,9 +101,11 @@ For normal use, install **HOK ACE Language Patcher** and **Shizuku**. The probe 
 
 Install Android SDK platform 35, JDK 17+, and run the repository's `setup.bat` with Python 3.12.
 Set `ANDROID_HOME` to the SDK and `JAVA_HOME` to the JDK.
-Both debug and release builds sign with `android/signing/debug.keystore` (alias `androiddebugkey`,
-passwords `android`), checked in so every PC produces the same signer and an installed patcher
-updates in place. It is the key earlier builds took from `%USERPROFILE%\.android`; keep it stable. The checked-in Gradle 8.9 wrapper
+The patcher signing key is kept outside the repository. Set `ANDROID_RELEASE_KEYSTORE` (keystore
+path), `ANDROID_RELEASE_STORE_PASSWORD`, `ANDROID_RELEASE_KEY_ALIAS` and `ANDROID_RELEASE_KEY_PASSWORD`
+and both debug and release builds sign with it, so an installed patcher updates in place. Without
+them, debug builds use this PC's SDK debug key and release builds stay unsigned. Keep the key
+stable; see [security/signing](../SECURITY.md). The checked-in Gradle 8.9 wrapper
 pins AGP 8.7.3, Kotlin 2.0.0, Chaquopy 17.0.0 and Shizuku API/provider 13.1.5.
 The Chaquopy build interpreter is the repository's `.venv/Scripts/python.exe`.
 

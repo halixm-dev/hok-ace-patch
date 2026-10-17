@@ -80,13 +80,8 @@ android {
         ndk { abiFilters += "arm64-v8a" }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    // Checked-in key so every PC signs the patcher identically and installs update in place.
-    signingConfigs.getByName("debug") {
-        storeFile = rootProject.file("signing/debug.keystore")
-        storePassword = "android"
-        keyAlias = "androiddebugkey"
-        keyPassword = "android"
-    }
+    // The patcher key lives outside the repo. When the signing variables are set, debug and
+    // release builds both sign with it so an installed patcher updates in place.
     val releaseStore = providers.environmentVariable("ANDROID_RELEASE_KEYSTORE").orNull
     if (releaseStore != null) {
         signingConfigs.create("privateRelease") {
@@ -95,9 +90,10 @@ android {
             keyAlias = providers.environmentVariable("ANDROID_RELEASE_KEY_ALIAS").get()
             keyPassword = providers.environmentVariable("ANDROID_RELEASE_KEY_PASSWORD").get()
         }
+        buildTypes.getByName("debug") { signingConfig = signingConfigs.getByName("privateRelease") }
         buildTypes.getByName("release") { signingConfig = signingConfigs.getByName("privateRelease") }
     }
-    // Without private credentials, release builds stay unsigned. Never fall back to the public key.
+    // Without the variables, debug builds use this PC's SDK debug key and release builds stay unsigned.
     buildFeatures { aidl = true; buildConfig = true }
     // The runtime contains Python packages such as _backends; AAPT's default skips these directories.
     androidResources { ignoreAssetsPattern = "" }

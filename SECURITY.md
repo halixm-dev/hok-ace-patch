@@ -8,7 +8,7 @@ Do not attach game APKs, recovery material, account credentials or unredacted de
 | Key | Purpose and limits |
 |---|---|
 | `resources/key/` | Intentionally shipped stable game re-signing key. It is public and cannot establish publisher identity. Never replace it during routine builds. |
-| `android/signing/debug.keystore` | Previous patcher key, intentionally reused for debug and CI release APKs so existing installations can update in place. This key is public; anyone can sign with it. Obtain APKs only from trusted download locations. |
+| Previous patcher key | Reused for CI release APKs so existing installations can update in place. No longer in the repository, but it was committed to public history in `60a8941` and must be treated as public: anyone can sign with it. Obtain APKs only from trusted download locations. |
 | CI release signing secrets | Configured with that same previous patcher key. Secret storage does not make an already-public key private. |
 
 CI releases now use the previous patcher key and can update matching development installs without
@@ -26,8 +26,11 @@ private recovery files. Existing published APKs do not change when CI secrets ch
 
 Release CI requires `ANDROID_RELEASE_KEYSTORE_BASE64`, `ANDROID_RELEASE_STORE_PASSWORD`,
 `ANDROID_RELEASE_KEY_ALIAS` and `ANDROID_RELEASE_KEY_PASSWORD`. Back up the original keystore
-and password securely; GitHub cannot return a stored secret. Local release builds remain unsigned
-unless signing environment variables are supplied. CI supplies the previous patcher key explicitly.
+and password securely; GitHub cannot return a stored secret. Locally, set `ANDROID_RELEASE_KEYSTORE`
+to the keystore path plus the same three password and alias variables; debug and release builds then
+both sign with the patcher key. Without them, debug builds use the PC's SDK debug key (they will
+not update over an installed patcher) and release builds stay unsigned. CI supplies the previous
+patcher key only to tag builds; push and pull-request APKs are signed with the runner's throwaway key.
 
 ## Automation
 
