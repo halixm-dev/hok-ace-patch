@@ -62,7 +62,7 @@ increasing workflow run number; local builds can set `-PpatchVersionCode=<number
 | Trigger | Result |
 |---|---|
 | Push to `master`, pull request, or **Actions → Android APK → Run workflow** | Full-codec development APK and check reports under the run's artifacts |
-| Push a tag matching `VERSION`, such as `android-v1.6.0.1.1` | Privately signed release APK, SHA-256, codec source companion and a draft GitHub release |
+| Push a tag matching `VERSION`, such as `android-v1.6.0.1.1` | Release APK signed with the previous patcher key, SHA-256, codec source companion and a draft GitHub release |
 
 CI runs Android unit tests, lint, native ELF alignment, APK ZIP alignment and signer verification.
 Artifacts expire after 14 days; draft release attachments remain. Release drafts need review before
