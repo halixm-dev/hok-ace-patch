@@ -20,3 +20,6 @@ android/wheels/
 .env.*
 *.p12
 *.pfx
+
+# Phone diagnostic exports: device details, kept local
+recovery-log/
