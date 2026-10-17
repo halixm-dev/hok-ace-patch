@@ -3488,5 +3488,11 @@
  },
  "本回合引导内容\n<color=#98CBFF>棋手技能：</color>比赛开始时，可选择1名棋手，不同的棋手有不同技能\n<color=#98CBFF>英雄觉醒：</color>使用3张相同英雄牌可以使英雄觉醒，觉醒后英雄的卡牌效果大幅增强": {
   "en": "Guide to the Round\n<color=#98CBFF>Chessplayer Skill:</color> At the start of the match, choose 1 Chessplayer. Each Chessplayer has a different Skill\n<color=#98CBFF>Hero Awaken:</color> Play 3 copies of the same Hero card to Awaken that Hero. An Awakened Hero's card effects are greatly enhanced"
+ },
+ "每进行多次英雄合成，白歌获得1张<color=#FFE897>即兴创作</color>。": {
+  "en": "After several Hero Combines, Bai Ge gains 1 <color=#FFE897>Improvisation</color>."
+ },
+ "白歌的【即兴创作】，会优先获得卡库已有英雄的复制。": {
+  "en": "Bai Ge's [Improvisation] prioritizes granting copies of Heroes already present in the card pool."
  }
 }
