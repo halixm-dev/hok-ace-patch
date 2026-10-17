@@ -17,9 +17,10 @@ Three kinds of change, all keyed by the Chinese source string in a catalog's `un
   scan of a pulled device dump and lists only strings the runtime's `validate_translation` accepts.
   An addition upstream has since translated is left to upstream and reported.
 - `catalog_english_fixes.json` beside this script: whole English strings mapped to their corrected form,
-  for a slip upstream repeats across hundreds of entries. It holds the verb uses of "Usage" (使用): an
-  in-game card is played ("play a Tactics Card"), anything else is used ("use Ancient Coins"), and the
-  noun uses ("Usage Rules", "upon Usage") stay. It applies to the English catalog's `unique` values and
+  for a slip upstream repeats across hundreds of entries. It holds the verb uses of "Usage" (使用): a Hero
+  Card or a count of cards is played ("play a Hero Card", "Play 8 different Cards"), every other card and
+  everything else is used ("use a Tactics Card", "Use on a friendly Hero", "use Ancient Coins"), as the
+  catalog's own reviewed strings read, and the noun uses ("Usage Rules", "upon Usage") stay. It applies to the English catalog's `unique` values and
   to each `english_updates` row's new text, never to the row's previous text, which identifies the row.
 
 Edits only the named `unique` entries, byte-for-byte in the decompressed JSON, and checks that nothing
