@@ -176,3 +176,17 @@ Runtime resolution inventories candidates; annotation-only classes may not survi
 packaging. Chaquopy plugin-injected runtime, Python native dependencies, notice completeness,
 application/runtime/catalog distribution and combined redistribution review remain open.
 `release_ready` stays false.
+
+### Interface fonts
+
+Both patchers bundle Barlow from `resources/fonts/`, downloaded on 2026-10-17 from the
+[google/fonts](https://github.com/google/fonts) repository (`ofl/barlow`, `ofl/barlowcondensed`), version 1.408.
+SIL Open Font License 1.1; ship `resources/fonts/OFL.txt` beside the fonts. The fonts are not modified.
+
+| File | SHA-256 |
+|---|---|
+| `Barlow-Bold.ttf` | `84e6a4d61e7c3e21f3c50ea6a4f7e5303a3467864c038be6ea3759bab8d547f9` |
+| `Barlow-Medium.ttf` | `f8906f762cb73dca441da034bc363b2d8e2e68bc10d5c05e58717646c20cc4b4` |
+| `Barlow-Regular.ttf` | `95aa02c7c43096e0dd44d787ba6216864a67157e402adab59b35572e0c1577ea` |
+| `Barlow-SemiBold.ttf` | `86577cb32f8abe3673db53ca0f4221e6856751a4f6730c867e00f720f8bb1fc5` |
+| `BarlowCondensed-ExtraBold.ttf` | `724c9c25952d5f4a2d87185d9767aa006144c5f0d944dc05bf7d5d603551c260` |

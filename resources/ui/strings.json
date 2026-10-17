@@ -1,0 +1,1401 @@
+{
+  "version": 1,
+  "languages": [
+    "en",
+    "id"
+  ],
+  "about": "Every user-facing string of both patchers. Keys are stable; {name} marks a placeholder. 'draft' marks Indonesian not yet reviewed by a native speaker. See DESIGN.md, Wording and language.",
+  "strings": {
+    "patcher_version": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Patcher version",
+      "id": "Versi patcher"
+    },
+    "check_for_updates": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Check for updates",
+      "id": "Periksa pembaruan"
+    },
+    "checking_for_updates": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Checking for updates…",
+      "id": "Memeriksa pembaruan…"
+    },
+    "patcher_updates": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Patcher updates",
+      "id": "Pembaruan patcher"
+    },
+    "available_version": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Available version",
+      "id": "Versi tersedia"
+    },
+    "close": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Close",
+      "id": "Tutup"
+    },
+    "download_update": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Download update",
+      "id": "Unduh pembaruan"
+    },
+    "a_newer_patcher_version_is_available": {
+      "platforms": [
+        "android"
+      ],
+      "en": "A newer patcher version is available.",
+      "id": "Versi patcher terbaru tersedia."
+    },
+    "you_have_the_latest_patcher_version": {
+      "platforms": [
+        "android"
+      ],
+      "en": "You have the latest patcher version.",
+      "id": "Anda sudah memakai versi patcher terbaru."
+    },
+    "your_patcher_version_is_newer_than_the": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Your patcher version is newer than the latest release.",
+      "id": "Versi patcher Anda lebih baru dari rilis terbaru."
+    },
+    "github_is_limiting_update_checks_try": {
+      "platforms": [
+        "android"
+      ],
+      "en": "GitHub is limiting update checks. Try again later.",
+      "id": "GitHub membatasi pemeriksaan pembaruan. Coba lagi nanti."
+    },
+    "no_published_patcher_release_was_found": {
+      "platforms": [
+        "android"
+      ],
+      "en": "No published patcher release was found. Try again later.",
+      "id": "Rilis patcher belum ditemukan. Coba lagi nanti."
+    },
+    "github_could_not_check_for_updates_try": {
+      "platforms": [
+        "android"
+      ],
+      "en": "GitHub could not check for updates. Try again later.",
+      "id": "GitHub tidak dapat memeriksa pembaruan. Coba lagi nanti."
+    },
+    "update_check_timed_out_try_again": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Update check timed out. Try again.",
+      "id": "Waktu pemeriksaan pembaruan habis. Coba lagi."
+    },
+    "cannot_reach_github_check_your_internet": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Cannot reach GitHub. Check your internet connection and try again.",
+      "id": "Tidak dapat menghubungi GitHub. Periksa koneksi internet lalu coba lagi."
+    },
+    "the_release_information_could_not_be": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The release information could not be read. Try again later.",
+      "id": "Informasi rilis tidak dapat dibaca. Coba lagi nanti."
+    },
+    "a_newer_release_has_no_downloadable": {
+      "platforms": [
+        "android"
+      ],
+      "en": "A newer release has no downloadable Android APK yet. Try again later.",
+      "id": "Rilis terbaru belum menyediakan APK Android untuk diunduh. Coba lagi nanti."
+    },
+    "finish_patching_or_recovery_before": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Finish patching or recovery before updating the patcher.",
+      "id": "Selesaikan patch atau pemulihan sebelum memperbarui patcher."
+    },
+    "no_browser_could_open_the_download": {
+      "platforms": [
+        "android"
+      ],
+      "en": "No browser could open the download. Install a browser and try again.",
+      "id": "Tidak ada browser yang dapat membuka unduhan. Pasang browser lalu coba lagi."
+    },
+    "free_now": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Free now:",
+      "id": "Ruang tersedia:"
+    },
+    "saved_apk": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Saved APK",
+      "id": "APK tersimpan"
+    },
+    "interrupted_run": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Interrupted run",
+      "id": "Proses terhenti"
+    },
+    "lets_get_started": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Let's get started",
+      "id": "Mari mulai"
+    },
+    "start_shizuku_then_come_back_here": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Start Shizuku, then come back here.",
+      "id": "Jalankan Shizuku, lalu kembali ke sini."
+    },
+    "start": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Start",
+      "id": "Mulai"
+    },
+    "stop_safely": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Stop safely",
+      "id": "Hentikan dengan aman"
+    },
+    "patching_activity": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Patching activity",
+      "id": "Aktivitas patch"
+    },
+    "new_messages_appear_here_as_we_work": {
+      "platforms": [
+        "android"
+      ],
+      "en": "New messages appear here as we work. Scroll to see earlier messages.",
+      "id": "Pesan baru muncul selama proses. Gulir untuk melihat pesan sebelumnya."
+    },
+    "restore_interrupted_patch": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Restore interrupted patch",
+      "id": "Pulihkan patch yang terhenti"
+    },
+    "finish_or_repair_first_setup": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Finish or repair first setup",
+      "id": "Selesaikan atau perbaiki penyiapan awal"
+    },
+    "reinstall_saved_game_app": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Reinstall saved game app",
+      "id": "Pasang ulang aplikasi game tersimpan"
+    },
+    "after_reinstalling_check_the_game_app": {
+      "platforms": [
+        "android"
+      ],
+      "en": "After reinstalling, check the game app below. Unfinished file changes still need recovery.",
+      "id": "Setelah memasang ulang, periksa aplikasi game di bawah. Perubahan file yang belum selesai tetap perlu dipulihkan."
+    },
+    "check_restored_game_app": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Check restored game app",
+      "id": "Periksa aplikasi game yang dipulihkan"
+    },
+    "save_log_for_help": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Save log for help",
+      "id": "Simpan log untuk bantuan"
+    },
+    "01_your_translation": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "01  /  YOUR TRANSLATION",
+      "id": "01  /  BAHASA PILIHAN"
+    },
+    "language": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Language",
+      "id": "Bahasa"
+    },
+    "switching_languages_clear_the_games_data": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Switching languages? Clear the game's data and download it again first.",
+      "id": "Mengganti bahasa? Hapus data game dan unduh ulang terlebih dahulu."
+    },
+    "02_ready_to_play": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "02  /  READY TO PLAY",
+      "id": "02  /  SIAP BERMAIN"
+    },
+    "game_wont_open": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Game won't open?",
+      "id": "Game tidak bisa dibuka?"
+    },
+    "keep_the_game_closed_use_recovery_first": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Keep the game closed. Use recovery first.",
+      "id": "Jangan buka game. Pulihkan terlebih dahulu."
+    },
+    "show_recovery_options": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Show recovery options",
+      "id": "Tampilkan pilihan pemulihan"
+    },
+    "technical_tools": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Technical tools",
+      "id": "Alat teknis"
+    },
+    "for_testing_or_support": {
+      "platforms": [
+        "android"
+      ],
+      "en": "For testing or support",
+      "id": "Untuk pengujian atau bantuan"
+    },
+    "community_patcher_hok_ace": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "COMMUNITY PATCHER  /  HOK ACE",
+      "id": "PATCHER KOMUNITAS  /  HOK ACE"
+    },
+    "your_next_move_your_language": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Your next move. Your language.",
+      "id": "Langkah berikutnya. Bahasa pilihanmu."
+    },
+    "some_game_text_will_stay_chinese_use": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Some game text will stay Chinese.\nUse Scan to login after setup.",
+      "id": "Sebagian teks game tetap berbahasa Mandarin.\nGunakan Scan to login setelah penyiapan."
+    },
+    "stop_safely_question": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Stop safely?",
+      "id": "Hentikan dengan aman?"
+    },
+    "keep_the_game_closed_any_unfinished": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Keep the game closed. Any unfinished changes must be restored before you open it.",
+      "id": "Jangan buka game. Semua perubahan yang belum selesai harus dipulihkan sebelum game dibuka."
+    },
+    "keep_going": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Keep going",
+      "id": "Lanjutkan"
+    },
+    "stop_and_recover": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Stop and recover",
+      "id": "Hentikan dan pulihkan"
+    },
+    "access_was_not_allowed_tap_start_to_try": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Access was not allowed. Tap Start to try again.",
+      "id": "Akses tidak diizinkan. Ketuk Mulai untuk mencoba lagi."
+    },
+    "the_game_is_not_installed_install_it": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game is not installed. Install it before preparing files.",
+      "id": "Game belum terpasang. Pasang game sebelum menyiapkan file."
+    },
+    "cannot_open_shizuku_or_google_play": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Cannot open Shizuku or Google Play. Install Shizuku from play.google.com, start it, then return here.",
+      "id": "Shizuku atau Google Play tidak bisa dibuka. Pasang Shizuku dari play.google.com, jalankan, lalu kembali ke sini."
+    },
+    "more_than_one_unfinished_run_was_found": {
+      "platforms": [
+        "android"
+      ],
+      "en": "More than one unfinished run was found. Choose the correct run in recovery options.",
+      "id": "Ada lebih dari satu proses yang belum selesai. Pilih proses yang sesuai di pilihan pemulihan."
+    },
+    "saved_progress_cannot_be_read_keep_the": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Saved progress cannot be read. Keep the game closed and save a log for help.",
+      "id": "Progres tersimpan tidak bisa dibaca. Jangan buka game dan simpan log untuk bantuan."
+    },
+    "work_could_not_start_check_shizuku_then": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Work could not start. Check Shizuku, then tap Start again.",
+      "id": "Proses tidak bisa dimulai. Periksa Shizuku, lalu ketuk Mulai lagi."
+    },
+    "work_was_interrupted_tap_start_to_check": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Work was interrupted. Tap Start to check and restore unfinished work.",
+      "id": "Proses terhenti. Ketuk Mulai untuk memeriksa dan memulihkan proses yang belum selesai."
+    },
+    "working_on_your_game": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Working on your game",
+      "id": "Sedang memproses game"
+    },
+    "checking_and_preparing_files": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Checking and preparing files…",
+      "id": "Memeriksa dan menyiapkan file…"
+    },
+    "please_wait": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Please wait",
+      "id": "Mohon tunggu"
+    },
+    "checking_game_files": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Checking game files",
+      "id": "Memeriksa file game"
+    },
+    "please_wait_we_are_checking_the_saved": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Please wait. We are checking the saved game app and recovery files.",
+      "id": "Mohon tunggu. Aplikasi game tersimpan dan file pemulihan sedang diperiksa."
+    },
+    "recovery_needs_attention": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Recovery needs attention",
+      "id": "Pemulihan perlu ditangani"
+    },
+    "keep_the_game_closed_save_a_log_for_help": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Keep the game closed. Save a log for help.",
+      "id": "Jangan buka game. Simpan log untuk bantuan."
+    },
+    "start_shizuku": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Start Shizuku",
+      "id": "Jalankan Shizuku"
+    },
+    "shizuku_must_be_running_start_it_then": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Shizuku must be running. Start it, then return here. We will continue automatically.",
+      "id": "Shizuku harus berjalan. Jalankan, lalu kembali ke sini. Proses akan dilanjutkan otomatis."
+    },
+    "open_shizuku": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open Shizuku",
+      "id": "Buka Shizuku"
+    },
+    "install_shizuku": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Install Shizuku",
+      "id": "Pasang Shizuku"
+    },
+    "shizuku_is_required_install_it_from": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Shizuku is required. Install it from Google Play, start it, then return here.",
+      "id": "Shizuku diperlukan. Pasang dari Google Play, jalankan, lalu kembali ke sini."
+    },
+    "get_shizuku": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Get Shizuku",
+      "id": "Unduh Shizuku"
+    },
+    "translation_added": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Translation added",
+      "id": "Terjemahan diterapkan"
+    },
+    "start_another_patch": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Start another patch",
+      "id": "Mulai patch lagi"
+    },
+    "work_stopped": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Work stopped",
+      "id": "Proses terhenti"
+    },
+    "try_again": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Try again",
+      "id": "Coba lagi"
+    },
+    "finish_your_game_safely": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Finish your game safely",
+      "id": "Selesaikan dengan aman"
+    },
+    "we_will_check_unfinished_work_and": {
+      "platforms": [
+        "android"
+      ],
+      "en": "We will check unfinished work and recover it before patching.",
+      "id": "Proses yang belum selesai akan diperiksa dan dipulihkan sebelum memasang patch."
+    },
+    "continue": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Continue",
+      "id": "Lanjutkan"
+    },
+    "ready_when_you_are": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Ready when you are",
+      "id": "Siap dimulai"
+    },
+    "tap_start_we_will_check_your_game_and": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.",
+      "id": "Ketuk Mulai. Game akan diperiksa dan semua file disiapkan. Jangan buka game selama proses."
+    },
+    "shizuku_is_running_but_the_patchers": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Shizuku is running, but the patcher's helper did not start. Open Shizuku, stop it and start it again, then return here and tap Try again. If it happens again, save a log for help. Keep the game closed.",
+      "id": "Shizuku berjalan, tetapi layanan pendukung patcher tidak mulai. Buka Shizuku, hentikan lalu jalankan lagi, kemudian kembali ke sini dan ketuk Coba lagi. Jika terulang, simpan log untuk bantuan. Jangan buka game."
+    },
+    "open_shizuku_start_it_and_allow_hok_ace": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed.",
+      "id": "Buka dan jalankan Shizuku, lalu izinkan HOK ACE. Kembali ke sini dan coba lagi. Jangan buka game."
+    },
+    "the_game_is_also_installed_in_another": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game is also installed in another Android profile, such as Dual App or a work profile. Remove it from that profile, then tap Try again. Keep the game closed.",
+      "id": "Game juga terpasang di profil Android lain, misalnya Aplikasi Ganda (Dual App) atau profil kerja. Hapus game dari profil tersebut, lalu ketuk Coba lagi. Jangan buka game."
+    },
+    "this_phone_has_another_android_profile": {
+      "platforms": [
+        "android"
+      ],
+      "en": "This phone has another Android profile, such as Dual App, that could not be checked for the game. Remove the game from Dual App, then tap Try again. If it happens again, save a log for help. Keep the game closed.",
+      "id": "Ponsel ini memiliki profil Android lain, misalnya Aplikasi Ganda (Dual App), yang tidak dapat diperiksa. Hapus game dari Aplikasi Ganda, lalu ketuk Coba lagi. Jika terjadi lagi, simpan log untuk bantuan. Jangan buka game."
+    },
+    "the_installed_game_app_is_not_the_saved": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The installed game app is not the saved app this check looks for. It is a different app, not a damaged one. If no patch was started, tap Try again. Otherwise check recovery options below, or save a log for help. Keep the game closed.",
+      "id": "Aplikasi game yang terpasang bukan aplikasi tersimpan yang diperiksa. Aplikasinya berbeda, bukan rusak. Jika patch belum dimulai, ketuk Coba lagi. Jika sudah, periksa pilihan pemulihan di bawah atau simpan log untuk bantuan. Jangan buka game."
+    },
+    "the_phone_refused_a_step_although": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help.",
+      "id": "Ponsel menolak satu langkah, meskipun Shizuku berjalan. Jangan buka game. Periksa pilihan pemulihan di bawah atau simpan log untuk bantuan."
+    },
+    "the_phone_blocked_installation_unlock_it": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The phone blocked installation. Unlock it and accept the install prompt. Open Technical tools for the full error.",
+      "id": "Ponsel memblokir pemasangan. Buka kunci dan setujui permintaan pemasangan. Buka Alat teknis untuk melihat galat lengkap."
+    },
+    "work_stopped_keep_the_game_closed_check": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Work stopped. Keep the game closed. Check recovery options below, or save a log for help.",
+      "id": "Proses terhenti. Jangan buka game. Periksa pilihan pemulihan di bawah atau simpan log untuk bantuan."
+    },
+    "the_phone_did_not_report_how_much_more": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files.",
+      "id": "Ponsel tidak melaporkan tambahan ruang yang diperlukan. Kosongkan ruang lain lalu coba lagi. Simpan file pemulihan."
+    },
+    "choose_prepared_game_files": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Choose prepared game files",
+      "id": "Pilih file game yang sudah disiapkan"
+    },
+    "choose_game_files_for_first_setup": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Choose game files for first setup",
+      "id": "Pilih file game untuk penyiapan awal"
+    },
+    "cancel": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Cancel",
+      "id": "Batal"
+    },
+    "i_accept_deletion_of_the_games_local": {
+      "platforms": [
+        "android"
+      ],
+      "en": "I accept deletion of the game's local data",
+      "id": "Saya menyetujui penghapusan data lokal game"
+    },
+    "i_will_use_scan_to_login": {
+      "platforms": [
+        "android"
+      ],
+      "en": "I will use Scan to login",
+      "id": "Saya akan menggunakan Scan to login"
+    },
+    "first_setup_deletes_local_game_data": {
+      "platforms": [
+        "android"
+      ],
+      "en": "First setup deletes local game data",
+      "id": "Penyiapan awal menghapus data lokal game"
+    },
+    "delete_data_and_set_up": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Delete data and set up",
+      "id": "Hapus data dan siapkan"
+    },
+    "recover_or_finish_game_setup": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Recover or finish game setup",
+      "id": "Pulihkan atau selesaikan penyiapan game"
+    },
+    "recover_game_installation": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Recover game installation",
+      "id": "Pulihkan pemasangan game"
+    },
+    "recover": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Recover",
+      "id": "Pulihkan"
+    },
+    "check_the_installed_app_and_restore_the": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Check the installed app and restore the verified normal game app if it is absent. Recovery will not repeat removal. Deleted local game data cannot be restored by this step.",
+      "id": "Periksa aplikasi terpasang dan pulihkan aplikasi game normal yang terverifikasi jika tidak ada. Pemulihan tidak akan menghapus ulang. Langkah ini tidak bisa memulihkan data lokal yang sudah dihapus."
+    },
+    "every_fresh_game_update_finished_and_i": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Every fresh game update finished, and I closed the game",
+      "id": "Semua pembaruan game yang baru diunduh sudah selesai dan game sudah saya tutup"
+    },
+    "finish_game_setup": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Finish game setup",
+      "id": "Selesaikan penyiapan game"
+    },
+    "open_game": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open game",
+      "id": "Buka game"
+    },
+    "the_game_cannot_be_opened_use_recovery": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game cannot be opened. Use recovery.",
+      "id": "Game tidak bisa dibuka. Gunakan pemulihan."
+    },
+    "confirm_updates": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Confirm updates",
+      "id": "Konfirmasi pembaruan"
+    },
+    "all_in_game_updates_finished_and_i": {
+      "platforms": [
+        "android"
+      ],
+      "en": "All in-game updates finished, and I closed the game",
+      "id": "Semua pembaruan dalam game sudah selesai dan game sudah saya tutup"
+    },
+    "start_translation": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Start translation",
+      "id": "Mulai penerjemahan"
+    },
+    "start_patch": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Start patch",
+      "id": "Mulai patch"
+    },
+    "recover_interrupted_patch": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Recover interrupted patch",
+      "id": "Pulihkan patch yang terhenti"
+    },
+    "choose_emergency_normal_apk": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Choose emergency normal APK",
+      "id": "Pilih APK normal untuk pemulihan darurat"
+    },
+    "restore_normal_game_apk": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Restore normal game APK",
+      "id": "Pulihkan APK game normal"
+    },
+    "open_installer": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open installer",
+      "id": "Buka pemasang"
+    },
+    "authorize_shizuku": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Authorize Shizuku",
+      "id": "Izinkan Shizuku"
+    },
+    "check_python_and_codecs": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Check Python and codecs",
+      "id": "Periksa Python dan codec"
+    },
+    "prepare_game_files_no_installation": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Prepare game files (no installation)",
+      "id": "Siapkan file game (tanpa pemasangan)"
+    },
+    "first_setup_tool": {
+      "platforms": [
+        "android"
+      ],
+      "en": "First setup (deletes local game data)",
+      "id": "Penyiapan awal (menghapus data lokal game)"
+    },
+    "patch_after_the_game_update_finishes": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Patch after the game update finishes",
+      "id": "Pasang patch setelah pembaruan game selesai"
+    },
+    "check_shell_and_game_apk_path": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Check shell and game APK path",
+      "id": "Periksa shell dan lokasi APK game"
+    },
+    "copy_and_verify_installed_apk_about_2_gb": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Copy and verify installed APK (about 2 GB)",
+      "id": "Salin dan periksa APK terpasang (sekitar 2 GB)"
+    },
+    "round_trip_disposable_fixture": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Round-trip disposable fixture",
+      "id": "Uji baca/tulis data uji sementara"
+    },
+    "force_stop_game": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Force-stop game",
+      "id": "Paksa berhenti game"
+    },
+    "verify_retained_normal_recovery_apk": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Verify retained normal recovery APK",
+      "id": "Periksa APK pemulihan normal tersimpan"
+    },
+    "emergency_normal_apk_installer": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Emergency normal APK installer",
+      "id": "Pemasang APK normal darurat"
+    },
+    "verify_installed_normal_apk_with": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Verify installed normal APK with foreground worker",
+      "id": "Periksa APK normal terpasang dengan proses latar depan"
+    },
+    "read_worker_result": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Read worker result",
+      "id": "Baca hasil proses"
+    },
+    "export_diagnostic_logs": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Export diagnostic logs",
+      "id": "Ekspor log diagnostik"
+    },
+    "prepare_game_files_first": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Prepare game files first",
+      "id": "Siapkan file game terlebih dahulu"
+    },
+    "no_pending_game_setup": {
+      "platforms": [
+        "android"
+      ],
+      "en": "No pending game setup",
+      "id": "Tidak ada penyiapan game yang tertunda"
+    },
+    "no_interrupted_patch_to_recover": {
+      "platforms": [
+        "android"
+      ],
+      "en": "No interrupted patch to recover",
+      "id": "Tidak ada patch terhenti yang perlu dipulihkan"
+    },
+    "preparing_verified_recovery_material": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Preparing verified recovery material",
+      "id": "Menyiapkan file pemulihan terverifikasi"
+    },
+    "checking_the_installed_normal_game_app": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Checking the installed normal game app",
+      "id": "Memeriksa aplikasi game normal yang terpasang"
+    },
+    "game_patch_progress": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Game patch progress",
+      "id": "Progres patch game"
+    },
+    "cancel_preparation": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Cancel preparation",
+      "id": "Batalkan persiapan"
+    },
+    "stop_after_safe_installation": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Stop after safe installation",
+      "id": "Hentikan setelah pemasangan aman"
+    },
+    "cancel_and_recover": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Cancel and recover",
+      "id": "Batalkan dan pulihkan"
+    },
+    "checking_other_android_profiles_for_the": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Checking other Android profiles for the game",
+      "id": "Memeriksa game di profil Android lain"
+    },
+    "error_details": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Error details",
+      "id": "Rincian galat"
+    },
+    "copy_error_details": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Copy error details",
+      "id": "Salin rincian galat"
+    },
+    "error_details_copied": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Error details copied",
+      "id": "Rincian galat disalin"
+    },
+    "the_game_is_installed_but_hidden_or": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game is installed but hidden or switched off in this phone's main space, for example by Hide apps. Show it again, open it once, close it, then tap Try again.",
+      "id": "Game terpasang, tetapi disembunyikan atau dinonaktifkan di ruang utama ponsel ini, misalnya oleh fitur Sembunyikan aplikasi. Tampilkan lagi, buka sekali, tutup, lalu ketuk Coba lagi."
+    },
+    "the_game_is_installed_only_in_dual_app": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game is installed only in Dual App. Install it in the phone's main space too, open it once and finish all downloads, close it, then tap Try again.",
+      "id": "Game hanya terpasang di Aplikasi Ganda. Pasang juga di ruang utama ponsel, buka sekali dan selesaikan semua unduhan, tutup game, lalu ketuk Coba lagi."
+    },
+    "the_game_is_not_installed_in_this_phones": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game is not installed in this phone's main space. Install it there (Dual App alone is not enough), open it once and finish all downloads, close it, then tap Try again.",
+      "id": "Game belum terpasang di ruang utama ponsel ini. Pasang game di sana (Aplikasi Ganda saja tidak cukup), buka sekali dan selesaikan semua unduhan, tutup game, lalu ketuk Coba lagi."
+    },
+    "storage_shortage": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Need {need} GB free for this step.\nFree now: {free} GB.\nClear at least {more} GB more, then try again.\nKeep saved recovery files.",
+      "id": "Langkah ini memerlukan {need} GB ruang kosong.\nTersedia: {free} GB.\nKosongkan setidaknya {more} GB lagi, lalu coba lagi.\nSimpan file pemulihan."
+    },
+    "storage_enough": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Enough space now for this step.\nNeeded: {need} GB free (rounded up).\nTap Try again. Keep saved recovery files.",
+      "id": "Ruang sekarang cukup untuk langkah ini.\nDiperlukan: {need} GB (dibulatkan ke atas).\nKetuk Coba lagi. Simpan file pemulihan."
+    },
+    "progress_fallback": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Working on game files. See the log below for details.",
+      "id": "Sedang memproses file game. Lihat rincian di log di bawah.",
+      "draft": true
+    },
+    "completed_counts": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Patch complete. Normal game app verified.\nText tables applied: {text_tables}\nImages applied: {applied_textures}\nText tables skipped: {skipped_tables}\nImages skipped: {skipped_textures}",
+      "id": "Patch selesai. Aplikasi game normal terverifikasi.\nTabel teks diterapkan: {text_tables}\nGambar diterapkan: {applied_textures}\nTabel teks dilewati: {skipped_tables}\nGambar dilewati: {skipped_textures}"
+    },
+    "completed_no_counts": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Patch complete. Normal game app verified; result counts are unavailable.",
+      "id": "Patch selesai. Aplikasi game normal terverifikasi; jumlah hasil tidak tersedia."
+    },
+    "first_setup_consent": {
+      "platforms": [
+        "android"
+      ],
+      "en": "1. This deletes saved game data, downloads and login on this phone.\n\n2. Download all game updates again.\n\n3. Direct WeChat/QQ login stops working. Use Scan to login.\n\n4. Translation is added later, after you confirm that downloads finished.\n\nFirst setup has not passed all phone tests.",
+      "id": "1. Data game, unduhan, dan login tersimpan di ponsel ini akan dihapus.\n\n2. Unduh ulang semua pembaruan game.\n\n3. Login langsung WeChat/QQ tidak akan berfungsi. Gunakan Scan to login.\n\n4. Terjemahan ditambahkan setelah Anda mengonfirmasi unduhan selesai.\n\nPenyiapan awal belum lulus semua pengujian ponsel."
+    },
+    "setup_update": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open the game, complete all downloads, then close it. We will then prepare the new files automatically. Translation starts after the final update confirmation.",
+      "id": "Buka game, selesaikan semua unduhan, lalu tutup game. File baru akan disiapkan otomatis. Terjemahan dimulai setelah konfirmasi pembaruan terakhir."
+    },
+    "patch_confirmation": {
+      "platforms": [
+        "android"
+      ],
+      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files and briefly replace the game app.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
+      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dan mengganti aplikasi game untuk sementara.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel."
+    },
+    "restore_apk_only": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Restore version {version} with data retained. This restores the APK only. Unresolved package writes still require rollback before launching the game. Opening the installer does not verify a completed restoration.",
+      "id": "Pulihkan versi {version} tanpa menghapus data. Ini hanya memulihkan APK. Penulisan paket yang belum selesai masih harus dipulihkan sebelum game dibuka. Membuka pemasang tidak berarti pemulihan sudah terverifikasi."
+    },
+    "progress_step": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Step {n} of {total} · {step}",
+      "id": "Langkah {n} dari {total} · {step}",
+      "draft": true
+    },
+    "step_device": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Connect phone",
+      "id": "Hubungkan ponsel",
+      "draft": true
+    },
+    "step_apk": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Prepare game APK",
+      "id": "Siapkan APK game",
+      "draft": true
+    },
+    "step_access": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Unlock data access",
+      "id": "Buka akses data",
+      "draft": true
+    },
+    "step_pull": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Read language data",
+      "id": "Baca data bahasa",
+      "draft": true
+    },
+    "step_translate": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Build translation",
+      "id": "Buat terjemahan",
+      "draft": true
+    },
+    "step_install": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Install translation",
+      "id": "Pasang terjemahan",
+      "draft": true
+    },
+    "step_restore": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Restore game",
+      "id": "Pulihkan game",
+      "draft": true
+    },
+    "device_label": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "DEVICE",
+      "id": "PERANGKAT",
+      "draft": true
+    },
+    "device_not_connected": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Not connected",
+      "id": "Belum terhubung",
+      "draft": true
+    },
+    "before_you_start": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Before you start",
+      "id": "Sebelum mulai",
+      "draft": true
+    },
+    "before_you_start_tips": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "1.  Enable USB debugging on the phone, connect the USB cable and tap 'Allow'.\n2.  Open the game once until the data download finishes (login screen), then close it.\n3.  If Google Play Protect asks, tap 'More details' → 'Install anyway'.",
+      "id": "1.  Aktifkan USB debugging di ponsel, sambungkan kabel USB, lalu ketuk 'Izinkan'.\n2.  Buka game sekali sampai unduhan data selesai (layar login), lalu tutup game.\n3.  Jika Google Play Protect bertanya, ketuk 'Detail lainnya' → 'Tetap instal'.",
+      "draft": true
+    },
+    "working_folder_label": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "WORKING FOLDER  ·  temporary game data, about 8 GB",
+      "id": "FOLDER KERJA  ·  data game sementara, sekitar 8 GB",
+      "draft": true
+    },
+    "change_folder": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Change…",
+      "id": "Ubah…",
+      "draft": true
+    },
+    "choose_folder_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Choose a folder for the temporary game data",
+      "id": "Pilih folder untuk data game sementara",
+      "draft": true
+    },
+    "drive_not_available": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Drive not available",
+      "id": "Drive tidak tersedia",
+      "draft": true
+    },
+    "drive_free": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{free} GB free on this drive",
+      "id": "{free} GB kosong di drive ini",
+      "draft": true
+    },
+    "ready_connect_phone": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Ready. Connect your phone and click Start.",
+      "id": "Siap. Sambungkan ponsel lalu klik Mulai.",
+      "draft": true
+    },
+    "running": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Running…",
+      "id": "Sedang berjalan…",
+      "draft": true
+    },
+    "run_again": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Run again",
+      "id": "Jalankan lagi",
+      "draft": true
+    },
+    "done_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Done",
+      "id": "Selesai",
+      "draft": true
+    },
+    "failed_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Failed",
+      "id": "Gagal",
+      "draft": true
+    },
+    "done_status": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Done! Translation installed.",
+      "id": "Selesai! Terjemahan terpasang.",
+      "draft": true
+    },
+    "failed_status": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Failed. See the log for details.",
+      "id": "Gagal. Lihat log untuk rinciannya.",
+      "draft": true
+    },
+    "result_counts": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{text} text tables and {images} images translated. ",
+      "id": "{text} tabel teks dan {images} gambar diterjemahkan. ",
+      "draft": true
+    },
+    "result_nothing_new": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Nothing new to install. ",
+      "id": "Tidak ada yang baru untuk dipasang. ",
+      "draft": true
+    },
+    "result_already_installed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The translation was already installed. ",
+      "id": "Terjemahan sudah terpasang. ",
+      "draft": true
+    },
+    "result_tables_dropped": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{count} text tables could not be applied and stay in Chinese. ",
+      "id": "{count} tabel teks tidak dapat diterapkan dan tetap berbahasa Mandarin. ",
+      "draft": true
+    },
+    "result_images_skipped": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{count} images could not be translated and stay in Chinese. ",
+      "id": "{count} gambar tidak dapat diterjemahkan dan tetap berbahasa Mandarin. ",
+      "draft": true
+    },
+    "result_open_game": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Open the game on your phone.\n\nLogin: use 'Scan to login' (the direct WeChat/QQ buttons do not work). With one phone: screenshot the QR code, open WeChat in split screen and scan it from the gallery.",
+      "id": "Buka game di ponsel.\n\nLogin: gunakan 'Scan to login' (tombol WeChat/QQ langsung tidak berfungsi). Dengan satu ponsel: tangkap layar kode QR, buka WeChat dalam layar terpisah, lalu pindai dari galeri.",
+      "draft": true
+    },
+    "unexpected_error": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "An unexpected error occurred. See the log in this window.",
+      "id": "Terjadi galat tak terduga. Lihat log di jendela ini.",
+      "draft": true
+    },
+    "close_while_busy_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Patch in progress",
+      "id": "Patch sedang berjalan",
+      "draft": true
+    },
+    "close_while_busy": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Closing now can leave the game unable to start until the patcher is run again.\n\nClose anyway?",
+      "id": "Menutup sekarang dapat membuat game tidak bisa dibuka sampai patcher dijalankan lagi.\n\nTetap tutup?",
+      "draft": true
+    },
+    "reinstall_required_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Reinstall required",
+      "id": "Perlu pasang ulang",
+      "draft": true
+    },
+    "reinstall_required": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The game on this phone uses the official Tencent signature, so it must be reinstalled with the patcher signature.\n\nThis DELETES the game data on the phone and the game will download its data again (~1.7 GB). Direct WeChat/QQ login will no longer work; use 'Scan to login' instead.\n\nContinue?",
+      "id": "Game di ponsel ini memakai tanda tangan resmi Tencent, jadi harus dipasang ulang dengan tanda tangan patcher.\n\nIni MENGHAPUS data game di ponsel dan game akan mengunduh datanya lagi (~1,7 GB). Login langsung WeChat/QQ tidak akan berfungsi lagi; gunakan 'Scan to login'.\n\nLanjutkan?",
+      "draft": true
+    },
+    "download_game_data_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Download game data",
+      "id": "Unduh data game",
+      "draft": true
+    },
+    "download_game_data": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Open the game on the phone, accept the policies and wait until the data download finishes and the login screen appears.\n\nThen CLOSE the game and click OK here.",
+      "id": "Buka game di ponsel, setujui kebijakannya, dan tunggu sampai unduhan data selesai dan layar login muncul.\n\nLalu TUTUP game dan klik OK di sini.",
+      "draft": true
+    },
+    "retry_install_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Retry install?",
+      "id": "Coba pasang lagi?",
+      "draft": true
+    },
+    "retry_install": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Installing the normal game APK failed. Try again?",
+      "id": "Pemasangan APK game normal gagal. Coba lagi?",
+      "draft": true
+    },
+    "ok": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "OK",
+      "id": "OK",
+      "draft": true
+    }
+  }
+}

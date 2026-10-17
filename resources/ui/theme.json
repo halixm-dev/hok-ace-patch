@@ -1,0 +1,70 @@
+{
+  "version": "1",
+  "colors": {
+    "page-top": "#DCDCF1",
+    "page-bottom": "#B5BAE5",
+    "card": "rgba(255, 255, 255, 0.85)",
+    "card-solid": "#F1F0FA",
+    "card-edge": "rgba(255, 255, 255, 0.9)",
+    "ink": "#343876",
+    "text-muted": "#55597F",
+    "panel-top": "#5A5496",
+    "panel-bottom": "#343876",
+    "on-panel": "#FFFFFF",
+    "on-panel-muted": "#DCDCF1",
+    "confirm-left": "#EAEEF7",
+    "confirm-right": "#ADBEEC",
+    "warning": "#D2AA60",
+    "warning-surface": "#FBF1DD",
+    "error": "#C8414B",
+    "error-surface": "#FBE4E6",
+    "disabled-fill": "#E2E2F0",
+    "disabled-text": "#8C87B9"
+  },
+  "typography": {
+    "title": {
+      "fontFamily": "Barlow Condensed",
+      "fontWeight": "800",
+      "fontSize": "32px"
+    },
+    "heading": {
+      "fontFamily": "Barlow",
+      "fontWeight": "700",
+      "fontSize": "18px"
+    },
+    "body": {
+      "fontFamily": "Barlow",
+      "fontWeight": "400",
+      "fontSize": "14px"
+    },
+    "label": {
+      "fontFamily": "Barlow",
+      "fontWeight": "600",
+      "fontSize": "12px",
+      "letterSpacing": "0.12em"
+    },
+    "button": {
+      "fontFamily": "Barlow",
+      "fontWeight": "600",
+      "fontSize": "15px"
+    },
+    "log": {
+      "fontFamily": "monospace",
+      "fontWeight": "400",
+      "fontSize": "12px"
+    }
+  },
+  "rounded": {
+    "card": "8px",
+    "button": "8px"
+  },
+  "spacing": {
+    "xxs": "4px",
+    "xs": "8px",
+    "sm": "12px",
+    "md": "16px",
+    "lg": "20px",
+    "xl": "24px",
+    "section": "32px"
+  }
+}
