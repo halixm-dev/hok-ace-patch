@@ -21,6 +21,12 @@ Indonesian, including confirmations, recovery controls and notification actions.
 stay unchanged for diagnosis. A run reads it once when it starts and records it in the session journal, and the card
 is locked while work is in progress. The engine carries `catalog/` and `catalog_id/` side by side,
 because the Indonesian catalog reads the English catalog edits it does not re-draw.
+Below **Technical tools**, the home screen shows the installed patcher version and
+**Check for updates**. Tap it to check the latest published GitHub release. A newer Android
+release offers **Download update**, which opens that release's APK in your browser; install it
+through Android after finishing patching or recovery. There are no automatic checks or installs.
+Offline checks, GitHub errors and releases without an APK show a retry message and leave patching
+available. See the [update checker feature record](../docs/features/android-update-checker.md).
 The home screen has one **Start** button. The visual theme follows [wxq.qq.com](https://wxq.qq.com/): lavender and
 ice-blue backgrounds, a geometric gradient hero, translucent white cards and violet-blue buttons.
 The hero is drawn locally; it needs no network or downloaded website artwork. Language choices,

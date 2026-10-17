@@ -2047,6 +2047,21 @@ to the private signer. Device acceptance, complete redistribution/source review 
 compiled-runtime/dependency security audit remain separate work.
 
 
+## 2026-10-17 — Android patcher update checker
+
+Manual home-screen release lookup is implemented in `AppUpdateChecker` and `MainActivity`.
+It uses public GitHub access and opens the exact newer release APK in a browser. English and
+Indonesian UI messages are included; the patch worker and translation pipeline are unchanged.
+
+| Check | Evidence and verdict |
+|---|---|
+| Public API, no credentials | Latest tag is `android-v1.6.0.1.1`, draft/prerelease false; `hok-ace-patch.apk` is uploaded and its exact GitHub URL matches the checker policy. |
+| First offline build | App sources compiled; unit-test dependency resolution refused because `org.json:json:20180813` was not cached. Retried with network access. |
+| Unit tests | `:app:testDebugUnitTest` passes all 26 tests, including 8 new checker tests: numeric version comparison, malformed metadata, current/older/newer releases, missing/unready/foreign APK, transport headers and cleanup, API failures, response cap, offline/timeouts and Indonesian result text. |
+| Debug APK | `:app:assembleDebug` passes with full codec assets. |
+| Android lint | `:app:lintDebug` passes. Combined tests/lint/debug build finished successfully. |
+| Device acceptance | No phone installation, browser download or installer acceptance was performed. |
+
 ## 2026-10-17 — Restore previous patcher signer for compatible updates
 
 The user requested the previous patcher key for CI releases. All four release signing secrets
