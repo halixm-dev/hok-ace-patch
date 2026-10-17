@@ -109,8 +109,11 @@ corrected in this repo's code rather than in the catalog. The one exception is s
 added that the upstream catalog has no entry for: `tools/research/apply_catalog_fixes.py` adds them from
 `tools/research/catalog_additions.json`, and re-running it after an upstream re-import puts them back.
 The same script rewrites entries upstream carries as garbled machine translation from
-`tools/research/catalog_rewrites.json` (36 English, 138 Indonesian, including all 121 Diamond Frenzy
-talent texts); it changes wording only, so no count below moves.
+`tools/research/catalog_rewrites.json` (582 English, 885 Indonesian entries, 969 keys). It covers all
+121 Diamond Frenzy talent texts and a review of the 1,544 card texts (hero, effect, equipment, tactics
+and Chessplayer cards, and hero skills), plus keyword-link names (`╪Clash`, `╈Exit`, `╉Afterlife Totem`,
+…), "Little Daji", "Guardian's Armor" and Faction for 阵营 wherever they appear. It changes wording
+only, so no count below moves.
 
 | what | count | where |
 |---|---|---|

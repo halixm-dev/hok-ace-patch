@@ -114,6 +114,12 @@ texture and needs an Indonesian image; and the resource tokens expand to English
     `<=`), and a corrupted circled digit is restored from the source.
   - *Series labels* read `Seri <keyword>` (`Seri General`, `Seri Effect Card`), the order the terminology
     table also writes.
+  - *Card texts* (the 2026-10-17 card review): 场上 is `di papan` (never `lapangan`, `arena` or
+    `medan perang`), 战斗 is `Pertempuran`, 回合 is `Ronde`, 阵营 is `Faction` (never `kubu`, `faksi`
+    or `kamp`), 英雄牌 is `Kartu Hero`, 效果牌 is `Effect Card`, a tile is `petak`, seconds are
+    `detik` (not `d`), 阵亡 is `gugur`, 唯一 is `Unique`, an ally is `sekutu`, and `Hero` takes no
+    plural `s`. Damage reads `Physical Damage sebesar [0]% Physical Attack`. A `+` sticks to its number
+    (`+2`) except between two items (`[Garo] + 1 [Shadow Fang]`).
 
 ## [S3] Out of Scope
 

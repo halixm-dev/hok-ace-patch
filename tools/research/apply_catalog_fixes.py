@@ -7,8 +7,11 @@ Three kinds of change, all keyed by the Chinese source string in a catalog's `un
 - `catalog_rewrites.json` beside this script: entries both catalogs have but carry as garbled machine
   translation ("♪ Time for your Hero ♪", "At least.2One."), each rewritten in Indonesian (`id`) and,
   where the English is garbled too, in English (`en`). It covers every Diamond Frenzy talent text (the
-  121 entries headed `…系列`), whose headings read `<name> Series` and `Seri <name>`. Every rewrite
-  passes the runtime's `validate_translation`;
+  121 entries headed `…系列`), whose headings read `<name> Series` and `Seri <name>`, and a review of
+  every card text (the card text tables' 1,544 entries): keyword links keep one name each (`╪Clash`,
+  `╈Exit`, `╧Perfect Revive`, `╉Afterlife Totem`), 阵营 reads Faction, and the Indonesian follows the
+  wording rules in docs/features/indonesian-language.md. Every rewrite passes the runtime's
+  `validate_translation`;
 - `catalog_additions.json` beside this script: strings a game update added or rewrote that neither
   catalog has, each with an English (`en`) and an Indonesian (`id`) translation. It is generated from a
   scan of a pulled device dump and lists only strings the runtime's `validate_translation` accepts.
