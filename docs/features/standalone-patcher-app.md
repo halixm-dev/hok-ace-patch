@@ -1,7 +1,7 @@
 ---
 feature: standalone-patcher-app
 status: delivered
-updated: 2026-10-16
+updated: 2026-10-17
 branch: master
 commits: 7b9769b..9f151a8
 ---
@@ -11,7 +11,7 @@ commits: 7b9769b..9f151a8
 ## Report
 
 **Versioning (2026-10-17):** the root `VERSION` file sets the Windows header version,
-starting at `1.6.0.1.1` (game data version plus patch revision). PyInstaller bundles
+currently `1.6.1.3` (three game version numbers plus patch revision). PyInstaller bundles
 the file so source and frozen builds read the same version. See
 [patch versions](../../README.md#patch-versions) for increment rules.
 

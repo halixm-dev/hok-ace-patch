@@ -63,16 +63,27 @@ class AppUpdateChecker(
         private const val RELEASE_ROOT = "https://github.com/halixm-dev/hok-ace-patch/releases/download/"
         private const val MAX_RESPONSE_BYTES = 1_048_576
         private const val INVALID_RELEASE = "The release information could not be read. Try again later."
-        private val VERSION = Regex("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+")
+        private val VERSION = Regex("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+(?:\\.[0-9]+)?")
 
-        /** The five components are numeric; no lexicographic comparison or integer overflow. */
+        /** Compare numeric components, including releases from before the four-part version rule. */
         fun compareVersions(left: String, right: String): Int {
-            require(VERSION.matches(left) && VERSION.matches(right)) { "Invalid patcher version" }
-            left.split('.').zip(right.split('.')).forEach { (a, b) ->
-                val order = BigInteger(a).compareTo(BigInteger(b))
+            versionParts(left).zip(versionParts(right)).forEach { (a, b) ->
+                val order = a.compareTo(b)
                 if (order != 0) return order
             }
             return 0
+        }
+
+        private fun versionParts(version: String): List<BigInteger> {
+            require(VERSION.matches(version)) { "Invalid patcher version" }
+            val parts = version.split('.').map(::BigInteger).toMutableList()
+            if (parts.size == 5) {
+                // Legacy tags included the game's extra zero in the middle: 1.6.0.1.2.
+                val zero = (1..2).firstOrNull { parts[it] == BigInteger.ZERO }
+                require(zero != null) { "Invalid legacy patcher version" }
+                parts.removeAt(zero)
+            }
+            return parts
         }
 
         fun parse(installed: String, body: String): Result = try {

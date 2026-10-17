@@ -39,18 +39,20 @@ stall loading and cause the game to repair away the translation.
 
 ## Patch versions
 
-The root `VERSION` file sets the Windows and Android patcher version: **1.6.0.1.2**.
-The first four numbers match the game's **data version**, rather than its APK version.
-The last number counts patch releases for that data version, starting at `1`.
+The root `VERSION` file sets the Windows and Android patcher version: **1.6.1.3**.
+Use three numbers from the game's **data version**, omitting its extra middle zero,
+then append the patch release number, starting at `1`. For example, game data
+`1.0.6.1` becomes patch `1.6.1.X`; the currently measured data `1.6.0.1` also becomes
+`1.6.1.X`. Increase `X` for each patch release; reset it to `1` when the data version changes.
 
 | Change | Example version |
 |---|---|
-| First patch for data 1.6.0.1 | `1.6.0.1.1` |
-| Next patch for the same data | `1.6.0.1.2` |
-| First patch after a data update to 1.6.0.2 | `1.6.0.2.1` |
+| First patch for data 1.6.0.1 | `1.6.1.1` |
+| Next patch for the same data | `1.6.1.2` |
+| First patch after a data update to 1.6.0.2 | `1.6.2.1` |
 
 Edit `VERSION` before building a release; use the matching Android tag, such as
-`android-v1.6.0.1.1`. This labels the patch's target data version; it does not check
+`android-v1.6.1.1`. This labels the patch's target data version; it does not check
 the phone's data version. Android's numeric `versionCode` stays separate and must
 increase across releases, including when the last patch number resets. CI uses its
 increasing workflow run number; local builds can set `-PpatchVersionCode=<number>`.
@@ -62,7 +64,7 @@ increasing workflow run number; local builds can set `-PpatchVersionCode=<number
 | Trigger | Result |
 |---|---|
 | Push to `master`, pull request, or **Actions → Android APK → Run workflow** | Full-codec development APK and check reports under the run's artifacts |
-| Push a tag matching `VERSION`, such as `android-v1.6.0.1.1` | Release APK signed with the previous patcher key, SHA-256, codec source companion and a draft GitHub release |
+| Push a tag matching `VERSION`, such as `android-v1.6.1.1` | Release APK signed with the previous patcher key, SHA-256, codec source companion and a draft GitHub release |
 
 CI runs Android unit tests, lint, native ELF alignment, APK ZIP alignment and signer verification.
 Artifacts expire after 14 days; draft release attachments remain. Release drafts need review before
