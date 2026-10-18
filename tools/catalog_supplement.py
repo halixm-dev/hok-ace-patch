@@ -45,6 +45,18 @@ TEXTS: dict[str, tuple[str, str]] = {
     "你的单位每合计进行25次普攻，所有己方英雄等级永久+2。": (
         "Every 25 total basic attacks performed by your units, all allied Hero levels permanently +2.",
         "Setiap total 25 serangan dasar yang dilakukan unit kamu, level semua Hero ally +2 secara permanen."),
+    "<a href=3><color=#ffffff>╪<b>开团</b></color></a>：距离最近的{HPtuteng31080:2}名己方英雄获得装备<color=#ffffff><b>玄微之种</b></color>。": (
+        "<a href=3><color=#ffffff>╪<b>Initiate</b></color></a>: The {HPtuteng31080:2} nearest allied Heroes gain the"
+        " <color=#ffffff><b>Seed of Xuanwei</b></color> Equipment.",
+        "<a href=3><color=#ffffff>╪<b>Initiate</b></color></a>: {HPtuteng31080:2} Hero ally terdekat mendapat Equipment"
+        " <color=#ffffff><b>Seed of Xuanwei</b></color>."),
+    "蒙犽发射12枚导弹攻击随机敌人，每枚造成<color=#dfa15e>[524311p1q1]+[524311p1q2/100]%物理攻击力的物理伤害</color>。多枚导弹命中同一目标时，后续伤害衰减40%。": (
+        "Meng Ya fires 12 missiles at random enemies, each dealing <color=#dfa15e>[524311p1q1]+[524311p1q2/100]%"
+        " Physical Attack as Physical Damage</color>. When several missiles hit the same target, each further hit"
+        " deals 40% less Damage.",
+        "Meng Ya meluncurkan 12 rudal untuk menyerang musuh acak, masing-masing memberikan <color=#dfa15e>Physical"
+        " Damage sebesar [524311p1q1]+[524311p1q2/100]% Physical Attack</color>. Saat beberapa rudal mengenai target"
+        " yang sama, damage berikutnya berkurang 40%."),
     "回合开始时，场上友方英雄获得已觉醒英雄数量×2的等级。": (
         "At the start of the Round, allied heroes on the field gain levels equal to the number of Awaken Heroes ×2.",
         "Di awal Ronde, hero ally di lapangan mendapat level sebesar jumlah Hero Awaken ×2."),

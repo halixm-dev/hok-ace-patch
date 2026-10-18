@@ -147,6 +147,19 @@ keyword label now reads `Combine`; Indonesian already used `Combine`. These chec
 earlier zero-leftover claim above; current device acceptance remains pending. Evidence is in the
 2026-10-17 Chano/Yao entry of `docs/lab-notebook.md`.
 
+On 2026-10-18 the Seer Totem card (先知图腾) showed its *Initiate* skill in Chinese: the game now writes
+"己方英雄" (allied heroes) where the catalog's two variants say 【大河流域】. The `{HPtuteng31080:2}` form is
+in 11 package-`1` tables of the saved override layer (the `:4` form was not found), and both languages now
+receive one supplement entry for it. It adds rows to tables already counted, so no count moves. The same
+screen's `出装` (Build) button stays Chinese: it is a package-19 prefab label, which no pass rewrites.
+
+The same day Meng Ya's skill (*Missile Support*) read Chinese: the game now fires 12 missiles, where the
+catalog has the 6- and 8-missile forms. The 12-missile form is in 3 package-`1` tables of the override layer
+and in none of the prime layer; both languages now receive one supplement entry for it. The card update
+announcement (卡牌更新公告) stays Chinese. Its change notes (`初始法力值30→0`, `新增天赋`, ...) are in
+neither data layer, and the only match for its title is a Lua comment beside `CLTSTS_NEWS`. That points to
+text the server sends. Its 削弱/优化/调整/增强/新增 tags are a package-19 prefab (`073A9BC1840032F3`).
+
 Yao's old English description can now be corrected by rerunning with the updated patcher.
 `catalog_updates` adds exact old-to-current mappings for 22 measured rows in 11 existing catalog
 tables. This changes installed wording without clearing game data or adding asset coverage.
