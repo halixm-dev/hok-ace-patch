@@ -4,7 +4,7 @@ Status: done. Measured and shipped in source: lab notebook, 2026-10-18, "Android
 and five fewer passes". Proposals 1–5 below are implemented (6 was not measured). Phone runs: 906 s → 616–621 s
 on a Redmi Note 9 Pro. The launcher keeping each replaced game APK (~2.4 GB) until it restarts, which made
 two runs fail their storage check, is fixed in source (`releaseReplacedGameApks`, see "Launcher-pinned APKs"
-below) but not yet measured on a phone; see "Still open".
+below) and checked on the phone: a run ends with no net loss of free space.
 
 ## Starting point
 
@@ -87,9 +87,11 @@ The home app keeps each replaced ~2.4 GB game APK on storage until it restarts; 
 `am force-stop` of the launcher freed 9.45 GiB. This caused two storage refusals during the runs. The
 privileged worker now force-stops the default home app after each game install, and the patch run,
 recovery and APK preparation release once more before their first budget
-(`releaseReplacedGameApks`). Not yet measured on a phone.
+(`releaseReplacedGameApks`). On the phone a run now ends where it started (15.66 GiB),
+and a manual launcher force-stop afterwards frees nothing (lab notebook, same entry).
 
 ## Still open
 
-- Run the instrumentation probes on a phone after these changes.
-- Measure the launcher release on a phone (free space before and after one patch run).
+- `CoordinatorRecoveryProbeTest`, `FullCoordinatorProbeTest`, `ApkPreparationProbeTest` and
+  `CoordinatorSourceGuardProbeTest` need the 1.4.0.2 fixtures, which only the Xiaomi `f15a72e` has. Run them there.
+- Other launchers are unmeasured.

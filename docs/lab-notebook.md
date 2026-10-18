@@ -3304,7 +3304,7 @@ time is about 113–121 s, so `build_snapshot` spent roughly 140–180 s on chec
 | Streamed snapshot | A 2.95 GB tar of the real layer (741 files) through an OS pipe gives the same manifest as file extraction, and its stream identity equals the tar's. Truncated, header-cut and oversized streams are refused and leave no destination (`tools/research/check_mobile_snapshot.py`, 8 tests). |
 | Manifest lookup | `package_files_at` equals `pristine_delta.files_at` on a pristine layer (741 files, none staged) and a staged one (all 11). |
 | Process killed during the build | `am force-stop` of the patcher 60 s into a build, with the access APK installed (`DEBUGGABLE`). The reopened app showed *Finish your game safely*. Recovery reinstalled and verified the normal APK, the session became `CANCELLED`, it freed 2.7 GB, and `DEBUGGABLE` is absent afterwards. |
-| Other checks | `check_pristine_delta` (15), `check_staging_contract` and `check_references` pass. `:app:assembleRelease :app:assembleDebugAndroidTest` builds. The instrumentation probes were not run on a phone after the change. |
+| Other checks | `check_pristine_delta` (15), `check_staging_contract` and `check_references` pass. `:app:assembleRelease :app:assembleDebugAndroidTest` builds. The instrumentation probes: see the phone check of the fix below. |
 
 **Side finding: the launcher pins replaced game APKs.** Free space fell from about 18 GB to 2.03 GiB over
 these runs, although each run freed its 3.0–3.3 GB of temporary files. A baseline retry was refused (7.46 GB
@@ -3316,8 +3316,27 @@ install leaves the replaced ~2.4 GB APK held until the launcher restarts. The ol
 times per run and the new one twice. Fixed in the same change: the privileged worker force-stops the
 default home app after each game install (`releaseReplacedGameApks`), and the coordinator and the APK
 preparation call it once more before their first storage budget. It skips an unresolved home (the
-chooser), the game, the patcher and Shizuku. The fix compiles; its release has not been measured on a
-phone, and other launchers are unmeasured.
+chooser), the game, the patcher and Shizuku. Other launchers are unmeasured.
+
+**Phone check of the fix (same phone, same day).** The branch release build (SHA-256 `25ca590a…1568`,
+patcher key) ran one English rebuild from the delta. The run completed with 389 tables, 398 applied
+textures, 1 skipped table and 0 skipped textures, and kept a 14-file delta. The patch flow, from the start
+command to the result, took 603 s, in line with the 616–621 s above. The worker restarted
+`com.google.android.apps.nexuslauncher` three times: before the first budget, and after each of the two
+installs. Each restart took about 0.3 s and measured 0–12 KiB freed within its 1 s window. Free space went
+from **15.66 → 10.24 (lowest) → 15.66 GiB**, so the run ended with no net loss. Before the fix, every run
+lost the replaced APKs. A manual `am force-stop` of the launcher afterwards freed nothing (−4 KiB), so no
+replaced APK was still held. Receipts: `.scratch/patch-speed/launcher-run-logcat.txt` and
+`launcher-run-free-space.txt` (phone epoch seconds, KiB free).
+
+Probes on the same phone (debug app plus its `androidTest` APK, `am instrument`): 17 of 18 pass, in 7.8 s.
+The classes are `TransactionProbeTest`, `RemovalRollbackProbeTest`, `JournalProbeTest`, `SnapshotProbeTest`,
+`PristineDeltaProbeTest`, `StorageProbeTest`, `EmergencyRestoreProbeTest`, `SessionPublicationProbeTest` and
+`CoordinatorSourceGuardProbeTest`. The one failure, `CoordinatorSourceGuardProbeTest`, stops in
+`ApkIdentity.read` on its hard-coded 1.4.0.2 recovery APK (`b0b08f4a…`), which this phone does not have.
+`CoordinatorRecoveryProbeTest`, `FullCoordinatorProbeTest` and `ApkPreparationProbeTest` need the same
+1.4.0.2 fixtures under `files/scratch` and were not run (`.scratch/patch-speed/launcher-probes.txt`).
+Afterwards the release build was reinstalled and the test package removed.
 
 **Verdict:** shipped in source, uncommitted at the time of writing. On this phone a rebuild-from-delta run
 takes 616–621 s instead of 906 s (−32%), peak free-space use drops by about 3.7 GiB, coverage is unchanged
