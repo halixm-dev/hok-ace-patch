@@ -14,5 +14,15 @@
 
 - [ ] Signals (i)–(iii) as 01 found them to behave
 - [ ] Two-access-cycle run in both patchers, with the user's confirmation step
-- [ ] Replaced-file acceptance and the mixed-file refusal
+- [x] Replaced-file acceptance and the mixed-file refusal (2026-10-18, offline): per package, by the
+      delta's asset record (`pristine_delta.accept_replaced`), then the text signal; both patchers.
+      `tools/research/check_update_repatch.py` on the real 1.6.0.1 packages with faked updates.
 - [ ] Device cycle at a real update: update finishes, repatch succeeds, no clear, login kept
+
+## Notes
+
+2026-10-18: the acceptance side ships without the pristine write-back before the update. A run after
+an update the game finished accepts each package the update changed cleanly and refuses the rest, as
+before. Whether a real update leaves packages clean (repair restores every translated asset, or the
+package is downloaded whole) or mixed is ticket 01's question; the faked updates only stand in for it.
+The write-back and signals (i)–(iii) still wait on 01.

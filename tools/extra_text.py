@@ -5,7 +5,8 @@
   for it.
 * UI text components in Unity prefabs get the official English for exact matches, when a package is
   listed as carrying them.
-* A Lua UI script that hard-codes a label (`SCRIPT_LABELS`) gets that one literal replaced.
+* A Lua UI script that hard-codes a label (`SCRIPT_LABELS`) gets that one literal replaced, and one that
+  joins words the Chinese way (`SCRIPT_EDITS`) gets that one literal edited.
 
 Assets are rewritten with the same chunk count they already have (`device_extensions.write_assets`).
 
@@ -136,6 +137,24 @@ SCRIPT_LABELS: dict[int, tuple[tuple[str, str], ...]] = {
     # in 1.4.0.2, so it reaches the phone through the append pass.
     0x9BD30F0DF58B1FBF: (('name = "{}"', "通用"),),
 }
+# Lua UI scripts whose own formatting is wrong for a translation: each entry is an exact source literal
+# and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
+SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
+    # PVPRankDataClass (package 10): a rank title is the tier name and its sub-level numeral joined with
+    # no space, which reads "至尊星耀III" in Chinese and "Supreme StarIII" translated (the lobby's rank
+    # line, `vGetRankTitle`, and the simple form, `vGetTitleByRankOrLevel`). Device-verified 2026-10-18 on
+    # 1.6.0.1: the lobby reads "Supreme Star III".
+    0x6CB505C6553141B4: (
+        ('string.format("%s%s", Localize.GetString(string.format("RankLevel%s", rank)), romanCArray[level])',
+         'string.format("%s %s", Localize.GetString(string.format("RankLevel%s", rank)), romanCArray[level])'),
+        ('string.format("%s%s", Localize.GetString(string.format(simple and "SimpleRankLevel%s" or '
+         '"RankLevel%s", rank)), romanCArray[level])',
+         'string.format("%s %s", Localize.GetString(string.format(simple and "SimpleRankLevel%s" or '
+         '"RankLevel%s", rank)), romanCArray[level])'),
+    ),
+}
+# Every Lua script the pass may write.
+SCRIPT_ASSETS = frozenset(SCRIPT_LABELS) | frozenset(SCRIPT_EDITS)
 _CJK_RUN = re.compile(r"[\u3400-\u9fff\uf900-\ufaff]+")
 
 
@@ -206,7 +225,8 @@ def official_only(catalog):
 
 
 def rewrite_script(file_hash: int, raw: bytes, catalog) -> bytes | None:
-    """<raw> with the SCRIPT_LABELS literals of <file_hash> translated, or None when nothing changes."""
+    """<raw> with the SCRIPT_LABELS literals of <file_hash> translated and its SCRIPT_EDITS applied, or
+    None when nothing changes."""
     new = raw
     translate = official_only(catalog)
     for template, label in SCRIPT_LABELS.get(file_hash, ()):
@@ -217,14 +237,17 @@ def rewrite_script(file_hash: int, raw: bytes, catalog) -> bytes | None:
         old, replacement = template.format(label).encode(), template.format(target).encode()
         if new.count(old) == 1:
             new = new.replace(old, replacement)
+    for old, replacement in SCRIPT_EDITS.get(file_hash, ()):
+        if new.count(old.encode()) == 1:
+            new = new.replace(old.encode(), replacement.encode())
     return new if new != raw else None
 
 
 def plan_scripts(package, skip: set[int]) -> dict[int, bytes]:
-    """The SCRIPT_LABELS assets <package>'s own copy carries, read raw, for `rewrite_script`."""
+    """The SCRIPT_ASSETS <package>'s own copy carries, read raw, for `rewrite_script`."""
     from qts_relocate import read_raw
 
-    wanted = [file_hash for file_hash in SCRIPT_LABELS
+    wanted = [file_hash for file_hash in SCRIPT_ASSETS
               if file_hash not in skip and (entry := package.entries.get(file_hash)) is not None
               and entry.compression in (1, 4)]
     if not wanted:
@@ -326,7 +349,7 @@ def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] 
             continue
         if len(package.shard_paths) != 1:
             continue
-        # The named script labels are the one thing this pass writes in an excluded package.
+        # The named scripts are the one thing this pass writes in an excluded package.
         jobs = {file_hash: new for file_hash, raw in plan_scripts(package, skip).items()
                 if (new := rewrite_script(file_hash, raw, catalog)) is not None}
         if package_dir.name not in EXCLUDED_PACKAGES:

@@ -61,7 +61,7 @@ def estimate(packages: Path | str, catalog: Path | str, apk: Path | str, manifes
         raise ValueError("Invalid pristine copy size")
     from wxq_patch.adaptive import load_catalog
     from wxq_patch.qtsvfs import QtsPackage
-    from extra_text import SAFE_ASSETS, SCRIPT_LABELS, UNITY_TEXT_PACKAGES
+    from extra_text import SAFE_ASSETS, SCRIPT_ASSETS, UNITY_TEXT_PACKAGES
     from mobile_graphics import DEVICE_REVISIONS
 
     packages, catalog, apk = Path(packages), Path(catalog), Path(apk)
@@ -81,7 +81,7 @@ def estimate(packages: Path | str, catalog: Path | str, apk: Path | str, manifes
         raise ValueError("Build source exceeds snapshot budget")
 
     loaded = load_catalog(catalog)
-    tables = loaded.known | SAFE_ASSETS | set(SCRIPT_LABELS)
+    tables = loaded.known | SAFE_ASSETS | SCRIPT_ASSETS
     # Textures go straight to the staged package; device revisions are their aliases on the phone.
     wanted = tables | set(loaded.graphics) | set(DEVICE_REVISIONS)
     source_payload_bytes = 0

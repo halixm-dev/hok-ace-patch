@@ -80,6 +80,7 @@ public final class ApkPreparationProbeTest {
         @Override public void validateFirstSetupSource(String sha) { throw new UnsupportedOperationException(); }
         // No other Android profiles in this fixture; preparation may ask before copying.
         @Override public void checkGameProfiles() { }
+        @Override public String releaseReplacedGameApks() { return "{\"released\":false,\"freed_bytes\":0}"; }
         @Override public boolean firstSetupGameAbsent() { throw unsupported(); }
         @Override public void removeGameForFirstSetup(String sha) { throw unsupported(); }
         @Override public String installFirstSetupGame(ParcelFileDescriptor source, long length) { throw unsupported(); }

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -47,6 +48,12 @@ LAYER = Path("game") / "WXQ_Data" / "Package" / "builtin"
 PENDING_DELTA = "delta.pending.bin"
 # In the working folder: the pristine delta and the staged-hash record; never pruned.
 KEEP_DIR = "pristine"
+# Written into a session once its layer copy matches the phone; a later run copies unchanged files from it.
+PULL_RECORD = "pull.json"
+# Phone paths a partial pull accepts; anything else falls back to the full pull. Also keeps them shell-safe.
+LAYER_NAME = re.compile(r"[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*")
+# Characters of file names per `tar` command, well under adb's command length on old devices.
+PULL_BATCH_CHARS = 3000
 CLEAR_DATA = ("Clear the game's data on the phone (Settings > Apps > the game > Storage > Clear data), open "
               "the game and let it download again to the login screen, close it, then run the patcher again.")
 OTHER_PATCHER = "If the Android patcher patched this phone last, patch it with that patcher instead."
@@ -137,6 +144,39 @@ def check_work_dir(path: Path) -> None:
                          f"needed (currently {free / 1024**3:.1f} GB). Choose a folder on another drive.")
 
 
+def parse_device_hashes(output: str) -> dict[str, str] | None:
+    """`sha256sum` output run in the phone's `packages/`, as {`<package id>/<file>`: SHA-256}.
+
+    None when any line is not a plain digest and layer path, so the caller falls back to the full pull.
+    """
+    hashes: dict[str, str] = {}
+    for line in output.splitlines():
+        if not line.strip():
+            continue
+        digest, _, name = line.partition("  ")
+        name = name.removeprefix("./")
+        if (len(digest) != 64 or digest.strip("0123456789abcdef") or not LAYER_NAME.fullmatch(name)
+                or {".", ".."} & set(name.split("/")) or name in hashes):
+            return None
+        hashes[name] = digest
+    return hashes or None
+
+
+def reusable_files(device: dict[str, str], sources: list[Path]) -> tuple[dict[str, Path], list[str]]:
+    """Split <device> into the files some <sources> folder holds at the same SHA-256, and the rest."""
+    found: dict[str, Path] = {}
+    missing = []
+    for name, digest in sorted(device.items()):
+        for source in sources:
+            path = source / name
+            if path.is_file() and pristine_delta.sha256_file(path) == digest:
+                found[name] = path
+                break
+        else:
+            missing.append(name)
+    return found, missing
+
+
 def holds_delta(work: Path) -> bool:
     """Whether <work> keeps a pristine delta, so a translated phone can be repatched without a clear."""
     return (work / KEEP_DIR / pristine_delta.DELTA_NAME).is_file()
@@ -177,6 +217,9 @@ class Adb:
     def shell(self, command: str, check: bool = True) -> str:
         return self.run("shell", command, check=check)
 
+    def exec_out(self, command: str) -> str:
+        return self.run("exec-out", command)
+
     def exec_out_to_file(self, command: str, target: Path) -> None:
         with target.open("wb") as out:
             result = subprocess.run([self.exe, "exec-out", command], stdout=out, stderr=subprocess.PIPE,
@@ -213,6 +256,8 @@ class Patcher:
         self.current: str | None = None
         self.data_version = ""
         self.keep = work / KEEP_DIR
+        # Files a game update replaced that `restore_pristine` took as the new pristine.
+        self.replaced: list[str] = []
 
     def run(self) -> dict:
         check_work_dir(self.work)
@@ -239,9 +284,9 @@ class Patcher:
             if self.remove:
                 return self.write_back_pristine(session, restored)
             summary, staged = self.build_translation(session)
-            if restored is None:
+            if restored is None or self.replaced:
                 self.check_first_delta(summary)
-                restored = []
+                restored = restored or []
             result = summary
             if staged or restored:
                 self.push_translation(session, staged, restored)
@@ -434,12 +479,33 @@ class Patcher:
             raise PatchError("The game data has not been downloaded yet. Open the game, wait for the download to "
                              "reach the login screen, close the game, then run the patcher again.")
         self.log(f"Game data version: {info.strip()}")
+        self.data_version = info.strip()
         session = self.work / "sessions" / datetime.now().strftime("%Y%m%d-%H%M%S")
         session.mkdir(parents=True)
+        previous = self.previous_session(session)
+        record = None
+        if previous:
+            try:
+                record = self.pull_changed(session, previous)
+            except (OSError, tarfile.TarError, PatchError) as error:
+                self.log(f"  the partial pull failed ({error}): pulling everything")
+        if record is None:
+            shutil.rmtree(session / LAYER, ignore_errors=True)
+            for part in session.glob("pull-*.tar"):
+                part.unlink()
+            self.ui.set_step("pull", "active", "~2 GB")
+            record = self.pull_everything(session)
+        (session / PULL_RECORD).write_text(json.dumps({"data_version": self.data_version, **record}, indent=1),
+                                           encoding="utf-8")
+        self.done("pull", info.strip())
+        return session
+
+    def pull_everything(self, session: Path) -> dict:
+        """Pull the whole override layer, and the Watchdog folder, as one tar kept as the session's backup."""
         backup = session / "device-backup.tar"
         self.adb.exec_out_to_file(f"run-as {PACKAGE} tar -cf - -C files/QtsVFSCache packages Watchdog", backup)
-        game = session / "game" / "WXQ_Data" / "Package"
-        game.mkdir(parents=True)
+        game = session / LAYER.parent
+        game.mkdir(parents=True, exist_ok=True)  # a failed partial pull leaves it behind
         # Extract straight into builtin/: renaming the folder afterwards fails at random on Windows,
         # while a scanner still holds some of the 2 GB of files just written (seen 2026-10-17).
         with tarfile.open(backup) as tar:
@@ -447,9 +513,66 @@ class Patcher:
             for member in members:
                 member.name = "builtin/" + member.name.removeprefix("packages/")
             tar.extractall(game, members=members, filter="data")
-        self.data_version = info.strip()
-        self.done("pull", info.strip())
-        return session
+        layer = session / LAYER
+        hashes = {name: pristine_delta.sha256_file(layer / name)
+                  for name in (member.name.removeprefix("builtin/") for member in members)}
+        return {"mode": "full", "files": len(members), "pulled_bytes": backup.stat().st_size, "sha256": hashes}
+
+    def previous_session(self, session: Path) -> Path | None:
+        """The newest other session whose layer copy matched the phone when it was pulled."""
+        for old in sorted((self.work / "sessions").iterdir(), reverse=True):
+            if old != session and (old / PULL_RECORD).is_file() and (old / LAYER).is_dir():
+                return old
+        return None
+
+    def pull_changed(self, session: Path, previous: Path) -> dict | None:
+        """Pull only the files the phone holds at bytes <previous> has no copy of; None to pull everything.
+
+        The phone hashes its layer, each file another session holds at that SHA-256 is copied from it, and
+        the rest is pulled and checked against the phone's hash. The session's layer then holds exactly
+        the phone's bytes, so every later step reads what a full pull would have given it. This session
+        keeps no backup tar, which only a full pull writes.
+        """
+        self.ui.set_step("pull", "active", "comparing with the last run")
+        output = self.adb.exec_out(f"run-as {PACKAGE} sh -c "
+                                   f"'cd files/QtsVFSCache/packages && find . -type f -exec sha256sum {{}} +'")
+        device = parse_device_hashes(output)
+        if not device or "1/1.info" not in device:
+            self.log("  the phone's file hashes did not read: pulling everything")
+            return None
+        found, missing = reusable_files(device, [previous / "staged", previous / LAYER])
+        layer = session / LAYER
+        for name, source in found.items():
+            (layer / name).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, layer / name)
+        self.log(f"  {len(found)} of {len(device)} files unchanged since {previous.name}; "
+                 f"pulling {len(missing)}")
+        batches: list[list[str]] = []
+        for name in missing:
+            if not batches or sum(len(item) + 1 for item in batches[-1]) + len(name) > PULL_BATCH_CHARS:
+                batches.append([])
+            batches[-1].append(name)
+        pulled_bytes = 0
+        for index, batch in enumerate(batches):
+            part = session / f"pull-{index}.tar"
+            self.adb.exec_out_to_file(f"run-as {PACKAGE} tar -cf - -C files/QtsVFSCache/packages "
+                                      + " ".join(batch), part)
+            wanted = set(batch)
+            with tarfile.open(part) as tar:
+                members = [m for m in tar.getmembers() if m.isfile() and m.name.removeprefix("./") in wanted]
+                for member in members:
+                    member.name = member.name.removeprefix("./")
+                tar.extractall(layer, members=members, filter="data")
+            pulled_bytes += part.stat().st_size
+            part.unlink()
+        for name in missing:
+            path = layer / name
+            if not path.is_file() or pristine_delta.sha256_file(path) != device[name]:
+                self.log(f"  {name} did not arrive as the phone holds it: pulling everything")
+                return None
+        self.log(f"  pulled {pulled_bytes / 1e6:.1f} MB instead of the whole layer")
+        return {"mode": "changed", "files": len(device), "pulled_files": len(missing),
+                "pulled_bytes": pulled_bytes, "copied_from": previous.name, "sha256": device}
 
     # ---------- pristine delta ----------
     def _read_delta(self, name: str) -> pristine_delta.Delta | None:
@@ -493,9 +616,18 @@ class Patcher:
         if not report.complete:
             for name, state in sorted(report.unmatched.items()):
                 self.log(f"  {name}: {state} since the last install")
-            self.log(f"  cannot rebuild from the pristine delta: {len(report.unmatched)} file(s) changed")
-            raise PatchError("The game files changed since the last patch (a game update or repair), so the "
-                             "patcher cannot rebuild the untranslated files.\n\n" + CLEAR_DATA)
+            accepted, refused = pristine_delta.accept_replaced(layer, delta or pending, report,
+                                                               fallback=pending if delta else None)
+            for package, reason in refused.items():
+                self.log(f"  package {package} cannot be read as untranslated: {reason}")
+            if refused:
+                self.log(f"  cannot rebuild from the pristine delta: {len(report.unmatched)} file(s) changed")
+                raise PatchError("The game files changed since the last patch (a game update or repair), so the "
+                                 "patcher cannot rebuild the untranslated files.\n\n" + CLEAR_DATA)
+            # The update's bytes stand as the new pristine; the text pass must still read them as such.
+            self.replaced = accepted
+            self.log(f"  {len(accepted)} file(s) the game update replaced hold none of this patcher's "
+                     "translation: building from them as the update left them")
         leftover = [name for name in translated if name not in report.rebuilt]
         if leftover:
             self.log(f"  still translated after the rebuild: {', '.join(leftover)}")
@@ -506,10 +638,13 @@ class Patcher:
         return report.rebuilt
 
     def check_first_delta(self, summary: dict) -> None:
-        """Refuse a first install over a layer the text pass did not read as pristine."""
+        """Refuse a first install, or a build over files an update replaced, the text pass did not read as pristine."""
         reason = pristine_delta.text_not_pristine(summary)
         if reason:
             self.log(f"  not the pristine layer: {reason}")
+            if self.replaced:
+                raise PatchError("The game update left some of this patcher's translation in the files it "
+                                 "changed, so the patcher cannot rebuild the untranslated files.\n\n" + CLEAR_DATA)
             raise PatchError("This phone is already translated (by an older patcher version or another "
                              "patcher), so the patcher cannot switch or update the translation without its "
                              "untranslated game files.\n\n" + CLEAR_DATA + "\n\n" + OTHER_PATCHER)
@@ -627,13 +762,21 @@ class Patcher:
         if untranslated:
             self.log(f"  {len(untranslated)} file(s) go back to their "
                      f"original bytes: {', '.join(untranslated)}")
-        delta = (pristine_delta.make(session / LAYER, staged, info=self._delta_info()) if staged
-                 else pristine_delta.Delta((), self._delta_info()))
+        delta = (pristine_delta.make(session / LAYER, staged, info=self._delta_info(), fingerprint=True)
+                 if staged else pristine_delta.Delta((), self._delta_info()))
         pristine_delta.write(delta, self.keep / PENDING_DELTA)
         pristine_delta.record_staged_hashes(self.keep / pristine_delta.STAGED_HASHES_NAME, delta.staged_hashes)
+        # A file the phone already holds at these bytes (the pull recorded every file's SHA-256) is not
+        # written again, as on a re-run of the same language and catalog.
+        phone = self._pulled_hashes(session)
+        unchanged = sorted(name for name, path in files.items()
+                           if name in phone and phone[name] == pristine_delta.sha256_file(path))
+        if unchanged:
+            self.log(f"  {len(unchanged)} file(s) already on the phone at these bytes: {', '.join(unchanged)}")
         packages: dict[str, list[str]] = {}
         for name in files:
-            packages.setdefault(name.split("/")[0], []).append(name)
+            if name not in unchanged:
+                packages.setdefault(name.split("/")[0], []).append(name)
         self.adb.shell(f"rm -rf {REMOTE_TMP} && mkdir -p {REMOTE_TMP}")
         for package_id in sorted(packages, key=int):
             remote = f"{REMOTE_TMP}/{package_id}"
@@ -643,7 +786,8 @@ class Patcher:
             self.adb.shell(f"chmod -R 755 {REMOTE_TMP}")
             self.adb.shell(f"run-as {PACKAGE} sh -c 'cp {remote}/* files/QtsVFSCache/packages/{package_id}/'")
             self.log(f"  package {package_id} installed")
-        self.adb.shell(f"run-as {PACKAGE} sh -c 'rm -rf files/QtsVFSCache/Watchdog/*'")
+        if packages:
+            self.adb.shell(f"run-as {PACKAGE} sh -c 'rm -rf files/QtsVFSCache/Watchdog/*'")
         self.adb.shell(f"rm -rf {REMOTE_TMP}", check=False)
         if delta.files:
             os.replace(self.keep / PENDING_DELTA, self.keep / pristine_delta.DELTA_NAME)
@@ -656,6 +800,15 @@ class Patcher:
             (self.keep / PENDING_DELTA).unlink(missing_ok=True)
             self.log("  the game files are untranslated; no pristine delta is kept")
         self.done("install")
+
+    @staticmethod
+    def _pulled_hashes(session: Path) -> dict[str, str]:
+        """The SHA-256 of every file the phone held when <session> was pulled; empty when not recorded."""
+        try:
+            hashes = json.loads((session / PULL_RECORD).read_text(encoding="utf-8")).get("sha256")
+        except (OSError, ValueError):
+            return {}
+        return hashes if isinstance(hashes, dict) else {}
 
     def restore_normal_apk(self) -> None:
         self.step("restore", "check the phone for a Play Protect pop-up")

@@ -34,7 +34,9 @@ QTS-failure popup, `/未翻译UI/QTSFailureTips`: 2 of 2 matches with them, none
 verdicts had watched the replay crash only. The three were not bisected, so each may come back through this
 queue. The pass now also carries `SCRIPT_LABELS`, an exact literal in a Lua UI script (the Effect Card
 filter's `通用`), which is not a config bin, was verified on its screen and across a match, and reaches the
-phone through the append because the script is prime-only. Symptoms and dates are beside the allowlist in
+phone through the append because the script is prime-only. `SCRIPT_EDITS` carries exact literal edits
+to a Lua script's own formatting under the same once-only rule: the rank title's `"%s%s"` in
+`6CB505C6553141B4`, which joined "Supreme Star" and "III" with no space. Symptoms and dates are beside the allowlist in
 `tools/extra_text.py`; the evidence is in `docs/lab-notebook.md`'s 2026-10-05 section.
 
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the

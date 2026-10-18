@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import os
 import re
 import shutil
 import tarfile
 from pathlib import Path, PurePosixPath
+from typing import BinaryIO
 
 MAX_FILES = 8192
 MAX_BYTES = 8 * 1024**3
@@ -44,8 +46,45 @@ def validate_path(name: str, *, directory: bool = False) -> None:
         raise ValueError("Unsupported package filename")
 
 
-def extract_snapshot(archive: Path, destination: Path, *, maximum_bytes: int = MAX_BYTES) -> dict:
-    """Stream a fresh tar into private storage; links, duplicates and unknown files fail closed."""
+class HashingReader(io.RawIOBase):
+    """A read-only stream that hashes and counts every byte read through it, refusing more than <limit>."""
+
+    def __init__(self, stream: BinaryIO, limit: int):
+        self.stream, self.limit, self.bytes, self.hash = stream, limit, 0, hashlib.sha256()
+
+    def readable(self) -> bool:
+        return True
+
+    def readinto(self, buffer) -> int:
+        count = self.stream.readinto(buffer)
+        if count:
+            self.bytes += count
+            if self.bytes > self.limit:
+                raise ValueError("Snapshot stream exceeds its storage budget")
+            self.hash.update(memoryview(buffer)[:count])
+        return count or 0
+
+    def drain(self) -> None:
+        """Read to the end, so the transport identity covers the tar's trailing padding too."""
+        while self.read(1024 * 1024):
+            pass
+
+
+def extract_snapshot_stream(stream: BinaryIO, destination: Path, *, maximum_bytes: int = MAX_BYTES) -> dict:
+    """`extract_snapshot` from a stream, read to its end: the manifest plus the stream's bytes and SHA-256."""
+    reader = HashingReader(stream, maximum_bytes)
+    manifest = extract_snapshot(reader, destination, maximum_bytes=maximum_bytes)
+    try:
+        reader.drain()
+    except BaseException:
+        shutil.rmtree(destination)
+        raise
+    return {"manifest": manifest, "bytes": reader.bytes, "sha256": reader.hash.hexdigest()}
+
+
+def extract_snapshot(archive: Path | BinaryIO, destination: Path, *, maximum_bytes: int = MAX_BYTES) -> dict:
+    """Stream a fresh tar (a path or a readable stream) into private storage; links, duplicates and
+    unknown files fail closed."""
     if destination.exists() or not 0 < maximum_bytes <= MAX_BYTES:
         raise ValueError("Snapshot requires a fresh destination and a bounded budget")
     destination.mkdir(parents=True)
@@ -54,7 +93,9 @@ def extract_snapshot(archive: Path, destination: Path, *, maximum_bytes: int = M
     seen: set[str] = set()
     total = 0
     try:
-        with tarfile.open(archive, "r|") as source:
+        opened = (tarfile.open(archive, "r|") if isinstance(archive, Path)
+                  else tarfile.open(fileobj=archive, mode="r|"))
+        with opened as source:
             for member in source:
                 name = member.name.rstrip("/") if member.isdir() else member.name
                 validate_path(name, directory=member.isdir())
@@ -113,11 +154,28 @@ def extract_snapshot(archive: Path, destination: Path, *, maximum_bytes: int = M
         raise
 
 
-def verify_snapshot(destination: Path) -> dict:
-    """Rehash retained originals before trusting them for build or rollback."""
+def read_manifest(destination: Path) -> dict:
+    """The retained manifest, unverified: for estimates only, never to trust the files it names."""
     manifest = json.loads((destination / "manifest.json").read_text(encoding="utf-8"))
     if manifest.get("schema") != 1 or not 0 < len(manifest["files"]) <= MAX_FILES:
         raise ValueError("Unsupported snapshot manifest")
+    return manifest
+
+
+def package_files_at(manifest: dict, hashes: set[str]) -> list[str]:
+    """`pristine_delta.files_at` over a verified snapshot, read from its manifest instead of rehashing."""
+    found = []
+    for name, entry in manifest["files"].items():
+        parts = name.split("/")
+        if (len(parts) == 3 and parts[0] == "packages" and parts[1].isdecimal()
+                and parts[2].endswith(".db") and entry["sha256"] in hashes):
+            found.append(f"{parts[1]}/{parts[2]}")
+    return sorted(found, key=lambda name: (int(name.split("/")[0]), name))
+
+
+def verify_snapshot(destination: Path) -> dict:
+    """Rehash retained originals before trusting them for build or rollback."""
+    manifest = read_manifest(destination)
     actual_files = set()
     for root_name in ("packages", "Watchdog"):
         root = destination / root_name

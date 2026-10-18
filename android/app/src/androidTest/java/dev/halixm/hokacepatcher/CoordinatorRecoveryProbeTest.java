@@ -109,6 +109,7 @@ public final class CoordinatorRecoveryProbeTest {
         @Override public String snapshotGame(ParcelFileDescriptor destination, long maximumBytes) { throw new UnsupportedOperationException(); }
         @Override public void validateFirstSetupSource(String sha) { throw new UnsupportedOperationException(); }
         @Override public void checkGameProfiles() { throw new UnsupportedOperationException(); }
+        @Override public String releaseReplacedGameApks() { return "{\"released\":false,\"freed_bytes\":0}"; }
         @Override public boolean firstSetupGameAbsent() { throw new UnsupportedOperationException(); }
         @Override public void removeGameForFirstSetup(String sha) { throw new UnsupportedOperationException(); }
         @Override public String installFirstSetupGame(ParcelFileDescriptor source, long length) { throw new UnsupportedOperationException(); }

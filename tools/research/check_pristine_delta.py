@@ -27,6 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
+sys.path.append(str(ROOT / "resources" / "runtime"))  # asset fingerprints read packages through it
 import pristine_delta  # noqa: E402
 from pristine_delta import ALREADY_PRISTINE, CHANGED, MISSING, REBUILT, DeltaError  # noqa: E402
 
@@ -188,6 +189,23 @@ class Synthetic(unittest.TestCase):
                                           entry.staged_size, entry.staged_sha256, entry.ranges[:1])
         with self.assertRaises(DeltaError):
             pristine_delta.rebuild(self.staged_dir, pristine_delta.Delta((broken,)), self.root / "out")
+
+    def test_asset_record_round_trips_and_is_optional(self):
+        assets = {"1": {"00000000000000AA": [None, "b" * 64], "00000000000000BB": ["c" * 64, "d" * 64]}}
+        delta = pristine_delta.Delta(self._delta().files, {"x": 1}, assets)
+        self.assertEqual(pristine_delta.decode(pristine_delta.encode(delta)).assets, assets)
+        # A delta made before the record existed reads with none, and an older reader ignores the key.
+        self.assertIsNone(pristine_delta.decode(pristine_delta.encode(self._delta())).assets)
+        header = pristine_delta.encode(delta).split(b"\n")[1]
+        self.assertIn(b'"assets"', header)
+        broken = pristine_delta.Delta(delta.files, {}, {"1": {"00000000000000AA": "not a pair"}})
+        with self.assertRaises(DeltaError):
+            pristine_delta.decode(pristine_delta.encode(broken))
+
+    def test_unreadable_packages_are_left_out_of_the_asset_record(self):
+        # The synthetic files are not packages, so fingerprinting records nothing for them.
+        delta = pristine_delta.make(self.pristine_dir, self.staged_dir, fingerprint=True)
+        self.assertEqual(delta.assets, {})
 
     def test_staged_hash_record_accumulates(self):
         path = self.root / "pristine" / "staged-hashes.json"

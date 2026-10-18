@@ -64,6 +64,13 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Designate a Hero to Remove and Gain Energy. Gain 3/6/9/12 Energy based on the Hero's 0/1/2/3 Awaken Progress.",
         "Tunjuk satu Hero untuk dihapus dan dapatkan Energy. Dapatkan 3/6/9/12 Energy berdasarkan Awaken Progress"
         " Hero 0/1/2/3."),
+    "获得1张亚瑟，战斗开始时，亚瑟周围一格的友方英雄<color=#FFE897>变身为圣殿骑士</color>。亚瑟的普攻变为为血量最低的圣殿骑士回复生命值；技能改为指挥全体圣殿骑士朝敌人<color=#FFE897>冲锋</color>。": (
+        "Gain 1 Arthur. At the start of Battle, allied Heroes within 1 grid of Arthur <color=#FFE897>transform into"
+        " Templars</color>. Arthur's basic attacks now restore HP to the Templar with the lowest HP; his Skill is"
+        " changed to command all Templars to <color=#FFE897>Charge</color> at enemies.",
+        "Dapatkan 1 Arthur. Di awal Pertempuran, Hero ally dalam jarak 1 petak dari Arthur <color=#FFE897>berubah"
+        " menjadi Templar</color>. Basic attack Arthur kini memulihkan HP ke Templar dengan HP terendah; Skill-nya"
+        " berubah menjadi memerintahkan semua Templar untuk <color=#FFE897>Charge</color> ke musuh."),
     "第6/11回合，获得1张秘技牌<b>命运馈赠</b>。": (
         "On Round 6/11, Obtain 1 Secret Skill card <b>Fate Gift</b>.",
         "Di Ronde 6/11, dapatkan 1 kartu Secret Skill <b>Fate Gift</b>."),

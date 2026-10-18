@@ -240,16 +240,16 @@ Preferred production flow shortens the time the game stays debuggable:
 
 1. Preflight: Shizuku alive/authorized, supported UID and user, game installed unsplit, enough storage, no unresolved earlier session. Capture installed identity and complete normal-APK recovery material.
 2. First run only: show the existing data-loss and Scan-to-login explanation; obtain explicit in-app consent before uninstall. Install the patcher-signed normal game and wait for the full in-game update/login screen. Do not attempt to preserve official-signature private data by assumption.
-3. Force-stop game. Install access APK. Read package version, create and verify a complete snapshot including Watchdog, and collect file hashes.
-4. Restore and verify the normal APK before the potentially long engine build. Keep the game closed; record this requirement clearly. This costs additional large APK installations but improves recovery during computation.
-5. Build from the snapshot with `apk=normal_apk`, `builder_dir=None` and empty `cycle_assets`. Fail preflight if `REBUILD_PACKAGES` is nonempty. Verify staged payloads and summary before entering the write phase.
-6. Force-stop again, reinstall access APK and compare the live input version/hashes with the snapshot. If the user launched or updated the game, discard stale output and resnapshot. No writing across a changed input layer.
+3. Force-stop game. Install access APK. Read package version, create and verify a complete snapshot including Watchdog, and collect file hashes. The privileged tar streams through a pipe straight into the extraction (`unpack_snapshot_stream`); both ends hash the stream and must agree, and no archive file is written.
+4. Keep the access APK installed through the build, as the Windows patcher does. Keep the game closed; record this requirement clearly. Until 2026-10-18 the normal APK was restored and verified here and the access APK reinstalled after the build; that pair cost about 2.5 minutes and ~2.4 GB of transient install space on a Redmi Note 9 Pro, and is gone (lab notebook, 2026-10-18, "Android patch run: stage timings and five fewer passes"). A process killed during the build leaves the access APK installed until recovery restores the normal one, as during the snapshot and the apply.
+5. Build from the snapshot with `apk=normal_apk`, `builder_dir=None` and empty `cycle_assets`. Fail preflight if `REBUILD_PACKAGES` is nonempty. Verify staged payloads and summary before entering the write phase. The snapshot and APK are verified once, by `build_snapshot`, immediately before the build reads them; the storage estimate reads the manifest only.
+6. Force-stop again and compare the live layer with the snapshot (`validateGameSnapshot`, which also fails unless the access APK is still installed). No writing across a changed input layer.
 7. Back up affected files, write verified temporary siblings, commit replacements with the game stopped, read back SHA-256 and journal each file/package. Index and shard files must remain a consistent set; individual rename atomicity is not a transaction across several files. On partial apply, recover or roll back the entire affected set before allowing launch.
 8. Clear Watchdog in the same intended scope as desktop, restore normal APK, verify installed identity and no DEBUGGABLE flag, then report applied tables/images and both skipped counters.
 
 For the initial device spike, the shorter desktop sequence is acceptable solely to measure capabilities; always restore immediately afterwards. Benchmark the production sequence's extra APK I/O before deciding whether to optimize it. Do not trade restore reliability for a speculative speedup.
 
-Journal states should include PREPARED, WAITING_FOR_GAME_UPDATE, SNAPSHOT_ACCESS_INSTALLED, SNAPSHOT_READY, NORMAL_RESTORED_FOR_BUILD, BUILDING, STAGED, APPLY_ACCESS_INSTALLED, APPLYING, RESTORING, COMPLETE and RECOVERY_REQUIRED. Persist intent before destructive transitions and verified outcome afterwards. On restart inspect actual installed APK and partially written files; a `finally` block cannot recover a killed process or reboot.
+Journal states should include PREPARED, WAITING_FOR_GAME_UPDATE, SNAPSHOT_ACCESS_INSTALLED, SNAPSHOT_READY, BUILDING, STAGED, APPLYING, RESTORING, COMPLETE and RECOVERY_REQUIRED; a run goes SNAPSHOT_READY → BUILDING and STAGED → APPLYING directly. NORMAL_RESTORED_FOR_BUILD and APPLY_ACCESS_INSTALLED remain valid so journals of older runs still recover. Persist intent before destructive transitions and verified outcome afterwards. On restart inspect actual installed APK and partially written files; a `finally` block cannot recover a killed process or reboot.
 
 Cancel before access freely. During access/apply, cancellation becomes a controlled restore/rollback operation. Binder loss stops new writes and retains journal/backups. If access remains installed, present immediate normal-APK recovery; if packages are partially committed, explain that restoring the APK alone does not repair them and require rollback/resume before launch. Never mark a run complete while restore or file consistency is unresolved.
 
@@ -306,6 +306,12 @@ app carries its own; it is device-verified on the Infinix X6853.
 - `build_storage.estimate` (schema 2) reserves, twice, only the packages that hold catalog content,
   and extracts only the APK packages whose catalog content the override layer lacks, as
   `add_prime_only` does. The snapshot check also reserves the latest completed run's estimate.
+- The home app keeps each game APK an install replaced (~2.4 GB) on storage until it restarts; on a
+  Redmi Note 9 Pro one launcher force-stop freed 9.45 GiB (lab notebook, 2026-10-18, "Android patch run:
+  stage timings and five fewer passes"). `PrivilegedDeviceService.releaseReplacedGameApks` force-stops the
+  default home app after every game install, and `StorageBudget.releaseReplacedGameApks` calls it before
+  the patch run's, recovery's and the preparation's first budget. It never fails the caller and skips an
+  unresolved home (the chooser), the game, the patcher, Settings and Shizuku. Protocol version 10.
 
 ### Repatch from the pristine delta (2026-10-17)
 
@@ -323,13 +329,19 @@ Kotlin only names the files (`PristineDelta.kt`).
   pristine SHA-256. A file the previous install translated and this build leaves alone is copied into
   `out/` at its pristine bytes and written back like any staged file. The copy is deleted after the
   build, with `work/`.
-- Refusals, all raised by `build_snapshot` after the normal APK is back and before the apply's access
-  APK goes on, so no game file is written: a named file at neither its staged nor its pristine bytes; a
+- Refusals, all raised by `build_snapshot` before the first write, so no game file is written (recovery
+  then restores the normal APK): a named file at neither its staged nor its pristine bytes; a
   file at a hash this patcher staged with no delta (or no entry) behind it; and, with no delta, a
   build whose text pass does not read the layer as pristine (`pristine_delta.text_not_pristine`).
 - A delta that no longer matches while no file is at a hash this patcher staged is stale (the data
   was cleared and a newer version downloaded): the run builds as a first install, under the text
   signal, and its delta replaces the stale one. The Windows patcher does the same.
+- After an in-game update (2026-10-18), a package the update changed is accepted as the new pristine
+  when `pristine_delta.accept_replaced` finds none of its files at the staged bytes and none of the
+  delta's recorded assets still translated in `snapshot/packages`. `_restore_pristine` returns those
+  files as `replaced`: they are left out of the pristine copy and its `sha256`, so the build reads them
+  from the snapshot. `build_snapshot` then requires the text signal, and `PristineDelta.describe` logs
+  the count. The session delta is made with `fingerprint=True`. Same rule as the Windows patcher.
 - `build_snapshot` writes the staged install's delta to the session (`pristine-delta.bin`).
   `promoteSessionDelta` makes the newest completed session's delta the patcher's own, right after the
   run completes and again at the next run's start (for a run whose last step recovery finished); a

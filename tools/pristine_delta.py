@@ -12,7 +12,15 @@ directory. The delta always points at pristine, never at a previous install, and
 valid exactly while that file holds the staged SHA-256 it records.
 
 File format: `MAGIC`, one line of JSON (the header: `schema`, `info`, `files`, `body_bytes`,
-`body_sha256`), then a zlib body holding every range's pristine bytes in header order.
+`body_sha256`, and `assets` when fingerprinted), then a zlib body holding every range's pristine bytes
+in header order.
+
+**After an in-game update.** A file the update rewrote matches neither side of its entry, so the delta
+cannot rebuild it. `accept_replaced` decides, package by package, whether the update's bytes stand as
+the new pristine: no file of the package may still hold this patcher's bytes, and no asset this
+install changed may still be at its staged bytes (`assets`: per package, each changed asset's
+uncompressed SHA-256 on both sides, from `asset_fingerprints`). The caller then also requires the text
+pass to read the layer as pristine. A delta made before `assets` existed accepts no replaced file.
 """
 from __future__ import annotations
 
@@ -69,6 +77,8 @@ class FileEntry:
 class Delta:
     files: tuple[FileEntry, ...]
     info: dict = field(default_factory=dict)
+    # {package id: {asset hash: [pristine SHA-256 or None, staged SHA-256]}}; None when not fingerprinted.
+    assets: dict | None = None
 
     def entry(self, path: str) -> FileEntry | None:
         return next((item for item in self.files if item.path == path), None)
@@ -150,11 +160,14 @@ def changed_ranges(pristine_path: Path, staged_path: Path) -> tuple[list[tuple[i
     return merged, pristine_hash.hexdigest(), staged_hash.hexdigest()
 
 
-def make(pristine_dir: Path, staged_dir: Path, *, info: dict | None = None) -> Delta:
+def make(pristine_dir: Path, staged_dir: Path, *, info: dict | None = None,
+         fingerprint: bool = False) -> Delta:
     """The delta that takes every package file under <staged_dir> back to its copy in <pristine_dir>.
 
     <staged_dir> is a staged output (`<id>/<file>.db`, as `build_patch` writes it) or a layer holding
-    the installed bytes; <pristine_dir> is the pristine layer the install was built from.
+    the installed bytes; <pristine_dir> is the pristine layer the install was built from. With
+    <fingerprint> (it needs the translation runtime), every staged package's changed assets are
+    recorded for `accept_replaced`; a package that will not read is left out of them.
     """
     entries = []
     for name in package_files(staged_dir):
@@ -171,7 +184,17 @@ def make(pristine_dir: Path, staged_dir: Path, *, info: dict | None = None) -> D
                 ranges.append((start, stream.read(end - start)))
         entries.append(FileEntry(name, pristine.stat().st_size, pristine_sha,
                                  staged.stat().st_size, staged_sha, tuple(ranges)))
-    return Delta(tuple(entries), dict(info or {}))
+    assets = None
+    if fingerprint:
+        from asset_fingerprints import UnreadablePackage, changed_assets
+
+        assets = {}
+        for package in sorted({entry.path.split("/")[0] for entry in entries}, key=int):
+            try:
+                assets[package] = changed_assets(pristine_dir / package, staged_dir / package)
+            except UnreadablePackage:
+                continue
+    return Delta(tuple(entries), dict(info or {}), assets)
 
 
 def _fsync_directory(directory: Path) -> None:
@@ -215,6 +238,8 @@ def encode(delta: Delta) -> bytes:
         "body_bytes": len(body),
         "body_sha256": hashlib.sha256(body).hexdigest(),
     }
+    if delta.assets is not None:
+        header["assets"] = delta.assets
     return MAGIC + json.dumps(header, separators=(",", ":")).encode("utf-8") + b"\n" + zlib.compress(body, 6)
 
 
@@ -247,7 +272,13 @@ def decode(data: bytes) -> Delta:
             position += length
         files.append(FileEntry(path, item["pristine_size"], item["pristine_sha256"],
                                item["staged_size"], item["staged_sha256"], tuple(ranges)))
-    return Delta(tuple(files), header.get("info") or {})
+    assets = header.get("assets")
+    if assets is not None and not (isinstance(assets, dict) and all(
+            isinstance(package, str) and package.isdecimal() and isinstance(changed, dict)
+            and all(isinstance(pair, list) and len(pair) == 2 for pair in changed.values())
+            for package, changed in assets.items())):
+        raise DeltaError("pristine delta's asset record does not read")
+    return Delta(tuple(files), header.get("info") or {}, assets)
 
 
 def write(delta: Delta, path: Path) -> None:
@@ -328,6 +359,59 @@ def rebuild(layer_dir: Path, delta: Delta, out_dir: Path, *, fallback: Delta | N
         if log:
             log(f"{entry.path}: {state}")
     return report
+
+
+def accept_replaced(layer_dir: Path, delta: Delta, report: RebuildReport, *,
+                    fallback: Delta | None = None) -> tuple[list[str], dict[str, str]]:
+    """Which files an update replaced stand as the new pristine, and why each other package cannot.
+
+    Returns (accepted file paths, {package id: reason}). <report> is `rebuild`'s over <layer_dir>, which
+    holds the phone's bytes for every package that has a file in `report.unmatched`. A package's
+    replaced files are accepted only when none of its files is still at its staged bytes, and none of
+    the assets the install changed is still at its staged bytes (read from <layer_dir>). A package
+    the update removed whole is accepted too. Text the update left in a file is caught afterwards by
+    the text signal (`text_not_pristine`), which the caller must also require.
+    """
+    from asset_fingerprints import UnreadablePackage, package_assets
+
+    entries: dict[str, list[FileEntry]] = {}
+    for item in [*delta.files, *(fallback.files if fallback else ())]:
+        entries.setdefault(item.path.split("/")[0], []).append(item)
+    recorded_by_package = {**((fallback.assets if fallback else None) or {}), **(delta.assets or {})}
+    accepted: list[str] = []
+    refused: dict[str, str] = {}
+    for package in sorted({name.split("/")[0] for name in report.unmatched}, key=int):
+        ours = sorted({item.path for item in entries[package] if item.path in report.rebuilt})
+        if ours:
+            refused[package] = (f"{', '.join(ours)} still holds this patcher's bytes, "
+                                "while the update changed the rest")
+            continue
+        unmatched = sorted({item.path for item in entries[package] if item.path in report.unmatched})
+        missing = [name for name in unmatched if report.unmatched[name] == MISSING]
+        if not (layer_dir / package / f"{package}.db").is_file():
+            if len(missing) == len(unmatched):
+                accepted += unmatched  # the update removed the package
+            else:
+                refused[package] = "its index is missing"
+            continue
+        if missing:
+            refused[package] = f"{', '.join(missing)} is missing"
+            continue
+        recorded = recorded_by_package.get(package)
+        if recorded is None:
+            refused[package] = "no record of the assets this patcher changed in it (an older patcher version)"
+            continue
+        try:
+            current = package_assets(layer_dir / package, set(recorded))
+        except UnreadablePackage as error:
+            refused[package] = f"it does not read ({error})"
+            continue
+        surviving = [name for name, (_, staged) in recorded.items() if current.get(name) == staged]
+        if surviving:
+            refused[package] = f"{len(surviving)} of the assets this patcher changed are still translated"
+            continue
+        accepted += unmatched
+    return accepted, refused
 
 
 def text_not_pristine(summary: dict) -> str | None:

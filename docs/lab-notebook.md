@@ -3107,3 +3107,238 @@ capability and has shared-UID, permission, rollback and auth withheld. Release C
 | Re-signed APK | A copy of `artifacts/dev.halixm.hokacepatcher.apk` (1.6.1.4, previous key) re-signed by the script verifies with `--min-sdk-version 30`: v3 true, v1/v2/v3.1 false, one signer `555f2ff4…`, lineage `aa67f199…` → `555f2ff4…`. PASS. |
 | Alignment | `zipalign -c -P 16 4` passes on the re-signed copy. PASS. |
 | Device update | Not yet run: installing the rotated APK over the phone's 1.6.1.4 (previous key) without uninstalling, then refusing a previous-key APK over it. |
+
+## 2026-10-18 — Partial pull on the Windows patcher
+
+Question: an install writes 14 files, so why does every run pull the whole override layer (about 2.9 GB)?
+The build reads every package, and the pristine checks (`files_at`, the text signal) read the whole
+layer. What a run needs is the phone's exact bytes, not a fresh transfer of them. `Patcher.pull_changed`
+has the phone hash its layer (`run-as … find . -type f -exec sha256sum {} +`; toybox on this phone has
+`sha256sum`, only `md5sum` is missing) and copies each file that the previous session's `staged/` or
+layer copy holds at that SHA-256. It pulls the rest with `tar` in batches of at most
+`PULL_BATCH_CHARS` characters of names and checks each pulled file against the phone's hash. The
+session layer then equals the phone, so every later step reads the same bytes a full pull gives it.
+A session with no earlier `pull.json`, hash output that does not parse (any line that is not a digest
+and a plain layer path), or a failed or short transfer falls back to the full pull. Only the full
+pull writes `device-backup.tar`, so `bootstrap_delta` never picks a partial session.
+
+Offline, `tools/research/measure_partial_pull.py` against the working folder's session
+`20261017-224744` (1.6.0.1 r0):
+
+| Stand-in phone | Files | Reused | Pulled | Local cost |
+|---|---|---|---|---|
+| That session's layer with its `staged/` laid over it (a re-run after its install) | 741, 3031.7 MB | 741 | 0 | hash phone 4.5 s, match 3.5 s, copy 5.7 s |
+| The pristine snapshot `pristine/20261016-101124` (a phone after Remove translation) | 549, 2286.6 MB | 549 | 0 | match 3.8 s |
+
+`check_windows_repatch.py` (14 checks) runs the real `pull_game_data` against a fake phone. A first
+pull is full; a re-run after an install pulls nothing; a data update pulls exactly the changed and
+added files; a file the phone dropped is not carried over; garbled hashes, a `..` path and a truncated
+tar each fall back to the full pull and leave no `pull-*.tar`; 400 changed files go in several batches.
+The fallback check found a bug, fixed before commit: after a failed partial pull, the full pull's
+`mkdir` of `game/WXQ_Data/Package` raised `FileExistsError`.
+
+A file the previous session holds only in its pristine form, while the phone holds the translation, is
+pulled again. That happens after a run stopped between `restore_pristine` and the push. It costs one
+transfer and does not affect correctness.
+
+On the phone (Xiaomi M2007J3SG, Android 12, 1.6.0.1 r0), source runs of `Patcher.run` (English), each
+from the working tree, in order. The phone started translated by the Android patcher, which the Windows
+patcher has no delta for, so the first two runs refused; the Android patcher's Remove translation then
+gave it back pristine.
+
+| Run | Pull | Pristine | Push |
+|---|---|---|---|
+| `20261018-021756` | Full: 741 files, 3032.5 MB tar, 209 s (no earlier `pull.json`) | Refused: 6 files at recorded staged hashes, no delta, no bootstrap source | Nothing (refused) |
+| `20261018-022517` | Partial: 741 of 741 unchanged, pulling 0, 17 s (phone `sha256sum` plus local copy) | Refused, as above | Nothing (refused) |
+| *Android Remove translation (1.6.1.4)* | | 11 files restored, its delta deleted | |
+| `20261018-025809` | Partial: 730 unchanged, pulling 11, 919.2 MB, 57 s | No delta: first install | 3 already on the phone, 9 written; package 1050016095 (2 files) failed: the `adb` server dropped (cannot connect to daemon). The pending delta stayed |
+| `20261018-030412` | Partial: 0 pulled (the 9 written files matched the last session's `staged/`) | Rebuilt 9 from the pending delta, 5 already untranslated | 12 already on the phone, package 1050016095 written; delta of 14 files kept |
+| `20261018-030800` | Partial: 0 pulled, 23 s | Rebuilt 11, 3 already untranslated | 14 already on the phone, nothing written, `Watchdog/` left alone |
+| `20261018-031204` (Remove translation) | Partial: 0 pulled | Rebuilt 11, 3 already untranslated | 11 written back; delta deleted |
+
+Each build took 40 to 50 s and gave 388 text tables, 398 images and 1 table left in Chinese, the same
+counts as the Android patcher's install. The adb drop was outside the patcher (no other adb was running
+afterwards); it showed the pending delta working on a phone: the next run rebuilt the half-written
+layer and finished the install.
+
+Why the first runs refused: `bootstrap_delta` found no source. `20261017-224744`'s own backup holds 11
+files at recorded staged hashes (it was pulled from a phone already translated), and 5 of its staged
+`_0.db` files differ from the phone. `20261017-230156` has no `staged/`.
+
+Afterwards the Android patcher translated the phone to English again, so it holds its own delta as before.
+
+**Android patcher: not changed.** Its snapshot is a copy inside the phone, not a USB transfer, and
+it is also the rollback source: `GameFileTransaction.verifyOriginals` checks the whole file set,
+`Watchdog/` included, before it restores. Since the 2026-10-06 storage reclaim, a resolved session
+keeps no game data, so there is no earlier copy to reuse. Reusing one would mean keeping about 3 GB
+across runs, and that space is what the reclaim gave back to users. It would also need a rollback
+built from the files a run writes rather than the whole set.
+
+**Verdict:** shipped for the Windows patcher. A same-version re-run transfers only the phone's hash
+list instead of about 2.9 GB. The first run after updating the patcher, and any run the check cannot
+trust, still does the full pull.
+
+## 2026-10-18 — Repatch after an in-game update, offline
+
+Question: after an update the game finished over a patched layer, can a run repatch without a clear,
+and when must it still refuse? Until now, any file the delta names at neither its staged nor its
+pristine bytes refused the run while some file still held this patcher's bytes. Text has a witness, the
+text signal, but textures have none, so the delta now records per staged package each asset the
+install changed: the SHA-256 of its uncompressed bytes on both sides (`tools/asset_fingerprints.py`,
+the header's `assets`). Old readers ignore the key. `pristine_delta.accept_replaced` takes a package
+the update changed as its new pristine only when none of its files is still at the staged bytes,
+index and shards are present (or the whole package is gone), and no recorded asset is still at its
+staged bytes. The run must then pass the text signal. Both patchers call it.
+
+The record on the real install of session `20261017-224744` (1.6.0.1): 787 assets in 7 packages
+(`1`: 387, `15`: 302, `1050016095`: 72, `19`: 22, `10`, `20`, `21`: 1 each). It takes 12.7–14.1 s on
+this PC, because stored chunks are compared first and only differing assets are decoded (43 s when
+decoding everything).
+
+`tools/research/check_update_repatch.py` fakes updates on copies of those real packages. It writes
+asset bytes in place with `device_extensions.write_assets`, which moves chunks and rewrites the index
+as a merge does:
+
+| Faked update | Decision |
+|---|---|
+| None | Rebuilds all 11 files the install changed |
+| A Chinese asset merged into package `10` over the patched copy | Refused: `10/10.db` still at staged bytes |
+| Packages `1` and `15` replaced (pristine plus a merged Chinese asset) | Accepted `1/1_0.db`, `15/15_0.db` (their indexes read as pristine) |
+| Repair put back 151 of the 302 textures in `15`, then a merge | Refused: 151 assets still translated |
+| Repair put back all 302, then a merge | Accepted `15/15_0.db` |
+| `21/21.db` still at staged bytes, its shard changed | Refused |
+| Package `1050016095` removed | Accepted |
+| `19/19_0.db` missing beside its index | Refused |
+| The replaced case with a delta made without the asset record | Refused for `1` and `15` |
+
+The Android bridge's `_restore_pristine` gives the same six decisions it was run on. Its pristine copy
+holds exactly the files in `sha256` at those hashes, and replaced files are left out, so the build reads
+them from the snapshot.
+
+The Windows patcher's own steps over the replaced case, with a fake phone, the real build and the
+cached APK:
+
+| Run | Pull | Rebuild | Build and checks | Push |
+|---|---|---|---|---|
+| 1 | Partial: 21 of 24 files copied from the install's session, 3 pulled (327.2 MB) | 2 replaced accepted, 8 rebuilt (4 already untranslated) | 49 s; text signal pristine; the new delta's pristine side of both replaced files equals the update's bytes | 3 files written, 11 already on the phone |
+| 2 | Partial: 0 pulled | 11 rebuilt from the new delta, nothing replaced | text signal pristine | Nothing written |
+
+Limits: the updates are faked. Whether a real update leaves packages clean (every translated asset
+repaired, or the package downloaded whole) or mixed, which still refuses, is ticket 01's open
+question. Not measured here: the asset record's time on the phone, and a device run.
+
+**Verdict:** shipped in both patchers, offline. After an update that leaves no trace of the translation
+in the packages it changed, a run repatches without a clear and pulls and pushes only what changed.
+Mixed packages and deltas made before the record still refuse.
+
+## 2026-10-18 — Lobby "match" tab and rank-title spacing (Windows patcher, device)
+
+The Xiaomi M2007J3SG lobby (data 1.6.0.1) read `Ranking  match  Training  Custom` and `Supreme StarIII`.
+
+- `娱乐` was `match` upstream; `catalog_rewrites.json` now gives `Match` / `Pertandingan`.
+- The rank title is not a catalog string. `PVPRankDataClass` (Lua `6CB505C6553141B4`, package `10`, in the
+  override layer) builds it as `string.format("%s%s", Localize.GetString("RankLevel<n>"), romanCArray[level])`
+  in `vGetRankTitle` and `vGetTitleByRankOrLevel`; Chinese reads `至尊星耀III`. `extra_text.SCRIPT_EDITS` makes
+  both `"%s %s"`. Read back through the B-tree slot map (`qts_relocate.install_btree_slot_map`): the
+  runtime's plain `build_slot_map` returns the stale slot after an in-place relocation and reads the old bytes.
+- Install: the work folder had staged hashes but no pristine delta, so the patcher refused a translated
+  phone. The phone's layer matched the kept session `20261017-230156` (1.6.0.1) in all but 11 files, every one
+  in a staged package, and none of that session's files sits at a staged hash. The patcher ran headless with
+  those 11 swapped in after the pull; its text signal read pristine, it wrote 7 packages (389 text tables,
+  398 textures, 1 table left Chinese) and kept a pristine delta of 14 files (6.15 MB). One earlier attempt
+  lost USB mid-pull (`device offline`) before writing anything; the normal APK was reinstalled by hand.
+
+**Verdict:** pass. After *Scan to login* the lobby reads `Ranking  Match  Training  Custom` and
+`Supreme Star III | 80/120`.
+
+## 2026-10-18 — Android patch run: stage timings and five fewer passes
+
+Question: where does an Android patch run spend the time outside its build, and how much of it can go
+without weakening a check? Phone: **Redmi Note 9 Pro `ebad528e`, Android 15 (custom ROM), 8 cores**. This
+is not the device of record. English, data `1.6.0.1`. Every timing comes from `adb logcat` lines that
+`DiagnosticTrace` already writes (worker progress and engine-call durations), split into stages by
+`.scratch/patch-speed/timeline.py`. Runs were started by `start_patch.sh` (UI taps), after checking that the
+game was closed and `needDownloadSize` was 0.
+
+Source inspection (`.scratch/patch-speed/findings.md`) counted about 13 full passes over the game layer and
+19 over the 2 GB APK per run. The changes, all in the Android bridge and coordinator:
+
+1. `estimate_snapshot_build` reads the snapshot manifest without rehashing it. `build_snapshot` still
+   verifies the snapshot and the APK right before the build, and `build_scratch`, called from it, no
+   longer hashes them a second time. The pristine-copy files are still hashed.
+2. `_restore_pristine` finds files at staged hashes from the just-verified manifest
+   (`mobile_snapshot.package_files_at`) instead of rehashing every package file.
+3. The snapshot streams through a pipe into `unpack_snapshot_stream`, and both ends' bytes and SHA-256
+   must agree. No `snapshot.tar` is written, read back, hashed again or extracted from disk.
+4. The access APK stays installed through the build, as on Windows. The normal install after the
+   snapshot and the access install before the apply are gone; `validateGameSnapshot` before the first
+   write stays, and it fails unless the access APK is installed.
+5. `finishApply` reuses the originals verified before the apply. The access install reuses the
+   identity it checks itself instead of re-reading the session APK first.
+
+| Patch flow (s) | Baseline 1, HEAD `d749ac3`, first install | Baseline 2, HEAD, rebuild from delta | Optimized 1, rebuild | Optimized 2, rebuild |
+|---|---:|---:|---:|---:|
+| Preparing recovery material | 51.1 | 67.2 | 80.6 | 70.3 |
+| Access install | 50.2 | 47.4 | 50.2 | 54.9 |
+| Measuring, snapshot and everything up to the build | 251.8 | 249.5 | 93.1 | 92.6 |
+| `estimate_snapshot_build` (inside the above) | 30.8 | 31.7 | 5.4 | 5.6 |
+| `unpack_snapshot` / `_stream` (inside the above) | 64.9 | 64.6 | 67.0 | 66.1 |
+| `build_snapshot` | 258.4 | 291.3 | 239.5 | 245.1 |
+| Internal build timer (`metrics.json`) | 120.7 | 112.9 | not exported | not exported |
+| Second access install and layer check | 74.5 | 76.0 | — | — |
+| Package writes and `finishApply` | 76.7 | 75.3 | 62.8 | 61.5 |
+| Final normal install | 56.7 | 61.3 | 52.4 | 58.1 |
+| **Total** | **854.5** | **905.8** | **616.1** | **620.6** |
+| Free space, start → lowest (GiB) | | 13.97 → 4.76 | 15.32 → 9.84 | 13.37 → 6.06 |
+
+Every run reports 389 text tables, 398 applied textures, 1 skipped table and 0 skipped textures, and keeps
+a pristine delta of 14 files. Optimized 1 was the first run of a new engine, which re-extracts its assets
+(+13 s in preparation). Between baseline 2 and the optimized runs, 156 s goes from the snapshot up to the build,
+52 s from `build_snapshot`, 76 s with the second access install and 13 s from the apply. The internal build
+time is about 113–121 s, so `build_snapshot` spent roughly 140–180 s on checks and delta work outside it.
+
+| Verification | Result |
+|---|---|
+| Staged bytes, desktop | The real `build_snapshot` of HEAD and of the change, over the pristine `20261018-071235` layer and the cached `installed.apk`, gives equal staged SHA-256 for all 14 files, an equal pristine report, counts, skip lists and normalized full summary, both as a first install and rebuilding from the Windows delta with its staged files laid over the layer (`.scratch/patch-speed/bridge-*.json`). The rebuilt output also equals the first-install output. |
+| Staged bytes, phone | Not hash-compared: the journal keeps no file hashes, and the export has no `staged-hashes.json`. The device's own read-back (`sha256sum` of each written file, then `validateGameSnapshot` of the applied manifest) passed on every run. |
+| Streamed snapshot | A 2.95 GB tar of the real layer (741 files) through an OS pipe gives the same manifest as file extraction, and its stream identity equals the tar's. Truncated, header-cut and oversized streams are refused and leave no destination (`tools/research/check_mobile_snapshot.py`, 8 tests). |
+| Manifest lookup | `package_files_at` equals `pristine_delta.files_at` on a pristine layer (741 files, none staged) and a staged one (all 11). |
+| Process killed during the build | `am force-stop` of the patcher 60 s into a build, with the access APK installed (`DEBUGGABLE`). The reopened app showed *Finish your game safely*. Recovery reinstalled and verified the normal APK, the session became `CANCELLED`, it freed 2.7 GB, and `DEBUGGABLE` is absent afterwards. |
+| Other checks | `check_pristine_delta` (15), `check_staging_contract` and `check_references` pass. `:app:assembleRelease :app:assembleDebugAndroidTest` builds. The instrumentation probes: see the phone check of the fix below. |
+
+**Side finding: the launcher pins replaced game APKs.** Free space fell from about 18 GB to 2.03 GiB over
+these runs, although each run freed its 3.0–3.3 GB of temporary files. A baseline retry was refused (7.46 GB
+required, 6.89 GB available), and so was a third optimized run (8.09 GB required, 4.21 GB available). Both
+refusals came before any write and restored the normal APK. Force-stopping the idle patcher freed
+nothing, and a desktop run shows the engine holds no file after a build (`open_after_build.py`).
+`am force-stop com.google.android.apps.nexuslauncher` freed **9.45 GiB at once** (2.03 → 11.48 GiB). Each game
+install leaves the replaced ~2.4 GB APK held until the launcher restarts. The old flow installs the game four
+times per run and the new one twice. Fixed in the same change: the privileged worker force-stops the
+default home app after each game install (`releaseReplacedGameApks`), and the coordinator and the APK
+preparation call it once more before their first storage budget. It skips an unresolved home (the
+chooser), the game, the patcher and Shizuku. Other launchers are unmeasured.
+
+**Phone check of the fix (same phone, same day).** The branch release build (SHA-256 `25ca590a…1568`,
+patcher key) ran one English rebuild from the delta. The run completed with 389 tables, 398 applied
+textures, 1 skipped table and 0 skipped textures, and kept a 14-file delta. The patch flow, from the start
+command to the result, took 603 s, in line with the 616–621 s above. The worker restarted
+`com.google.android.apps.nexuslauncher` three times: before the first budget, and after each of the two
+installs. Each restart took about 0.3 s and measured 0–12 KiB freed within its 1 s window. Free space went
+from **15.66 → 10.24 (lowest) → 15.66 GiB**, so the run ended with no net loss. Before the fix, every run
+lost the replaced APKs. A manual `am force-stop` of the launcher afterwards freed nothing (−4 KiB), so no
+replaced APK was still held. Receipts: `.scratch/patch-speed/launcher-run-logcat.txt` and
+`launcher-run-free-space.txt` (phone epoch seconds, KiB free).
+
+Probes on the same phone (debug app plus its `androidTest` APK, `am instrument`): 17 of 18 pass, in 7.8 s.
+The classes are `TransactionProbeTest`, `RemovalRollbackProbeTest`, `JournalProbeTest`, `SnapshotProbeTest`,
+`PristineDeltaProbeTest`, `StorageProbeTest`, `EmergencyRestoreProbeTest`, `SessionPublicationProbeTest` and
+`CoordinatorSourceGuardProbeTest`. The one failure, `CoordinatorSourceGuardProbeTest`, stops in
+`ApkIdentity.read` on its hard-coded 1.4.0.2 recovery APK (`b0b08f4a…`), which this phone does not have.
+`CoordinatorRecoveryProbeTest`, `FullCoordinatorProbeTest` and `ApkPreparationProbeTest` need the same
+1.4.0.2 fixtures under `files/scratch` and were not run (`.scratch/patch-speed/launcher-probes.txt`).
+Afterwards the release build was reinstalled and the test package removed.
+
+**Verdict:** shipped in source, uncommitted at the time of writing. On this phone a rebuild-from-delta run
+takes 616–621 s instead of 906 s (−32%), peak free-space use drops by about 3.7 GiB, coverage is unchanged
+and recovery from a kill during the build works. Single runs on one phone, not paired trials; not measured
+on the device of record.

@@ -94,10 +94,14 @@ class SessionJournal private constructor(val directory: File, private val value:
             PatchPhase.WAITING_FOR_GAME_UPDATE -> setOf(PatchPhase.SNAPSHOT_ACCESS_INSTALLED,
                 PatchPhase.RESTORING, PatchPhase.CANCELLED)
             PatchPhase.SNAPSHOT_ACCESS_INSTALLED -> setOf(PatchPhase.SNAPSHOT_READY, PatchPhase.RESTORING)
-            PatchPhase.SNAPSHOT_READY -> setOf(PatchPhase.NORMAL_RESTORED_FOR_BUILD, PatchPhase.RESTORING)
+            // The access APK stays installed through the build (as on Windows); older journals went
+            // through NORMAL_RESTORED_FOR_BUILD and APPLY_ACCESS_INSTALLED, which still recover.
+            PatchPhase.SNAPSHOT_READY -> setOf(PatchPhase.BUILDING, PatchPhase.NORMAL_RESTORED_FOR_BUILD,
+                PatchPhase.RESTORING)
             PatchPhase.NORMAL_RESTORED_FOR_BUILD -> setOf(PatchPhase.BUILDING, PatchPhase.RESTORING, PatchPhase.CANCELLED)
             PatchPhase.BUILDING -> setOf(PatchPhase.STAGED, PatchPhase.RESTORING, PatchPhase.CANCELLED)
-            PatchPhase.STAGED -> setOf(PatchPhase.APPLY_ACCESS_INSTALLED, PatchPhase.RESTORING, PatchPhase.CANCELLED)
+            PatchPhase.STAGED -> setOf(PatchPhase.APPLYING, PatchPhase.APPLY_ACCESS_INSTALLED, PatchPhase.RESTORING,
+                PatchPhase.CANCELLED)
             PatchPhase.APPLY_ACCESS_INSTALLED -> setOf(PatchPhase.APPLYING, PatchPhase.RESTORING)
             PatchPhase.APPLYING -> setOf(PatchPhase.APPLYING, PatchPhase.RESTORING)
             PatchPhase.RESTORING -> setOf(PatchPhase.RESTORING, PatchPhase.NORMAL_RESTORED_FOR_BUILD, PatchPhase.COMPLETE,

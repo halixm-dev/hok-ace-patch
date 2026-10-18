@@ -13,8 +13,8 @@ phone's own layer, not the 1.4.0.1 dump.
 
 ## How progress is counted
 
-Coverage is **the staged text tables, the catalog's textures, and one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`) — nothing else. The `extra_text` config-bin allowlist is empty since
+Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
+(`extra_text.SCRIPT_LABELS`) **and one Lua format edit** (`extra_text.SCRIPT_EDITS`) — nothing else. The `extra_text` config-bin allowlist is empty since
 2026-10-05. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
 
@@ -263,7 +263,11 @@ assets it held until 2026-10-05 were each withdrawn after a device cycle:
 
 What the pass still writes is `SCRIPT_LABELS`: exact literals in Lua UI scripts, today one, the Effect
 Card filter's hard-coded `通用` in `9BD30F0DF58B1FBF` (package `10`, prime-only, so it is appended). It
-reads **General** on the phone and survived a full match without the popup.
+reads **General** on the phone and survived a full match without the popup. Beside it, `SCRIPT_EDITS`
+holds exact literal edits to a script's own formatting, today one: `PVPRankDataClass`
+(`6CB505C6553141B4`, package `10`) joins a rank's tier and numeral with `"%s%s"`, which read
+"Supreme StarIII" in the lobby; the edit makes both rank-title formats `"%s %s"` ("Supreme Star III").
+Device-verified on 1.6.0.1 on 2026-10-18: the lobby reads "Supreme Star III" and its tabs "Ranking  Match".
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 
