@@ -75,7 +75,7 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 
 **Coverage and gating**
 
-- **Coverage** is the staged text tables, the catalog edits, the two Career-atlas labels (`mobile_graphics.ATLAS_LABELS`) and one Lua label (`extra_text.SCRIPT_LABELS`). Never call it a complete translation; state the texture count as *applied*, never *covered*. ([translation-progress](docs/translation-progress.md))
+- **Coverage** is the staged text tables, the catalog edits, the two Career-atlas labels (`mobile_graphics.ATLAS_LABELS`) one Lua label (`extra_text.SCRIPT_LABELS`) and one Lua format edit (`extra_text.SCRIPT_EDITS`). Never call it a complete translation; state the texture count as *applied*, never *covered*. ([translation-progress](docs/translation-progress.md))
 - **Catalog only**: the text pass stages the catalog's tables and nothing else (`_drop_uncatalogued_tables`). ([prime-only-append](docs/features/prime-only-append.md))
 - **Allowlist**: a config bin is translated only once a device cycle clears it onto `extra_text.SAFE_ASSETS` (empty today). `--cycle-asset` enables one `CANDIDATE_ASSETS` hash per run; `tools/extra_text.py` records each withdrawn hash with its failing screen. ([ADR 0004](docs/adr/0004-the-allowlist-is-the-only-gate-for-config-bins.md), [extra-text-cycles](docs/features/extra-text-cycles.md))
 - **Uncatalogued config bins** are never rewritten, not even re-pointed at identical length. ([ADR 0005](docs/adr/0005-never-rewrite-an-uncatalogued-config-bin.md))

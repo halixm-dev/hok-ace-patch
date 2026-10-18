@@ -672,7 +672,7 @@
   "id": "<color=#98CBFF>Taiyi Zhenren</color> bisa <color=#98CBFF>╧Revive</color> Meng Tian agar terus memanggil prajurit."
  },
  "<color=#98CBFF>小妲己</color>的技能非常简单，它会在<color=#98CBFF>购买卡牌</color>、<color=#98CBFF>刷新商店</color>、使用<color=#98CBFF>效果卡</color>时提供额外收益。只要合理分配能量使用，就能轻松获得比其他人更大的收益。": {
-  "en": "<color=#98CBFF>Little Daji</color>'s Skill is simple: it provides Extra benefits when you <color=#98CBFF>Buy Card</color>, <color=#98CBFF>refresh the Shop</color>, or play <color=#98CBFF>Effect Card</color>. Manage your Energy wisely to gain a significant advantage over others.",
+  "en": "<color=#98CBFF>Little Daji</color>'s Skill is simple: it provides Extra benefits when you <color=#98CBFF>Buy Card</color>, <color=#98CBFF>refresh the Shop</color>, or use <color=#98CBFF>Effect Card</color>. Manage your Energy wisely to gain a significant advantage over others.",
   "id": "Skill <color=#98CBFF>Little Daji</color> itu simpel: memberikan keuntungan ekstra saat kamu <color=#98CBFF>Beli Kartu</color>, <color=#98CBFF>refresh Toko</color>, atau memakai <color=#98CBFF>Kartu Efek</color>. Kelola Energy dengan bijak untuk meraih keunggulan besar atas pemain lain."
  },
  "<color=#99DEB0>╥阿科米亚核心</color>等级<color=#99DEB0>+200</color>。场上英雄升级时，<color=#99DEB0>╥阿科米亚核心</color>会获得<color=#99DEB0>70%</color>的等级（仅真实等级）。": {
@@ -3407,5 +3407,9 @@
  "搏命": {
   "en": "Risk One's Life",
   "id": "Mempertaruhkan Nyawa"
+ },
+ "娱乐": {
+  "en": "Match",
+  "id": "Pertandingan"
  }
 }

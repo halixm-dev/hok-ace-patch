@@ -3230,3 +3230,23 @@ question. Not measured here: the asset record's time on the phone, and a device 
 **Verdict:** shipped in both patchers, offline. After an update that leaves no trace of the translation
 in the packages it changed, a run repatches without a clear and pulls and pushes only what changed.
 Mixed packages and deltas made before the record still refuse.
+
+## 2026-10-18 — Lobby "match" tab and rank-title spacing (Windows patcher, device)
+
+The Xiaomi M2007J3SG lobby (data 1.6.0.1) read `Ranking  match  Training  Custom` and `Supreme StarIII`.
+
+- `娱乐` was `match` upstream; `catalog_rewrites.json` now gives `Match` / `Pertandingan`.
+- The rank title is not a catalog string. `PVPRankDataClass` (Lua `6CB505C6553141B4`, package `10`, in the
+  override layer) builds it as `string.format("%s%s", Localize.GetString("RankLevel<n>"), romanCArray[level])`
+  in `vGetRankTitle` and `vGetTitleByRankOrLevel`; Chinese reads `至尊星耀III`. `extra_text.SCRIPT_EDITS` makes
+  both `"%s %s"`. Read back through the B-tree slot map (`qts_relocate.install_btree_slot_map`): the
+  runtime's plain `build_slot_map` returns the stale slot after an in-place relocation and reads the old bytes.
+- Install: the work folder had staged hashes but no pristine delta, so the patcher refused a translated
+  phone. The phone's layer matched the kept session `20261017-230156` (1.6.0.1) in all but 11 files, every one
+  in a staged package, and none of that session's files sits at a staged hash. The patcher ran headless with
+  those 11 swapped in after the pull; its text signal read pristine, it wrote 7 packages (389 text tables,
+  398 textures, 1 table left Chinese) and kept a pristine delta of 14 files (6.15 MB). One earlier attempt
+  lost USB mid-pull (`device offline`) before writing anything; the normal APK was reinstalled by hand.
+
+**Verdict:** pass. After *Scan to login* the lobby reads `Ranking  Match  Training  Custom` and
+`Supreme Star III | 80/120`.

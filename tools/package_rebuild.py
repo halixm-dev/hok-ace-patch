@@ -119,7 +119,7 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
                 refused.add(file_hash)
                 return None
             return new if new != raw else None
-        if file_hash in extra_text.SCRIPT_LABELS:
+        if file_hash in extra_text.SCRIPT_ASSETS:
             return extra_text.rewrite_script(file_hash, raw, catalog)
         if file_hash in allowed and pb_text.CJK.search(raw.decode("utf-8", "ignore")):
             try:
@@ -131,7 +131,7 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
 
     transform.graphics = set(graphics)
     transform.tables = set(catalog.known)
-    transform.scripts = set(extra_text.SCRIPT_LABELS)
+    transform.scripts = set(extra_text.SCRIPT_ASSETS)
     # The config assets this run may rewrite: the allowlist plus a device cycle's candidates. Empty on a
     # normal run while SAFE_ASSETS is, which is what keeps the append's output unchanged without a cycle.
     transform.config = set(allowed)
