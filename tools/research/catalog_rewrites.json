@@ -220,7 +220,8 @@
   "id": "<color=#99DEB0>Seri Multi-Faction</color>\nDi awal Pertempuran, jika kamu punya <color=#99DEB0>minimal 2</color> Faction, semua Hero mendapatkan Level sebanyak <color=#99DEB0>20</color> × jumlah Faction."
  },
  "<color=#99DEB0>多阵营系列</color>\n立即获得<color=#99DEB0>1张照影</color>，回合开始时，每有<color=#99DEB0>1个</color>阵营，获得<color=#99DEB0>1张照影</color>。": {
-  "id": "<color=#99DEB0>Seri Multi-Faction</color>\nLangsung dapatkan <color=#99DEB0>1 Shadow-Cast</color>. Di awal Ronde, dapatkan <color=#99DEB0>1 Shadow-Cast</color> untuk setiap <color=#99DEB0>1 Faction</color> yang kamu miliki."
+  "en": "<color=#99DEB0>Multi-Faction Series</color>\nImmediately gain <color=#99DEB0>1 Shadow Projection</color>. At the start of the Round, gain <color=#99DEB0>1 Shadow Projection</color> for every <color=#99DEB0>1 Faction</color> you have.",
+  "id": "<color=#99DEB0>Seri Multi-Faction</color>\nLangsung dapatkan <color=#99DEB0>1 Shadow Projection</color>. Di awal Ronde, dapatkan <color=#99DEB0>1 Shadow Projection</color> untuk setiap <color=#99DEB0>1 Faction</color> yang kamu miliki."
  },
  "<color=#99DEB0>契约系列</color>\n回合开始时，获得<color=#99DEB0>2张契约系列</color>天赋的对应英雄卡（需要激活契约天赋）。": {
   "id": "<color=#99DEB0>Seri Contract</color>\nDi awal Ronde, dapatkan <color=#99DEB0>2</color> Hero Card yang sesuai dengan Talent seri Contract (Talent Contract harus aktif)."
@@ -405,7 +406,8 @@
   "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1</color> Shadow Strike: pilih <color=#99DEB0>1</color> Hero. Di awal Pertempuran, Hero itu masuk Stealth dan mendapatkan <color=#99DEB0>+40%</color> Physical Attack dan Magic Attack selama <color=#99DEB0>10 detik</color>."
  },
  "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张</color>照影，己方英雄击败敌方时，获得<color=#99DEB0>1张</color>照影（每回合最多<color=#99DEB0>2张</color>）。": {
-  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1</color> Afterimage. Saat Hero kamu mengalahkan musuh, dapatkan <color=#99DEB0>1</color> Afterimage (maksimal <color=#99DEB0>2</color> per Ronde)."
+  "en": "<color=#99DEB0>General Series</color>\nImmediately gain <color=#99DEB0>1</color> Shadow Projection. When your Hero defeats an enemy, gain <color=#99DEB0>1</color> Shadow Projection (max <color=#99DEB0>2</color> per Round).",
+  "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1</color> Shadow Projection. Saat Hero kamu mengalahkan musuh, dapatkan <color=#99DEB0>1</color> Shadow Projection (maksimal <color=#99DEB0>2</color> per Ronde)."
  },
  "<color=#99DEB0>通用系列</color>\n立即获得<color=#99DEB0>1张</color>蚕食：指定<color=#99DEB0>1名</color>英雄，该英雄每次攻击敌方英雄时，将其等级的<color=#99DEB0>2%</color>偷取给自己（<color=#99DEB0>至少1级</color>）。": {
   "id": "<color=#99DEB0>Seri General</color>\nLangsung dapatkan <color=#99DEB0>1</color> Encroach: pilih <color=#99DEB0>1</color> Hero. Setiap kali Hero itu menyerang Hero musuh, ia mencuri <color=#99DEB0>2%</color> Level musuh (<color=#99DEB0>minimal 1 Level</color>)."
@@ -2436,8 +2438,8 @@
   "id": "Langsung dapatkan <color=#99DEB0>1</color> Tier-Up Summit: Targetkan <color=#99DEB0>1 Hero Tier 1-3</color> untuk berubah secara acak menjadi Hero <color=#99DEB0>Tier 5</color> yang tidak ada di papan, Awaken dan mempertahankan Level saat ini (bisa melebihi batas, termasuk Temporary Level)."
  },
  "立即获得<color=#99DEB0>1张照影</color>，回合开始时，每有<color=#99DEB0>1个</color>阵营，获得<color=#99DEB0>1张照影</color>。": {
-  "en": "Immediately gain <color=#99DEB0>1 Reflection</color>. At the start of each Round, gain <color=#99DEB0>1 Reflection</color> for each <color=#99DEB0>1</color> Faction you have.",
-  "id": "Langsung dapatkan <color=#99DEB0>1 Reflection</color>. Di awal setiap Ronde, dapatkan <color=#99DEB0>1 Reflection</color> untuk setiap <color=#99DEB0>1</color> Faction yang kamu miliki."
+  "en": "Immediately gain <color=#99DEB0>1 Shadow Projection</color>. At the start of each Round, gain <color=#99DEB0>1 Shadow Projection</color> for each <color=#99DEB0>1</color> Faction you have.",
+  "id": "Langsung dapatkan <color=#99DEB0>1 Shadow Projection</color>. Di awal setiap Ronde, dapatkan <color=#99DEB0>1 Shadow Projection</color> untuk setiap <color=#99DEB0>1</color> Faction yang kamu miliki."
  },
  "立即获得<color=#99DEB0>1张飞升</color>：指定<color=#99DEB0>1名低于5阶</color>的英雄等级<color=#99DEB0>+380</color>，该英雄之后每回合提升<color=#99DEB0>15级</color>。": {
   "en": "Immediately obtain <color=#99DEB0>1 Ascension</color>: Target <color=#99DEB0>1 Hero below Tier 5</color> and increase their Level by <color=#99DEB0>380</color>. That Hero gains <color=#99DEB0>15 Levels</color> every Round thereafter."
@@ -3411,5 +3413,114 @@
  "娱乐": {
   "en": "Match",
   "id": "Pertandingan"
+ },
+ "使用后获得棋手乔汐3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Qiao Xi."
+ },
+ "使用后获得棋手吕无双3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Lu Wushuang."
+ },
+ "使用后获得棋手姜导3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Director Jiang."
+ },
+ "使用后获得棋手嬴律3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Ying Lu."
+ },
+ "使用后获得棋手孙小宾3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Sun Xiaobin."
+ },
+ "使用后获得棋手安琪拉3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Angela."
+ },
+ "使用后获得棋手常小娥3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Chang Xiao'e."
+ },
+ "使用后获得棋手庄小鱼3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Zhuang Xiaoyu."
+ },
+ "使用后获得棋手明先生3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Mr. Ming."
+ },
+ "使用后获得棋手昭君3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Zhaojun."
+ },
+ "使用后获得棋手武凤3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Wu Feng."
+ },
+ "使用后获得棋手玉环3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Yuhuan."
+ },
+ "使用后获得棋手班叔3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Uncle Ban."
+ },
+ "使用后获得棋手白歌3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Bai Ge."
+ },
+ "使用后获得棋手闹闹3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Naonao."
+ },
+ "使用后获得棋手香香3天体验时间。": {
+  "en": "Use to unlock a 3-day trial of Chessplayer Xiangxiang."
+ },
+ "使用后获得皮肤明先生·夜落电台3天体验时间。": {
+  "en": "Use to gain a 3-day trial of the Mr. Ming · Nightfall Radio Skin."
+ },
+ "使用{0|45}{Energy}，获得1张秘技牌<b>为我所用</b>。": {
+  "en": "Spend {0|45}{Energy} to gain 1 Secret Skill card <b>Use for My Own</b>."
+ },
+ "使用{0|45}{Energy}，获得1张秘技牌<color=#FFE897>为我所用</color>。": {
+  "en": "Spend {0|45}{Energy} to gain 1 Secret Skill card <color=#FFE897>Use for My Own</color>."
+ },
+ "每使用{0|45}{Energy}，获得1张秘技牌<b>为我所用</b>。": {
+  "en": "For every {0|45}{Energy} spent, gain 1 Secret Skill card <b>Use for My Own</b>."
+ },
+ "每使用{0|45}{Energy}，武凤获得1张<color=#FFE897>为我所用</color>。\n<color=#FFE897>为我所用</color>：随机获得本局其它棋手的1张秘技卡。": {
+  "en": "For every {0|45}{Energy} spent, Wu Feng gains 1 <color=#FFE897>Use for My Own</color>.\n<color=#FFE897>Use for My Own</color>: Randomly gain 1 Secret Skill card of another Chessplayer in this match."
+ },
+ "使用时限：当前赛季": {
+  "en": "Valid for: Current season"
+ },
+ "使用棋手: {0}": {
+  "en": "Chessplayer used: {0}"
+ },
+ "你每使用<color=#99DEB0>3张</color>效果牌，所有英雄等级<color=#99DEB0>+8</color>。": {
+  "en": "Every time you play <color=#99DEB0>3</color> Effect Cards, All Heroes gain <color=#99DEB0>+8</color> Levels."
+ },
+ "使用6张<color=#FFE897>即兴创作</color>": {
+  "en": "Play 6 <color=#FFE897>Improvisation</color> cards"
+ },
+ "本回合引导内容\n\n英雄觉醒：使用3张同名卡可以使英雄觉醒，觉醒后英雄的词条会大幅增强": {
+  "en": "Guide to the Round\n\nHero Awaken: Play 3 cards of the same name to Awaken a Hero. An Awakened Hero's Traits are greatly enhanced"
+ },
+ "本回合引导内容\n<color=#98CBFF>棋手技能：</color>比赛开始时，可选择1名棋手，不同的棋手有不同技能\n<color=#98CBFF>英雄觉醒：</color>使用3张相同英雄牌可以使英雄觉醒，觉醒后英雄的卡牌效果大幅增强": {
+  "en": "Guide to the Round\n<color=#98CBFF>Chessplayer Skill:</color> At the start of the match, choose 1 Chessplayer. Each Chessplayer has a different Skill\n<color=#98CBFF>Hero Awaken:</color> Play 3 copies of the same Hero card to Awaken that Hero. An Awakened Hero's card effects are greatly enhanced"
+ },
+ "每进行多次英雄合成，白歌获得1张<color=#FFE897>即兴创作</color>。": {
+  "en": "After several Hero Combines, Bai Ge gains 1 <color=#FFE897>Improvisation</color>."
+ },
+ "白歌的【即兴创作】，会优先获得卡库已有英雄的复制。": {
+  "en": "Bai Ge's [Improvisation] prioritizes granting copies of Heroes already present in the card pool."
+ },
+ "照影★★★": {
+  "en": "Shadow Projection ★★★",
+  "id": "Shadow Projection ★★★"
+ },
+ "立即获得<color=#99DEB0>1张</color>照影，己方英雄击败敌方时，获得<color=#99DEB0>1张</color>照影（每回合最多<color=#99DEB0>2张</color>）。": {
+  "en": "Immediately gain <color=#99DEB0>1</color> Shadow Projection. When your Hero defeats an enemy, gain <color=#99DEB0>1</color> Shadow Projection (max <color=#99DEB0>2</color> per Round).",
+  "id": "Langsung dapatkan <color=#99DEB0>1</color> Shadow Projection. Saat Hero kamu mengalahkan musuh, dapatkan <color=#99DEB0>1</color> Shadow Projection (maksimal <color=#99DEB0>2</color> per Ronde)."
+ },
+ "移花接木": {
+  "en": "Grafting",
+  "id": "Grafting"
+ },
+ "获得1张<color=#FFE897>移花接木(转瞬)</color>：在下场战斗中，随机1名英雄获得敌方当前等级最高英雄的一半等级。": {
+  "id": "Dapatkan 1 <color=#FFE897>Grafting (Fleeting)</color>: Dalam Pertempuran berikutnya, 1 Hero acak mendapatkan setengah Level Hero musuh dengan Level tertinggi saat ini."
+ },
+ "获得1张<color=#FFE897>移花接木</color>：在下场战斗中，随机1名英雄获得敌方当前等级最高英雄的一半等级。": {
+  "id": "Dapatkan 1 <color=#FFE897>Grafting</color>: Dalam Pertempuran berikutnya, 1 Hero acak mendapatkan setengah Level Hero musuh dengan Level tertinggi saat ini."
+ },
+ "在万象大赛的单个回合中，使用3张效果牌【移花接木】": {
+  "en": "During a single ACE Tournament Round, use 3 Effect Cards [Grafting]",
+  "id": "Dalam satu Ronde ACE Tournament, Gunakan 3 Effect Card [Grafting]"
  }
 }
