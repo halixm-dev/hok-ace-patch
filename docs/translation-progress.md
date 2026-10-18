@@ -173,6 +173,22 @@ catalog's form grants 火鹰装备 (Fire Hawk Equipment). The new form is in 10 
 override layer. Its supplement entry reuses the catalog's Fire Hawk sentence and names the set *Star Source*,
 as four of the catalog's five 星源 items do (the fifth reads *Starcore*).
 
+The Event > 万象头条 (Headlines) screen stays Chinese, and no pass can change that. The tab label `万象头条` is
+only in the quiz bin `A3B34BE9879BE25B`, which was withdrawn from the allowlist (`extra_text.py`: no game
+button, blank encyclopedia). The rest of the screen is in neither data layer: the `领官号福利` tab, the
+weekly items (`本周热门棋手`, `强势英雄推荐`, `本周新鲜事儿` and their subtitles) and `向下翻页`. That was checked across
+packages 0, 1, 3, 4, 14, 19 and 21 of the saved override layer and package 1 of the prime layer. The screen is the
+Gamelet mini-program `weeklydigest4` (`files/Gamelet/program/archive/12539`, issue 04 of 2026.10.13),
+whose code holds none of these strings, so the server sends them with each issue.
+
+The Event > 智勇双王 (Twin Kings) screen stays Chinese for the same reasons. It is the gamelet `doubleking`
+(`archive/9295`). Its body text (`王者万象棋|未完成`, `暂无段位`, the 最强王者 rule sentence, `双王未达成`) is in neither data layer.
+The gamelet fetches it from Tencent's server function (`publicfaas.game.qq.com`, `pdr_appid=9295`), and its title
+and badges are PNGs inside the gamelet. The tab label `智勇双王` is in no table a pass translates: the title table
+`55EC8FF338904581` holds it as the achievement title (translated *Twin Kings*), and on this screen it matches only
+four package-19 prefabs (`0BF1D76F6466CF9D`, `6E4722CF41EA9F3D`, `92287B2520A2B497`, `F8C63032EB91C360`), which no
+pass rewrites.
+
 Yao's old English description can now be corrected by rerunning with the updated patcher.
 `catalog_updates` adds exact old-to-current mappings for 22 measured rows in 11 existing catalog
 tables. This changes installed wording without clearing game data or adding asset coverage.

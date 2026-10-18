@@ -21,6 +21,13 @@ built from them. `build_patch` installs it next to `install_btree_slot_map()` an
 | `整备` | `href=11`, icon `╬` | Ready, Readiness, Maintenance | **Prepare** (series: **Prepare Series**) |
 | `登场` | `href=1`, icon `╨` | one series label, "Showtime series" | **Deploy** |
 | `合成` | `href=13`, icon `╦` | Yao's English description says "upgraded" | **Combine** |
+| `祈愿` | the gacha draw (lobby button), no link | Pray (button), Prayer(s) | **Wish** (and wishes) |
+
+`祈愿` is not a keyword but a lobby feature. Its button read "Pray" and the 21 strings around it (pools,
+coins, rules) "Prayer"; on 2026-10-18 the user chose **Wish**. Measured on both catalogs plus the
+supplement: 25 English targets change, with no "pray" word left under a `祈愿` source. The Indonesian catalog says
+*Harapan* on the button and *Doa* elsewhere, which stay; its three event names that kept "Prayer" (`珍传祈愿`,
+`日月行者祈愿上线`/`获取`) now read Wish. Every changed target passes `adaptive.validate_translation`.
 
 The 2026-10-17 Yao screenshot confirms the description and its keyword footer disagree. The measured
 `upgraded` variant occurs once in the English catalog and nowhere in the Indonesian catalog for

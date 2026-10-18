@@ -116,6 +116,16 @@ ENGLISH_TERMS: tuple[Term, ...] = (
     Term("登场", "Deploy", (
         (r"\bShowtime\b", "Deploy"),
     ), proper=True),
+    # 祈愿: the gacha draw, the lobby button. The catalog reads it "Pray" on the button and "Prayer" in
+    # the 21 strings around it (pools, coins, rules); "Wish" is the name the user chose. The Indonesian
+    # catalog says "Harapan" (wish) on the button and "Doa" elsewhere, and keeps "Prayer" only in three
+    # event names, which this rewrites with it.
+    Term("祈愿", "Wish", (
+        (r"(?P<w>\b(?i:prayers)\b)", "Wishes"),
+        (r"(?P<w>\b(?i:prayer)\b)", "Wish"),
+        (r"(?P<w>\b(?i:praying)\b)", "Wishing"),
+        (r"(?P<w>\b(?i:pray)\b)", "Wish"),
+    )),
 )
 
 def _indonesian_series(match: re.Match) -> str:
