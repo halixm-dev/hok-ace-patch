@@ -142,7 +142,8 @@ SCRIPT_LABELS: dict[int, tuple[tuple[str, str], ...]] = {
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     # PVPRankDataClass (package 10): a rank title is the tier name and its sub-level numeral joined with
     # no space, which reads "至尊星耀III" in Chinese and "Supreme StarIII" translated (the lobby's rank
-    # line, `vGetRankTitle`, and the simple form, `vGetTitleByRankOrLevel`).
+    # line, `vGetRankTitle`, and the simple form, `vGetTitleByRankOrLevel`). Device-verified 2026-10-18 on
+    # 1.6.0.1: the lobby reads "Supreme Star III".
     0x6CB505C6553141B4: (
         ('string.format("%s%s", Localize.GetString(string.format("RankLevel%s", rank)), romanCArray[level])',
          'string.format("%s %s", Localize.GetString(string.format("RankLevel%s", rank)), romanCArray[level])'),

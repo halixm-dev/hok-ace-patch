@@ -267,7 +267,7 @@ reads **General** on the phone and survived a full match without the popup. Besi
 holds exact literal edits to a script's own formatting, today one: `PVPRankDataClass`
 (`6CB505C6553141B4`, package `10`) joins a rank's tier and numeral with `"%s%s"`, which read
 "Supreme StarIII" in the lobby; the edit makes both rank-title formats `"%s %s"` ("Supreme Star III").
-Staged offline from the 1.6.0.1 dump on 2026-10-18; not yet watched on the phone.
+Device-verified on 1.6.0.1 on 2026-10-18: the lobby reads "Supreme Star III" and its tabs "Ranking  Match".
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 
