@@ -24,5 +24,6 @@ interface IPrivilegedDeviceService {
     void validateFirstSetupSource(String expectedSourceSha256) = 17;
     String estimateGameSnapshot() = 18;
     void checkGameProfiles() = 19;
+    String releaseReplacedGameApks() = 20;
     void destroy() = 16777114;
 }

@@ -3313,7 +3313,11 @@ refusals came before any write and restored the normal APK. Force-stopping the i
 nothing, and a desktop run shows the engine holds no file after a build (`open_after_build.py`).
 `am force-stop com.google.android.apps.nexuslauncher` freed **9.45 GiB at once** (2.03 → 11.48 GiB). Each game
 install leaves the replaced ~2.4 GB APK held until the launcher restarts. The old flow installs the game four
-times per run and the new one twice. Not fixed; on other launchers unmeasured.
+times per run and the new one twice. Fixed in the same change: the privileged worker force-stops the
+default home app after each game install (`releaseReplacedGameApks`), and the coordinator and the APK
+preparation call it once more before their first storage budget. It skips an unresolved home (the
+chooser), the game, the patcher and Shizuku. The fix compiles; its release has not been measured on a
+phone, and other launchers are unmeasured.
 
 **Verdict:** shipped in source, uncommitted at the time of writing. On this phone a rebuild-from-delta run
 takes 616–621 s instead of 906 s (−32%), peak free-space use drops by about 3.7 GiB, coverage is unchanged

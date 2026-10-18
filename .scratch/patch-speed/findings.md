@@ -2,8 +2,9 @@
 
 Status: done. Measured and shipped in source: lab notebook, 2026-10-18, "Android patch run: stage timings
 and five fewer passes". Proposals 1–5 below are implemented (6 was not measured). Phone runs: 906 s → 616–621 s
-on a Redmi Note 9 Pro. Open follow-up: the launcher keeps each replaced game APK (~2.4 GB) until it restarts,
-which made two runs fail their storage check; see that entry's side finding.
+on a Redmi Note 9 Pro. The launcher keeping each replaced game APK (~2.4 GB) until it restarts, which made
+two runs fail their storage check, is fixed in source (`releaseReplacedGameApks`, see "Launcher-pinned APKs"
+below) but not yet measured on a phone; see "Still open".
 
 ## Starting point
 
@@ -46,26 +47,26 @@ L = game layer, packages + Watchdog (~2.3–3 GB). A = game APK (~2 GB).
 | Install normal #2 | | 3 | |
 | **Total** | **~13** | **~19** | about 32 full passes of 2–3 GB |
 
-## Ranked proposals (expected savings are estimates until the trace lands)
+## Ranked proposals (written before the measurements; 1–5 done, measured savings in the notebook)
 
-1. **Hash each build input once.** `estimate_snapshot_build`, `build_snapshot` and `build_scratch` verify the
+1. **Done.** **Hash each build input once.** `estimate_snapshot_build`, `build_snapshot` and `build_scratch` verify the
    same snapshot and APK three times in a row, with nothing in between that could change them. Keep the
    first full check and drop the two repeats. About 3 passes, **~40 s**. Risk: low. The trust check still
    runs before the build reads anything, and rollback keeps its own `verifyOriginals`.
-2. **Keep the access APK through the build, as Windows does.** This drops install normal #1, install
+2. **Done.** **Keep the access APK through the build, as Windows does.** This drops install normal #1, install
    access #2 and `validateLayer` #2: about 6 APK passes, 2 installs and 1 layer pass, **~90 s or more**.
    Risk: medium. ADR 0001 only forbids opening the game while access is installed, and Windows already
    holds access through its build. But the Android journal states (`NORMAL_RESTORED_FOR_BUILD`), recovery
    and the process-death probes assume the normal APK during the build. The reason Android chose it is
    not recorded. It needs a device cycle and the user's call.
-3. **Extract the snapshot straight from the pipe.** Today the tar goes to `snapshot.tar`, gets re-hashed,
+3. **Done.** **Extract the snapshot straight from the pipe.** Today the tar goes to `snapshot.tar`, gets re-hashed,
    then gets extracted. Streaming saves ~1 write and 2 reads of L (**~30–40 s**) and halves the ~6 GB
    free-space dip. Risk: medium. The transport check moves to "in-transit hash and per-file hashes
    agree"; it has the same fail-closed rules as `extract_snapshot`.
-4. **Drop the re-hash in `finishApply`.** `expectedApplied` calls `verifyOriginals` only to rebuild the
+4. **Done.** **Drop the re-hash in `finishApply`.** `expectedApplied` calls `verifyOriginals` only to rebuild the
    manifest, which was just verified before apply. `rollback` still verifies independently. 1 pass,
    **~15 s**. Risk: low.
-5. **Carry the APK identity forward.** The same read-only, app-private APK is hashed 2–3 times before each
+5. **Done.** **Carry the APK identity forward.** The same read-only, app-private APK is hashed 2–3 times before each
    install (`read(accessApk)`, the session link, `install()`). Hash it once per run, and check
    size and mtime unchanged before each install. About 3–4 passes, **~45 s**. Risk: low to medium.
    The installed-APK verification on the device stays.
@@ -75,9 +76,20 @@ L = game layer, packages + Watchdog (~2.3–3 GB). A = game APK (~2 GB).
 Not proposed: anything that removes the one trust check before a consuming step, the device-side
 read-back of each written file, or `verifyInstalled` after each install.
 
-## Next measurement
+## Measured result
 
-From the user's diagnostic export after their current run: `trace.log` (`engine … finished in N ms` for every
-bridge call, `worker Progress:` lines with ms timestamps) and the session's `metrics.json`. Those split the
-run into install / snapshot / unpack / validate / build / apply. Then record the breakdown in the lab
-notebook before ranking changes for implementation.
+Rebuild from delta on a Redmi Note 9 Pro: 905.8 s at HEAD `d749ac3`, 616–621 s with 1–5 (−32%). Counts
+unchanged. Proposal 6 (toybox `sha256sum`) is not measured.
+
+## Launcher-pinned APKs (found during the runs, fixed)
+
+The home app keeps each replaced ~2.4 GB game APK on storage until it restarts; one
+`am force-stop` of the launcher freed 9.45 GiB. This caused two storage refusals during the runs. The
+privileged worker now force-stops the default home app after each game install, and the patch run,
+recovery and APK preparation release once more before their first budget
+(`releaseReplacedGameApks`). Not yet measured on a phone.
+
+## Still open
+
+- Run the instrumentation probes on a phone after these changes.
+- Measure the launcher release on a phone (free space before and after one patch run).

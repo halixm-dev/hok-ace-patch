@@ -306,6 +306,12 @@ app carries its own; it is device-verified on the Infinix X6853.
 - `build_storage.estimate` (schema 2) reserves, twice, only the packages that hold catalog content,
   and extracts only the APK packages whose catalog content the override layer lacks, as
   `add_prime_only` does. The snapshot check also reserves the latest completed run's estimate.
+- The home app keeps each game APK an install replaced (~2.4 GB) on storage until it restarts; on a
+  Redmi Note 9 Pro one launcher force-stop freed 9.45 GiB (lab notebook, 2026-10-18, "Android patch run:
+  stage timings and five fewer passes"). `PrivilegedDeviceService.releaseReplacedGameApks` force-stops the
+  default home app after every game install, and `StorageBudget.releaseReplacedGameApks` calls it before
+  the patch run's, recovery's and the preparation's first budget. It never fails the caller and skips an
+  unresolved home (the chooser), the game, the patcher, Settings and Shizuku. Protocol version 10.
 
 ### Repatch from the pristine delta (2026-10-17)
 
@@ -323,8 +329,8 @@ Kotlin only names the files (`PristineDelta.kt`).
   pristine SHA-256. A file the previous install translated and this build leaves alone is copied into
   `out/` at its pristine bytes and written back like any staged file. The copy is deleted after the
   build, with `work/`.
-- Refusals, all raised by `build_snapshot` after the normal APK is back and before the apply's access
-  APK goes on, so no game file is written: a named file at neither its staged nor its pristine bytes; a
+- Refusals, all raised by `build_snapshot` before the first write, so no game file is written (recovery
+  then restores the normal APK): a named file at neither its staged nor its pristine bytes; a
   file at a hash this patcher staged with no delta (or no entry) behind it; and, with no delta, a
   build whose text pass does not read the layer as pristine (`pristine_delta.text_not_pristine`).
 - A delta that no longer matches while no file is at a hash this patcher staged is stale (the data

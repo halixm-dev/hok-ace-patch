@@ -38,6 +38,16 @@ object StorageBudget {
             "Clear at least $moreGb GB more, then try again.\nKeep saved recovery files."
     }
 
+    /**
+     * Before a budget: the home app holds every game APK an install replaced until it restarts (several GB
+     * after a few runs). Never fails the caller; the worker also releases them after each install.
+     */
+    fun releaseReplacedGameApks(device: IPrivilegedDeviceService, report: (String) -> Unit) {
+        runCatching { JSONObject(device.releaseReplacedGameApks()).optLong("freed_bytes") }
+            .onSuccess { if (it > 0) report("Freed ${freeSpaceLabel(it)} of replaced game files the home screen app held") }
+            .onFailure { android.util.Log.w("HokAceStorage", "Replaced game APKs were not released", it) }
+    }
+
     fun requireAvailable(directory: File, phase: String, vararg allocations: Long): JSONObject {
         val bytes = required(*allocations)
         val available = directory.usableSpace

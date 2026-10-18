@@ -156,6 +156,7 @@ class ApkPreparation(private val context: Context) {
             DurableFiles.syncDirectory(preparations)
             report("Freed ${StorageBudget.freeSpaceLabel(abandoned)} left by unfinished earlier preparations")
         }
+        StorageBudget.releaseReplacedGameApks(device, report)
         // Source + signed normal + unsigned access + signed access is the measured implementation's peak.
         StorageBudget.requireAvailable(context.filesDir, "APK preparation", bytes, bytes, bytes, bytes)
         val directory = File(context.filesDir, "preparations/${UUID.randomUUID()}")

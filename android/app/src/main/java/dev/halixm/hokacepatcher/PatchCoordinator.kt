@@ -229,6 +229,7 @@ class PatchCoordinator @JvmOverloads constructor(
         releaseResolvedSessions()
         runCatching { ApkPreparation(context).releaseUnneeded(installedSource, accessApk.parentFile?.parentFile, report) }
             .onFailure { report("Could not remove unneeded saved APKs (${it.javaClass.simpleName})") }
+        StorageBudget.releaseReplacedGameApks(device, report)
         requireSpace("APK install and normal restore", maxOf(access.bytes, normal.bytes))
         checkpoint()
         val journal = SessionJournal.create(sessions, normalId, engine.name)
@@ -405,6 +406,7 @@ class PatchCoordinator @JvmOverloads constructor(
         check(journal.phase !in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) { "Session already resolved" }
         val normal = store.verify(journal.recoveryId)
         device.forceStopGame()
+        StorageBudget.releaseReplacedGameApks(device, report)
         val transaction = if (journal.dirtyPackages) GameFileTransaction(journal, device) else null
         val forward = !journal.dirtyPackages && journal.snapshot().optBoolean("patch_payload_verified", false)
         val applied = if (forward) GameFileTransaction(journal, device).verifyAppliedManifest() else null

@@ -14,10 +14,13 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     companion object {
         const val GAME = "com.tencent.tmgp.osgame"
         const val FIXTURE = "io.github.hokace.fixture"
-        const val PROTOCOL_VERSION = 9
+        const val PROTOCOL_VERSION = 10
         /** The UI matches on it; keep it free of "Shizuku" and "permission". */
         const val GAME_MISSING = "The game is not installed for the phone's main user"
         private const val MAX_DIAGNOSTIC = 16384
+        /** Never force-stopped as the home app: the system, the targets, the patcher and Shizuku. */
+        private val NEVER_STOPPED = setOf("android", "com.android.settings", GAME, FIXTURE,
+            "dev.halixm.hokacepatcher", "moe.shizuku.privileged.api")
     }
 
     // Only the debug source set overrides this, with a fixed disposable fixture package.
@@ -143,6 +146,33 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
         val result = binaryCommand(listOf("/system/bin/run-as", FIXTURE, "/system/bin/sh", "-c", script), payload)
         check(result.contentEquals(payload)) { "Fixture binary read-back differs" }
         return result
+    }
+
+    /**
+     * The home app keeps each replaced game APK (~2.4 GB) on storage until it restarts: one measured
+     * force-stop of the launcher freed 9.45 GiB after a few patch runs. Restarting it is the only release
+     * shell has. Skipped when no single default home app resolves.
+     */
+    @Synchronized override fun releaseReplacedGameApks(): String {
+        requireShell()
+        val resolved = command(listOf("/system/bin/cmd", "package", "resolve-activity", "--brief", "--user", "0",
+            "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")).trim().lines().last().trim()
+        val home = resolved.substringBefore('/', "")
+        val result = JSONObject().put("home", home)
+        if (!Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+").matches(home) || home in NEVER_STOPPED) {
+            return result.put("released", false).put("freed_bytes", 0L).toString()
+        }
+        val before = android.os.StatFs("/data").availableBytes
+        command(listOf("/system/bin/am", "force-stop", "--user", "0", home))
+        // Only a measurement for the log: the space returns once the last holder of the old APK is gone.
+        var freed = 0L
+        for (attempt in 0 until 5) {
+            freed = maxOf(0L, android.os.StatFs("/data").availableBytes - before)
+            if (freed > 0) break
+            Thread.sleep(200)
+        }
+        android.util.Log.i("HokAceDevice", "Home app $home restarted; $freed bytes freed")
+        return result.put("released", true).put("freed_bytes", freed).toString()
     }
 
     @Synchronized override fun forceStopGame() {
@@ -326,6 +356,9 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
             check(result == "Success") { "Game session commit failed: $result" }
             android.util.Log.i("HokAceDevice", "Game install session $session committed")
             committed = true
+            // Never fails the install: the space is only held until the home app restarts anyway.
+            runCatching { releaseReplacedGameApks() }
+                .onFailure { android.util.Log.w("HokAceDevice", "Home app restart skipped", it) }
             return JSONObject().put("session", session).put("bytes", length).toString()
         } finally {
             try { source.close() } catch (_: Exception) { }
