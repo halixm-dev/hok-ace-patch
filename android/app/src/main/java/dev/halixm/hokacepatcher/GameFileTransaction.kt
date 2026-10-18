@@ -59,9 +59,13 @@ class GameFileTransaction(private val journal: SessionJournal, private val devic
         }
     }
 
-    private fun expectedApplied(hashes: JSONObject): JSONObject {
+    /**
+     * [verified] is this run's own [verifyOriginals] result from just before the apply, whose [write]s
+     * each hashed their staged file; only then are the originals and staged files not hashed again.
+     */
+    private fun expectedApplied(hashes: JSONObject, verified: JSONObject? = null): JSONObject {
         check(hashes.length() in 0..8192) { "Unsupported staged file count" }
-        val expected = verifyOriginals()
+        val expected = verified?.let { JSONObject(it.toString()) } ?: verifyOriginals()
         val files = expected.getJSONObject("files")
         files.keys().asSequence().filter { it.startsWith("Watchdog/") }.toList().forEach { files.remove(it) }
         for (name in hashes.keys()) {
@@ -69,7 +73,9 @@ class GameFileTransaction(private val journal: SessionJournal, private val devic
             GameFilePolicy.validate(relative, writable = true)
             val source = File(journal.directory, "out/$name")
             check(source.isFile && !Files.isSymbolicLink(source.toPath()) &&
-                ApkIdentity.digest(source) == hashes.getString(name)) { "Retained staged file changed: $name" }
+                (verified != null || ApkIdentity.digest(source) == hashes.getString(name))) {
+                "Retained staged file changed: $name"
+            }
             files.put(relative, JSONObject().put("sha256", hashes.getString(name))
                 .put("bytes", source.length()))
         }
@@ -100,8 +106,9 @@ class GameFileTransaction(private val journal: SessionJournal, private val devic
         return manifest
     }
 
-    fun finishApply(hashes: JSONObject) {
-        val expected = expectedApplied(hashes)
+    /** [originals] is the [verifyOriginals] result the apply started from; without it they are verified again. */
+    @JvmOverloads fun finishApply(hashes: JSONObject, originals: JSONObject? = null) {
+        val expected = expectedApplied(hashes, originals)
         journal.intent("clear_watchdog")
         device.clearGameWatchdog()
         val manifest = File(journal.directory, "applied-manifest.json")

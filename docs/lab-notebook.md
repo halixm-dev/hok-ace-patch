@@ -3250,3 +3250,72 @@ The Xiaomi M2007J3SG lobby (data 1.6.0.1) read `Ranking  match  Training  Custom
 
 **Verdict:** pass. After *Scan to login* the lobby reads `Ranking  Match  Training  Custom` and
 `Supreme Star III | 80/120`.
+
+## 2026-10-18 — Android patch run: stage timings and five fewer passes
+
+Question: where does an Android patch run spend the time outside its build, and how much of it can go
+without weakening a check? Phone: **Redmi Note 9 Pro `ebad528e`, Android 15 (custom ROM), 8 cores**. This
+is not the device of record. English, data `1.6.0.1`. Every timing comes from `adb logcat` lines that
+`DiagnosticTrace` already writes (worker progress and engine-call durations), split into stages by
+`.scratch/patch-speed/timeline.py`. Runs were started by `start_patch.sh` (UI taps), after checking that the
+game was closed and `needDownloadSize` was 0.
+
+Source inspection (`.scratch/patch-speed/findings.md`) counted about 13 full passes over the game layer and
+19 over the 2 GB APK per run. The changes, all in the Android bridge and coordinator:
+
+1. `estimate_snapshot_build` reads the snapshot manifest without rehashing it. `build_snapshot` still
+   verifies the snapshot and the APK right before the build, and `build_scratch`, called from it, no
+   longer hashes them a second time. The pristine-copy files are still hashed.
+2. `_restore_pristine` finds files at staged hashes from the just-verified manifest
+   (`mobile_snapshot.package_files_at`) instead of rehashing every package file.
+3. The snapshot streams through a pipe into `unpack_snapshot_stream`, and both ends' bytes and SHA-256
+   must agree. No `snapshot.tar` is written, read back, hashed again or extracted from disk.
+4. The access APK stays installed through the build, as on Windows. The normal install after the
+   snapshot and the access install before the apply are gone; `validateGameSnapshot` before the first
+   write stays, and it fails unless the access APK is installed.
+5. `finishApply` reuses the originals verified before the apply. The access install reuses the
+   identity it checks itself instead of re-reading the session APK first.
+
+| Patch flow (s) | Baseline 1, HEAD `d749ac3`, first install | Baseline 2, HEAD, rebuild from delta | Optimized 1, rebuild | Optimized 2, rebuild |
+|---|---:|---:|---:|---:|
+| Preparing recovery material | 51.1 | 67.2 | 80.6 | 70.3 |
+| Access install | 50.2 | 47.4 | 50.2 | 54.9 |
+| Measuring, snapshot and everything up to the build | 251.8 | 249.5 | 93.1 | 92.6 |
+| `estimate_snapshot_build` (inside the above) | 30.8 | 31.7 | 5.4 | 5.6 |
+| `unpack_snapshot` / `_stream` (inside the above) | 64.9 | 64.6 | 67.0 | 66.1 |
+| `build_snapshot` | 258.4 | 291.3 | 239.5 | 245.1 |
+| Internal build timer (`metrics.json`) | 120.7 | 112.9 | not exported | not exported |
+| Second access install and layer check | 74.5 | 76.0 | — | — |
+| Package writes and `finishApply` | 76.7 | 75.3 | 62.8 | 61.5 |
+| Final normal install | 56.7 | 61.3 | 52.4 | 58.1 |
+| **Total** | **854.5** | **905.8** | **616.1** | **620.6** |
+| Free space, start → lowest (GiB) | | 13.97 → 4.76 | 15.32 → 9.84 | 13.37 → 6.06 |
+
+Every run reports 389 text tables, 398 applied textures, 1 skipped table and 0 skipped textures, and keeps
+a pristine delta of 14 files. Optimized 1 was the first run of a new engine, which re-extracts its assets
+(+13 s in preparation). Between baseline 2 and the optimized runs, 156 s goes from the snapshot up to the build,
+52 s from `build_snapshot`, 76 s with the second access install and 13 s from the apply. The internal build
+time is about 113–121 s, so `build_snapshot` spent roughly 140–180 s on checks and delta work outside it.
+
+| Verification | Result |
+|---|---|
+| Staged bytes, desktop | The real `build_snapshot` of HEAD and of the change, over the pristine `20261018-071235` layer and the cached `installed.apk`, gives equal staged SHA-256 for all 14 files, an equal pristine report, counts, skip lists and normalized full summary, both as a first install and rebuilding from the Windows delta with its staged files laid over the layer (`.scratch/patch-speed/bridge-*.json`). The rebuilt output also equals the first-install output. |
+| Staged bytes, phone | Not hash-compared: the journal keeps no file hashes, and the export has no `staged-hashes.json`. The device's own read-back (`sha256sum` of each written file, then `validateGameSnapshot` of the applied manifest) passed on every run. |
+| Streamed snapshot | A 2.95 GB tar of the real layer (741 files) through an OS pipe gives the same manifest as file extraction, and its stream identity equals the tar's. Truncated, header-cut and oversized streams are refused and leave no destination (`tools/research/check_mobile_snapshot.py`, 8 tests). |
+| Manifest lookup | `package_files_at` equals `pristine_delta.files_at` on a pristine layer (741 files, none staged) and a staged one (all 11). |
+| Process killed during the build | `am force-stop` of the patcher 60 s into a build, with the access APK installed (`DEBUGGABLE`). The reopened app showed *Finish your game safely*. Recovery reinstalled and verified the normal APK, the session became `CANCELLED`, it freed 2.7 GB, and `DEBUGGABLE` is absent afterwards. |
+| Other checks | `check_pristine_delta` (15), `check_staging_contract` and `check_references` pass. `:app:assembleRelease :app:assembleDebugAndroidTest` builds. The instrumentation probes were not run on a phone after the change. |
+
+**Side finding: the launcher pins replaced game APKs.** Free space fell from about 18 GB to 2.03 GiB over
+these runs, although each run freed its 3.0–3.3 GB of temporary files. A baseline retry was refused (7.46 GB
+required, 6.89 GB available), and so was a third optimized run (8.09 GB required, 4.21 GB available). Both
+refusals came before any write and restored the normal APK. Force-stopping the idle patcher freed
+nothing, and a desktop run shows the engine holds no file after a build (`open_after_build.py`).
+`am force-stop com.google.android.apps.nexuslauncher` freed **9.45 GiB at once** (2.03 → 11.48 GiB). Each game
+install leaves the replaced ~2.4 GB APK held until the launcher restarts. The old flow installs the game four
+times per run and the new one twice. Not fixed; on other launchers unmeasured.
+
+**Verdict:** shipped in source, uncommitted at the time of writing. On this phone a rebuild-from-delta run
+takes 616–621 s instead of 906 s (−32%), peak free-space use drops by about 3.7 GiB, coverage is unchanged
+and recovery from a kill during the build works. Single runs on one phone, not paired trials; not measured
+on the device of record.

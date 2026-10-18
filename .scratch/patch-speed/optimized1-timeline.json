@@ -1,0 +1,127 @@
+{
+ "stages": [
+  {
+   "stage": "Preparing verified recovery material",
+   "seconds": 80.6
+  },
+  {
+   "stage": "Language: English",
+   "seconds": 5.6
+  },
+  {
+   "stage": "Opening game data access",
+   "seconds": 50.2
+  },
+  {
+   "stage": "Measuring downloaded game data and required backup space",
+   "seconds": 0.4
+  },
+  {
+   "stage": "Saving complete game data and Watchdog snapshot",
+   "seconds": 92.7
+  },
+  {
+   "stage": "Building text and graphics from the verified private snapshot",
+   "seconds": 239.5
+  },
+  {
+   "stage": "Rebuilt 11 files from the pristine delta",
+   "seconds": 29.6
+  },
+  {
+   "stage": "Applying package file 1/1.db",
+   "seconds": 0.7
+  },
+  {
+   "stage": "Applying package file 1/1_0.db",
+   "seconds": 1.2
+  },
+  {
+   "stage": "Applying package file 10/10.db",
+   "seconds": 0.5
+  },
+  {
+   "stage": "Applying package file 10/10_0.db",
+   "seconds": 0.7
+  },
+  {
+   "stage": "Applying package file 1050016095/1050016095.db",
+   "seconds": 0.4
+  },
+  {
+   "stage": "Applying package file 1050016095/1050016095_0.db",
+   "seconds": 0.6
+  },
+  {
+   "stage": "Applying package file 15/15.db",
+   "seconds": 0.4
+  },
+  {
+   "stage": "Applying package file 15/15_0.db",
+   "seconds": 6.9
+  },
+  {
+   "stage": "Applying package file 19/19.db",
+   "seconds": 0.4
+  },
+  {
+   "stage": "Applying package file 19/19_0.db",
+   "seconds": 6.4
+  },
+  {
+   "stage": "Applying package file 20/20.db",
+   "seconds": 0.5
+  },
+  {
+   "stage": "Applying package file 20/20_0.db",
+   "seconds": 4.0
+  },
+  {
+   "stage": "Applying package file 21/21.db",
+   "seconds": 0.5
+  },
+  {
+   "stage": "Applying package file 21/21_0.db",
+   "seconds": 39.6
+  },
+  {
+   "stage": "Restoring normal game APK",
+   "seconds": 52.4
+  },
+  {
+   "stage": "Kept a pristine delta of 14 files for the next language switch",
+   "seconds": 0.8
+  },
+  {
+   "stage": "Freed 3.3 GB of temporary patch files",
+   "seconds": 1.2
+  }
+ ],
+ "engine": [
+  [
+   "engine_preflight",
+   2.009
+  ],
+  [
+   "unpack_snapshot_stream",
+   66.97
+  ],
+  [
+   "estimate_snapshot_build",
+   5.374
+  ],
+  [
+   "build_snapshot",
+   239.475
+  ],
+  [
+   "result_counts",
+   0.01
+  ],
+  [
+   "keep_delta",
+   0.656
+  ]
+ ],
+ "total": 616.0989999771118
+}

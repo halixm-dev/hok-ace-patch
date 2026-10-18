@@ -7,6 +7,9 @@ import com.chaquo.python.android.AndroidPlatform
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.file.Files
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import org.json.JSONObject
@@ -140,8 +143,10 @@ class PatchCoordinator @JvmOverloads constructor(
         }
     }
 
-    private fun install(journal: SessionJournal, file: File, access: Boolean, next: PatchPhase) {
+    private fun install(journal: SessionJournal, file: File, access: Boolean, next: PatchPhase,
+                        expected: ApkIdentity? = null) {
         val identity = ApkIdentity.read(context, file)
+        check(expected == null || identity == expected) { "The session's APK changed after it was checked" }
         if (!access) identity.requireRecovery()
         else check(identity.debuggable && identity.certificateSha256 == GameSigner.CERTIFICATE_SHA256)
         journal.intent(if (access) "install_access" else "install_normal", identity.json())
@@ -151,6 +156,32 @@ class PatchCoordinator @JvmOverloads constructor(
         }
         verifyInstalled(identity)
         journal.outcome(next, JSONObject().put("normal_verified", !access))
+    }
+
+    /**
+     * The privileged tar streams through a pipe into the engine's extraction, with no archive on disk. Both
+     * ends hash the stream; a short, extra or different byte refuses the snapshot.
+     */
+    private fun streamSnapshot(enginePath: String, destination: File, budget: Long) {
+        val pipe = ParcelFileDescriptor.createPipe()
+        val sender = Executors.newSingleThreadExecutor()
+        try {
+            // Our copy of the write end closes when the call returns, which ends the extraction's stream.
+            val sent = sender.submit<String> { pipe[1].use { device.snapshotGame(it, budget) } }
+            val received = try {
+                JSONObject(bridge("unpack_snapshot_stream", enginePath, pipe[0].detachFd(), destination.path, budget))
+            } catch (error: Throwable) {
+                runCatching { sent.get(60, TimeUnit.SECONDS) }.exceptionOrNull()?.let { error.addSuppressed(it) }
+                throw error
+            }
+            val result = JSONObject(try { sent.get(60, TimeUnit.SECONDS) }
+                catch (wrapped: ExecutionException) { throw wrapped.cause ?: wrapped })
+            check(received.getLong("bytes") == result.getLong("bytes") &&
+                received.getString("sha256") == result.getString("sha256")) { "Snapshot transport differs" }
+        } finally {
+            pipe.forEach { runCatching { it.close() } }
+            sender.shutdownNow()
+        }
     }
 
     private fun verifyInstalled(expected: ApkIdentity) {
@@ -227,34 +258,25 @@ class PatchCoordinator @JvmOverloads constructor(
                 check(sessionAccess.setReadOnly()) { "Cannot protect session access APK" }
                 DurableFiles.syncDirectory(journal.directory)
             }
-            check(ApkIdentity.read(context, File(journal.directory, "access.apk")) == access)
             checkpoint()
             device.forceStopGame()
-            install(journal, File(journal.directory, "access.apk"), true, PatchPhase.SNAPSHOT_ACCESS_INSTALLED)
-            val archive = File(journal.directory, "snapshot.tar")
+            // install() reads the session copy and requires it to be the access APK checked above.
+            install(journal, File(journal.directory, "access.apk"), true, PatchPhase.SNAPSHOT_ACCESS_INSTALLED, access)
             report("Measuring downloaded game data and required backup space")
             val snapshotEstimate = JSONObject(device.estimateGameSnapshot())
             val snapshotBudget = snapshotEstimate.getLong("archive_budget")
             check(snapshotBudget in 1..(8L * 1024 * 1024 * 1024)) { "Invalid snapshot estimate" }
-            // Archive and extraction coexist; then the extraction stays while the build adds its own files.
-            // Reserve both now, so a copy that fits is not followed by a build that cannot, plus
-            // independent installer space for normal restore.
+            // The snapshot streams straight into its extraction, which then stays while the build adds
+            // its own files. Reserve both now, so a copy that fits is not followed by a build that cannot,
+            // plus independent installer space for normal restore.
             requireSpace("measured snapshot, extraction, build and normal restore", snapshotBudget,
-                maxOf(snapshotBudget, previousBuildEstimate()), normal.bytes)
+                previousBuildEstimate(), normal.bytes)
             report("Saving complete game data and Watchdog snapshot")
-            ParcelFileDescriptor.open(archive, ParcelFileDescriptor.MODE_CREATE or
-                ParcelFileDescriptor.MODE_TRUNCATE or ParcelFileDescriptor.MODE_WRITE_ONLY).use {
-                val result = JSONObject(device.snapshotGame(it, snapshotBudget))
-                check(archive.length() == result.getLong("bytes") &&
-                    ApkIdentity.digest(archive) == result.getString("sha256")) { "Snapshot transport differs" }
-            }
-            requireSpace("snapshot extraction and normal restore", archive.length(), normal.bytes)
-            bridge("unpack_snapshot", engine.path, archive.path, File(journal.directory, "snapshot").path,
-                8L * 1024 * 1024 * 1024)
-            archive.delete()
+            streamSnapshot(engine.path, File(journal.directory, "snapshot"), snapshotBudget)
             validateLayer(File(journal.directory, "snapshot/manifest.json"))
             journal.outcome(PatchPhase.SNAPSHOT_READY)
-            install(journal, store.normal(normalId), false, PatchPhase.NORMAL_RESTORED_FOR_BUILD)
+            // The access APK stays installed until the translation is written, as on Windows: the game
+            // must stay closed throughout, and one install pair less is minutes less on a slow phone.
             checkpoint()
             val summary = if (remove) {
                 val copyBytes = bridge("removal_bytes", engine.path, pristine.path).toLong()
@@ -289,7 +311,8 @@ class PatchCoordinator @JvmOverloads constructor(
             runCatching { DurableFiles.deleteTree(File(journal.directory, PristineDelta.BUILD_COPY)) }
             checkpoint()
             val hashes = JSONObject(File(journal.directory, "staged-hashes.json").readText())
-            val originals = transaction.verifyOriginals().getJSONObject("files")
+            val verifiedOriginals = transaction.verifyOriginals()
+            val originals = verifiedOriginals.getJSONObject("files")
             hashes.keys().asSequence().forEach { GameFilePolicy.validate("packages/$it", writable = true) }
             val largestStaged = hashes.keys().asSequence().map {
                 File(journal.directory, "out/$it").length()
@@ -298,9 +321,9 @@ class PatchCoordinator @JvmOverloads constructor(
                 originals.getJSONObject(it).getLong("bytes")
             }.maxOrNull() ?: 0L
             val writeReserve = maxOf(largestStaged, largestOriginal)
-            requireSpace("access install, file writes and normal restore", maxOf(access.bytes, normal.bytes), writeReserve)
+            requireSpace("file writes and normal restore", normal.bytes, writeReserve)
             device.forceStopGame()
-            install(journal, File(journal.directory, "access.apk"), true, PatchPhase.APPLY_ACCESS_INSTALLED)
+            // Still the access APK from the snapshot; the layer is checked again before the first write.
             validateLayer(File(journal.directory, "snapshot/manifest.json"))
             journal.outcome(PatchPhase.APPLYING)
             for (name in hashes.keys().asSequence().sorted()) {
@@ -310,7 +333,7 @@ class PatchCoordinator @JvmOverloads constructor(
                 transaction.write("packages/$name", File(journal.directory, "out/$name"), hashes.getString(name))
             }
             checkpoint()
-            transaction.finishApply(hashes)
+            transaction.finishApply(hashes, verifiedOriginals)
             install(journal, store.normal(normalId), false, PatchPhase.COMPLETE)
             metricStatus = "complete"
             promoteSessionDelta(engine.path)
