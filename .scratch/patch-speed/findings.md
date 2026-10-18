@@ -93,5 +93,8 @@ and a manual launcher force-stop afterwards frees nothing (lab notebook, same en
 ## Still open
 
 - `CoordinatorRecoveryProbeTest`, `FullCoordinatorProbeTest`, `ApkPreparationProbeTest` and
-  `CoordinatorSourceGuardProbeTest` need the 1.4.0.2 fixtures, which only the Xiaomi `f15a72e` has. Run them there.
+  `CoordinatorSourceGuardProbeTest` need the 1.4.0.2 fixtures. They were not run: on 2026-10-18 the Xiaomi
+  `f15a72e` no longer has them (no `files/scratch/`; `files/recovery/` holds only `29b3ee7e…defdc`, not
+  `b0b08f4a…fc0a`; the game there is now 1.1.1), and no copy was found on the PC. Skipped for this PR until the
+  fixtures are restored.
 - Other launchers are unmeasured.
