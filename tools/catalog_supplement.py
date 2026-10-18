@@ -57,6 +57,28 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Meng Ya meluncurkan 12 rudal untuk menyerang musuh acak, masing-masing memberikan <color=#dfa15e>Physical"
         " Damage sebesar [524311p1q1]+[524311p1q2/100]% Physical Attack</color>. Saat beberapa rudal mengenai target"
         " yang sama, damage berikutnya berkurang 40%."),
+    "战斗开始时，随机传送1个临时等级100级的英雄进入战场（不含卡牌效果），该等级每回合+40。": (
+        "At the start of battle, randomly Teleport 1 Hero with a temporary Level of 100 into the Battlefield"
+        " (excluding card effects). This Level increases by 40 each Round.",
+        "Di awal pertempuran, teleportasi secara acak 1 Hero dengan Level sementara 100 ke Medan Pertempuran"
+        " (tidak termasuk efek kartu). Level ini bertambah 40 setiap Ronde."),
+    "战斗开始时，随机传送1个100级的英雄进入战场（不含卡牌效果），传送等级每回合+40。": (
+        "At the start of battle, randomly teleports 1 Lv. 100 Hero into the Battlefield (excluding card effects)."
+        " Teleport Level increases by 40 each Round.",
+        "Di awal pertempuran, teleportasi secara acak 1 Hero Lv. 100 ke Medan Pertempuran (tidak termasuk efek"
+        " kartu). Level teleportasi bertambah 40 setiap Ronde."),
+    "战斗开始时，亚瑟周围一格的友方英雄<color=#FFE897>变身为圣殿骑士</color>。亚瑟的普攻变为为血量最低的圣殿骑士回复生命值；技能改为指挥全体圣殿骑士朝敌人<color=#FFE897>冲锋</color>。": (
+        "At the start of Battle, allied Heroes within 1 grid of Arthur <color=#FFE897>transform into Templars</color>."
+        " Arthur's basic attacks now restore HP to the Templar with the lowest HP; his Skill is changed to command"
+        " all Templars to <color=#FFE897>Charge</color> at enemies.",
+        "Di awal Pertempuran, Hero ally dalam jarak 1 petak dari Arthur <color=#FFE897>berubah menjadi"
+        " Templar</color>. Basic attack Arthur kini memulihkan HP ke Templar dengan HP terendah; Skill-nya berubah"
+        " menjadi memerintahkan semua Templar untuk <color=#FFE897>Charge</color> ke musuh."),
+    "随机<color=#FFE897>获得1件星源装备</color>，且星源装备的【日落海】专属效果对穿戴它的任意英雄生效。": (
+        "Randomly <color=#FFE897>gain 1 Star Source Equipment</color>, and the [Sunset] Exclusive effect of the"
+        " Star Source Equipment applies to any Hero wearing it.",
+        "Secara acak <color=#FFE897>dapatkan 1 Equipment Star Source</color>, dan efek eksklusif [Sunset] dari"
+        " Equipment Star Source berlaku untuk Hero mana pun yang memakainya."),
     "回合开始时，场上友方英雄获得已觉醒英雄数量×2的等级。": (
         "At the start of the Round, allied heroes on the field gain levels equal to the number of Awaken Heroes ×2.",
         "Di awal Ronde, hero ally di lapangan mendapat level sebesar jumlah Hero Awaken ×2."),

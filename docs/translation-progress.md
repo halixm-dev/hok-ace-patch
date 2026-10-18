@@ -160,6 +160,19 @@ announcement (卡牌更新公告) stays Chinese. Its change notes (`初始法力
 neither data layer, and the only match for its title is a Lua comment beside `CLTSTS_NEWS`. That points to
 text the server sends. Its 削弱/优化/调整/增强/新增 tags are a package-19 prefab (`073A9BC1840032F3`).
 
+Also on 2026-10-18 the Tide Cycle talent card showed its description in Chinese. The game now opens it with
+"战斗开始时" where the catalog has "开战时"; the rest of the sentence is unchanged. Both of the card's
+variants (`临时等级100级` and `100级`) are in 11 package-`1` tables of the saved override layer. A sweep of
+that layer for the same opening found one more reworded string: Arthur's Templar text now restores 生命值 (HP)
+where the catalog's form restores 最大生命值 (Max HP). All three now receive supplement entries in both
+languages, reusing the catalog's own English and Indonesian. They add rows to tables already counted, so no
+count moves.
+
+The Global Resonance talent card read Chinese for the same reason. The game now grants 星源装备 where the
+catalog's form grants 火鹰装备 (Fire Hawk Equipment). The new form is in 10 package-`1` tables of the saved
+override layer. Its supplement entry reuses the catalog's Fire Hawk sentence and names the set *Star Source*,
+as four of the catalog's five 星源 items do (the fifth reads *Starcore*).
+
 Yao's old English description can now be corrected by rerunning with the updated patcher.
 `catalog_updates` adds exact old-to-current mappings for 22 measured rows in 11 existing catalog
 tables. This changes installed wording without clearing game data or adding asset coverage.
