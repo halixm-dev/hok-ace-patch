@@ -256,8 +256,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     @Synchronized override fun firstSetupGameAbsent(): Boolean {
         requireShell()
         // Include retained/uninstalled package records: a signer-changing install needs true absence.
-        return !FirstSetupPackagePolicy.containsPackage(command(listOf("/system/bin/pm", "list", "packages",
-            "-u", installerPackage)), installerPackage)
+        return FirstSetupPackagePolicy.gameAbsent(installerPackage) { command(it) }
     }
 
     private fun requireNoOtherGameUsers() =

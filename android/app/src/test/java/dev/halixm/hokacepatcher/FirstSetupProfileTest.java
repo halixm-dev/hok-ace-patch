@@ -66,15 +66,19 @@ public final class FirstSetupProfileTest {
             return this;
         }
 
+        String command(List<String> args) {
+            String key = String.join(" ", args);
+            calls.add(key);
+            String value = answers.get(key);
+            if (value == null) throw new AssertionError("Unexpected command: " + key);
+            if (value.startsWith("!")) throw new IllegalStateException(value.substring(1));
+            return value;
+        }
+
+        boolean absent() { return POLICY.gameAbsent(GAME, this::command); }
+
         void run() {
-            POLICY.requireNoOtherUsers(GAME, args -> {
-                String key = String.join(" ", args);
-                calls.add(key);
-                String value = answers.get(key);
-                if (value == null) throw new AssertionError("Unexpected command: " + key);
-                if (value.startsWith("!")) throw new IllegalStateException(value.substring(1));
-                return value;
-            }, () -> {
+            POLICY.requireNoOtherUsers(GAME, this::command, () -> {
                 calls.add("dumpsys");
                 if (dump == null) throw new IllegalStateException("Device command failed (1): dumpsys failed");
                 return dump;
@@ -136,7 +140,7 @@ public final class FirstSetupProfileTest {
     }
 
     @Test public void guardAcceptsNoRecordOnlyWhenTheRetainedListingAgrees() {
-        String retained = "/system/bin/pm list packages -u " + GAME;
+        String retained = "/system/bin/pm list packages -u --user 0 " + GAME;
         FakeDevice absent = vivo();
         absent.dump = "";
         absent.answers.put(retained, "");
@@ -147,6 +151,31 @@ public final class FirstSetupProfileTest {
         kept.dump = "";
         kept.answers.put(retained, "package:" + GAME + "\n");
         assertTrue(kept.refusal().startsWith(FirstSetupPackagePolicy.UNCHECKED_PROFILE));
+    }
+
+    // vivo V2561, Android 16, right after first setup's all-users `pm uninstall` succeeded: the absence check
+    // stopped with "Cannot verify installed game packages" (hok-ace-recovery-log (7), 2026-10-19). The listing
+    // without --user returned a line that is not a package; its exact text is assumed here, not measured.
+    private static FakeDevice vivoAfterUninstall() {
+        FakeDevice device = vivo();
+        device.answers.put("/system/bin/pm list packages -u " + GAME, "Error: Shell does not have permission to access user 10\n");
+        device.answers.put("/system/bin/pm list packages -u --user 0 " + GAME, "");
+        device.answers.put("/system/bin/pm list packages -u --user 10 " + GAME, "!" + VIVO_DENIAL);
+        device.dump = "";
+        return device;
+    }
+
+    @Test public void absenceCheckPassesOnVivoAfterTheUninstall() {
+        assertTrue(vivoAfterUninstall().absent());
+    }
+
+    @Test public void absenceCheckStillSeesARetainedMainUserRecord() {
+        FakeDevice device = vivoAfterUninstall();
+        device.answers.put("/system/bin/pm list packages -u --user 0 " + GAME, "package:" + GAME + "\n");
+        assertFalse(device.absent());
+        device.answers.put("/system/bin/pm list packages -u --user 0 " + GAME, "Error: something else\n");
+        try { device.absent(); fail("Unexpected listing read as absence"); }
+        catch (IllegalStateException expected) { }
     }
 
     @Test public void guardPropagatesOtherFailuresWithoutTheFallback() {

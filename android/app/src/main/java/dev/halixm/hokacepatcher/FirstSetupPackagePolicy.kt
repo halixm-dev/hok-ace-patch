@@ -26,11 +26,18 @@ object FirstSetupPackagePolicy {
     fun containsPackage(output: String, target: String): Boolean {
         require(target in setOf(PrivilegedDeviceService.GAME, PrivilegedDeviceService.FIXTURE))
         val lines = output.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
-        check(lines.all { it.matches(Regex("package:[a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)+")) }) {
-            "Cannot verify installed game packages"
-        }
+        val unexpected = lines.firstOrNull { !it.matches(Regex("package:[a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)+")) }
+        check(unexpected == null) { "Cannot verify installed game packages (listed: ${unexpected?.take(160)})" }
         return "package:$target" in lines
     }
+
+    /**
+     * True when the main user lists no installed or retained record of [target]. [command] runs a read-only
+     * device command. The user is named: on vivo's Android 16 the listing without `--user` stopped first setup
+     * after its uninstall with a line that is not a package (2026-10-19), while `--user 0` is shell's own user.
+     */
+    fun gameAbsent(target: String, command: (List<String>) -> String): Boolean =
+        !containsPackage(command(listOf("/system/bin/pm", "list", "packages", "-u", "--user", "0", target)), target)
 
     /**
      * True when `pm list packages --user <user>` failed only because shell may not enter that profile.
@@ -56,7 +63,7 @@ object FirstSetupPackagePolicy {
         val dumped by lazy {
             profileStates(dump(), target) ?: run {
                 // No record in the dump: absent from every profile only if the retained-record listing agrees.
-                check(!containsPackage(command(listOf("/system/bin/pm", "list", "packages", "-u", target)), target)) {
+                check(gameAbsent(target, command)) {
                     "$UNCHECKED_PROFILE; first setup refused"
                 }
                 null

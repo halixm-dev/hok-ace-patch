@@ -290,7 +290,10 @@ app carries its own; it is device-verified on the Infinix X6853.
   reads every profile's state from `dumpsys package <game>`, grep-filtered so the diagnostic cap
   cannot cut it off.
 - An installed copy in another profile is refused; a profile the dump does not list is refused as
-  uncheckable; a dump with no record counts as absent only when `pm list packages -u` agrees.
+  uncheckable; a dump with no record counts as absent only when `pm list packages -u --user 0` agrees.
+- Every absence listing names the main user (`FirstSetupPackagePolicy.gameAbsent`). On vivo Android 16
+  the listing without `--user` returned a line that is not a package right after first setup's
+  uninstall, which stopped setup and every recovery with the game already removed (2026-10-19).
 - The denial has two forms: Transsion's `java.lang.SecurityException: Shell does not have permission
   to access user N`, and vivo Android 16's plain `Error: Shell does not have permission to access user
   N` as the command's whole output (2026-10-19). `FirstSetupPackagePolicy.profileDenied` matches each

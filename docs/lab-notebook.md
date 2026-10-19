@@ -3428,3 +3428,29 @@ fail. The recovery card now follows `RecoveryMaterial` (above).
 Verified: `testDebugUnitTest` (42 cases), `assembleDebug`, `compileDebugAndroidTestKotlin`,
 `check_ui_strings.py`. **Not run on a phone**; the next log from this vivo should show the profile check
 passing or naming the profile it could not check.
+
+
+## 2026-10-19 — vivo stops first setup after the uninstall (vivo V2561)
+
+Next exported log from the same phone (`hok-ace-recovery-log (7).txt`, app 1.6.1.11 (58)). The profile
+fix above held: `prepare` passed `Checking other Android profiles for the game` and prepared
+`1b9c8756` with `requires_signature_conversion: true`. `first_setup` then removed the game (`pm uninstall`
+returned `Success`) and stopped 18 s later with `Cannot verify installed game packages`. Its automatic
+recovery and two `setup_recover` runs stopped on the same line. The journal sits at `UNINSTALL_INTENT`,
+the environment block reads `game: not installed`, and the normal APK is retained.
+
+| Finding | Evidence |
+|---|---|
+| The absence check failed, not the uninstall | The message comes only from `containsPackage`, so `pm list packages -u <game>` exited 0 with a line that is not `package:…`. Each run calls `firstSetupGameAbsent` first; recovery never reached an install. |
+| Only the form without `--user` is affected | Before removal the dump still had a record, so this listing never ran; `--user 10` exits 1 with the plain `Error:` line (entry above). On the Redmi Note 9 Pro (API 35, single user) the form without `--user` and the `--user 0` form print the same thing, exit 0. |
+| The rejected line is not in the log | The message carried no output. Assumed to be vivo's `Error: Shell does not have permission to access user 10` printed for the all-profiles walk; **not measured**. |
+
+Fix: `FirstSetupPackagePolicy.gameAbsent` lists `pm list packages -u --user 0 <game>`, used by
+`firstSetupGameAbsent` and by `requireNoOtherUsers`'s no-record cross-check, which had the same command.
+The refusal now quotes the first rejected line (`listed: …`, 160 characters) so the next log names it.
+`FirstSetupProfileTest` gains a vivo-after-uninstall fake device; before the fix both new cases failed
+with `Cannot verify installed game packages`.
+
+Verified: `testDebugUnitTest`. **Not run on the vivo**. Updating the app and tapping recovery should
+install the retained normal APK from `UNINSTALL_INTENT`. If it stops again, the `listed:` text says
+whether hypothesis 2 (vivo prints a non-package line for every listing) holds.
