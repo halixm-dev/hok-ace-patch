@@ -138,16 +138,34 @@ Top to bottom:
 1. **Hero** — a panel. Eyebrow `COMMUNITY PATCHER  /  HOK ACE` in `on-panel-muted`, the app title in `title`,
    one line saying it is an unofficial, partial translation and that login goes through *Scan to
    login*. Drawn locally: the panel gradient plus a few faint diagonal light bands. No images.
-2. **① Language** — a card with the two choices, English and Bahasa Indonesia. Locked while work runs.
-3. **② Start** — a card with the single Start button, and the progress below it once work starts: a
-   bar and one line, `Step N of 7 · <step>`. **Windows**: device status and the working folder
-   (with its free space and Change…) sit above the Start button in this card.
-4. **Log** — the live activity log; on Android also the technical log. Each log scrolls inside its
-   own height-bounded panel while the page scrolls outside it.
-5. **Technical tools** — secondary buttons, then the installed version, *Check for updates* and,
-   on Android, *Free up space* (also in the recovery options).
+2. **① Language** — a card with, in order: the title, the language note, the two choices (English
+   and Bahasa Indonesia), then **Remove translation**, a secondary outlined button.
+   - The language note has two variants: no clear is needed while the patcher keeps a pristine
+     delta; otherwise the game's data must be cleared first.
+   - Remove translation shows only while a pristine delta is kept (Windows: in its working folder).
+   - The choices and Remove translation lock together while work runs, in the disabled colours.
+3. **② Start** — a card with the single Start button. It rewrites itself in place for each state:
+   - **Idle** and **not ready**: the Start button, with the blocker as the next step when there is one.
+   - **Running**: a bar and one line, `Step N of M · <step>`, in place of the button.
+   - **Result**: a heading and the run's own counts as a short list. The result states are
+     *Translation added*, *Translation removed*, *Translation written* (Android: recovery closed a
+     run whose translation is on the phone, unconfirmed) and *Space freed* (Android).
+   - **Notice**: one `text-muted` line under the card's instruction, such as "Access was not
+     allowed. Tap Start to try again." It is not a card, and the next notice replaces it.
 
-Warnings and recovery messages appear as a warning card directly under ② Start, not as extra steps.
+   **Windows**: device status and the working folder (with its free space and Change…) sit above
+   the Start button in this card.
+4. **Warning or error card**, directly under ② Start, when one exists:
+   - The **warning card** holds anything that needs action. On Android it is "Game won't open?",
+     with the recovery options folded and Restore interrupted patch first.
+   - The **error card** holds the cause and the next step, with *Copy error details* (Android) and
+     *Save log for help*.
+5. **Log** — the live activity log; on Android also the technical log. Each log scrolls inside its
+   own height-bounded panel while the page scrolls outside it.
+6. **Footer** — the installed version, then one row of text buttons: *Technical tools*, *Check for
+   updates* and, on Android, *Free up space*. They are not full-width buttons.
+
+Warnings and recovery messages never appear as extra steps.
 
 ## Components
 
@@ -157,6 +175,11 @@ Disabled buttons use the disabled colours and are never only dimmed.
 **Dialogs.** A panel with a heading in `on-panel`, the message in `on-panel-muted`, the confirm
 button on the right and a secondary Cancel on the left. A danger confirmation (data loss) uses an
 `error` confirm button instead of ice-blue. Consent checkboxes start unchecked.
+
+Remove translation and Free up space confirm with a plain dialog, not a danger one: neither
+deletes the game's data. The Android Remove translation dialog keeps its consent checkbox.
+Free up space's optional "also remove the saved game apps" checkbox starts unchecked and states the
+space the next patch will need.
 
 **Progress.** The bar's track is `disabled-fill`, its fill `ink`.
 

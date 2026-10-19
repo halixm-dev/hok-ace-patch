@@ -374,9 +374,10 @@ Kotlin only names the files (`PristineDelta.kt`).
   run completes and again at the next run's start (for a run whose last step recovery finished); a
   delta older than the newest completed session is discarded, never promoted. An interrupted run is
   rolled back to `snapshot/`, which the old delta still describes.
-- **Remove translation** (ticket 06): a Language-card button, shown while a delta is kept, runs the
+- **Remove translation** (ticket 06): a Language-card button below the two choices, shown while a
+  delta is kept and locked with them while work runs, runs the
   automatic flow with `removing` set; after preparation it shows the patch confirmation in its remove
-  form and sends the worker `remove`. `PatchCoordinator.run(remove = true)` swaps the estimate and
+  form (a plain panel dialog, `PanelDialog`, with its consent checkbox) and sends the worker `remove`. `PatchCoordinator.run(remove = true)` swaps the estimate and
   build for `removal_bytes` (reserved) and `build_removal`, which moves the rebuilt pristine files into
   `out/` with an empty session delta; the write-back, its `snapshot/` rollback and the delta promotion
   are the patch run's. Promoting an empty delta deletes the kept one (`keep_delta`), so the next patch

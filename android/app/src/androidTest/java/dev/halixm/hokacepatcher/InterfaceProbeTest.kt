@@ -95,6 +95,62 @@ class InterfaceProbeTest {
         } finally { PatchLanguage.set(context, original) }
     }
 
+    /** ① Language: title, note, choices, then Remove translation, offered only while a delta is kept. */
+    @Test fun languageCardOffersRemovalOnlyWithAPristineDelta() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val original = PatchLanguage.current(context)
+        // Move a delta this phone already keeps aside, and put it back afterwards.
+        val delta = File(PristineDelta.directory(context), "delta.bin")
+        val kept = File(PristineDelta.directory(context), "delta.bin.probe")
+        if (delta.isFile) assertTrue(delta.renameTo(kept))
+        try {
+            val clear = "Switching languages on a phone another patcher or an older version translated? Clear the game's data and download it again first."
+            val noClear = "Switching languages? No need to clear: the patcher kept the original game files it changed."
+            for ((code, held) in listOf("en" to false, "en" to true, "id" to false, "id" to true)) {
+                PatchLanguage.set(context, code)
+                val note = UiText.text(context, if (held) noClear else clear)
+                if (held) { delta.parentFile!!.mkdirs(); delta.writeBytes(byteArrayOf()) } else delta.delete()
+                ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                    scenario.onActivity { activity ->
+                        val view = activity.window.decorView
+                        val card = view.findViewWithTag<ViewGroup>("language-card")
+                        val order = listOf("language-note", "language-picker", "remove-translation")
+                            .map { tag -> (0 until card.childCount).indexOfFirst { card.getChildAt(it).tag == tag } }
+                        val title = (0 until card.childCount).indexOfFirst {
+                            (card.getChildAt(it) as? TextView)?.text?.toString() == UiText.text(activity, "Language") }
+                        assertTrue("$code: title $title, then $order", title >= 0 && order.all { it > title } && order == order.sorted())
+                        assertEquals(note, view.findViewWithTag<TextView>("language-note").text.toString())
+                        val remove = view.findViewWithTag<View>("remove-translation")
+                        assertEquals("$code, delta $held", if (held) View.VISIBLE else View.GONE, remove.visibility)
+                        if (held) assertEquals(UiText.text(activity, "Remove translation"), (remove as TextView).text.toString())
+                    }
+                }
+            }
+            // Locked while work runs, in the disabled colours rather than a lower alpha.
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    val home = GuidedHome(activity) { }
+                    home.languageEnabled(false)
+                    val view = activity.window.decorView
+                    val choice = view.findViewWithTag<RadioButton>("language-en")
+                    assertFalse(choice.isEnabled)
+                    assertEquals(1f, choice.alpha)
+                    assertEquals(activity.getColor(R.color.disabled_text), choice.currentTextColor)
+                    assertFalse(view.findViewWithTag<View>("remove-translation").isEnabled)
+                    assertEquals(activity.getColor(R.color.disabled_text), view.findViewWithTag<TextView>("remove-translation").currentTextColor)
+                    home.languageEnabled(true)
+                    assertTrue(choice.isEnabled)
+                    assertEquals(activity.getColor(R.color.ink), choice.currentTextColor)
+                }
+            }
+        } finally {
+            delta.delete()
+            if (kept.isFile) kept.renameTo(delta)
+            PatchLanguage.set(context, original)
+        }
+    }
+
     @Test fun longLogsScrollWithoutMovingHome() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             lateinit var home: GuidedHome

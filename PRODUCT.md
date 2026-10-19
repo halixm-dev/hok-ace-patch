@@ -38,7 +38,10 @@ affiliated with Tencent.
   translation, restore game.
 - **Android patcher**: the player installs Shizuku, picks a language and taps Start. The patcher
   checks and recovers unfinished work before patching, asks for explicit consent before anything
-  destructive, and keeps recovery tools for a game that won't open.
+  destructive, and keeps recovery tools for a game that won't open. It also offers *Remove
+  translation* and *Free up space*.
+- **Both patchers** offer *Remove translation* while they keep a pristine delta: it restores the
+  original game files without clearing the game's data.
 - The translation is written only after the in-game update finishes. During a run the game must stay
   closed. Afterwards the player logs in with *Scan to login*, because re-signing breaks direct
   WeChat/QQ login.
@@ -52,7 +55,10 @@ affiliated with Tencent.
 - Switching language, or applying a newer translation, needs no clear on a phone the same patcher
   translated: each keeps a pristine delta and rebuilds the untranslated files first. A phone the
   other patcher (or a version from before deltas) translated, or one a game update changed, still
-  needs the game's data cleared. Repatching after an update without a clear is specced, not shipped.
+  needs the game's data cleared. Repatching after an in-game update needs no clear either, in both
+  patchers; it was checked offline, not yet on a real update. A clear is still needed when an update
+  left a package holding both updated and translated files, or when the delta predates the asset
+  record (fingerprints) the update check reads.
 - First setup on an officially signed game deletes local game data and needs a fresh download
   (about 1.7–2.7 GB) and a new login. Consent checkboxes start unchecked.
 - The interface is in English or Indonesian, following the chosen translation. Technical logs stay

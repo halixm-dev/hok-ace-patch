@@ -625,7 +625,7 @@ class MainActivity : Activity() {
                 if (!busy && !automatic && !PatchWorkerService.isWorking)
                     startWorker(Intent(this, PatchWorkerService::class.java).setAction("free_space")
                         .putExtra("remove_saved_apks", remove.isChecked))
-            }.show()
+            }.show().also(PanelDialog::style)
     }
 
     /** <remove> asks to confirm Remove translation, which writes the original game files back instead. */
@@ -638,6 +638,7 @@ class MainActivity : Activity() {
             .setView(confirmation).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }
             .setPositiveButton(ui(if (remove) "Remove the translation" else "Start patch"), null).create()
         dialog.show()
+        PanelDialog.style(dialog)
         run {
             val start = dialog.getButton(AlertDialog.BUTTON_POSITIVE); start.isEnabled = false
             confirmation.setOnCheckedChangeListener { _, checked -> start.isEnabled = checked }

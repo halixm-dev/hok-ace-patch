@@ -13,8 +13,12 @@
 
 **Blocked by:** nothing
 
-**Status:** ready-for-agent
+**Status:** done (2026-10-19)
 
-- [ ] `DESIGN.md` Layout and Components
-- [ ] `PRODUCT.md` update-repatch line and Operating Context
-- [ ] Reference check passes
+- [x] `DESIGN.md` Layout and Components
+- [x] `PRODUCT.md` update-repatch line and Operating Context
+- [x] Reference check passes
+
+## Comments
+
+2026-10-19: `DESIGN.md` Layout now lists ① Language's order (title, note, choices, Remove translation), ② Start's states and notice line, the warning and error cards under ②, and the footer row; Components adds the plain dialog for Remove translation and Free up space. `PRODUCT.md` says update repatching shipped in both patchers, checked offline, and names the two cases that still need a clear (a package mixing updated and translated files, a delta without the asset record). No token changed, so `theme.json` still matches. `check_references.py` passes.

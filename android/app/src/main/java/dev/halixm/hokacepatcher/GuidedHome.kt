@@ -75,14 +75,20 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         tag = "language-picker"; orientation = LinearLayout.VERTICAL
         PatchLanguage.choices.forEach { (code, name) ->
             addView(RadioButton(activity).apply {
-                id = View.generateViewId(); text = name; tag = "language-$code"; setTextColor(ink)
+                id = View.generateViewId(); text = name; tag = "language-$code"
                 setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_button))
                 typeface = activity.resources.getFont(R.font.barlow_semibold)
                 minHeight = dp(48)
+                // Locked choices take the disabled colours, not only a lower alpha.
+                setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
+                    intArrayOf(activity.getColor(R.color.disabled_text), ink)))
                 buttonTintList = ColorStateList(
                     arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf(android.R.attr.state_checked), intArrayOf()),
                     intArrayOf(activity.getColor(R.color.disabled_text), ink, muted))
-                background = background(activity.getColor(R.color.card_solid))
+                background = android.graphics.drawable.StateListDrawable().apply {
+                    addState(intArrayOf(-android.R.attr.state_enabled), background(activity.getColor(R.color.disabled_fill)))
+                    addState(intArrayOf(), background(activity.getColor(R.color.card_solid)))
+                }
                 setPadding(dp(12), dp(6), dp(12), dp(6))
                 layoutParams = RadioGroup.LayoutParams(-1, -2).apply { setMargins(0, dp(4), 0, dp(4)) }
             })
@@ -111,13 +117,13 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         root.background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
             intArrayOf(activity.getColor(R.color.page_top), activity.getColor(R.color.page_bottom)))
         root.addView(hero())
-        val languageCard = card()
+        val languageCard = card().apply { tag = "language-card" }
         languageCard.addView(eyebrow("01  /  YOUR TRANSLATION"))
         languageCard.addView(text("Language", Type.HEADING))
         showLanguageNote()
         languageCard.addView(languageNote)
-        languageCard.addView(removeButton)
         languageCard.addView(languages)
+        languageCard.addView(removeButton)
         root.addView(languageCard)
         val card = card()
         card.addView(eyebrow("02  /  READY TO PLAY"))
@@ -218,9 +224,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     fun languageEnabled(value: Boolean) {
         if (value) showLanguageNote()
         removeButton.isEnabled = value
-        for (index in 0 until languages.childCount) languages.getChildAt(index).apply {
-            isEnabled = value; alpha = if (value) 1f else 0.55f
-        }
+        for (index in 0 until languages.childCount) languages.getChildAt(index).isEnabled = value
     }
 
     fun resultMessage(value: String) {
