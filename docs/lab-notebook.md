@@ -3396,3 +3396,9 @@ run frees before its first budget. A run with a package mid-change is refused.
 
 Verified: `compileReleaseKotlin` and the JVM unit tests pass; `CoordinatorRecoveryProbeTest` compiles
 with four new cases. **Not run on a phone**, and the instrumented cases were not run.
+
+**Saved APKs.** The export's `preparations/` and `recovery/` hold one APK each (2026633208 and
+2026632169 bytes, two files per folder): the access APK and the normal APK; the prepared normal copy is
+deleted once `RecoveryStore.adopt` holds it. *Free up space* gained an opt-in that removes both once the
+installed game is verified as the saved normal APK; the next preparation then copies the installed app
+again and budgets four APK sizes. Compiled with a fifth instrumented case; not run.

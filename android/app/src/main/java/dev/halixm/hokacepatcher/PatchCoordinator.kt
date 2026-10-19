@@ -402,9 +402,10 @@ class PatchCoordinator @JvmOverloads constructor(
      * Free up space without starting a patch: what a run frees before its first budget, plus each
      * unfinished run that left no game file mid-change, closed by [SessionJournal.closeUnconfirmed]
      * once the normal APK is verified installed. Pristine deltas, the saved normal APKs and this game
-     * version's prepared APKs stay. A run that stopped mid-change is refused: it needs recovery.
+     * version's prepared APKs stay unless <removeSavedApks>; see [ApkPreparation.removeSaved]. A run that
+     * stopped mid-change is refused: it needs recovery.
      */
-    fun freeSpace(): JSONObject = exclusive {
+    @JvmOverloads fun freeSpace(removeSavedApks: Boolean = false): JSONObject = exclusive {
         EmergencyRestoreStore(context).requireResolved()
         check(FirstSetupJournal.pending(context).isEmpty()) { "Finish or recover first-time setup before freeing space" }
         val before = context.filesDir.usableSpace
@@ -430,13 +431,19 @@ class PatchCoordinator @JvmOverloads constructor(
         StorageBudget.releaseReplacedGameApks(device, report)
         val known = installed ?: File(context.filesDir, "recovery").listFiles().orEmpty()
             .filter { it.isDirectory && it.name.matches(Regex("[0-9a-f]{64}")) }
-            .maxByOrNull { it.lastModified() }
-            ?.let { folder -> runCatching { store.verify(folder.name).also { verifyInstalled(it) } }.getOrNull() }
-        if (known != null) runCatching { ApkPreparation(context).releaseUnneeded(known, null, report) }
+            .sortedByDescending { it.lastModified() }.asSequence()
+            .mapNotNull { folder -> runCatching { store.verify(folder.name).also { verifyInstalled(it) } }.getOrNull() }
+            .firstOrNull()
+        var removed = false
+        if (removeSavedApks) {
+            if (known == null) report("Kept the saved game apps: the installed game app is not one of them")
+            else removed = ApkPreparation(context).removeSaved(known, report)
+        } else if (known != null) runCatching { ApkPreparation(context).releaseUnneeded(known, null, report) }
             .onFailure { report("Could not remove unneeded saved APKs (${it.javaClass.simpleName})") }
         val freed = (context.filesDir.usableSpace - before).coerceAtLeast(0L)
         JSONObject().put("status", "space_freed").put("action", "free_space").put("freed_bytes", freed)
             .put("closed_runs", unfinished.size).put("free_bytes", context.filesDir.usableSpace)
+            .put("removed_saved_apks", removed)
     }
 
     private fun restoreNormalAfterFailure(journal: SessionJournal, cause: Throwable) {

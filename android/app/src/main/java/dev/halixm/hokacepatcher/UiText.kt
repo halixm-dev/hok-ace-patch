@@ -41,6 +41,7 @@ object UiText {
         "This removes files earlier runs left behind and saved game apps this game version no longer needs. It keeps the saved game app used for recovery, the prepared files for this game version, and the record that lets you switch languages without clearing game data.\n\nAn interrupted run that left no game file half-changed is closed. Keep the game closed while this runs." to "Ini menghapus file sisa proses sebelumnya dan aplikasi game tersimpan yang tidak lagi diperlukan versi game ini. Aplikasi game tersimpan untuk pemulihan, file siap pakai untuk versi game ini, dan catatan untuk mengganti bahasa tanpa menghapus data game tetap disimpan.\n\nProses terhenti yang tidak meninggalkan file game setengah berubah akan ditutup. Biarkan game tertutup selama proses ini.",
         "Finish the current work before freeing space." to "Selesaikan pekerjaan saat ini sebelum mengosongkan ruang.",
         "Space freed" to "Ruang dikosongkan",
+        "Kept the saved game apps: the installed game app is not one of them" to "Aplikasi game tersimpan tetap disimpan: aplikasi game yang terpasang bukan salah satunya",
         "Translation written" to "Terjemahan ditulis",
         "Checking the installed normal game app" to "Memeriksa aplikasi game normal yang terpasang",
         "Closed an interrupted run that left no game file half-changed" to "Proses terhenti yang tidak meninggalkan file game setengah berubah telah ditutup",
@@ -192,10 +193,20 @@ object UiText {
 
     fun freed(context: Context, state: JSONObject): String {
         val bytes = state.optLong("freed_bytes"); val free = state.optLong("free_bytes")
-        if (PatchLanguage.current(context) != "id") return WorkerStatus.freed(bytes, free)
-        return "Ruang dikosongkan. Catatan untuk mengganti bahasa dan aplikasi game tersimpan tetap disimpan." +
+        val removed = state.optBoolean("removed_saved_apks")
+        if (PatchLanguage.current(context) != "id") return WorkerStatus.freed(bytes, free, removed)
+        return (if (removed) "Ruang dikosongkan. Catatan untuk mengganti bahasa tetap disimpan. Aplikasi game tersimpan " +
+            "dihapus; patch berikutnya menyiapkannya lagi."
+            else "Ruang dikosongkan. Catatan untuk mengganti bahasa dan aplikasi game tersimpan tetap disimpan.") +
             "\nDikosongkan: ${StorageBudget.freeSpaceLabel(bytes)}\nRuang tersedia: ${StorageBudget.freeSpaceLabel(free)}"
     }
+
+    /** Free up space's opt-in: <saved> is what it frees, <prepare> what the next preparation needs free. */
+    fun removeSavedApks(context: Context, saved: Long, prepare: Long): String = if (PatchLanguage.current(context) == "id")
+        "Hapus juga aplikasi game tersimpan (sekitar ${StorageBudget.freeSpaceLabel(saved)}). Patch berikutnya menyalin " +
+            "aplikasi game lagi dan memerlukan sekitar ${StorageBudget.freeSpaceLabel(prepare)} ruang kosong untuk itu."
+    else "Also remove the saved game apps (about ${StorageBudget.freeSpaceLabel(saved)}). The next patch copies the " +
+        "game app again and needs about ${StorageBudget.freeSpaceLabel(prepare)} free for that."
 
     fun removeConfirmation(context: Context): String = if (PatchLanguage.current(context) == "id")
         "Ini menulis kembali file game asli, sehingga game kembali berbahasa Tionghoa. Data game tidak dihapus dan " +

@@ -8,7 +8,9 @@ object WorkerStatus {
         "but the game changed its files afterwards, so they were not checked again. If some text is Chinese, tap Start to patch again."
 
     /** Exact sentences, so [UiText] can translate them; the GB figures follow on their own lines. */
-    fun freed(bytes: Long, free: Long) = "Space freed. The record for switching languages and the saved game app were kept." +
+    fun freed(bytes: Long, free: Long, removedApks: Boolean = false) = (if (removedApks)
+        "Space freed. The record for switching languages was kept. The saved game apps were removed; the next patch prepares them again."
+        else "Space freed. The record for switching languages and the saved game app were kept.") +
         "\nFreed: ${StorageBudget.freeSpaceLabel(bytes)}\nFree now: ${StorageBudget.freeSpaceLabel(free)}"
 
     fun describe(value: JSONObject): String = when (value.optString("status")) {
@@ -20,7 +22,7 @@ object WorkerStatus {
         "verified" -> "Normal game app verified. Unfinished game-data changes still require recovery."
         "recovered" -> "Original game files and normal game app restored."
         "recovered_unconfirmed" -> UNCONFIRMED
-        "space_freed" -> freed(value.optLong("freed_bytes"), value.optLong("free_bytes"))
+        "space_freed" -> freed(value.optLong("freed_bytes"), value.optLong("free_bytes"), value.optBoolean("removed_saved_apks"))
         "setup_waiting" -> "Game app installed. Translation has not started. Open the game, finish every download, then close it." +
             if (value.optBoolean("automatic_recovery")) "\nThe normal app was restored after a setup error." else ""
         "setup_ready" -> "Game setup finished. Translation has not started. Prepare game files again, then confirm the update checkpoint to patch."

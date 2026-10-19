@@ -294,6 +294,22 @@ public final class CoordinatorRecoveryProbeTest {
         assertFalse(new File(fixture.journal.getDirectory(), "out/1/1.db").exists());
     }
 
+    /** The opt-in removes the saved normal APK only once the installed game is verified as it. */
+    @Test public void testFreeSpaceRemovesSavedApksOnlyOverInstalledNormal() throws Exception {
+        Fixture fixture = changedAfterVerifiedPayload();
+        File saved = new File(fixture.context.getFilesDir(), "recovery/" + fixture.journal.getRecoveryId());
+        fixture.coordinator().freeSpace(false);
+        assertTrue(saved.isDirectory());
+        fixture.device.installed = fixture.device.access;
+        JSONObject kept = fixture.coordinator().freeSpace(true);
+        assertFalse(kept.getBoolean("removed_saved_apks"));
+        assertTrue(saved.isDirectory());
+        fixture.device.installed = fixture.device.normal;
+        JSONObject removed = fixture.coordinator().freeSpace(true);
+        assertTrue(removed.getBoolean("removed_saved_apks"));
+        assertFalse(saved.exists());
+    }
+
     /** Free up space refuses a run that stopped mid-change: its originals are the rollback. */
     @Test public void testFreeSpaceRefusesDirtyRun() throws Exception {
         Fixture fixture = new Fixture();

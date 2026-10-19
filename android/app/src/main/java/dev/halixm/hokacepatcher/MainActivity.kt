@@ -142,12 +142,7 @@ class MainActivity : Activity() {
                 "recovery_options" -> home.showRecovery()
                 "free_space" -> if (busy || automatic || PatchWorkerService.isWorking) {
                     home.message("Finish the current work before freeing space.")
-                } else AlertDialog.Builder(this).setTitle(ui("Free up space?"))
-                    .setMessage(ui("This removes files earlier runs left behind and saved game apps this game version no longer needs. It keeps the saved game app used for recovery, the prepared files for this game version, and the record that lets you switch languages without clearing game data.\n\nAn interrupted run that left no game file half-changed is closed. Keep the game closed while this runs."))
-                    .setNegativeButton(ui("Cancel"), null).setPositiveButton(ui("Free space")) { _, _ ->
-                        if (!busy && !automatic && !PatchWorkerService.isWorking)
-                            startWorker(Intent(this, PatchWorkerService::class.java).setAction("free_space"))
-                    }.show()
+                } else showFreeSpaceConfirmation()
                 "language:en", "language:id" -> {
                     val code = key.removePrefix("language:")
                     if (busy || automatic || PatchWorkerService.isWorking) home.language(PatchLanguage.current(this))
@@ -610,6 +605,27 @@ class MainActivity : Activity() {
                 .putExtra("setup", id).putExtra("confirmed", check.isChecked))
         }
         return dialog
+    }
+
+    /** The opt-in starts unchecked and is offered only while saved game apps exist. */
+    private fun showFreeSpaceConfirmation() {
+        val saved = listOf("preparations", "recovery").sumOf { name ->
+            File(filesDir, name).walkTopDown().filter { it.isFile }.sumOf { it.length() }
+        }
+        val apk = File(filesDir, "recovery").walkTopDown().filter { it.name == "normal.apk" }
+            .maxOfOrNull { it.length() } ?: 0L
+        val remove = CheckBox(this).apply {
+            tag = "free-space-remove-apks"
+            text = UiText.removeSavedApks(this@MainActivity, saved, StorageBudget.required(apk, apk, apk, apk))
+        }
+        AlertDialog.Builder(this).setTitle(ui("Free up space?"))
+            .setMessage(ui("This removes files earlier runs left behind and saved game apps this game version no longer needs. It keeps the saved game app used for recovery, the prepared files for this game version, and the record that lets you switch languages without clearing game data.\n\nAn interrupted run that left no game file half-changed is closed. Keep the game closed while this runs."))
+            .also { if (saved > 0 && apk > 0) it.setView(remove) }
+            .setNegativeButton(ui("Cancel"), null).setPositiveButton(ui("Free space")) { _, _ ->
+                if (!busy && !automatic && !PatchWorkerService.isWorking)
+                    startWorker(Intent(this, PatchWorkerService::class.java).setAction("free_space")
+                        .putExtra("remove_saved_apks", remove.isChecked))
+            }.show()
     }
 
     /** <remove> asks to confirm Remove translation, which writes the original game files back instead. */

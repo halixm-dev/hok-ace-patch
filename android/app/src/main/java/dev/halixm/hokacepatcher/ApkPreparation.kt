@@ -60,6 +60,44 @@ class ApkPreparation(private val context: Context) {
         }
     }
 
+    /**
+     * Free up space's opt-in: remove every preparation and every saved normal APK, once the caller has
+     * verified the installed game as the saved normal build <installed> and holds the coordinator lock.
+     * Nothing needs them until the next patch, which copies the installed app and prepares both again;
+     * a patch, a first setup or an emergency restore in flight still does, so each refuses this. Returns
+     * whether everything went.
+     */
+    fun removeSaved(installed: ApkIdentity, report: (String) -> Unit): Boolean {
+        installed.requireRecovery()
+        RandomAccessFile(File(context.filesDir, "preparation.lock"), "rw").use { file ->
+            file.channel.use { channel ->
+                val lock = try { channel.tryLock() } catch (_: java.nio.channels.OverlappingFileLockException) { null }
+                    ?: error("An APK preparation is running")
+                lock.use {
+                    check(SessionJournal.pending(File(context.filesDir, "sessions")).isEmpty()) {
+                        "Recover the interrupted patch before removing the saved game apps"
+                    }
+                    check(FirstSetupJournal.pending(context).isEmpty()) {
+                        "Finish or recover first-time setup before removing the saved game apps"
+                    }
+                    EmergencyRestoreStore(context).requireResolved()
+                    var freed = 0L
+                    var complete = true
+                    for (name in listOf("preparations", "recovery")) {
+                        val root = File(context.filesDir, name)
+                        for (folder in root.listFiles().orEmpty()) runCatching { freed += DurableFiles.deleteTree(folder) }
+                            .onFailure { complete = false }
+                        if (root.isDirectory) runCatching { DurableFiles.syncDirectory(root) }
+                    }
+                    if (freed > 0) report("Freed ${StorageBudget.freeSpaceLabel(freed)}: removed the saved game apps; " +
+                        "the next patch prepares them again")
+                    if (!complete) report("Could not remove some saved game apps; keeping them")
+                    return complete
+                }
+            }
+        }
+    }
+
     private fun releaseLocked(installed: ApkIdentity, keep: File?, report: (String) -> Unit) {
         val root = File(context.filesDir, "preparations")
         val folders = root.listFiles().orEmpty().filter {

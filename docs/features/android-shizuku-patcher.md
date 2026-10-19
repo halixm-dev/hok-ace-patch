@@ -331,6 +331,12 @@ app carries its own; it is device-verified on the Infinix X6853.
   `SessionJournal.closeUnconfirmed` once its normal APK is verified installed. Then it promotes the
   newest delta and frees resolved sessions, replaced game APKs and `releaseUnneeded`'s APKs. It keeps
   the pristine delta, the saved normal APKs and this game version's preparation.
+- Its opt-in, unchecked by default and offered only while saved APKs exist, removes every preparation
+  (the access APK) and every saved normal APK as well (`ApkPreparation.removeSaved`), about 4 GB. It
+  runs only once the installed game is verified byte-identical to a saved normal APK, with no run, first
+  setup, emergency restore or preparation in flight; otherwise it keeps them and says so. Nothing needs
+  them until the next patch, whose preparation copies the installed app and derives both again, so it
+  then needs four APK sizes free (`APK preparation`), not the reuse path's nothing.
 - Every `AtomicFile` record is read through `DurableFiles.readCommitted`, which never deletes `.new` or
   moves `.bak` as `AtomicFile.readFully()` does.
 
