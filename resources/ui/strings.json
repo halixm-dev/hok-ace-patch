@@ -814,6 +814,20 @@
       "en": "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help.",
       "id": "Ponsel menolak satu langkah, meskipun Shizuku berjalan. Jangan buka game. Periksa pilihan pemulihan di bawah atau simpan log untuk bantuan."
     },
+    "the_phone_refused_a_step_try_again": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The phone refused a step, although Shizuku is working. Keep the game closed. Tap Try again, or save a log for help.",
+      "id": "Ponsel menolak satu langkah, meskipun Shizuku berjalan. Jangan buka game. Ketuk Coba lagi atau simpan log untuk bantuan."
+    },
+    "work_stopped_keep_the_game_closed_try_again": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Work stopped. Keep the game closed. Tap Try again, or save a log for help.",
+      "id": "Proses terhenti. Jangan buka game. Ketuk Coba lagi atau simpan log untuk bantuan."
+    },
     "the_phone_blocked_installation_unlock_it": {
       "platforms": [
         "android"

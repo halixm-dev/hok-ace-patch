@@ -104,17 +104,31 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         }
     }
 
+    private val recoverPatch by lazy { button("Restore interrupted patch", "recover-patch") { invoke("recover") } }
+    private val recoverSetup by lazy { button("Finish or repair first setup", "recover-setup") { invoke("setup_recover") } }
+    private val savedApkActions by lazy {
+        listOf(button("Reinstall saved game app", "recover-apk") { invoke("installer") },
+            text("After reinstalling, check the game app below. Unfinished file changes still need recovery.", Type.BODY),
+            button("Check restored game app", "verify-game") { invoke("verify") })
+    }
+
     private val recoveryOptions by lazy {
         column().apply {
             visibility = View.GONE
-            addView(button("Restore interrupted patch", "recover-patch") { invoke("recover") })
+            addView(recoverPatch)
             addView(button("Free up space", "free-space-recovery") { invoke("free_space") })
-            addView(button("Finish or repair first setup", "recover-setup") { invoke("setup_recover") })
-            addView(button("Reinstall saved game app", "recover-apk") { invoke("installer") })
-            addView(text("After reinstalling, check the game app below. Unfinished file changes still need recovery.", Type.BODY))
-            addView(button("Check restored game app", "verify-game") { invoke("verify") })
+            addView(recoverSetup)
+            savedApkActions.forEach { addView(it) }
             addView(button("Save log for help", "export-log") { invoke("export") })
         }
+    }
+
+    /** Offer only the recovery actions the saved records can serve; every one when the records cannot be read. */
+    fun recoveryActions(material: RecoveryMaterial?) {
+        fun View.offered(value: Boolean) { visibility = if (material == null || value) View.VISIBLE else View.GONE }
+        recoverPatch.offered(material?.patch == true)
+        recoverSetup.offered(material?.setup == true)
+        savedApkActions.forEach { it.offered(material?.savedApk == true) }
     }
 
     init {

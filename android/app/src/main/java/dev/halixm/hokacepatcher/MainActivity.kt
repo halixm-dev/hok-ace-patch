@@ -424,6 +424,10 @@ class MainActivity : Activity() {
                 FirstSetupJournal.pending(this).isNotEmpty() ||
                 EmergencyRestoreStore(this).snapshot()?.optString("status") == "verification_pending"
         }
+        // Unreadable records (null) keep every recovery action; a stop with no records offers none.
+        val material = runCatching { RecoveryMaterial.read(this) }.getOrNull()
+        val recoverable = material?.any ?: true
+        home.recoveryActions(material)
         val messages = state?.optJSONArray("messages")
         home.logs(if (messages == null) emptyList() else
             (0 until messages.length()).map { messages.optString(it) })
@@ -439,7 +443,8 @@ class MainActivity : Activity() {
             // Space freed hands back plain Start; the other results offer another patch.
             result != null && !pending.getOrThrow() -> home.result(result,
                 if (state.optString("status") == "space_freed") "Start" else "Start another patch")
-            state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped", friendlyFailure(state?.optString("error").orEmpty()), "Try again", "start", true)
+            state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped",
+                friendlyFailure(state?.optString("error").orEmpty(), recoverable), "Try again", "start", recoverable)
             pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true)
             else -> home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
         }
@@ -448,7 +453,7 @@ class MainActivity : Activity() {
         home.progress(live || (busy && automatic))
         buttons.forEach { it.isEnabled = !busy && !live && !automatic }
         home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required"))
-            friendlyFailure(state?.optString("error").orEmpty()) else "")
+            friendlyFailure(state?.optString("error").orEmpty(), recoverable) else "")
         home.errorDetails(when {
             live -> ""
             // The worker's own raw error first: the automatic flow also logs it, already explained, as an ERROR.
@@ -457,7 +462,8 @@ class MainActivity : Activity() {
         })
     }
 
-    private fun friendlyFailure(message: String): String {
+    private fun friendlyFailure(message: String,
+                                recoverable: Boolean = runCatching { RecoveryMaterial.read(this).any }.getOrDefault(true)): String {
         StorageBudget.explainFailure(message, filesDir.usableSpace)?.let { return UiText.storage(this, it) }
         if (message.contains("GB free for this step")) return UiText.storage(this, message.removePrefix("ERROR: "))
         return when {
@@ -483,11 +489,13 @@ class MainActivity : Activity() {
             message.contains("USER_RESTRICTED", true) ->
                 "The phone blocked installation. Unlock it and accept the install prompt. Open Technical tools for the full error."
             // The command ran, so Shizuku is working; the phone itself refused the step.
-            message.contains("Device command failed") ->
+            message.contains("Device command failed") -> if (recoverable)
                 "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help."
+                else "The phone refused a step, although Shizuku is working. Keep the game closed. Tap Try again, or save a log for help."
             message.contains("Shizuku", true) || message.contains("permission", true) ->
                 "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed."
-            else -> "Work stopped. Keep the game closed. Check recovery options below, or save a log for help."
+            else -> if (recoverable) "Work stopped. Keep the game closed. Check recovery options below, or save a log for help."
+                else "Work stopped. Keep the game closed. Tap Try again, or save a log for help."
         }
     }
 

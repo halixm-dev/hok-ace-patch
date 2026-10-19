@@ -49,6 +49,7 @@ translation engine nor the catalog, runtime or key resources, and the coverage l
 - Cause of both, and of a realme RMX3830 (all three Android 15): the first Android 15 release never derives an APK file's `ApplicationInfo.flags`, so `FLAG_DEBUGGABLE` always reads false. `ApkIdentity` now resolves `android:debuggable` through `Resources.obtainAttributes` ([S2]); verified against Android's own flag on an Android 16 emulator, not yet on an Android 15 phone (lab notebook, 2026-10-19).
 - Dual App profile on two Transsion phones: shell may not name user 999 — the profile check falls back to `dumpsys package` ([S2]); unit-tested, not device-verified (lab notebook, 2026-10-09).
 - Game reported missing for the main user — the error now names hidden, other-profile or absent; the next log showed it absent (lab notebook, 2026-10-09).
+- vivo V2561 (Android 16) refuses user 10 with a plain `Error:` line, no `SecurityException`, so the profile check never reached its fallback; it now does, and a stop with no saved records no longer offers recovery ([S2]) — unit-tested, not device-verified (lab notebook, 2026-10-19).
 - `engine_preflight` refused every patch from an APK built without `-PfullCodecs` — full codecs became Gradle's default (lab notebook, 2026-10-09).
 - A written translation stuck in recovery on the realme RMX3830: the UI's once-a-second journal read deleted the worker's in-flight write (`Session journal read-back differs`), and once the game had run the applied-layer audit could never pass (`Game file set changed`). Reads no longer touch `AtomicFile`'s files; such a run closes unconfirmed and keeps its pristine delta; *Free up space* added ([S2]) — compiled and unit-tested, not device-verified (lab notebook, 2026-10-19).
 
@@ -290,6 +291,12 @@ app carries its own; it is device-verified on the Infinix X6853.
   cannot cut it off.
 - An installed copy in another profile is refused; a profile the dump does not list is refused as
   uncheckable; a dump with no record counts as absent only when `pm list packages -u` agrees.
+- The denial has two forms: Transsion's `java.lang.SecurityException: Shell does not have permission
+  to access user N`, and vivo Android 16's plain `Error: Shell does not have permission to access user
+  N` as the command's whole output (2026-10-19). `FirstSetupPackagePolicy.profileDenied` matches each
+  for its own user id only; any other failure still stops the check. The guard itself is
+  `FirstSetupPackagePolicy.requireNoOtherUsers`, which takes the device commands as functions so
+  `FirstSetupProfileTest` runs it against a fake read-only device.
 - `prepare` runs the same read-only check (`IPrivilegedDeviceService.checkGameProfiles`) before it
   copies anything whenever the installed game is not on the stable key, so a phone that first setup
   will refuse learns it before the preparation.
@@ -297,6 +304,10 @@ app carries its own; it is device-verified on the Infinix X6853.
   error card directly under ② Start (`error-card`, error colours) copies the worker's full raw error
   and offers Save log for help (`error-export-log`). The "Game won't open?" card (`recovery-card`,
   warning colours) follows it, both above the log (shared-design ticket 10).
+- After a stop, the recovery card appears only when `RecoveryMaterial` finds something to recover (an
+  interrupted patch, a first setup in progress, or a retained normal APK), and shows only the actions
+  those records serve; records that cannot be read keep every action. A stop in the read-only checks
+  says *Tap Try again* instead of pointing at recovery options (2026-10-19).
 - ② Start rewrites itself for each result (`UiText.result`): *Translation added*, *Translation
   removed*, *Translation written* and *Space freed* show a summary line, the run's own counts as
   rows (`result-items`) and, after an added or removed translation, the Scan to login note

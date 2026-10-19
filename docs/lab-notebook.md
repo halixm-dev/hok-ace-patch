@@ -3402,3 +3402,29 @@ with four new cases. **Not run on a phone**, and the instrumented cases were not
 deleted once `RecoveryStore.adopt` holds it. *Free up space* gained an opt-in that removes both once the
 installed game is verified as the saved normal APK; the next preparation then copies the installed app
 again and budgets four APK sizes. Compiled with a fifth instrumented case; not run.
+
+## 2026-10-19 — vivo refuses profile 10 without a SecurityException (vivo V2561)
+
+One exported log (`hok-ace-recovery-log (6).txt`): vivo V2561, Android 16 API 36, app 1.6.1.10 (57),
+Shizuku granted as uid 2000, the worker binder connected each time. Three preparations stopped in
+`checkGameProfiles` (`ApkPreparation.kt:152`) with `Device command failed (1): Error: Shell does not
+have permission to access user 10`. Profile 10's type and whether it holds the game are not in the log.
+
+| Finding | Evidence |
+|---|---|
+| The fallback never ran | `profileDenied` required `SecurityException` in the text; vivo prints only the `Error:` line. A replay against the compiled 1.6.1.10 class returned `false` for the logged message. |
+| Nothing was written | The profile check precedes the APK copy; the log lists no preparation, session or recovery material, and the later recovery actions found no pending work. |
+| The screen offered recovery anyway | Every stopped run showed the "Game won't open?" card, whose installer and verify actions need a retained APK. |
+
+Fix: `profileDenied` also accepts the plain line when it is the command's whole output, for that user id
+only (`user 10` never matches 100 or 101); the guarded `dumpsys package` fallback is unchanged, so denial
+alone never counts as absence. The guard moved into `FirstSetupPackagePolicy.requireNoOtherUsers` with
+the commands passed in, and `FirstSetupProfileTest` runs it on a fake device: a denied profile measured
+`installed=false` passes; `installed=true` is refused; a dump missing the profile, conflicting,
+truncated, malformed or unreadable is refused; no record passes only when `pm list packages -u` agrees;
+other failures propagate without the fallback. Without the new matcher branch five of the fifteen cases
+fail. The recovery card now follows `RecoveryMaterial` (above).
+
+Verified: `testDebugUnitTest` (42 cases), `assembleDebug`, `compileDebugAndroidTestKotlin`,
+`check_ui_strings.py`. **Not run on a phone**; the next log from this vivo should show the profile check
+passing or naming the profile it could not check.
