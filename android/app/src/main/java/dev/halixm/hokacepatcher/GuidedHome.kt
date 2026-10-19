@@ -38,7 +38,11 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val recovery = card(R.color.warning_surface, R.color.warning)
     private var shown = ""
     private val stop = button("Stop safely", "stop-automatic") { invoke("stop") }
-    private val spinner = android.widget.ProgressBar(activity)
+    /** Running: the bar takes the button's place; determinate while the worker reports a step. */
+    private val bar = android.widget.ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply {
+        tag = "progress-bar"
+        layoutParams = LinearLayout.LayoutParams(-1, dp(8)).apply { setMargins(0, dp(12), 0, dp(12)) }
+    }
     private val notice = text("", Type.BODY, supporting = true)
     /** A result state's counts, one row each, and the login note that follows them. */
     private val resultItems = column().apply { tag = "result-items"; visibility = View.GONE }
@@ -150,9 +154,11 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         notice.tag = "friendly-notice"; notice.visibility = View.GONE
         card.addView(heading); card.addView(detail); card.addView(notice)
         card.addView(resultItems); card.addView(resultNote); card.addView(primary)
-        spinner.indeterminateTintList = ColorStateList.valueOf(ink)
-        spinner.visibility = View.GONE; stop.visibility = View.GONE
-        card.addView(spinner); card.addView(stop)
+        // DESIGN.md: the track is disabled-fill, the fill ink.
+        bar.progressTintList = ColorStateList.valueOf(ink); bar.indeterminateTintList = ColorStateList.valueOf(ink)
+        bar.progressBackgroundTintList = ColorStateList.valueOf(activity.getColor(R.color.disabled_fill))
+        bar.visibility = View.GONE; stop.visibility = View.GONE
+        card.addView(bar); card.addView(stop)
         root.addView(card)
         // Anything that needs the player sits directly under ②, above the log.
         root.addView(errorBox)
@@ -242,9 +248,13 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         (root.parent as? ScrollView)?.post { (root.parent as? ScrollView)?.smoothScrollTo(0, recovery.top) }
     }
 
-    fun progress(value: Boolean) {
-        spinner.visibility = if (value) View.VISIBLE else View.GONE
+    /** Show the bar in place of the button while <value>; <step> fills it, and without one it only moves. */
+    fun progress(value: Boolean, step: UiText.Step? = null) {
+        bar.visibility = if (value) View.VISIBLE else View.GONE
+        primary.visibility = if (value) View.GONE else View.VISIBLE
         stop.visibility = if (value) View.VISIBLE else View.GONE
+        bar.isIndeterminate = step == null
+        if (step != null) { bar.max = step.total; bar.progress = step.number }
     }
 
     fun logs(lines: List<String>) {

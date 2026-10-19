@@ -433,9 +433,12 @@ class MainActivity : Activity() {
             (0 until messages.length()).map { messages.optString(it) })
         val live = PatchWorkerService.isWorking || awaitingToken != null
         val result = state?.let { UiText.result(PatchLanguage.current(this), it) }
+        // An older record without a step still shows its line.
+        val step = state?.takeIf { live }?.let { UiText.step(PatchLanguage.current(this), it) }
         when {
-            live -> home.show("Working on your game", UiText.progress(this, state?.optString("progress", "Checking and preparing files…")
-                ?: "Checking and preparing files…"), "Please wait", "start", false)
+            // The step names where the run is; its free-text line is in the log.
+            live -> home.show("Working on your game", step?.line ?: UiText.progress(this, state?.optString("progress",
+                "Checking and preparing files…") ?: "Checking and preparing files…"), "Please wait", "start", false)
             busy && automatic -> home.show("Checking game files", "Please wait. We are checking the saved game app and recovery files.", "Please wait", "start", false)
             pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true)
             !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false))
@@ -450,7 +453,7 @@ class MainActivity : Activity() {
         }
         home.working(busy || live || (automatic && !waitingForShizuku))
         home.languageEnabled(!busy && !live && !automatic)
-        home.progress(live || (busy && automatic))
+        home.progress(live || (busy && automatic), step)
         buttons.forEach { it.isEnabled = !busy && !live && !automatic }
         home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required"))
             friendlyFailure(state?.optString("error").orEmpty(), recoverable) else "")

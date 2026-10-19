@@ -208,6 +208,43 @@ class InterfaceProbeTest {
         } finally { PatchLanguage.set(context, original) }
     }
 
+    /** Running: a determinate bar in place of the button and "Step N of M · <step>"; an older record without a step keeps its line. */
+    @Test fun progressShowsTheStepFromTheSavedState() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val original = PatchLanguage.current(context)
+        val saved = org.json.JSONObject().put("status", "running").put("action", "patch")
+            .put("progress", "Opening game data access").put("step", "unlock_access").put("steps", 6)
+        try {
+            for ((code, line) in listOf("en" to "Step 3 of 6 · Unlock access", "id" to "Langkah 3 dari 6 · Buka akses")) {
+                PatchLanguage.set(context, code)
+                ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                    scenario.onActivity { activity ->
+                        val home = GuidedHome(activity) { }
+                        val view = activity.window.decorView
+                        val step = UiText.step(code, saved)!!
+                        home.show("Working on your game", step.line, "Please wait", "start", false)
+                        home.progress(true, step)
+                        assertTrue("$code: $line", line in shownTexts(view.findViewWithTag<ViewGroup>("start-card")))
+                        val bar = view.findViewWithTag<android.widget.ProgressBar>("progress-bar")
+                        assertEquals(View.VISIBLE, bar.visibility)
+                        assertFalse(bar.isIndeterminate)
+                        assertEquals(3, bar.progress); assertEquals(6, bar.max)
+                        assertEquals(View.GONE, view.findViewWithTag<View>("next-step").visibility)
+                        assertEquals(View.VISIBLE, view.findViewWithTag<View>("stop-automatic").visibility)
+                        // Without a step the bar only moves; done, the button comes back.
+                        assertNull(UiText.step(code, org.json.JSONObject(saved.toString()).apply { remove("step") }))
+                        home.progress(true, null)
+                        assertTrue(bar.isIndeterminate)
+                        home.progress(false)
+                        assertEquals(View.GONE, bar.visibility)
+                        assertEquals(View.VISIBLE, view.findViewWithTag<View>("next-step").visibility)
+                    }
+                }
+            }
+        } finally { PatchLanguage.set(context, original) }
+    }
+
     @Test fun longLogsScrollWithoutMovingHome() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             lateinit var home: GuidedHome

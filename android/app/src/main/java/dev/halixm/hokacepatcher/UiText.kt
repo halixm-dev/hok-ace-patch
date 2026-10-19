@@ -45,6 +45,25 @@ object UiText {
         return keys[source]?.let { strings.getValue(it)[code] } ?: template(code, "progress_fallback")
     }
 
+    /** A running step of ② Start: its 1-based number, the total, and "Step N of M · <step>". */
+    data class Step(val number: Int, val total: Int, val line: String)
+
+    /** The step <state> reports in language <code>, or null for a record without one; removal names steps 4 and 5 for the original files. */
+    fun step(code: String, state: JSONObject): Step? {
+        val number = WorkerStep.number(state) ?: return null
+        val total = state.optInt("steps").takeIf { it >= number } ?: return null
+        val remove = state.optString("action") == "remove"
+        val name = when (number) {
+            1 -> template(code, "android_step_check_game")
+            2 -> template(code, "android_step_prepare_files")
+            3 -> template(code, "android_step_unlock_access")
+            4 -> if (remove) template(code, "android_step_build_original") else template(code, "step_translate")
+            5 -> if (remove) template(code, "android_step_write_original") else template(code, "android_step_write")
+            else -> template(code, "android_step_restore_game_app")
+        }
+        return Step(number, total, template(code, "progress_step", "n" to number, "total" to total, "step" to name))
+    }
+
     /** Translate only the measured storage summary, preserving its conservative GB numbers. */
     fun storage(context: Context, source: String): String {
         val shortage = Regex("Need ([0-9.]+) GB free for this step.\\nFree now: ([0-9.]+) GB.\\nClear at least ([0-9.]+) GB more, then try again.\\nKeep saved recovery files.").matchEntire(source)

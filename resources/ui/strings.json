@@ -1329,6 +1329,7 @@
     },
     "step_translate": {
       "platforms": [
+        "android",
         "windows"
       ],
       "en": "Build translation",
@@ -1349,6 +1350,62 @@
       ],
       "en": "Restore game",
       "id": "Pulihkan game",
+      "draft": true
+    },
+    "android_step_check_game": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Check game",
+      "id": "Periksa game",
+      "draft": true
+    },
+    "android_step_prepare_files": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Prepare files",
+      "id": "Siapkan file",
+      "draft": true
+    },
+    "android_step_unlock_access": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Unlock access",
+      "id": "Buka akses",
+      "draft": true
+    },
+    "android_step_write": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Write translation",
+      "id": "Tulis terjemahan",
+      "draft": true
+    },
+    "android_step_restore_game_app": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Restore game app",
+      "id": "Pulihkan aplikasi game",
+      "draft": true
+    },
+    "android_step_build_original": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Rebuild original files",
+      "id": "Bangun ulang file asli",
+      "draft": true
+    },
+    "android_step_write_original": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Write original files",
+      "id": "Tulis file asli",
       "draft": true
     },
     "device_label": {

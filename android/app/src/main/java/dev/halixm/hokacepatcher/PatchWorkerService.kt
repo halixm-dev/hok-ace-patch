@@ -33,6 +33,8 @@ class PatchWorkerService : Service() {
     @Volatile private var connection: WorkerDeviceConnection? = null
     private val notificationId = 1402
     @Volatile private var activeAction = ""
+    /** The run's current [WorkerStep] key; null for an action that reports no step. */
+    @Volatile private var activeStep: String? = null
 
     @Synchronized private fun state(value: JSONObject) {
         if (retiring.get() && value.optString("status") !in setOf("recovery_required", "cancelled")) return
@@ -70,7 +72,10 @@ class PatchWorkerService : Service() {
 
     private fun show(message: String) {
         if (retiring.get()) return
-        state(JSONObject().put("status", "running").put("action", activeAction).put("progress", message))
+        activeStep = WorkerStep.next(activeAction, activeStep, message)
+        state(JSONObject().put("status", "running").put("action", activeAction).put("progress", message).also { running ->
+            activeStep?.let { running.put("step", it).put("steps", WorkerStep.KEYS.size) }
+        })
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel("patch", UiText.text(this, "Game patch progress"),
             NotificationManager.IMPORTANCE_LOW))
@@ -102,6 +107,7 @@ class PatchWorkerService : Service() {
         isWorking = true
         activeFlow = intent?.getStringExtra("flow")
         activeAction = intent?.action ?: ""
+        activeStep = null
         recentMessages.clear()
         state(JSONObject().put("status", "running").put("action", intent?.action))
         show("Preparing verified recovery material")
