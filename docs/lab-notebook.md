@@ -3363,3 +3363,36 @@ same attribute walk the package parser uses, after checking that the parsed `<ma
 archive's own. On the emulator it matches Android's flag for the source, normal, access and full access
 APKs (about 15 ms each). Until this change the checks that a source or normal APK is *not* debuggable were
 vacuous on these phones. **Not yet verified on an Android 15 phone.**
+
+## 2026-10-19 — A written translation stuck in recovery (realme RMX3830)
+
+One exported log (`hok-ace-recovery-log (5).txt`) from the same realme RMX3830, app 1.6.1.8, game 1.1.1
+`774472`, session `2d94919d`. The translation reached the phone; the run never resolved, so its files stayed.
+
+| Time | Event |
+|---|---|
+| 13:58 | All 14 package files written; `finishApply` verified the payload (`packages_dirty` false, `patch_payload_verified` true). |
+| 14:06 | Final normal install `INSTALL_FAILED_INSUFFICIENT_STORAGE`: 2295067367 bytes required, 1896398848 available. Forward recovery's audit and the emergency restore were refused on the same budget. |
+| 14:08–14:22 | Recovery 1: access APK installed, then `Session journal read-back differs`; the emergency restore verified the normal APK. The screen was resumed at 14:15:23 and 14:15:24, while the worker wrote the journal. |
+| 15:55–16:07 | Recovery 2: access APK installed, then the applied-layer audit failed with `Game file set changed` (the file count under `packages/` and `Watchdog/`); normal APK verified again. The game was most likely opened in between (the user saw the translation); the log records no game launch. |
+| 16:10 | Export: `sessions/` 3051692931 bytes, `recovery/` 2026632169, `preparations/` 2026633208; 5418131456 bytes free. No `pristine/` folder: the session's `pristine-delta.bin` was the phone's only delta. |
+
+**Read-back.** The UI polls `SessionJournal.pending` every second. `AtomicFile.readFully()` is not a
+pure read: on API 31+ `openRead` deletes an existing `.new` (the worker's in-flight write), and on API 30
+it moves `.bak` back over the base. The writer's `finishWrite` then renames a missing file, which
+`AtomicFile` only logs, so the old bytes stay and `persist`'s read-back refuses. The same read served the
+worker state, setup, request, receipt and recovery records, where a lost write had no check. Fix: every
+read goes through `DurableFiles.readCommitted`, which reads `.bak` if present, else the base, and
+touches nothing.
+
+**Audit.** Forward recovery re-checks the whole applied layer, Watchdog included (cleared by the apply),
+before it reports `COMPLETE`. Once the game has run, that check cannot pass again, and a clean run had no
+other way to resolve. Fix: in forward recovery, the audit's own game-changed reasons (`Game file set
+changed`, `Game file changed:`) close the run `CANCELLED` with `layer_unconfirmed`, status
+`recovered_unconfirmed`; any other audit failure still stops. Its pristine delta is promoted, because
+each entry applies only while its file holds the staged bytes it records. *Free up space* closes the same
+kind of run (no package mid-change, normal APK verified installed) without an install, then frees what a
+run frees before its first budget. A run with a package mid-change is refused.
+
+Verified: `compileReleaseKotlin` and the JVM unit tests pass; `CoordinatorRecoveryProbeTest` compiles
+with four new cases. **Not run on a phone**, and the instrumented cases were not run.

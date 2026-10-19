@@ -17,7 +17,7 @@ class RecoveryStore(private val context: Context) {
     fun expected(id: String): ApkIdentity {
         val folder = normal(id).parentFile!!
         val expected = ApkIdentity.fromJson(JSONObject(String(
-            AtomicFile(File(folder, "identity.json")).readFully(), Charsets.UTF_8)))
+            DurableFiles.readCommitted(File(folder, "identity.json")), Charsets.UTF_8)))
         expected.requireRecovery()
         check(expected.sha256 == id) { "Recovery metadata identity differs" }
         return expected

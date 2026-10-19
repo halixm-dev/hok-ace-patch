@@ -115,7 +115,9 @@ still installs the access APK and puts the normal one back, as a run with nothin
   - Windows writes the new delta as `delta.pending.bin` before the first push and makes it the delta
     after the last, because a cut-off push has no rollback; the next run accepts either delta's staged
     bytes per file. Android makes the delta during the build and promotes it once the run is
-    `COMPLETE`. Neither keeps a delta for an install that did not finish.
+    `COMPLETE`, or closed with its payload verified but its layer unconfirmed (the game changed the
+    files before recovery could check them again). Neither keeps a delta for an install that did not
+    finish.
   - A delta that does not match while no file is at a staged hash this patcher recorded is stale (the
     data was cleared, possibly onto a newer version): the run builds as a first install under the text
     signal. Without this, the clear the refusal asks for would be refused again.

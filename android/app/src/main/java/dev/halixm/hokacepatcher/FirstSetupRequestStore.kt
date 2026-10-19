@@ -33,7 +33,7 @@ class FirstSetupRequestStore(private val context: Context) {
         check(prepared.requiresSignatureConversion) { "This game is already converted; use the update checkpoint" }
         val preparation = prepared.directory.name; GameFilePolicy.session(preparation)
         check(prepared.directory.canonicalFile == File(context.filesDir, "preparations/$preparation").canonicalFile)
-        val metadata = JSONObject(String(AtomicFile(receipt(preparation)).readFully(), Charsets.UTF_8))
+        val metadata = JSONObject(String(DurableFiles.readCommitted(receipt(preparation)), Charsets.UTF_8))
         check(ApkIdentity.fromJson(metadata.getJSONObject("source")) == prepared.source &&
             ApkIdentity.fromJson(metadata.getJSONObject("normal")) == prepared.normal &&
             ApkIdentity.fromJson(metadata.getJSONObject("access")) == prepared.access) { "Prepared files changed before consent" }
@@ -50,7 +50,7 @@ class FirstSetupRequestStore(private val context: Context) {
         DurableFiles.createDirectories(root)
         RandomAccessFile(File(root, "claim.lock"), "rw").use { handle -> handle.channel.use { channel ->
             checkNotNull(channel.tryLock()) { "Another setup confirmation is being checked" }.use {
-                val bytes = AtomicFile(file(id)).readFully()
+                val bytes = DurableFiles.readCommitted(file(id))
                 check(bytes.size <= 8192)
                 val saved = JSONObject(String(bytes, Charsets.UTF_8))
                 check(saved.getInt("schema") == 1 && saved.getString("id") == id &&
@@ -74,7 +74,7 @@ class FirstSetupRequestStore(private val context: Context) {
     fun begin(id: String, prepared: ApkPreparation.Prepared) {
         RandomAccessFile(File(root, "claim.lock"), "rw").use { handle -> handle.channel.use { channel ->
             checkNotNull(channel.tryLock()) { "Another setup confirmation is being checked" }.use {
-                val bytes = AtomicFile(file(id)).readFully(); check(bytes.size <= 8192)
+                val bytes = DurableFiles.readCommitted(file(id)); check(bytes.size <= 8192)
                 val saved = JSONObject(String(bytes, Charsets.UTF_8))
                 check(saved.getInt("schema") == 1 && saved.getString("id") == id && saved.getBoolean("consumed") &&
                     saved.getBoolean("data_loss_confirmed") && saved.getBoolean("scan_login_confirmed"))

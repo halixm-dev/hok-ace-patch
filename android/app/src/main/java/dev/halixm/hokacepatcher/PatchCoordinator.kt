@@ -32,6 +32,11 @@ class PatchCoordinator @JvmOverloads constructor(
 
     fun cancel() { cancelled.set(true) }
 
+    private companion object {
+        /** `validateGameSnapshot`'s reasons for a layer the game itself changed. */
+        val GAME_CHANGED = listOf("Game file set changed", "Game file changed: ")
+    }
+
     fun pendingRecoveryResult(): JSONObject? {
         val journal = activeJournal.get() ?: return null
         if (journal.phase != PatchPhase.RECOVERY_REQUIRED) return null
@@ -98,13 +103,15 @@ class PatchCoordinator @JvmOverloads constructor(
      * Coordinator lock held. Makes the newest completed session's pristine delta the patcher's own, then
      * discards every session delta. A run promotes its own as soon as it completes; this catches one
      * whose last step was finished by recovery. A delta older than the newest completed session no
-     * longer describes the phone and is never promoted.
+     * longer describes the phone and is never promoted. A run closed with its payload verified but its
+     * layer unconfirmed counts as completed here: the delta records pristine bytes that run overwrote,
+     * and each file's entry applies only while that file still holds the staged bytes it records.
      */
     private fun promoteSessionDelta(enginePath: String) {
         val completed = sessions.listFiles().orEmpty()
             .filter { it.isDirectory && !Files.isSymbolicLink(it.toPath()) }
             .mapNotNull { runCatching { SessionJournal.load(it) }.getOrNull() }
-            .filter { it.phase == PatchPhase.COMPLETE }
+            .filter { it.phase == PatchPhase.COMPLETE || it.layerUnconfirmed }
         val newest = completed.maxByOrNull { it.snapshot().getLong("created_ms") } ?: return
         val delta = File(newest.directory, PristineDelta.SESSION_DELTA)
         if (delta.isFile) {
@@ -144,7 +151,7 @@ class PatchCoordinator @JvmOverloads constructor(
     }
 
     private fun install(journal: SessionJournal, file: File, access: Boolean, next: PatchPhase,
-                        expected: ApkIdentity? = null) {
+                        expected: ApkIdentity? = null, updates: JSONObject = JSONObject()) {
         val identity = ApkIdentity.read(context, file)
         check(expected == null || identity == expected) { "The session's APK changed after it was checked" }
         if (!access) identity.requireRecovery()
@@ -155,7 +162,7 @@ class PatchCoordinator @JvmOverloads constructor(
             device.replaceGameApk(it, identity.bytes)
         }
         verifyInstalled(identity)
-        journal.outcome(next, JSONObject().put("normal_verified", !access))
+        journal.outcome(next, updates.put("normal_verified", !access))
     }
 
     /**
@@ -377,8 +384,59 @@ class PatchCoordinator @JvmOverloads constructor(
             restoreNormalAfterFailure(journal, error)
             throw error
         }
+        keepResolvedDelta(journal)
         releaseIfResolved(journal)
         journal.terminalResult()
+    }
+
+    /** Recovery that resolves a run keeps its pristine delta now, not only at the next patch run. */
+    private fun keepResolvedDelta(journal: SessionJournal) {
+        if (journal.phase != PatchPhase.COMPLETE && !journal.layerUnconfirmed) return
+        if (!File(journal.directory, PristineDelta.SESSION_DELTA).isFile) return
+        runCatching { promoteSessionDelta(EngineAssets.prepare(context).path) }.onFailure {
+            report("Could not keep the pristine delta yet (${it.javaClass.simpleName}); the next patch keeps it")
+        }
+    }
+
+    /**
+     * Free up space without starting a patch: what a run frees before its first budget, plus each
+     * unfinished run that left no game file mid-change, closed by [SessionJournal.closeUnconfirmed]
+     * once the normal APK is verified installed. Pristine deltas, the saved normal APKs and this game
+     * version's prepared APKs stay. A run that stopped mid-change is refused: it needs recovery.
+     */
+    fun freeSpace(): JSONObject = exclusive {
+        EmergencyRestoreStore(context).requireResolved()
+        check(FirstSetupJournal.pending(context).isEmpty()) { "Finish or recover first-time setup before freeing space" }
+        val before = context.filesDir.usableSpace
+        var installed: ApkIdentity? = null
+        val unfinished = SessionJournal.pending(sessions)
+        for (journal in unfinished) check(!journal.dirtyPackages) {
+            "Restore the interrupted patch first: it stopped while changing game files"
+        }
+        for (journal in unfinished) {
+            report("Checking the installed normal game app")
+            val normal = store.verify(journal.recoveryId)
+            check(runCatching { verifyInstalled(normal) }.isSuccess) {
+                "Restore the interrupted patch first: the normal game app is not installed"
+            }
+            installed = normal
+            journal.closeUnconfirmed("Closed by Free up space; the game files were not checked again")
+            report("Closed an interrupted run that left no game file half-changed")
+        }
+        if (sessions.listFiles().orEmpty().any { File(it, PristineDelta.SESSION_DELTA).isFile }) {
+            promoteSessionDelta(EngineAssets.prepare(context).path)
+        }
+        releaseResolvedSessions()
+        StorageBudget.releaseReplacedGameApks(device, report)
+        val known = installed ?: File(context.filesDir, "recovery").listFiles().orEmpty()
+            .filter { it.isDirectory && it.name.matches(Regex("[0-9a-f]{64}")) }
+            .maxByOrNull { it.lastModified() }
+            ?.let { folder -> runCatching { store.verify(folder.name).also { verifyInstalled(it) } }.getOrNull() }
+        if (known != null) runCatching { ApkPreparation(context).releaseUnneeded(known, null, report) }
+            .onFailure { report("Could not remove unneeded saved APKs (${it.javaClass.simpleName})") }
+        val freed = (context.filesDir.usableSpace - before).coerceAtLeast(0L)
+        JSONObject().put("status", "space_freed").put("action", "free_space").put("freed_bytes", freed)
+            .put("closed_runs", unfinished.size).put("free_bytes", context.filesDir.usableSpace)
     }
 
     private fun restoreNormalAfterFailure(journal: SessionJournal, cause: Throwable) {
@@ -404,6 +462,7 @@ class PatchCoordinator @JvmOverloads constructor(
 
     private fun recoverLocked(journal: SessionJournal) {
         check(journal.phase !in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) { "Session already resolved" }
+        var unconfirmed: String? = null
         val normal = store.verify(journal.recoveryId)
         device.forceStopGame()
         StorageBudget.releaseReplacedGameApks(device, report)
@@ -423,7 +482,16 @@ class PatchCoordinator @JvmOverloads constructor(
             }
             requireSpace("applied-layer recovery audit and normal restore", maxOf(normal.bytes, access.bytes))
             install(journal, accessFile, true, PatchPhase.RESTORING)
-            validateLayer(applied)
+            // The game may have run since the write was verified: it refills Watchdog, and may repair or
+            // update packages. A clean run has nothing to roll back, so a changed layer closes it
+            // unconfirmed rather than leaving it unrecoverable. Any other audit failure still stops here.
+            try { validateLayer(applied) } catch (error: IllegalStateException) {
+                val message = error.message.orEmpty()
+                if (GAME_CHANGED.none { message.contains(it) }) throw error
+                unconfirmed = message
+                report("The game changed its files after the translation was written; " +
+                    "closing the run without checking them again")
+            }
         }
         if (transaction != null) {
             val files = checkNotNull(originals).getJSONObject("files")
@@ -435,14 +503,16 @@ class PatchCoordinator @JvmOverloads constructor(
         }
         // A failed offline build may fill storage while the already-verified normal APK stays
         // installed. Verify that identity before spending another APK-sized installer allocation.
+        val completion = if (unconfirmed != null) PatchPhase.CANCELLED else journal.recoveryCompletionPhase
+        fun closing() = JSONObject().apply { unconfirmed?.let { put("layer_unconfirmed", it.take(4096)) } }
         val alreadyNormal = runCatching { verifyInstalled(normal) }.isSuccess
         if (alreadyNormal) {
-            journal.outcome(journal.recoveryCompletionPhase, JSONObject().put("normal_verified", true))
+            journal.outcome(completion, closing().put("normal_verified", true))
             report("Normal game APK verified; interrupted session recovered")
             return
         }
         requireSpace("normal APK restore", normal.bytes)
-        install(journal, store.normal(normal.sha256), false, journal.recoveryCompletionPhase)
+        install(journal, store.normal(normal.sha256), false, completion, updates = closing())
         report("Normal game APK verified; interrupted session recovered")
     }
 }

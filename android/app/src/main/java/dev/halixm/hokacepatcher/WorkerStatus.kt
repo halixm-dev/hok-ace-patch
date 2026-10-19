@@ -4,6 +4,13 @@ import org.json.JSONObject
 
 /** Describe durable worker results without treating an old running record as a live process. */
 object WorkerStatus {
+    const val UNCONFIRMED = "Recovery finished. Normal game app verified. The translation was written and checked, " +
+        "but the game changed its files afterwards, so they were not checked again. If some text is Chinese, tap Start to patch again."
+
+    /** Exact sentences, so [UiText] can translate them; the GB figures follow on their own lines. */
+    fun freed(bytes: Long, free: Long) = "Space freed. The record for switching languages and the saved game app were kept." +
+        "\nFreed: ${StorageBudget.freeSpaceLabel(bytes)}\nFree now: ${StorageBudget.freeSpaceLabel(free)}"
+
     fun describe(value: JSONObject): String = when (value.optString("status")) {
         "running" -> "Last saved progress: ${value.optString("progress", "Starting") }"
         "prepared" -> "Game files prepared. Translation has not started." +
@@ -12,6 +19,8 @@ object WorkerStatus {
             else ""
         "verified" -> "Normal game app verified. Unfinished game-data changes still require recovery."
         "recovered" -> "Original game files and normal game app restored."
+        "recovered_unconfirmed" -> UNCONFIRMED
+        "space_freed" -> freed(value.optLong("freed_bytes"), value.optLong("free_bytes"))
         "setup_waiting" -> "Game app installed. Translation has not started. Open the game, finish every download, then close it." +
             if (value.optBoolean("automatic_recovery")) "\nThe normal app was restored after a setup error." else ""
         "setup_ready" -> "Game setup finished. Translation has not started. Prepare game files again, then confirm the update checkpoint to patch."

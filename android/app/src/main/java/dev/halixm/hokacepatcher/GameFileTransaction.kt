@@ -89,7 +89,7 @@ class GameFileTransaction(private val journal: SessionJournal, private val devic
         val expected = expectedApplied(JSONObject(staged.readText()))
         val manifest = File(journal.directory, "applied-manifest.json")
         check(!Files.isSymbolicLink(manifest.toPath())) { "Applied manifest is a link" }
-        val bytes = AtomicFile(manifest).readFully()
+        val bytes = DurableFiles.readCommitted(manifest)
         check(bytes.size in 1..(1024 * 1024)) { "Invalid applied manifest" }
         val actual = JSONObject(String(bytes, Charsets.UTF_8))
         val files = actual.getJSONObject("files")
@@ -119,7 +119,7 @@ class GameFileTransaction(private val journal: SessionJournal, private val devic
             stream.write(bytes); stream.fd.sync(); storage.finishWrite(stream)
             DurableFiles.syncDirectory(journal.directory)
         } catch (error: Throwable) { storage.failWrite(stream); throw error }
-        check(storage.readFully().contentEquals(bytes)) { "Applied manifest read-back differs" }
+        check(DurableFiles.readCommitted(storage.baseFile).contentEquals(bytes)) { "Applied manifest read-back differs" }
         validate(manifest)
         journal.outcome(PatchPhase.RESTORING, JSONObject().put("packages_dirty", false)
             .put("patch_payload_verified", true))

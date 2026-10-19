@@ -145,6 +145,7 @@ class PatchWorkerService : Service() {
                                 .put("requires_signature_conversion", prepared.requiresSignatureConversion))
                     }
                     "recover" -> state(worker.recover(checkNotNull(intent.getStringExtra("session"))))
+                    "free_space" -> state(worker.freeSpace())
                     "verify" -> {
                         val normal = checkNotNull(intent.getStringExtra("normal"))
                         val emergency = intent.getStringExtra("emergency")

@@ -144,7 +144,8 @@ Top to bottom:
    (with its free space and Change…) sit above the Start button in this card.
 4. **Log** — the live activity log; on Android also the technical log. Each log scrolls inside its
    own height-bounded panel while the page scrolls outside it.
-5. **Technical tools** — secondary buttons, then the installed version and *Check for updates*.
+5. **Technical tools** — secondary buttons, then the installed version, *Check for updates* and,
+   on Android, *Free up space* (also in the recovery options).
 
 Warnings and recovery messages appear as a warning card directly under ② Start, not as extra steps.
 

@@ -58,6 +58,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
     val advanced = column()
     private val updateButton = button("Check for updates", "check-app-update") { invoke("check_update") }
+    private val freeSpaceButton = button("Free up space", "free-space") { invoke("free_space") }
     private var next = "start"
     private var workerNotice = ""
     private var choosingLanguage = false
@@ -85,6 +86,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         column().apply {
             visibility = View.GONE
             addView(button("Restore interrupted patch", "recover-patch") { invoke("recover") })
+            addView(button("Free up space", "free-space-recovery") { invoke("free_space") })
             addView(button("Finish or repair first setup", "recover-setup") { invoke("setup_recover") })
             addView(button("Reinstall saved game app", "recover-apk") { invoke("installer") })
             addView(text("After reinstalling, check the game app below. Unfinished file changes still need recovery.", 16))
@@ -135,6 +137,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         root.addView(advanced)
         root.addView(text("${ui("Patcher version")}: ${BuildConfig.VERSION_NAME}", 14))
         root.addView(updateButton)
+        root.addView(freeSpaceButton)
         root.addView(text("COMMUNITY PATCHER  /  HOK ACE", 11).apply {
             gravity = Gravity.CENTER; letterSpacing = 0.12f
             setPadding(0, dp(24), 0, 0)
@@ -178,7 +181,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         if (follow) logScroll.post { logScroll.fullScroll(View.FOCUS_DOWN) }
     }
 
-    fun working(value: Boolean) { primary.isEnabled = !value }
+    fun working(value: Boolean) { primary.isEnabled = !value; freeSpaceButton.isEnabled = !value }
 
     fun checkingUpdate(value: Boolean) {
         updateButton.isEnabled = !value

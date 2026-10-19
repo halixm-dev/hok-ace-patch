@@ -15,7 +15,7 @@ class EmergencyRestoreStore(context: Context) {
 
     fun snapshot(): JSONObject? = synchronized(lock) {
         if (!storage.baseFile.exists() && !File(storage.baseFile.path + ".bak").exists()) null
-        else JSONObject(String(storage.readFully(), Charsets.UTF_8)).also { value ->
+        else JSONObject(String(DurableFiles.readCommitted(storage.baseFile), Charsets.UTF_8)).also { value ->
             check(value.getInt("schema") == 1)
             UUID.fromString(value.getString("id"))
             check(value.getString("normal").matches(Regex("[0-9a-f]{64}")))

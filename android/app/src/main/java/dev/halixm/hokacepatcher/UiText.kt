@@ -35,6 +35,17 @@ object UiText {
         "Patching activity" to "Aktivitas patch",
         "New messages appear here as we work. Scroll to see earlier messages." to "Pesan baru muncul selama proses. Gulir untuk melihat pesan sebelumnya.",
         "Restore interrupted patch" to "Pulihkan patch yang terhenti",
+        "Free up space" to "Kosongkan ruang",
+        "Free up space?" to "Kosongkan ruang?",
+        "Free space" to "Kosongkan",
+        "This removes files earlier runs left behind and saved game apps this game version no longer needs. It keeps the saved game app used for recovery, the prepared files for this game version, and the record that lets you switch languages without clearing game data.\n\nAn interrupted run that left no game file half-changed is closed. Keep the game closed while this runs." to "Ini menghapus file sisa proses sebelumnya dan aplikasi game tersimpan yang tidak lagi diperlukan versi game ini. Aplikasi game tersimpan untuk pemulihan, file siap pakai untuk versi game ini, dan catatan untuk mengganti bahasa tanpa menghapus data game tetap disimpan.\n\nProses terhenti yang tidak meninggalkan file game setengah berubah akan ditutup. Biarkan game tertutup selama proses ini.",
+        "Finish the current work before freeing space." to "Selesaikan pekerjaan saat ini sebelum mengosongkan ruang.",
+        "Space freed" to "Ruang dikosongkan",
+        "Translation written" to "Terjemahan ditulis",
+        "Checking the installed normal game app" to "Memeriksa aplikasi game normal yang terpasang",
+        "Closed an interrupted run that left no game file half-changed" to "Proses terhenti yang tidak meninggalkan file game setengah berubah telah ditutup",
+        "The game changed its files after the translation was written; closing the run without checking them again" to "Game mengubah file-nya setelah terjemahan ditulis; proses ditutup tanpa memeriksanya lagi",
+        WorkerStatus.UNCONFIRMED to "Pemulihan selesai. Aplikasi game normal terverifikasi. Terjemahan sudah ditulis dan diperiksa, tetapi game mengubah file-nya setelah itu, sehingga file tidak diperiksa lagi. Jika ada teks berbahasa Tionghoa, ketuk Mulai untuk patch lagi.",
         "Finish or repair first setup" to "Selesaikan atau perbaiki penyiapan awal",
         "Reinstall saved game app" to "Pasang ulang aplikasi game tersimpan",
         "After reinstalling, check the game app below. Unfinished file changes still need recovery." to "Setelah memasang ulang, periksa aplikasi game di bawah. Perubahan file yang belum selesai tetap perlu dipulihkan.",
@@ -177,6 +188,13 @@ object UiText {
         val enough = Regex("Enough space now for this step.\\nNeeded: ([0-9.]+) GB free \\(rounded up\\).\\nTap Try again. Keep saved recovery files.").matchEntire(source)
         if (enough != null) return "Ruang sekarang cukup untuk langkah ini.\nDiperlukan: ${enough.groupValues[1]} GB (dibulatkan ke atas).\nKetuk Coba lagi. Simpan file pemulihan."
         return source
+    }
+
+    fun freed(context: Context, state: JSONObject): String {
+        val bytes = state.optLong("freed_bytes"); val free = state.optLong("free_bytes")
+        if (PatchLanguage.current(context) != "id") return WorkerStatus.freed(bytes, free)
+        return "Ruang dikosongkan. Catatan untuk mengganti bahasa dan aplikasi game tersimpan tetap disimpan." +
+            "\nDikosongkan: ${StorageBudget.freeSpaceLabel(bytes)}\nRuang tersedia: ${StorageBudget.freeSpaceLabel(free)}"
     }
 
     fun removeConfirmation(context: Context): String = if (PatchLanguage.current(context) == "id")

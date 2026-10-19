@@ -55,6 +55,8 @@ public final class CoordinatorRecoveryProbeTest {
         ApkIdentity installed;
         int writes, failWriteAt, installs;
         boolean failNormalOnce;
+        /** The audit's own wording for a layer the game changed; anything else is an audit failure. */
+        String changedLayerMessage = "Device command failed (1): Game file changed: ";
         Device(ApkIdentity normal, ApkIdentity access) { this.normal = normal; this.access = access; installed = access; }
         @Override public String estimateGameSnapshot() { throw new UnsupportedOperationException("No snapshot measurement in this fixture"); }
         @Override public void forceStopGame() { /* Fake installed game only; never invoke Android shell. */ }
@@ -92,7 +94,7 @@ public final class CoordinatorRecoveryProbeTest {
                 JSONObject expected = new JSONObject(new String(small(descriptor), StandardCharsets.UTF_8)).getJSONObject("files");
                 assertEquals(expected.length(), files.size());
                 for (String name : files.keySet()) if (!expected.getJSONObject(name).getString("sha256").equals(hash(files.get(name))))
-                    throw new IllegalStateException("Fake live layer changed: " + name);
+                    throw new IllegalStateException(changedLayerMessage + name);
                 return "fake verified";
             } catch (RuntimeException error) { throw error; }
             catch (Exception error) { throw new RuntimeException(error); }
@@ -247,15 +249,24 @@ public final class CoordinatorRecoveryProbeTest {
         assertEquals(pythonStarted, Python.isStarted());
     }
 
-    @Test public void testForwardRecoveryRefusesChangedLiveLayer() throws Exception {
-        Fixture fixture = new Fixture();
-        GameFileTransaction transaction = new GameFileTransaction(fixture.journal, fixture.device);
-        for (String name : new String[]{"1/1.db", "1/1_0.db"}) transaction.write("packages/" + name,
-            new File(fixture.journal.getDirectory(), "out/" + name), fixture.hashes.getString(name), false);
-        transaction.finishApply(fixture.hashes);
-        fixture.journal.recoveryRequired("Fake restart after verified payload");
-        fixture.device.installed = fixture.device.normal;
-        fixture.device.files.put("packages/1/1.db", bytes("external-update"));
+    /** A verified payload the game changed afterwards closes unconfirmed: nothing is rolled back. */
+    @Test public void testForwardRecoveryClosesChangedLiveLayerUnconfirmed() throws Exception {
+        Fixture fixture = changedAfterVerifiedPayload();
+        int writes = fixture.device.writes;
+        JSONObject result = fixture.coordinator().recover(fixture.journal.getId());
+        assertEquals("recovered_unconfirmed", result.getString("status"));
+        assertEquals(writes, fixture.device.writes);
+        assertArrayEquals(bytes("external-update"), fixture.device.files.get("packages/1/1.db"));
+        assertEquals(fixture.device.normal, fixture.device.installed);
+        SessionJournal closed = SessionJournal.Companion.load(fixture.journal.getDirectory());
+        assertEquals(PatchPhase.CANCELLED, closed.getPhase());
+        assertTrue(closed.getLayerUnconfirmed());
+    }
+
+    /** An audit that fails for any other reason still leaves the run for recovery. */
+    @Test public void testForwardRecoveryRefusesUnexplainedAuditFailure() throws Exception {
+        Fixture fixture = changedAfterVerifiedPayload();
+        fixture.device.changedLayerMessage = "Fake live layer changed: ";
         int writes = fixture.device.writes;
         PatchCoordinator coordinator = fixture.coordinator();
         try { coordinator.recover(fixture.journal.getId()); fail("Changed layer reported completion"); }
@@ -266,5 +277,50 @@ public final class CoordinatorRecoveryProbeTest {
         assertEquals("recovery_required", coordinator.pendingRecoveryResult().getString("status"));
         assertFalse(coordinator.pendingRecoveryResult().getBoolean("launch_allowed"));
         assertEquals(PatchPhase.RECOVERY_REQUIRED, SessionJournal.Companion.load(fixture.journal.getDirectory()).getPhase());
+    }
+
+    /** Free up space closes a clean unfinished run without an install and releases its bulk. */
+    @Test public void testFreeSpaceClosesCleanRunWithoutInstall() throws Exception {
+        Fixture fixture = changedAfterVerifiedPayload();
+        int writes = fixture.device.writes, installs = fixture.device.installs;
+        JSONObject result = fixture.coordinator().freeSpace();
+        assertEquals("space_freed", result.getString("status"));
+        assertEquals(1, result.getInt("closed_runs"));
+        assertEquals(writes, fixture.device.writes);
+        assertEquals(installs, fixture.device.installs);
+        SessionJournal closed = SessionJournal.Companion.load(fixture.journal.getDirectory());
+        assertEquals(PatchPhase.CANCELLED, closed.getPhase());
+        assertTrue(closed.getLayerUnconfirmed());
+        assertFalse(new File(fixture.journal.getDirectory(), "out/1/1.db").exists());
+    }
+
+    /** Free up space refuses a run that stopped mid-change: its originals are the rollback. */
+    @Test public void testFreeSpaceRefusesDirtyRun() throws Exception {
+        Fixture fixture = new Fixture();
+        fixture.device.failWriteAt = 1;
+        try {
+            new GameFileTransaction(fixture.journal, fixture.device).write("packages/1/1.db",
+                new File(fixture.journal.getDirectory(), "out/1/1.db"), fixture.hashes.getString("1/1.db"), false);
+            fail("Initial interruption missing");
+        } catch (IllegalStateException expected) { }
+        fixture.journal.recoveryRequired("Fake post-index failure");
+        try { fixture.coordinator().freeSpace(); fail("Dirty run closed"); }
+        catch (IllegalStateException expected) { }
+        SessionJournal pending = SessionJournal.Companion.load(fixture.journal.getDirectory());
+        assertEquals(PatchPhase.RECOVERY_REQUIRED, pending.getPhase());
+        assertTrue(pending.getDirtyPackages());
+        assertTrue(new File(fixture.journal.getDirectory(), "snapshot/packages/1/1.db").isFile());
+    }
+
+    private static Fixture changedAfterVerifiedPayload() throws Exception {
+        Fixture fixture = new Fixture();
+        GameFileTransaction transaction = new GameFileTransaction(fixture.journal, fixture.device);
+        for (String name : new String[]{"1/1.db", "1/1_0.db"}) transaction.write("packages/" + name,
+            new File(fixture.journal.getDirectory(), "out/" + name), fixture.hashes.getString(name), false);
+        transaction.finishApply(fixture.hashes);
+        fixture.journal.recoveryRequired("Fake restart after verified payload");
+        fixture.device.installed = fixture.device.normal;
+        fixture.device.files.put("packages/1/1.db", bytes("external-update"));
+        return fixture;
     }
 }

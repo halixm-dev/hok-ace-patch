@@ -1,7 +1,7 @@
 ---
 feature: android-shizuku-patcher
 status: device-validation-in-progress
-updated: 2026-10-17
+updated: 2026-10-19
 ---
 
 # Android patcher using Shizuku
@@ -50,6 +50,7 @@ translation engine nor the catalog, runtime or key resources, and the coverage l
 - Dual App profile on two Transsion phones: shell may not name user 999 — the profile check falls back to `dumpsys package` ([S2]); unit-tested, not device-verified (lab notebook, 2026-10-09).
 - Game reported missing for the main user — the error now names hidden, other-profile or absent; the next log showed it absent (lab notebook, 2026-10-09).
 - `engine_preflight` refused every patch from an APK built without `-PfullCodecs` — full codecs became Gradle's default (lab notebook, 2026-10-09).
+- A written translation stuck in recovery on the realme RMX3830: the UI's once-a-second journal read deleted the worker's in-flight write (`Session journal read-back differs`), and once the game had run the applied-layer audit could never pass (`Game file set changed`). Reads no longer touch `AtomicFile`'s files; such a run closes unconfirmed and keeps its pristine delta; *Free up space* added ([S2]) — compiled and unit-tested, not device-verified (lab notebook, 2026-10-19).
 
 ### Still owed
 
@@ -313,6 +314,25 @@ app carries its own; it is device-verified on the Infinix X6853.
   default home app after every game install, and `StorageBudget.releaseReplacedGameApks` calls it before
   the patch run's, recovery's and the preparation's first budget. It never fails the caller and skips an
   unresolved home (the chooser), the game, the patcher, Settings and Shizuku. Protocol version 10.
+
+### Unconfirmed close and Free up space (2026-10-19)
+
+- A run with no package mid-change (`packages_dirty` false) has nothing to roll back. When forward
+  recovery's applied-layer audit reports that the game changed the layer (`Game file set changed`,
+  `Game file changed:`), the run closes `CANCELLED` with `layer_unconfirmed` and reports
+  `recovered_unconfirmed`, and the Start flow stops there instead of patching again. Any other audit
+  failure still leaves the run `RECOVERY_REQUIRED`.
+- `promoteSessionDelta` treats such a run as completed: its delta was made from the run's own snapshot
+  and staged output, and each entry applies only while its file holds the staged bytes it records.
+  Recovery that resolves a run now promotes its delta at once (`keepResolvedDelta`).
+- *Free up space* (`PatchCoordinator.freeSpace`, worker action `free_space`), on the main screen under
+  *Check for updates* and in the recovery options. It refuses while an emergency restore or first setup
+  is pending, or when a run has a package mid-change. Each other unfinished run closes by
+  `SessionJournal.closeUnconfirmed` once its normal APK is verified installed. Then it promotes the
+  newest delta and frees resolved sessions, replaced game APKs and `releaseUnneeded`'s APKs. It keeps
+  the pristine delta, the saved normal APKs and this game version's preparation.
+- Every `AtomicFile` record is read through `DurableFiles.readCommitted`, which never deletes `.new` or
+  moves `.bak` as `AtomicFile.readFully()` does.
 
 ### Repatch from the pristine delta (2026-10-17)
 

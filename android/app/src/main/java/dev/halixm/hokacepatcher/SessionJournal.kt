@@ -22,8 +22,12 @@ class SessionJournal private constructor(val directory: File, private val value:
     val hasRecoveryNormalIntent: Boolean get() = !value.isNull("recovery_normal_intent")
     val dirtyPackages: Boolean get() = value.optBoolean("packages_dirty", false)
     val recoveryId: String get() = value.getString("recovery_id")
+    /** The run wrote and verified its whole payload, so its pristine delta describes what it overwrote. */
+    val payloadVerified: Boolean get() = value.optBoolean("patch_payload_verified", false)
+    /** Closed with its payload written but the game files not checked again; see [closeUnconfirmed]. */
+    val layerUnconfirmed: Boolean get() = phase == PatchPhase.CANCELLED && value.optString("layer_unconfirmed").isNotEmpty()
     val recoveryCompletionPhase: PatchPhase get() =
-        if (!dirtyPackages && value.optBoolean("patch_payload_verified", false)) PatchPhase.COMPLETE
+        if (!dirtyPackages && payloadVerified) PatchPhase.COMPLETE
         else PatchPhase.CANCELLED
 
     @Synchronized fun snapshot(): JSONObject = JSONObject(value.toString())
@@ -34,7 +38,12 @@ class SessionJournal private constructor(val directory: File, private val value:
             value.optBoolean("normal_verified", false) && !dirtyPackages && !hasMutationIntent && !hasRecoveryNormalIntent) {
             "Recovery result requires a resolved session and verified normal APK"
         }
-        val result = JSONObject().put("status", if (phase == PatchPhase.COMPLETE) "complete" else "recovered")
+        val status = when {
+            phase == PatchPhase.COMPLETE -> "complete"
+            layerUnconfirmed -> "recovered_unconfirmed"
+            else -> "recovered"
+        }
+        val result = JSONObject().put("status", status)
             .put("action", "recover").put("session", id).put("phase", phase.name)
         if (phase == PatchPhase.COMPLETE) result.put("counts", value.opt("counts") ?: JSONObject.NULL)
         return result
@@ -69,7 +78,7 @@ class SessionJournal private constructor(val directory: File, private val value:
             storage.failWrite(stream)
             throw error
         }
-        check(storage.readFully().contentEquals(bytes)) { "Session journal read-back differs" }
+        check(DurableFiles.readCommitted(storage.baseFile).contentEquals(bytes)) { "Session journal read-back differs" }
     }
 
     @Synchronized fun intent(operation: String, detail: JSONObject = JSONObject()) {
@@ -134,6 +143,21 @@ class SessionJournal private constructor(val directory: File, private val value:
         persist()
     }
 
+    /**
+     * Close a run that left no game file mid-change, once the caller has verified the normal APK is
+     * installed. Nothing is rolled back: a clean run has nothing to roll back. A run whose payload was
+     * verified is marked `layer_unconfirmed` (<reason>), so its pristine delta is still kept.
+     */
+    @Synchronized fun closeUnconfirmed(reason: String) {
+        check(phase !in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED) && !dirtyPackages) {
+            "Only an unfinished run with no game file mid-change can close without recovery"
+        }
+        outcome(PatchPhase.RESTORING)
+        val updates = JSONObject().put("normal_verified", true)
+        if (payloadVerified) updates.put("layer_unconfirmed", reason.take(4096))
+        outcome(PatchPhase.CANCELLED, updates)
+    }
+
     @Synchronized fun recoveryRequired(message: String) {
         value.put("phase", PatchPhase.RECOVERY_REQUIRED.name).put("last_error", message.take(4096))
         persist() // Preserve pending intent and the dirty flag for rollback.
@@ -177,7 +201,7 @@ class SessionJournal private constructor(val directory: File, private val value:
             check(candidates.isNotEmpty() && candidates.all {
                 it.isFile && !Files.isSymbolicLink(it.toPath()) && it.length() in 1..MAX_BYTES
             }) { "Session journal is missing, linked or oversized" }
-            val bytes = AtomicFile(path).readFully()
+            val bytes = DurableFiles.readCommitted(path)
             check(bytes.size in 1..MAX_BYTES) { "Session journal is missing or oversized" }
             val value = JSONObject(String(bytes, Charsets.UTF_8))
             check(value.getInt("schema") == 1 && value.getString("id") == directory.name) { "Unsupported session journal" }

@@ -33,7 +33,7 @@ class PatchRequestStore(private val context: Context) {
         check(!prepared.requiresSignatureConversion) { "Initial game setup needs separate data-loss consent" }
         val preparation = prepared.directory.name; GameFilePolicy.session(preparation)
         check(prepared.directory.canonicalFile == File(context.filesDir, "preparations/$preparation").canonicalFile)
-        val metadata = JSONObject(String(AtomicFile(receipt(preparation)).readFully(), Charsets.UTF_8))
+        val metadata = JSONObject(String(DurableFiles.readCommitted(receipt(preparation)), Charsets.UTF_8))
         check(ApkIdentity.fromJson(metadata.getJSONObject("normal")) == prepared.normal &&
             ApkIdentity.fromJson(metadata.getJSONObject("access")) == prepared.access &&
             ApkIdentity.fromJson(metadata.optJSONObject("installed_source") ?: metadata.getJSONObject("source")) == prepared.source) { "Prepared files changed before confirmation" }
@@ -50,7 +50,7 @@ class PatchRequestStore(private val context: Context) {
         DurableFiles.createDirectories(root)
         RandomAccessFile(File(root, "claim.lock"), "rw").use { handle -> handle.channel.use { channel ->
             checkNotNull(channel.tryLock()) { "Another patch request is being checked" }.use {
-                val storage = AtomicFile(file(id)); val bytes = storage.readFully()
+                val storage = AtomicFile(file(id)); val bytes = DurableFiles.readCommitted(storage.baseFile)
                 check(bytes.size <= 8192) { "Patch request is oversized" }
                 val saved = JSONObject(String(bytes, Charsets.UTF_8))
                 check(saved.getInt("schema") == 1 && saved.getString("id") == id &&

@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.Handler
 import android.os.Looper
-import android.util.AtomicFile
 import android.net.Uri
 import android.provider.Settings
 import android.os.ParcelFileDescriptor
@@ -45,7 +44,7 @@ class MainActivity : Activity() {
         override fun run() {
             val file = File(filesDir, "worker-state.json")
             workerStatus.text = if (!file.isFile) "No saved worker result." else runCatching {
-                WorkerStatus.describe(JSONObject(String(AtomicFile(file).readFully(), Charsets.UTF_8)))
+                WorkerStatus.describe(JSONObject(String(DurableFiles.readCommitted(file), Charsets.UTF_8)))
             }.getOrElse { "Saved worker result cannot be read. Inspect recovery before opening the game." }
             val emergency = runCatching { EmergencyRestoreStore(this@MainActivity).describe() }
                 .getOrElse { "Emergency restore record cannot be read. Keep the game closed and inspect recovery." }
@@ -141,6 +140,14 @@ class MainActivity : Activity() {
                     } else actions["Authorize Shizuku"]?.let { runTask(it) }
                 }
                 "recovery_options" -> home.showRecovery()
+                "free_space" -> if (busy || automatic || PatchWorkerService.isWorking) {
+                    home.message("Finish the current work before freeing space.")
+                } else AlertDialog.Builder(this).setTitle(ui("Free up space?"))
+                    .setMessage(ui("This removes files earlier runs left behind and saved game apps this game version no longer needs. It keeps the saved game app used for recovery, the prepared files for this game version, and the record that lets you switch languages without clearing game data.\n\nAn interrupted run that left no game file half-changed is closed. Keep the game closed while this runs."))
+                    .setNegativeButton(ui("Cancel"), null).setPositiveButton(ui("Free space")) { _, _ ->
+                        if (!busy && !automatic && !PatchWorkerService.isWorking)
+                            startWorker(Intent(this, PatchWorkerService::class.java).setAction("free_space"))
+                    }.show()
                 "language:en", "language:id" -> {
                     val code = key.removePrefix("language:")
                     if (busy || automatic || PatchWorkerService.isWorking) home.language(PatchLanguage.current(this))
@@ -359,7 +366,7 @@ class MainActivity : Activity() {
     private fun savedWorker(): JSONObject? {
         val file = File(filesDir, "worker-state.json")
         return if (!file.exists() && !File(file.path + ".bak").exists()) null
-            else JSONObject(String(AtomicFile(file).readFully(), Charsets.UTF_8))
+            else JSONObject(String(DurableFiles.readCommitted(file), Charsets.UTF_8))
     }
 
     private fun advanceAutomatic() {
@@ -407,6 +414,8 @@ class MainActivity : Activity() {
                 }
             }
             "verified", "recovered", "setup_ready", "setup_waiting" -> routeAutomatic()
+            // The translation is on the phone; patching again is the user's call, not automatic.
+            "recovered_unconfirmed" -> stopAutomatic()
             "complete" -> stopAutomatic()
             else -> { stopAutomatic(); log("ERROR: " + WorkerStatus.describe(result)) }
         }
@@ -434,6 +443,10 @@ class MainActivity : Activity() {
             state?.optString("status") == "complete" && !pending.getOrThrow() -> home.show(
                 if (state.has("removed")) "Translation removed" else "Translation added",
                 UiText.completed(this, state), "Start another patch", "start", false)
+            state?.optString("status") == "recovered_unconfirmed" && !pending.getOrThrow() -> home.show(
+                "Translation written", WorkerStatus.UNCONFIRMED, "Start another patch", "start", false)
+            state?.optString("status") == "space_freed" && !pending.getOrThrow() -> home.show(
+                "Space freed", UiText.freed(this, state), "Start", "start", false)
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped", friendlyFailure(state?.optString("error").orEmpty()), "Try again", "start", true)
             pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true)
             else -> home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)

@@ -68,7 +68,7 @@ class ApkPreparation(private val context: Context) {
         val stale = folders.filter { folder ->
             if (folder.canonicalFile == keep) return@filter false
             val normal = runCatching {
-                ApkIdentity.fromJson(JSONObject(String(AtomicFile(File(folder, "receipt.json")).readFully(),
+                ApkIdentity.fromJson(JSONObject(String(DurableFiles.readCommitted(File(folder, "receipt.json")),
                     Charsets.UTF_8)).getJSONObject("normal"))
             }.getOrNull() ?: return@filter false
             normal.versionCode != installed.versionCode || normal.versionName != installed.versionName
@@ -125,7 +125,7 @@ class ApkPreparation(private val context: Context) {
                 checkpoint()
                 // Keep historical source identity; bind the next confirmation to the installed identity.
                 val receiptFile = AtomicFile(File(folder, "receipt.json"))
-                val receipt = JSONObject(String(receiptFile.readFully(), Charsets.UTF_8))
+                val receipt = JSONObject(String(DurableFiles.readCommitted(receiptFile.baseFile), Charsets.UTF_8))
                 receipt.put("installed_source", identity.json())
                 val stream = receiptFile.startWrite()
                 try {
@@ -255,7 +255,7 @@ class ApkPreparation(private val context: Context) {
     fun load(id: String): Prepared {
         GameFilePolicy.session(id)
         val directory = File(context.filesDir, "preparations/$id")
-        val receipt = JSONObject(String(AtomicFile(File(directory, "receipt.json")).readFully(), Charsets.UTF_8))
+        val receipt = JSONObject(String(DurableFiles.readCommitted(File(directory, "receipt.json")), Charsets.UTF_8))
         check(receipt.getInt("schema") == 1)
         val original = ApkIdentity.fromJson(receipt.getJSONObject("source"))
         check(!original.debuggable)

@@ -28,7 +28,7 @@ class FirstSetupJournal private constructor(val directory: File, private val val
             stream.write(bytes); stream.fd.sync(); storage.finishWrite(stream)
             DurableFiles.syncDirectory(directory)
         } catch (error: Throwable) { storage.failWrite(stream); throw error }
-        check(storage.readFully().contentEquals(bytes)) { "First setup journal read-back differs" }
+        check(DurableFiles.readCommitted(storage.baseFile).contentEquals(bytes)) { "First setup journal read-back differs" }
     }
     @Synchronized fun beforeUninstall() {
         check(phase == FirstSetupPhase.PREPARED)
@@ -117,7 +117,7 @@ class FirstSetupJournal private constructor(val directory: File, private val val
             GameFilePolicy.session(directory.name)
             val path = File(directory, "journal.json")
             check(path.length() in 1..16384) { "First setup journal is missing or oversized" }
-            val value = JSONObject(String(AtomicFile(path).readFully(), Charsets.UTF_8))
+            val value = JSONObject(String(DurableFiles.readCommitted(path), Charsets.UTF_8))
             check(value.getInt("schema") == 1 && value.getString("id") == directory.name && value.getBoolean("data_loss_confirmed"))
             GameFilePolicy.session(value.getString("preparation"))
             if (value.has("consent_request")) GameFilePolicy.session(value.getString("consent_request"))

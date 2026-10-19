@@ -41,6 +41,20 @@ object DurableFiles {
         return freed
     }
 
+    /**
+     * The last committed bytes of an [android.util.AtomicFile], read without touching its files.
+     * AtomicFile.readFully() is not a pure read: on API 31+ it deletes an in-flight `.new`, and on API 30
+     * it moves `.bak` back over the file being written, so the writer's finishWrite() silently keeps the
+     * old bytes. The UI polls these records every second while the worker writes them.
+     */
+    fun readCommitted(base: File): ByteArray {
+        val legacy = File(base.path + ".bak")
+        // A legacy backup is the committed copy while API 30 writes the base; finishWrite may delete it
+        // between the check and the open, after which the base is complete.
+        if (legacy.exists()) runCatching { return legacy.readBytes() }
+        return base.readBytes()
+    }
+
     fun createDirectories(directory: File) {
         val missing = mutableListOf<File>()
         var current: File? = directory

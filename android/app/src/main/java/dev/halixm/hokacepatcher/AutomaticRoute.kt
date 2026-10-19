@@ -21,6 +21,6 @@ object AutomaticRoute {
     /** A previous result, or a still-live service, cannot trigger the next automatic operation. */
     fun finished(value: JSONObject?, token: String?, workerAlive: Boolean): Boolean =
         token != null && value != null && !workerAlive && value.optString("flow") == token &&
-            value.optString("status") in setOf("prepared", "verified", "recovered", "setup_ready",
+            value.optString("status") in setOf("prepared", "verified", "recovered", "recovered_unconfirmed", "setup_ready",
                 "setup_waiting", "setup_cancelled", "complete", "cancelled", "error", "recovery_required")
 }
