@@ -1,11 +1,12 @@
 package dev.halixm.hokacepatcher
 
 import android.content.Context
-import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import java.io.File
 import java.security.MessageDigest
 import org.json.JSONObject
+import org.xmlpull.v1.XmlPullParser
 
 /** Full content identity, manifest and signer checks; an access APK can never become recovery material. */
 data class ApkIdentity(
@@ -47,11 +48,38 @@ data class ApkIdentity(
             check(signers.size == 1) { "Multiple game APK signers are unsupported" }
             val certificate = MessageDigest.getInstance("SHA-256").digest(signers.single().toByteArray())
                 .joinToString("") { "%02x".format(it) }
+            val debuggable = declaresDebuggable(context, file, info)
             check(file.length() == beforeLength && file.lastModified() == beforeTime) { "The game APK changed while verifying" }
             return ApkIdentity(beforeLength, sha, info.packageName, info.longVersionCode,
-                info.versionName ?: "", certificate,
-                checkNotNull(info.applicationInfo) { "The APK has no application manifest" }.flags
-                    and ApplicationInfo.FLAG_DEBUGGABLE != 0)
+                info.versionName ?: "", certificate, debuggable)
+        }
+
+        /**
+         * android:debuggable as Android resolves it: by resource id, through the attribute walk the package
+         * parser itself uses. Not ApplicationInfo.flags: Android 15's first release (android-15.0.0_r1, the
+         * AP3A builds) never calls hideAsFinal() in getPackageArchiveInfo, so an APK file's flags are never
+         * derived and FLAG_DEBUGGABLE reads false for every archive (Infinix X6851, moto g45, realme RMX3830).
+         */
+        private fun declaresDebuggable(context: Context, file: File, info: PackageInfo): Boolean {
+            val application = checkNotNull(info.applicationInfo) { "The APK has no application manifest" }
+            application.sourceDir = file.path
+            application.publicSourceDir = file.path
+            val resources = context.packageManager.getResourcesForApplication(application)
+            resources.assets.openXmlResourceParser("AndroidManifest.xml").use { parser ->
+                var type = parser.next()
+                while (type != XmlPullParser.END_DOCUMENT) {
+                    if (type == XmlPullParser.START_TAG && parser.depth == 1)
+                        check(parser.getAttributeValue(null, "package") == info.packageName) {
+                            "Cannot read the game APK manifest"
+                        }
+                    if (type == XmlPullParser.START_TAG && parser.depth == 2 && parser.name == "application") {
+                        val values = resources.obtainAttributes(parser, intArrayOf(android.R.attr.debuggable))
+                        try { return values.getBoolean(0, false) } finally { values.recycle() }
+                    }
+                    type = parser.next()
+                }
+            }
+            error("The APK has no application manifest")
         }
 
         fun fromJson(value: JSONObject): ApkIdentity = ApkIdentity(value.getLong("bytes"),

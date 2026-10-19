@@ -3342,3 +3342,24 @@ Afterwards the release build was reinstalled and the test package removed.
 takes 616–621 s instead of 906 s (−32%), peak free-space use drops by about 3.7 GiB, coverage is unchanged
 and recovery from a kill during the build works. Single runs on one phone, not paired trials; not measured
 on the device of record.
+
+## 2026-10-19 — Android 15 reads every APK file as not debuggable (realme RMX3830)
+
+Two exported logs from a realme RMX3830 (Android 15 API 35, build `AP3A.240905.015.A2`, app 1.6.1.7, game
+1.1.1 `774472`; the second after a fresh install of the official APK) stop APK preparation four times with
+`access not debuggable per Android (its manifest declares debuggable: true; normal manifest: false)`.
+The 2026-10-17 attribute-order fix holds: the engine's parser now reads the manifest as debuggable. Android
+still does not.
+
+| Finding | Evidence |
+|---|---|
+| The manifest edit is right | The cached official `installed.apk` (same `774472`), relabelled then patched, reads as debuggable to `aapt2 dump badging` and to `getPackageArchiveInfo` on an Android 16 emulator (`Medium_Phone_API_36`, `app_process` probe), both manifest-only and as the full 2 GB signed access APK, with flags `0` and with `GET_SIGNING_CERTIFICATES`. |
+| The failure depends on the Android version, not the vendor | Preparation passed on Android 12 (Xiaomi), 14 (Infinix X678B, TECNO KL7) and 16 (Infinix X6853), and failed on every Android 15 phone: Infinix X6851, moto g45 5G, realme RMX3830. |
+| The cause is in AOSP | `PackageManager.getPackageArchiveInfo` in `android-15.0.0_r1` builds the `PackageInfo` without `pp.hideAsFinal()`. Only `hideAsFinal()` runs `assignDerivedFields2()`, which sets `mBaseAppInfoFlags` (`AppInfoUtils.appInfoFlags`, the one place `FLAG_DEBUGGABLE` is derived), and `toAppInfoWithoutState()` copies that field into `flags`. So an APK file's `flags` are always `0`. `android-15.0.0_r20`, `r36` and `android-16.0.0_r1` make the call. An installed package's flags come from system_server and are unaffected. |
+
+Fix: `ApkIdentity.read` resolves `android:debuggable` itself, by resource id, through
+`getResourcesForApplication` + `openXmlResourceParser("AndroidManifest.xml")` + `obtainAttributes`, the
+same attribute walk the package parser uses, after checking that the parsed `<manifest package>` is the
+archive's own. On the emulator it matches Android's flag for the source, normal, access and full access
+APKs (about 15 ms each). Until this change the checks that a source or normal APK is *not* debuggable were
+vacuous on these phones. **Not yet verified on an Android 15 phone.**
