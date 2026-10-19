@@ -8,7 +8,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
-import android.view.Gravity
+import android.util.TypedValue
 import android.view.View
 import android.view.MotionEvent
 import android.widget.Button
@@ -21,30 +21,39 @@ import android.widget.Toast
 
 /** One start action; show only work progress and checkpoints that need the user. */
 class GuidedHome(private val activity: Activity, private val invoke: (String) -> Unit) {
-    private val ink = Color.rgb(38, 39, 82)
-    private val blue = Color.rgb(78, 69, 179)
-    private val muted = Color.rgb(96, 98, 127)
-    private val edge = Color.rgb(219, 218, 242)
+    /** DESIGN.md's four type steps; buttons and the log have their own tokens. */
+    private enum class Type(val size: Int, val font: Int) {
+        TITLE(R.dimen.type_title, R.font.barlowcondensed_extrabold),
+        HEADING(R.dimen.type_heading, R.font.barlow_bold),
+        BODY(R.dimen.type_body, R.font.barlow_regular),
+        LABEL(R.dimen.type_label, R.font.barlow_semibold),
+    }
+
+    private val ink = activity.getColor(R.color.ink)
+    private val muted = activity.getColor(R.color.text_muted)
     private val root = column()
-    private val heading = text("Let's get started", 25)
-    private val detail = text("Start Shizuku, then come back here.", 16)
+    private val heading = text("Let's get started", Type.HEADING)
+    private val detail = text("Start Shizuku, then come back here.", Type.BODY)
     private val primary = button("Start", "next-step", true) { invoke(next) }
     private val recovery = column()
     private var shown = ""
     private val stop = button("Stop safely", "stop-automatic") { invoke("stop") }
     private val spinner = android.widget.ProgressBar(activity)
-    private val notice = text("", 18)
-    private val languageNote = text("", 15).apply { tag = "language-note" }
+    private val notice = text("", Type.BODY, supporting = true)
+    private val languageNote = text("", Type.BODY, supporting = true).apply { tag = "language-note" }
     private val removeButton = button("Remove translation", "remove-translation") { invoke("remove") }
     private var errorRaw = ""
-    private val errorText = text("", 14).apply { tag = "error-details"; setTextIsSelectable(true) }
+    private val errorText = text("", Type.BODY).apply { tag = "error-details"; setTextIsSelectable(true) }
     private val errorBox = column().apply {
         visibility = View.GONE
-        addView(text("Error details", 18))
+        addView(text("Error details", Type.HEADING))
         addView(errorText)
         addView(button("Copy error details", "copy-error") { copyError() })
     }
-    private val liveLog = text("", 15).apply { tag = "live-patch-log"; setTextIsSelectable(true) }
+    private val liveLog = text("", Type.BODY).apply {
+        tag = "live-patch-log"; setTextIsSelectable(true)
+        typeface = Typeface.MONOSPACE; setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_log))
+    }
     private val logScroll = LogScrollView(activity).apply {
         addView(liveLog)
         layoutParams = LinearLayout.LayoutParams(-1, dp(180))
@@ -52,8 +61,8 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
     private val logCard = card().apply {
         visibility = View.GONE
-        addView(text("Patching activity", 23))
-        addView(text("New messages appear here as we work. Scroll to see earlier messages.", 16))
+        addView(text("Patching activity", Type.HEADING))
+        addView(text("New messages appear here as we work. Scroll to see earlier messages.", Type.BODY, supporting = true))
         addView(logScroll)
     }
     val advanced = column()
@@ -66,12 +75,14 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         tag = "language-picker"; orientation = LinearLayout.VERTICAL
         PatchLanguage.choices.forEach { (code, name) ->
             addView(RadioButton(activity).apply {
-                id = View.generateViewId(); text = name; tag = "language-$code"; textSize = 18f; setTextColor(ink)
+                id = View.generateViewId(); text = name; tag = "language-$code"; setTextColor(ink)
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_button))
+                typeface = activity.resources.getFont(R.font.barlow_semibold)
                 minHeight = dp(48)
                 buttonTintList = ColorStateList(
                     arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf(android.R.attr.state_checked), intArrayOf()),
-                    intArrayOf(muted, blue, muted))
-                background = background(Color.rgb(246, 245, 255))
+                    intArrayOf(activity.getColor(R.color.disabled_text), ink, muted))
+                background = background(activity.getColor(R.color.card_solid))
                 setPadding(dp(12), dp(6), dp(12), dp(6))
                 layoutParams = RadioGroup.LayoutParams(-1, -2).apply { setMargins(0, dp(4), 0, dp(4)) }
             })
@@ -89,7 +100,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             addView(button("Free up space", "free-space-recovery") { invoke("free_space") })
             addView(button("Finish or repair first setup", "recover-setup") { invoke("setup_recover") })
             addView(button("Reinstall saved game app", "recover-apk") { invoke("installer") })
-            addView(text("After reinstalling, check the game app below. Unfinished file changes still need recovery.", 16))
+            addView(text("After reinstalling, check the game app below. Unfinished file changes still need recovery.", Type.BODY))
             addView(button("Check restored game app", "verify-game") { invoke("verify") })
             addView(button("Save log for help", "export-log") { invoke("export") })
         }
@@ -97,12 +108,12 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
 
     init {
         root.setPadding(dp(20), dp(16), dp(20), dp(32))
-        root.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-            intArrayOf(Color.rgb(230, 234, 255), Color.rgb(245, 242, 255), Color.rgb(232, 242, 255)))
+        root.background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(activity.getColor(R.color.page_top), activity.getColor(R.color.page_bottom)))
         root.addView(hero())
         val languageCard = card()
         languageCard.addView(eyebrow("01  /  YOUR TRANSLATION"))
-        languageCard.addView(text("Language", 23))
+        languageCard.addView(text("Language", Type.HEADING))
         showLanguageNote()
         languageCard.addView(languageNote)
         languageCard.addView(removeButton)
@@ -111,7 +122,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         val card = card()
         card.addView(eyebrow("02  /  READY TO PLAY"))
         card.addView(heading); card.addView(detail); card.addView(primary)
-        spinner.indeterminateTintList = ColorStateList.valueOf(blue)
+        spinner.indeterminateTintList = ColorStateList.valueOf(ink)
         spinner.visibility = View.GONE; stop.visibility = View.GONE
         card.addView(spinner); card.addView(stop)
         root.addView(card)
@@ -119,10 +130,10 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         notice.tag = "friendly-notice"; notice.visibility = View.GONE
         root.addView(notice)
         root.addView(errorBox)
-        recovery.background = background(Color.rgb(255, 243, 224))
+        recovery.background = background(activity.getColor(R.color.warning_surface))
         recovery.setPadding(dp(16), dp(12), dp(16), dp(12))
-        recovery.addView(text("Game won't open?", 23))
-        recovery.addView(text("Keep the game closed. Use recovery first.", 18))
+        recovery.addView(text("Game won't open?", Type.HEADING))
+        recovery.addView(text("Keep the game closed. Use recovery first.", Type.BODY))
         recovery.addView(button("Show recovery options", "show-recovery") {
             recoveryOptions.visibility = if (recoveryOptions.visibility == View.VISIBLE) View.GONE else View.VISIBLE
         })
@@ -133,18 +144,14 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             advanced.visibility = if (advanced.visibility == View.VISIBLE) View.GONE else View.VISIBLE
         })
         advanced.visibility = View.GONE
-        advanced.addView(text("For testing or support", 22))
+        advanced.addView(text("For testing or support", Type.HEADING))
         root.addView(advanced)
-        root.addView(text("${ui("Patcher version")}: ${BuildConfig.VERSION_NAME}", 14))
+        root.addView(text("${ui("Patcher version")}: ${BuildConfig.VERSION_NAME}", Type.BODY, supporting = true))
         root.addView(updateButton)
         root.addView(freeSpaceButton)
-        root.addView(text("COMMUNITY PATCHER  /  HOK ACE", 11).apply {
-            gravity = Gravity.CENTER; letterSpacing = 0.12f
-            setPadding(0, dp(24), 0, 0)
-        })
         activity.setContentView(ScrollView(activity).apply {
             isFillViewport = true
-            setBackgroundColor(Color.rgb(230, 234, 255))
+            setBackgroundColor(activity.getColor(R.color.page_top))
             addView(root)
             setOnApplyWindowInsetsListener { view, insets ->
                 val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars())
@@ -262,52 +269,62 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private fun ui(value: String) = UiText.text(activity, value)
 
     private fun dp(value: Int) = (value * activity.resources.displayMetrics.density).toInt()
+    private fun space(token: Int) = activity.resources.getDimensionPixelSize(token)
+    private fun withAlpha(color: Int, alpha: Float) = Color.argb(Math.round(alpha * 255), Color.red(color), Color.green(color), Color.blue(color))
     private fun column() = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-    private fun background(color: Int) = GradientDrawable().apply { setColor(color); cornerRadius = dp(18).toFloat() }
-    private fun eyebrow(value: String) = text(value, 11).apply {
-        setTextColor(blue); letterSpacing = 0.14f; setTypeface(null, Typeface.BOLD)
+    private fun background(color: Int) = GradientDrawable().apply {
+        setColor(color); cornerRadius = activity.resources.getDimension(R.dimen.corner_card)
+    }
+    private fun eyebrow(value: String) = text(value, Type.LABEL, supporting = true).apply {
         setPadding(0, 0, 0, dp(4))
     }
 
+    /** Eyebrow, title and the one line on the partial translation and Scan to login: no tagline. */
     private fun hero() = column().apply {
-        background = AceHeroDrawable(activity.resources.displayMetrics.density)
-        setPadding(dp(22), dp(20), dp(22), dp(20))
-        addView(eyebrow("HONOR OF KINGS  /  ACE").apply { setTextColor(Color.rgb(224, 228, 255)) })
-        addView(text(activity.getString(R.string.app_name), 32).apply {
-            setTextColor(Color.WHITE); setLineSpacing(0f, 0.95f)
-            typeface = Typeface.create("sans-serif-black", Typeface.NORMAL)
+        background = AceHeroDrawable(activity)
+        space(R.dimen.space_lg).let { setPadding(it, it, it, it) }
+        addView(eyebrow("COMMUNITY PATCHER  /  HOK ACE").apply {
+            tag = "hero-eyebrow"; setTextColor(activity.getColor(R.color.on_panel_muted))
         })
-        addView(text("Your next move. Your language.", 16).apply { setTextColor(Color.WHITE) })
-        addView(text("Some game text will stay Chinese.\nUse Scan to login after setup.", 14).apply {
-            setTextColor(Color.WHITE)
-            background = background(Color.argb(65, 20, 22, 75))
-            setPadding(dp(12), dp(10), dp(12), dp(10))
+        addView(text(activity.getString(R.string.app_name), Type.TITLE).apply {
+            setTextColor(activity.getColor(R.color.on_panel)); setLineSpacing(0f, 0.95f)
+        })
+        addView(text("Some game text will stay Chinese.\nUse Scan to login after setup.", Type.BODY).apply {
+            setTextColor(activity.getColor(R.color.on_panel))
         })
     }
 
     private fun card() = column().apply {
-        background = background(Color.argb(235, 255, 255, 255)).apply { setStroke(dp(1), edge) }
-        setPadding(dp(20), dp(20), dp(20), dp(20))
-        layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(16), 0, 0) }
+        background = background(activity.getColor(R.color.card)).apply { setStroke(dp(1), activity.getColor(R.color.card_edge)) }
+        space(R.dimen.space_lg).let { setPadding(it, it, it, it) }
+        layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, space(R.dimen.space_md), 0, 0) }
     }
-    private fun text(value: String, size: Int) = TextView(activity).apply {
-        text = ui(value); textSize = size.toFloat(); setTextColor(if (size >= 23) ink else muted)
+    /** Headings are marked as headings for screen readers by their type step, not by their size. */
+    private fun text(value: String, type: Type, supporting: Boolean = false) = TextView(activity).apply {
+        text = ui(value); setTextColor(if (supporting) muted else ink)
+        setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(type.size))
+        typeface = activity.resources.getFont(type.font)
         setPadding(0, dp(8), 0, dp(10)); setLineSpacing(dp(3).toFloat(), 1f)
-        if (size >= 23) { setTypeface(null, Typeface.BOLD); isAccessibilityHeading = true }
+        if (type == Type.LABEL) letterSpacing = activity.resources.getFloat(R.dimen.type_label_tracking)
+        if (type == Type.TITLE || type == Type.HEADING) isAccessibilityHeading = true
     }
     private fun button(label: String, testTag: String?, primaryAction: Boolean = false, callback: () -> Unit) = Button(activity).apply {
-        text = ui(label); tag = testTag; textSize = 16f; isAllCaps = false; minHeight = dp(60); minimumHeight = dp(60)
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        text = ui(label); tag = testTag; isAllCaps = false; minHeight = dp(60); minimumHeight = dp(60)
+        setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_button))
+        typeface = activity.resources.getFont(R.font.barlow_semibold)
         setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
-            intArrayOf(muted, if (primaryAction) Color.WHITE else blue)))
-        val enabled = if (primaryAction) GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-            intArrayOf(blue, Color.rgb(66, 98, 187))).apply { cornerRadius = dp(16).toFloat() }
-            else background(Color.WHITE).apply { setStroke(dp(1), edge) }
+            intArrayOf(activity.getColor(R.color.disabled_text), activity.getColor(if (primaryAction) R.color.on_panel else R.color.ink))))
+        // Primary: the panel gradient. Secondary: the card fill with a 1 dp ink edge at 30 %.
+        val enabled = if (primaryAction) GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+            intArrayOf(activity.getColor(R.color.panel_top), activity.getColor(R.color.panel_bottom))).apply {
+                cornerRadius = activity.resources.getDimension(R.dimen.corner_button)
+            }
+            else background(activity.getColor(R.color.card)).apply { setStroke(dp(1), withAlpha(ink, 0.3f)) }
         val states = android.graphics.drawable.StateListDrawable().apply {
-            addState(intArrayOf(-android.R.attr.state_enabled), background(Color.rgb(226, 226, 240)))
+            addState(intArrayOf(-android.R.attr.state_enabled), background(activity.getColor(R.color.disabled_fill)))
             addState(intArrayOf(), enabled)
         }
-        background = RippleDrawable(ColorStateList.valueOf(Color.argb(45, 125, 137, 231)), states, null)
+        background = RippleDrawable(ColorStateList.valueOf(withAlpha(ink, 0.18f)), states, null)
         setPadding(dp(14), dp(12), dp(14), dp(12))
         layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(6), 0, dp(6)) }
         setOnClickListener { callback() }

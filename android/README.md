@@ -27,8 +27,9 @@ release offers **Download update**, which opens that release's APK in your brows
 through Android after finishing patching or recovery. There are no automatic checks or installs.
 Offline checks, GitHub errors and releases without an APK show a retry message and leave patching
 available. See the [update checker feature record](../docs/features/android-update-checker.md).
-The home screen has one **Start** button. The visual theme follows [wxq.qq.com](https://wxq.qq.com/): lavender and
-ice-blue backgrounds, a geometric gradient hero, translucent white cards and violet-blue buttons.
+The home screen has one **Start** button. The look follows [DESIGN.md](../DESIGN.md): Gradle turns `resources/ui/theme.json`
+into colour and size resources, ships Barlow from `resources/fonts/`, and packs `resources/ui/strings.json`,
+from which `UiText` reads every interface string in English and Indonesian.
 The hero is drawn locally; it needs no network or downloaded website artwork. Language choices,
 disabled states, recovery controls and scrolling retain their existing behavior.
 Shizuku permission is requested automatically when

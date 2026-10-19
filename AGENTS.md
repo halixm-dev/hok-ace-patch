@@ -34,6 +34,8 @@ The whole pipeline also runs offline against a dumped game directory. Add the ca
     --apk <path>\installed.apk
 ```
 
+After changing a user-facing string in either patcher, run `tools\research\check_ui_strings.py`.
+
 After moving or renaming a doc, run `tools\research\check_references.py` and `tools\research\check_staging_contract.py`.
 
 ## Architecture
@@ -47,6 +49,7 @@ After moving or renaming a doc, run `tools\research\check_references.py` and `to
 | `resources/catalog/` | English catalog (`catalog.json.gz`) plus the English catalog edits (`.blocks` / `.assets`) |
 | `resources/catalog_id/` | Indonesian catalog, plus only the catalog edits it re-draws (`<HASH>.blocks` + `previews/<HASH>.png`); every other payload is read from `catalog/` |
 | `resources/sprites/` | This repo's own art for regioned atlases: `<HASH>/labels/` and `<HASH>/restore/` |
+| `resources/ui/`, `resources/fonts/` | The shared design's theme tokens, strings and fonts, read by both patchers (`DESIGN.md`) |
 | `resources/qtsvfs/` | Tencent's own package builder (`QtsVFS.dll` + `QtskDB.dll` + VC runtimes), driven by ctypes |
 
 Flow: `patcher_core` drives the seven device steps and calls `build_patch`; the GUI talks only to `patcher_core`.

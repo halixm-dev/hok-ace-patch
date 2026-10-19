@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ctypes
+import json
 import tkinter.filedialog as filedialog
 import queue
 import sys
@@ -19,6 +20,7 @@ from patcher_core import (BUNDLE, MIN_FREE_BYTES, STEPS, Adb, PatchError, Patche
 APP_TITLE = "HOK ACE Language Patcher"
 VERSION_FILE = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1])) / "VERSION"
 APP_VERSION = VERSION_FILE.read_text(encoding="utf-8").strip()
+UI_STRINGS = json.loads((BUNDLE / "ui" / "strings.json").read_text(encoding="utf-8"))["strings"]
 
 # Palette
 BG = "#0f1117"
@@ -231,7 +233,7 @@ class App(ctk.CTk):
                                     height=46, width=180, corner_radius=12,
                                     font=ctk.CTkFont(size=15, weight="bold"), command=self.start)
         self.button.grid(row=0, column=0, rowspan=2)
-        self.remove_button = ctk.CTkButton(action, text="Remove Translation", fg_color=SURFACE_2,
+        self.remove_button = ctk.CTkButton(action, text=ui_text("remove_translation"), fg_color=SURFACE_2,
                                            hover_color=BORDER, height=30, width=180, corner_radius=10,
                                            font=ctk.CTkFont(size=12), command=self.confirm_remove)
         self.remove_button.grid(row=2, column=0, pady=(8, 0))
@@ -269,13 +271,8 @@ class App(ctk.CTk):
 
     def show_language_note(self) -> None:
         """Whether switching needs a clear: not once this folder holds the phone's pristine delta."""
-        if holds_delta(self.work_dir):
-            text = ("Switching languages needs no clear: the patcher kept the original game files it "
-                    "changed, and rebuilds them first.")
-        else:
-            text = ("To switch a phone translated by another patcher or an older version, clear the "
-                    "game's data and let it download again first.")
-        self.language_note.configure(text=text)
+        key = "language_note_no_clear" if holds_delta(self.work_dir) else "language_note_clear_first"
+        self.language_note.configure(text=ui_text(key))
 
     def choose_folder(self) -> None:
         chosen = filedialog.askdirectory(parent=self, title="Choose a folder for the temporary game data",
@@ -351,14 +348,9 @@ class App(ctk.CTk):
         self.after(100, self.pump)
 
     def confirm_remove(self) -> None:
-        if Dialog.show(
-            self, "Remove translation",
-            "This writes the game's original files back to the phone, so the game reads in Chinese again. "
-            "No game data is deleted and no download is needed.\n\nThe game keeps the patcher-signed app: "
-            "keep using 'Scan to login'. For the official app, reinstall the game from the store.\n\n"
-            "Remove the translation?",
-            confirm=True, danger=True,
-        ):
+        if Dialog.show(self, ui_text("remove_translation"),
+                       f"{ui_text('remove_confirmation')}\n\n{ui_text('remove_the_translation_question')}",
+                       confirm=True, danger=True):
             self.start(remove=True)
 
     def start(self, remove: bool = False) -> None:
@@ -379,11 +371,10 @@ class App(ctk.CTk):
             summary = Patcher(self, self.work_dir, self.language, remove=self.removing).run()
             if self.removing:
                 removed = len(summary.get("removed", []))
-                detail = (f"{removed} game file{'s' if removed != 1 else ''} restored. " if removed
-                          else "The game files were already untranslated. ")
-                self.messages.put(("done", (True, detail + "The game reads in Chinese again.\n\nLogin: keep using "
-                                            "'Scan to login'. For the official app, reinstall the game from "
-                                            "the store.")))
+                detail = (ui_text("original_files_restored", count=removed) if removed
+                          else ui_text("already_untranslated"))
+                self.messages.put(("done", (True, f"{detail}\n{ui_text('reads_chinese_again')}\n\n"
+                                            f"{ui_text('removed_login_note')}")))
                 return
             text, images = count_translated(summary)
             dropped_text = count_untranslated_text(summary)
@@ -420,7 +411,7 @@ class App(ctk.CTk):
         self.language_picker.configure(state="normal")
         self.show_work_dir()
         self.show_language_note()
-        done = "Done! Translation removed." if self.removing else "Done! Translation installed."
+        done = ui_text("done_removed_status") if self.removing else "Done! Translation installed."
         self.status.configure(text=done if ok else "Failed. See the log for details.",
                               text_color=SUCCESS if ok else DANGER)
         self.log(("\nSUCCESS: " if ok else "\nFAILED: ") + message)
@@ -436,6 +427,14 @@ class App(ctk.CTk):
             return
         Adb.kill_server(self.work_dir)
         self.destroy()
+
+
+def ui_text(key: str, **values: object) -> str:
+    """The shared interface string <key>, in English until the interface follows the language choice."""
+    text = UI_STRINGS[key]["en"]
+    for name, value in values.items():
+        text = text.replace("{" + name + "}", str(value))
+    return text
 
 
 class LogStream:

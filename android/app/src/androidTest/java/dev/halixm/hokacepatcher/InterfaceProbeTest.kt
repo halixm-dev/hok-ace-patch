@@ -18,6 +18,12 @@ import java.io.File
 
 /** UI-only checks: never start a worker, change Shizuku installation, or access game data. */
 class InterfaceProbeTest {
+    private fun shownTexts(view: View): List<String> = when (view) {
+        is TextView -> listOf(view.text.toString())
+        is ViewGroup -> (0 until view.childCount).flatMap { shownTexts(view.getChildAt(it)) }
+        else -> emptyList()
+    }
+
     @Test fun shizukuLaunchAndStoreFallbacks() {
         val installed = Intent("test.installed")
         val attempts = mutableListOf<Intent>()
@@ -54,6 +60,15 @@ class InterfaceProbeTest {
                     assertTrue(UiText.firstSetup(activity).contains("akan dihapus"))
                     assertTrue(UiText.patchConfirmation(activity).contains("Bahasa: Bahasa Indonesia"))
                     assertTrue(UiText.storage(activity, StorageBudget.explainFailure("2000000000 bytes required, 1000000000 available")!!).contains("1.0 GB lagi"))
+                    // The hero names a community patcher, not the game's publisher, and has no tagline.
+                    assertEquals("PATCHER KOMUNITAS  /  HOK ACE", activity.window.decorView.findViewWithTag<TextView>("hero-eyebrow").text.toString())
+                    assertFalse(shownTexts(activity.window.decorView).any { it.startsWith("Langkah berikutnya") || it.startsWith("Your next move") })
+                    val counts = org.json.JSONObject().put("counts", org.json.JSONObject().put("text_tables", 12)
+                        .put("applied_textures", 3).put("skipped_tables", 0).put("skipped_textures", 1))
+                    assertTrue(UiText.completed(activity, counts).contains("Tabel teks diterapkan: 12"))
+                    assertTrue(UiText.completed(activity, org.json.JSONObject().put("removed", 7)).contains("File game asli dipulihkan: 7"))
+                    assertEquals("Terjemahan ditulis", UiText.text(activity, "Translation written"))
+                    assertTrue(UiText.text(activity, WorkerStatus.UNCONFIRMED).startsWith("Pemulihan selesai."))
                     val view = activity.window.decorView
                     val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
                     view.draw(Canvas(bitmap))
@@ -69,6 +84,12 @@ class InterfaceProbeTest {
                 scenario.onActivity { activity ->
                     assertEquals("en", PatchLanguage.current(activity))
                     assertEquals("Technical tools", activity.window.decorView.findViewWithTag<TextView>("show-technical").text.toString())
+                    assertEquals("COMMUNITY PATCHER  /  HOK ACE", activity.window.decorView.findViewWithTag<TextView>("hero-eyebrow").text.toString())
+                    val view = activity.window.decorView
+                    val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+                    view.draw(Canvas(bitmap))
+                    File(activity.cacheDir, "interface-en.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                    bitmap.recycle()
                 }
             }
         } finally { PatchLanguage.set(context, original) }

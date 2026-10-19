@@ -68,6 +68,61 @@ val stageEngineAssets by tasks.registering(Sync::class) {
     }
 }
 
+// The shared design (DESIGN.md): theme tokens become resources, fonts become res/font, and the
+// strings file is a class resource so UiText and JVM unit tests read the same bytes.
+val uiResources = layout.buildDirectory.dir("generated/ui-res")
+val uiClassResources = layout.buildDirectory.dir("generated/ui-java")
+val stageUiResources by tasks.registering {
+    val theme = file("../../resources/ui/theme.json")
+    val strings = file("../../resources/ui/strings.json")
+    val fonts = file("../../resources/fonts")
+    inputs.files(theme, strings); inputs.dir(fonts)
+    outputs.dirs(uiResources, uiClassResources)
+    doLast {
+        val res = uiResources.get().asFile.apply { deleteRecursively() }
+        val classes = uiClassResources.get().asFile.apply { deleteRecursively() }
+        classes.resolve("ui").mkdirs()
+        strings.copyTo(classes.resolve("ui/strings.json"))
+        fonts.resolve("OFL.txt").copyTo(classes.resolve("ui/fonts/OFL.txt"))
+        // Resource names are lower case: Barlow-SemiBold.ttf becomes barlow_semibold.ttf.
+        res.resolve("font").mkdirs()
+        fonts.listFiles { it: File -> it.extension == "ttf" }!!.forEach {
+            it.copyTo(res.resolve("font/" + it.name.lowercase().replace('-', '_')))
+        }
+        @Suppress("UNCHECKED_CAST")
+        val tokens = groovy.json.JsonSlurper().parse(theme) as Map<String, Map<String, Any>>
+        fun name(token: String) = token.replace('-', '_')
+        fun color(value: String): String {
+            val rgba = Regex("rgba\\((\\d+),\\s*(\\d+),\\s*(\\d+),\\s*([0-9.]+)\\)").matchEntire(value)
+                ?: return "#FF" + value.removePrefix("#")
+            val (r, g, b, a) = rgba.destructured
+            return "#%02X%02X%02X%02X".format(Math.round(a.toFloat() * 255), r.toInt(), g.toInt(), b.toInt())
+        }
+        fun number(value: Any) = value.toString().removeSuffix("px").removeSuffix("em")
+        val lines = mutableListOf<String>()
+        tokens.getValue("colors").forEach { (token, value) ->
+            lines += "<color name=\"${name(token)}\">${color(value.toString())}</color>"
+        }
+        tokens.getValue("rounded").forEach { (token, value) ->
+            lines += "<dimen name=\"corner_${name(token)}\">${number(value)}dp</dimen>"
+        }
+        tokens.getValue("spacing").forEach { (token, value) ->
+            lines += "<dimen name=\"space_${name(token)}\">${number(value)}dp</dimen>"
+        }
+        tokens.getValue("typography").forEach { (token, value) ->
+            @Suppress("UNCHECKED_CAST") val step = value as Map<String, Any>
+            lines += "<dimen name=\"type_${name(token)}\">${number(step.getValue("fontSize"))}sp</dimen>"
+            step["letterSpacing"]?.let {
+                lines += "<item name=\"type_${name(token)}_tracking\" type=\"dimen\" format=\"float\">${number(it)}</item>"
+            }
+        }
+        res.resolve("values").mkdirs()
+        res.resolve("values/theme.xml").writeText(
+            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- Generated from resources/ui/theme.json. -->\n" +
+                "<resources>\n" + lines.joinToString("") { "    $it\n" } + "</resources>\n")
+    }
+}
+
 android {
     namespace = "dev.halixm.hokacepatcher"
     compileSdk = 35
@@ -98,13 +153,15 @@ android {
     // The runtime contains Python packages such as _backends; AAPT's default skips these directories.
     androidResources { ignoreAssetsPattern = "" }
     sourceSets.getByName("main").assets.srcDir(engineAssets)
+    sourceSets.getByName("main").res.srcDir(uiResources)
+    sourceSets.getByName("main").resources.srcDir(uiClassResources)
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
 }
-tasks.named("preBuild") { dependsOn(stageEngineAssets) }
+tasks.named("preBuild") { dependsOn(stageEngineAssets, stageUiResources) }
 
 chaquopy {
     defaultConfig {

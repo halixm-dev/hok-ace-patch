@@ -141,6 +141,7 @@ There is no general test suite. Choose the check that matches your change:
 |---|---|---|
 | Windows GUI or device workflow | `run.bat` | A phone for device operations |
 | Documentation or paths | `.venv\Scripts\python.exe tools\research\check_references.py` | Repository only |
+| User-facing strings (either patcher) | `.venv\Scripts\python.exe tools\research\check_ui_strings.py` | Repository only |
 | Staging contract | `.venv\Scripts\python.exe tools\research\check_staging_contract.py` | Repository only |
 | Texture processing | `.venv\Scripts\python.exe tools\research\check_graphics.py` | Shipped assets; add `--game <game-dir>` to check a dump |
 | Indonesian texture edits | `.venv\Scripts\python.exe tools\research\make_language_payloads.py --check` | Shipped assets |
@@ -199,6 +200,8 @@ not exercise prime-only append.
 | `resources/catalog/` | English catalog and shared catalog edits |
 | `resources/catalog_id/` | Indonesian catalog and its own catalog edits; other edits fall back to English |
 | `resources/sprites/` | Hand-finished atlas labels and pristine restore crops |
+| `resources/ui/` | Shared theme tokens (`theme.json`) and English/Indonesian strings (`strings.json`) for both patchers |
+| `resources/fonts/` | Barlow and Barlow Condensed, with the OFL licence |
 | `resources/adb/` | Bundled Android Debug Bridge |
 | `resources/key/` | Stable re-signing key shipped with the patcher |
 | `resources/qtsvfs/` | Tencent's package builder and its dependencies |

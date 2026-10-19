@@ -45,6 +45,7 @@ def build() -> None:
         "--add-data", f"{RESOURCES / 'qtsvfs'}{sep}qtsvfs",
         "--add-data", f"{RESOURCES / 'key' / 'cert.der'}{sep}key",
         "--add-data", f"{RESOURCES / 'key' / 'key.pk8'}{sep}key",
+        "--add-data", f"{RESOURCES / 'ui' / 'strings.json'}{sep}ui",
         "--add-data", f"{RESOURCES / 'icon.ico'}{sep}.",
         "--add-data", f"{RESOURCES / 'icon.png'}{sep}.",
         "--icon", str(RESOURCES / "icon.ico"),

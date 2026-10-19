@@ -10,9 +10,13 @@
 
 **Blocked by:** 01, 05
 
-**Status:** ready-for-agent
+**Status:** ready-for-human (run `InterfaceProbeTest` on a device)
 
-- [ ] Theme tokens, fonts and the corrected hero in place
-- [ ] `UiText` reads the shared strings file; the Kotlin table is gone
-- [ ] The shared strings contract check passes
+- [x] Theme tokens, fonts and the corrected hero in place
+- [x] `UiText` reads the shared strings file; the Kotlin table is gone
+- [x] The shared strings contract check passes
 - [ ] `InterfaceProbeTest` passes in both languages, with its screenshot looked at
+
+## Comments
+
+2026-10-19: Gradle's `stageUiResources` turns `theme.json` into `values/theme.xml` (colours, corners, spacing, type sizes), copies the fonts to `res/font/`, and packs `strings.json` and the font licence as class resources, so `UiText` and the JVM tests read the same file. `assembleDebug`, `assembleDebugAndroidTest` and `testDebugUnitTest` (27 tests) pass. The probe now also checks the hero eyebrow in both languages, that the tagline is gone and the Indonesian built texts, and saves `interface-en.png` beside `interface-id.png`. It has not run yet: the attached phone holds the release patcher signed with the private key, which a debug build cannot replace without an uninstall, and this PC lacks the disk space for the emulator.

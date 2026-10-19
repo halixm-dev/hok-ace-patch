@@ -16,10 +16,14 @@
 
 **Blocked by:** nothing
 
-**Status:** ready-for-agent
+**Status:** done (2026-10-19)
 
-- [ ] Missing `UiText` entries added
-- [ ] Templates for the built text
-- [ ] Language note as two keys, used by both patchers
-- [ ] Windows removal strings shared
-- [ ] `check_ui_strings.py` added and passing
+- [x] Missing `UiText` entries added
+- [x] Templates for the built text
+- [x] Language note as two keys, used by both patchers
+- [x] Windows removal strings shared
+- [x] `check_ui_strings.py` added and passing
+
+## Comments
+
+2026-10-19: 29 keys added; `switching_languages_clear_the_games_data` is replaced by the two language-note keys, and the tagline key is dropped (ticket 08). The 18 strings and the four built texts carry the Indonesian the Android patcher shipped. `update_shizuku_before_starting` (shown on Android, never translated before) and four Windows removal lines are new and marked `draft`. The Windows patcher reads its language note and removal text through `ui_text(key)`, in English until ticket 14; the exe bundles `resources/ui/strings.json`. The check reads Android literals from the calls that put text on screen, and every `UiText.string` and `ui_text` lookup; text that arrives in a variable is outside it.
