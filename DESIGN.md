@@ -147,7 +147,8 @@ Top to bottom:
 3. **② Start** — a card with the single Start button. It rewrites itself in place for each state:
    - **Idle** and **not ready**: the Start button, with the blocker as the next step when there is one.
    - **Running**: a bar and one line, `Step N of M · <step>`, in place of the button.
-   - **Result**: a heading and the run's own counts as a short list. The result states are
+   - **Result**: a heading, one summary line, the run's own counts as a short list and, where the
+     translation was added or removed, the Scan to login note. The result states are
      *Translation added*, *Translation removed*, *Translation written* (Android: recovery closed a
      run whose translation is on the phone, unconfirmed) and *Space freed* (Android).
    - **Notice**: one `text-muted` line under the card's instruction, such as "Access was not

@@ -294,7 +294,14 @@ app carries its own; it is device-verified on the Infinix X6853.
   copies anything whenever the installed game is not on the stable key, so a phone that first setup
   will refuse learns it before the preparation.
 - A failed run shows the error's cause, not its stack: the live log keeps `ErrorSummary.cause`, and an
-  Error details box copies the worker's full raw error.
+  error card directly under ② Start (`error-card`, error colours) copies the worker's full raw error
+  and offers Save log for help (`error-export-log`). The "Game won't open?" card (`recovery-card`,
+  warning colours) follows it, both above the log (shared-design ticket 10).
+- ② Start rewrites itself for each result (`UiText.result`): *Translation added*, *Translation
+  removed*, *Translation written* and *Space freed* show a summary line, the run's own counts as
+  rows (`result-items`) and, after an added or removed translation, the Scan to login note
+  (`result-note`). A notice is one muted line inside ② (`friendly-notice`), hidden when it only
+  repeats the instruction.
 
 ### Storage reclaim (2026-10-06)
 

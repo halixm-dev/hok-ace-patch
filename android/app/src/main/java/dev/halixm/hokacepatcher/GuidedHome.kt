@@ -35,20 +35,25 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val heading = text("Let's get started", Type.HEADING)
     private val detail = text("Start Shizuku, then come back here.", Type.BODY)
     private val primary = button("Start", "next-step", true) { invoke(next) }
-    private val recovery = column()
+    private val recovery = card(R.color.warning_surface, R.color.warning)
     private var shown = ""
     private val stop = button("Stop safely", "stop-automatic") { invoke("stop") }
     private val spinner = android.widget.ProgressBar(activity)
     private val notice = text("", Type.BODY, supporting = true)
+    /** A result state's counts, one row each, and the login note that follows them. */
+    private val resultItems = column().apply { tag = "result-items"; visibility = View.GONE }
+    private val resultNote = text("", Type.BODY).apply { tag = "result-note"; visibility = View.GONE }
+    private var shownItems = emptyList<String>()
     private val languageNote = text("", Type.BODY, supporting = true).apply { tag = "language-note" }
     private val removeButton = button("Remove translation", "remove-translation") { invoke("remove") }
     private var errorRaw = ""
     private val errorText = text("", Type.BODY).apply { tag = "error-details"; setTextIsSelectable(true) }
-    private val errorBox = column().apply {
-        visibility = View.GONE
+    private val errorBox = card(R.color.error_surface, R.color.error).apply {
+        tag = "error-card"; visibility = View.GONE
         addView(text("Error details", Type.HEADING))
         addView(errorText)
         addView(button("Copy error details", "copy-error") { copyError() })
+        addView(button("Save log for help", "error-export-log") { invoke("export") })
     }
     private val liveLog = text("", Type.BODY).apply {
         tag = "live-patch-log"; setTextIsSelectable(true)
@@ -125,19 +130,21 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         languageCard.addView(languages)
         languageCard.addView(removeButton)
         root.addView(languageCard)
-        val card = card()
+        // ② rewrites itself in place: heading, instruction, the notice line, a result's counts and note, then the button.
+        val card = card().apply { tag = "start-card" }
         card.addView(eyebrow("02  /  READY TO PLAY"))
-        card.addView(heading); card.addView(detail); card.addView(primary)
+        notice.tag = "friendly-notice"; notice.visibility = View.GONE
+        card.addView(heading); card.addView(detail); card.addView(notice)
+        card.addView(resultItems); card.addView(resultNote); card.addView(primary)
         spinner.indeterminateTintList = ColorStateList.valueOf(ink)
         spinner.visibility = View.GONE; stop.visibility = View.GONE
         card.addView(spinner); card.addView(stop)
         root.addView(card)
-        root.addView(logCard)
-        notice.tag = "friendly-notice"; notice.visibility = View.GONE
-        root.addView(notice)
+        // Anything that needs the player sits directly under ②, above the log.
         root.addView(errorBox)
-        recovery.background = background(activity.getColor(R.color.warning_surface))
-        recovery.setPadding(dp(16), dp(12), dp(16), dp(12))
+        recovery.tag = "recovery-card"
+        root.addView(recovery)
+        root.addView(logCard)
         recovery.addView(text("Game won't open?", Type.HEADING))
         recovery.addView(text("Keep the game closed. Use recovery first.", Type.BODY))
         recovery.addView(button("Show recovery options", "show-recovery") {
@@ -145,7 +152,6 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         })
         recovery.addView(recoveryOptions)
         recovery.visibility = View.GONE
-        root.addView(recovery)
         root.addView(button("Technical tools", "show-technical") {
             advanced.visibility = if (advanced.visibility == View.VISIBLE) View.GONE else View.VISIBLE
         })
@@ -168,10 +174,52 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     fun show(title: String, instruction: String, label: String, action: String, recoveryNeeded: Boolean) {
-        val screen = "$title | $instruction | $label -> $action, recovery $recoveryNeeded"
-        if (screen != shown) { shown = screen; DiagnosticTrace.event("screen", screen) }
+        trace("$title | $instruction | $label -> $action, recovery $recoveryNeeded")
         heading.text = ui(title); detail.text = ui(instruction); primary.text = ui(label); next = action
         recovery.visibility = if (recoveryNeeded) View.VISIBLE else View.GONE
+        showItems(emptyList(), "")
+    }
+
+    /** A result state: its heading and summary, the run's own counts as a list, then the login note. */
+    fun result(result: UiText.Result, label: String) {
+        // A new result starts without the notice an earlier screen left.
+        if (trace("${result.english} | $label")) notice.text = ""
+        heading.text = result.heading; detail.text = result.summary; primary.text = ui(label); next = "start"
+        recovery.visibility = View.GONE
+        showItems(result.items, result.note)
+    }
+
+    /** Trace <screen> in English once per change; true when it changed. */
+    private fun trace(screen: String): Boolean {
+        if (screen == shown) return false
+        shown = screen; DiagnosticTrace.event("screen", screen)
+        return true
+    }
+
+    private fun showItems(items: List<String>, note: String) {
+        if (items != shownItems) {
+            shownItems = items
+            resultItems.removeAllViews()
+            items.forEach { resultItems.addView(countRow(it)) }
+        }
+        resultItems.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+        resultNote.text = note
+        resultNote.visibility = if (note.isEmpty()) View.GONE else View.VISIBLE
+        showNotice()
+    }
+
+    /** "Label: value" as a row with the value at the end, so five-digit counts line up. */
+    private fun countRow(item: String) = LinearLayout(activity).apply {
+        tag = "result-item"; orientation = LinearLayout.HORIZONTAL
+        val split = item.lastIndexOf(": ")
+        val label = if (split < 0) item else item.substring(0, split)
+        addView(text(label, Type.BODY).apply {
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1f); setPadding(0, dp(2), dp(12), dp(2))
+        })
+        if (split >= 0) addView(text(item.substring(split + 2), Type.BODY).apply {
+            typeface = activity.resources.getFont(R.font.barlow_semibold); setPadding(0, dp(2), 0, dp(2))
+            textAlignment = View.TEXT_ALIGNMENT_VIEW_END
+        })
     }
 
     fun showRecovery() {
@@ -229,7 +277,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
 
     fun resultMessage(value: String) {
         if (value == workerNotice) return
-        if (value.isEmpty() && notice.text.toString() == ui(workerNotice)) notice.visibility = View.GONE
+        if (value.isEmpty() && notice.text.toString() == ui(workerNotice)) { notice.text = ""; showNotice() }
         workerNotice = value
         if (value.isNotEmpty()) message(value)
     }
@@ -237,8 +285,13 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     fun message(value: String) {
         if (notice.text.toString() == ui(value)) return
         DiagnosticTrace.event("screen", "Notice: $value")
-        notice.text = ui(value); notice.visibility = View.VISIBLE
+        notice.text = ui(value); showNotice()
         notice.announceForAccessibility(notice.text)
+    }
+
+    /** One muted line under ②'s instruction; hidden when it only repeats the instruction. */
+    private fun showNotice() {
+        notice.visibility = if (notice.text.isEmpty() || notice.text.toString() == detail.text.toString()) View.GONE else View.VISIBLE
     }
 
     /** Show the cause of <raw> on screen and keep all of it for copying; empty hides the box. */
@@ -298,8 +351,9 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         })
     }
 
-    private fun card() = column().apply {
-        background = background(activity.getColor(R.color.card)).apply { setStroke(dp(1), activity.getColor(R.color.card_edge)) }
+    /** A content card; the warning and error cards pass their surface and accent colours. */
+    private fun card(fill: Int = R.color.card, edge: Int = R.color.card_edge) = column().apply {
+        background = background(activity.getColor(fill)).apply { setStroke(dp(1), activity.getColor(edge)) }
         space(R.dimen.space_lg).let { setPadding(it, it, it, it) }
         layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, space(R.dimen.space_md), 0, 0) }
     }

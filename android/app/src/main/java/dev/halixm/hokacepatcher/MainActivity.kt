@@ -428,6 +428,7 @@ class MainActivity : Activity() {
         home.logs(if (messages == null) emptyList() else
             (0 until messages.length()).map { messages.optString(it) })
         val live = PatchWorkerService.isWorking || awaitingToken != null
+        val result = state?.let { UiText.result(PatchLanguage.current(this), it) }
         when {
             live -> home.show("Working on your game", UiText.progress(this, state?.optString("progress", "Checking and preparing files…")
                 ?: "Checking and preparing files…"), "Please wait", "start", false)
@@ -435,13 +436,9 @@ class MainActivity : Activity() {
             pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true)
             !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false))
             !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false))
-            state?.optString("status") == "complete" && !pending.getOrThrow() -> home.show(
-                if (state.has("removed")) "Translation removed" else "Translation added",
-                UiText.completed(this, state), "Start another patch", "start", false)
-            state?.optString("status") == "recovered_unconfirmed" && !pending.getOrThrow() -> home.show(
-                "Translation written", WorkerStatus.UNCONFIRMED, "Start another patch", "start", false)
-            state?.optString("status") == "space_freed" && !pending.getOrThrow() -> home.show(
-                "Space freed", UiText.freed(this, state), "Start", "start", false)
+            // Space freed hands back plain Start; the other results offer another patch.
+            result != null && !pending.getOrThrow() -> home.result(result,
+                if (state.optString("status") == "space_freed") "Start" else "Start another patch")
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped", friendlyFailure(state?.optString("error").orEmpty()), "Try again", "start", true)
             pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true)
             else -> home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)

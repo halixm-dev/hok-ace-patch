@@ -63,10 +63,6 @@ class InterfaceProbeTest {
                     // The hero names a community patcher, not the game's publisher, and has no tagline.
                     assertEquals("PATCHER KOMUNITAS  /  HOK ACE", activity.window.decorView.findViewWithTag<TextView>("hero-eyebrow").text.toString())
                     assertFalse(shownTexts(activity.window.decorView).any { it.startsWith("Langkah berikutnya") || it.startsWith("Your next move") })
-                    val counts = org.json.JSONObject().put("counts", org.json.JSONObject().put("text_tables", 12)
-                        .put("applied_textures", 3).put("skipped_tables", 0).put("skipped_textures", 1))
-                    assertTrue(UiText.completed(activity, counts).contains("Tabel teks diterapkan: 12"))
-                    assertTrue(UiText.completed(activity, org.json.JSONObject().put("removed", 7)).contains("File game asli dipulihkan: 7"))
                     assertEquals("Terjemahan ditulis", UiText.text(activity, "Translation written"))
                     assertTrue(UiText.text(activity, WorkerStatus.UNCONFIRMED).startsWith("Pemulihan selesai."))
                     val view = activity.window.decorView
@@ -149,6 +145,67 @@ class InterfaceProbeTest {
             if (kept.isFile) kept.renameTo(delta)
             PatchLanguage.set(context, original)
         }
+    }
+
+    /** ② rewrites itself for each result state, in both languages; error and warning cards sit under it, above the log. */
+    @Test fun startCardShowsResultStatesAndCardsSitAboveTheLog() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val original = PatchLanguage.current(context)
+        val counts = org.json.JSONObject().put("text_tables", 12345).put("applied_textures", 3)
+            .put("skipped_tables", 0).put("skipped_textures", 1)
+        val states = listOf(
+            org.json.JSONObject().put("status", "complete").put("counts", counts),
+            org.json.JSONObject().put("status", "complete").put("removed", 7),
+            org.json.JSONObject().put("status", "recovered_unconfirmed"),
+            org.json.JSONObject().put("status", "space_freed").put("freed_bytes", 2_000_000_000L).put("free_bytes", 5_000_000_000L))
+        val headings = mapOf(
+            "en" to listOf("Translation added", "Translation removed", "Translation written", "Space freed"),
+            "id" to listOf("Terjemahan diterapkan", "Terjemahan dihapus", "Terjemahan ditulis", "Ruang dikosongkan"))
+        try {
+            for ((code, expected) in headings) {
+                PatchLanguage.set(context, code)
+                ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                    scenario.onActivity { activity ->
+                        val home = GuidedHome(activity) { }
+                        val view = activity.window.decorView
+                        val card = view.findViewWithTag<ViewGroup>("start-card")
+                        for ((state, heading) in states.zip(expected)) {
+                            home.result(UiText.result(code, state)!!, "Start")
+                            val texts = shownTexts(card)
+                            assertTrue("$code: $heading in $texts", heading in texts)
+                        }
+                        // Translation added: four count rows, the value at the end of each, then the login note.
+                        home.result(UiText.result(code, states[0])!!, "Start another patch")
+                        val items = view.findViewWithTag<ViewGroup>("result-items")
+                        assertEquals(View.VISIBLE, items.visibility)
+                        assertEquals(4, items.childCount)
+                        assertEquals("12345", shownTexts(items.getChildAt(0)).last())
+                        assertEquals(View.VISIBLE, view.findViewWithTag<View>("result-note").visibility)
+                        // A notice is one muted line inside ②.
+                        home.message("Access was not allowed. Tap Start to try again.")
+                        val notice = view.findViewWithTag<TextView>("friendly-notice")
+                        assertSame(card, notice.parent)
+                        assertEquals(View.VISIBLE, notice.visibility)
+                        assertEquals(activity.getColor(R.color.text_muted), notice.currentTextColor)
+                        // Any other state clears the counts.
+                        home.show("Ready when you are", "Tap Start.", "Start", "start", true)
+                        assertEquals(View.GONE, items.visibility)
+                        home.errorDetails("Device command failed: probe")
+                        home.logs(listOf("Log line"))
+                        val root = card.parent as ViewGroup
+                        val order = listOf("start-card", "error-card", "recovery-card", "live-log-scroll").map { tag ->
+                            (0 until root.childCount).indexOfFirst { root.getChildAt(it).findViewWithTag<View>(tag) != null }
+                        }
+                        assertEquals("$code: $order", order.sorted(), order)
+                        assertTrue(order.all { it >= 0 })
+                        for (tag in listOf("copy-error", "error-export-log")) {
+                            assertNotNull(tag, view.findViewWithTag<ViewGroup>("error-card").findViewWithTag<View>(tag))
+                        }
+                    }
+                }
+            }
+        } finally { PatchLanguage.set(context, original) }
     }
 
     @Test fun longLogsScrollWithoutMovingHome() {

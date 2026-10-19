@@ -461,6 +461,14 @@
       "en": "Keep using Scan to login. For the official app, reinstall the game from the store.",
       "id": "Tetap gunakan Scan to login. Untuk aplikasi resmi, instal ulang game dari toko."
     },
+    "added_login_note": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Log in with Scan to login. Direct WeChat or QQ login does not work with this game app.",
+      "id": "Masuk dengan Scan to login. Login langsung WeChat atau QQ tidak berfungsi dengan aplikasi game ini.",
+      "draft": true
+    },
     "02_ready_to_play": {
       "platforms": [
         "android",
