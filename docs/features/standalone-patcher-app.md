@@ -91,7 +91,7 @@ app is the same product surface; only the translation pipeline behind it differs
 | `patcher_core.py` | device workflow: adb, APK re-sign, data pull, translation, push, reinstall |
 | `apk_tools.py` | APK entry rewrite and APK Signature Scheme v2 signing (no Java / build-tools) |
 | `build_exe.py` | PyInstaller one-file build |
-| `make_icon.py` | regenerates `resources/icon.*` |
+| `make_icon.py` | regenerates `resources/icon.*` from the Android launcher artwork |
 
 Branding is taken verbatim from the reference: window title and exe name
 `HOK ACE Mobile English Patcher`, saved settings at
@@ -232,8 +232,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 ### Resources (`resources/`)
 
-Copied verbatim from `hok-ace-mobile-en`: `adb/`, `catalog/`, `key/`, `runtime/`, `icon.ico`,
-`icon.png`. These are consumed, never regenerated here. `catalog/` and `runtime/` must stay in
+Copied verbatim from `hok-ace-mobile-en`: `adb/`, `catalog/`, `key/`, `runtime/`. These are
+consumed, never regenerated here. `icon.ico` and `icon.png` are the Android patcher's launcher
+artwork (`android/app/src/main/res/drawable-nodpi/ic_launcher_artwork.png`) on a transparent
+square, written by `app/make_icon.py`; re-run it when that artwork changes. `catalog/` and `runtime/` must stay in
 lockstep; the catalog is compatible because `build_mobile_patch.py` and `axml_set_debuggable.py` are
 byte-identical between the two repositories.
 

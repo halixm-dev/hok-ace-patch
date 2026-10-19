@@ -1,59 +1,35 @@
-"""Render the patcher icon (icon.ico for the exe, icon.png for the window) with Pillow."""
+"""Render the patcher icon (icon.ico for the exe, icon.png for the window) from the Android launcher artwork."""
 from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image
 
-HERE = Path(__file__).resolve().parents[1] / "resources"
-SIZE = 1024
-FONTS = Path("C:/Windows/Fonts")
-
-
-def font(names: list[str], size: int) -> ImageFont.FreeTypeFont:
-    for name in names:
-        path = FONTS / name
-        if path.exists():
-            return ImageFont.truetype(str(path), size)
-    return ImageFont.load_default(size)
-
-
-def gradient(size: int, top: tuple[int, int, int], bottom: tuple[int, int, int]) -> Image.Image:
-    # Diagonal blend: build a small ramp and let the resize interpolate it smoothly.
-    ramp = Image.new("RGB", (2, 2))
-    ramp.putdata([top, tuple((a + b) // 2 for a, b in zip(top, bottom)),
-                  tuple((a + b) // 2 for a, b in zip(top, bottom)), bottom])
-    return ramp.resize((size, size), Image.BILINEAR)
+ROOT = Path(__file__).resolve().parents[1]
+HERE = ROOT / "resources"
+ARTWORK = ROOT / "android" / "app" / "src" / "main" / "res" / "drawable-nodpi" / "ic_launcher_artwork.png"
+SIZE = 256
+MARGIN = 0.04  # of the side, so the art nearly fills the tile as Windows icons do
+ICO_SIZES = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
 
 
 def render() -> Image.Image:
-    base = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
-    mask = Image.new("L", (SIZE, SIZE), 0)
-    ImageDraw.Draw(mask).rounded_rectangle([40, 40, SIZE - 40, SIZE - 40], radius=220, fill=255)
-    base.paste(gradient(SIZE, (40, 30, 92), (12, 16, 40)), (0, 0), mask)
-
-    glow = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
-    ImageDraw.Draw(glow).ellipse([230, 170, 794, 734], fill=(124, 92, 255, 150))
-    base = Image.alpha_composite(base, Image.composite(glow.filter(ImageFilter.GaussianBlur(90)), Image.new("RGBA", base.size), mask))
-
-    draw = ImageDraw.Draw(base)
-    gold = (246, 196, 83)
-    draw.ellipse([212, 152, 812, 752], outline=gold, width=34)
-    for angle_box in ([212, 152, 812, 752],):
-        draw.arc(angle_box, start=200, end=340, fill=(255, 230, 160), width=12)
-
-    title = font(["segoeuib.ttf", "arialbd.ttf"], 300)
-    draw.text((SIZE / 2, 452), "EN", font=title, fill=(255, 255, 255), anchor="mm")
-    label = font(["segoeuib.ttf", "arialbd.ttf"], 118)
-    draw.rounded_rectangle([190, 790, 834, 930], radius=70, fill=(246, 196, 83))
-    draw.text((SIZE / 2, 860), "HOK ACE", font=label, fill=(28, 22, 64), anchor="mm")
-    return base
+    # The Android icon draws this art inset on a white adaptive background; Windows icons are
+    # transparent, so take the art alone, cropped to its own bounds and centred on a square.
+    art = Image.open(ARTWORK).convert("RGBA")
+    art = art.crop(art.getchannel("A").getbbox())
+    inner = round(SIZE * (1 - 2 * MARGIN))
+    scale = inner / max(art.size)
+    art = art.resize((round(art.width * scale), round(art.height * scale)), Image.LANCZOS)
+    image = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    image.alpha_composite(art, ((SIZE - art.width) // 2, (SIZE - art.height) // 2))
+    return image
 
 
 def main() -> None:
     image = render()
-    image.save(HERE / "icon.ico", sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
-    image.resize((256, 256), Image.LANCZOS).save(HERE / "icon.png")
+    image.save(HERE / "icon.ico", sizes=ICO_SIZES)
+    image.save(HERE / "icon.png")
     print("icon written")
 
 
