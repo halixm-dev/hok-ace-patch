@@ -1,10 +1,9 @@
 # Home screen brief
 
-Status: confirmed 2026-10-17
+Status: confirmed 2026-10-17; amended 2026-10-19 for Remove translation, Free up space and the result states
 
 The home screen both patchers share, in every state. Builds on `DESIGN.md`, `PRODUCT.md` and the
-[spec](spec.md); used by tickets [03](issues/03-restyle-windows-patcher.md) and
-[04](issues/04-restyle-android-patcher.md).
+[spec](spec.md); used by the Android tickets 08 to 13 and the Windows tickets 14 to 16.
 
 ## 1. Job and audience
 
@@ -46,7 +45,7 @@ Production-ready home screen for both patchers, in every state below.
 
 **Anti-goals:**
 - Looking like a Tencent product.
-- A second primary button competing with Start.
+- A second primary button competing with Start. Remove translation and Free up space are secondary.
 - A dashboard of status tiles.
 - Hiding the partial-translation note.
 - Warnings that alarm or blame.
@@ -59,8 +58,12 @@ Production-ready home screen for both patchers, in every state below.
 | Not ready | Start still visible, with the blocker as the next step | Windows: phone not connected, or folder short of space. Android: Shizuku missing or stopped; the button becomes Install / Start Shizuku |
 | Running | Progress bar, "Step N of 7 · <step>", **Stop safely** (Android) | Language card locked. Log follows the latest line |
 | Needs attention | Warning card directly under ② | Android recovery, storage shortfall (needed, free and to-clear GB), interrupted run |
-| Success | Completion counts (text tables and images applied or skipped), then the Scan to login note | Button becomes **Run again** (Windows) or **Start another patch** (Android) |
-| Failed | Error card with the message and the next step | Button becomes **Try again**. Log and "Save log for help" stay reachable |
+| Success | *Translation added*: completion counts (text tables and images applied or skipped), then the Scan to login note | Button becomes **Run again** (Windows) or **Start another patch** (Android) |
+| Removed | *Translation removed*: original game files restored, then the Scan to login note and how to get the official app | Same button as Success |
+| Written, unconfirmed | *Translation written* (Android): recovery closed a run whose translation is on the phone but was not checked | **Start another patch**; nothing runs automatically |
+| Space freed | *Space freed* (Android): space freed and free now, and what was kept | Button returns to **Start** |
+| Notice | One `text-muted` line under ②'s instruction, such as "Access was not allowed. Tap Start to try again." | Not a card; replaced by the next notice |
+| Failed | Error card with the cause, **Copy error details** (Android) and the next step | Button becomes **Try again**. Log and "Save log for help" stay reachable |
 
 **Ranges:**
 - Indonesian strings run about 30 % longer than English.
@@ -72,12 +75,16 @@ Production-ready home screen for both patchers, in every state below.
 
 - **Order, top to bottom:**
   1. Hero.
-  2. ① Language.
+  2. ① Language: the title, the language note (no clear needed while a pristine delta is held,
+     otherwise clear first), the two choices, then **Remove translation** as a secondary button,
+     shown only while a pristine delta is held.
   3. ② Start. On Windows it opens with a short "Before you start" checklist, then device status
      and the working folder, above the button.
-  4. Warning or error card, when one exists.
+  4. Warning or error card, when one exists. On Android the warning card is "Game won't open?"
+     with its recovery options folded.
   5. Log.
-  6. Technical tools, then the version and Check for updates.
+  6. The version, then one row of text buttons: Technical tools, Check for updates and, on Android,
+     Free up space. They are not full-width buttons.
 - **Windows:** one centred column, at most 720 px wide, in a resizable window. The page scrolls
   when it's shorter than the content. The log is open but secondary, since it's the only progress
   detail the Windows patcher has.
