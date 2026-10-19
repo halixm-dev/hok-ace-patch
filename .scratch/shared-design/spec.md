@@ -146,7 +146,8 @@ device steps.
   moves to the log.
 - Recovery, first setup and Free up space keep their own wording and show no count.
 - Older states without a step still show their line.
-- The Android step list is its own, not the Windows seven, and is confirmed in ticket 11.
+- The Android step list is six steps, set out in ticket 11: check game, prepare files, unlock access,
+  build translation, write translation, restore game app.
 
 **Shared files**
 - **Theme file:** colours, radii and spacing, generated from `DESIGN.md`'s front matter.
