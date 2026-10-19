@@ -260,22 +260,8 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
             "-u", installerPackage)), installerPackage)
     }
 
-    private fun requireNoOtherGameUsers() {
-        val users = FirstSetupPackagePolicy.users(command(listOf("/system/bin/pm", "list", "users")))
-        val dumped by lazy { profileStates() }
-        users.filter { it != 0 }.forEach { user ->
-            val listing = try {
-                command(listOf("/system/bin/pm", "list", "packages", "--user", user.toString(), installerPackage))
-            } catch (error: IllegalStateException) {
-                if (!FirstSetupPackagePolicy.profileDenied(error.message.orEmpty(), user)) throw error
-                null
-            }
-            val installed = if (listing != null) FirstSetupPackagePolicy.containsPackage(listing, installerPackage)
-                else dumped?.let { it[user] ?: error("${FirstSetupPackagePolicy.UNCHECKED_PROFILE} (user $user); first setup refused") }
-                    ?: false
-            check(!installed) { "${FirstSetupPackagePolicy.OTHER_PROFILE} (user $user); first setup refused" }
-        }
-    }
+    private fun requireNoOtherGameUsers() =
+        FirstSetupPackagePolicy.requireNoOtherUsers(installerPackage, { command(it) }, ::gameDump)
 
     /** The game's `dumpsys package` record cut to the lines [FirstSetupPackagePolicy] reads; empty when there is none. */
     private fun gameDump(): String {
@@ -283,18 +269,6 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
         val script = "/system/bin/dumpsys package $installerPackage | " +
             "/system/bin/grep -E '${FirstSetupPackagePolicy.DUMPSYS_FILTER}'; exit 0"
         return command(listOf("/system/bin/sh", "-c", script), timeoutSeconds = 60)
-    }
-
-    /**
-     * Every profile's install state as system_server records it, for profiles shell may not list itself;
-     * null when the package is on the device in no profile at all.
-     */
-    private fun profileStates(): Map<Int, Boolean>? {
-        FirstSetupPackagePolicy.profileStates(gameDump(), installerPackage)?.let { return it }
-        // No record in the dump: absent from every profile only if the retained-record listing agrees.
-        check(!FirstSetupPackagePolicy.containsPackage(command(listOf("/system/bin/pm", "list", "packages",
-            "-u", installerPackage)), installerPackage)) { "${FirstSetupPackagePolicy.UNCHECKED_PROFILE}; first setup refused" }
-        return null
     }
 
     /** Read-only: the first-setup profile refusal, run before preparation spends minutes copying the game. */

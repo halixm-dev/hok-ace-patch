@@ -34,11 +34,47 @@ object FirstSetupPackagePolicy {
 
     /**
      * True when `pm list packages --user <user>` failed only because shell may not enter that profile.
-     * Some ROMs (Infinix XOS's Dual App user 999) refuse shell there although `pm list users` names it.
+     * Some ROMs (Infinix XOS's Dual App user 999) refuse shell there although `pm list users` names it:
+     * most throw a SecurityException; vivo's Android 16 prints only `Error: Shell does not have
+     * permission to access user 10`, which must then be the command's whole output.
      */
     fun profileDenied(error: String, user: Int): Boolean =
-        error.contains("SecurityException") &&
-            Regex("does not have permission to access user $user(?![0-9])").containsMatchIn(error)
+        (error.contains("SecurityException") &&
+            Regex("does not have permission to access user $user(?![0-9])").containsMatchIn(error)) ||
+            Regex("Device command failed \\([0-9]+\\):\\s*Error: Shell does not have permission to access user $user")
+                .matches(error.trim())
+
+    /**
+     * Refuse first setup while the game is installed, or cannot be ruled out, in any profile but user 0.
+     * [command] runs a read-only device command and throws IllegalStateException on a non-zero exit;
+     * [dump] is the target's `dumpsys package` record cut by [DUMPSYS_FILTER]. A denied profile is read
+     * from the dump, and denial alone never counts as absence.
+     */
+    fun requireNoOtherUsers(target: String, command: (List<String>) -> String, dump: () -> String) {
+        require(target in setOf(PrivilegedDeviceService.GAME, PrivilegedDeviceService.FIXTURE))
+        val users = users(command(listOf("/system/bin/pm", "list", "users")))
+        val dumped by lazy {
+            profileStates(dump(), target) ?: run {
+                // No record in the dump: absent from every profile only if the retained-record listing agrees.
+                check(!containsPackage(command(listOf("/system/bin/pm", "list", "packages", "-u", target)), target)) {
+                    "$UNCHECKED_PROFILE; first setup refused"
+                }
+                null
+            }
+        }
+        users.filter { it != 0 }.forEach { user ->
+            val listing = try {
+                command(listOf("/system/bin/pm", "list", "packages", "--user", user.toString(), target))
+            } catch (error: IllegalStateException) {
+                if (!profileDenied(error.message.orEmpty(), user)) throw error
+                null
+            }
+            val installed = if (listing != null) containsPackage(listing, target)
+                else dumped?.let { it[user] ?: error("$UNCHECKED_PROFILE (user $user); first setup refused") }
+                    ?: false
+            check(!installed) { "$OTHER_PROFILE (user $user); first setup refused" }
+        }
+    }
 
     /** Why the main user cannot see an installed game; read back from [userStates] inside an error message. */
     enum class Missing { HIDDEN, OTHER_PROFILE_ONLY, ABSENT }

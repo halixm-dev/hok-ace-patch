@@ -1,10 +1,13 @@
 package dev.halixm.hokacepatcher;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-/** Profile fallback parsing only; no commands, installation or game removal. */
+/** Profile fallback parsing and the guard over a fake read-only device; no installation or game removal. */
 public final class FirstSetupProfileTest {
     private static final String GAME = PrivilegedDeviceService.GAME;
     private static final FirstSetupPackagePolicy POLICY = FirstSetupPackagePolicy.INSTANCE;
@@ -22,6 +25,153 @@ public final class FirstSetupProfileTest {
         assertTrue(POLICY.profileDenied(error, 999));
         assertFalse(POLICY.profileDenied(error, 99));
         assertFalse(POLICY.profileDenied("Device command failed (1): Error: unknown user 999", 999));
+    }
+
+    // vivo V2561, Android 16: `pm list packages --user 10` exits 1 with only this line.
+    private static final String VIVO_DENIAL = "Device command failed (1): Error: Shell does not have permission to access user 10";
+
+    @Test public void plainErrorDenialIsRecognizedOnlyForItsOwnUser() {
+        assertTrue(POLICY.profileDenied(VIVO_DENIAL, 10));
+        assertTrue(POLICY.profileDenied("Device command failed (1): \nError: Shell does not have permission to access user 10\n", 10));
+        assertFalse(POLICY.profileDenied(VIVO_DENIAL, 1));
+        assertFalse(POLICY.profileDenied(VIVO_DENIAL, 100));
+        assertFalse(POLICY.profileDenied(VIVO_DENIAL.replace("user 10", "user 100"), 10));
+        assertFalse(POLICY.profileDenied(VIVO_DENIAL.replace("user 10", "user 101"), 10));
+        String[] unrelated = {
+            "Device command failed (1): Error: Shell does not have permission to access user 10 profile data",
+            "Device command failed (1): Error: unknown user 10",
+            "Device command failed (1): Error: permission denied",
+            "Device command failed (255): Failure [INSTALL_FAILED_USER_RESTRICTED: Shell does not have permission to access user 10]",
+            "Device command failed (1): Error: something broke\nError: Shell does not have permission to access user 10",
+            "Error: Shell does not have permission to access user 10",
+        };
+        for (String value : unrelated) assertFalse(value, POLICY.profileDenied(value, 10));
+    }
+
+    /** Answers each read-only command by its joined arguments; a value starting with "!" fails like a non-zero exit. */
+    private static final class FakeDevice {
+        final Map<String, String> answers = new HashMap<>();
+        final List<String> calls = new ArrayList<>();
+        String dump;
+
+        FakeDevice users(String... ids) {
+            StringBuilder out = new StringBuilder("Users:\n");
+            for (String id : ids) out.append("\tUserInfo{").append(id).append(":Owner:c13} running\n");
+            answers.put("/system/bin/pm list users", out.toString());
+            return this;
+        }
+
+        FakeDevice listing(int user, String value) {
+            answers.put("/system/bin/pm list packages --user " + user + " " + GAME, value);
+            return this;
+        }
+
+        void run() {
+            POLICY.requireNoOtherUsers(GAME, args -> {
+                String key = String.join(" ", args);
+                calls.add(key);
+                String value = answers.get(key);
+                if (value == null) throw new AssertionError("Unexpected command: " + key);
+                if (value.startsWith("!")) throw new IllegalStateException(value.substring(1));
+                return value;
+            }, () -> {
+                calls.add("dumpsys");
+                if (dump == null) throw new IllegalStateException("Device command failed (1): dumpsys failed");
+                return dump;
+            });
+        }
+
+        String refusal() {
+            try { run(); } catch (IllegalStateException error) { return error.getMessage(); }
+            fail("Guard permitted first setup; calls " + calls);
+            return null;
+        }
+    }
+
+    private static String dumpWith(int user, String installed) {
+        return "  Package [" + GAME + "] (7b2c1e4):\n" + user(0, "true", "false", 0) + user(user, installed, "false", 0);
+    }
+
+    private static FakeDevice vivo() { return new FakeDevice().users("0", "10").listing(10, "!" + VIVO_DENIAL); }
+
+    @Test public void guardPermitsADeniedProfileTheDumpMeasuresAbsent() {
+        FakeDevice device = vivo();
+        device.dump = dumpWith(10, "false");
+        device.run();
+        // The guard only reads: no removal or install command passes through it.
+        for (String call : device.calls) assertFalse(call, call.contains("uninstall") || call.contains("install-"));
+    }
+
+    @Test public void guardKeepsTheSecurityExceptionFallback() {
+        FakeDevice device = new FakeDevice().users("0", "999").listing(999, "!Device command failed (255): \n" +
+            "Exception occurred while executing 'list':\njava.lang.SecurityException: Shell does not have permission to access user 999\n");
+        device.dump = dumpWith(999, "false");
+        device.run();
+        device.dump = dumpWith(999, "true");
+        assertTrue(device.refusal().startsWith(FirstSetupPackagePolicy.OTHER_PROFILE + " (user 999)"));
+    }
+
+    @Test public void guardRefusesADeniedProfileWithTheGame() {
+        FakeDevice device = vivo();
+        device.dump = dumpWith(10, "true");
+        assertTrue(device.refusal().startsWith(FirstSetupPackagePolicy.OTHER_PROFILE + " (user 10)"));
+    }
+
+    @Test public void guardRefusesWhenTheDumpCannotRuleTheProfileOut() {
+        String header = "  Package [" + GAME + "] (7b2c1e4):\n";
+        String[] unreadable = {
+            header + user(0, "true", "false", 0),                                   // profile missing from the record
+            header + user(10, "false", "false", 0) + user(10, "true", "false", 0),   // conflicting
+            header + "    User 10: ceDataInode=0 installed=",                        // truncated
+            header + user(10, "false", "false", 0) + "Error: dump failed\n",         // malformed
+        };
+        for (String dump : unreadable) {
+            FakeDevice device = vivo();
+            device.dump = dump;
+            assertNotNull(dump, device.refusal());
+        }
+        FakeDevice failed = vivo();
+        failed.dump = null;
+        assertTrue(failed.refusal().contains("dumpsys failed"));
+    }
+
+    @Test public void guardAcceptsNoRecordOnlyWhenTheRetainedListingAgrees() {
+        String retained = "/system/bin/pm list packages -u " + GAME;
+        FakeDevice absent = vivo();
+        absent.dump = "";
+        absent.answers.put(retained, "");
+        absent.run();
+        assertTrue(absent.calls.contains(retained));
+
+        FakeDevice kept = vivo();
+        kept.dump = "";
+        kept.answers.put(retained, "package:" + GAME + "\n");
+        assertTrue(kept.refusal().startsWith(FirstSetupPackagePolicy.UNCHECKED_PROFILE));
+    }
+
+    @Test public void guardPropagatesOtherFailuresWithoutTheFallback() {
+        String[] failures = {
+            VIVO_DENIAL.replace("user 10", "user 100"),
+            "Device command failed (1): Error: unknown user 10",
+            "Device command failed (1): Error: permission denied",
+        };
+        for (String failure : failures) {
+            FakeDevice device = new FakeDevice().users("0", "10").listing(10, "!" + failure);
+            device.dump = dumpWith(10, "false");
+            assertEquals(failure, device.refusal());
+            assertFalse(device.calls.contains("dumpsys"));
+        }
+    }
+
+    @Test public void guardReadsAccessibleProfilesDirectly() {
+        FakeDevice clean = new FakeDevice().users("0", "10").listing(10, "");
+        clean.run();
+        assertFalse(clean.calls.contains("dumpsys"));
+        FakeDevice installed = new FakeDevice().users("0", "10").listing(10, "package:" + GAME + "\n");
+        assertTrue(installed.refusal().startsWith(FirstSetupPackagePolicy.OTHER_PROFILE + " (user 10)"));
+        FakeDevice single = new FakeDevice().users("0");
+        single.run();
+        assertEquals(List.of("/system/bin/pm list users"), single.calls);
     }
 
     @Test public void dumpReportsEachProfileState() {
