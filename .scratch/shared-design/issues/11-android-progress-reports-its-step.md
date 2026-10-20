@@ -26,12 +26,12 @@ Supersedes ticket 07.
 
 **Blocked by:** 10
 
-**Status:** ready-for-human (one Indonesian patch on a phone)
+**Status:** done (2026-10-20)
 
 - [x] Step list confirmed (six steps)
 - [x] Worker reports the step key and total
 - [x] Bar and step line in ② (probe, with a saved state that carries a step)
-- [ ] One Indonesian patch on a phone, with each step's screenshot looked at
+- [x] One Indonesian patch on a phone, with each step's screenshot looked at
 
 ## Comments
 
@@ -40,3 +40,5 @@ Supersedes ticket 07.
 Tests: `ProgressStepTest` (JVM) checks the real message sequences of prepare (with reuse), patch, a failed removal and recovery, and the line in both languages. `InterfaceProbeTest.progressShowsTheStepFromTheSavedState` checks the line, the bar and the button's place by driving `GuidedHome` with a saved-state record; `MainActivity.refreshHome`'s wiring is not probed, since a live run needs the worker. `CacheReuseProbeTest` checks the prepare worker records only steps 1 and 2 of 6. `testDebugUnitTest`, `assembleDebug`, `assembleDebugAndroidTest` and `check_ui_strings.py` pass. The probes were not run: the attached phone holds the release patcher. Between `prepare` and `patch` the record carries no step, so ② shows an indeterminate bar for that moment. The notification still shows the free-text line.
 
 2026-10-20: The probes now pass on a phone (ticket 13). The Indonesian patch is still owed.
+
+2026-10-20: One Indonesian patch on the phone (patcher 1.6.1.12, English to Bahasa Indonesia, started with *Mulai patch lagi*). ② read "Langkah N dari 6 · <step>" for all six steps in turn, with the bar at N/6 and *Hentikan dengan aman* below it; each step's screenshot was looked at. The run ended on *02 / SELESAI* with 389 text tables and 398 images applied, 1 text table and 0 images skipped. The game was the normal APK (not debuggable) and reached its login screen in Indonesian. Timings: step 1 09:21:11, step 2 09:21:58 (saved APKs reused), confirmation, step 3 09:23:47, step 4 09:28:26, step 5 09:33:26, step 6 09:34:31, done 09:35:48. The snapshot took 2 min (09:26:25 to 09:28:26) of the 12 min after confirmation, so it does not dominate and no "Read game data" step is proposed. Two observations, neither a defect against this ticket: step 3 starts when `patch` starts, so it also covers the 1.5 min of pristine-delta work before "Opening game data access"; and the activity log restarts when `patch` starts, so the lines of steps 1 and 2 leave it.
