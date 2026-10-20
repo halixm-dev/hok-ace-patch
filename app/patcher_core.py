@@ -723,8 +723,8 @@ class Patcher:
         staged = session / "staged"
         # The prime layer half the game's text lives in is inside the APK, and the append pass is what
         # carries it into a downloaded package. That needs the APK, not the package builder: the builder
-        # is only for laying a package out whole, which no package asks for. A source checkout missing
-        # resources/qtsvfs therefore still translates everything the catalog covers.
+        # is only for laying a package out whole, which no package asks for. Only a source run finds
+        # resources/qtsvfs; the exe does not bundle it, and still translates everything the catalog covers.
         builder_dir = find_builder_dir([BUNDLE / "qtsvfs"])
         catalog = languages.catalog_dir(BUNDLE, self.language.code)
         summary = build_patch(session / "game", catalog, session / "build", staged,

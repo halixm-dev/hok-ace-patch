@@ -69,7 +69,7 @@ the path for a package that has to be re-laid out rather than added to.
 | `tools/research/check_graphics.py --game <dump>` | PASS, 95 s; `ported 321, replaced 1, spliced 1, absent 75` |
 | `tools/research/prime_probe.py` | prints the `[S1]` table exactly |
 | `build_device_patch.py --apk … --builder …` vs the 102304 dump | PASS, exit 0 in 128 s; packages `1` and `1050016095` `rebuilt` (400 / 72), `15`/`19`/`20` graphics, `4` extra-text; `text_skipped` and `graphics_skipped` both empty; **all 21 guarded files of the dump byte-identical afterwards** |
-| frozen exe `app/build_exe.py` then `--selftest <dump> <out>` | PASS; exe contains `QtsVFS.dll`, `QtskDB.dll`, `pypinyin`, `package_rebuild` and not `prime_probe`; selftest exit 0 in 60 s with `relocated-text 11` for package `1` and `text_skipped` empty |
+| frozen exe `app/build_exe.py` then `--selftest <dump> <out>` | PASS; exe contains `QtsVFS.dll`, `QtskDB.dll`, `pypinyin`, `package_rebuild` and not `prime_probe`; selftest exit 0 in 60 s with `relocated-text 11` for package `1` and `text_skipped` empty (the DLLs left the exe on 2026-10-20; see Packaging) |
 | `patcher_core.count_translated` on the run's summary | PASS — `text=402 images=394`; a mode-only classifier would have said `474 / 323` |
 | extra-text probe: allowlist gating and a rewrite round-trip | PASS — only `SAFE_ASSETS` selected, 34 unallowlisted Chinese-bearing assets offered and none taken, second pass changed 0 strings |
 | post-review probes: `read_raw` contract, per-package reconciliation, empty-transform guard | PASS — the guard was exercised by stubbing a prime-only table to `b""`: 700 assets, 297 added, no exception |
@@ -203,8 +203,8 @@ not the cause of the Chessplayer screen; the prime layer is.
 
 ### The builder
 
-`resources/qtsvfs/` ships Tencent's own package builder — `QtsVFS.dll`, `QtskDB.dll` and the three VC
-runtimes they load — beside `resources/adb/`, `resources/key/` and the catalog. `tools/qts_builder.py`
+`resources/qtsvfs/` holds Tencent's own package builder — `QtsVFS.dll`, `QtskDB.dll` and the three VC
+runtimes they load — kept in the repo for `--builder` runs from source, not shipped (see Packaging). `tools/qts_builder.py`
 drives `VFS_BuildPackage` by ctypes, then aligns the output with the package it replaces:
 
 - `Builder(bin_dir)` resolves the folder and loads both DLLs through `os.add_dll_directory`, calls
@@ -486,6 +486,11 @@ supplies the prime layer is the one installed on the phone.
 
 `resources/qtsvfs/` joins the shipped resources and `app/build_exe.py` adds it with `--add-data`, so
 the frozen exe can rebuild on any machine. `pypinyin` joins `requirements.txt` and `HIDDEN_IMPORTS`.
+
+Since the shared design (ticket 02, 2026-10-20) the exe no longer bundles `resources/qtsvfs/`:
+`REBUILD_PACKAGES` is empty, so a frozen run finds no builder, logs `no QtsVFS builder given` and
+the append pass carries the prime-only content. The DLLs stay in the repo for `--builder` runs
+from source.
 
 ### Which pass owns a string, and how to find out
 

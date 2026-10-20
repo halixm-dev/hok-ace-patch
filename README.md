@@ -204,7 +204,7 @@ not exercise prime-only append.
 | `resources/fonts/` | Barlow and Barlow Condensed, with the OFL licence |
 | `resources/adb/` | Bundled Android Debug Bridge |
 | `resources/key/` | Stable re-signing key shipped with the patcher |
-| `resources/qtsvfs/` | Tencent's package builder and its dependencies |
+| `resources/qtsvfs/` | Tencent's package builder and its dependencies; kept for `--builder` runs from source, not shipped in the exe |
 | `tools/research/` | Manual probes and offline checks; excluded from the shipped exe |
 
 Local dumps, generated packages and device evidence are excluded from Git.
