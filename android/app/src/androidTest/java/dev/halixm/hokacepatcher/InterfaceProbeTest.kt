@@ -265,12 +265,23 @@ class InterfaceProbeTest {
                 val view = activity.window.decorView
                 val footer = view.findViewWithTag<ViewGroup>("footer")
                 assertTrue(shownTexts(footer.getChildAt(0)).single().contains(BuildConfig.VERSION_NAME))
-                // One row, left to right: the three sit side by side, none filling the width.
+                // One row, left to right: the three sit side by side, none filling the width; stacked
+                // in order only when a label's longest word would not fit its share (a large system font).
                 val row = listOf("show-technical", "check-app-update", "free-space").map { view.findViewWithTag<View>(it) }
                 val places = row.map { IntArray(2).also(it::getLocationOnScreen) }
-                assertTrue(places.all { it[1] == places[0][1] })
-                assertEquals(places.map { it[0] }.sorted(), places.map { it[0] })
-                assertTrue(row.all { it.width < footer.width / 2 })
+                val stacked = places.any { it[1] != places[0][1] }
+                val (across, down) = if (stacked) 1 to 0 else 0 to 1
+                assertTrue(places.all { it[down] == places[0][down] })
+                assertEquals(places.map { it[across] }.sorted(), places.map { it[across] })
+                if (!stacked) assertTrue(row.all { it.width < footer.width / 2 })
+                for (button in row.filterIsInstance<TextView>()) {
+                    val layout = button.layout
+                    for (line in 0 until layout.lineCount - 1) {
+                        val end = layout.getLineEnd(line)
+                        assertFalse("${button.text} breaks inside a word",
+                            button.text[end - 1].isLetterOrDigit() && button.text[end].isLetterOrDigit())
+                    }
+                }
                 // Technical tools still opens the panel below the footer.
                 view.findViewWithTag<View>("show-technical").performClick()
                 assertEquals(View.VISIBLE, home.advanced.visibility)

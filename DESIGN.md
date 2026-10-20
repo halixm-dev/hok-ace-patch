@@ -166,7 +166,7 @@ Top to bottom:
 5. **Log** — the live activity log; on Android also the technical log. Each log scrolls inside its
    own height-bounded panel while the page scrolls outside it.
 6. **Footer** — the installed version, then one row of text buttons: *Technical tools*, *Check for
-   updates* and, on Android, *Free up space*. They are not full-width buttons.
+   updates* and, on Android, *Free up space*. They are not full-width buttons. At a large system font they stack, one per line, still text buttons (see Buttons).
 
 Warnings and recovery messages never appear as extra steps.
 
@@ -174,7 +174,9 @@ Warnings and recovery messages never appear as extra steps.
 
 **Buttons.** Primary buttons fill the card width. Minimum height 60 dp on Android, 44 px on Windows.
 Text buttons keep that height. The footer's text buttons share one row equally, and a long label
-wraps onto more lines rather than leaving the row.
+wraps onto more lines rather than leaving the row. A label never breaks inside a word: when one
+label's longest word is wider than its share (a large system font), the three stack, one per line,
+still as text buttons.
 Disabled buttons use the disabled colours and are never only dimmed.
 
 **Dialogs.** A panel with a heading in `on-panel`, the message in `on-panel-muted`, the confirm

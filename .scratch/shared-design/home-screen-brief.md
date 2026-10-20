@@ -84,7 +84,7 @@ Production-ready home screen for both patchers, in every state below.
      with its recovery options folded.
   5. Log.
   6. The version, then one row of text buttons: Technical tools, Check for updates and, on Android,
-     Free up space. They are not full-width buttons.
+     Free up space. They are not full-width buttons. Amended 2026-10-20 (ticket 13): at a large system font they stack, still text buttons, so no label breaks inside a word.
 - **Windows:** one centred column, at most 720 px wide, in a resizable window. The page scrolls
   when it's shorter than the content. The log is open but secondary, since it's the only progress
   detail the Windows patcher has.

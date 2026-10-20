@@ -26,7 +26,7 @@ Supersedes ticket 07.
 
 **Blocked by:** 10
 
-**Status:** ready-for-human (run the probes and one Indonesian patch on a phone)
+**Status:** ready-for-human (one Indonesian patch on a phone)
 
 - [x] Step list confirmed (six steps)
 - [x] Worker reports the step key and total
@@ -38,3 +38,5 @@ Supersedes ticket 07.
 2026-10-20: `WorkerStep` holds the six step keys (`check_game`, `prepare_files`, `unlock_access`, `build`, `write`, `restore_game_app`) and the progress lines that start each. `PatchWorkerService.show` puts `step` and `steps` (6) beside `progress` in every running record of `prepare`, `patch` and `remove`; other actions carry no step. `prepare` starts at 1 and stops at 2, `patch` and `remove` start at 3. A step never goes back and never skips one, so a run that fails at step 3 or 4 and restores the game app while recovering stays at its step instead of jumping to 6. `UiText.step` turns a running record into "Step N of M · <step>" from the shared strings: `progress_step`, `step_translate` (now shared with Windows) and seven new `android_step_*` keys, Indonesian marked `draft`. Removal reads *Rebuild original files* and *Write original files* for 4 and 5. While work runs ② shows a bar (track `disabled-fill`, fill `ink`) in place of the button, for every running state; it is determinate with a step, and the step line replaces the free-text line, which stays in the log. A record without a step keeps its translated line and an indeterminate bar.
 
 Tests: `ProgressStepTest` (JVM) checks the real message sequences of prepare (with reuse), patch, a failed removal and recovery, and the line in both languages. `InterfaceProbeTest.progressShowsTheStepFromTheSavedState` checks the line, the bar and the button's place by driving `GuidedHome` with a saved-state record; `MainActivity.refreshHome`'s wiring is not probed, since a live run needs the worker. `CacheReuseProbeTest` checks the prepare worker records only steps 1 and 2 of 6. `testDebugUnitTest`, `assembleDebug`, `assembleDebugAndroidTest` and `check_ui_strings.py` pass. The probes were not run: the attached phone holds the release patcher. Between `prepare` and `patch` the record carries no step, so ② shows an indeterminate bar for that moment. The notification still shows the free-text line.
+
+2026-10-20: The probes now pass on a phone (ticket 13). The Indonesian patch is still owed.

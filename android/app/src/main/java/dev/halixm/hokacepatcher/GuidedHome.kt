@@ -65,7 +65,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
     private val logScroll = LogScrollView(activity).apply {
         addView(liveLog)
-        layoutParams = LinearLayout.LayoutParams(-1, dp(180))
+        layoutParams = LinearLayout.LayoutParams(-1, dp(180)).apply { topMargin = dp(8) }
         tag = "live-log-scroll"
     }
     private val logCard = card().apply {
@@ -184,8 +184,8 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             addView(text("${ui("Patcher version")}: ${BuildConfig.VERSION_NAME}", Type.BODY, supporting = true).apply {
                 tag = "patcher-version"; textAlignment = View.TEXT_ALIGNMENT_CENTER
             })
-            addView(LinearLayout(activity).apply {
-                tag = "footer-actions"; orientation = LinearLayout.HORIZONTAL; isBaselineAligned = false
+            addView(FooterRow(activity).apply {
+                tag = "footer-actions"; isBaselineAligned = false
                 addView(footerButton("Technical tools", "show-technical") {
                     advanced.visibility = if (advanced.visibility == View.VISIBLE) View.GONE else View.VISIBLE
                 })
@@ -446,6 +446,28 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             setPadding(dp(6), dp(8), dp(6), dp(8))
             layoutParams = LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dp(2), dp(4), dp(2), dp(4)) }
         }
+}
+
+/**
+ * The footer's text buttons: side by side, sharing the width, while every label's longest word fits its
+ * share; stacked one per line otherwise, so a large system font never breaks a label inside a word.
+ */
+private class FooterRow(context: android.content.Context) : LinearLayout(context) {
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val share = (MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight) / childCount.coerceAtLeast(1)
+        val buttons = (0 until childCount).map { getChildAt(it) }.filterIsInstance<TextView>()
+        val fits = buttons.all { button ->
+            val margins = (button.layoutParams as MarginLayoutParams).let { it.leftMargin + it.rightMargin }
+            val word = button.text.split(Regex("\\s+")).maxOf { button.paint.measureText(it) }
+            word + button.paddingLeft + button.paddingRight + margins <= share
+        }
+        val wanted = if (fits) HORIZONTAL else VERTICAL
+        if (orientation != wanted) {
+            orientation = wanted
+            buttons.forEach { (it.layoutParams as LayoutParams).apply { width = if (fits) 0 else -1; weight = if (fits) 1f else 0f } }
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
 }
 
 /** Reserve log gestures even when a selectable child TextView consumes the initial touch. */

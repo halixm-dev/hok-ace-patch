@@ -3454,3 +3454,35 @@ with `Cannot verify installed game packages`.
 Verified: `testDebugUnitTest`. **Not run on the vivo**. Updating the app and tapping recovery should
 install the retained normal APK from `UNINSTALL_INTENT`. If it stops again, the `listed:` text says
 whether hypothesis 2 (vivo prints a non-package line for every listing) holds.
+
+
+## 2026-10-20 — Android home screen on a phone, every state (Redmi Note 9 Pro)
+
+Shared-design ticket 13. Debug build 1.6.1.12 (58), installed **over** the release 1.6.1.10 (57)
+with `adb install -r`: signed with the patcher key and its lineage (`tools/ci/sign_android.ps1`),
+so the update kept the app's data and no uninstall was needed. The pristine delta was then copied off
+with `run-as` (`files/pristine/delta.bin`, sha256 `ef927ebe…0d06`) and read back unchanged after every
+probe run. Instrumentation ran through `am instrument`, not Gradle's connected task, which would
+reinstall with the SDK debug key.
+
+`HomeStatesCaptureTest` draws the 13 states of the home screen brief (idle, Install Shizuku, Start Shizuku,
+running, recovery, storage shortfall, interrupted, success, removed, written, space freed, notice,
+failed) as full pages in English and Indonesian, and fails on any shown text that is ellipsized,
+broken inside a word, taller than its view or wider than the page. Run at font scale 1.0 and 2.0
+(the largest on this Android 15), stock density 440; each of the 52 captures was looked at.
+
+| Finding | Evidence |
+|---|---|
+| The footer broke words at font scale 2.0 | Every state, both languages: "Technic\|al tools", "pembar\|uan", "Kosongk\|an ruang". The first fit check missed it (no ellipsis); the word-break check then failed on the unfixed build, 26 captures. |
+| Fix: the footer stacks | `GuidedHome.FooterRow` keeps the three side by side while each label's longest word fits its share, else stacks them one per line. Side by side at 1.0, stacked at 2.0; the check passes at both. |
+| The log's first line touched its caption | 8 dp top margin on `live-log-scroll`. |
+| Nothing else clips | The check passes for all 13 states at both sizes in both languages; no overlap was seen in the captures (the check does not test overlap). Indonesian "2.0 / GB" wraps across lines in the storage message (not a clip). |
+
+`InterfaceProbeTest` (7, its footer case now accepting the stacked row and checking no label breaks
+inside a word), `GuidedHomeProbeTest` and `HomeStatesCaptureTest` pass at both font sizes, which also
+runs ticket 12's tag, callback and 60 dp checks on a phone for the first time.
+
+`/impeccable critique` on the Android home screen, from these captures: **29/40**, up from 26/40 on
+2026-10-19 (H1 +1, H4 +1, H8 +1). Remaining issues are P2/P3: the ② eyebrow "READY TO PLAY" on
+failure and result states, two "Save log for help" in the failed state, and "Show recovery options"
+keeping its label when open. Snapshot in the local, untracked `.impeccable/critique/`.
