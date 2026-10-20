@@ -452,6 +452,9 @@ class MainActivity : Activity() {
         home.logs(if (messages == null) emptyList() else
             (0 until messages.length()).map { messages.optString(it) })
         val live = PatchWorkerService.isWorking || awaitingToken != null
+        // Once a run is under way, Shizuku's dialog is behind us: ask for notifications now, once.
+        if (PatchWorkerService.isWorking && RunNotification.askOnce(this))
+            home.message("Allow notifications to see the patch's progress and hear when it is done.")
         val result = state?.let { UiText.result(PatchLanguage.current(this), it) }
         // An older record without a step still shows its line.
         val step = state?.takeIf { live }?.let { UiText.step(PatchLanguage.current(this), it) }
@@ -700,8 +703,13 @@ class MainActivity : Activity() {
         }
     }
 
-    override fun onResume() { super.onResume(); DiagnosticTrace.event("ui", "Activity resumed"); statusHandler.post(refreshStatus) }
-    override fun onPause() { DiagnosticTrace.event("ui", "Activity paused"); statusHandler.removeCallbacks(refreshStatus); super.onPause() }
+    override fun onResume() { super.onResume(); shown = true; DiagnosticTrace.event("ui", "Activity resumed"); statusHandler.post(refreshStatus) }
+    override fun onPause() { shown = false; DiagnosticTrace.event("ui", "Activity paused"); statusHandler.removeCallbacks(refreshStatus); super.onPause() }
+
+    companion object {
+        /** True while the patcher is on screen; a finished run then posts no notification. */
+        @Volatile var shown = false
+    }
 
     private fun recoveryId(): String {
         EmergencyRestoreStore(this).snapshot()?.takeIf {

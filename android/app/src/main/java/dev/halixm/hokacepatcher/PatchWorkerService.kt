@@ -188,6 +188,8 @@ class PatchWorkerService : Service() {
                         .put("action", activeAction).put("error", failureMessage).put("error_type", error.javaClass.name)) }
                 DiagnosticTrace.error("worker", "Patch/recovery stopped during $activeAction", error)
             } finally {
+                // A finished run tells a player who left the patcher; a stopped worker (retiring) has its own recovery path.
+                if (!retiring.get()) savedState()?.let { RunNotification.post(this, it, MainActivity.shown) }
                 connection?.close()
                 connection = null
                 coordinator = null

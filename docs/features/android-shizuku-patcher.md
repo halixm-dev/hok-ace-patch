@@ -174,6 +174,16 @@ as stopped. They open the non-exported `ShortcutEntry` alias, which only the lau
 app's behalf. A shortcut tapped during a run starts the activity afresh, as process loss does: the
 worker keeps running and the screen reads its record. Not yet tried on a phone.
 
+**Notifications (2026-10-20).** Android 13+ shows the worker's progress notification, with its
+*Cancel and recover* action, only once the player allows notifications, and the patcher never asked.
+It now asks once (`RunNotification.askOnce`), when its first run is under way: Shizuku's access
+dialog is settled by then, so the two never stack. A muted notice in ② says why, and the run goes
+on whatever the answer; a refusal is never asked again. When a run finishes while the patcher is
+not on screen, the worker posts its result (`RunNotification`): *Translation added*, *removed* or
+*written* with an **Open game** action, or *Work stopped*, which opens the patcher. Intermediate
+steps of the automatic flow (verify, prepare), a stop the player asked for and *Space freed* post
+nothing. Not yet tried on a phone.
+
 ### 1. Application and engine boundaries
 
 Create an additional Android application under `android/`; keep the Windows application available. Proposed components:

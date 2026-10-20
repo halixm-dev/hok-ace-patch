@@ -767,6 +767,30 @@
       "en": "Start another patch",
       "id": "Mulai patch lagi"
     },
+    "notification_permission_reason": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Allow notifications to see the patch's progress and hear when it is done.",
+      "id": "Izinkan notifikasi untuk melihat kemajuan patch dan tahu saat patch selesai.",
+      "draft": true
+    },
+    "patch_results_channel": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Patch results",
+      "id": "Hasil patch",
+      "draft": true
+    },
+    "work_stopped_notification": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Tap to see what happened and what to do next.",
+      "id": "Ketuk untuk melihat apa yang terjadi dan langkah berikutnya.",
+      "draft": true
+    },
     "work_stopped": {
       "platforms": [
         "android",
