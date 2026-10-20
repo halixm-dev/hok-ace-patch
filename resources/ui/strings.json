@@ -498,6 +498,13 @@
       "en": "Show recovery options",
       "id": "Tampilkan pilihan pemulihan"
     },
+    "more_recovery_tools": {
+      "platforms": [
+        "android"
+      ],
+      "en": "More recovery tools",
+      "id": "Alat pemulihan lainnya"
+    },
     "technical_tools": {
       "platforms": [
         "android",

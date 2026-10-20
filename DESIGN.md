@@ -100,7 +100,8 @@ Light only. A dark theme, when it comes, goes to both patchers at once.
 | On panel | `on-panel`, `on-panel-muted` | text on a panel |
 | Primary button | panel gradient, `on-panel` text | Start and the main action of a card |
 | Confirm button | gradient `confirm-left` → `confirm-right`, left to right, `ink` text | the confirm action on a panel (dialogs) |
-| Secondary button | `card` fill, `ink` text, 1 px `ink` edge at 30 % | Cancel, technical tools, Change… |
+| Secondary button | `card` fill, `ink` text, 1 px `ink` edge at 30 % | Cancel, Remove translation, Change… |
+| Text button | no fill or edge, `ink` text | the footer row, the quieter recovery tools |
 | Warning | `warning` accents on `warning-surface` | recovery, data-loss consent, storage shortfall |
 | Error | `error` accents on `error-surface` | a failed run, a danger confirmation |
 | Disabled | `disabled-fill`, `disabled-text` | any disabled button or locked choice |
@@ -158,7 +159,8 @@ Top to bottom:
    the Start button in this card.
 4. **Warning or error card**, directly under ② Start, when one exists:
    - The **warning card** holds anything that needs action. On Android it is "Game won't open?",
-     with the recovery options folded and Restore interrupted patch first.
+     with the recovery options folded and Restore interrupted patch first, a secondary button. The
+     other tools follow as text buttons under a `text-muted` *More recovery tools* label.
    - The **error card** holds the cause and the next step, with *Copy error details* (Android) and
      *Save log for help*.
 5. **Log** — the live activity log; on Android also the technical log. Each log scrolls inside its
@@ -171,6 +173,8 @@ Warnings and recovery messages never appear as extra steps.
 ## Components
 
 **Buttons.** Primary buttons fill the card width. Minimum height 60 dp on Android, 44 px on Windows.
+Text buttons keep that height. The footer's text buttons share one row equally, and a long label
+wraps onto more lines rather than leaving the row.
 Disabled buttons use the disabled colours and are never only dimmed.
 
 **Dialogs.** A panel with a heading in `on-panel`, the message in `on-panel-muted`, the confirm

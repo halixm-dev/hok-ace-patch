@@ -75,8 +75,8 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         addView(logScroll)
     }
     val advanced = column()
-    private val updateButton = button("Check for updates", "check-app-update") { invoke("check_update") }
-    private val freeSpaceButton = button("Free up space", "free-space") { invoke("free_space") }
+    private val updateButton = footerButton("Check for updates", "check-app-update") { invoke("check_update") }
+    private val freeSpaceButton = footerButton("Free up space", "free-space") { invoke("free_space") }
     private var next = "start"
     private var workerNotice = ""
     private var choosingLanguage = false
@@ -109,21 +109,26 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     private val recoverPatch by lazy { button("Restore interrupted patch", "recover-patch") { invoke("recover") } }
-    private val recoverSetup by lazy { button("Finish or repair first setup", "recover-setup") { invoke("setup_recover") } }
+    private val recoverSetup by lazy { textButton("Finish or repair first setup", "recover-setup") { invoke("setup_recover") } }
     private val savedApkActions by lazy {
-        listOf(button("Reinstall saved game app", "recover-apk") { invoke("installer") },
-            text("After reinstalling, check the game app below. Unfinished file changes still need recovery.", Type.BODY),
-            button("Check restored game app", "verify-game") { invoke("verify") })
+        listOf(textButton("Reinstall saved game app", "recover-apk") { invoke("installer") },
+            text("After reinstalling, check the game app below. Unfinished file changes still need recovery.", Type.BODY, supporting = true),
+            textButton("Check restored game app", "verify-game") { invoke("verify") })
     }
 
+    /** Folded; Restore interrupted patch leads, and every other tool sits in a quieter group of text buttons. */
     private val recoveryOptions by lazy {
         column().apply {
-            visibility = View.GONE
+            tag = "recovery-options"; visibility = View.GONE
             addView(recoverPatch)
-            addView(button("Free up space", "free-space-recovery") { invoke("free_space") })
-            addView(recoverSetup)
-            savedApkActions.forEach { addView(it) }
-            addView(button("Save log for help", "export-log") { invoke("export") })
+            addView(column().apply {
+                tag = "more-recovery-tools"
+                addView(text("More recovery tools", Type.LABEL, supporting = true).apply { setPadding(0, dp(12), 0, dp(2)) })
+                addView(textButton("Free up space", "free-space-recovery") { invoke("free_space") })
+                addView(recoverSetup)
+                savedApkActions.forEach { addView(it) }
+                addView(textButton("Save log for help", "export-log") { invoke("export") })
+            })
         }
     }
 
@@ -172,15 +177,25 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         })
         recovery.addView(recoveryOptions)
         recovery.visibility = View.GONE
-        root.addView(button("Technical tools", "show-technical") {
-            advanced.visibility = if (advanced.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        // The footer: the version, then one row of text buttons; Technical tools opens below it.
+        root.addView(column().apply {
+            tag = "footer"
+            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, space(R.dimen.space_md), 0, 0) }
+            addView(text("${ui("Patcher version")}: ${BuildConfig.VERSION_NAME}", Type.BODY, supporting = true).apply {
+                tag = "patcher-version"; textAlignment = View.TEXT_ALIGNMENT_CENTER
+            })
+            addView(LinearLayout(activity).apply {
+                tag = "footer-actions"; orientation = LinearLayout.HORIZONTAL; isBaselineAligned = false
+                addView(footerButton("Technical tools", "show-technical") {
+                    advanced.visibility = if (advanced.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                })
+                addView(updateButton)
+                addView(freeSpaceButton)
+            })
         })
         advanced.visibility = View.GONE
         advanced.addView(text("For testing or support", Type.HEADING))
         root.addView(advanced)
-        root.addView(text("${ui("Patcher version")}: ${BuildConfig.VERSION_NAME}", Type.BODY, supporting = true))
-        root.addView(updateButton)
-        root.addView(freeSpaceButton)
         activity.setContentView(ScrollView(activity).apply {
             isFillViewport = true
             setBackgroundColor(activity.getColor(R.color.page_top))
@@ -390,27 +405,47 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         if (type == Type.LABEL) letterSpacing = activity.resources.getFloat(R.dimen.type_label_tracking)
         if (type == Type.TITLE || type == Type.HEADING) isAccessibilityHeading = true
     }
-    private fun button(label: String, testTag: String?, primaryAction: Boolean = false, callback: () -> Unit) = Button(activity).apply {
+    /** [plain] draws a text button: no fill or edge, the ripple kept inside the corners. */
+    private fun button(label: String, testTag: String?, primaryAction: Boolean = false, plain: Boolean = false,
+                       callback: () -> Unit) = Button(activity).apply {
         text = ui(label); tag = testTag; isAllCaps = false; minHeight = dp(60); minimumHeight = dp(60)
         setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_button))
         typeface = activity.resources.getFont(R.font.barlow_semibold)
         setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
             intArrayOf(activity.getColor(R.color.disabled_text), activity.getColor(if (primaryAction) R.color.on_panel else R.color.ink))))
-        // Primary: the panel gradient. Secondary: the card fill with a 1 dp ink edge at 30 %.
-        val enabled = if (primaryAction) GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(activity.getColor(R.color.panel_top), activity.getColor(R.color.panel_bottom))).apply {
-                cornerRadius = activity.resources.getDimension(R.dimen.corner_button)
-            }
-            else background(activity.getColor(R.color.card)).apply { setStroke(dp(1), withAlpha(ink, 0.3f)) }
+        // Primary: the panel gradient. Secondary: the card fill with a 1 dp ink edge at 30 %. Text: nothing.
+        val enabled = when {
+            primaryAction -> GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(activity.getColor(R.color.panel_top), activity.getColor(R.color.panel_bottom))).apply {
+                    cornerRadius = activity.resources.getDimension(R.dimen.corner_button)
+                }
+            plain -> android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)
+            else -> background(activity.getColor(R.color.card)).apply { setStroke(dp(1), withAlpha(ink, 0.3f)) }
+        }
         val states = android.graphics.drawable.StateListDrawable().apply {
             addState(intArrayOf(-android.R.attr.state_enabled), background(activity.getColor(R.color.disabled_fill)))
             addState(intArrayOf(), enabled)
         }
-        background = RippleDrawable(ColorStateList.valueOf(withAlpha(ink, 0.18f)), states, null)
+        background = RippleDrawable(ColorStateList.valueOf(withAlpha(ink, 0.18f)), states, if (plain) background(Color.WHITE) else null)
         setPadding(dp(14), dp(12), dp(14), dp(12))
         layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(6), 0, dp(6)) }
         setOnClickListener { callback() }
     }
+
+    /** DESIGN.md's text button: `ink` text with no fill or edge, still 60 dp tall, spanning the card with its label at the start. */
+    private fun textButton(label: String, testTag: String, callback: () -> Unit) =
+        button(label, testTag, plain = true, callback = callback).apply {
+            gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(2), 0, dp(2)) }
+        }
+
+    /** A footer text button: the three share the row equally, and a long label wraps instead of leaving it. */
+    private fun footerButton(label: String, testTag: String, callback: () -> Unit) =
+        button(label, testTag, plain = true, callback = callback).apply {
+            setPadding(dp(6), dp(8), dp(6), dp(8))
+            layoutParams = LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dp(2), dp(4), dp(2), dp(4)) }
+        }
 }
 
 /** Reserve log gestures even when a selectable child TextView consumes the initial touch. */

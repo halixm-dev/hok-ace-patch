@@ -245,6 +245,63 @@ class InterfaceProbeTest {
         } finally { PatchLanguage.set(context, original) }
     }
 
+    /** Footer: the version, then one row of three text buttons; recovery leads with Restore, the rest grouped; every tag keeps its callback. */
+    @Test fun footerIsOneTextButtonRowAndRecoveryLeadsWithRestore() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            lateinit var home: GuidedHome
+            val taps = mutableListOf<String>()
+            scenario.onActivity { activity ->
+                home = GuidedHome(activity) { taps += it }
+                // Recovery: folded until asked.
+                home.show("Finish your game safely", "We will check unfinished work.", "Continue", "start", true)
+                home.recoveryActions(null)
+                val options = activity.window.decorView.findViewWithTag<ViewGroup>("recovery-options")
+                assertEquals(View.GONE, options.visibility)
+                activity.window.decorView.findViewWithTag<View>("show-recovery").performClick()
+                assertEquals(View.VISIBLE, options.visibility)
+            }
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            scenario.onActivity { activity ->
+                val view = activity.window.decorView
+                val footer = view.findViewWithTag<ViewGroup>("footer")
+                assertTrue(shownTexts(footer.getChildAt(0)).single().contains(BuildConfig.VERSION_NAME))
+                // One row, left to right: the three sit side by side, none filling the width.
+                val row = listOf("show-technical", "check-app-update", "free-space").map { view.findViewWithTag<View>(it) }
+                val places = row.map { IntArray(2).also(it::getLocationOnScreen) }
+                assertTrue(places.all { it[1] == places[0][1] })
+                assertEquals(places.map { it[0] }.sorted(), places.map { it[0] })
+                assertTrue(row.all { it.width < footer.width / 2 })
+                // Technical tools still opens the panel below the footer.
+                view.findViewWithTag<View>("show-technical").performClick()
+                assertEquals(View.VISIBLE, home.advanced.visibility)
+                view.findViewWithTag<View>("show-technical").performClick()
+                assertEquals(View.GONE, home.advanced.visibility)
+                // Restore first, every other tool in the quieter group.
+                val options = view.findViewWithTag<ViewGroup>("recovery-options")
+                assertEquals("recover-patch", options.getChildAt(0).tag)
+                val more = view.findViewWithTag<ViewGroup>("more-recovery-tools")
+                assertEquals(UiText.text(activity, "More recovery tools"), shownTexts(more.getChildAt(0)).single())
+                for (tag in listOf("free-space-recovery", "recover-setup", "recover-apk", "verify-game", "export-log")) {
+                    assertNotNull(tag, more.findViewWithTag<View>(tag))
+                }
+                // Tags and callbacks are unchanged, and every target is at least 60 dp.
+                val keys = mapOf("check-app-update" to "check_update", "free-space" to "free_space",
+                    "free-space-recovery" to "free_space", "recover-patch" to "recover", "recover-setup" to "setup_recover",
+                    "recover-apk" to "installer", "verify-game" to "verify", "export-log" to "export")
+                for ((tag, key) in keys) {
+                    taps.clear()
+                    assertTrue(tag, view.findViewWithTag<View>(tag).performClick())
+                    assertEquals(tag, listOf(key), taps)
+                }
+                val minimum = 60 * activity.resources.displayMetrics.density - 1
+                for (tag in keys.keys + "show-technical") {
+                    val button = view.findViewWithTag<android.widget.Button>(tag)
+                    assertTrue("$tag is ${button.height}px", button.minimumHeight >= minimum && button.height >= minimum)
+                }
+            }
+        }
+    }
+
     @Test fun longLogsScrollWithoutMovingHome() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             lateinit var home: GuidedHome
