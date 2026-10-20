@@ -103,7 +103,7 @@ class MainActivity : Activity() {
                 if (automatic && awaitingToken == null) routeAutomatic()
             } else {
                 stopAutomatic()
-                home.message("Access was not allowed. Tap Start to try again.")
+                home.message("Access was not allowed. Tap Start to try again.", failure = true)
             }
         }
     }
@@ -157,7 +157,7 @@ class MainActivity : Activity() {
                 "game" -> {
                     val launch = packageManager.getLaunchIntentForPackage("com.tencent.tmgp.osgame")
                     if (launch != null) startActivity(launch)
-                    else home.message("The game is not installed. Install it before preparing files.")
+                    else home.message("The game is not installed. Install it before preparing files.", failure = true)
                 }
                 else -> actions[when (key) {
                     "prepare" -> "Prepare game files (no installation)"
@@ -263,7 +263,7 @@ class MainActivity : Activity() {
     private fun ensurePermission(): Boolean {
         return try {
             if (!Shizuku.pingBinder()) return false
-            if (Shizuku.isPreV11()) { stopAutomatic(); home.message("Update Shizuku before starting."); return false }
+            if (Shizuku.isPreV11()) { stopAutomatic(); home.message("Update Shizuku before starting.", failure = true); return false }
             if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) return true
             if (!permissionRequested) {
                 permissionRequested = true
@@ -325,7 +325,7 @@ class MainActivity : Activity() {
     private fun openShizuku() {
         if (!ShizukuLauncher.open(this)) {
             stopAutomatic()
-            home.message("Cannot open Shizuku or Google Play. Install Shizuku from play.google.com, start it, then return here.")
+            home.message("Cannot open Shizuku or Google Play. Install Shizuku from play.google.com, start it, then return here.", failure = true)
         }
     }
 
@@ -357,7 +357,7 @@ class MainActivity : Activity() {
                     AutomaticRoute.Step.PREPARE -> startWorker(Intent(this, PatchWorkerService::class.java).setAction("prepare"))
                     AutomaticRoute.Step.MANUAL -> {
                         stopAutomatic()
-                        home.message("More than one unfinished run was found. Choose the correct run in recovery options.")
+                        home.message("More than one unfinished run was found. Choose the correct run in recovery options.", failure = true)
                         home.showRecovery()
                     }
                 }
@@ -388,7 +388,7 @@ class MainActivity : Activity() {
         if (!automatic || busy || destroyed) return
         if (awaitingToken != null && PatchWorkerService.isWorking) return
         val result = runCatching { savedWorker() }.getOrElse {
-            stopAutomatic(); home.message("Saved progress cannot be read. Keep the game closed and save a log for help."); return
+            stopAutomatic(); home.message("Saved progress cannot be read. Keep the game closed and save a log for help.", failure = true); return
         }
         if (awaitingToken == null) {
             if (waitingForDownloads != null) { waitingForDownloads = null; routeAutomatic(); return }
@@ -402,14 +402,14 @@ class MainActivity : Activity() {
             if (!PatchWorkerService.isWorking && result?.optString("flow") != awaitingToken &&
                 (android.os.SystemClock.elapsedRealtime() < awaitingSince ||
                     android.os.SystemClock.elapsedRealtime() - awaitingSince > 30_000)) {
-                stopAutomatic(); home.message("Work could not start. Check Shizuku, then tap Start again.")
+                stopAutomatic(); home.message("Work could not start. Check Shizuku, then tap Start again.", failure = true)
                 return
             }
             if (!PatchWorkerService.isWorking && result?.optString("flow") == awaitingToken &&
                 result?.optString("status") == "running") {
                 val latest = runCatching { savedWorker() }.getOrNull()
                 if (latest?.optString("status") != "running" || PatchWorkerService.isWorking) return
-                stopAutomatic(); home.message("Work was interrupted. Tap Start to check and restore unfinished work.")
+                stopAutomatic(); home.message("Work was interrupted. Tap Start to check and restore unfinished work.", failure = true)
             }
             return
         }
@@ -461,13 +461,16 @@ class MainActivity : Activity() {
                 "Checking and preparing files…") ?: "Checking and preparing files…"), "Please wait", "start", false, GuidedHome.Stage.WORKING)
             busy && automatic -> home.show("Checking game files", "Please wait. We are checking the saved game app and recovery files.", "Please wait", "start", false, GuidedHome.Stage.WORKING)
             pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true, GuidedHome.Stage.ATTENTION)
-            !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false))
-            !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false))
+            !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.SHIZUKU)
+            !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.SHIZUKU)
             // Space freed hands back plain Start; the other results offer another patch.
             result != null && !pending.getOrThrow() -> home.result(result,
                 if (state.optString("status") == "space_freed") "Start" else "Start another patch")
+            // With recovery on offer, ② opens it rather than asking to try again against the recovery card.
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped",
-                friendlyFailure(state?.optString("error").orEmpty(), recoverable), "Try again", "start", recoverable, GuidedHome.Stage.ATTENTION)
+                friendlyFailure(state?.optString("error").orEmpty(), recoverable),
+                if (recoverable) "Open recovery options" else "Try again", if (recoverable) "recovery_options" else "start",
+                recoverable, GuidedHome.Stage.ATTENTION)
             pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true, GuidedHome.Stage.ATTENTION)
             else -> home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
         }
@@ -620,7 +623,7 @@ class MainActivity : Activity() {
                     EmergencyRestoreStore(this).requireResolved()
                     runOnUiThread {
                         val launch = packageManager.getLaunchIntentForPackage("com.tencent.tmgp.osgame")
-                        if (launch != null) startActivity(launch) else home.message("The game cannot be opened. Use recovery.")
+                        if (launch != null) startActivity(launch) else home.message("The game cannot be opened. Use recovery.", failure = true)
                     }
                 }
             }.setView(check).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton(ui("Confirm updates"), null).create()
@@ -821,7 +824,10 @@ class MainActivity : Activity() {
         runOnUiThread {
             if (!destroyed) {
                 if (message.startsWith("ERROR:")) lastTaskError = message.removePrefix("ERROR:").trim()
-                if (message.startsWith("ERROR:") || message.startsWith("Cannot ") || message.startsWith("Prepare game") || message.startsWith("No ")) home.message(if (message.startsWith("ERROR:") || message.startsWith("Cannot ")) friendlyFailure(message) else message)
+                if (message.startsWith("ERROR:") || message.startsWith("Cannot ") || message.startsWith("Prepare game") || message.startsWith("No ")) {
+                    val failure = message.startsWith("ERROR:") || message.startsWith("Cannot ")
+                    home.message(if (failure) friendlyFailure(message) else message, failure)
+                }
                 output.append(message + "\n")
                 if (output.text.length > 32768) output.text = output.text.takeLast(32768)
                 File(filesDir, "feasibility.log").appendText(message + "\n")

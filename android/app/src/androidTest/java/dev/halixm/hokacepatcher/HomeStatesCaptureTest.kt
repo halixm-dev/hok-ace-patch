@@ -30,10 +30,10 @@ class HomeStatesCaptureTest {
             home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
         },
         "install-shizuku" to { home, _ ->
-            home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", false)
+            home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", false, GuidedHome.Stage.SHIZUKU)
         },
         "start-shizuku" to { home, _ ->
-            home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", false)
+            home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", false, GuidedHome.Stage.SHIZUKU)
         },
         "running" to { home, activity ->
             val step = UiText.step(PatchLanguage.current(activity), JSONObject().put("status", "running")
@@ -53,7 +53,7 @@ class HomeStatesCaptureTest {
         },
         "interrupted" to { home, _ ->
             home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true, GuidedHome.Stage.ATTENTION)
-            home.message("Work was interrupted. Tap Start to check and restore unfinished work.")
+            home.message("Work was interrupted. Tap Start to check and restore unfinished work.", failure = true)
         },
         "success" to { home, activity ->
             home.result(UiText.result(PatchLanguage.current(activity), JSONObject().put("status", "complete").put("counts", counts))!!, "Start another patch")
@@ -71,11 +71,15 @@ class HomeStatesCaptureTest {
         },
         "notice" to { home, _ ->
             home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
-            home.message("Access was not allowed. Tap Start to try again.")
+            home.message("Access was not allowed. Tap Start to try again.", failure = true)
+        },
+        "notice-info" to { home, _ ->
+            home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
+            home.message("Finish the current work before freeing space.")
         },
         "failed" to { home, _ ->
             home.recoveryActions(null)
-            home.show("Work stopped", "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help.", "Try again", "start", true, GuidedHome.Stage.ATTENTION)
+            home.show("Work stopped", "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help.", "Open recovery options", "recovery_options", true, GuidedHome.Stage.ATTENTION)
             home.errorDetails("ERROR: Device command failed: cp exited with status 1"); home.logs(logLines)
         },
     )

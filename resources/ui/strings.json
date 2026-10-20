@@ -383,8 +383,8 @@
         "android",
         "windows"
       ],
-      "en": "Switching languages on a phone another patcher or an older version translated? Clear the game's data and download it again first.",
-      "id": "Mengganti bahasa di ponsel yang diterjemahkan patcher lain atau versi lama? Hapus data game dan unduh ulang terlebih dahulu."
+      "en": "If another patcher or an older version translated this game, clear its data before you switch languages.",
+      "id": "Jika game ini diterjemahkan patcher lain atau versi lama, hapus datanya sebelum mengganti bahasa."
     },
     "remove_translation": {
       "platforms": [
@@ -476,6 +476,14 @@
       ],
       "en": "02  /  READY TO PLAY",
       "id": "02  /  SIAP BERMAIN"
+    },
+    "02_needs_shizuku": {
+      "platforms": [
+        "android"
+      ],
+      "en": "02  /  NEEDS SHIZUKU",
+      "id": "02  /  PERLU SHIZUKU",
+      "draft": true
     },
     "02_working": {
       "platforms": [
@@ -766,6 +774,14 @@
       ],
       "en": "Work stopped",
       "id": "Proses terhenti"
+    },
+    "open_recovery_options": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open recovery options",
+      "id": "Buka pilihan pemulihan",
+      "draft": true
     },
     "try_again": {
       "platforms": [

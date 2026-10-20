@@ -101,7 +101,7 @@ class InterfaceProbeTest {
         val kept = File(PristineDelta.directory(context), "delta.bin.probe")
         if (delta.isFile) assertTrue(delta.renameTo(kept))
         try {
-            val clear = "Switching languages on a phone another patcher or an older version translated? Clear the game's data and download it again first."
+            val clear = "If another patcher or an older version translated this game, clear its data before you switch languages."
             val noClear = "Switching languages? No need to clear: the patcher kept the original game files it changed."
             for ((code, held) in listOf("en" to false, "en" to true, "id" to false, "id" to true)) {
                 PatchLanguage.set(context, code)
@@ -195,16 +195,23 @@ class InterfaceProbeTest {
                         assertEquals(4, items.childCount)
                         assertEquals("12345", shownTexts(items.getChildAt(0)).last())
                         assertEquals(View.VISIBLE, view.findViewWithTag<View>("result-note").visibility)
-                        // A notice is one muted line inside ②.
-                        home.message("Access was not allowed. Tap Start to try again.")
+                        // A notice is one ink line inside ②; a failure leads with the warning disc, other notices do not.
+                        home.message("Access was not allowed. Tap Start to try again.", failure = true)
                         val notice = view.findViewWithTag<TextView>("friendly-notice")
-                        assertSame(card, notice.parent)
-                        assertEquals(View.VISIBLE, notice.visibility)
-                        assertEquals(activity.getColor(R.color.text_muted), notice.currentTextColor)
+                        val noticeRow = view.findViewWithTag<View>("friendly-notice-row")
+                        val mark = view.findViewWithTag<View>("notice-mark")
+                        assertSame(card, noticeRow.parent)
+                        assertEquals(View.VISIBLE, noticeRow.visibility)
+                        assertEquals(View.VISIBLE, mark.visibility)
+                        assertEquals(activity.getColor(R.color.ink), notice.currentTextColor)
+                        home.message("Finish the current work before freeing space.")
+                        assertEquals(View.GONE, mark.visibility)
                         // Any other state clears the counts; the eyebrow names the state, never "READY TO PLAY" on a failure.
                         home.show("Ready when you are", "Tap Start.", "Start", "start", true)
                         assertEquals(View.GONE, items.visibility)
                         assertEquals(UiText.translate(code, "02  /  READY TO PLAY"), eyebrow.text.toString())
+                        home.show("Start Shizuku", "Tap Open Shizuku.", "Open Shizuku", "start", false, GuidedHome.Stage.SHIZUKU)
+                        assertEquals(UiText.translate(code, "02  /  NEEDS SHIZUKU"), eyebrow.text.toString())
                         home.show("Work stopped", "Tap Try again.", "Try again", "start", true, GuidedHome.Stage.ATTENTION)
                         assertEquals(UiText.translate(code, "02  /  NEEDS ATTENTION"), eyebrow.text.toString())
                         // One Save log for help: the recovery group's steps aside while the error card shows.

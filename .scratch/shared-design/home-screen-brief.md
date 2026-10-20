@@ -62,8 +62,8 @@ Production-ready home screen for both patchers, in every state below.
 | Removed | *Translation removed*: original game files restored, then the Scan to login note and how to get the official app | Same button as Success |
 | Written, unconfirmed | *Translation written* (Android): recovery closed a run whose translation is on the phone but was not checked | Same buttons as Success on Android; nothing runs automatically |
 | Space freed | *Space freed* (Android): space freed and free now, and what was kept | Button returns to **Start** |
-| Notice | One `text-muted` line under ②'s instruction, such as "Access was not allowed. Tap Start to try again." | Not a card; replaced by the next notice |
-| Failed | Error card with the cause, **Copy error details** (Android) and the next step | Button becomes **Try again**. Log and "Save log for help" stay reachable |
+| Notice | One `ink` line under ②'s instruction, such as "Access was not allowed. Tap Start to try again." A failure leads with a warning disc | Not a card; replaced by the next notice |
+| Failed | Error card with the cause, **Copy error details** (Android) and the next step | Button becomes **Try again**, or **Open recovery options** (Android) while recovery is offered. Log and "Save log for help" stay reachable |
 
 **Ranges:**
 - Indonesian strings run about 30 % longer than English.

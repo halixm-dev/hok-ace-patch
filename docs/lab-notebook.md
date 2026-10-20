@@ -3493,3 +3493,26 @@ recovery options* while open. The recovery group's *Save log for help* is hidden
 or ② offers it. Four new Android strings, the Indonesian marked draft. `InterfaceProbeTest` checks
 each of the three, and it, `HomeStatesCaptureTest` and `GuidedHomeProbeTest` pass on the same phone
 at font scale 1.0 and 2.0. The critique was not re-run.
+
+## 2026-10-20 — Android home screen wording and notices, re-checked on a phone (Redmi Note 9 Pro)
+
+Debug build 1.6.1.12, signed with the patcher key and lineage (`tools/ci/sign_android.ps1`) and
+installed over the previous debug build with `adb install -r`, app and test APK both. The pristine
+delta read sha256 `ad345ade…ed56` before and after the runs. Instrumentation through `am instrument`.
+
+Changes checked:
+
+| Change | What the phone shows |
+|---|---|
+| *Work stopped* with recovery on offer | ② reads *Open recovery options* (*Buka pilihan pemulihan*) and opens the warning card instead of *Try again*. With nothing to recover it still reads *Try again* (storage state). |
+| Shizuku states | *Install Shizuku* and *Start Shizuku* sit under `02  /  NEEDS SHIZUKU` (`PERLU SHIZUKU`), not READY TO PLAY (`GuidedHome.Stage.SHIZUKU`). |
+| Language note without a delta | One conditional line: "If another patcher or an older version translated this game, clear its data before you switch languages." `InterfaceProbeTest` checks both variants in both languages. |
+| Notices | `ink`, not `text-muted`. A failure notice leads with a warning disc (`ic_notice_warning`, `warning` fill, `ink` mark), sized to the text and centred on its first line at both font sizes; an informational notice has none. |
+
+`HomeStatesCaptureTest` now draws 14 states (adds *notice-info*; *failed* mirrors the recovery
+label). It, `InterfaceProbeTest` (7) and `GuidedHomeProbeTest` pass at font scale 1.0 and 2.0 in
+English and Indonesian: 9 of 9 at each size, so the clip check passes on all 56 captures. Four were
+looked at by eye (notice EN 1.0, notice ID 2.0, failed ID 2.0, Install Shizuku EN 1.0). The phone's own font scale (1.15) was restored afterwards.
+
+Open: in the failed state, while the warning card is folded, ② *Open recovery options* and the card's
+*Show recovery options* do the same thing. The critique was not re-run.

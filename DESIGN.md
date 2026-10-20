@@ -142,11 +142,15 @@ Top to bottom:
 2. **① Language** — a card with, in order: the title, the language note, the two choices (English
    and Bahasa Indonesia), then **Remove translation**, a secondary outlined button.
    - The language note has two variants: no clear is needed while the patcher keeps a pristine
-     delta; otherwise the game's data must be cleared first.
+     delta; otherwise one short conditional line says a clear is needed only on a game another
+     patcher or an older version translated. It never opens with the data-clearing instruction.
    - Remove translation shows only while a pristine delta is kept (Windows: in its working folder).
    - The choices and Remove translation lock together while work runs, in the disabled colours.
 3. **② Start** — a card with the single Start button. It rewrites itself in place for each state:
    - **Idle** and **not ready**: the Start button, with the blocker as the next step when there is one.
+   - **Work stopped**: while the warning card offers recovery, the button opens it (*Open recovery
+     options*) instead of offering *Try again* against the card's "Use recovery first". With no
+     recovery to offer it reads *Try again*.
    - **Running**: a bar and one line, `Step N of M · <step>`, in place of the button.
    - **Result**: a heading, one summary line, the run's own counts as a short list and, where the
      translation was added or removed, the Scan to login note. The result states are
@@ -154,13 +158,15 @@ Top to bottom:
      run whose translation is on the phone, unconfirmed) and *Space freed* (Android). **Android**:
      a result that leaves the game ready to play (all but *Space freed*) leads with *Open game* as
      the primary button, with *Start another patch* under it as a secondary button.
-   - **Notice**: one `text-muted` line under the card's instruction, such as "Access was not
-     allowed. Tap Start to try again." It is not a card, and the next notice replaces it.
+   - **Notice**: one `ink` line under the card's instruction, such as "Access was not allowed. Tap
+     Start to try again." A notice that reports a failure leads with a warning disc (`warning` fill,
+     `ink` mark, as tall as the text); an informational one has none. It is not a card, and the
+     next notice replaces it.
 
-   Its eyebrow names the state: `02  /  READY TO PLAY` while idle or not ready, `IN PROGRESS`
-   while running, `DONE` on a result and `NEEDS ATTENTION` on a failure or unfinished work. A
-   failure never sits under READY TO PLAY. **Windows** keeps READY TO PLAY until its result states
-   land (ticket 16).
+   Its eyebrow names the state: `02  /  READY TO PLAY` while idle or not ready, `NEEDS SHIZUKU`
+   above *Install Shizuku* and *Start Shizuku*, `IN PROGRESS` while running, `DONE` on a result and
+   `NEEDS ATTENTION` on a failure or unfinished work. A failure or a missing Shizuku never sits
+   under READY TO PLAY. **Windows** keeps READY TO PLAY until its result states land (ticket 16).
 
    **Windows**: device status and the working folder (with its free space and Change…) sit above
    the Start button in this card.

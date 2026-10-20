@@ -29,9 +29,12 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         LABEL(R.dimen.type_label, R.font.barlow_semibold),
     }
 
-    /** What ② is doing, named by its eyebrow so a failure or a result never sits under "READY TO PLAY". */
+    /**
+     * What ② is doing, named by its eyebrow so a failure, a result or a missing Shizuku never sits
+     * under "READY TO PLAY".
+     */
     enum class Stage(val eyebrow: String) {
-        READY("02  /  READY TO PLAY"), WORKING("02  /  IN PROGRESS"),
+        READY("02  /  READY TO PLAY"), SHIZUKU("02  /  NEEDS SHIZUKU"), WORKING("02  /  IN PROGRESS"),
         DONE("02  /  DONE"), ATTENTION("02  /  NEEDS ATTENTION"),
     }
 
@@ -55,7 +58,22 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         tag = "progress-bar"
         layoutParams = LinearLayout.LayoutParams(-1, dp(8)).apply { setMargins(0, dp(12), 0, dp(12)) }
     }
-    private val notice = text("", Type.BODY, supporting = true)
+    /** One ink line under ②'s instruction; a notice that reports a failure leads with the warning disc. */
+    private val notice = text("", Type.BODY).apply { tag = "friendly-notice"; layoutParams = LinearLayout.LayoutParams(0, -2, 1f) }
+    private val noticeMark = android.widget.ImageView(activity).apply {
+        tag = "notice-mark"; setImageResource(R.drawable.ic_notice_warning); visibility = View.GONE
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        // As tall as the text, centred on the first line, so it follows the system font size.
+        val size = notice.textSize.toInt()
+        val line = notice.paint.fontMetricsInt.let { it.descent - it.ascent }
+        layoutParams = LinearLayout.LayoutParams(size, size).apply {
+            setMargins(0, notice.paddingTop + (line - size) / 2, dp(8), 0)
+        }
+    }
+    private val noticeRow = LinearLayout(activity).apply {
+        tag = "friendly-notice-row"; orientation = LinearLayout.HORIZONTAL; visibility = View.GONE
+        addView(noticeMark); addView(notice)
+    }
     /** A result state's counts, one row each, and the login note that follows them. */
     private val resultItems = column().apply { tag = "result-items"; visibility = View.GONE }
     private val resultNote = text("", Type.BODY).apply { tag = "result-note"; visibility = View.GONE }
@@ -170,8 +188,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         // ② rewrites itself in place: heading, instruction, the notice line, a result's counts and note, then the button.
         val card = card().apply { tag = "start-card" }
         card.addView(stage)
-        notice.tag = "friendly-notice"; notice.visibility = View.GONE
-        card.addView(heading); card.addView(detail); card.addView(notice)
+        card.addView(heading); card.addView(detail); card.addView(noticeRow)
         card.addView(resultItems); card.addView(resultNote); card.addView(primary); card.addView(again)
         // DESIGN.md: the track is disabled-fill, the fill ink.
         bar.progressTintList = ColorStateList.valueOf(ink); bar.indeterminateTintList = ColorStateList.valueOf(ink)
@@ -234,7 +251,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     /** A result state: its heading and summary, the run's own counts as a list, the login note, then Open game or <label>. */
     fun result(result: UiText.Result, label: String) {
         // A new result starts without the notice an earlier screen left.
-        if (trace("${result.english} | $label")) notice.text = ""
+        if (trace("${result.english} | $label")) { notice.text = ""; noticeMark.visibility = View.GONE }
         heading.text = result.heading; detail.text = result.summary
         if (result.gameReady) {
             primary.text = ui("Open game"); next = "game"
@@ -345,7 +362,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         languageNote.text = ui(if (PristineDelta.held(activity)) {
             "Switching languages? No need to clear: the patcher kept the original game files it changed."
         } else {
-            "Switching languages on a phone another patcher or an older version translated? Clear the game's data and download it again first."
+            "If another patcher or an older version translated this game, clear its data before you switch languages."
         })
     }
 
@@ -360,19 +377,21 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         if (value == workerNotice) return
         if (value.isEmpty() && notice.text.toString() == ui(workerNotice)) { notice.text = ""; showNotice() }
         workerNotice = value
-        if (value.isNotEmpty()) message(value)
+        if (value.isNotEmpty()) message(value, failure = true)
     }
 
-    fun message(value: String) {
+    /** Show <value> under ②'s instruction; [failure] marks a notice that reports something that went wrong. */
+    fun message(value: String, failure: Boolean = false) {
+        noticeMark.visibility = if (failure) View.VISIBLE else View.GONE
         if (notice.text.toString() == ui(value)) return
         DiagnosticTrace.event("screen", "Notice: $value")
         notice.text = ui(value); showNotice()
         notice.announceForAccessibility(notice.text)
     }
 
-    /** One muted line under ②'s instruction; hidden when it only repeats the instruction. */
+    /** Hidden when empty or when it only repeats the instruction. */
     private fun showNotice() {
-        notice.visibility = if (notice.text.isEmpty() || notice.text.toString() == detail.text.toString()) View.GONE else View.VISIBLE
+        noticeRow.visibility = if (notice.text.isEmpty() || notice.text.toString() == detail.text.toString()) View.GONE else View.VISIBLE
     }
 
     /** Show the cause of <raw> on screen and keep all of it for copying; empty hides the box. */
