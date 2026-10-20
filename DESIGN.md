@@ -151,7 +151,9 @@ Top to bottom:
    - **Result**: a heading, one summary line, the run's own counts as a short list and, where the
      translation was added or removed, the Scan to login note. The result states are
      *Translation added*, *Translation removed*, *Translation written* (Android: recovery closed a
-     run whose translation is on the phone, unconfirmed) and *Space freed* (Android).
+     run whose translation is on the phone, unconfirmed) and *Space freed* (Android). **Android**:
+     a result that leaves the game ready to play (all but *Space freed*) leads with *Open game* as
+     the primary button, with *Start another patch* under it as a secondary button.
    - **Notice**: one `text-muted` line under the card's instruction, such as "Access was not
      allowed. Tap Start to try again." It is not a card, and the next notice replaces it.
 

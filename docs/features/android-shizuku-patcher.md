@@ -162,6 +162,18 @@ A missing admission response stops after 30 seconds. Opening the app alone never
 Actual automatic live patch/first conversion, permission dialog/OEM matrix and low-literacy user
 acceptance remain separate device gates.
 
+**Shortcuts (2026-10-20).** A result that leaves the game ready to play (*Translation added*,
+*removed* or *written*) leads with **Open game**, the same launch the home screen's `game` action
+does, with **Start another patch** under it. Long-pressing the launcher icon offers *Start patch*,
+*Save log for help* and *Check for updates* (`LauncherShortcuts`): dynamic shortcuts in the
+patcher's own language, republished whenever the activity is created, so a language switch follows.
+Each taps the same home-screen action, with the same guards, so *Start patch* is a deliberate Start,
+not the app opening: reopening from Recents does not repeat it, and it is refused while ② offers only
+*Save log for help*. On a cold start it waits up to 3 s for Shizuku's binder before treating Shizuku
+as stopped. They open the non-exported `ShortcutEntry` alias, which only the launcher can start on the
+app's behalf. A shortcut tapped during a run starts the activity afresh, as process loss does: the
+worker keeps running and the screen reads its record. Not yet tried on a phone.
+
 ### 1. Application and engine boundaries
 
 Create an additional Android application under `android/`; keep the Windows application available. Proposed components:

@@ -76,22 +76,26 @@ object UiText {
         return source
     }
 
-    /** A result state of ② Start: its heading, one summary line, the run's own counts, then the login note; <english> names it in traces. */
-    data class Result(val english: String, val heading: String, val summary: String, val items: List<String>, val note: String = "")
+    /**
+     * A result state of ② Start: its heading, one summary line, the run's own counts, then the login note; <english> names it in traces.
+     * <gameReady> marks a result that leaves the game ready to play, so ② leads with Open game.
+     */
+    data class Result(val english: String, val heading: String, val summary: String, val items: List<String>, val note: String = "",
+                      val gameReady: Boolean = false)
 
     /** The result <state> reports in language <code>, or null when the worker record is not a result. Takes a code, not a Context, so JVM tests reach it. */
     fun result(code: String, state: JSONObject): Result? = when (state.optString("status")) {
         "complete" -> if (state.has("removed")) Result("Translation removed", translate(code, "Translation removed"), template(code, "removal_verified"),
-            listOf(template(code, "original_files_restored", "count" to state.getInt("removed"))), template(code, "removed_login_note"))
+            listOf(template(code, "original_files_restored", "count" to state.getInt("removed"))), template(code, "removed_login_note"), gameReady = true)
         else {
             val counts = state.optJSONObject("counts")
             // The template's first line is the summary; each further line is one count.
             val lines = if (counts == null) listOf(template(code, "completed_no_counts")) else template(code, "completed_counts",
                 "text_tables" to counts.getInt("text_tables"), "applied_textures" to counts.getInt("applied_textures"),
                 "skipped_tables" to counts.getInt("skipped_tables"), "skipped_textures" to counts.getInt("skipped_textures")).lines()
-            Result("Translation added", translate(code, "Translation added"), lines.first(), lines.drop(1), template(code, "added_login_note"))
+            Result("Translation added", translate(code, "Translation added"), lines.first(), lines.drop(1), template(code, "added_login_note"), gameReady = true)
         }
-        "recovered_unconfirmed" -> Result("Translation written", translate(code, "Translation written"), translate(code, WorkerStatus.UNCONFIRMED), emptyList())
+        "recovered_unconfirmed" -> Result("Translation written", translate(code, "Translation written"), translate(code, WorkerStatus.UNCONFIRMED), emptyList(), gameReady = true)
         "space_freed" -> Result("Space freed", translate(code, "Space freed"),
             template(code, if (state.optBoolean("removed_saved_apks")) "freed_removed_apks" else "freed_kept"),
             template(code, "freed_amounts", "freed" to StorageBudget.freeSpaceLabel(state.optLong("freed_bytes")),

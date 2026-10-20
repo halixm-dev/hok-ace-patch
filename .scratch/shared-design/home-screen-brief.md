@@ -58,9 +58,9 @@ Production-ready home screen for both patchers, in every state below.
 | Not ready | Start still visible, with the blocker as the next step | Windows: phone not connected, or folder short of space. Android: Shizuku missing or stopped; the button becomes Install / Start Shizuku |
 | Running | Progress bar, "Step N of 7 · <step>", **Stop safely** (Android) | Language card locked. Log follows the latest line |
 | Needs attention | Warning card directly under ② | Android recovery, storage shortfall (needed, free and to-clear GB), interrupted run |
-| Success | *Translation added*: completion counts (text tables and images applied or skipped), then the Scan to login note | Button becomes **Run again** (Windows) or **Start another patch** (Android) |
+| Success | *Translation added*: completion counts (text tables and images applied or skipped), then the Scan to login note | Button becomes **Run again** (Windows). Android: **Open game** leads, **Start another patch** follows as a secondary button |
 | Removed | *Translation removed*: original game files restored, then the Scan to login note and how to get the official app | Same button as Success |
-| Written, unconfirmed | *Translation written* (Android): recovery closed a run whose translation is on the phone but was not checked | **Start another patch**; nothing runs automatically |
+| Written, unconfirmed | *Translation written* (Android): recovery closed a run whose translation is on the phone but was not checked | Same buttons as Success on Android; nothing runs automatically |
 | Space freed | *Space freed* (Android): space freed and free now, and what was kept | Button returns to **Start** |
 | Notice | One `text-muted` line under ②'s instruction, such as "Access was not allowed. Tap Start to try again." | Not a card; replaced by the next notice |
 | Failed | Error card with the cause, **Copy error details** (Android) and the next step | Button becomes **Try again**. Log and "Save log for help" stay reachable |

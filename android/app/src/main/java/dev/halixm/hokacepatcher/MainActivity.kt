@@ -29,6 +29,10 @@ import org.json.JSONObject
 import java.text.DateFormat
 import java.util.Date
 
+/** A launcher shortcut's Start waits for Shizuku's binder this many times, this long apart (3 s in all). */
+private const val SHORTCUT_TRIES = 15
+private const val SHORTCUT_WAIT_MS = 200L
+
 /** Feasibility UI: independent engine checks and explicit, fixed device probes. */
 class MainActivity : Activity() {
     private val worker = Executors.newSingleThreadExecutor()
@@ -238,6 +242,22 @@ class MainActivity : Activity() {
         Shizuku.addBinderDeadListener(died)
         Shizuku.addRequestPermissionResultListener(permission)
         ensurePermission()
+        LauncherShortcuts.publish(this)
+        // A restored or recreated activity already acted on its shortcut.
+        if (state == null) LauncherShortcuts.action(intent)?.let { shortcut(it, SHORTCUT_TRIES) }
+    }
+
+    /**
+     * Act on launcher shortcut <key> after the screen's first refresh. A cold start reaches here before
+     * Shizuku's binder does, so Start waits for it (up to [SHORTCUT_TRIES] checks) rather than sending the
+     * player to Shizuku while it is running.
+     */
+    private fun shortcut(key: String, tries: Int) {
+        statusHandler.postDelayed({
+            if (destroyed) return@postDelayed
+            if (key == "start" && !Shizuku.pingBinder() && tries > 1) shortcut(key, tries - 1)
+            else home.shortcut(key)
+        }, SHORTCUT_WAIT_MS)
     }
 
     private fun ensurePermission(): Boolean {

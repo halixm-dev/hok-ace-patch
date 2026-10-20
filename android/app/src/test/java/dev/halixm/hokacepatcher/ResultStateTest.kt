@@ -2,7 +2,9 @@ package dev.halixm.hokacepatcher
 
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** ② Start's result states: a heading, a summary line, the run's own counts as a list, then the login note. */
@@ -53,6 +55,14 @@ class ResultStateTest {
         assertEquals("Space freed. The record for switching languages and the saved game app were kept.", result.summary)
         assertEquals(listOf("Freed: 2.0 GB", "Free now: 5.0 GB"), result.items)
         assertEquals("", result.note)
+    }
+
+    /** A result that leaves the game ready to play leads with Open game; Space freed changed no game files. */
+    @Test fun onlyResultsThatLeaveTheGameReadyOfferOpenGame() {
+        assertTrue(UiText.result("en", complete(counts))!!.gameReady)
+        assertTrue(UiText.result("en", complete().put("removed", 7))!!.gameReady)
+        assertTrue(UiText.result("en", JSONObject().put("status", "recovered_unconfirmed"))!!.gameReady)
+        assertFalse(UiText.result("en", JSONObject().put("status", "space_freed"))!!.gameReady)
     }
 
     @Test fun otherStatesAreNotResults() {

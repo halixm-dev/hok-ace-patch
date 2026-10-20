@@ -17,6 +17,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Launcher shortcuts only: the launcher starts it on this app's behalf; no other app can. -->
+        <activity-alias android:name=".ShortcutEntry" android:targetActivity=".MainActivity"
+            android:exported="false" />
         <service android:name=".PatchWorkerService" android:exported="false"
             android:foregroundServiceType="dataSync" />
         <provider android:name=".RecoveryApkProvider" android:authorities="${applicationId}.recovery"

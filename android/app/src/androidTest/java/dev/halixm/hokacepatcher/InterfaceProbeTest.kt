@@ -176,6 +176,17 @@ class InterfaceProbeTest {
                             val texts = shownTexts(card)
                             assertTrue("$code: $heading in $texts", heading in texts)
                             assertEquals(UiText.translate(code, "02  /  DONE"), eyebrow.text.toString())
+                            // A result that leaves the game ready leads with Open game; Space freed keeps Start alone.
+                            val primary = view.findViewWithTag<TextView>("next-step")
+                            val again = view.findViewWithTag<TextView>("start-again")
+                            if (heading == expected.last()) {
+                                assertEquals(UiText.translate(code, "Start"), primary.text.toString())
+                                assertEquals(View.GONE, again.visibility)
+                            } else {
+                                assertEquals(UiText.translate(code, "Open game"), primary.text.toString())
+                                assertEquals(View.VISIBLE, again.visibility)
+                                assertEquals(UiText.translate(code, "Start"), again.text.toString())
+                            }
                         }
                         // Translation added: four count rows, the value at the end of each, then the login note.
                         home.result(UiText.result(code, states[0])!!, "Start another patch")
