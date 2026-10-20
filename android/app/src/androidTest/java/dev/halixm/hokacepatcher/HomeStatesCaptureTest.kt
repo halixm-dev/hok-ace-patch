@@ -38,21 +38,21 @@ class HomeStatesCaptureTest {
         "running" to { home, activity ->
             val step = UiText.step(PatchLanguage.current(activity), JSONObject().put("status", "running")
                 .put("action", "patch").put("step", "unlock_access").put("steps", 6))!!
-            home.show("Working on your game", step.line, "Please wait", "start", false)
+            home.show("Working on your game", step.line, "Please wait", "start", false, GuidedHome.Stage.WORKING)
             home.working(true); home.languageEnabled(false); home.progress(true, step); home.logs(logLines)
         },
         "recovery" to { home, _ ->
             home.recoveryActions(null)
-            home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true)
+            home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true, GuidedHome.Stage.ATTENTION)
             home.showRecovery()
         },
         "storage" to { home, activity ->
             val storage = UiText.storage(activity, StorageBudget.explainFailure("2000000000 bytes required, 1000000000 available")!!)
-            home.show("Work stopped", storage, "Try again", "start", false)
+            home.show("Work stopped", storage, "Try again", "start", false, GuidedHome.Stage.ATTENTION)
             home.errorDetails("ERROR: 2000000000 bytes required, 1000000000 available"); home.logs(logLines)
         },
         "interrupted" to { home, _ ->
-            home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", true)
+            home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true, GuidedHome.Stage.ATTENTION)
             home.message("Work was interrupted. Tap Start to check and restore unfinished work.")
         },
         "success" to { home, activity ->
@@ -75,7 +75,7 @@ class HomeStatesCaptureTest {
         },
         "failed" to { home, _ ->
             home.recoveryActions(null)
-            home.show("Work stopped", "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help.", "Try again", "start", true)
+            home.show("Work stopped", "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help.", "Try again", "start", true, GuidedHome.Stage.ATTENTION)
             home.errorDetails("ERROR: Device command failed: cp exited with status 1"); home.logs(logLines)
         },
     )

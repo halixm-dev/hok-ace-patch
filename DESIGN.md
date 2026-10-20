@@ -155,12 +155,19 @@ Top to bottom:
    - **Notice**: one `text-muted` line under the card's instruction, such as "Access was not
      allowed. Tap Start to try again." It is not a card, and the next notice replaces it.
 
+   Its eyebrow names the state: `02  /  READY TO PLAY` while idle or not ready, `IN PROGRESS`
+   while running, `DONE` on a result and `NEEDS ATTENTION` on a failure or unfinished work. A
+   failure never sits under READY TO PLAY. **Windows** keeps READY TO PLAY until its result states
+   land (ticket 16).
+
    **Windows**: device status and the working folder (with its free space and Change…) sit above
    the Start button in this card.
 4. **Warning or error card**, directly under ② Start, when one exists:
    - The **warning card** holds anything that needs action. On Android it is "Game won't open?",
-     with the recovery options folded and Restore interrupted patch first, a secondary button. The
-     other tools follow as text buttons under a `text-muted` *More recovery tools* label.
+     with the recovery options folded behind *Show recovery options*, which reads *Hide recovery
+     options* while they are open. Restore interrupted patch comes first, a secondary button. The
+     other tools follow as text buttons under a `text-muted` *More recovery tools* label, and
+     their *Save log for help* is hidden while the error card or ② already offers it: one per screen.
    - The **error card** holds the cause and the next step, with *Copy error details* (Android) and
      *Save log for help*.
 5. **Log** — the live activity log; on Android also the technical log. Each log scrolls inside its

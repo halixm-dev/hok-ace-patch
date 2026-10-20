@@ -170,10 +170,12 @@ class InterfaceProbeTest {
                         val home = GuidedHome(activity) { }
                         val view = activity.window.decorView
                         val card = view.findViewWithTag<ViewGroup>("start-card")
+                        val eyebrow = view.findViewWithTag<TextView>("start-eyebrow")
                         for ((state, heading) in states.zip(expected)) {
                             home.result(UiText.result(code, state)!!, "Start")
                             val texts = shownTexts(card)
                             assertTrue("$code: $heading in $texts", heading in texts)
+                            assertEquals(UiText.translate(code, "02  /  DONE"), eyebrow.text.toString())
                         }
                         // Translation added: four count rows, the value at the end of each, then the login note.
                         home.result(UiText.result(code, states[0])!!, "Start another patch")
@@ -188,10 +190,17 @@ class InterfaceProbeTest {
                         assertSame(card, notice.parent)
                         assertEquals(View.VISIBLE, notice.visibility)
                         assertEquals(activity.getColor(R.color.text_muted), notice.currentTextColor)
-                        // Any other state clears the counts.
+                        // Any other state clears the counts; the eyebrow names the state, never "READY TO PLAY" on a failure.
                         home.show("Ready when you are", "Tap Start.", "Start", "start", true)
                         assertEquals(View.GONE, items.visibility)
+                        assertEquals(UiText.translate(code, "02  /  READY TO PLAY"), eyebrow.text.toString())
+                        home.show("Work stopped", "Tap Try again.", "Try again", "start", true, GuidedHome.Stage.ATTENTION)
+                        assertEquals(UiText.translate(code, "02  /  NEEDS ATTENTION"), eyebrow.text.toString())
+                        // One Save log for help: the recovery group's steps aside while the error card shows.
+                        val recoveryExport = view.findViewWithTag<View>("export-log")
+                        assertEquals(View.VISIBLE, recoveryExport.visibility)
                         home.errorDetails("Device command failed: probe")
+                        assertEquals(View.GONE, recoveryExport.visibility)
                         home.logs(listOf("Log line"))
                         val root = card.parent as ViewGroup
                         val order = listOf("start-card", "error-card", "recovery-card", "live-log-scroll").map { tag ->
@@ -257,8 +266,16 @@ class InterfaceProbeTest {
                 home.recoveryActions(null)
                 val options = activity.window.decorView.findViewWithTag<ViewGroup>("recovery-options")
                 assertEquals(View.GONE, options.visibility)
-                activity.window.decorView.findViewWithTag<View>("show-recovery").performClick()
+                // The toggle names what a tap will do.
+                val toggle = activity.window.decorView.findViewWithTag<TextView>("show-recovery")
+                assertEquals(UiText.text(activity, "Show recovery options"), toggle.text.toString())
+                toggle.performClick()
                 assertEquals(View.VISIBLE, options.visibility)
+                assertEquals(UiText.text(activity, "Hide recovery options"), toggle.text.toString())
+                toggle.performClick()
+                assertEquals(View.GONE, options.visibility)
+                assertEquals(UiText.text(activity, "Show recovery options"), toggle.text.toString())
+                toggle.performClick()
             }
             InstrumentationRegistry.getInstrumentation().waitForIdleSync()
             scenario.onActivity { activity ->

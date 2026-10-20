@@ -14,3 +14,7 @@
 - [ ] Plain removal dialog
 - [ ] Shared result headings
 - [ ] `run.bat` checked: patch and remove on a phone, or the dialogs and states driven from source
+
+## Comments
+
+2026-10-20: Android's ② eyebrow now follows the state (`02_working`, `02_done`, `02_needs_attention`, Android-only strings today). When the Windows result and failure states land here, give them the same eyebrows: add `windows` to those keys' platforms (DESIGN.md, ② Start).

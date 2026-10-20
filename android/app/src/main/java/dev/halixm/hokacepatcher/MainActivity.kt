@@ -438,17 +438,17 @@ class MainActivity : Activity() {
         when {
             // The step names where the run is; its free-text line is in the log.
             live -> home.show("Working on your game", step?.line ?: UiText.progress(this, state?.optString("progress",
-                "Checking and preparing files…") ?: "Checking and preparing files…"), "Please wait", "start", false)
-            busy && automatic -> home.show("Checking game files", "Please wait. We are checking the saved game app and recovery files.", "Please wait", "start", false)
-            pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true)
+                "Checking and preparing files…") ?: "Checking and preparing files…"), "Please wait", "start", false, GuidedHome.Stage.WORKING)
+            busy && automatic -> home.show("Checking game files", "Please wait. We are checking the saved game app and recovery files.", "Please wait", "start", false, GuidedHome.Stage.WORKING)
+            pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true, GuidedHome.Stage.ATTENTION)
             !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false))
             !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false))
             // Space freed hands back plain Start; the other results offer another patch.
             result != null && !pending.getOrThrow() -> home.result(result,
                 if (state.optString("status") == "space_freed") "Start" else "Start another patch")
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped",
-                friendlyFailure(state?.optString("error").orEmpty(), recoverable), "Try again", "start", recoverable)
-            pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true)
+                friendlyFailure(state?.optString("error").orEmpty(), recoverable), "Try again", "start", recoverable, GuidedHome.Stage.ATTENTION)
+            pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true, GuidedHome.Stage.ATTENTION)
             else -> home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
         }
         home.working(busy || live || (automatic && !waitingForShizuku))

@@ -29,13 +29,23 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         LABEL(R.dimen.type_label, R.font.barlow_semibold),
     }
 
+    /** What ② is doing, named by its eyebrow so a failure or a result never sits under "READY TO PLAY". */
+    enum class Stage(val eyebrow: String) {
+        READY("02  /  READY TO PLAY"), WORKING("02  /  IN PROGRESS"),
+        DONE("02  /  DONE"), ATTENTION("02  /  NEEDS ATTENTION"),
+    }
+
     private val ink = activity.getColor(R.color.ink)
     private val muted = activity.getColor(R.color.text_muted)
     private val root = column()
+    private val stage = eyebrow(Stage.READY.eyebrow).apply { tag = "start-eyebrow" }
     private val heading = text("Let's get started", Type.HEADING)
     private val detail = text("Start Shizuku, then come back here.", Type.BODY)
     private val primary = button("Start", "next-step", true) { invoke(next) }
     private val recovery = card(R.color.warning_surface, R.color.warning)
+    private val recoveryToggle = button("Show recovery options", "show-recovery") {
+        foldRecovery(recoveryOptions.visibility != View.VISIBLE)
+    }
     private var shown = ""
     private val stop = button("Stop safely", "stop-automatic") { invoke("stop") }
     /** Running: the bar takes the button's place; determinate while the worker reports a step. */
@@ -108,6 +118,8 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         }
     }
 
+    /** Hidden while the screen already offers Save log for help: the error card's, or ② itself. */
+    private val recoveryExport by lazy { textButton("Save log for help", "export-log") { invoke("export") } }
     private val recoverPatch by lazy { button("Restore interrupted patch", "recover-patch") { invoke("recover") } }
     private val recoverSetup by lazy { textButton("Finish or repair first setup", "recover-setup") { invoke("setup_recover") } }
     private val savedApkActions by lazy {
@@ -127,7 +139,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
                 addView(textButton("Free up space", "free-space-recovery") { invoke("free_space") })
                 addView(recoverSetup)
                 savedApkActions.forEach { addView(it) }
-                addView(textButton("Save log for help", "export-log") { invoke("export") })
+                addView(recoveryExport)
             })
         }
     }
@@ -155,7 +167,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         root.addView(languageCard)
         // ② rewrites itself in place: heading, instruction, the notice line, a result's counts and note, then the button.
         val card = card().apply { tag = "start-card" }
-        card.addView(eyebrow("02  /  READY TO PLAY"))
+        card.addView(stage)
         notice.tag = "friendly-notice"; notice.visibility = View.GONE
         card.addView(heading); card.addView(detail); card.addView(notice)
         card.addView(resultItems); card.addView(resultNote); card.addView(primary)
@@ -172,9 +184,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         root.addView(logCard)
         recovery.addView(text("Game won't open?", Type.HEADING))
         recovery.addView(text("Keep the game closed. Use recovery first.", Type.BODY))
-        recovery.addView(button("Show recovery options", "show-recovery") {
-            recoveryOptions.visibility = if (recoveryOptions.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-        })
+        recovery.addView(recoveryToggle)
         recovery.addView(recoveryOptions)
         recovery.visibility = View.GONE
         // The footer: the version, then one row of text buttons; Technical tools opens below it.
@@ -208,11 +218,14 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         })
     }
 
-    fun show(title: String, instruction: String, label: String, action: String, recoveryNeeded: Boolean) {
+    fun show(title: String, instruction: String, label: String, action: String, recoveryNeeded: Boolean,
+             stage: Stage = Stage.READY) {
         trace("$title | $instruction | $label -> $action, recovery $recoveryNeeded")
         heading.text = ui(title); detail.text = ui(instruction); primary.text = ui(label); next = action
+        this.stage.text = ui(stage.eyebrow)
         recovery.visibility = if (recoveryNeeded) View.VISIBLE else View.GONE
         showItems(emptyList(), "")
+        showRecoveryExport()
     }
 
     /** A result state: its heading and summary, the run's own counts as a list, then the login note. */
@@ -220,8 +233,10 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         // A new result starts without the notice an earlier screen left.
         if (trace("${result.english} | $label")) notice.text = ""
         heading.text = result.heading; detail.text = result.summary; primary.text = ui(label); next = "start"
+        stage.text = ui(Stage.DONE.eyebrow)
         recovery.visibility = View.GONE
         showItems(result.items, result.note)
+        showRecoveryExport()
     }
 
     /** Trace <screen> in English once per change; true when it changed. */
@@ -259,8 +274,19 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
 
     fun showRecovery() {
         recovery.visibility = View.VISIBLE
-        recoveryOptions.visibility = View.VISIBLE
+        foldRecovery(true)
         (root.parent as? ScrollView)?.post { (root.parent as? ScrollView)?.smoothScrollTo(0, recovery.top) }
+    }
+
+    /** Open or fold the recovery options; the toggle names what a tap will do. */
+    private fun foldRecovery(open: Boolean) {
+        recoveryOptions.visibility = if (open) View.VISIBLE else View.GONE
+        recoveryToggle.text = ui(if (open) "Hide recovery options" else "Show recovery options")
+    }
+
+    /** One Save log for help per screen: the recovery group's steps aside for the error card's or ②'s. */
+    private fun showRecoveryExport() {
+        recoveryExport.visibility = if (errorBox.visibility == View.VISIBLE || next == "export") View.GONE else View.VISIBLE
     }
 
     /** Show the bar in place of the button while <value>; <step> fills it, and without one it only moves. */
@@ -339,6 +365,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         errorRaw = raw
         errorText.text = ErrorSummary.cause(raw)
         errorBox.visibility = if (raw.isBlank()) View.GONE else View.VISIBLE
+        showRecoveryExport()
     }
 
     private fun copyError() {

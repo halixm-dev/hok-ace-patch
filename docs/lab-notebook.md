@@ -3486,3 +3486,10 @@ runs ticket 12's tag, callback and 60 dp checks on a phone for the first time.
 2026-10-19 (H1 +1, H4 +1, H8 +1). Remaining issues are P2/P3: the ② eyebrow "READY TO PLAY" on
 failure and result states, two "Save log for help" in the failed state, and "Show recovery options"
 keeping its label when open. Snapshot in the local, untracked `.impeccable/critique/`.
+
+Follow-up the same day, the critique's three P2s: the ② eyebrow now names the state (`READY TO
+PLAY`, `IN PROGRESS`, `DONE`, `NEEDS ATTENTION`; `GuidedHome.Stage`). The recovery toggle reads *Hide
+recovery options* while open. The recovery group's *Save log for help* is hidden while the error card
+or ② offers it. Four new Android strings, the Indonesian marked draft. `InterfaceProbeTest` checks
+each of the three, and it, `HomeStatesCaptureTest` and `GuidedHomeProbeTest` pass on the same phone
+at font scale 1.0 and 2.0. The critique was not re-run.

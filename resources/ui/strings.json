@@ -477,6 +477,30 @@
       "en": "02  /  READY TO PLAY",
       "id": "02  /  SIAP BERMAIN"
     },
+    "02_working": {
+      "platforms": [
+        "android"
+      ],
+      "en": "02  /  IN PROGRESS",
+      "id": "02  /  SEDANG BERJALAN",
+      "draft": true
+    },
+    "02_done": {
+      "platforms": [
+        "android"
+      ],
+      "en": "02  /  DONE",
+      "id": "02  /  SELESAI",
+      "draft": true
+    },
+    "02_needs_attention": {
+      "platforms": [
+        "android"
+      ],
+      "en": "02  /  NEEDS ATTENTION",
+      "id": "02  /  PERLU PERHATIAN",
+      "draft": true
+    },
     "game_wont_open": {
       "platforms": [
         "android"
@@ -497,6 +521,14 @@
       ],
       "en": "Show recovery options",
       "id": "Tampilkan pilihan pemulihan"
+    },
+    "hide_recovery_options": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Hide recovery options",
+      "id": "Sembunyikan pilihan pemulihan",
+      "draft": true
     },
     "more_recovery_tools": {
       "platforms": [
