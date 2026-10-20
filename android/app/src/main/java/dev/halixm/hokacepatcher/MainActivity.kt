@@ -627,7 +627,7 @@ class MainActivity : Activity() {
             text = UiText.removeSavedApks(this@MainActivity, saved, StorageBudget.required(apk, apk, apk, apk))
         }
         AlertDialog.Builder(this).setTitle(ui("Free up space?"))
-            .setMessage(ui("This removes files earlier runs left behind and saved game apps this game version no longer needs. It keeps the saved game app used for recovery, the prepared files for this game version, and the record that lets you switch languages without clearing game data.\n\nAn interrupted run that left no game file half-changed is closed. Keep the game closed while this runs."))
+            .setMessage(ui("Removes leftovers from earlier or interrupted runs, and saved game apps this game version no longer needs.\n\nThe original game files the patcher changed are always kept, so you can still remove the translation or switch languages without clearing game data.\n\nKeep the game closed while this runs."))
             .also { if (saved > 0 && apk > 0) it.setView(remove) }
             .setNegativeButton(ui("Cancel"), null).setPositiveButton(ui("Free space")) { _, _ ->
                 if (!busy && !automatic && !PatchWorkerService.isWorking)

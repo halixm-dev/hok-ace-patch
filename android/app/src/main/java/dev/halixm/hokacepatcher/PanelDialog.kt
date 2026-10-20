@@ -42,6 +42,25 @@ object PanelDialog {
         }
         val disabled = intArrayOf(-android.R.attr.state_enabled)
         dialog.window?.decorView?.let { checkboxes(it).forEach(::checkbox) }
+        // A consent checkbox lines up with the message's edges, a step below it.
+        val message = dialog.findViewById<TextView>(android.R.id.message)
+        dialog.findViewById<ViewGroup>(android.R.id.custom)?.let { custom ->
+            custom.setPadding(0, resources.getDimensionPixelSize(R.dimen.space_sm), 0, 0)
+            if (message != null) custom.post {
+                val from = IntArray(2).also(custom::getLocationOnScreen)
+                val to = IntArray(2).also(message::getLocationOnScreen)
+                // The check box's drawable centres an 18 dp square; its own margin would push the square in.
+                val square = checkboxes(custom).firstOrNull()?.buttonDrawable?.intrinsicWidth
+                    ?.let { ((it - 18 * density) / 2).toInt().coerceAtLeast(0) } ?: 0
+                val start = (to[0] + message.paddingLeft - from[0] - square).coerceAtLeast(0)
+                val end = (from[0] + custom.width - to[0] - message.width + message.paddingRight).coerceAtLeast(0)
+                custom.setPadding(start, custom.paddingTop, end, 0)
+            }
+        }
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.parent?.let { bar ->
+            (bar as ViewGroup).setPadding(bar.paddingLeft, resources.getDimensionPixelSize(R.dimen.space_md),
+                resources.getDimensionPixelSize(R.dimen.space_md), resources.getDimensionPixelSize(R.dimen.space_md))
+        }
         fun button(view: Button?, fill: GradientDrawable, textColor: Int) = view?.apply {
             isAllCaps = false
             typeface = resources.getFont(R.font.barlow_semibold)
@@ -56,6 +75,12 @@ object PanelDialog {
             }
             val pad = (12 * density).toInt()
             setPadding(pad, 0, pad, 0)
+            minHeight = (60 * density).toInt(); minimumHeight = minHeight
+            // Half the gap on each side, so side-by-side buttons sit 8 dp apart.
+            (layoutParams as? ViewGroup.MarginLayoutParams)?.let { params ->
+                val half = resources.getDimensionPixelSize(R.dimen.space_xxs)
+                params.marginStart = half; params.marginEnd = half; layoutParams = params
+            }
         }
         button(dialog.getButton(AlertDialog.BUTTON_POSITIVE), GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
             intArrayOf(context.getColor(R.color.confirm_left), context.getColor(R.color.confirm_right))).apply {

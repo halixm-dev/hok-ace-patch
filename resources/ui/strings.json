@@ -239,15 +239,15 @@
       "platforms": [
         "android"
       ],
-      "en": "This removes files earlier runs left behind and saved game apps this game version no longer needs. It keeps the saved game app used for recovery, the prepared files for this game version, and the record that lets you switch languages without clearing game data.\n\nAn interrupted run that left no game file half-changed is closed. Keep the game closed while this runs.",
-      "id": "Ini menghapus file sisa proses sebelumnya dan aplikasi game tersimpan yang tidak lagi diperlukan versi game ini. Aplikasi game tersimpan untuk pemulihan, file siap pakai untuk versi game ini, dan catatan untuk mengganti bahasa tanpa menghapus data game tetap disimpan.\n\nProses terhenti yang tidak meninggalkan file game setengah berubah akan ditutup. Biarkan game tertutup selama proses ini."
+      "en": "Removes leftovers from earlier or interrupted runs, and saved game apps this game version no longer needs.\n\nThe original game files the patcher changed are always kept, so you can still remove the translation or switch languages without clearing game data.\n\nKeep the game closed while this runs.",
+      "id": "Menghapus sisa proses sebelumnya atau yang terhenti, dan aplikasi game tersimpan yang tidak lagi diperlukan versi game ini.\n\nFile game asli yang diubah patcher selalu disimpan, jadi Anda tetap bisa menghapus terjemahan atau mengganti bahasa tanpa menghapus data game.\n\nBiarkan game tertutup selama proses ini."
     },
     "remove_saved_apks": {
       "platforms": [
         "android"
       ],
-      "en": "Also remove the saved game apps (about {saved}). The next patch copies the game app again and needs about {prepare} free for that.",
-      "id": "Hapus juga aplikasi game tersimpan (sekitar {saved}). Patch berikutnya menyalin aplikasi game lagi dan memerlukan sekitar {prepare} ruang kosong untuk itu."
+      "en": "Also remove all saved game apps, including the recovery copy (about {saved}). The next patch needs about {prepare} free to copy them again.",
+      "id": "Hapus juga semua aplikasi game tersimpan, termasuk salinan pemulihan (sekitar {saved}). Patch berikutnya memerlukan sekitar {prepare} ruang kosong untuk menyalinnya lagi."
     },
     "finish_work_before_freeing_space": {
       "platforms": [

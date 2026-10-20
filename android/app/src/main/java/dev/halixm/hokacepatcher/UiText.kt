@@ -101,7 +101,10 @@ object UiText {
 
     /** Free up space's opt-in: <saved> is what it frees, <prepare> what the next preparation needs free. */
     fun removeSavedApks(context: Context, saved: Long, prepare: Long): String = string(context, "remove_saved_apks",
-        "saved" to StorageBudget.freeSpaceLabel(saved), "prepare" to StorageBudget.freeSpaceLabel(prepare))
+        "saved" to size(saved), "prepare" to size(prepare))
+
+    /** A size that never wraps between its number and its unit. */
+    private fun size(bytes: Long): String = StorageBudget.freeSpaceLabel(bytes).replace(' ', ' ')
 
     fun removeConfirmation(context: Context): String = string(context, "remove_confirmation")
 
