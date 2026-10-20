@@ -62,6 +62,11 @@ class PatchWorkerService : Service() {
         } catch (error: Throwable) { file.failWrite(output); throw error }
     }
 
+    /** The last saved worker record, or null when there is none or it does not read. */
+    private fun savedState(): JSONObject? = runCatching {
+        JSONObject(String(DurableFiles.readCommitted(File(filesDir, "worker-state.json")), Charsets.UTF_8))
+    }.getOrNull()
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -109,6 +114,7 @@ class PatchWorkerService : Service() {
         activeAction = intent?.action ?: ""
         activeStep = null
         recentMessages.clear()
+        recentMessages.addAll(WorkerStep.carriedMessages(activeAction, savedState()))
         state(JSONObject().put("status", "running").put("action", intent?.action))
         show("Preparing verified recovery material")
         executor.execute {

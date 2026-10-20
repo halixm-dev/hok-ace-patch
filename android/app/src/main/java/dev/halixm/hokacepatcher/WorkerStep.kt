@@ -45,6 +45,18 @@ object WorkerStep {
         return KEYS[if (started == at + 1 && started in range) started else at]
     }
 
+    /**
+     * The log lines a run of <action> starts with, given the <saved> record it replaces. A patch or a removal
+     * continues the preparation the confirmation was shown from, so it keeps that log and steps 1 and 2 stay
+     * in it; any other run starts empty.
+     */
+    fun carriedMessages(action: String, saved: JSONObject?): List<String> {
+        if (action !in setOf("patch", "remove") || saved == null) return emptyList()
+        if (saved.optString("status") != "prepared" || saved.optString("action") != "prepare") return emptyList()
+        val messages = saved.optJSONArray("messages") ?: return emptyList()
+        return (0 until messages.length()).map { messages.optString(it) }.filter { it.isNotBlank() }
+    }
+
     /** The 1-based step a running <state> reports, or null when it carries none for its action. */
     fun number(state: JSONObject): Int? {
         val range = range(state.optString("action")) ?: return null

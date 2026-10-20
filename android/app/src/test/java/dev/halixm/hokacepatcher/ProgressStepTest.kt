@@ -1,5 +1,6 @@
 package dev.halixm.hokacepatcher
 
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -50,6 +51,24 @@ class ProgressStepTest {
     @Test fun recoveryAndFreeUpSpaceReportNoStep() {
         assertEquals(listOf(null, null), steps("recover", "Opening game data access", "Restoring normal game APK"))
         assertEquals(listOf(null), steps("free_space", "Checking the installed normal game app"))
+    }
+
+    private val preparedLog = listOf("09:21:12  Checking saved normal and access APKs",
+        "09:21:58  Reusing verified saved APKs — no new APK copies needed")
+    private fun savedWithLog(status: String, action: String) = JSONObject().put("status", status).put("action", action)
+        .put("messages", JSONArray(preparedLog))
+
+    @Test fun aPatchKeepsTheLogOfThePreparationItContinues() {
+        assertEquals(preparedLog, WorkerStep.carriedMessages("patch", savedWithLog("prepared", "prepare")))
+        assertEquals(preparedLog, WorkerStep.carriedMessages("remove", savedWithLog("prepared", "prepare")))
+    }
+
+    @Test fun otherRunsStartAFreshLog() {
+        assertEquals(emptyList<String>(), WorkerStep.carriedMessages("prepare", savedWithLog("prepared", "prepare")))
+        assertEquals(emptyList<String>(), WorkerStep.carriedMessages("recover", savedWithLog("prepared", "prepare")))
+        assertEquals(emptyList<String>(), WorkerStep.carriedMessages("patch", savedWithLog("complete", "patch")))
+        assertEquals(emptyList<String>(), WorkerStep.carriedMessages("patch", savedWithLog("cancelled", "prepare")))
+        assertEquals(emptyList<String>(), WorkerStep.carriedMessages("patch", null))
     }
 
     @Test fun aStateWithoutAStepHasNoStepLine() {
