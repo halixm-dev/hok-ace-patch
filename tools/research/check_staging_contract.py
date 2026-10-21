@@ -42,7 +42,8 @@ CONTRACT = {
                    "package_rebuild.add_prime_only"],
     "gating": ["REBUILD_PACKAGES", "QtsVFS.dll", "--selftest", "wxq_patch", "sys.path"],
     "device cycle": ["extra_text.plan_package", "package_rebuild.make_transform", "--cycle-asset",
-                     "extra_text.CANDIDATE_ASSETS", "extra_text.SAFE_ASSETS"],
+                     "extra_text.CANDIDATE_ASSETS", "extra_text.SAFE_ASSETS", "extra_text.rewrite_config",
+                     "lineup_codes.rewrite_bin", "config_bin.reseal"],
 }
 
 # Phrases only the contract itself carries; the instructions must not restate them.

@@ -170,9 +170,16 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       (`extra_text.CANDIDATE_ASSETS`) this run enables on top of the allowlist,
       `extra_text.SAFE_ASSETS`. Empty on a normal run. It must reach **both** paths that can translate
       such an asset — `extra_text.plan_package` and `package_rebuild.make_transform` — because the
-      extra-text pass skips the packages a rebuild replaced whole, and package `1`, where fourteen of
-      the fifteen candidates live, was one of them while `REBUILD_PACKAGES` named it. A candidate
-      enabled in only one path is a silent no-op for the packages the other owns. Today the threading is
+      extra-text pass skips the packages a rebuild replaced whole, and package `1`, where all but one
+      of the candidates live, was one of them while `REBUILD_PACKAGES` named it. A candidate
+      enabled in only one path is a silent no-op for the packages the other owns. Both paths rewrite an
+      enabled asset through the one `extra_text.rewrite_config`. The three lineup bins
+      (`lineup_codes.LINEUP_BINS`) go through `lineup_codes.rewrite_bin` there: the text inside each
+      share code and in the row text fields is translated, every other byte of the code and the row is
+      kept, and the bin's fields 1 and 4 are resealed (`config_bin.reseal`), with resource tokens
+      expanded per string before the seal; a run that does not enable a lineup bin leaves it
+      byte-identical. A lineup bin the override layer lacks reaches it by append (`transform.config`),
+      like any other candidate. Today the threading is
       the reverse of that: with `REBUILD_PACKAGES` empty, `plan_package` reaches every package and
       `make_transform`'s candidate branch is unreachable, so the two must stay wired together or putting
       a package back in `REBUILD_PACKAGES` silently stops the knob working there.

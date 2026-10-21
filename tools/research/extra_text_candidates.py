@@ -28,10 +28,12 @@ sys.path.insert(0, str(ROOT / "tools"))
 sys.path.append(str(ROOT / "resources" / "runtime"))
 
 import extra_text  # noqa: E402
+import lineup_codes  # noqa: E402
 import pb_text  # noqa: E402
 from qts_relocate import read_raw  # noqa: E402
 from wxq_patch import adaptive  # noqa: E402
 from wxq_patch.qtsvfs import QtsPackage  # noqa: E402
+from terminology import install as install_terminology  # noqa: E402
 
 CATALOG = ROOT / "resources" / "catalog"
 
@@ -77,15 +79,20 @@ def measure(package: QtsPackage, file_hash: int, catalog, skip: set[int]) -> dic
         return row
     row["raw"] = len(raw)
     try:
-        strings = pb_text.collect(raw)
-    except pb_text.NotMessage:
+        if file_hash in lineup_codes.LINEUP_BINS:
+            # A lineup bin's text is inside its share codes, which pb_text cannot see.
+            strings = lineup_codes.strings(file_hash, raw)
+            _new, changed = lineup_codes.rewrite_bin(file_hash, raw, extra_text.official_only(catalog))
+        else:
+            strings = pb_text.collect(raw)
+            # The pass's own translator, so this measures the shipped behaviour rather than a copy.
+            _new, changed = pb_text.rewrite(raw, extra_text.translator_for(file_hash, catalog))
+    except (pb_text.NotMessage, lineup_codes.NotLineupBin):
         row["note"] = "not a protobuf message"
         return row
     row["fields"] = len(strings)
     row["distinct"] = len(set(strings))
     row["covered"] = sum(1 for s in set(strings) if s in catalog.unique)
-    # The pass's own translator and planner, so this measures the shipped behaviour rather than a copy.
-    _new, changed = pb_text.rewrite(raw, extra_text.translator_for(file_hash, catalog))
     row["rewrites"] = changed
     jobs = extra_text.plan_package(package, catalog, skip, lambda _message: None,
                                   candidates=frozenset({file_hash}))
@@ -107,6 +114,8 @@ def main() -> int:
     builtin = find_dump(args.game)
     if builtin is None:
         parser.error(f"{args.game} does not hold WXQ_Data/Package/builtin")
+    # The catalog as a run loads it: terminology and the catalog supplement applied.
+    install_terminology()
     catalog = adaptive.load_catalog(CATALOG)
     packages = packages_of(builtin)
     where = locate(packages, set(extra_text.CANDIDATE_ASSETS))

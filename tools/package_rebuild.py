@@ -91,7 +91,6 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
     """
     import extra_text
     import mobile_graphics as mg
-    import pb_text
     from languages import for_catalog
     from resource_tokens import expand_tokens
     from wxq_patch import adaptive
@@ -121,12 +120,8 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
             return new if new != raw else None
         if file_hash in extra_text.SCRIPT_ASSETS:
             return extra_text.rewrite_script(file_hash, raw, catalog)
-        if file_hash in allowed and pb_text.CJK.search(raw.decode("utf-8", "ignore")):
-            try:
-                new, changed = pb_text.rewrite(raw, extra_text.translator_for(file_hash, catalog))
-            except pb_text.NotMessage:
-                return None
-            return expand_tokens(new, log, terms) if changed else None
+        if file_hash in allowed:
+            return extra_text.rewrite_config(file_hash, raw, catalog, log, terms)
         return None
 
     transform.graphics = set(graphics)

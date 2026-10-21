@@ -7,6 +7,8 @@
   listed as carrying them.
 * A Lua UI script that hard-codes a label (`SCRIPT_LABELS`) gets that one literal replaced, and one that
   joins words the Chinese way (`SCRIPT_EDITS`) gets that one literal edited.
+* A lineup bin (`lineup_codes.LINEUP_BINS`), when a cycle enables it, gets the text inside its share
+  codes and rows translated and its checksum resealed (`rewrite_config`).
 
 Assets are rewritten with the same chunk count they already have (`device_extensions.write_assets`).
 
@@ -21,6 +23,7 @@ import struct
 import unicodedata
 from pathlib import Path
 
+import lineup_codes
 import pb_text
 
 # Protobuf list of the ~11k nicknames shown for AI opponents ("chessplayers") in matches.
@@ -76,11 +79,25 @@ SAFE_ASSETS: frozenset[int] = frozenset()
 # share this pass could translate and therefore what a cycle buys -- so a cycle starts from the numbers
 # rather than from the note. Measured against the downloaded layer, game data 1.4.0.1, by
 # tools/research/extra_text_candidates.py.
-# The order is the order to run the cycles in: the four label tables first, because they are display
-# labels the catalog mostly or entirely covers, and the other eleven only after a cycle says the class is
-# safe. Those eleven are step, buff, nickname and damage identifiers the catalog reaches 1.5-9% of, so a
+# The order is the order to run the cycles in: after the lineup bins, the four label tables, because they
+# are display labels the catalog mostly or entirely covers, and the other eleven only after a cycle says
+# the class is safe. Those eleven are step, buff, nickname and damage identifiers the catalog reaches 1.5-9% of, so a
 # cycle on one would add a handful of strings and risk a screen the note above already lists a synonym of.
 CANDIDATE_ASSETS: dict[int, str] = {
+    # The three lineup bins (`lineup_codes.LINEUP_BINS`), queued apart from the fifteen: their text sits
+    # inside share codes, so `rewrite_config` translates them through `lineup_codes.rewrite_bin`, which
+    # also reseals the checksum the withdrawn config bins were left with stale. Counts are distinct
+    # Chinese strings in the codes and the row text fields, and how many `catalog.unique` (with the
+    # catalog supplement's "Official lineups") translates, the same in English and Indonesian; measured
+    # on both layers of game data 1.6.0.1, 2026-10-21. `F79FB1A213A9DA90` is the cycle to run first.
+    0xF79FB1A213A9DA90: "118 of 118 (264 fields), both layers -- ResSeasonAILineupDataBin, Lineup > "
+                        "Official recommendation (Newbie / Advanced): lineup names and Lineup ideas "
+                        "text, 28 share codes; resealed",
+    0x6A2B886E5DCF22DC: "94 of 94 (196 fields), both layers -- ResRecommendLineup, 18 share codes; no "
+                        "screen identified yet; resealed",
+    0xC0C56FEFDCA0EA5D: "36 of 36 (45 fields) override, 35 of 35 (76 fields) prime -- "
+                        "ResHeroStrategyDataBin, hero strategy videos, 5 share codes and the test row "
+                        "titles; resealed",
     0x63922EF4D4C86526: "3 of 3, and a 90-byte asset -- Transmog / Treasure Hunt / Limited Time; the "
                         "cheapest honest signal there is. Its three keys are referenced by "
                         "`C7052167E428F9D5` (package 1, 137 bytes) with no date window, so a screen that "
@@ -299,7 +316,6 @@ def plan_package(package, catalog, skip: set[int], log=None,
     <terms> are the patch language's resource terms (`languages`); English when omitted.
     """
     from qts_relocate import read_raw
-    from resource_tokens import RESOURCE_TOKENS, expand_tokens
 
     allowed = SAFE_ASSETS | candidates
     wanted = {file_hash for file_hash in allowed
@@ -313,17 +329,52 @@ def plan_package(package, catalog, skip: set[int], log=None,
         if file_hash not in wanted:
             continue
         raw = read_raw(package, slots, file_hash)
-        if raw is None or not pb_text.CJK.search(raw.decode("utf-8", "ignore")):
+        if raw is None:
             continue
-        try:
-            new, changed = pb_text.rewrite(raw, translator_for(file_hash, catalog))
-        except pb_text.NotMessage:
-            continue
-        if changed:
-            # The replacement comes from the catalog verbatim, so it carries the same {Energy}-style
-            # tokens the staged path has to expand; the client would otherwise render them in Chinese.
-            jobs[file_hash] = expand_tokens(new, log, terms or RESOURCE_TOKENS)
+        new = rewrite_config(file_hash, raw, catalog, log, terms)
+        if new is not None:
+            jobs[file_hash] = new
     return jobs
+
+
+def rewrite_config(file_hash: int, raw: bytes, catalog, log=None,
+                   terms: dict[str, str] | None = None) -> bytes | None:
+    """<raw> of an enabled config asset translated, or None when nothing changes.
+
+    The one rewrite both `plan_package` and `package_rebuild.make_transform` apply, so the two paths
+    cannot disagree about an asset. A lineup bin (`lineup_codes.LINEUP_BINS`) keeps its text inside
+    share codes the generic protobuf rewrite cannot see, and stores a checksum over its rows, so it
+    goes through `lineup_codes.rewrite_bin`, which translates inside the codes and reseals the bin.
+    Its resource tokens are expanded string by string before the reseal, because expanding them in
+    the finished bin would leave the checksum stale. Every other asset goes through `pb_text.rewrite`.
+    <terms> are the patch language's resource terms (`languages`); English when omitted.
+    """
+    from resource_tokens import RESOURCE_TOKENS, expand_resource_tokens, expand_tokens
+
+    terms = terms or RESOURCE_TOKENS
+    if file_hash in lineup_codes.LINEUP_BINS:
+        official = official_only(catalog)
+
+        def translate(text: str) -> str | None:
+            target = official(text)
+            return expand_resource_tokens(target, terms) if target else None
+
+        try:
+            new, changed = lineup_codes.rewrite_bin(file_hash, raw, translate)
+        except lineup_codes.NotLineupBin as error:
+            if log is not None:
+                log(f"  {file_hash:016X}: lineup bin not translated ({error})")
+            return None
+        return new if changed else None
+    if not pb_text.CJK.search(raw.decode("utf-8", "ignore")):
+        return None
+    try:
+        new, changed = pb_text.rewrite(raw, translator_for(file_hash, catalog))
+    except pb_text.NotMessage:
+        return None
+    # The replacement comes from the catalog verbatim, so it carries the same {Energy}-style tokens the
+    # staged path has to expand; the client would otherwise render them in Chinese.
+    return expand_tokens(new, log, terms) if changed else None
 
 
 def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] = frozenset(),

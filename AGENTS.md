@@ -43,7 +43,7 @@ After moving or renaming a doc, run `tools\research\check_references.py` and `to
 | Path | Role |
 |---|---|
 | `app/` | GUI (`hok_patcher.py`), device workflow (`patcher_core.py`), APK rewrite + v2 signing (`apk_tools.py`) |
-| `tools/` | Pipeline: `languages`, `terminology`, staging (`build_device_patch`), rebuild (`package_rebuild`, `qts_builder`), append (`qts_insert`), textures (`device_extensions`, `sprite_table`, `mobile_graphics`), extra text (`extra_text`, `pb_text`, `unity_text`), relocation (`qts_relocate`) |
+| `tools/` | Pipeline: `languages`, `terminology`, staging (`build_device_patch`), rebuild (`package_rebuild`, `qts_builder`), append (`qts_insert`), textures (`device_extensions`, `sprite_table`, `mobile_graphics`), extra text (`extra_text`, `pb_text`, `unity_text`; lineup bins `lineup_codes`, `config_bin`), relocation (`qts_relocate`) |
 | `tools/research/` | Probes and offline checks, run by hand |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime (from the PC patcher) |
 | `resources/catalog/` | English catalog (`catalog.json.gz`) plus the English catalog edits (`.blocks` / `.assets`) |

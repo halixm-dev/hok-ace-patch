@@ -2,6 +2,41 @@
 
 ## Report
 
+**2026-10-21: the three lineup bins join the queue, resealed (official-lineups ticket 04).**
+`F79FB1A213A9DA90` (`ResSeasonAILineupDataBin`, Lineup → Official recommendation), `6A2B886E5DCF22DC`
+(`ResRecommendLineup`) and `C0C56FEFDCA0EA5D` (`ResHeroStrategyDataBin`) are on `CANDIDATE_ASSETS`, ahead
+of the fifteen. Their text sits inside share codes (base64 of raw deflate of `OSProto.OneLineup`), which
+`pb_text` cannot see, and each bin stores a checksum over its rows. Both paths now rewrite an enabled
+asset through one `extra_text.rewrite_config`; for a lineup bin it calls `lineup_codes.rewrite_bin`. That
+decodes each code, translates its text fields in place with the code's own field order kept, re-deflates
+at zlib's default, re-base64s, translates the row text fields, rebuilds the row and reseals fields 1 and 4
+(`config_bin.reseal`, the shipping port of `tools/research/config_bin_checksum.py`, which now imports it).
+Resource tokens are expanded per string before the seal. A code, row or bin with nothing to translate
+keeps its bytes, so the pass is idempotent, and a rewrite whose codes do not decode back or whose bin does
+not pass its own checksum is refused. Without `--cycle-asset` the bins are not touched (ADR 0004);
+`SAFE_ASSETS` stays empty, and ADR 0005 holds for every normal run. Whether the game loads a resealed
+bin is ticket 05's device cycle.
+
+| asset | distinct Chinese strings (fields) | translated, English and Indonesian |
+|---|---|---|
+| `F79FB1A213A9DA90` | 118 (264), both layers | 118 |
+| `6A2B886E5DCF22DC` | 94 (196), both layers | 94 |
+| `C0C56FEFDCA0EA5D` | 36 (45) override, 35 (76) prime | all |
+
+Offline builds, game data 1.6.0.1 (session `20261017-224744`, its cached `installed.apk`), under
+`D:\scratch\hok-lineups\`: `en-control`, `en-cycle` (`--cycle-asset F79FB1A213A9DA90`), `id-control`,
+`id-cycle`, each with `out\` and `work\`. In both languages the cycle build differs from its control in
+package `1`'s `1.db` and `1_0.db` and in the summary (`cycle_assets: ["F79FB1A213A9DA90"]`, one more
+`1` `extra-text` entry), and nowhere else. Read through `QtsPackage` + `read_raw`, package `1` has 720 entries
+in both and **one** asset differs, the candidate. The control's copy is byte-identical to the game's. The
+cycle's copy (37,266 → 39,582 B English, 40,040 B Indonesian) passes `config_bin.is_sealed`, and its old
+field 4 would not. Its index (field 3) is kept. All 28 codes decode by the game's steps. All 264 text fields
+read back as their targets (`Three Kingdoms Deploy Build`; Indonesian `Build Deploy Three Kingdoms`), and
+the other 3,151 fields of the codes and rows are byte-identical, in their stored order. No Chinese is
+left, and the pass run on its own output changes nothing. `tools/research/extra_text_candidates.py`, which
+now loads the catalog as a run does (terminology and supplement) and measures a lineup bin through
+`lineup_codes`, gives the table above and still ends `without a cycle the pass plans 0 assets`.
+
 **2026-10-17: skip scans without eligible assets.** Script and config planners check the package
 index, skip set and supported codecs before building a chunk-slot map. Config planning still requires
 `SAFE_ASSETS` or that run's enabled candidates. Eligible assets follow the existing read/translate/write

@@ -12,6 +12,8 @@ serialized row message), ``3`` = an index (``1`` = packed uint32 keys, ``2`` = e
   ``[DATABIN] {0} checksum mismatch`` and frees the bin instead of loading it, so the game drops what the
   bin feeds. The loader does not compare field 1.
 
+The port is the shipping one, ``tools/config_bin.py``; this script is its evidence.
+
 The index depends on the rows' keys only, so a rewrite that changes no key keeps it.
 
 ``--check`` recomputes both values for every config bin of package ``1`` in both layers. ``--prove``
@@ -28,7 +30,6 @@ from __future__ import annotations
 
 import argparse
 import base64
-import hashlib
 import pathlib
 import re
 import sys
@@ -37,66 +38,13 @@ from collections import Counter
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-from lineup_bins import BINS, LAYERS, NOT_BASE64, _assets, _encode, _fields, _package_dir, _varint  # noqa: E402
+from lineup_bins import BINS, LAYERS, NOT_BASE64, _assets, _encode, _fields, _package_dir  # noqa: E402
+# The shipping port (tools/config_bin.py); lineup_bins put tools/ on sys.path.
+from config_bin import checksum, reseal, rows_md5  # noqa: E402
 
-FOLD_SEED = 0x01234567
-FOLD_MULTIPLIER = 0x89ABCDEF
 CODE_FIELDS = {"F79FB1A213A9DA90": 4, "6A2B886E5DCF22DC": 11, "C0C56FEFDCA0EA5D": 5}
 HEAD = re.compile(rb"\n [0-9A-F]{32}")
 TEST_NAME = "Checksum test"
-
-
-def _fold(state: int, data: bytes) -> int:
-    for byte in data:
-        state = ((state ^ byte) * FOLD_MULTIPLIER) & 0xFFFFFFFF
-    return state
-
-
-def _packed(value: int | bytes, wire: int) -> list[int]:
-    if wire == 0:
-        return [int(value)]
-    found, pos = [], 0
-    while pos < len(value):
-        number, pos = _varint(value, pos)
-        found.append(number)
-    return found
-
-
-def rows_md5(entries: list[tuple[int, int, object]]) -> bytes:
-    """Field 1: MD5 of the rows' bytes, upper-case hex."""
-    return hashlib.md5(b"".join(value for number, _, value in entries if number == 2)).hexdigest().upper().encode()
-
-
-def checksum(entries: list[tuple[int, int, object]]) -> int:
-    """Field 4, as ``DecodeFromStream`` computes it."""
-    state = FOLD_SEED
-    for number, _, value in entries:
-        if number == 2:
-            state = _fold(state, value)
-    keys: list[int] = []
-    index_entries: list[bytes] = []
-    for number, _, value in entries:
-        if number != 3:
-            continue
-        for inner, wire, item in _fields(value):
-            if inner == 1:
-                keys += _packed(item, wire)
-            elif inner == 2:
-                index_entries.append(item)
-    for key in keys:
-        state = _fold(state, key.to_bytes(4, "little"))
-    for entry in index_entries:
-        for inner, wire, item in _fields(entry):
-            if inner in (1, 2):
-                for number in _packed(item, wire):
-                    state = _fold(state, number.to_bytes(4, "little"))
-    return state
-
-
-def reseal(entries: list[tuple[int, int, object]]) -> list[tuple[int, int, object]]:
-    """The same bin with fields 1 and 4 recomputed, everything else and the order kept."""
-    head, total = rows_md5(entries), checksum(entries)
-    return [(n, w, head if n == 1 else total if n == 4 else v) for n, w, v in entries]
 
 
 def _by_number(entries: list[tuple[int, int, object]]) -> dict[int, object]:
