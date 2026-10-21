@@ -278,8 +278,9 @@ the version-checking push tool can send only the package that differs.
 
 ## [S3] Out of Scope
 
-- **Adding any candidate to `SAFE_ASSETS`.** Nothing here has been on a phone. The knob exists so the
-  verdict can be produced; the allowlist moves only after it is.
+- **Adding any candidate to `SAFE_ASSETS`.** Nothing here had been on a phone. The knob exists so the
+  verdict can be produced; the allowlist moves only after it is (the first did on 2026-10-21, in
+  `official-lineups.md`).
 - **The package-4 candidate** `3F4DD9B1D383FD83`. Reachable, and deliberately not in the queue while
   package `4` writes through a path that does not verify its own write.
 - **The eleven non-label candidates.** Measured and deprioritised, not withdrawn: each needs a cycle to

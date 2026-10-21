@@ -1,4 +1,4 @@
-"""Map the three package-1 config bins whose rows carry lineup share codes (ticket official-lineups/01).
+"""Map the three package-1 config bins whose rows carry lineup share codes (docs/features/official-lineups.md).
 
 A share code is base64 of raw deflate of an ``OSProto.OneLineup`` protobuf, decoded on the phone by
 ``EmbattleFormationDataClass:_decode``. Its text never shows up in a byte search of the bin, so this

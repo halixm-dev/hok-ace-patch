@@ -370,8 +370,9 @@ draws the grid (`docs/features/card-pack-covers-cycle.md`).
 A cycle is now one variable by construction: `--cycle-asset <hash>` enables exactly one queued candidate,
 the run records it in `device_patch_summary.json`'s `cycle_assets`, and the hash joins `SAFE_ASSETS` only
 once a cycle has looked at the screen it feeds. The first to clear was the Official recommendation lineup
-bin, on 2026-10-21, the first config bin rewritten with its checksum resealed. A cycle must now also watch a match end and the Announcement screen, which is what the 2026-10-01 verdicts
-missed.
+bin, on 2026-10-21, the first config bin rewritten with its checksum resealed; it watched a match end but
+not the Announcement screen, which that bin does not feed. A cycle must now also watch a match end and the
+Announcement screen, which is what the 2026-10-01 verdicts missed.
 
 The **Talent Card grid regression is fixed and device-verified on 2026-10-03**. The full
 4064-row English dictionary keeps the game's original 307,200-byte chunk size and uses a measured

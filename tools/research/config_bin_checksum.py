@@ -1,4 +1,4 @@
-"""Recompute the two digests a config bin stores, and reseal a lineup bin after a rewrite (ticket official-lineups/02).
+"""Recompute the two digests a config bin stores, and reseal a lineup bin after a rewrite (docs/features/official-lineups.md).
 
 A config bin is a protobuf: ``1`` = a 32-character upper-case hex digest, ``2`` = the rows (each a
 serialized row message), ``3`` = an index (``1`` = packed uint32 keys, ``2`` = entries of ``1`` = key and

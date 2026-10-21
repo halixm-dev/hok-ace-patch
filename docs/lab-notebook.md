@@ -3710,8 +3710,8 @@ reinstalled in a `finally`. The user walked the screens; logcat was recorded for
   reinstall the normal APK while the phone was gone, so the access APK stayed installed until the phone
   came back and the backup was retaken. A cycle script has to wait for the device before its restore.
 - **Control, both languages:** the Official recommendation names and 【Lineup ideas】 text read Chinese;
-  Newbie, Advanced, a lineup's detail, *Use* into a match, copy and import into My lineups, and a match to
-  its end all work; no QTS-failure popup.
+  Newbie, Advanced, a lineup's detail, *Use* loading it onto the board in a match, copy and import into
+  My lineups, and a match to its end all work; no QTS-failure popup.
 - **Cycle, English:** names and 【Lineup ideas】 read English; every screen above draws and works as on the
   control; a match ends with no popup. After play, package `1` still matches the build and the QtsVFS
   scan reads `brokenFiles count 0`.
@@ -3727,10 +3727,13 @@ reinstalled in a `finally`. The user walked the screens; logcat was recorded for
   and the tab would draw empty, ticket 02).
 - **Restore:** the backup pushed back through the access APK; all 745 files hash equal to the tar, none
   extra; normal APK installed.
+- **Not watched:** the Announcement screen. This bin feeds the lineup tab (`EmbattleData`), not the
+  news header the withdrawn rule-pages bin broke.
 - **Verdict: cleared.** `F79FB1A213A9DA90` moves from `CANDIDATE_ASSETS` to `SAFE_ASSETS`. This is the
   first device evidence that a resealed config bin loads: fields 1 and 4 recomputed is enough here.
   `6A2B886E5DCF22DC` and `C0C56FEFDCA0EA5D` stay candidates, with no screen yet for either.
-- **Normal run after the move (offline):** English, the same session and APK, no `--cycle-asset`
-  (`D:\scratch\hok-lineups\en-safe`). Every staged `.db` is byte-identical to `en-cycle`'s; the summary
-  differs only in `cycle_assets` (`[]`) and the work-directory paths. The log reads `package 1: 1 extra
-  assets translated`. So a normal run now ships the bytes the phone cleared.
+- **Normal run after the move (offline):** each language, the same session and APK, no `--cycle-asset`
+  (`D:\scratch\hok-lineups\en-safe`, `id-safe`). In each, all 14 staged `.db` files are byte-identical to
+  that language's cycle build; the summary differs only in `cycle_assets` (`[]`) and the work-directory
+  paths. Both logs read `package 1: 1 extra assets translated`. So a normal run now ships the bytes the
+  phone cleared.
