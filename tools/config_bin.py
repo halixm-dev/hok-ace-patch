@@ -145,8 +145,8 @@ def checksum(entries: list[Field]) -> int:
 
 def reseal(entries: list[Field]) -> list[Field]:
     """The same bin with fields 1 and 4 recomputed, everything else and the order kept."""
-    head, total = rows_md5(entries), checksum(entries)
-    return [(n, w, head if n == DIGEST_FIELD else total if n == CHECKSUM_FIELD else v) for n, w, v in entries]
+    sealed = {DIGEST_FIELD: rows_md5(entries), CHECKSUM_FIELD: checksum(entries)}
+    return [(number, wire, sealed.get(number, value)) for number, wire, value in entries]
 
 
 def is_sealed(raw: bytes) -> bool:

@@ -12,8 +12,8 @@ decodes each code, translates its text fields in place with the code's own field
 at zlib's default, re-base64s, translates the row text fields, rebuilds the row and reseals fields 1 and 4
 (`config_bin.reseal`, the shipping port of `tools/research/config_bin_checksum.py`, which now imports it).
 Resource tokens are expanded per string before the seal. A code, row or bin with nothing to translate
-keeps its bytes, so the pass is idempotent, and a rewrite whose codes do not decode back or whose bin does
-not pass its own checksum is refused. Without `--cycle-asset` the bins are not touched (ADR 0004);
+keeps its bytes, so the pass is idempotent. A bin, row or code whose framing would not re-serialize
+identically, a code that does not decode back, or a bin that does not pass its own checksum is refused. Without `--cycle-asset` the bins are not touched (ADR 0004);
 `SAFE_ASSETS` stays empty, and ADR 0005 holds for every normal run. Whether the game loads a resealed
 bin is ticket 05's device cycle.
 
@@ -36,6 +36,11 @@ the other 3,151 fields of the codes and rows are byte-identical, in their stored
 left, and the pass run on its own output changes nothing. `tools/research/extra_text_candidates.py`, which
 now loads the catalog as a run does (terminology and supplement) and measures a lineup bin through
 `lineup_codes`, gives the table above and still ends `without a cycle the pass plans 0 assets`.
+`tools/research/check_lineup_cycle.py` reproduces all of this. It also checks the other two bins
+(not built): in both layers and both languages they are sealed, every text field reads back as its target,
+every other field is byte-identical and no Chinese is left. All three bins sit in both layers on 1.6.0.1,
+so no lineup bin has yet reached the override layer by append (`transform.config`); that path is the one
+every candidate uses, untested here for these bins.
 
 **2026-10-17: skip scans without eligible assets.** Script and config planners check the package
 index, skip set and supported codecs before building a chunk-slot map. Config planning still requires

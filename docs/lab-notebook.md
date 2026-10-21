@@ -3668,3 +3668,30 @@ Offline, from the same two 1.6.0.1 layers as ticket 01 and the cached `installed
   the Talent Card grid and the Diamond Frenzy Starting Lineup drew empty (ADR 0005, 2026-10-16). Those
   rewrites left field 4 stale. A resealed rewrite of one of them is an untested device cycle. ADR 0004 and
   ADR 0005 stand until one is run.
+
+## 2026-10-21 — Lineup share-code pass built offline (official-lineups ticket 04)
+
+Offline, from the 1.6.0.1 layers of session `20261017-224744` and its cached `installed.apk`, with
+`tools/build_device_patch.py` and `tools/research/check_lineup_cycle.py`. Nothing went on a phone.
+
+- **The pass.** `--cycle-asset` on a lineup bin rewrites it through `extra_text.rewrite_config` →
+  `lineup_codes.rewrite_bin`: text translated inside each share code with the stored field order kept,
+  raw deflate at zlib's default, padded base64, row text fields translated, fields 1 and 4 resealed
+  (`config_bin`, which `config_bin_checksum.py --check` shows still reproduces 1,182 / 1,182 and 311 / 311
+  stored digests).
+- **Coverage** (distinct Chinese strings in codes and row text fields; translated in English and in
+  Indonesian, from the catalog plus `catalog_supplement`'s "Official lineups"): `F79FB1A213A9DA90` 118 / 118
+  (264 fields) in both layers, `6A2B886E5DCF22DC` 94 / 94 (196), `C0C56FEFDCA0EA5D` 36 / 36 (45) override and
+  35 / 35 (76) prime.
+- **Read-back, all three bins, both layers, both languages:** sealed, index kept, old field 4 stale; every
+  code decodes by the game's steps with the same fields in the same order; every text field reads back as
+  its target and every other field is byte-identical (`F79FB1A213A9DA90` override: 264 text, 3,151 other;
+  `6A2B886E5DCF22DC`: 196, 2,310; `C0C56FEFDCA0EA5D`: 48, 557); no Chinese left; the pass on its own output
+  changes nothing. Sizes grow: `F79FB1A213A9DA90` override 37,266 → 39,582 B English, 40,040 B Indonesian.
+- **Builds** under `D:\scratch\hok-lineups\`: `en-control`, `en-cycle`, `id-control`, `id-cycle`, the cycles with
+  `--cycle-asset F79FB1A213A9DA90`. Each cycle differs from its control in `1\1.db`, `1\1_0.db` and the
+  summary only. In package `1` (711 readable entries in each), one asset differs, the candidate: the control's
+  copy is the game's, the cycle's is the pass's output for it. `extra_text_candidates.py` still ends
+  `without a cycle the pass plans 0 assets`.
+- **Not tested:** the append path for a lineup bin, because all three sit in both layers; and whether the
+  game loads a resealed bin (ticket 05).

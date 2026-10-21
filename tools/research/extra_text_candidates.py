@@ -80,7 +80,8 @@ def measure(package: QtsPackage, file_hash: int, catalog, skip: set[int]) -> dic
     row["raw"] = len(raw)
     try:
         if file_hash in lineup_codes.LINEUP_BINS:
-            # A lineup bin's text is inside its share codes, which pb_text cannot see.
+            # A lineup bin's text is inside its share codes, which pb_text cannot see. The run also expands
+            # resource tokens in each target, which changes no count.
             strings = lineup_codes.strings(file_hash, raw)
             _new, changed = lineup_codes.rewrite_bin(file_hash, raw, extra_text.official_only(catalog))
         else:

@@ -30,4 +30,5 @@
 **Builds for ticket 05** (game data 1.6.0.1, session `20261017-224744`): `D:\scratch\hok-lineups\en-control\out`,
 `D:\scratch\hok-lineups\en-cycle\out` (`--cycle-asset F79FB1A213A9DA90`), `D:\scratch\hok-lineups\id-control\out`,
 `D:\scratch\hok-lineups\id-cycle\out`. Each cycle build differs from its control in package `1` only, and there
-in that one asset. Check the phone's game-data version against 1.6.0.1 before pushing.
+in that one asset. Check the phone's game-data version against 1.6.0.1 before pushing. `tools/research/check_lineup_cycle.py` re-checks
+the builds and all three bins; the numbers are in the lab notebook, "Lineup share-code pass built offline".

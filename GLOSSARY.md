@@ -56,6 +56,16 @@ _Avoid_: graphic, picture, sprite (a sprite is one region of a texture)
 An asset holding game configuration rows whose stored checksum the client enforces.
 _Avoid_: ResData, config asset
 
+**Reseal**:
+Recomputing a rewritten config bin's two stored digests (fields 1 and 4) so the client loads it.
+
+**Lineup bin**:
+One of the three package-`1` config bins whose rows each carry a share code.
+
+**Share code**:
+A lineup encoded as base64 of raw deflate of an `OSProto.OneLineup` protobuf, which the client decodes on the phone.
+_Avoid_: lineup code, formation code
+
 **Regioned atlas**:
 A texture packing many sprites, whose translation is applied sprite by sprite.
 
