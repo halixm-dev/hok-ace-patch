@@ -3737,3 +3737,20 @@ reinstalled in a `finally`. The user walked the screens; logcat was recorded for
   that language's cycle build; the summary differs only in `cycle_assets` (`[]`) and the work-directory
   paths. Both logs read `package 1: 1 extra assets translated`. So a normal run now ships the bytes the
   phone cleared.
+
+## 2026-10-21 — run-as refused on a nubia; who can read the run-as rules (nubia NX809J, Redmi Note 9 Pro)
+
+- **Report (log 8, nubia NX809J, Android 16, patcher 1.6.1.13):** both patch runs install the access APK,
+  then the first `run-as com.tencent.tmgp.osgame` (snapshot estimate) fails:
+  `seapp_context_lookup_internal: No match for app with uid 10478, seinfo default:targetSdkVersion=30:fromRunAs`.
+  Recovery reinstalls the normal APK and verifies it each time; no game file was written. The same build
+  passes this step on the vivo V2561 (Android 16, logs 6 and 7). The log carries a spoofed Infinix
+  Android 14 fingerprint, so the phone may be rooted. Cause not settled: the log has no policy lines.
+- **Who can read the rule files (Redmi Note 9 Pro, Android 12, over adb):** shell (`u:r:shell:s0`, the
+  domain Shizuku's worker runs in) reads `plat_`, `system_ext_`, `product_` and `vendor_seapp_contexts`.
+  An app process (`runas_app`, via `run-as` of a debuggable app) gets `Permission denied` on
+  `plat_seapp_contexts`. Its run-as lines: `user=_app minTargetSdkVersion=28 fromRunAs=true domain=runas_app
+  levelFrom=all` and `user=_app fromRunAs=true domain=runas_app levelFrom=user`.
+- **Change:** the shell service's `diagnostics()` now returns `run_as_policy` (enforcement, each file's
+  numbered run-as lines, `su` on shell's path). *Save log for help* writes it as `shell run-as policy`
+  when Shizuku's service is connected. The next log from a phone that refuses run-as names its rules.

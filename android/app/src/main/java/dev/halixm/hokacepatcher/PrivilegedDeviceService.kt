@@ -2,6 +2,7 @@ package dev.halixm.hokacepatcher
 
 import android.os.ParcelFileDescriptor
 import android.os.Process
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -14,10 +15,15 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     companion object {
         const val GAME = "com.tencent.tmgp.osgame"
         const val FIXTURE = "io.github.hokace.fixture"
-        const val PROTOCOL_VERSION = 10
+        const val PROTOCOL_VERSION = 11
         /** The UI matches on it; keep it free of "Shizuku" and "permission". */
         const val GAME_MISSING = "The game is not installed for the phone's main user"
         private const val MAX_DIAGNOSTIC = 16384
+        /** The rule files run-as reads to enter an app. Shell may read them; an app process may not. */
+        private val SEAPP_CONTEXTS = listOf("/system/etc/selinux/plat_seapp_contexts",
+            "/system_ext/etc/selinux/system_ext_seapp_contexts", "/product/etc/selinux/product_seapp_contexts",
+            "/vendor/etc/selinux/vendor_seapp_contexts", "/odm/etc/selinux/odm_seapp_contexts")
+        private const val POLICY_LINES = 40
         /** Never force-stopped as the home app: the system, the targets, the patcher and Shizuku. */
         private val NEVER_STOPPED = setOf("android", "com.android.settings", GAME, FIXTURE,
             "dev.halixm.hokacepatcher", "moe.shizuku.privileged.api")
@@ -104,7 +110,28 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
         requireShell()
         return JSONObject().put("uid", Process.myUid())
             .put("selinux", command(listOf("/system/bin/id", "-Z")).trim())
-            .put("user", 0).put("apk_package", installerPackage).put("data_package", dataPackage).toString()
+            .put("user", 0).put("apk_package", installerPackage).put("data_package", dataPackage)
+            .put("run_as_policy", runAsPolicy()).toString()
+    }
+
+    /**
+     * What decides whether run-as may enter the game: SELinux enforcement, each rule file's run-as lines
+     * (numbered, since the first matching line wins), and any `su` on shell's path. A refused read is named.
+     */
+    private fun runAsPolicy(): JSONObject {
+        val rules = JSONObject()
+        for (path in SEAPP_CONTEXTS) {
+            val file = File(path)
+            rules.put(path, if (!file.exists()) "absent" else runCatching {
+                JSONArray(file.readLines().withIndex().filter { it.value.contains("runas", ignoreCase = true) }
+                    .take(POLICY_LINES).map { "${it.index + 1}: ${it.value.take(300)}" })
+            }.getOrElse { "unreadable (${it.javaClass.simpleName})" })
+        }
+        val su = System.getenv("PATH").orEmpty().split(':').filter { it.isNotEmpty() && File(it, "su").exists() }
+        return JSONObject()
+            .put("enforce", runCatching { command(listOf("/system/bin/getenforce")).trim() }
+                .getOrElse { "unreadable (${it.message})" })
+            .put("seapp_contexts", rules).put("su", JSONArray(su.map { "$it/su" }))
     }
 
     @Synchronized override fun gameApkInfo(): String {

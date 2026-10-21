@@ -20,10 +20,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /** Read-only, bounded raw diagnostics remain exportable when recovery records cannot be loaded. */
-class DiagnosticLogExport(private val context: Context) {
+class DiagnosticLogExport(private val context: Context, private val device: IPrivilegedDeviceService? = null) {
     fun write(output: Writer) {
         val root = context.filesDir
         output.write("HOK ACE diagnostics. Raw records below are UNVALIDATED evidence, not recovery authorization.\n")
@@ -177,8 +178,31 @@ class DiagnosticLogExport(private val context: Context) {
         line(output, "shizuku permission") {
             if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) "granted" else "not granted"
         }
+        line(output, "shell run-as policy") { shellPolicy() }
         line(output, "game") { packageSummary(PrivilegedDeviceService.GAME) }
         line(output, "worker running") { PatchWorkerService.isWorking }
+    }
+
+    /** Read through the Shizuku shell service: this app's own process may not read the rule files. */
+    private fun shellPolicy(): String {
+        val service = device ?: return "unavailable (Shizuku service not connected)"
+        val pool = Executors.newSingleThreadExecutor()
+        // A busy or stalled service must not hold up the rest of the export.
+        val report = try { JSONObject(pool.submit<String> { service.diagnostics() }.get(SHELL_SECONDS, TimeUnit.SECONDS)) }
+            finally { pool.shutdownNow() }
+        val policy = report.getJSONObject("run_as_policy")
+        val rules = policy.getJSONObject("seapp_contexts")
+        val su = policy.getJSONArray("su").let { su -> (0 until su.length()).map(su::getString) }
+        return "\n  selinux = ${report.optString("selinux")}\n  enforce = ${policy.optString("enforce")}" +
+            "\n  su = ${su.joinToString().ifEmpty { "none on path" }}" +
+            rules.keys().asSequence().joinToString("") { path ->
+                val found = rules.optJSONArray(path)
+                "\n  $path:" + when {
+                    found == null -> " ${rules.optString(path)}"
+                    found.length() == 0 -> " no run-as lines"
+                    else -> (0 until found.length()).joinToString("") { "\n    ${found.getString(it)}" }
+                }
+            }
     }
 
     private fun stamp(millis: Long) = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS Z", Locale.US).format(Date(millis))
@@ -262,6 +286,7 @@ class DiagnosticLogExport(private val context: Context) {
 
     companion object {
         private const val SHIZUKU_APP = "moe.shizuku.privileged.api"
+        private const val SHELL_SECONDS = 10L
         private const val TRACE_BYTES = 1024 * 1024
         private const val COMMAND_BYTES = 768 * 1024
         private const val LOGCAT_LINES = 5000

@@ -768,7 +768,7 @@ class MainActivity : Activity() {
         val uri = data.data!!
         runTask {
             checkNotNull(contentResolver.openOutputStream(uri, "wt")).bufferedWriter().use { output ->
-                DiagnosticLogExport(this).write(output)
+                DiagnosticLogExport(this, service).write(output)
             }
             log("Diagnostic logs exported to the selected document")
         }
