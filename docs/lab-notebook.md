@@ -3555,3 +3555,10 @@ Open: in the failed state, while the warning card is folded, ② *Open recovery 
 - **Verdict:** the official lineups are reachable in principle, as an uncatalogued config bin whose strings
   sit inside share codes. Player, master and own lineups are server text and out of reach. Nothing went on
   a phone. Tickets: `.scratch/official-lineups/issues/` (01–05).
+- **Size of the lineup text** (decoded offline from the 1.6.0.1 layers, 2026-10-21): the three bins
+  together are 68,601 B in the APK copy (45 codes inflate, 68,659 B, of which 52,008 B is CJK text in
+  UTF-8) and 66,863 B in the override copy (42 codes, 60,925 B inflated, 45,555 B CJK). A report of a
+  friend's lineup patch put it at 5–6 MB of text, about 100 times all the shipped lineup text. Our own
+  full English install overwrites 6.14 MB of ranges (ticket 08 device run, 2026-10-17), so
+  that figure matches a whole-game text patch, not the lineup bins. It says nothing yet about whether the
+  game accepts a rewritten lineup bin (ticket 02).
