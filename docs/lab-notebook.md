@@ -3516,3 +3516,42 @@ looked at by eye (notice EN 1.0, notice ID 2.0, failed ID 2.0, Install Shizuku E
 
 Open: in the failed state, while the warning card is folded, ② *Open recovery options* and the card's
 *Show recovery options* do the same thing. The critique was not re-run.
+
+## 2026-10-21 — Lineup screen: the official lineups are local, player lineups come from the server
+
+- **Screen:** Lineup → Official recommendation, Newbie and Advanced. The tab labels and the 【Lineup ideas】 /
+  【Equipment analysis】 headers are English. The lineup names (`三分登场流`, `大河图腾流`, `日落海整备流`) and the
+  text after each header are Chinese. A report said the game reads all lineup details from the Ying Di
+  (`com.tencent.gamehelper.smoba`) API.
+- **Ying Di APK:** none of `三分登场流`, `大河图腾流`, `日落海整备流`, `阵容思路`, `装备分析` or `万象棋` appears in any of
+  its 9,974 files, in UTF-8 or UTF-16.
+- **Where each tab reads from** (Lua in package `10` of the 1.6.0.1 dump, decoded through `QtsPackage`):
+  - *Official recommendation* is `EMBATTLE_TYPE.AIGuide`. `EmbattleData` (`C09C9A2A56F35B98`, lines
+    2399–2412) reads `ResSeasonAILineupDataBin.GetMulti_BySeasonID` and decodes each entry's
+    `FormationDataCode` on the phone. Newbie / Advanced is the entry's `LineupTabType`. There is no request.
+  - *More lineups* (player and master lineups) is the game server: `CSQueryPlayerLineupV2` and
+    `CSQueryLineupDetail`, then each code through a signed CDN link (`CSLineupFetchPresignCosURL`).
+  - *My lineups* is the game server (`CSQueryMyLineups`). Submitting one goes to Ying Di:
+    `CSSubmitCampLineup` returns a Ying Di `DocID`. `ReqH5EmbattleFormation` has no handler.
+- **The share code:** `EmbattleFormationDataClass:_decode` (`2AA6E0613FA44093`) strips non-base64 characters,
+  base64-decodes, inflates (`StringHelper.DecompressDeflate`) and parses `OSProto.OneLineup`. `Name`,
+  `SimpleDesc`, `PositionDesc`, `EquipDesc`, `TalentDesc` and `EffectCardDesc` come from it. This is why a
+  raw byte search finds none of the lineup text.
+- **Source: three config bins in package `1`**, found by decoding every asset in every package and
+  trying each base64 run of 120 characters or more as raw deflate:
+
+  | Asset | APK copy | Override copy | Codes | Notes |
+  |---|---|---|---|---|
+  | `F79FB1A213A9DA90` | 37,208 B | 37,266 B | 28 | 15 distinct names; every name on the screen and the `芈月` tactic-card text |
+  | `6A2B886E5DCF22DC` | 24,063 B | 24,031 B | 10 | |
+  | `C0C56FEFDCA0EA5D` | 7,330 B | 5,566 B | 4 | |
+
+  Each bin is one chunk and sits in both layers, and the two copies differ. None is a catalog table or on
+  `SAFE_ASSETS` / `CANDIDATE_ASSETS`. `F79FB1A213A9DA90` is the one whose codes carry the screen's names;
+  which table each bin is was not confirmed by name. Other base64 runs that inflated were
+  `1020003203_9D9C02C2C6EBBB90` (1 code) and `1020005002_02A585B84C10C92A` (1 code), with no CJK text.
+- **Package `19`:** `5C00D3EC7B0EF53E` holds `【王者万向棋】【三分登场流】` plus a code. It is the import dialog's
+  placeholder ("复制阵容后点击我的-新建-编辑-导入使用"), not lineup data. That code does not inflate.
+- **Verdict:** the official lineups are reachable in principle, as an uncatalogued config bin whose strings
+  sit inside share codes. Player, master and own lineups are server text and out of reach. Nothing went on
+  a phone. Ticket: `.scratch/official-lineups/issues/01-translate-official-lineup-codes.md`.
