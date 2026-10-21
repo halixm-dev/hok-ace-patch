@@ -129,7 +129,7 @@ One watched run on a real phone that tests a single change and ends in a verdict
 _Avoid_: test run, watched cycle
 
 **Allowlist**:
-The config bins a device cycle has cleared for translation; empty today.
+The config bins a device cycle has cleared for translation; one today, the Official recommendation lineups.
 _Avoid_: safe list, whitelist
 
 **Candidate queue**:

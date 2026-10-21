@@ -2,6 +2,14 @@
 
 ## Report
 
+**2026-10-21: `F79FB1A213A9DA90` cleared, the first candidate on `SAFE_ASSETS` (official-lineups ticket
+05).** Control and cycle builds, English then Indonesian, on a Xiaomi M2007J3SG with data 1.6.0.1. With the
+bin rewritten and resealed, the Official recommendation reads translated, and the detail, *Use*, copy and
+import, and a match's end behave as on the control, with no QTS-failure popup. A resealed config bin loads,
+which fits the stale checksum being what dropped the withdrawn bins; none of those has been resealed and
+re-cycled, so that stays a lead. The other two lineup bins
+stay candidates. Record: `docs/features/official-lineups.md`; evidence: lab notebook, 2026-10-21.
+
 **2026-10-21: the three lineup bins join the queue, resealed (official-lineups ticket 04).**
 `F79FB1A213A9DA90` (`ResSeasonAILineupDataBin`, Lineup → Official recommendation), `6A2B886E5DCF22DC`
 (`ResRecommendLineup`) and `C0C56FEFDCA0EA5D` (`ResHeroStrategyDataBin`) are on `CANDIDATE_ASSETS`, ahead

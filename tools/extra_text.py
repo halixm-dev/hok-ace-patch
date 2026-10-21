@@ -29,9 +29,16 @@ import pb_text
 # Protobuf list of the ~11k nicknames shown for AI opponents ("chessplayers") in matches.
 BOT_NAME_ASSETS = {0x2D1113B0AD51A562}
 # The config assets this pass may rewrite. Every one has to be put on a phone and watched, because nothing
-# about an asset predicts what rewriting it costs. Empty since 2026-10-05: all four that had been cleared
-# were withdrawn (below), and a candidate joins only after a cycle clears it.
-SAFE_ASSETS: frozenset[int] = frozenset()
+# about an asset predicts what rewriting it costs. All four cleared before 2026-10-05 were withdrawn
+# (below); a candidate joins only after a cycle clears it.
+#   0xF79FB1A213A9DA90   ResSeasonAILineupDataBin, the Official recommendation lineups: share codes and
+#                        row text translated, fields 1 and 4 resealed (`lineup_codes.rewrite_bin`).
+#                        Cleared 2026-10-21, Xiaomi M2007J3SG, Android 12, data 1.6.0.1, English and
+#                        Indonesian, each against its control: Newbie and Advanced read translated, a
+#                        lineup's detail draws, Use puts it on the board, copy and import work, and a match
+#                        ends without the QTS-failure popup. A lineup already in My lineups keeps the
+#                        language it was added in until it is removed and added again (the server's copy).
+SAFE_ASSETS: frozenset[int] = frozenset({0xF79FB1A213A9DA90})
 # Rewrites that were tried on device and withdrawn (2026-09-30 / 10-01). Each was a single-variable
 # device cycle: the same build, with one more asset enabled, watching the screen it feeds.
 #   0x5214339F97C419ED   task names: translating it makes a tournament replay SIGSEGV -- signal 11,
@@ -84,15 +91,13 @@ SAFE_ASSETS: frozenset[int] = frozenset()
 # the class is safe. Those eleven are step, buff, nickname and damage identifiers the catalog reaches 1.5-9% of, so a
 # cycle on one would add a handful of strings and risk a screen the note above already lists a synonym of.
 CANDIDATE_ASSETS: dict[int, str] = {
-    # The three lineup bins (`lineup_codes.LINEUP_BINS`), queued apart from the fifteen: their text sits
-    # inside share codes, so `rewrite_config` translates them through `lineup_codes.rewrite_bin`, which
-    # also reseals the checksum the withdrawn config bins were left with stale. Counts are distinct
+    # The other two lineup bins (`lineup_codes.LINEUP_BINS`), queued apart from the fifteen: their text
+    # sits inside share codes, so `rewrite_config` translates them through `lineup_codes.rewrite_bin`,
+    # which also reseals the checksum the withdrawn config bins were left with stale. Counts are distinct
     # Chinese strings in the codes and the row text fields, and how many `catalog.unique` (with the
     # catalog supplement's "Official lineups") translates, the same in English and Indonesian; measured
-    # on both layers of game data 1.6.0.1, 2026-10-21. `F79FB1A213A9DA90` is the cycle to run first.
-    0xF79FB1A213A9DA90: "118 of 118 (264 fields), both layers -- ResSeasonAILineupDataBin, Lineup > "
-                        "Official recommendation (Newbie / Advanced): lineup names and Lineup ideas "
-                        "text, 28 share codes; resealed",
+    # on both layers of game data 1.6.0.1, 2026-10-21. The third, `F79FB1A213A9DA90`, cleared its cycle
+    # and is on `SAFE_ASSETS`.
     0x6A2B886E5DCF22DC: "94 of 94 (196 fields), both layers -- ResRecommendLineup, 18 share codes; no "
                         "screen identified yet; resealed",
     0xC0C56FEFDCA0EA5D: "36 of 36 (45 fields) override, 35 of 35 (76 fields) prime -- "

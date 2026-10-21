@@ -25,7 +25,7 @@ carries keep the number their declared order implies and are marked ``inferred``
 Run by hand from the project root:
 
     .venv\\Scripts\\python.exe tools\\research\\lineup_bins.py --game <dump> --prime <prime-layer> ^
-        --out .scratch\\official-lineups
+        --out <dir>
 
 ``--game`` is a session dump (the folder holding ``WXQ_Data/Package/builtin``, or ``builtin`` itself),
 read as the override layer. ``--prime`` is a folder holding the prime layer's package folders (a run's

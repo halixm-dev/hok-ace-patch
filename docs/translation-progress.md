@@ -14,8 +14,9 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`) **and one Lua format edit** (`extra_text.SCRIPT_EDITS`) — nothing else. The `extra_text` config-bin allowlist is empty since
-2026-10-05. There is no percentage: the build's own totals for tables, textures and config bins are not
+(`extra_text.SCRIPT_LABELS`), **one Lua format edit** (`extra_text.SCRIPT_EDITS`) **and one config bin**
+(`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21) —
+nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
 
 A run reports four numbers through the app's `translate` step, all read from
@@ -293,8 +294,15 @@ Re-measure:
 ## Translated outside the catalog
 
 `extra_text` (over `pb_text` and `unity_text`) translates display strings the catalog has no
-localization table for. Its config-asset allowlist, `SAFE_ASSETS`, is device-gated and **empty**. The four
-assets it held until 2026-10-05 were each withdrawn after a device cycle:
+localization table for. Its config-asset allowlist, `SAFE_ASSETS`, is device-gated and holds **one** bin:
+`F79FB1A213A9DA90` (`ResSeasonAILineupDataBin`), the Lineup → Official recommendation lineups, 118 of
+118 distinct strings (264 fields) inside its 28 share codes and its rows, translated and resealed
+(`lineup_codes.rewrite_bin`). Device-cleared on 2026-10-21 (Xiaomi M2007J3SG, data 1.6.0.1) in English
+and Indonesian: Newbie and Advanced read translated, *Use*, copy and import work, and a match ends
+without the popup (`docs/features/official-lineups.md`). A lineup already in My lineups keeps the text it
+was added with, because that list is the server's copy. The other two lineup bins, `6A2B886E5DCF22DC`
+and `C0C56FEFDCA0EA5D`, are still candidates. The four assets the allowlist held until 2026-10-05 were
+each withdrawn after a device cycle:
 
 | asset | what it is | why it was withdrawn |
 |---|---|---|
@@ -361,8 +369,8 @@ draws the grid (`docs/features/card-pack-covers-cycle.md`).
 
 A cycle is now one variable by construction: `--cycle-asset <hash>` enables exactly one queued candidate,
 the run records it in `device_patch_summary.json`'s `cycle_assets`, and the hash joins `SAFE_ASSETS` only
-once a cycle has looked at the screen it feeds. Four cycles were built offline; none has a verdict. A
-cycle must now also watch a match end and the Announcement screen, which is what the 2026-10-01 verdicts
+once a cycle has looked at the screen it feeds. The first to clear was the Official recommendation lineup
+bin, on 2026-10-21, the first config bin rewritten with its checksum resealed. A cycle must now also watch a match end and the Announcement screen, which is what the 2026-10-01 verdicts
 missed.
 
 The **Talent Card grid regression is fixed and device-verified on 2026-10-03**. The full

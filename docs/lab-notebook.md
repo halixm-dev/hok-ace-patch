@@ -3554,7 +3554,7 @@ Open: in the failed state, while the warning card is folded, ② *Open recovery 
   placeholder ("复制阵容后点击我的-新建-编辑-导入使用"), not lineup data. That code does not inflate.
 - **Verdict:** the official lineups are reachable in principle, as an uncatalogued config bin whose strings
   sit inside share codes. Player, master and own lineups are server text and out of reach. Nothing went on
-  a phone. Tickets: `.scratch/official-lineups/issues/` (01–05).
+  a phone. Tickets 01–05, now `docs/features/official-lineups.md`.
 - **Size of the lineup text** (decoded offline from the 1.6.0.1 layers, 2026-10-21): the three bins
   together are 68,601 B in the APK copy (45 codes inflate, 68,659 B, of which 52,008 B is CJK text in
   UTF-8) and 66,863 B in the override copy (42 codes, 60,925 B inflated, 45,555 B CJK). A report of a
@@ -3566,8 +3566,8 @@ Open: in the failed state, while the warning card is folded, ② *Open recovery 
 ## 2026-10-21 — The three lineup bins mapped (official-lineups ticket 01)
 
 Offline, from the 1.6.0.1 layers of session `20261017-224744` (override: its `game`; prime: its
-`build/prime`), with `tools/research/lineup_bins.py`. Outputs: `.scratch/official-lineups/lineup-bins.json`
-and `lineup-strings.json`. Nothing went on a phone.
+`build/prime`), with `tools/research/lineup_bins.py`. Outputs: `lineup-bins.json`
+and `lineup-strings.json` in its `--out` folder (regenerate them; the ticket folder is gone). Nothing went on a phone.
 
 - **Which `ResData` type each config bin holds.** Each bin is a protobuf with `1` = a 32-hex MD5, `2` = the
   rows, `3` = an index blob and `4` = a number. Every row's field numbers and wire types were matched
@@ -3695,3 +3695,42 @@ Offline, from the 1.6.0.1 layers of session `20261017-224744` and its cached `in
   `without a cycle the pass plans 0 assets`.
 - **Not tested:** the append path for a lineup bin, because all three sit in both layers; and whether the
   game loads a resealed bin (ticket 05).
+
+## 2026-10-21 — The Official recommendation bin cleared on a phone (official-lineups ticket 05)
+
+On the phone: Xiaomi M2007J3SG, Android 12, game 1.1.1 (versionCode 774472),
+data 1.6.0.1 r0 (`packages/1/1.info`; `NewVersionInfo.json` `needDownloadSize` 0). Builds from ticket 04
+under `D:\scratch\hok-lineups\`: `en-control`, `en-cycle`, `id-control`, `id-cycle` (the cycles with
+`--cycle-asset F79FB1A213A9DA90`). Each was pushed whole through the access APK (`push_translation`'s
+sequence), package `1` read back by SHA-256 against the build, `Watchdog/*` cleared, and the normal APK
+reinstalled in a `finally`. The user walked the screens; logcat was recorded for each run.
+
+- **Backup:** `packages` + `Watchdog`, 745 files, 3,032,500,736 B, SHA-256 `86BA8E49…5028`. A first attempt
+  was cut short at 1,408,913,408 B when the phone dropped off USB mid-`tar`; the `finally` could not
+  reinstall the normal APK while the phone was gone, so the access APK stayed installed until the phone
+  came back and the backup was retaken. A cycle script has to wait for the device before its restore.
+- **Control, both languages:** the Official recommendation names and 【Lineup ideas】 text read Chinese;
+  Newbie, Advanced, a lineup's detail, *Use* into a match, copy and import into My lineups, and a match to
+  its end all work; no QTS-failure popup.
+- **Cycle, English:** names and 【Lineup ideas】 read English; every screen above draws and works as on the
+  control; a match ends with no popup. After play, package `1` still matches the build and the QtsVFS
+  scan reads `brokenFiles count 0`.
+- **Cycle, Indonesian:** the Official recommendation reads Indonesian, the same screens work, no popup.
+  A lineup detail first showed **English**: that lineup had been added to My lineups during the English
+  cycle. Removed and added again, it reads Indonesian (screenshot: "Tim Empat Chang Xiao'e", 【Analisis
+  arena】, with *Hapus* and *Edit*). My lineups is the server's copy (`CSQueryMyLineups`), so a lineup
+  keeps the text it was added with. Package `1` matched the build after play, 0 broken files.
+- **Logs:** logcat on all four runs (1,119,175 / 512,261 / 928,688 / 1,705,143 lines, 1,784 / 577 / 508 /
+  929 game lines) holds no `[DATABIN]`, `QTSFailure`/`QtsFailure` or `errorCode:361` line. The game's
+  `[DATABIN]` log goes to its compressed bqLog appender, not to logcat or `ccs_log/normal*.log`, so the
+  absence of a checksum line is not itself evidence; the drawn screen is (a failed check frees the bin
+  and the tab would draw empty, ticket 02).
+- **Restore:** the backup pushed back through the access APK; all 745 files hash equal to the tar, none
+  extra; normal APK installed.
+- **Verdict: cleared.** `F79FB1A213A9DA90` moves from `CANDIDATE_ASSETS` to `SAFE_ASSETS`. This is the
+  first device evidence that a resealed config bin loads: fields 1 and 4 recomputed is enough here.
+  `6A2B886E5DCF22DC` and `C0C56FEFDCA0EA5D` stay candidates, with no screen yet for either.
+- **Normal run after the move (offline):** English, the same session and APK, no `--cycle-asset`
+  (`D:\scratch\hok-lineups\en-safe`). Every staged `.db` is byte-identical to `en-cycle`'s; the summary
+  differs only in `cycle_assets` (`[]`) and the work-directory paths. The log reads `package 1: 1 extra
+  assets translated`. So a normal run now ships the bytes the phone cleared.

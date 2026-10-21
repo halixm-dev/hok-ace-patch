@@ -127,8 +127,8 @@ def make_transform(catalog, catalog_dir: Path, log, refused: set[int],
     transform.graphics = set(graphics)
     transform.tables = set(catalog.known)
     transform.scripts = set(extra_text.SCRIPT_ASSETS)
-    # The config assets this run may rewrite: the allowlist plus a device cycle's candidates. Empty on a
-    # normal run while SAFE_ASSETS is, which is what keeps the append's output unchanged without a cycle.
+    # The config assets this run may rewrite: the allowlist plus a device cycle's candidates. On a normal
+    # run that is SAFE_ASSETS alone, whose one bin sits in both layers, so the append adds nothing for it.
     transform.config = set(allowed)
     return transform
 
