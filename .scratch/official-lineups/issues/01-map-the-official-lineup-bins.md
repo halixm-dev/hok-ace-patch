@@ -10,10 +10,15 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Each of the three bins named as a table, with the evidence
-- [ ] `OneLineup` text fields and their field numbers measured
-- [ ] Per-bin string list written to this folder, both layers
-- [ ] Round-trip result recorded per layer (protobuf, deflate, base64)
-- [ ] Findings added to `docs/lab-notebook.md`
+- [x] Each of the three bins named as a table, with the evidence
+- [x] `OneLineup` text fields and their field numbers measured
+- [x] Per-bin string list written to this folder, both layers
+- [x] Round-trip result recorded per layer (protobuf, deflate, base64)
+- [x] Findings added to `docs/lab-notebook.md`
+
+## Comments
+
+2026-10-21: done offline with `tools/research/lineup_bins.py` (lab notebook, "The three lineup bins mapped").
+`F79FB1A213A9DA90` is `ResSeasonAILineupDataBin`, `6A2B886E5DCF22DC` is `ResRecommendLineup`, `C0C56FEFDCA0EA5D` is `ResHeroStrategyDataBin`; 51 codes, 201 distinct strings. Strings: `../lineup-strings.json`; per-bin measurements: `../lineup-bins.json`. For ticket 04: deflate with `zlib` level 5 (raw, default memLevel and strategy) and keep each code's stored field order. For ticket 03: `TalentDesc` / `EffectCardDesc` are empty in every shipped code.
