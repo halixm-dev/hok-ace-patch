@@ -532,12 +532,12 @@ TEXTS: dict[str, tuple[str, str]] = {
     "打出4张3阶及以下英雄能获得宝藏牌，这套阵容全部是1-3阶英雄，比较适合搭配马可。": (
         "Playing 4 Heroes of Tier 3 or lower grants a Treasure Card. This Lineup is all Tier 1-3 Heroes, so it pairs"
         " well with Marco.",
-        "Memainkan 4 Hero Tier 3 atau lebih rendah memberi Kartu Treasure. Lineup ini semuanya Hero Tier 1-3, jadi"
+        "Memainkan 4 Hero Tier 3 atau lebih rendah memberi Treasure Card. Lineup ini semuanya Hero Tier 1-3, jadi"
         " cocok dipasangkan dengan Marco."),
     "打出4张3阶及以下英雄能获得宝藏牌，这套阵容前期低阶英雄多，比较适合搭配马可。": (
         "Playing 4 Heroes of Tier 3 or lower grants a Treasure Card. This Lineup has many low-Tier Heroes early on, so"
         " it pairs well with Marco.",
-        "Memainkan 4 Hero Tier 3 atau lebih rendah memberi Kartu Treasure. Lineup ini punya banyak Hero Tier rendah"
+        "Memainkan 4 Hero Tier 3 atau lebih rendah memberi Treasure Card. Lineup ini punya banyak Hero Tier rendah"
         " di awal, jadi cocok dipasangkan dengan Marco."),
     "派对泡泡选日落海，每回合使用棋手技能稳定拿一张日落海英雄牌，能快速凑齐阵容。秘技牌推荐4级/5级再用，补齐高阶英雄。": (
         "Pick Sunset for Party Bubble and use the Chessplayer Skill every Round to reliably get a Sunset Hero Card,"
@@ -581,7 +581,7 @@ TEXTS: dict[str, tuple[str, str]] = {
     "这套阵容主要靠使用效果牌时，触发芈月的卡牌效果培养英雄，小妲己能提供更多的效果牌，非常适合有芈月的阵容。": (
         "This Lineup mainly grows Heroes by playing Effect Cards to trigger Mi Yue's Card Effect. Little Daji provides"
         " more Effect Cards, a great fit for Lineups with Mi Yue.",
-        "Lineup ini terutama membesarkan Hero dengan memakai Effect Card untuk memicu Efek Kartu Mi Yue. Little Daji"
+        "Lineup ini terutama membesarkan Hero dengan menggunakan Effect Card untuk memicu Efek Kartu Mi Yue. Little Daji"
         " memberi lebih banyak Effect Card, sangat cocok untuk Lineup dengan Mi Yue."),
     "闹闹的技能只花1点能量拿牌，前期经常能随到需要的牌。秘技牌在4级用，有概率能出李信。": (
         "Naonao's Skill gets a card for just 1 Energy and often rolls the card you need early on. Use the Secret Skill"
