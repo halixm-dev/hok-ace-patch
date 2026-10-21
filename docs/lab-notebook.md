@@ -3621,3 +3621,44 @@ and `lineup-strings.json`. Nothing went on a phone.
   code or protobuf, or the encoder's salted MD5 (`GetMd5WithSalt`: `md5(#code .. code .. "osgame")`,
   characters 3 onwards). `LineupKey` is a sequence. `_decode`'s salted-MD5 pre-check is commented out, and
   `Encode` computes the hash and then discards it. The bin-level fields 1, 3 and 4 belong to ticket 02.
+
+## 2026-10-21 — Config bin checksums recomputed (official-lineups ticket 02)
+
+Offline, from the same two 1.6.0.1 layers as ticket 01 and the cached `installed.apk`'s
+`lib/arm64-v8a/libGameCore.so`, with `tools/research/config_bin_checksum.py`. Nothing went on a phone.
+
+- **Every config bin stores two digests.** The layout is `1` = 32-character upper-case hex, `2` = rows,
+  `3` = an index (`1` = packed uint32 keys, `2` = entries of key and packed uint32 values) and
+  `4` = a uint32. All 1,182 bins of package `1` in the prime layer and all 311 in the override layer have
+  this layout, the three lineup bins included. None stores a per-row digest. The package-`1` registry has
+  no digest fields.
+- **Field 1 is `MD5` of the rows' bytes concatenated**, in stored order, as upper-case hex. It matches on
+  1,182 / 1,182 and 311 / 311 bins. This explains the 2026-10-16 note that it is "not `md5(rest of the
+  bin)`": it covers the row payloads only, without their tags and lengths.
+- **Field 4 is the value the game checks.** In libGameCore, `PBDatabinLoader.cpp` `DecodeFromStream`
+  (`0x4ac16fc`) seeds a state with `0x01234567` (`0x4189134`) and folds in data through `0x31ccc4c`, which
+  computes `h = (h ^ byte) * 0x89ABCDEF` for each byte. It folds every row's bytes, then each index key as
+  4 little-endian bytes, then each index entry's key and values the same way. It then compares the result
+  with the stored value (`0x4ac1aa4`). On a mismatch it logs `[DATABIN] {0} checksum mismatch {1} {2} {3}`,
+  sets status 3 and frees the bin instead of marking it loaded (`0x4ac1b20`), so what the bin feeds goes
+  empty. A Python port matches the stored value on 1,182 / 1,182 and 311 / 311 bins. That match is the
+  evidence, since the game's pipeline wrote those values. The port was not run against the native function
+  (no emulator here).
+- **The index depends on the rows' keys only.** Of the 292 bins present in both layers, 109 differ in
+  their rows but keep an identical index. A rewrite that changes no key keeps it.
+- **The loader does not compare field 1.** `DecodeFromStream` reads only field 4. Whether anything else
+  reads field 1 is unknown, so a reseal recomputes both.
+- **The share code has no checksum of its own.** `GetMd5WithSalt` is the share-code helper in package `10`.
+  `_decode`'s check with it is commented out, and `Encode` / `EncodeForShare` compute it and discard it
+  (ticket 01).
+- **Offline proof, both layers, all three lineup bins.** The test changes `OneLineup.Name` of the first row's
+  code to `Checksum test`, keeping field order, re-deflates at zlib's default and re-encodes as base64. It
+  then rebuilds the row and reseals fields 1 and 4. Results: the unchanged bin reseals to itself byte for
+  byte, the stale field 4 no longer matches, the resealed bin passes both values, the name decodes back,
+  and every other row and the index keep their bytes.
+- **Verdict: recomputable.** Ticket 04 can rewrite the lineup bins and reseal fields 1 and 4. A phone has
+  not yet confirmed that a resealed bin loads (ticket 05).
+- **Lead beyond this ticket.** The withdrawn config bins were dropped with symptoms that fit this check:
+  the Talent Card grid and the Diamond Frenzy Starting Lineup drew empty (ADR 0005, 2026-10-16). Those
+  rewrites left field 4 stale. A resealed rewrite of one of them is an untested device cycle. ADR 0004 and
+  ADR 0005 stand until one is run.

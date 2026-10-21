@@ -1,0 +1,185 @@
+"""Recompute the two digests a config bin stores, and reseal a lineup bin after a rewrite (ticket official-lineups/02).
+
+A config bin is a protobuf: ``1`` = a 32-character upper-case hex digest, ``2`` = the rows (each a
+serialized row message), ``3`` = an index (``1`` = packed uint32 keys, ``2`` = entries of ``1`` = key and
+``2`` = packed uint32 values) and ``4`` = a uint32 checksum.
+
+* **Field 1** is ``MD5`` of the rows' bytes concatenated, in stored order.
+* **Field 4** is what the game checks. ``PBDatabinLoader.cpp`` ``DecodeFromStream`` (libGameCore.so
+  ``0x4ac16fc``, 1.6.0.1) seeds a 32-bit state with ``0x01234567`` and folds in, through ``0x31ccc4c``
+  (``h = (h ^ byte) * 0x89ABCDEF`` per byte), every row's bytes, then each index key as 4 little-endian
+  bytes, then each index entry's key and values the same way. A mismatch logs
+  ``[DATABIN] {0} checksum mismatch`` and frees the bin instead of loading it, so the game drops what the
+  bin feeds. The loader does not compare field 1.
+
+The index depends on the rows' keys only, so a rewrite that changes no key keeps it.
+
+``--check`` recomputes both values for every config bin of package ``1`` in both layers. ``--prove``
+then changes one lineup name in each lineup bin, reseals it, and shows that the stale checksum fails, the
+resealed one passes, the code still decodes, and every other row keeps its bytes.
+
+    .venv\\Scripts\\python.exe tools\\research\\config_bin_checksum.py --game <dump> --prime <prime-layer>
+
+``--game`` and ``--prime`` are read as in ``lineup_bins.py``. Nothing is written.
+
+Off the runtime path: excluded from the exe build and never imported from ``app/`` or ``tools/``.
+"""
+from __future__ import annotations
+
+import argparse
+import base64
+import hashlib
+import pathlib
+import re
+import sys
+import zlib
+from collections import Counter
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
+from lineup_bins import BINS, LAYERS, NOT_BASE64, _assets, _encode, _fields, _package_dir, _varint  # noqa: E402
+
+SEED = 0x01234567
+PRIME = 0x89ABCDEF
+CODE_FIELDS = {"F79FB1A213A9DA90": 4, "6A2B886E5DCF22DC": 11, "C0C56FEFDCA0EA5D": 5}
+HEAD = re.compile(rb"\n [0-9A-F]{32}")
+TEST_NAME = "Checksum test"
+
+
+def _fold(state: int, data: bytes) -> int:
+    for byte in data:
+        state = ((state ^ byte) * PRIME) & 0xFFFFFFFF
+    return state
+
+
+def _packed(value: object, wire: int) -> list[int]:
+    if wire == 0:
+        return [value]
+    found, pos = [], 0
+    while pos < len(value):
+        number, pos = _varint(value, pos)
+        found.append(number)
+    return found
+
+
+def rows_md5(entries: list[tuple[int, int, object]]) -> bytes:
+    """Field 1: MD5 of the rows' bytes, upper-case hex."""
+    return hashlib.md5(b"".join(value for number, _, value in entries if number == 2)).hexdigest().upper().encode()
+
+
+def checksum(entries: list[tuple[int, int, object]]) -> int:
+    """Field 4, as ``DecodeFromStream`` computes it."""
+    state = SEED
+    for number, _, value in entries:
+        if number == 2:
+            state = _fold(state, value)
+    keys: list[int] = []
+    index_entries: list[bytes] = []
+    for number, _, value in entries:
+        if number != 3:
+            continue
+        for inner, wire, item in _fields(value):
+            if inner == 1:
+                keys += _packed(item, wire)
+            elif inner == 2:
+                index_entries.append(item)
+    for key in keys:
+        state = _fold(state, key.to_bytes(4, "little"))
+    for entry in index_entries:
+        for inner, wire, item in _fields(entry):
+            if inner in (1, 2):
+                for number in _packed(item, wire):
+                    state = _fold(state, number.to_bytes(4, "little"))
+    return state
+
+
+def reseal(entries: list[tuple[int, int, object]]) -> list[tuple[int, int, object]]:
+    """The same bin with fields 1 and 4 recomputed, everything else and the order kept."""
+    head, total = rows_md5(entries), checksum(entries)
+    return [(n, w, head if n == 1 else total if n == 4 else v) for n, w, v in entries]
+
+
+def _is_config_bin(raw: bytes) -> bool:
+    return HEAD.match(raw) is not None
+
+
+def check(roots: dict[str, pathlib.Path]) -> bool:
+    ok = True
+    for layer in LAYERS:
+        counts = Counter()
+        for name, raw in _assets(_package_dir(roots[layer], "1")):
+            if not _is_config_bin(raw):
+                continue
+            try:
+                entries = _fields(raw)
+            except (ValueError, IndexError):
+                counts["unparsed"] += 1
+                continue
+            stored = dict((n, v) for n, _, v in entries)
+            counts["bins"] += 1
+            counts["field 1 = md5(rows)"] += stored.get(1) == rows_md5(entries)
+            counts["field 4 = checksum"] += stored.get(4) == checksum(entries)
+            counts["re-serializes identically"] += _encode(entries) == raw
+        print(f"{layer}: {dict(counts)}")
+        ok &= counts["bins"] == counts["field 1 = md5(rows)"] == counts["field 4 = checksum"]
+    return ok
+
+
+def _rename(code: bytes, name: str) -> bytes:
+    """Replace ``OneLineup.Name`` in a share code, keeping the stored field order."""
+    inflated = zlib.decompress(base64.b64decode(NOT_BASE64.sub(b"", code)), -15)
+    message = [(n, w, name.encode() if n == 1 else v) for n, w, v in _fields(inflated)]
+    packer = zlib.compressobj(6, zlib.DEFLATED, -15)
+    return base64.b64encode(packer.compress(_encode(message)) + packer.flush())
+
+
+def prove(roots: dict[str, pathlib.Path]) -> bool:
+    ok = True
+    wanted = {int(name, 16) for name in BINS}
+    for layer in LAYERS:
+        assets = dict(_assets(_package_dir(roots[layer], "1"), wanted))
+        for name in BINS:
+            entries = _fields(assets[name])
+            stored = dict((n, v) for n, _, v in entries)
+            row_at = next(i for i, (n, _, _) in enumerate(entries) if n == 2)
+            row = _fields(entries[row_at][2])
+            row = [(n, w, _rename(v, TEST_NAME) if n == CODE_FIELDS[name] else v) for n, w, v in row]
+            changed = list(entries)
+            changed[row_at] = (2, 2, _encode(row))
+
+            stale = checksum(changed) == stored[4]
+            sealed = reseal(changed)
+            sealed_raw = _encode(sealed)
+            again = _fields(sealed_raw)
+            code = dict((n, v) for n, _, v in _fields(again[row_at][2]))[CODE_FIELDS[name]]
+            read_back = dict((n, v) for n, _, v in _fields(zlib.decompress(base64.b64decode(code), -15)))[1]
+            others_kept = all(a == b for i, (a, b) in enumerate(zip(entries, again))
+                              if i != row_at and a[0] not in (1, 4))
+            results = {
+                "unchanged bin reseals to itself": _encode(reseal(entries)) == assets[name],
+                "stale checksum fails": not stale,
+                "resealed checksum passes": dict((n, v) for n, _, v in again)[4] == checksum(again),
+                "resealed md5 passes": dict((n, v) for n, _, v in again)[1] == rows_md5(again),
+                "name reads back": read_back.decode() == TEST_NAME,
+                "other rows and index kept": others_kept,
+            }
+            print(f"{layer} {name}: {len(assets[name])} -> {len(sealed_raw)} B, {results}")
+            ok &= all(results.values())
+    return ok
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--game", type=pathlib.Path, required=True, help="session dump (override layer)")
+    parser.add_argument("--prime", type=pathlib.Path, required=True, help="folder of prime-layer packages")
+    args = parser.parse_args()
+    roots = {"prime": args.prime, "override": args.game}
+    checked = check(roots)
+    proved = prove(roots)
+    print("all digests recomputed" if checked else "SOME DIGESTS DID NOT RECOMPUTE")
+    print("reseal proven on every lineup bin" if proved else "RESEAL FAILED")
+    return 0 if checked and proved else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
