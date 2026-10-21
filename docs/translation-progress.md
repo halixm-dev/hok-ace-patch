@@ -173,6 +173,10 @@ catalog's form grants 火鹰装备 (Fire Hawk Equipment). The new form is in 10 
 override layer. Its supplement entry reuses the catalog's Fire Hawk sentence and names the set *Star Source*,
 as four of the catalog's five 星源 items do (the fifth reads *Starcore*).
 
+On 2026-10-21 the supplement gained the official lineups' text: 198 of the 201 Chinese strings in the three
+lineup config bins (`.scratch/official-lineups/`), in both languages; the catalog already translates the other
+three. That text sits inside share codes no pass rewrites yet (ticket 04), so no count moves.
+
 The Event > 万象头条 (Headlines) screen stays Chinese, and no pass can change that. The tab label `万象头条` is
 only in the quiz bin `A3B34BE9879BE25B`, which was withdrawn from the allowlist (`extra_text.py`: no game
 button, blank encyclopedia). The rest of the screen is in neither data layer: the `领官号福利` tab, the
