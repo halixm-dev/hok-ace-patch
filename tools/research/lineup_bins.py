@@ -6,8 +6,11 @@ measures it from inside the codes, in both data layers:
 
 * **Which table each bin is.** The package-10 Lua annotations (``---@class ResData.<Table>`` with its
   ``---@field`` lines, in declared order) are matched against every row's field numbers and wire types.
-  A table is named only when it is the one class that fits all rows of the bin; the package-1 data-bin
-  registry (``ResData.<Table>`` -> file name) must list it too.
+  A table is named when it is the one fitting class that declares a share-code field, and the package-1
+  data-bin registry (``ResData.<Table>`` -> file name) must list it, or the run stops. Two limits: the
+  fit takes a class's field numbers from its declared order, which the annotations do not guarantee; and
+  how a registry file name becomes an asset hash is not known, so the registry confirms the table exists,
+  not that it is this asset.
 * **Every Chinese string**, inside the codes (``OneLineup`` and its nested messages) and in the rows'
   own string fields, with how many codes or rows use it.
 * **The round trip** of each code through protobuf, deflate and base64, and which ``zlib`` settings
@@ -41,6 +44,7 @@ import re
 import sys
 import zlib
 from collections import Counter, defaultdict
+from collections.abc import Iterator
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -63,7 +67,7 @@ ONE_LINEUP = {1: ("Name", "str"), 2: ("Provider", "str"), 3: ("PreviewHeroes", H
               8: ("OperationDetails", OPERATION), 9: ("LordInfos", LORD), 10: ("TalentIDs", "ints"),
               11: ("EffectCardIDs", "ints"), 12: ("TalentDesc", "str"), 13: ("EffectCardDesc", "str"),
               14: ("Version", "str"), 15: ("SeasonID", "int")}
-INFERRED = {"OneLineup": {10, 11, 12, 13, 15}, "STLineupHero": set(), "STOperationDetail": set(),
+INFERRED = {"OneLineup": {10, 11, 12, 13}, "STLineupHero": set(), "STOperationDetail": set(),
             "STLineupLordInfo": set()}
 MESSAGE_NAMES = {id(ONE_LINEUP): "OneLineup", id(HERO): "STLineupHero", id(OPERATION): "STOperationDetail",
                  id(LORD): "STLineupLordInfo"}
@@ -154,7 +158,7 @@ def _package_dir(root: pathlib.Path, package: str) -> pathlib.Path:
     raise SystemExit(f"no package {package} under {root}")
 
 
-def _assets(package_dir: pathlib.Path, wanted: set[int] | None = None):
+def _assets(package_dir: pathlib.Path, wanted: set[int] | None = None) -> Iterator[tuple[str, bytes]]:
     from qts_relocate import install_btree_slot_map, read_raw
     from wxq_patch.qtsvfs import QtsPackage
 
@@ -202,8 +206,8 @@ def _registry(package_dir: pathlib.Path) -> dict[str, str]:
             continue
         try:
             entries = [_fields(value) for number, wire, value in _fields(raw) if number == 1 and wire == 2]
-            names = {dict((n, v) for n, _, v in entry)[1].decode(): dict((n, v) for n, _, v in entry)[2].decode()
-                     for entry in entries}
+            pairs = [{n: v for n, _, v in entry} for entry in entries]
+            names = {pair[1].decode(): pair[2].decode() for pair in pairs}
         except (ValueError, KeyError, UnicodeDecodeError, IndexError):
             continue
         if "ResData.ResSeasonAILineupDataBin" in names:
@@ -213,7 +217,7 @@ def _registry(package_dir: pathlib.Path) -> dict[str, str]:
 
 # --- naming a bin ---------------------------------------------------------------------------------------
 
-def _wire_fits(declared: str, wire: int, classes: dict) -> bool:
+def _wire_fits(declared: str, wire: int, classes: dict[str, list[tuple[str, str]]]) -> bool:
     def scalar(kind: str) -> bool:
         return kind in ("number", "boolean") or (kind.startswith("ResData.") and kind[8:] not in classes)
     if declared.endswith("[]"):
@@ -221,7 +225,7 @@ def _wire_fits(declared: str, wire: int, classes: dict) -> bool:
     return wire in (0, 1, 5) if scalar(declared) else wire == 2
 
 
-def _fitting_classes(rows: list[bytes], classes: dict) -> list[str]:
+def _fitting_classes(rows: list[bytes], classes: dict[str, list[tuple[str, str]]]) -> list[str]:
     fitting = []
     for name, declared in classes.items():
         if declared and all(number <= len(declared) and _wire_fits(declared[number - 1][1], wire, classes)
@@ -296,8 +300,8 @@ def _measure_bin(rows: list[bytes], code_number: int, row_classes: list[tuple[st
         _strings(inflated, ONE_LINEUP, "", in_code, seen)
         strings.extend(dict.fromkeys(in_code))  # count a string once per code that uses it
 
-        trip["protobuf identical, stored order"] += _reencode(inflated, ONE_LINEUP, False) == inflated
-        trip["protobuf identical, field-number order"] += _reencode(inflated, ONE_LINEUP, True) == inflated
+        trip["protobuf re-serialized in stored order identical"] += _reencode(inflated, ONE_LINEUP, False) == inflated
+        trip["protobuf re-serialized in field-number order identical"] += _reencode(inflated, ONE_LINEUP, True) == inflated
         trip["base64 identical"] += base64.b64encode(stream) == filtered
         settings = _deflate_settings(stream, inflated)
         trip["deflate reproduced by some zlib setting"] += bool(settings)
@@ -309,10 +313,19 @@ def _measure_bin(rows: list[bytes], code_number: int, row_classes: list[tuple[st
             "md5(code)": hashlib.md5(stored).hexdigest(), "md5(protobuf)": hashlib.md5(inflated).hexdigest(),
             "salted md5(code)": _salted_md5(text),
         }
+        raw_digests = {"md5(code)": hashlib.md5(stored).digest(), "md5(protobuf)": hashlib.md5(inflated).digest(),
+                       "crc32(code)": zlib.crc32(stored).to_bytes(4, "little"),
+                       "crc32(protobuf)": zlib.crc32(inflated).to_bytes(4, "little")}
         for number, wire, value in entries:
             if number == code_number:
                 continue
-            shown = str(value) if wire == 0 else value.decode("latin-1").lower() if wire == 2 else None
+            for label, digest in raw_digests.items():
+                if wire != 0 and value == digest:
+                    derived[f"field {number} ({row_classes[number - 1][0]}) = raw {label}"] += 1
+            if wire in (1, 5):
+                shown = str(int.from_bytes(value, "little"))
+            else:
+                shown = str(value) if wire == 0 else value.decode("latin-1").lower()
             if not shown:
                 continue
             for label, digest in digests.items():
@@ -351,6 +364,8 @@ def main() -> int:
             if len(semantic) != 1:
                 raise SystemExit(f"{name} {layer}: {fitting} fit the rows; none or several hold a code field")
             table = semantic[0]
+            if f"ResData.{table}" not in registry:
+                raise SystemExit(f"{name} {layer}: {table} is not in the package-1 data-bin registry")
             declared = classes[table]
             code_number = next(i + 1 for i, (field, _) in enumerate(declared) if field in CODE_FIELD_NAMES)
             measured = _measure_bin(rows, code_number, declared)
@@ -363,7 +378,10 @@ def main() -> int:
                 "rows": len(rows),
                 "top_level_fields": sorted(Counter(number for number, _, _ in top).items()),
                 "round_trip": dict(measured["round_trip"]),
-                "deflate_settings": dict(measured["deflate_settings"].most_common(5)),
+                "deflate_settings_for_every_code": sorted(
+                    setting for setting, count in measured["deflate_settings"].items()
+                    if count == measured["round_trip"]["codes"]),
+                "deflate_settings": dict(sorted(measured["deflate_settings"].items())),
                 "derived_from_code": dict(measured["derived"]),
                 "onelineup_fields_seen": dict(sorted(measured["fields_seen"].items())),
             }
@@ -385,6 +403,9 @@ def main() -> int:
     (args.out / "lineup-bins.json").write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n",
                                                 encoding="utf-8")
 
+    changed = [(bin_name, field, item["source"]) for bin_name, fields in strings_out.items()
+               for field, items in fields.items() for item in items if item["prime"] != item["override"]]
+    print(f"{len(changed)} entries are used by a different number of codes or rows in the two layers")
     for name in BINS:
         for layer in LAYERS:
             entry = report[name][layer]

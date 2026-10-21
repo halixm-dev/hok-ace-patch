@@ -3569,43 +3569,55 @@ Offline, from the 1.6.0.1 layers of session `20261017-224744` (override: its `ga
 `build/prime`), with `tools/research/lineup_bins.py`. Outputs: `.scratch/official-lineups/lineup-bins.json`
 and `lineup-strings.json`. Nothing went on a phone.
 
-- **Tables, named from the schema.** Each bin is a `ResData` table (`1` = 32-hex MD5, `2` = rows, `3` = an
-  index blob, `4` = a number). Every row's field numbers and wire types were matched against all 1,382
-  `---@class ResData.*` annotations in package `10` (`16432EB6150E3704`, fields in declared order). The
-  package-`1` data-bin registry (`4B15FC0D7596513F`, `ResData.<Table>` → file name) lists all three:
+- **Which `ResData` type each config bin holds.** Each bin is a protobuf with `1` = a 32-hex MD5, `2` = the
+  rows, `3` = an index blob and `4` = a number. Every row's field numbers and wire types were matched
+  against all 1,382 `---@class ResData.*` annotations in package `10` (`16432EB6150E3704`), taking a class's
+  field numbers from its declared order. In each bin exactly one fitting class declares a share-code field,
+  and the package-`1` data-bin registry (`4B15FC0D7596513F`, `ResData.<Type>` → file name) lists it:
 
-  | Asset | Table | Code field | Rows = codes | Text row fields |
+  | Asset | Type | Code field | Rows = codes | Chinese row fields |
   |---|---|---|---|---|
   | `F79FB1A213A9DA90` | `ResSeasonAILineupDataBin` (Official recommendation) | `FormationDataCode` #4 | 28 | `LineupDesc` #9 |
-  | `6A2B886E5DCF22DC` | `ResRecommendLineup` | `Encode` #11 | 18 | `LineupName` #22, `LineupDesc` #23 (none Chinese) |
+  | `6A2B886E5DCF22DC` | `ResRecommendLineup` | `Encode` #11 | 18 | none (`LineupName` #22 and `LineupDesc` #23 hold no Chinese) |
   | `C0C56FEFDCA0EA5D` | `ResHeroStrategyDataBin` | `LineupCode` #5 | 5 | `Title` #7 (`小妲己测试`, test rows) |
 
-  The first two are the only class that fits all their rows. `C0C56FEFDCA0EA5D` also fits
-  `FaceToFaceRedPackDataBin` by wire type, but its field 4 is a `.usm` video path and field 5 a share code,
-  which is `VideoUrl` / `LineupCode` in `ResHeroStrategyDataBin` and `RedPacketIcon` / `RedPacketTip` there.
-  Both layers hold the same row and code counts: **51 codes**. The earlier counts (28 / 10 / 4, and 45 / 42
-  in the size bullet above) came from a 120-character base64-run scan and are superseded.
-- **`OneLineup` field numbers, measured** (the annotations give order, not numbers): `Name` 1, `Provider` 2,
-  `PreviewHeroes` 3, `Type` 4, `SimpleDesc` 5, `PositionDesc` 6, `EquipDesc` 7, `OperationDetails` 8,
-  `LordInfos` 9, `Version` 14, `SeasonID` 15. No shipped code carries 10–13, so `TalentIDs`, `EffectCardIDs`,
-  `TalentDesc` and `EffectCardDesc` are 10–13 by order only. `STLineupHero` skips 2: `ID` 1, `Level` 3,
-  `EquipIDs` 4 (packed), `Type` 5, `IsEvo` 6, `Desc` 7, `PositionX` 8, `PositionZ` 9.
-  `STOperationDetail`: `Index` 1, `BeginRound` 2, `EndRound` 3, `MainHeroIDs` 4, `SubHeroIDs` 5, `Desc` 6.
-  `STLineupLordInfo`: `LordID` 1, `Desc` 2. No field outside these appears.
-- **Chinese text:** in codes, `Name`, `Provider`, `SimpleDesc`, `PositionDesc`, `EquipDesc`,
-  `OperationDetails.Desc`, `LordInfos.Desc`, `PreviewHeroes.Desc` and `OperationDetails.MainHeroIDs.Desc`;
-  in rows, `LineupDesc` and `Title`. 254 (bin, field, string) entries, **201 distinct strings, 25,322 B**
-  UTF-8. The two layers agree except for 3 strings (2 `EquipDesc` in `ResRecommendLineup`, 1 `Name` in
-  `ResHeroStrategyDataBin`). The 芈月 tactic-card text is ordinary `EquipDesc` / `SimpleDesc` /
-  `OperationDetails.Desc` text, not `EffectCardDesc`.
-- **Round trip, all 51 codes in both layers:** base64 is standard with padding, no other characters, and
-  re-encodes identically. Deflate is raw (`wbits -15`); `zlib` level 5, default strategy, memLevel 5–9
-  (8, the default, included) reproduces every stream byte for byte. Protobuf re-serializes identically
-  **only in stored order**: the order differs from code to code (for example `5, 9, 14, 1, 3, 8, 6` and
-  `1, 4, 3, 5, 8, 7, 9`) and none is in field-number order, so the encoder walks a hash table. A rewrite
-  splices each string in place; it must not re-sort.
-- **Nothing in a row is derived from its code.** No row field equals the code's length, the deflate or
-  protobuf length, a CRC32 or MD5 of the code or protobuf, or the encoder's salted MD5
-  (`GetMd5WithSalt`: `md5(#code .. code .. "osgame")`, chars 3 on). `LineupKey` is `"1"`…`"28"`, a
-  sequence. `_decode`'s own salted-MD5 pre-check is commented out, and `Encode` computes it and discards
-  it. The bin-level fields 1, 3 and 4 are ticket 02's.
+  The rows' contents agree with the declared names: in `F79FB1A213A9DA90`, #9 is Chinese prose and #13
+  (`LineupKey`) is `"1"`…`"28"`. In `C0C56FEFDCA0EA5D`, #4 is a `.usm` video path, #5 a share code and #8–9
+  `ArtHub/Icon/...` paths: `VideoUrl`, `LineupCode`, `BgImage` and `PCBgImage` in `ResHeroStrategyDataBin`.
+  The only other class that fits it by wire type, `FaceToFaceRedPackDataBin`, would call #4 and #5
+  `RedPacketIcon` and `RedPacketTip`. Two limits remain. Declared order is assumed to be field numbering
+  for these types, which the annotations do not state. And how a registry file name becomes an asset hash
+  is unknown, so the registry shows the type exists but not that it is this asset. Both layers hold the
+  same row and code counts: **51 codes**. The earlier counts (28 / 10 / 4, and 45 / 42 in the size bullet
+  above) came from a scan for base64 runs of 120 characters or more and are superseded.
+- **`OneLineup` field numbers, measured.** The annotations give order, not numbers, so each number was read
+  from the decoded codes and named by the field the wire type and content fit, in declared order:
+  `Name` 1, `Provider` 2, `PreviewHeroes` 3, `Type` 4, `SimpleDesc` 5, `PositionDesc` 6, `EquipDesc` 7,
+  `OperationDetails` 8, `LordInfos` 9, `Version` 14 (`1.0.0.1:745297`), `SeasonID` 15 (override layer only).
+  No shipped code carries 10–13, so `TalentIDs`, `EffectCardIDs`, `TalentDesc` and `EffectCardDesc` are
+  10–13 by order only. `STLineupHero` skips 2: `ID` 1, `Level` 3, `EquipIDs` 4 (packed), `Type` 5, `IsEvo` 6,
+  `Desc` 7, `PositionX` 8, `PositionZ` 9. `STOperationDetail`: `Index` 1, `BeginRound` 2, `EndRound` 3,
+  `MainHeroIDs` 4, `SubHeroIDs` 5, `Desc` 6. `STLineupLordInfo`: `LordID` 1, `Desc` 2. No other field number
+  appears.
+- **Chinese text.** In codes it is in `Name`, `Provider`, `SimpleDesc`, `PositionDesc`, `EquipDesc`,
+  `OperationDetails.Desc`, `LordInfos.Desc`, `PreviewHeroes.Desc` and `OperationDetails.MainHeroIDs.Desc`.
+  In rows it is in `LineupDesc` and `Title`. That is 254 (bin, field, string) entries, **201 distinct
+  strings, 25,322 B** of UTF-8. The layers differ in 19 entries: 17 in `ResHeroStrategyDataBin`, whose
+  codes differ between the layers (`图腾成长流` is in 3 prime codes and 1 override code), and 2 in
+  `ResRecommendLineup`. Three strings exist in one layer only. A pass has to read each layer's own codes.
+  The 芈月 tactic-card text is ordinary `EquipDesc` / `SimpleDesc` / `OperationDetails.Desc` text, not
+  `EffectCardDesc`.
+- **Round trip, all 51 codes in both layers.**
+  - *Base64:* standard with padding, with no other characters. It re-encodes identically.
+  - *Deflate:* raw (`wbits -15`). `zlib` levels 5–9, memLevel 5–9 and the default strategy reproduce every
+    stream byte for byte; zlib's default (level 6, memLevel 8) is one of them.
+  - *Protobuf:* re-serializing the parsed fields in their stored order gives identical bytes, so lengths
+    and varints are minimal and nothing else is in the framing. The stored order differs from code to code
+    (for example `5, 9, 14, 1, 3, 8, 6` and `1, 4, 3, 5, 8, 7, 9`), and no code is in field-number order.
+    Whatever the encoder does, a rewrite that keeps each code's order reproduces the untouched bytes,
+    and one that sorts the fields does not.
+- **Nothing in a row is derived from its code.** No row field equals any of these, as a number, a string
+  or a raw fixed-width value: the code's length, the deflate or protobuf length, a CRC32 or MD5 of the
+  code or protobuf, or the encoder's salted MD5 (`GetMd5WithSalt`: `md5(#code .. code .. "osgame")`,
+  characters 3 onwards). `LineupKey` is a sequence. `_decode`'s salted-MD5 pre-check is commented out, and
+  `Encode` computes the hash and then discards it. The bin-level fields 1, 3 and 4 belong to ticket 02.
