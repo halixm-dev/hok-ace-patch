@@ -39,8 +39,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from lineup_bins import BINS, LAYERS, NOT_BASE64, _assets, _encode, _fields, _package_dir, _varint  # noqa: E402
 
-SEED = 0x01234567
-PRIME = 0x89ABCDEF
+FOLD_SEED = 0x01234567
+FOLD_MULTIPLIER = 0x89ABCDEF
 CODE_FIELDS = {"F79FB1A213A9DA90": 4, "6A2B886E5DCF22DC": 11, "C0C56FEFDCA0EA5D": 5}
 HEAD = re.compile(rb"\n [0-9A-F]{32}")
 TEST_NAME = "Checksum test"
@@ -48,13 +48,13 @@ TEST_NAME = "Checksum test"
 
 def _fold(state: int, data: bytes) -> int:
     for byte in data:
-        state = ((state ^ byte) * PRIME) & 0xFFFFFFFF
+        state = ((state ^ byte) * FOLD_MULTIPLIER) & 0xFFFFFFFF
     return state
 
 
-def _packed(value: object, wire: int) -> list[int]:
+def _packed(value: int | bytes, wire: int) -> list[int]:
     if wire == 0:
-        return [value]
+        return [int(value)]
     found, pos = [], 0
     while pos < len(value):
         number, pos = _varint(value, pos)
@@ -69,7 +69,7 @@ def rows_md5(entries: list[tuple[int, int, object]]) -> bytes:
 
 def checksum(entries: list[tuple[int, int, object]]) -> int:
     """Field 4, as ``DecodeFromStream`` computes it."""
-    state = SEED
+    state = FOLD_SEED
     for number, _, value in entries:
         if number == 2:
             state = _fold(state, value)
@@ -99,15 +99,25 @@ def reseal(entries: list[tuple[int, int, object]]) -> list[tuple[int, int, objec
     return [(n, w, head if n == 1 else total if n == 4 else v) for n, w, v in entries]
 
 
+def _by_number(entries: list[tuple[int, int, object]]) -> dict[int, object]:
+    """{field number: value}, the last occurrence winning (the bin's singular fields)."""
+    return {number: value for number, _, value in entries}
+
+
 def _is_config_bin(raw: bytes) -> bool:
     return HEAD.match(raw) is not None
 
 
 def check(roots: dict[str, pathlib.Path]) -> bool:
     ok = True
+    parsed: dict[str, dict[str, list[tuple[int, int, object]]]] = {}
     for layer in LAYERS:
-        counts = Counter()
+        counts: Counter[str] = Counter()
+        parsed[layer] = {}
         for name, raw in _assets(_package_dir(roots[layer], "1")):
+            if b"ResData.ResSeasonAILineupDataBin" in raw[:1 << 16] and not _is_config_bin(raw):
+                registry_fields = Counter(inner for _, _, entry in _fields(raw) for inner, _, _ in _fields(entry))
+                print(f"{layer} registry {name}: entry field numbers {dict(registry_fields)}")
             if not _is_config_bin(raw):
                 continue
             try:
@@ -115,13 +125,21 @@ def check(roots: dict[str, pathlib.Path]) -> bool:
             except (ValueError, IndexError):
                 counts["unparsed"] += 1
                 continue
-            stored = dict((n, v) for n, _, v in entries)
+            parsed[layer][name] = entries
+            stored = _by_number(entries)
             counts["bins"] += 1
             counts["field 1 = md5(rows)"] += stored.get(1) == rows_md5(entries)
             counts["field 4 = checksum"] += stored.get(4) == checksum(entries)
             counts["re-serializes identically"] += _encode(entries) == raw
         print(f"{layer}: {dict(counts)}")
         ok &= counts["bins"] == counts["field 1 = md5(rows)"] == counts["field 4 = checksum"]
+    index: Counter[str] = Counter()
+    for name in parsed["prime"].keys() & parsed["override"].keys():
+        prime, override = (_by_number(parsed[layer][name]) for layer in LAYERS)
+        rows_same = ([v for n, _, v in parsed["prime"][name] if n == 2]
+                     == [v for n, _, v in parsed["override"][name] if n == 2])
+        index[f"rows {'same' if rows_same else 'differ'}, index {'same' if prime.get(3) == override.get(3) else 'differs'}"] += 1
+    print(f"bins in both layers: {dict(index)}")
     return ok
 
 
@@ -140,7 +158,7 @@ def prove(roots: dict[str, pathlib.Path]) -> bool:
         assets = dict(_assets(_package_dir(roots[layer], "1"), wanted))
         for name in BINS:
             entries = _fields(assets[name])
-            stored = dict((n, v) for n, _, v in entries)
+            stored = _by_number(entries)
             row_at = next(i for i, (n, _, _) in enumerate(entries) if n == 2)
             row = _fields(entries[row_at][2])
             row = [(n, w, _rename(v, TEST_NAME) if n == CODE_FIELDS[name] else v) for n, w, v in row]
@@ -151,15 +169,17 @@ def prove(roots: dict[str, pathlib.Path]) -> bool:
             sealed = reseal(changed)
             sealed_raw = _encode(sealed)
             again = _fields(sealed_raw)
-            code = dict((n, v) for n, _, v in _fields(again[row_at][2]))[CODE_FIELDS[name]]
-            read_back = dict((n, v) for n, _, v in _fields(zlib.decompress(base64.b64decode(code), -15)))[1]
+            code = _by_number(_fields(again[row_at][2]))[CODE_FIELDS[name]]
+            read_back = _by_number(_fields(zlib.decompress(base64.b64decode(code), -15)))[1]
             others_kept = all(a == b for i, (a, b) in enumerate(zip(entries, again))
                               if i != row_at and a[0] not in (1, 4))
+            # The two "passes" lines only show reseal() agrees with checksum(); the evidence that checksum()
+            # is the game's is check() reproducing every stored value.
             results = {
                 "unchanged bin reseals to itself": _encode(reseal(entries)) == assets[name],
                 "stale checksum fails": not stale,
-                "resealed checksum passes": dict((n, v) for n, _, v in again)[4] == checksum(again),
-                "resealed md5 passes": dict((n, v) for n, _, v in again)[1] == rows_md5(again),
+                "resealed checksum passes": _by_number(again)[4] == checksum(again),
+                "resealed md5 passes": _by_number(again)[1] == rows_md5(again),
                 "name reads back": read_back.decode() == TEST_NAME,
                 "other rows and index kept": others_kept,
             }

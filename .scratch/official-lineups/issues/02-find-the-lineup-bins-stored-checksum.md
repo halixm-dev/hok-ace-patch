@@ -18,8 +18,4 @@
 
 ## Comments
 
-2026-10-21: done offline with `tools/research/config_bin_checksum.py` (lab notebook, "Config bin checksums recomputed"). **Verdict: recomputable.**
-- Field 1 is `MD5(rows concatenated)`, upper-case hex.
-- Field 4, the value the game checks, is a per-byte fold `h = (h ^ byte) * 0x89ABCDEF` seeded `0x01234567`, over the rows, then the index keys, then the index entries (each as 4 little-endian bytes). The check is native (`PBDatabinLoader.cpp` `DecodeFromStream`), not Lua.
-- Both values recompute on every config bin of package `1` in both layers.
-- For ticket 04: rewrite the codes, keep the index (no key changes), then call `reseal` to recompute fields 1 and 4.
+2026-10-21: done offline with `tools/research/config_bin_checksum.py`. **Verdict: recomputable.** Field 1 is an MD5 of the rows. Field 4 is the value the native loader checks; both recompute on every config bin of package `1`. The numbers and the evidence are in the lab notebook, "Config bin checksums recomputed". For ticket 04: keep the index, rewrite the codes, then `reseal`.
