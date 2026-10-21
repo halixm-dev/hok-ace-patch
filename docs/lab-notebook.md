@@ -3554,4 +3554,4 @@ Open: in the failed state, while the warning card is folded, ② *Open recovery 
   placeholder ("复制阵容后点击我的-新建-编辑-导入使用"), not lineup data. That code does not inflate.
 - **Verdict:** the official lineups are reachable in principle, as an uncatalogued config bin whose strings
   sit inside share codes. Player, master and own lineups are server text and out of reach. Nothing went on
-  a phone. Ticket: `.scratch/official-lineups/issues/01-translate-official-lineup-codes.md`.
+  a phone. Tickets: `.scratch/official-lineups/issues/` (01–05).
