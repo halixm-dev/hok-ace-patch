@@ -89,6 +89,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Full history and tags: the notes list the changes since the previous android-v tag.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: android-apk
@@ -100,11 +105,5 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          cat > notes.md <<'EOF'
-          Automated ARM64 Android build. Requires Android 11+ and Shizuku.
-
-          Development acceptance and redistribution review remain open; review android/native/THIRD_PARTY.md before publishing. The component source companion is not a complete application source/license clearance.
-
-          This APK is signed with the current patcher key (SHA-256 555f2ff48b44a98395f6c305df13f74122545ab4eb57bb8f8d4267bf300b8ae5) and a v3 rotation lineage from the previous, public key, so installs signed with the previous key update in place. After updating, Android refuses APKs signed only with the previous key. Obtain APKs only from this repository. Game normal/access APKs retain their separate stable key. Installation and consent prompts are not removed by patcher signing.
-          EOF
+          bash tools/ci/release_notes.sh "$RELEASE_TAG" > notes.md
           gh release create "$RELEASE_TAG" --verify-tag --draft --title "HOK ACE Patch ${RELEASE_TAG#android-v}" --notes-file notes.md download/artifacts/hok-ace-patch.apk download/artifacts/SHA256SUMS download/artifacts/hok-ace-patch-codec-sources.zip

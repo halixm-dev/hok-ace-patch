@@ -94,7 +94,9 @@ increasing workflow run number; local builds can set `-PpatchVersionCode=<number
 CI runs Android unit tests, lint, native ELF alignment, APK ZIP alignment and signer verification.
 The release attaches only the APK, `SHA256SUMS` and the codec source companion; the native
 alignment and runtime dependency reports stay in the run's artifacts.
-Artifacts expire after 14 days; draft release attachments remain. Release drafts need review before
+Artifacts expire after 14 days; draft release attachments remain. A draft's notes start from
+`tools/ci/release_notes.sh`: a player-facing changelog seeded with the `feat:` and `fix:` subjects since
+the previous `android-v` tag, to rewrite for players before publishing. Release drafts need review before
 publication: device acceptance and redistribution checks in [Android dependency notices](android/native/THIRD_PARTY.md)
 remain open. See [signing and security](SECURITY.md) before switching from a development APK.
 
