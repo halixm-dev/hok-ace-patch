@@ -1,7 +1,7 @@
 ---
 feature: official-lineups
 status: delivered
-updated: 2026-10-21
+updated: 2026-10-22
 branch: master
 commits: 15834bb..93bbfcf
 ---
@@ -23,6 +23,31 @@ English and Indonesian. That covers 118 of 118 distinct strings in 264 fields: t
 | 198 lineup strings, English and Indonesian | `tools/catalog_supplement.py`, `TEXTS`, "Official lineups" |
 | the share-code rewrite | `tools/lineup_codes.py` (`rewrite_bin`), called by `extra_text.rewrite_config` from both paths |
 | the device verdict | `tools/extra_text.py`, `SAFE_ASSETS`, beside the hash |
+
+### Game data 1.7.0.1: 29 more lineups, three more text fields
+
+1.7.0.1 rewrote the bin: 57 rows instead of 28, most of them community lineups credited to their
+creators. Three text fields appeared that no shipped code carried before, and the pass now writes them:
+`TalentDesc` (12) and `EffectCardDesc` (13) inside a code, the advice on Talents and Effect Cards, and the
+row field `Author` (19), drawn after the name on the card (`Three Kingdoms Deploy Build-官方推荐`). The
+numbers 12 and 13 are by declared order, after the packed `TalentIDs` (10) and `EffectCardIDs` (11); the
+text in them reads as Talent and Effect Card advice. `Author` is the 19th field `ResSeasonAILineupDataBin`
+declares.
+
+- **Translated:** 433 distinct strings in 581 fields, English and Indonesian. 330 are new in
+  `catalog_supplement.TEXTS`, filed under the field they belong to (two new sections, `EffectCardDesc`
+  and `TalentDesc`). 7 of them are 1.6.0.1 descriptions without the final `。` and reuse that entry's
+  targets. `官方推荐` comes from the catalog (*Official recommendation*).
+- **Left as written:** creators' nicknames, 27 distinct in 52 fields (`Provider` in a code, `Author` in a
+  row: `抖音一茗`, `余烬`, `DY万象棋小洛`, …). A nickname is a name, not text. Inside a sentence the
+  validator refuses Chinese, so a handle there is romanized (`抖音搜肝帝` → *search Gandi on Douyin*).
+- **Not in this bin:** the `· 简单 ·` difficulty badge. `Difficulty` (12) is an integer, and no text asset
+  of either layer holds `简单` as a label (the one `简单` text row, `LordChooseDiffy1` in
+  `DD5B5EDFBB69FEED`, already reads *Easy*), so the badge is most likely art. The `常小娥` title above
+  the list looks the same way.
+- **Gate:** the bin stays on `SAFE_ASSETS`. The new fields go through the same rewrite and reseal, and
+  `check_lineup_cycle.py` reads every field back on both layers in both languages (lab notebook,
+  2026-10-22). No device has shown the new text yet.
 
 ### Verification
 

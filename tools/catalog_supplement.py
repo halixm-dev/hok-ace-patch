@@ -454,7 +454,84 @@ TEXTS: dict[str, tuple[str, str]] = {
     # Official lineups (Lineup > Official recommendation): the text inside the share codes of config bins
     # F79FB1A213A9DA90, 6A2B886E5DCF22DC and C0C56FEFDCA0EA5D, plus two of their row fields. The catalog
     # already translates three more (召唤自爆流, 核心输出, 核心坦克). Names stay short: they sit on a narrow
-    # card and in the share code's 【name】 prefix.
+    # card and in the share code's 【name】 prefix. The creators' handles 1.7.0.1 added (Provider, Author)
+    # stay as written; inside a sentence a handle is romanized, since a target may not keep Chinese.
+
+    # ResSeasonAILineupDataBin: EffectCardDesc (advice on Effect Cards; game data 1.7.0.1)
+    "【5阶英雄兑换券】找海月，加快阵容成型。\n【扶摇直上】快速升到6级拿专属天赋。\n【破镜之证】提供等级成长。": (
+        "【Tier 5 Hero Voucher】 finds Haya and speeds up the Lineup.\n【Soaring High】 gets you to Lv. 6 fast"
+        " for the Exclusive Talent.\n【Proof of Breakthrough】 provides Level growth.",
+        "【Voucher Hero Tier 5】 mencari Haya dan mempercepat Lineup.\n【Soaring High】 cepat naik ke Lv. 6 untuk"
+        " Exclusive Talent.\n【Proof of Breakthrough】 memberi pertumbuhan Level."),
+    "优先拿给两张牌的": ("Prefer the ones that give two cards", "Utamakan yang memberi dua kartu"),
+    "全军动员可以触发全场整备；众星闪耀加全体等级，照影帮助我们觉醒": (
+        "Full Army Mobilization triggers Prepare across the board, Starry Radiance raises everyone's Level,"
+        " and Shadow Projection helps us Awaken",
+        "Full Army Mobilization memicu Prepare di seluruh papan, Starry Radiance menaikkan Level semua Hero,"
+        " dan Shadow Projection membantu Awaken"),
+    "前期不用攒效果牌，后期通过锦囊出现整备和唤醒效果牌就直接拿。": (
+        "No need to save Effect Cards early; late, take any Prepare or Awaken Effect Card a Kit offers.",
+        "Tak perlu menyimpan Kartu Efek di awal; di akhir, langsung ambil Kartu Efek Prepare atau Awaken"
+        " yang muncul dari Kit."),
+    "单核必抢六阶卡": ("Single-carry builds must grab Tier 6 cards", "Build carry tunggal wajib merebut kartu Tier 6"),
+    "可以多囤一点触发登场，整备": (
+        "Stock up on cards that trigger Deploy and Prepare",
+        "Simpan lebih banyak kartu pemicu Deploy dan Prepare"),
+    "后期孙尚香换帅成周瑜": (
+        "Late, swap Lady Sun into Zhou Yu with Change of Commander",
+        "Di akhir, tukar Lady Sun menjadi Zhou Yu dengan Pergantian Komandan"),
+    "后期通过不断合成给到的效果锦囊牌，优先选择传承给老虎使用，增加全员等级": (
+        "Late, from the Effect Guide cards that repeated Combines give, pick Inheritance first and use it on"
+        " Pei to raise the whole team's Level",
+        "Di akhir, dari kartu Panduan Efek hasil Combine berulang, utamakan Inheritance dan gunakan pada Pei"
+        " untuk menaikkan Level seluruh tim"),
+    "唤醒、集体唤醒给露娜用、临阵磨枪、全军动员给曹操用": (
+        "Use Awaken and Mass Awakening on Luna, and Sharpening Weapons Before Battle and Full Army"
+        " Mobilization on Cao Cao",
+        "Gunakan Awaken dan Mass Awakening pada Luna, serta Sharpening Weapons Before Battle dan Full Army"
+        " Mobilization pada Cao Cao"),
+    "唤醒可以触发庄周蒙犽，快速提质量，发号施令便宜实用，逐鹿必拿。": (
+        "Awaken triggers Zhuangzi and Meng Ya to raise quality fast; Commanding Presence is cheap and"
+        " useful, a must for Zhulu Plateau.",
+        "Awaken memicu Zhuangzi dan Meng Ya untuk cepat menaikkan kualitas; Commanding Presence murah dan"
+        " berguna, wajib untuk Zhulu Plateau."),
+    "唤醒或集体唤醒给露娜，临阵磨枪和全军动员给上官婉儿。这些都能触发整备获得更多古币，增加花木兰复活次数（上限10次）。": (
+        "Give Awaken or Mass Awakening to Luna, and Sharpening Weapons Before Battle and Full Army"
+        " Mobilization to Shangguan. Each triggers Prepare for more Ancient Coins, adding Revives for Mulan"
+        " (up to 10).",
+        "Berikan Awaken atau Mass Awakening ke Luna, dan Sharpening Weapons Before Battle serta Full Army"
+        " Mobilization ke Shangguan. Masing-masing memicu Prepare untuk Ancient Coin tambahan, menambah"
+        " Revive Mulan (maks. 10)."),
+    "唤醒露娜，集体唤醒触发双倍；前期不用攒效果牌，后期通过锦囊出现整备和唤醒效果牌就直接拿。——抖音搜肝帝": (
+        "Awaken Luna; Mass Awakening triggers twice. No need to save Effect Cards early; late, take any"
+        " Prepare or Awaken Effect Card a Kit offers. Search Gandi on Douyin",
+        "Awaken Luna; Mass Awakening memicu dua kali. Tak perlu menyimpan Kartu Efek di awal; di akhir,"
+        " langsung ambil Kartu Efek Prepare atau Awaken yang muncul dari Kit. Cari Gandi di Douyin"),
+    "在三本的锦囊效果牌里面我们优先拿两张开团 ，其次是大河流域征召令 ，再其次就是两张闪现 ": (
+        "From the Effect Cards in Kits at Chessplayer Lv. 3, take the two Initiate cards first, then"
+        " Riverlands Recruitment Order, then the two Flash cards",
+        "Dari Kartu Efek di Kit saat Chessplayer Lv. 3, utamakan dua kartu Initiate, lalu Riverlands"
+        " Recruitment Order, lalu dua kartu Flash"),
+    "大河人口越多越强，众星闪耀加整体等级，其次拿装备或者经济。": (
+        "Riverlands grows stronger with more Population, and Starry Radiance raises everyone's Level; after"
+        " that, take Equipment or economy.",
+        "Riverlands makin kuat dengan Populasi lebih banyak, dan Starry Radiance menaikkan Level semua Hero;"
+        " setelah itu ambil Equipment atau ekonomi."),
+    "特装就是上限，武装分解商店1点能量可以买到，效果锦囊也可以开到。\n如果能拿到人口，多打出位决赛圈还能多挂钟馗太乙。": (
+        "Special Equipment sets the ceiling: Weapon Dismantle sells it in the shop for 1 Energy, and Effect"
+        " Guides can roll it too.\nWith extra Population, the spare play slots let you add Kui and Taiyi in"
+        " the finals.",
+        "Equipment spesial menentukan batas atas: Weapon Dismantle menjualnya di toko seharga 1 Energy, dan"
+        " Panduan Efek juga bisa memberikannya.\nDengan Populasi tambahan, slot main ekstra bisa dipakai"
+        " untuk Kui dan Taiyi di final."),
+    "能拿就拿，后期转强力五阶卡。": (
+        "Take it when you can, then switch to strong Tier 5 cards late.",
+        "Ambil kalau bisa, lalu beralih ke kartu Tier 5 yang kuat di akhir."),
+    "能量和5阶兑换券是刚需！": ("Energy and Tier 5 Vouchers are a must!", "Energy dan Voucher Tier 5 wajib!"),
+    "被卡牌很好用": ("Great when your cards are blocked", "Bagus saat kartumu ditahan"),
+    "这几张效果牌必拿。拿着或者存着": (
+        "Always take these Effect Cards, to use or to keep",
+        "Kartu Efek ini wajib diambil, untuk dipakai atau disimpan"),
 
     # ResSeasonAILineupDataBin: EquipDesc
     "主C李信，其它英雄都是挂件，战斗中靠李信一打多，装备优先给李信。": (
@@ -474,49 +551,276 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Allain menambah Level Hero dengan Equipment terbanyak, jadi pakaikan Equipment ke Main Carry dan pastikan"
         " dia memakai Equipment paling banyak. Kamu bisa membeli Effect Card Ocean Treasure di Shop untuk mendapatkan"
         " Equipment eksklusif 【Sunset】."),
+    "优先机械头，其次炽热支配者，输出的话，可以带个无尽。": (
+        "Robot Head first, then Sanguine Dominator; for damage, add an Endless Greatsword.",
+        "Utamakan Robot Head, lalu Sanguine Dominator; untuk damage, tambahkan Endless Greatsword."),
+    "优先给猴子和露娜做装备，其次是周瑜，猴子装备推荐无尽、魔律之刃、炽热支配者、露娜装备推荐大书、魔律之刃、炽\n热支配者、周瑜装备推荐大书、魔律之刃、聚灵水晶": (
+        "Equip Wukong and Luna first, then Zhou Yu. Wukong: Endless Greatsword, Blade of Magic Law, Sanguine"
+        " Dominator. Luna: Savant's Wrath, Blade of Magic Law, Sanguine Dominator. Zhou Yu: Savant's Wrath,"
+        " Blade of Magic Law, Spirit-Gathering Crystal",
+        "Utamakan Equipment untuk Wukong dan Luna, lalu Zhou Yu. Wukong: Endless Greatsword, Blade of Magic"
+        " Law, Sanguine Dominator. Luna: Savant's Wrath, Blade of Magic Law, Sanguine Dominator. Zhou Yu:"
+        " Savant's Wrath, Blade of Magic Law, Spirit-Gathering Crystal"),
+    "冰矛和免控给艾琳": ("Frost Spear and Control Immunity go to Erin", "Frost Spear dan Kebal Kontrol untuk Erin"),
+    "前期拿一件生命魔典非常舒服\n有控就用苍穹换掉霸者\n神器优先拿机器头": (
+        "An early Grimoire of Life feels great\nAgainst crowd control, swap Overlord's Platemail for Pure"
+        " Sky\nArtifact: Robot Head first",
+        "Grimoire of Life di awal terasa sangat nyaman\nJika lawan punya kontrol, ganti Overlord's Platemail"
+        " dengan Pure Sky\nArtifact: utamakan Robot Head"),
     "司空震必备金色圣剑，推荐再带一个炽热支配者解控，最后一件没有其他特殊装备的话就带痛苦面具。": (
         "Sikong Zhen must have Golden Blade. Sanguine Dominator is also recommended to remove crowd control, and for"
         " the last slot take Mask of Agony if no other special Equipment is available.",
         "Sikong Zhen wajib memakai Golden Blade. Disarankan juga membawa Sanguine Dominator untuk menghapus crowd"
         " control, dan untuk slot terakhir bawa Mask of Agony jika tidak ada Equipment khusus lain."),
+    "司空震金色圣剑必备！苏烈拿肉装即可": (
+        "Sikong Zhen must have Golden Blade! Su Lie just takes tank items",
+        "Sikong Zhen wajib punya Golden Blade! Su Lie cukup ambil item tank"),
+    "司空震需要金属圣剑，其他两个装备推荐痛苦面具和炽热，其他人装备不重要，有啥带啥": (
+        "Sikong Zhen needs Golden Blade, plus Mask of Agony and Sanguine Dominator; the others' items don't"
+        " matter, use whatever you have",
+        "Sikong Zhen butuh Golden Blade, ditambah Mask of Agony dan Sanguine Dominator; item Hero lain tidak"
+        " penting, pakai apa saja yang ada"),
+    "夺冠上限两件套：\n机器头（高额增伤和免控）\n噬神之书（法术吸血）\n其他特装：\n护命灵珠（护盾和增伤）\n魂祭绝刃（也带法术吸血）\n普装推荐：\n炽热支配者（开局免控）\n名刀（打花木兰）\n圣杯（前期启动）。": (
+        "The two-item set for winning:\nRobot Head (big damage boost and Control Immunity)\nInsatiable Tome"
+        " (Magic Lifesteal)\nOther special items:\nLife-Saving Bead (Shield and damage boost)\nSoul-Sacrificing"
+        " Blade (also Magic Lifesteal)\nRegular items:\nSanguine Dominator (Control Immunity at the"
+        " start)\nDestiny (against Mulan)\nBroken Grail (fast early start).",
+        "Dua item kunci untuk juara:\nRobot Head (bonus damage besar dan Kebal Kontrol)\nInsatiable Tome"
+        " (Magic Lifesteal)\nItem spesial lain:\nLife-Saving Bead (Shield dan bonus damage)\nSoul-Sacrificing"
+        " Blade (juga Magic Lifesteal)\nItem biasa:\nSanguine Dominator (Kebal Kontrol di awal"
+        " pertempuran)\nDestiny (melawan Mulan)\nBroken Grail (aktif cepat di awal)."),
+    "嬴律必备免控炽热，防止技能被打断，痛苦面具和虚无法杖最大化嬴律伤害。\n神装推荐：机器头、怒神法杖、梦魇之牙": (
+        "Ying Lu must have Sanguine Dominator for Control Immunity so his Skills aren't interrupted; Mask of"
+        " Agony and Void Staff maximize his damage.\nArtifacts: Robot Head, Angry God Staff, Nightmare Fang",
+        "Ying Lu wajib punya Sanguine Dominator untuk Kebal Kontrol agar Skill-nya tidak terganggu; Mask of"
+        " Agony dan Void Staff memaksimalkan damage-nya.\nArtifact: Robot Head, Angry God Staff, Nightmare Fang"),
+    "嬴政必备炽热，免疫控制，防止大招被打断。法穿提供高额输出，名刀保命": (
+        "Ying Zheng must have Sanguine Dominator for Control Immunity so his Ultimate isn't interrupted."
+        " Magic Pierce gives big damage, and Destiny keeps him alive",
+        "Ying Zheng wajib punya Sanguine Dominator untuk Kebal Kontrol agar Ultimate-nya tidak terganggu."
+        " Magic Pierce memberi damage besar, dan Destiny menjaganya tetap hidup"),
+    "孙悟空的蓝条长，需要聚灵水晶补充启动速度。露娜带魔律之刃的上限非常高。": (
+        "Wukong has a long Mana bar, so he needs Spirit-Gathering Crystal to start faster. Luna with Blade"
+        " of Magic Law has a very high ceiling.",
+        "Bar Mana Wukong panjang, jadi dia butuh Spirit-Gathering Crystal agar lebih cepat aktif. Luna"
+        " dengan Blade of Magic Law punya batas atas sangat tinggi."),
+    "对应装备即可，无特定要求。": (
+        "Matching Equipment is enough; nothing specific.",
+        "Equipment yang sesuai sudah cukup; tidak ada syarat khusus."),
+    "对面单核没有机器头，考虑带变猪杖。": (
+        "If the enemy single carry has no Robot Head, consider a pig-transformation staff.",
+        "Jika carry tunggal lawan tidak punya Robot Head, pertimbangkan tongkat pengubah babi."),
     "所有装备都优先穿给C位，芈月的英雄效果只对穿戴装备最多的英雄生效。": (
         "Give all Equipment to the Carry first; Mi Yue's Hero Effect only works on the Hero wearing the most"
         " Equipment.",
         "Prioritaskan semua Equipment untuk Carry; Efek Hero Mi Yue hanya berlaku untuk Hero yang memakai Equipment"
         " terbanyak."),
+    "拿射手装拿射手装！": ("Take Marksman items. Marksman items!", "Ambil item Marksman. Item Marksman!"),
+    "敖隐必备自然法杖高频触发变猪，射手装备均适配，对手近战多就寒霜。\n东皇必备名刀，防止技能压制期间自身死亡，剩下的补肉装即可。\n大司命只需要一件铸梦·逐风就可以质变": (
+        "Ao'yin must have Nature Staff to trigger Pig Transformation often; any Marksman item suits him,"
+        " plus Frost Assault against many melee enemies.\nDonghuang must have Destiny so he doesn't die while"
+        " suppressing; fill the rest with tank items.\nOne Dream-Forged Windchaser is all Augran needs to transform",
+        "Ao'yin wajib punya Nature Staff untuk sering memicu Pig Transformation; semua item Marksman cocok,"
+        " plus Frost Assault jika banyak musuh melee.\nDonghuang wajib punya Destiny agar tidak mati saat"
+        " menekan musuh; sisanya isi dengan item tank.\nAugran cukup satu Dream-Forged Windchaser untuk"
+        " berubah drastis"),
+    "敖隐最佳装：自然法杖（无限变猪）；破晓（比例真伤）；寒霜侵袭（减速风筝）；名刀。\n东皇推荐装：不死鸟之眼（高额回复）；霸者重装（高血免伤）；魔女斗篷（打嬴政司空震必备）。": (
+        "Ao'yin's best items: Nature Staff (endless Pig Transformation); Daybreaker (percentage true"
+        " damage); Frost Assault (slow and kite); Destiny.\nDonghuang's items: Eye of the Phoenix (big"
+        " healing); Overlord's Platemail (high HP and damage reduction); Succubus Cloak (a must against Ying"
+        " Zheng and Sikong Zhen).",
+        "Item terbaik Ao'yin: Nature Staff (Pig Transformation tanpa batas); Daybreaker (true damage"
+        " persentase); Frost Assault (memperlambat dan kite); Destiny.\nItem Donghuang: Eye of the Phoenix"
+        " (pemulihan besar); Overlord's Platemail (HP tinggi dan pengurangan damage); Succubus Cloak (wajib"
+        " melawan Ying Zheng dan Sikong Zhen)."),
+    "无尽巨剑、炽热支配者、魔律之刃\r\n如果对面没控制，把炽热换成无尽\r\n也就是两把无尽": (
+        "Endless Greatsword, Sanguine Dominator, Blade of Magic Law\nIf the enemy has no crowd control, swap"
+        " Sanguine Dominator for Endless Greatsword\nthat is, two Endless Greatswords",
+        "Endless Greatsword, Sanguine Dominator, Blade of Magic Law\nJika lawan tidak punya kontrol, ganti"
+        " Sanguine Dominator dengan Endless Greatsword\nartinya dua Endless Greatsword"),
+    "杨玉环最好是有个圣杯，司空震必须有圣剑，最好有面具，不然牢大就刮": (
+        "Yuhuan should ideally have Broken Grail; Sikong Zhen must have Golden Blade and ideally Mask of"
+        " Agony, or the big guy falls flat",
+        "Yuhuan sebaiknya punya Broken Grail; Sikong Zhen wajib punya Golden Blade dan sebaiknya Mask of"
+        " Agony, kalau tidak, si jagoan bakal tumbang"),
+    "法源之杯可以帮助蒙恬快速回蓝，蒙恬召唤小兵可以给他提供免伤，加上霸者重凯后有非常高的减伤，御灵之纱则是提供护盾，让霸者重凯的减伤效果能持续更久。": (
+        "Mana Chalice helps Meng Tian regain Mana fast; his summoned minions give him damage reduction,"
+        " which gets very high with Overlord's Platemail, and Spirit Veil adds a Shield so Overlord's"
+        " Platemail's reduction lasts longer.",
+        "Mana Chalice membantu Meng Tian cepat memulihkan Mana; minion panggilannya memberi pengurangan"
+        " damage, yang jadi sangat tinggi dengan Overlord's Platemail, dan Spirit Veil memberi Shield agar"
+        " pengurangan damage Overlord's Platemail bertahan lebih lama."),
+    "海月必拿不死鸟之眼，神器必选护命灵珠\r\n其他装备推荐霸者重装、聚灵水晶、炽热支配者": (
+        "Haya must take Eye of the Phoenix, with Life-Saving Bead as the Artifact\nOther items: Overlord's"
+        " Platemail, Spirit-Gathering Crystal, Sanguine Dominator",
+        "Haya wajib ambil Eye of the Phoenix, dengan Life-Saving Bead sebagai Artifact\nItem lain: Overlord's"
+        " Platemail, Spirit-Gathering Crystal, Sanguine Dominator"),
     "玄策推荐带一个炽热支配者解控。": (
         "Xuance should carry a Sanguine Dominator to remove crowd control.",
         "Xuance disarankan membawa Sanguine Dominator untuk menghapus crowd control."),
+    "玉环必备大书和圣杯、诸葛亮必备变猪和大书，干将有圣杯即可。": (
+        "Yuhuan must have Savant's Wrath and Broken Grail, Kongming a pig-transformation item and Savant's"
+        " Wrath, and Gan just needs Broken Grail.",
+        "Yuhuan wajib punya Savant's Wrath dan Broken Grail, Kongming wajib punya item pengubah babi dan"
+        " Savant's Wrath, dan Gan cukup Broken Grail."),
+    "瑶妹通用破茧，名刀看情况去发 。公孙离 日渊破小冰毛 ，看情况将三件输出装其中一件替换为保命装 。": (
+        "Yaria: Cocoon-Breaking Garment as standard, Destiny as needed. Arli: Sun Abyss, Daybreaker and a"
+        " small frost item; swap one of the three damage items for a survival item as needed.",
+        "Yaria: Cocoon-Breaking Garment sebagai standar, Destiny sesuai kebutuhan. Arli: Sun Abyss,"
+        " Daybreaker, dan item es kecil; ganti salah satu dari tiga item damage dengan item bertahan hidup"
+        " sesuai kebutuhan."),
+    "肉装给大司命，法装给东皇，瑶穿变猪分享给队友": (
+        "Tank items to Augran, magic items to Donghuang; Yaria wears the pig-transformation item and shares"
+        " it with allies",
+        "Item tank untuk Augran, item magic untuk Donghuang; Yaria memakai item pengubah babi dan membaginya ke rekan"),
+    "花木兰装备推荐无尽+凝渊+炽热，神器推荐机器头和魂灭灵冠。如果遇到对手是艾琳阿离和狄仁杰，建议带凝渊+炽热+反甲或冰心。【有机器头就不需要炽热】": (
+        "Mulan: Endless Greatsword + Abyssal Freeze + Sanguine Dominator; Artifacts: Robot Head and"
+        " Soul-Destroying Crown. Against Erin, Arli and Di Renjie, take Abyssal Freeze + Sanguine Dominator"
+        " + Thorn Heavy Armor or an Ice Heart. 【With Robot Head you don't need Sanguine Dominator】",
+        "Mulan: Endless Greatsword + Abyssal Freeze + Sanguine Dominator; Artifact: Robot Head dan"
+        " Soul-Destroying Crown. Melawan Erin, Arli, dan Di Renjie, ambil Abyssal Freeze + Sanguine"
+        " Dominator + Thorn Heavy Armor atau Ice Heart. 【Dengan Robot Head, tidak perlu Sanguine Dominator】"),
+    "花木兰首选无尽和凝渊，对手物理阵容凝渊换冥王，带炽热防止技能被打断。\n神装推荐：机器头、魂灭灵冠、护命灵珠、百锻刀": (
+        "Mulan: Endless Greatsword and Abyssal Freeze first; against physical Lineups swap Abyssal Freeze"
+        " for Underworld King, and take Sanguine Dominator so her Skills aren't interrupted.\nArtifacts:"
+        " Robot Head, Soul-Destroying Crown, Life-Saving Bead, Hundred-Forged Blade",
+        "Mulan: utamakan Endless Greatsword dan Abyssal Freeze; melawan Lineup fisik ganti Abyssal Freeze"
+        " dengan Underworld King, dan ambil Sanguine Dominator agar Skill-nya tidak terganggu.\nArtifact:"
+        " Robot Head, Soul-Destroying Crown, Life-Saving Bead, Hundred-Forged Blade"),
     "装备优先给主C，云中君的卡牌效果可以提升穿戴装备英雄的等级。": (
         "Give Equipment to the Main Carry first; Cirrus's Card Effect raises the Level of Heroes wearing Equipment.",
         "Prioritaskan Equipment untuk Main Carry; Efek Kartu Cirrus meningkatkan Level Hero yang memakai Equipment."),
+    "装备优先给朵莉亚：戒律之刃、圣杯、近卫荣耀；米莱迪：炽热、戒律之刃、自然法杖；肉装都给雅典娜": (
+        "Equip Dolia first: Blade of Magic Law, Broken Grail, Guardian's Glory; Milady: Sanguine Dominator,"
+        " Blade of Magic Law, Nature Staff; all tank items go to Athena",
+        "Utamakan Equipment untuk Dolia: Blade of Magic Law, Broken Grail, Guardian's Glory; Milady:"
+        " Sanguine Dominator, Blade of Magic Law, Nature Staff; semua item tank untuk Athena"),
     "装备前期可以给虞姬，后期来了敖隐等级高之后再给敖隐。": (
         "Early on, Equipment can go to Consort Yu; later, once Ao'yin arrives and his Level is high, give it to"
         " Ao'yin.",
         "Di awal, Equipment bisa diberikan ke Consort Yu; nanti setelah Ao'yin datang dan Level-nya tinggi, berikan"
         " ke Ao'yin."),
+    "装备司空震必备“圣剑”+“免控”，最后一件随便做，肉装给亚瑟，妲己后期是不缺装备的。猛猛提升！抖音-强者无敌": (
+        "Sikong Zhen must have “Golden Blade” + “Control Immunity”; the last item is up to you. Tank items"
+        " go to Arthur, and Daji never lacks Equipment late. Power up! Douyin: Qiangzhe Wudi",
+        "Sikong Zhen wajib punya “Golden Blade” + “Kebal Kontrol”; item terakhir bebas. Item tank untuk"
+        " Arthur, dan Daji tidak pernah kekurangan Equipment di akhir. Naikkan terus! Douyin: Qiangzhe Wudi"),
+    "装备推荐：\r\n主C海月，必备【不死鸟之眼】和【御灵之纱】，备选【纯净苍穹】，【极寒风暴】和【反伤重甲】各留一件，对付远程，尤其是溜边儿艾琳和嬴政。\r\n神器推荐【护命灵珠】和【机械头】。\r": (
+        "Items:\nHaya is the Main Carry: 【Eye of the Phoenix】 and 【Spirit Veil】 are musts, 【Pure Sky】 is"
+        " optional, and keep one each of 【Glacial Buckler】 and 【Thorn Heavy Armor】 against ranged enemies,"
+        " especially edge-kiting Erin and Ying Zheng.\nArtifacts: 【Life-Saving Bead】 and 【Robot Head】.\n",
+        "Rekomendasi item:\nHaya sebagai Main Carry: 【Eye of the Phoenix】 dan 【Spirit Veil】 wajib, 【Pure Sky】"
+        " opsional, dan simpan masing-masing satu 【Glacial Buckler】 dan 【Thorn Heavy Armor】 untuk melawan"
+        " musuh jarak jauh, terutama Erin dan Ying Zheng yang men-kite dari pinggir.\nArtifact: 【Life-Saving"
+        " Bead】 dan 【Robot Head】.\n"),
+    "输出装给公孙离，肉装给曹操，后期把孙尚香换帅成周瑜，肉装给周瑜": (
+        "Damage items to Arli, tank items to Cao Cao; late, swap Lady Sun into Zhou Yu with Change of"
+        " Commander and give him the tank items",
+        "Item damage untuk Arli, item tank untuk Cao Cao; di akhir, tukar Lady Sun menjadi Zhou Yu dengan"
+        " Pergantian Komandan dan berikan item tank kepadanya"),
+    "露娜双重施法月下无限连，猴子高爆发输出，后期传承遗志换帅上海月吕布+觉醒老虎——抖音搜肝帝看攻略": (
+        "Luna double-casts her endless moonlit combo and Wukong bursts hard; late, use Inheritance, Last"
+        " Will and Change of Commander to bring in Haya, Lu Bu and an Awakened Pei. For the guide, search"
+        " Gandi on Douyin",
+        "Luna merapal ganda kombo bulan tanpa batasnya dan Wukong memberi burst besar; di akhir, gunakan"
+        " Inheritance, Last Will, dan Pergantian Komandan untuk memasukkan Haya, Lu Bu, dan Pei yang Awaken."
+        " Untuk panduannya, cari Gandi di Douyin"),
+    "韩信：冥王、鸡爪、名刀、变猪、凝渊都可以；神器：末世": (
+        "Han Xin: Underworld King, a claw, Destiny, a pig-transformation item or Abyssal Freeze all work;"
+        " Artifact: Doomsday",
+        "Han Xin: Underworld King, item cakar, Destiny, item pengubah babi, atau Abyssal Freeze semuanya"
+        " boleh; Artifact: Doomsday"),
 
     # ResSeasonAILineupDataBin: LordInfos.Desc
+    "T0级别的小偷棋手": ("A T0 thief Chessplayer", "Chessplayer pencuri kelas T0"),
+    "上线更高——抖音搜肝帝": ("A higher ceiling. Search Gandi on Douyin", "Batas atas lebih tinggi. Cari Gandi di Douyin"),
+    "上限最高，启动后找齐牌上六级无敌。": (
+        "The highest ceiling: once it starts and the cards are complete, it's unbeatable at Lv. 6.",
+        "Batas atas tertinggi: setelah aktif dan kartu lengkap, tak terkalahkan di Lv. 6."),
     "乔汐专属天赋召唤的英雄也算获得临时等级，非常适配司空震的卡牌效果。": (
         "Heroes summoned by Qiao Xi's Exclusive Talent also count as gaining Temporary Levels, which suits Sikong"
         " Zhen's Card Effect very well.",
         "Hero yang di-Summon oleh Exclusive Talent Qiao Xi juga dihitung mendapat Temporary Level, sangat cocok"
         " dengan Efek Kartu Sikong Zhen."),
+    "买牌额外得效果牌，增强前期战力。": (
+        "Buying cards gives extra Effect Cards, boosting early power.",
+        "Membeli kartu memberi Kartu Efek tambahan, menambah kekuatan di awal."),
+    "人家那么可爱，当然是男孩子了": ("So cute, of course he's a boy", "Imut begitu, tentu saja dia laki-laki"),
+    "低压运营和基层提拔提等级，公孙离和猪八戒夺取把等级集中": (
+        "Low-Pressure Strategy and Base Promotion raise Levels, and Arli's and Zhu Bajie's Steal pools them",
+        "Strategi Tekanan Rendah dan Promosi Dasar menaikkan Level, dan Steal Arli serta Zhu Bajie mengumpulkannya"),
     "使用技能每回合稳定提升等级，操作简单，发挥稳定。秘技牌需要等上阵4名英雄后再使用。": (
         "Use the Skill every Round to raise Levels steadily. Simple to play and consistent. Wait until you have 4"
         " Heroes on the board before using the Secret Skill Card.",
         "Gunakan Skill setiap Ronde untuk menaikkan Level dengan stabil. Mudah dimainkan dan konsisten. Tunggu sampai"
         " ada 4 Hero di papan sebelum menggunakan Kartu Secret Skill."),
+    "初始机关选择屏障，要根据敌方阵容调整机关陷阱\r的位置，稳定获取螺丝，构筑升级可以优先选择等离子屏障。": (
+        "Pick Barrier as the starting Mechanism and adjust the Mechanism traps' positions to the enemy"
+        " Lineup to earn Screws steadily; for build upgrades, plasma Shield comes first.",
+        "Pilih Barrier sebagai Mekanisme awal dan sesuaikan posisi jebakan Mekanisme dengan Lineup lawan"
+        " agar Screw terus didapat; untuk peningkatan build, utamakan plasma Shield."),
+    "刷牌选手": ("A card roller", "Jagoan refresh kartu"),
+    "前期快速升5级，记得上场3个河洛英雄后开第一个秘技。凑齐体系牌确保连胜后再升6级，第二个秘技相当于点兵点将。": (
+        "Rush to Lv. 5 early, and open the first Secret Skill once 3 Central Plains Heroes are on the board."
+        " Go to Lv. 6 only after the core cards secure a win streak; the second Secret Skill works like"
+        " Drafting Troops.",
+        "Cepat naik ke Lv. 5 di awal, dan buka Secret Skill pertama setelah 3 Hero Central Plains di papan."
+        " Naik ke Lv. 6 hanya setelah kartu inti menjamin win streak; Secret Skill kedua bekerja seperti"
+        " Drafting Troops."),
+    "启动快，觉醒快，在中期能够快速抢牌和觉醒。": (
+        "Starts fast and Awakens fast, grabbing cards and Awakening quickly mid game.",
+        "Cepat aktif dan cepat Awaken, merebut kartu dan Awaken dengan cepat di pertengahan permainan."),
+    "启动最快，有白歌、孙膑同行可以用镜卡同行——抖音搜肝帝": (
+        "The fastest start; against Bai Ge or Sun Bin on the same Lineup, use Jing to hold their cards."
+        " Search Gandi on Douyin",
+        "Paling cepat aktif; jika Bai Ge atau Sun Bin memakai Lineup yang sama, gunakan Jing untuk menahan"
+        " kartu mereka. Cari Gandi di Douyin"),
+    "在万象棋，我可不刮哦": ("In this game, I don't lose!", "Di game ini, aku tidak kalah!"),
+    "复制对手的英雄，提升己方战力。": (
+        "Copies opponents' Heroes to boost your own power.",
+        "Menyalin Hero lawan untuk menambah kekuatan sendiri."),
     "大河流域的低阶英雄能够为香香提供可观的攻击力加成，帮助她在前期打出稳定且强力的输出，后期香香也有很强的作战能力。": (
         "Low-Tier Riverlands Heroes give Xiangxiang a sizable Attack bonus, helping her deal steady, strong damage"
         " early on; Xiangxiang also fights well in the late game.",
         "Hero Riverlands Tier rendah memberi Xiangxiang bonus Attack yang besar, membantunya memberikan damage yang"
         " stabil dan kuat di awal; di akhir game Xiangxiang juga kuat bertarung."),
+    "奇才和灵感爆发切庄周，无限打合成即可": (
+        "Use Prodigy and Inspiration Burst on Zhuangzi and keep Combining",
+        "Gunakan Prodigy dan Inspiration Burst pada Zhuangzi dan terus Combine"),
+    "如梦似幻大概率让阵容直接成形，梦幻引擎可以提供额外的古币来源。": (
+        "Dreamlike will most likely complete the Lineup outright, and Dream Engine adds another source of"
+        " Ancient Coins.",
+        "Dreamlike kemungkinan besar langsung melengkapi Lineup, dan Dream Engine memberi sumber Ancient"
+        " Coin tambahan."),
     "姜导适配养单C的阵容，能增加英雄等级和提供吸血。技能给百里玄策使用。": (
         "Director Jiang suits Lineups built around a single Carry: he raises Hero Levels and grants Lifesteal. Use his"
         " Skill on Xuance.",
         "Director Jiang cocok untuk Lineup yang membangun satu Carry: menaikkan Level Hero dan memberi Lifesteal."
         " Gunakan Skill-nya pada Xuance."),
+    "嬴律的沉淀收益、固定收益为其提供超高的经济来源，帮助阵容快速成形。收购双倍等政策增加资源的囤积": (
+        "Ying Lu's Accumulated Profit and Fixed Income give a huge economy that completes the Lineup fast,"
+        " and policies such as double acquisitions stockpile more resources",
+        "Accumulated Profit dan Pendapatan Tetap Ying Lu memberi ekonomi sangat besar agar Lineup cepat"
+        " terbentuk, dan kebijakan seperti akuisisi ganda menimbun lebih banyak sumber daya"),
+    "安琪拉的飞行器既能给英雄提升临时等级，还可以开出范围自爆或者吸取等级的强化，很适合养一些比较肉的英雄作为主C。": (
+        "Angela's Aircraft gives Heroes Temporary Levels and can roll an area self-destruct or"
+        " Level-draining enhancement, so it suits raising a tankier Hero as the Main Carry.",
+        "Pesawat Angela memberi Hero Temporary Level dan bisa mendapat peningkatan self-destruct area atau"
+        " penyerap Level, jadi cocok untuk membesarkan Hero yang lebih tangguh sebagai Main Carry."),
+    "完美适配这套阵容的棋手": (
+        "The Chessplayer that fits this Lineup perfectly",
+        "Chessplayer yang paling cocok untuk Lineup ini"),
+    "小妲己的技能可以获得大量效果牌，非常适合有芈月的阵容，而小妲己的专属天赋可以稳定的使用2次高阶推演战术给蒙恬提供10蓝。": (
+        "Little Daji's Skill brings lots of Effect Cards, which suits Lineups with Mi Yue, and her Exclusive"
+        " Talent reliably casts Advanced Deduction Tactics twice to give Meng Tian 10 Mana.",
+        "Skill Little Daji memberi banyak Kartu Efek, cocok untuk Lineup dengan Mi Yue, dan Exclusive"
+        " Talent-nya dengan stabil memakai Advanced Deduction Tactics dua kali untuk memberi Meng Tian 10 Mana."),
+    "就是够轮椅！": ("It's just that easy!", "Memang semudah itu!"),
+    "庄小鱼最适配的高阶阵容除了河洛就是大河，如果对方没有司空震等aoe清图腾，这套还是非常强的。": (
+        "Besides Central Plains, Riverlands is Zhuang Xiaoyu's best high-Tier Lineup; unless the enemy has"
+        " Sikong Zhen or other AOE to clear Totems, this build is very strong.",
+        "Selain Central Plains, Riverlands adalah Lineup Tier tinggi terbaik untuk Zhuang Xiaoyu; kecuali"
+        " lawan punya Sikong Zhen atau AOE lain untuk membersihkan Totem, build ini sangat kuat."),
     "庄小鱼的秘技牌可以帮助阵容快速成型，很容易搜到李信。玩庄小鱼需要快速升到5级开技能拿李信。": (
         "Zhuang Xiaoyu's Secret Skill Card helps the Lineup come together fast and makes Li Xin easy to find. With"
         " Zhuang Xiaoyu, rush to Lv. 5 and use the Skill to get Li Xin.",
@@ -532,6 +836,20 @@ TEXTS: dict[str, tuple[str, str]] = {
         " stronger.",
         "Kartu Secret Skill Zhuang Xiaoyu membantumu menemukan Hero Central Plains Tier tinggi lebih cepat, membuat"
         " Lineup ini lebih kuat."),
+    "开局和第4回合选【卦象·节】，第一个秘技选能量，棋手快速升5级后马上搜牌凑齐阵容，接着用卦象·丰临时刷新找露娜和合成。": (
+        "At the start and in Round 4 pick 【Hexagram: Moderation】 and take Energy for the first Secret Skill;"
+        " rush the Chessplayer to Lv. 5, then search at once to complete the Lineup, and use Hexagram:"
+        " Abundance's temporary Refreshes to find Luna and Combine.",
+        "Di awal dan Ronde 4 pilih 【Hexagram: Moderation】 dan ambil Energy untuk Secret Skill pertama; cepat"
+        " naikkan Chessplayer ke Lv. 5, lalu segera cari kartu untuk melengkapi Lineup, dan gunakan Refresh"
+        " sementara dari Hexagram: Abundance untuk mencari Luna dan Combine."),
+    "战略决策优先沉淀收益、固定收益和风险对冲。秘技优先拿升级经验的，6级专属选【资源再分配】有对手淘汰能拿神器和回血。": (
+        "For Strategic Decisions, take Accumulated Profit, Fixed Income and Risk Hedging first. For Secret"
+        " Skills, take the EXP ones; at Lv. 6 pick the exclusive 【Resource Redistribution】, which gives"
+        " Artifacts and healing when an opponent is eliminated.",
+        "Untuk Strategic Decision, utamakan Accumulated Profit, Pendapatan Tetap, dan Lindung Nilai Risiko."
+        " Untuk Secret Skill, ambil yang memberi EXP; di Lv. 6 pilih eksklusif 【Resource Redistribution】,"
+        " yang memberi Artifact dan pemulihan saat lawan tereliminasi."),
     "打出4张3阶及以下英雄能获得宝藏牌，这套阵容全部是1-3阶英雄，比较适合搭配马可。": (
         "Playing 4 Heroes of Tier 3 or lower grants a Treasure Card. This Lineup is all Tier 1-3 Heroes, so it pairs"
         " well with Marco.",
@@ -542,6 +860,42 @@ TEXTS: dict[str, tuple[str, str]] = {
         " it pairs well with Marco.",
         "Memainkan 4 Hero Tier 3 atau lebih rendah memberi Treasure Card. Lineup ini punya banyak Hero Tier rendah"
         " di awal, jadi cocok dipasangkan dengan Marco."),
+    "明先生很早的版本加强过之后，一发不可收拾，出色的搜牌和经济能力稳做领跑大哥，而嬴政不吃等级，命运馈赠全能量直接起飞。": (
+        "Since a buff in a very early version, Mr. Ming has been unstoppable: his excellent card search and"
+        " economy keep him leading the pack, and since Ying Zheng doesn't need Levels, taking all Energy"
+        " from Fate Gift sends him flying.",
+        "Sejak di-buff di versi yang sangat awal, Mr. Ming tak terbendung: pencarian kartu dan ekonominya"
+        " yang sangat baik membuatnya selalu memimpin, dan karena Ying Zheng tidak butuh Level, mengambil"
+        " semua Energy dari Fate Gift membuatnya melesat."),
+    "明先生拥有强大的经济天赋，每回合免费刷新可以帮我们更好的找齐阵容；玩泳池派对时，先开卦象：节，之后都开卦象：丰就可以": (
+        "Mr. Ming has a strong economy Talent, and his free Refresh every Round helps us complete the"
+        " Lineup; for Pool Party, open Hexagram: Moderation first, then always Hexagram: Abundance",
+        "Mr. Ming punya Talent ekonomi yang kuat, dan Refresh gratisnya setiap Ronde membantu melengkapi"
+        " Lineup; untuk Pool Party, buka Hexagram: Moderation dulu, lalu selalu Hexagram: Abundance"),
+    "昭君有一个冰冻强化为：冻结后，英雄不变、觉醒进度+2，该强化极大程度加强了大河龙蛇的成型速度！": (
+        "Zhaojun has a Freeze Enhancement: when frozen, a Hero stays the same and gains +2 Awakening"
+        " progress. It greatly speeds up Riverlands Dragon-Snake!",
+        "Zhaojun punya Freeze Enhancement: saat dibekukan, Hero tetap sama dan progres Awaken +2. Ini sangat"
+        " mempercepat Dragon-Snake Riverlands terbentuk!"),
+    "最后 不要因为犹豫错过你的最佳选择 ！": (
+        "Finally, don't miss your best pick by hesitating!",
+        "Terakhir, jangan sampai pilihan terbaikmu lewat karena ragu!"),
+    "最适配逐鹿体系的棋手之一": (
+        "One of the best Chessplayers for Zhulu Plateau",
+        "Salah satu Chessplayer paling cocok untuk Zhulu Plateau"),
+    "有同行偷同行，没同行留驭势一起用打合成": (
+        "Against a player on the same Lineup, steal from them; otherwise save Momentum Control and use them"
+        " together to Combine",
+        "Jika ada pemain dengan Lineup sama, curi darinya; jika tidak, simpan Momentum Control dan gunakan"
+        " bersama untuk Combine"),
+    "棋手技能提供加等级、额外效果牌等增益。": (
+        "The Chessplayer Skill provides buffs such as extra Levels and Effect Cards.",
+        "Skill Chessplayer memberi buff seperti Level dan Kartu Efek tambahan."),
+    "棋手技能随机给牌，随到阵容牌可加速阵容成型。前期1能量拿牌易连胜。": (
+        "The Chessplayer Skill gives random cards; drawing Lineup cards speeds up the build. Cards for 1"
+        " Energy early make win streaks easy.",
+        "Skill Chessplayer memberi kartu acak; mendapat kartu Lineup mempercepat build. Kartu seharga 1"
+        " Energy di awal memudahkan win streak."),
     "派对泡泡选日落海，每回合使用棋手技能稳定拿一张日落海英雄牌，能快速凑齐阵容。秘技牌推荐4级/5级再用，补齐高阶英雄。": (
         "Pick Sunset for Party Bubble and use the Chessplayer Skill every Round to reliably get a Sunset Hero Card,"
         " completing the Lineup quickly. Use the Secret Skill Card at Lv. 4/5 to fill in high-Tier Heroes.",
@@ -561,11 +915,21 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Pilih Zhulu Plateau untuk Party Bubble dan gunakan Skill Chessplayer setiap Ronde untuk pasti mendapat satu"
         " Kartu Hero Zhulu Plateau, sehingga Lineup cepat lengkap. Gunakan Kartu Secret Skill di Lv. 4/5 untuk"
         " melengkapi Hero Tier tinggi."),
+    "瑶妹前期需要打连胜，小鹿作为优质肉盾解决了大河龙蛇前期没有前排的问题，奉献的机制再次拉高了后期的上限。": (
+        "Yaria needs an early win streak; the deer is a solid tank that fixes Riverlands Dragon-Snake's lack"
+        " of an early front row, and its offering mechanic raises the late-game ceiling further.",
+        "Yaria butuh win streak di awal; rusa adalah tank andal yang menutup kelemahan Dragon-Snake"
+        " Riverlands tanpa barisan depan di awal, dan mekanisme persembahannya makin menaikkan batas atas di akhir."),
     "瑶妹的小鹿能提供稳定前排，配合图腾流前期不俗的战力来取得胜利；后期小鹿的等级奉献还能进一步提升图腾全队的等级。": (
         "Yaria's deer gives a steady frontline that, with the Totem Build's strong early power, wins fights; later,"
         " the deer's Level devotion raises the whole Totem team's Levels further.",
         "Rusa Yaria memberi frontline yang stabil, bersama kekuatan awal Build Totem yang lumayan untuk meraih"
         " kemenangan; nanti, Level yang dipersembahkan rusa semakin menaikkan Level seluruh tim Totem."),
+    "白歌可以通过即兴创作和灵感爆发，单回合打出大量露娜激活整备。并且通过效果锦囊拿到大量的效果卡，非常适配这套阵容": (
+        "With Improvisation and Inspiration Burst, Bai Ge can play lots of Luna in one Round to trigger"
+        " Prepare, and gets plenty of Effect Cards from Effect Guides: a great fit for this Lineup",
+        "Dengan Improvisasi dan Inspiration Burst, Bai Ge bisa memainkan banyak Luna dalam satu Ronde untuk"
+        " memicu Prepare, dan mendapat banyak Kartu Efek dari Panduan Efek: sangat cocok untuk Lineup ini"),
     "白歌在合成4次后可获得场上的英雄牌，能加速英雄觉醒。秘技牌能复制需要的卡牌，技能简单实用。": (
         "After 4 Combines, Bai Ge can get Hero Cards of Heroes on the board, speeding up Awakening. The Secret Skill"
         " Card copies the cards you need. A simple, practical Skill.",
@@ -581,16 +945,42 @@ TEXTS: dict[str, tuple[str, str]] = {
         " Levels. Great with Li Xin.",
         "Magic Deer: Devotion membuat rusa, saat gugur, membagikan Level-nya ke Hero yang masih hidup sebagai"
         " Temporary Level. Sangat cocok untuk Li Xin."),
+    "血量最稳，有白歌可以拿来卡白歌牌，启动更快——抖音搜肝帝": (
+        "The steadiest HP; against Bai Ge, use it to hold Bai Ge's cards, and it starts faster. Search Gandi"
+        " on Douyin",
+        "HP paling stabil; jika ada Bai Ge, gunakan untuk menahan kartu Bai Ge, dan lebih cepat aktif. Cari"
+        " Gandi di Douyin"),
+    "装备神器多，中期启动比较吃经济天赋，有经济天赋上限也很高。": (
+        "Plenty of Equipment and Artifacts; the mid-game start leans on economy Talents, and with them the"
+        " ceiling is high too.",
+        "Banyak Equipment dan Artifact; aktivasi di pertengahan bergantung pada Talent ekonomi, dan dengan"
+        " itu batas atasnya juga tinggi."),
+    "超冷门巨阴吃分棋手": (
+        "An ultra-niche, super-sneaky Chessplayer that farms points",
+        "Chessplayer langka dan sangat licik untuk mengumpulkan poin"),
+    "这个只能昭君玩，完全依赖于昭君机制": (
+        "Only Zhaojun can play this: it depends entirely on her mechanic",
+        "Hanya Zhaojun yang bisa memainkannya: sepenuhnya bergantung pada mekanismenya"),
     "这套阵容主要靠使用效果牌时，触发芈月的卡牌效果培养英雄，小妲己能提供更多的效果牌，非常适合有芈月的阵容。": (
         "This Lineup mainly grows Heroes by playing Effect Cards to trigger Mi Yue's Card Effect. Little Daji provides"
         " more Effect Cards, a great fit for Lineups with Mi Yue.",
         "Lineup ini terutama membesarkan Hero dengan menggunakan Effect Card untuk memicu Efek Kartu Mi Yue. Little Daji"
         " memberi lebih banyak Effect Card, sangat cocok untuk Lineup dengan Mi Yue."),
+    "闹闹有非常优秀的找牌机制，可以保证中期体系成形更快，6本后闹闹也可以多选择一个阵营天赋，大河的专属天赋都很强。": (
+        "Naonao has an excellent card-finding mechanic that completes the core sooner mid game, and after"
+        " Lv. 6 she can pick one more Faction Talent; Riverlands' Exclusive Talents are all strong.",
+        "Naonao punya mekanisme pencarian kartu yang sangat baik sehingga kartu inti lengkap lebih cepat di"
+        " pertengahan, dan setelah Lv. 6 dia bisa memilih satu Talent Faction tambahan; Exclusive Talent"
+        " Riverlands semuanya kuat."),
     "闹闹的技能只花1点能量拿牌，前期经常能随到需要的牌。秘技牌在4级用，有概率能出李信。": (
         "Naonao's Skill gets a card for just 1 Energy and often rolls the card you need early on. Use the Secret Skill"
         " Card at Lv. 4 for a chance at Li Xin.",
         "Skill Naonao mengambil kartu hanya dengan 1 Energy dan di awal sering mendapat kartu yang dibutuhkan."
         " Gunakan Kartu Secret Skill di Lv. 4 untuk peluang mendapat Li Xin."),
+    "闹闹的秘技和技能可以快速帮忙找牌，额外的阵营天赋则是提高阵容上限。": (
+        "Naonao's Secret Skills and Skill find cards fast, and the extra Faction Talent raises the Lineup's ceiling.",
+        "Secret Skill dan Skill Naonao cepat membantu mencari kartu, dan Talent Faction tambahan menaikkan"
+        " batas atas Lineup."),
     "靠棋手技能稳定提升英雄等级，操作简单。秘技牌最好等上齐4个英雄再用，对每个英雄只能触发1次。": (
         "Raises Hero Levels steadily with the Chessplayer Skill. Simple to play. Best to use the Secret Skill Card"
         " once all 4 Heroes are on the board; it triggers only once per Hero.",
@@ -602,22 +992,58 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Xiangxiang bisa menyerang musuh sendiri dan sangat kuat di awal. Makin banyak Hero Tier 1-3 di atas Lv. 10"
         " yang kamu miliki, makin tinggi Attack Xiangxiang; Lineup ini punya banyak Hero Tier rendah, jadi sangat"
         " cocok untuk Xiangxiang."),
+    "马可有冰耀宝石镜和复制场上三张牌，可以快速觉醒所有牌，后期还有增伤，可以完美适配三分射\n": (
+        "Marco has the frost gem mirror and copies three cards on the board, Awakening every card fast, and"
+        " adds damage late: a perfect fit for Three Kingdoms Marksmen\n",
+        "Marco punya cermin permata es dan menyalin tiga kartu di papan, membuat semua kartu cepat Awaken,"
+        " dan menambah damage di akhir: sangat cocok untuk Marksman Three Kingdoms\n"),
 
     # ResSeasonAILineupDataBin: Name (a narrow card and the share code's 【name】 prefix)
+    "999韩信太容易": ("Lv. 999 Han Xin Made Easy", "Han Xin Lv. 999 Itu Mudah"),
+    "三分倒转-肝帝\r": ("Three Kingdoms Reversal - Gandi", "Three Kingdoms Reversal - Gandi"),
     "三分登场流": ("Three Kingdoms Deploy Build", "Build Deploy Three Kingdoms"),
+    "三阶无阵营组合": ("Factionless Tier 3 Combo", "Kombo Tier 3 Tanpa Faction"),
     "乔汐速六司空震": ("Qiao Xi Rush-6 Sikong Zhen", "Qiao Xi Rush 6 Sikong Zhen"),
+    "二保一艾琳": ("Erin, Two Guard One", "Erin, Dua Jaga Satu"),
+    "低压嬴律无脑吃分": ("Low-Pressure Ying Lu Easy Points", "Poin Mudah Ying Lu Tekanan Rendah"),
     "古币成长流": ("Ancient Coin Growth Build", "Build Growth Ancient Coin"),
     "图腾成长流": ("Totem Growth Build", "Build Growth Totem"),
     "大河图腾流": ("Riverlands Totem Build", "Build Riverlands Totem"),
+    "大河龙蛇": ("Riverlands Dragon-Snake", "Dragon-Snake Riverlands"),
+    "妲己轮椅日落倒转": ("Daji Autopilot Sunset Reversal", "Sunset Reversal Autopilot Daji"),
     "嫦娥四小队": ("Chang'e Squad of Four", "Regu Empat Chang'e"),
+    "孙小宾三分倒转": ("Sun Xiaobin Three Kingdoms Reversal", "Three Kingdoms Reversal Sun Xiaobin"),
+    "安琪拉廉颇炸盾": ("Angela Lian Po Shield Burst", "Shield Burst Lian Po Angela"),
     "安琪拉整备流": ("Angela Prepare Build", "Build Prepare Angela"),
+    "安琪拉自爆海月": ("Angela Self-Destruct Haya", "Haya Self-Destruct Angela"),
     "常小娥四人队": ("Chang Xiao'e Team of Four", "Tim Empat Chang Xiao'e"),
+    "常小娥海陆空": ("Chang Xiao'e Land, Sea, and Air", "Land, Sea, and Air Chang Xiao'e"),
+    "庄小鱼高阶龙蛇": ("Zhuang Xiaoyu High-Tier Dragon-Snake", "Dragon-Snake Tier Tinggi Zhuang Xiaoyu"),
+    "弈星雷霆战机": ("Yixing Thunder Fighter", "Thunder Fighter Yixing"),
     "战术牌成长流": ("Tactics Card Growth Build", "Build Growth Tactics Card"),
+    "新手全5阶昭君": ("Beginner All-Tier-5 Zhaojun", "Zhaojun Semua Tier 5 Pemula"),
+    "无限复活木兰": ("Infinite Revive Mulan", "Mulan Revive Tanpa Batas"),
     "日落海整备流": ("Sunset Prepare Build", "Build Prepare Sunset"),
+    "明先生泳池派对": ("Mr. Ming Pool Party", "Pool Party Mr. Ming"),
+    "明先生逐鹿嬴政": ("Mr. Ming Zhulu Plateau Ying Zheng", "Ying Zheng Zhulu Plateau Mr. Ming"),
+    "最强弈星偷牌河洛": ("Strongest Yixing Card-Steal Central Plains", "Central Plains Curi Kartu Yixing Terkuat"),
     "河洛古币流": ("Central Plains Ancient Coin Build", "Build Ancient Coin Central Plains"),
     "河洛牺牲李信": ("Central Plains Sacrifice Li Xin", "Li Xin Sacrifice Central Plains"),
+    "玉环999司空震": ("Yuhuan Lv. 999 Sikong Zhen", "Sikong Zhen Lv. 999 Yuhuan"),
+    "班叔奶柱流": ("Uncle Ban Healing Barrier Build", "Build Barrier Heal Uncle Ban"),
+    "班叔龙蛇陷阱流": ("Uncle Ban Dragon-Snake Trap Build", "Build Trap Dragon-Snake Uncle Ban"),
+    "瑶妹牺牲李信": ("Yaria Sacrifice Li Xin", "Li Xin Sacrifice Yaria"),
+    "白歌三分倒转刺": ("Bai Ge Three Kingdoms Reversal Assassins", "Assassin Three Kingdoms Reversal Bai Ge"),
+    "色彩香香开团射": ("Secai's Xiangxiang Initiate Marksmen", "Marksman Initiate Xiangxiang Secai"),
+    "蒙恬召唤": ("Meng Tian Summons", "Summon Meng Tian"),
     "逐鹿战术牌流": ("Zhulu Plateau Tactics Card Build", "Build Tactics Card Zhulu Plateau"),
+    "逐鹿雷霆战机": ("Zhulu Plateau Thunder Fighter", "Thunder Fighter Zhulu Plateau"),
+    "闹闹日落海": ("Naonao Sunset", "Sunset Naonao"),
+    "闹闹花木兰": ("Naonao Mulan", "Mulan Naonao"),
+    "阿离干将遗志海月": ("Arli Gan Last Will Haya", "Haya Last Will Gan Arli"),
+    "阿离颗秒万暴守约": ("Arli One-Shot Crit Shouyue", "Shouyue Crit Sekali Tembak Arli"),
     "马可万血猪": ("Marco 10K-HP Zhu Bajie", "Marco Zhu Bajie 10K HP"),
+    "马可三分射": ("Marco Three Kingdoms Marksmen", "Marksman Three Kingdoms Marco"),
     "马可四驱兄弟": ("Marco Four Brothers", "Marco Empat Bersaudara"),
 
     # ResSeasonAILineupDataBin: OperationDetails.Desc
@@ -633,6 +1059,23 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Di Lv. 2 mulai cari Xuance; begitu dia hampir Awaken, naik ke Lv. 3, lalu terus ambil Kartu Hero lain yang"
         " menghasilkan Ancient Coin (Dunshan, Cheng Yaojin) dan berikan semua Ancient Coin ke Xuance sebagai Carry"
         " tunggal."),
+    "3级小刷找到虞姬和鬼谷子稳血，运气好拿到少司缘张良，或者拿一张云中君或者瑶，保证五级开如梦似幻的时候场上有四张大河阵容不会开歪。\n天赋以阵容天赋和稳血为主。": (
+        "At Lv. 3, roll a little to find Consort Yu and Guiguzi and protect your HP; with luck you get"
+        " Dyadia and Liang, or take a Cirrus or Yaria, so there are four Riverlands cards on the board when"
+        " Dreamlike opens at Lv. 5 and it doesn't go astray.\nTalents: Lineup Talents and HP protection.",
+        "Di Lv. 3, sedikit refresh untuk mencari Consort Yu dan Guiguzi dan menjaga HP; jika beruntung dapat"
+        " Dyadia dan Liang, atau ambil Cirrus atau Yaria, agar ada empat kartu Riverlands di papan saat"
+        " Dreamlike dibuka di Lv. 5 dan hasilnya tidak meleset.\nTalent: Talent Lineup dan penjaga HP."),
+    "4回合回溯上回合的两张牌，然后把手上的牌全用了，打够8张解锁时之回环，然后直接升四，升四找到阵容体系牌，然后先不打，找齐后先用时之回环，再打阵容体系牌，之后升五找露娜周瑜，依旧不大存在手上，然后升六，开永恒时之回环，在回环里打这些牌": (
+        "Round 4: Undo last Round's two cards, then play everything in hand; play 8 cards to unlock Time"
+        " Loop, then go straight to Lv. 4 and find the core cards, but don't play them yet. Once you have"
+        " them all, use Time Loop first, then play them. Next go to Lv. 5 for Luna and Zhou Yu, again"
+        " keeping them in hand, then go to Lv. 6, open Eternal Time Loop and play these cards inside the loop",
+        "Ronde 4: Urungkan dua kartu dari Ronde sebelumnya, lalu mainkan semua kartu di tangan; mainkan 8"
+        " kartu untuk membuka Time Loop, lalu langsung naik ke Lv. 4 dan cari kartu inti, tapi jangan"
+        " dimainkan dulu. Setelah lengkap, gunakan Time Loop dulu, baru mainkan. Lalu naik ke Lv. 5 untuk"
+        " Luna dan Zhou Yu, tetap simpan di tangan, lalu naik ke Lv. 6, buka Eternal Time Loop dan mainkan"
+        " kartu-kartu ini di dalam loop"),
     "4至7回合不花能量自动升级，获得的效果牌优先选找3阶英雄的，最好效果牌开出猪八戒或拍卖拿到，没有的话，8至11回合升至3级去找猪八戒。梦奇必拿，上阵后再卖掉非常划算。": (
         "In Rounds 4-7, spend no Energy and level up automatically. For Effect Cards, prefer ones that find Tier 3"
         " Heroes; ideally get Zhu Bajie from an Effect Card or the Auction, otherwise level up to 3 in Rounds 8-11 to"
@@ -640,6 +1083,20 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Di Ronde 4-7, jangan pakai Energy dan biarkan naik level otomatis. Untuk Effect Card, utamakan yang mencari"
         " Hero Tier 3; idealnya dapatkan Zhu Bajie dari Effect Card atau Lelang, kalau tidak, naik ke Lv. 3 di Ronde"
         " 8-11 untuk mencarinya. Menki wajib diambil: turunkan ke papan lalu jual, sangat menguntungkan."),
+    "5本后找敖隐和东皇，有多余人口补瑶和太乙挂给敖隐/对手单核阵容给东皇\n买卖杨玉环觉醒其余低阶卡；二拍优先级：敖隐＞东皇＞大司命；": (
+        "After Lv. 5 find Ao'yin and Donghuang; with spare Population add Yaria and Taiyi, linked to Ao'yin,"
+        " or to Donghuang against single-carry Lineups\nBuy and sell Yuhuan to Awaken the other low-Tier"
+        " cards; 2nd Auction priority: Ao'yin > Donghuang > Augran;",
+        "Setelah Lv. 5 cari Ao'yin dan Donghuang; jika Populasi tersisa, tambahkan Yaria dan Taiyi yang"
+        " dihubungkan ke Ao'yin, atau ke Donghuang melawan Lineup carry tunggal\nBeli dan jual Yuhuan untuk"
+        " meng-Awaken kartu Tier rendah lainnya; prioritas Lelang ke-2: Ao'yin > Donghuang > Augran;"),
+    "5本补鲁班七号，刷体系牌打合成。最后一张驭势有同行留给同行，没同行就偷钟馗/太乙等牌打决赛，三拍后上6本。三拍推荐:扶摇直上/新生力量": (
+        "At Lv. 5 add Luban No.7, roll for core cards and Combine. Save the last Momentum Control for a"
+        " player on the same Lineup; if there's none, steal Kui, Taiyi and the like for the finals. Go to"
+        " Lv. 6 after the 3rd Auction. 3rd Auction picks: Soaring High / New Force",
+        "Di Lv. 5 tambahkan Luban No.7, refresh kartu inti dan Combine. Simpan Momentum Control terakhir"
+        " untuk pemain dengan Lineup sama; jika tidak ada, curi Kui, Taiyi, dan sejenisnya untuk final. Naik"
+        " ke Lv. 6 setelah Lelang ke-3. Pilihan Lelang ke-3: Soaring High / New Force"),
     "5级后主要找吕布，吕布吸血效果能大幅增加英雄的生存能力，吕布也是一个强力输出英雄，后期可以培养他。如果有换帅可以把低阶英雄的等级换给吕布。有遗志和传承对孙尚香使用，孙尚香输出低后期建议换掉。": (
         "After Lv. 5, look mainly for Lu Bu: his Lifesteal greatly improves Hero survival, and he is also a strong"
         " damage dealer worth building up late. With Change of Commander, swap a low-Tier Hero's Levels onto Lu Bu."
@@ -647,18 +1104,194 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Setelah Lv. 5, cari terutama Lu Bu: Lifesteal-nya sangat meningkatkan daya tahan Hero, dan dia juga damage"
         " dealer kuat yang layak dibesarkan di akhir. Dengan Pergantian Komandan, pindahkan Level Hero Tier rendah ke"
         " Lu Bu. Gunakan Last Will dan Inheritance pada Lady Sun; damage-nya rendah, jadi sebaiknya diganti di akhir."),
+    "6回合左右上4本找体系牌，遇到同行直接用两张驭势。灵活使用老夫子打合成找牌。二拍优先级:赢政>庄周＞杨玉环>蒙伢>鲁班七号": (
+        "Around Round 6 go to Lv. 4 for the core cards, and against a player on the same Lineup use both"
+        " Momentum Controls at once. Use Fuzi flexibly to Combine and find cards. 2nd Auction priority: Ying"
+        " Zheng > Zhuangzi > Yuhuan > Meng Ya > Luban No.7",
+        "Sekitar Ronde 6 naik ke Lv. 4 untuk kartu inti, dan jika ada pemain dengan Lineup sama langsung"
+        " gunakan dua Momentum Control. Gunakan Fuzi dengan fleksibel untuk Combine dan mencari kartu."
+        " Prioritas Lelang ke-2: Ying Zheng > Zhuangzi > Yuhuan > Meng Ya > Luban No.7"),
+    "7回合一般就上5级了，免费刷新不出嬴政不着急，存钱第八回合选卦象丰，直接爆牌刷新，找齐阵容。\n蒙犽是打出位，存够四张打出觉醒就卖。\n嬴政后期的上限就在于机器头和噬神之书，打合成通过效果锦囊，或者商店的武装分解，找特殊装备。": (
+        "You usually reach Lv. 5 in Round 7. Don't worry if free Refreshes don't bring Ying Zheng: save up,"
+        " pick Abundance for the Hexagram in Round 8, then flood Refreshes to complete the Lineup.\nMeng Ya"
+        " is the play slot: sell him once he Awakens after four plays.\nYing Zheng's ceiling late comes from"
+        " Robot Head and Insatiable Tome: find the special items through Effect Guides from Combines or the"
+        " shop's Weapon Dismantle.",
+        "Biasanya Lv. 5 tercapai di Ronde 7. Jangan khawatir jika Refresh gratis tidak memberi Ying Zheng:"
+        " menabung, pilih Abundance untuk Hexagram di Ronde 8, lalu refresh habis-habisan untuk melengkapi"
+        " Lineup.\nMeng Ya adalah slot main: jual setelah dia Awaken dari empat kali dimainkan.\nBatas atas"
+        " Ying Zheng di akhir ada pada Robot Head dan Insatiable Tome: cari item spesial lewat Panduan Efek"
+        " dari Combine atau Weapon Dismantle di toko."),
+    "8回合升4，不操作，10回合升级到五级，复制留着觉醒小乔和甄姬，都觉醒后，复制露娜，不断打出登场和三分牌即可，13回合到6级选阳光普照\n\n": (
+        "Round 8: go to Lv. 4 and do nothing else; Round 10: reach Lv. 5 and keep copies to Awaken Xiao Qiao"
+        " and Lady Zhen. Once both have Awakened, copy Luna and keep playing Deploy and Three Kingdoms"
+        " cards; in Round 13, at Lv. 6, pick Radiant Sunshine\n\n",
+        "Ronde 8: naik ke Lv. 4 tanpa aksi lain; Ronde 10: naik ke Lv. 5 dan simpan salinan untuk"
+        " meng-Awaken Xiao Qiao dan Lady Zhen. Setelah keduanya Awaken, salin Luna dan terus mainkan kartu"
+        " Deploy dan Three Kingdoms; di Ronde 13, di Lv. 6, pilih Radiant Sunshine\n\n"),
+    "一回合机关选择选屏障，放第一排铺满，干将/孙膑等牌各买一张，先觉醒干将后觉醒孙膑。一拍优先级:刘禅>明世隐>梦奇": (
+        "Round 1: pick Barrier as the Mechanism and fill the front row with it; buy one each of Gan, Sun Bin"
+        " and the like, Awakening Gan first, then Sun Bin. 1st Auction priority: Liu Shan > Ming > Menki",
+        "Ronde 1: pilih Barrier sebagai Mekanisme dan penuhi barisan depan; beli masing-masing satu Gan, Sun"
+        " Bin, dan sejenisnya, Awaken Gan dulu, lalu Sun Bin. Prioritas Lelang ke-1: Liu Shan > Ming > Menki"),
+    "一直打吟柔，司空震等级333并觉醒后，阿科米亚核心等级666级后，司空震就能到999了": (
+        "Keep playing triples: once Sikong Zhen is Lv. 333 and Awakened and the Arcomia Core reaches Lv."
+        " 666, Sikong Zhen hits Lv. 999",
+        "Terus mainkan tripel: setelah Sikong Zhen Lv. 333 dan Awaken serta Arcomia Core mencapai Lv. 666,"
+        " Sikong Zhen mencapai Lv. 999"),
+    "七回合拍卖优先姜子牙，无上限的去拿，司空震最多6能量，海诺莱西奥最多五能量，7回合或者8回合后升五级后边打吟柔（指的是打三张同阵营，同品阶的牌）边找阵容牌，找齐后，一直打吟柔，两次大招用完后，升六级": (
+        "At the Round 7 Auction take Ziya first, at any price; Sikong Zhen up to 6 Energy, Heino and Alessio"
+        " up to 5. After reaching Lv. 5 in Round 7 or 8, play triples (three cards of the same Faction and"
+        " Tier) while searching for Lineup cards; once complete, keep playing triples, and after both"
+        " Ultimates are used, go to Lv. 6",
+        "Di Lelang Ronde 7 utamakan Ziya, berapa pun harganya; Sikong Zhen hingga 6 Energy, Heino dan"
+        " Alessio hingga 5. Setelah naik ke Lv. 5 di Ronde 7 atau 8, mainkan tripel (tiga kartu dengan"
+        " Faction dan Tier yang sama) sambil mencari kartu Lineup; setelah lengkap, terus mainkan tripel,"
+        " dan setelah kedua Ultimate terpakai, naik ke Lv. 6"),
+    "上3本找齐体系牌，瑶和云中君二选一过渡，保证战力能持续连胜后，存钱\n上5本；一拍优先级/觉醒优先级：少司缘＞张良＞虞姬＞云中君；": (
+        "At Lv. 3 gather the core cards, using Yaria or Cirrus as a stopgap; once your power can hold the"
+        " streak, save up\nfor Lv. 5. 1st Auction and Awaken priority: Dyadia > Liang > Consort Yu > Cirrus;",
+        "Di Lv. 3 kumpulkan kartu inti, dengan Yaria atau Cirrus sebagai pengisi sementara; setelah kekuatan"
+        " cukup untuk menjaga win streak, menabung\nuntuk Lv. 5. Prioritas Lelang ke-1 dan Awaken: Dyadia >"
+        " Liang > Consort Yu > Cirrus;"),
+    "上5本后使用[朋友多多]找花木兰、武则天，体系牌齐后上6本选阵营天赋，\n存整备、登场效果牌，保证每回合花木兰复活次数足够。": (
+        "After Lv. 5, use [Many Friends] to find Mulan and Wu Zetian; with all core cards, go to Lv. 6 and"
+        " pick the Faction Talent,\nand save Prepare and Deploy Effect Cards so Mulan has enough Revives every Round.",
+        "Setelah Lv. 5, gunakan [Banyak Teman] untuk mencari Mulan dan Wu Zetian; setelah kartu inti"
+        " lengkap, naik ke Lv. 6 dan pilih Talent Faction,\nlalu simpan Kartu Efek Prepare dan Deploy agar"
+        " Revive Mulan cukup setiap Ronde."),
+    "上5本找觉醒诸葛亮找杨玉环，阵容齐全后存钱上6本，选择等离子屏障强化，找到杨玉环后挂明世隐。三拍优先级:众星闪耀>扶摇直上>军械库": (
+        "At Lv. 5, Awaken Kongming and find Yuhuan; with the Lineup complete, save up for Lv. 6 and pick"
+        " Level 3 plasma Shield, then link Ming to Yuhuan once you find her. 3rd Auction priority: Starry"
+        " Radiance > Soaring High > Armory",
+        "Di Lv. 5, Awaken Kongming dan cari Yuhuan; setelah Lineup lengkap, menabung untuk Lv. 6 dan pilih"
+        " plasma Shield Level 3, lalu hubungkan Ming ke Yuhuan setelah menemukannya. Prioritas Lelang ke-3:"
+        " Starry Radiance > Soaring High > Armory"),
+    "上一张奕星，一张牛魔，一张狂铁后，再合成三次奕星觉醒奕星，锦囊里开到日落海牌直接上，三回合拍卖优先拿姬小满，可以顶到6能量，其次亚瑟可以顶到4能量，其他日落海英雄最多3能量，然后第四回合上场拍卖回来的日落海英雄，然后直接升五": (
+        "Field a Yixing, a Niu Mo and a Biron, then Combine Yixing three more times to Awaken him; play any"
+        " Sunset card a Kit gives. At the Round 3 Auction take Mayene first, worth up to 6 Energy, then"
+        " Arthur up to 4, and other Sunset Heroes up to 3. In Round 4 field the Sunset Heroes from the"
+        " Auction, then go straight to Lv. 5",
+        "Pasang satu Yixing, satu Niu Mo, dan satu Biron, lalu Combine Yixing tiga kali lagi untuk"
+        " meng-Awaken-nya; langsung mainkan kartu Sunset dari Kit. Di Lelang Ronde 3 utamakan Mayene, layak"
+        " hingga 6 Energy, lalu Arthur hingga 4, dan Hero Sunset lain hingga 3. Di Ronde 4 pasang Hero"
+        " Sunset dari Lelang, lalu langsung naik ke Lv. 5"),
+    "上三级找全阵容英雄，太乙除外": (
+        "At Lv. 3, find every Lineup Hero except Taiyi",
+        "Di Lv. 3, cari semua Hero Lineup kecuali Taiyi"),
+    "上阵觉醒苏烈后不再购买苏烈，每回合记得丢小菟": (
+        "Once an Awakened Su Lie is on the board, stop buying Su Lie, and remember to throw Little Dodder every Round",
+        "Setelah Su Lie yang Awaken di papan, berhenti membeli Su Lie, dan ingat lempar Little Dodder setiap Ronde"),
     "不搜牌，有多余能量就升级，升到4级开始搜马超和瑶。": (
         "Don't search for cards; spend spare Energy on levelling up, and at Lv. 4 start searching for Ma Chao and"
         " Yaria.",
         "Jangan cari kartu; pakai sisa Energy untuk naik level, dan di Lv. 4 mulai cari Ma Chao dan Yaria."),
+    "不断打出效果牌加等级和法强，同时多打合成获得锦囊牌，利用镜囊给的效果卡去提升阵容的质量。": (
+        "Keep playing Effect Cards for Levels and Magic Attack, Combine often for Kits, and use the Effect"
+        " Cards they give to raise the Lineup's quality.",
+        "Terus mainkan Kartu Efek untuk Level dan Magic Attack, sering Combine untuk Kit, dan gunakan Kartu"
+        " Efek darinya untuk menaikkan kualitas Lineup."),
     "不花能量刷新商店，如果自动刷出需要的英雄牌可以购买，有铠推荐买，前期战力很强。": (
         "Don't spend Energy to Refresh the Shop; buy needed Hero Cards if the automatic Refresh shows them. Kaizer is"
         " worth buying: he is very strong early.",
         "Jangan pakai Energy untuk Refresh Shop; beli Kartu Hero yang dibutuhkan jika muncul dari Refresh otomatis."
         " Kaizer layak dibeli: sangat kuat di awal."),
+    "两个日落海整备可以作为打出位，卖一个每回合换一个日落海整备上去": (
+        "Two Sunset Prepare Heroes can serve as play slots: sell one each Round and swap in another Sunset"
+        " Prepare Hero",
+        "Dua Hero Prepare Sunset bisa jadi slot main: jual satu setiap Ronde dan ganti dengan Hero Prepare"
+        " Sunset lain"),
+    "中期上4找韩信，然后找齐阵容上5，优先觉醒韩信": (
+        "Mid game, go to Lv. 4 to find Han Xin, then complete the Lineup and go to Lv. 5; Awaken Han Xin first",
+        "Di pertengahan, naik ke Lv. 4 untuk mencari Han Xin, lalu lengkapi Lineup dan naik ke Lv. 5;"
+        " utamakan Awaken Han Xin"),
+    "中期没啥操作，就是找牌觉醒，然后冻住，到后期全五阶了之后，可以直接挂机了。": (
+        "Little to do mid game: find cards, Awaken them and freeze them; once everything is Tier 5 late, it"
+        " plays itself.",
+        "Tidak banyak aksi di pertengahan: cari kartu, Awaken, lalu bekukan; setelah semua Tier 5 di akhir,"
+        " cukup autopilot."),
+    "之后位置不够，把阿珂传承了，有合成打合成，锦囊里拿唤醒，集体唤醒，临阵磨枪，全军动员这些卡，同时传承遗志留手上，最后等级汇总，抖音搜小阿豪有保姆级视频": (
+        "When you run out of slots, pass Arke on with Inheritance. Combine whenever you can and take Awaken,"
+        " Mass Awakening, Sharpening Weapons Before Battle and Full Army Mobilization from Kits, while"
+        " keeping Inheritance and Last Will in hand to pool the Levels at the end. Search Xiao A'hao on"
+        " Douyin for step-by-step videos",
+        "Saat slot habis, wariskan Arke dengan Inheritance. Combine kapan pun bisa dan ambil Awaken, Mass"
+        " Awakening, Sharpening Weapons Before Battle, dan Full Army Mobilization dari Kit, sambil menyimpan"
+        " Inheritance dan Last Will di tangan untuk mengumpulkan Level di akhir. Cari Xiao A'hao di Douyin"
+        " untuk video langkah demi langkah"),
+    "五回合升级到三级，找齐场上牌，优先觉醒蔡文姬曹操，公孙离吸刘禅等级，曹操觉醒以后卖掉刘禅换貂蝉": (
+        "In Round 5 reach Lv. 3 and complete the board; Awaken Cai Yan and Cao Cao first, let Arli absorb"
+        " Liu Shan's Levels, and once Cao Cao Awakens, sell Liu Shan for Diaochan",
+        "Di Ronde 5 naik ke Lv. 3 dan lengkapi papan; utamakan Awaken Cai Yan dan Cao Cao, biarkan Arli"
+        " menyerap Level Liu Shan, dan setelah Cao Cao Awaken, jual Liu Shan untuk Diaochan"),
+    "五级后开大直接如梦似幻直接牌来全齐，如果没有核心东皇敖隐可以小刷，血量高直接上六开第二个如梦似幻，攒钱开梦幻引擎，通过梦幻引擎实现全员觉醒。\n合成锦囊准备一张遗志或者传承，决赛圈传承掉遗志掉虞姬换太乙挂给东皇或者敖隐。": (
+        "After Lv. 5, use the Ultimate: Dreamlike brings the whole set of cards at once. If the core"
+        " Donghuang or Ao'yin is missing, roll a little; with high HP go straight to Lv. 6 for the second"
+        " Dreamlike, then save up for Dream Engine, which Awakens the whole team.\nKeep a Last Will or"
+        " Inheritance from Combine Kits; in the finals, pass Consort Yu on with it and bring in Taiyi,"
+        " linked to Donghuang or Ao'yin.",
+        "Setelah Lv. 5, gunakan Ultimate: Dreamlike memberi semua kartu sekaligus. Jika inti Donghuang atau"
+        " Ao'yin belum ada, sedikit refresh; jika HP tinggi langsung naik ke Lv. 6 untuk Dreamlike kedua,"
+        " lalu menabung untuk Dream Engine, yang membuat semua Hero Awaken.\nSimpan satu Last Will atau"
+        " Inheritance dari Kit Combine; di final, wariskan Consort Yu dengannya dan masukkan Taiyi yang"
+        " dihubungkan ke Donghuang atau Ao'yin."),
+    "优先觉醒干将，再拿牛魔、孙膑、曜\n伞绑定干将，靠合成刷遗志": (
+        "Awaken Gan first, then take Niu Mo, Sun Bin and Yao\nBind the umbrella to Gan and Combine to roll"
+        " for Last Will",
+        "Utamakan Awaken Gan, lalu ambil Niu Mo, Sun Bin, dan Yao\nIkat payung ke Gan dan Combine untuk"
+        " mencari Last Will"),
+    "公式化打法，双觉醒，狂铁提供战力，奕星升级必备，选秀拿体系牌或者日落海牌！": (
+        "A formula build with two Awakenings: Biron supplies power and Yixing is a must for leveling; in the"
+        " draft, take core cards or Sunset cards!",
+        "Build rumus dengan dua Awaken: Biron memberi kekuatan dan Yixing wajib untuk naik level; saat"
+        " draft, ambil kartu inti atau kartu Sunset!"),
+    "分三种情况，没有能量改造的情况下，后期把所有牌卖了，只留雅典娜和艾琳，上太乙辅助艾琳即可。如果拿到能量改造，就把亚瑟卖了，上场露娜（不要卖掉），不断刷等级即可。天赋优先拿能量汲取，如果有阿克米亚核心这装备，可以上司空震": (
+        "There are three cases. Without Energy Modification, sell every card late except Athena and Erin,"
+        " and bring in Taiyi to support Erin. With Energy Modification, sell Arthur, put Luna on the board"
+        " (don't sell her) and keep rolling for Levels. For Talents, take Energy Siphon first, and with the"
+        " Arcomia Core Equipment you can add Sikong Zhen",
+        "Ada tiga kondisi. Tanpa Modifikasi Energy, di akhir jual semua kartu kecuali Athena dan Erin, lalu"
+        " masukkan Taiyi untuk mendukung Erin. Dengan Modifikasi Energy, jual Arthur, taruh Luna di papan"
+        " (jangan dijual) dan terus refresh untuk Level. Untuk Talent, utamakan Energy Siphon, dan jika ada"
+        " Equipment Arcomia Core, bisa menambahkan Sikong Zhen"),
+    "刷牌升级": ("Roll cards and level up", "Refresh kartu dan naik level"),
+    "刷遗志，刷出遗志再升级棋手": (
+        "Roll for Last Will, and level up the Chessplayer only once you have it",
+        "Cari Last Will, dan naikkan level Chessplayer hanya setelah mendapatkannya"),
+    "前三波买个弈星直接上等级3": (
+        "In the first three Rounds, buy a Yixing and go straight to Lv. 3",
+        "Di tiga Ronde pertama, beli Yixing dan langsung naik ke Lv. 3"),
     "前期可以单挂一张弈星，不刷商店升到3级": (
         "Early on you can field just one Yixing and level up to 3 without Refreshing the Shop",
         "Di awal kamu bisa menurunkan satu Yixing saja dan naik ke Lv. 3 tanpa Refresh Shop"),
+    "前期可以单挂奕星速升四级": (
+        "Early, you can field Yixing alone and rush to Lv. 4",
+        "Di awal, kamu bisa memasang Yixing sendiri dan cepat naik ke Lv. 4"),
+    "前期可以拿狂铁过渡；拿弈星之后升级": (
+        "Early, you can take Biron as a stopgap; level up after getting Yixing",
+        "Di awal, kamu bisa ambil Biron sebagai pengisi sementara; naik level setelah dapat Yixing"),
+    "前期可以选择1回合一张孙尚香+一张弈星开局，如果其他棋手非前期连胜棋手，也可以觉醒孙尚香开局。3回合拍卖优先拿曹操/蔡文姬，7回合拍卖手牌有甄姬，优先拿露娜。如没有甄姬小乔，优先拿甄姬小乔。1-7回合主要是在升级的过程中，尽可能的保存血量。": (
+        "Early, you can open with a Lady Sun and a Yixing in Round 1; if no other Chessplayer is an"
+        " early-streak one, you can also open with an Awakened Lady Sun. At the Round 3 Auction take Cao Cao"
+        " or Cai Yan first; at the Round 7 Auction, if Lady Zhen is in hand, take Luna first, and if you"
+        " lack Lady Zhen and Xiao Qiao, take them first. Rounds 1-7 are mostly about leveling up while"
+        " saving as much HP as you can.",
+        "Di awal, kamu bisa membuka dengan Lady Sun dan Yixing di Ronde 1; jika tidak ada Chessplayer lain"
+        " yang kuat win streak di awal, bisa juga membuka dengan Lady Sun yang Awaken. Di Lelang Ronde 3"
+        " utamakan Cao Cao atau Cai Yan; di Lelang Ronde 7, jika Lady Zhen ada di tangan, utamakan Luna, dan"
+        " jika belum punya Lady Zhen dan Xiao Qiao, utamakan mereka. Ronde 1-7 fokus naik level sambil"
+        " menjaga HP sebanyak mungkin."),
+    "前期给的多就拿个觉醒干将过渡，不给就算了别用能量d。然后速三开始d牌": (
+        "If the early game gives plenty, take an Awakened Gan as a stopgap; if not, skip it and don't spend"
+        " Energy on rolls. Then rush to Lv. 3 and start rolling",
+        "Jika awal permainan memberi banyak, ambil Gan yang Awaken sebagai pengisi sementara; jika tidak,"
+        " lewati dan jangan pakai Energy untuk refresh. Lalu cepat naik ke Lv. 3 dan mulai refresh"),
+    "前期觉醒香香上牛魔和弈星过度，四回合升级到2级": (
+        "Early, Awaken Xiangxiang and use Niu Mo and Yixing as stopgaps; level up to Lv. 2 in Round 4",
+        "Di awal, Awaken Xiangxiang dan pakai Niu Mo serta Yixing sebagai pengisi sementara; naik ke Lv. 2 di Ronde 4"),
+    "前期配合小鹿轻松连胜加等级": (
+        "Early, the deer makes win streaks and Levels easy",
+        "Di awal, rusa membuat win streak dan Level jadi mudah"),
     "升到3级开始刷阵容里的卡牌，最好等刷到猪八戒再开始合成。手上留一张猪八戒，马可技能牌提供的冰曜宝石镜优先复制猪八戒让他觉醒。": (
         "At Lv. 3 start rolling for the Lineup's cards; ideally wait until you find Zhu Bajie before Combining. Keep"
         " one Zhu Bajie in hand and use the Ice Crystal Gemstone Mirror from Marco's Skill card to copy Zhu Bajie"
@@ -666,6 +1299,25 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Di Lv. 3 mulai Refresh untuk kartu Lineup; sebaiknya tunggu sampai dapat Zhu Bajie sebelum Combine. Simpan"
         " satu Zhu Bajie di tangan dan gunakan Cermin Permata Kristal Es dari kartu Skill Marco untuk menyalin Zhu"
         " Bajie lebih dulu agar dia Awaken."),
+    "升到四级后，找齐阵容体系牌后可以升五级搜牌。": (
+        "After reaching Lv. 4 and gathering the Lineup's core cards, go to Lv. 5 to search for more.",
+        "Setelah Lv. 4 dan kartu inti Lineup lengkap, naik ke Lv. 5 untuk mencari kartu."),
+    "单挂弈星一直留到升5级，如果对手或自己是嬴律可以等第一轮竞拍结束后根据至高决策来进行升级。第一轮竞拍优先：程咬金>梦琪>铠>明世隐。": (
+        "Field Yixing alone and keep him until Lv. 5; if an opponent or you are Ying Lu, you can wait until"
+        " after the first Auction and level up by Supreme Decision. 1st Auction priority: Cheng Yaojin >"
+        " Menki > Kaizer > Ming.",
+        "Pasang Yixing sendiri dan pertahankan sampai Lv. 5; jika lawan atau kamu memakai Ying Lu, tunggu"
+        " sampai Lelang pertama selesai dan naik level sesuai Supreme Decision. Prioritas Lelang ke-1: Cheng"
+        " Yaojin > Menki > Kaizer > Ming."),
+    "单指把牌找的差不多看血量健康就可以尝试上六了，没必要硬找到全觉醒": (
+        "Once you've found most of the cards and HP is healthy, try going to Lv. 6; no need to force a full Awakening",
+        "Setelah sebagian besar kartu ditemukan dan HP aman, coba naik ke Lv. 6; tidak perlu memaksakan semua Awaken"),
+    "单放个奕星，不用觉醒。空位的话，靠偷对面的卡牌来补充战力": (
+        "Field a lone Yixing; no need to Awaken him. Fill empty slots by stealing the opponents' cards",
+        "Pasang satu Yixing saja; tidak perlu Awaken. Isi slot kosong dengan mencuri kartu lawan"),
+    "只打出天赋给的那一张牌，升到4本，开朋友多多": (
+        "Play only the one card the Talent gives, reach Lv. 4, and open Many Friends",
+        "Mainkan hanya satu kartu dari Talent, naik ke Lv. 4, dan buka Banyak Teman"),
     "合成后获得的效果锦囊优先拿传承、遗志、换帅，后期把孙尚香等级换给吕布或周瑜。其它英雄可以用遗志、传承把等级都换给C位。": (
         "From the Effect Guides you get after Combining, take Inheritance, Last Will and Change of Commander first,"
         " and later swap Lady Sun's Levels onto Lu Bu or Zhou Yu. Other Heroes can pass all their Levels to the Carry"
@@ -673,11 +1325,32 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Dari Panduan Efek yang didapat setelah Combine, utamakan Inheritance, Last Will, dan Pergantian Komandan,"
         " lalu di akhir pindahkan Level Lady Sun ke Lu Bu atau Zhou Yu. Hero lain bisa memindahkan semua Level-nya ke"
         " Carry dengan Last Will dan Inheritance."),
+    "同上": ("Same as above", "Sama seperti di atas"),
+    "后期传承遗志阿珂、小乔、甄姬、曹操的等级给海月，然后超级换帅吕布登场999级，觉醒老虎登场，整备后的老虎可以直接999级。--抖音搜肝帝\r": (
+        "Late, use Inheritance and Last Will to pass the Levels of Arke, Xiao Qiao, Lady Zhen and Cao Cao to"
+        " Haya, then use Super Commander Swap to Deploy Lu Bu at Lv. 999, and Deploy an Awakened Pei: after"
+        " Prepare, he can reach Lv. 999 directly. Search Gandi on Douyin",
+        "Di akhir, gunakan Inheritance dan Last Will untuk memindahkan Level Arke, Xiao Qiao, Lady Zhen, dan"
+        " Cao Cao ke Haya, lalu gunakan Super Commander Swap untuk Deploy Lu Bu di Lv. 999, dan Deploy Pei"
+        " yang Awaken: setelah Prepare, dia bisa langsung mencapai Lv. 999. Cari Gandi di Douyin"),
     "后期可以找太乙复活猪八戒，如果血量健康能量充足，升到6级，马可的专属天赋可以让英雄伤害提升。": (
         "Late game, find Taiyi to Revive Zhu Bajie. If your HP is healthy and Energy plentiful, level up to 6: Marco's"
         " Exclusive Talent raises Hero damage.",
         "Di akhir, cari Taiyi untuk Revive Zhu Bajie. Jika HP aman dan Energy cukup, naik ke Lv. 6: Exclusive Talent"
         " Marco meningkatkan damage Hero."),
+    "后期墨子卖了换鲁班大师": ("Late, sell Mozi for Master Luban", "Di akhir, jual Mozi dan ganti dengan Master Luban"),
+    "后期把狂铁传承掉上海月": (
+        "Late, pass Biron on with Inheritance and bring in Haya",
+        "Di akhir, wariskan Biron dengan Inheritance dan masukkan Haya"),
+    "后期有姜子牙和司空震便可直接启动刷牌，疯狂提升司空震等级，后面的妲己秘技根本用不完。全部觉醒后即可成型！": (
+        "Late, once you have Ziya and Sikong Zhen, start rolling cards to pump Sikong Zhen's Level; Daji's"
+        " Secret Skills will be more than you can use. Once all are Awakened, the Lineup is complete!",
+        "Di akhir, setelah ada Ziya dan Sikong Zhen, mulai refresh kartu untuk menaikkan Level Sikong Zhen;"
+        " Secret Skill Daji tidak akan habis terpakai. Setelah semua Awaken, Lineup lengkap!"),
+    "后期轻松999": ("Lv. 999 comes easily late", "Lv. 999 mudah dicapai di akhir"),
+    "四级搜核心李信，其他牺牲挂件不要多拿": (
+        "At Lv. 4 search for the core, Li Xin; don't take too many Sacrifice extras",
+        "Di Lv. 4 cari inti, Li Xin; jangan ambil terlalu banyak Hero Sacrifice pelengkap"),
     "回合12升5级，主要找海诺，海诺在每次阿科米亚核心提升等级时都可提供额外等级。": (
         "Level up to 5 in Round 12 and look mainly for Heino, who gives extra Levels every time the Arcomia Core"
         " levels up.",
@@ -856,9 +1529,78 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Naikkan Chessplayer ke Lv. 5 di Ronde 9-11 dan cari terutama Taiyi Zhenren: Taiyi bisa Revive Xuance,"
         " memberi ruang untuk kesalahan. Shangguan memakai Ancient Coin pada Hero Lineup setiap Ronde, menambah"
         " kekuatan keseluruhan. Prioritaskan Awaken Taiyi dan Kui."),
+    "在后期，可以在锦囊里保留一张传承，或者遗志。因为在甄姬的登场被触发时，会出现大量不能和场上英雄合成的英雄牌。直接卖掉很亏，我们可以通过传承/遗志【阿珂】来空出一个人口。拿到的露娜不要急着打出，用灵感爆发一切二之后再来使用。": (
+        "Late, keep an Inheritance or a Last Will in your Kits. When Lady Zhen's Deploy triggers, it brings"
+        " many Hero cards that can't Combine with the board, and selling them outright is a waste;"
+        " Inheritance or Last Will on 【Arke】 frees a Population slot instead. Don't rush to play the Luna"
+        " you get: split it with Inspiration Burst first, then use it.",
+        "Di akhir, simpan satu Inheritance atau Last Will di Kit. Saat Deploy Lady Zhen aktif, muncul banyak"
+        " kartu Hero yang tidak bisa di-Combine dengan papan, dan menjualnya langsung itu rugi; Inheritance"
+        " atau Last Will pada 【Arke】 justru membebaskan satu slot Populasi. Jangan buru-buru memainkan Luna"
+        " yang didapat: bagi dulu dengan Inspiration Burst, baru gunakan."),
+    "在等级3搜蒙恬，芈月，西施，苍，觉醒芈月上等级4，如果芈月没觉醒，就8回合上4，在等级4把蒙恬等级拉到100级后再上等级5。": (
+        "At Lv. 3 search for Meng Tian, Mi Yue, Shi and Chano, and Awaken Mi Yue to reach Lv. 4; if Mi Yue"
+        " hasn't Awakened, go to Lv. 4 in Round 8. At Lv. 4, get Meng Tian to Lv. 100 before going to Lv. 5.",
+        "Di Lv. 3 cari Meng Tian, Mi Yue, Shi, dan Chano, lalu Awaken Mi Yue untuk naik ke Lv. 4; jika Mi"
+        " Yue belum Awaken, naik ke Lv. 4 di Ronde 8. Di Lv. 4, naikkan Meng Tian ke Lv. 100 sebelum naik ke Lv. 5."),
+    "基本上大成了，吃鸡概率，80%了。前三是稳了。最后决战的时候，把明世隐卖掉，上钟馗（左边放花木兰，右边放程咬金），然后再把露娜卖掉，把太乙给花木兰复活。": (
+        "The Lineup is basically complete: about an 80% chance to win, and top 3 is safe. For the final"
+        " battle, sell Ming and bring in Kui (Mulan on his left, Cheng Yaojin on his right), then sell Luna"
+        " and give Taiyi to Mulan to Revive her.",
+        "Lineup pada dasarnya sudah jadi: peluang juara sekitar 80%, dan 3 besar aman. Di pertempuran final,"
+        " jual Ming dan masukkan Kui (Mulan di kirinya, Cheng Yaojin di kanannya), lalu jual Luna dan"
+        " berikan Taiyi ke Mulan untuk Revive."),
+    "如果觉得你运气不好，这一套可以无缝转接大河那一套，就是大河龙蛇，就是选备选里的虞姬少司缘鬼谷子大司命这几个有图腾的，然后五星刷敖隐跟东皇，大号龙蛇前期没输出的话，留下干将，能刷到遗志什么的，或者把它冻成输出": (
+        "If your luck is bad, this build switches seamlessly into Riverlands Dragon-Snake: pick the Totem"
+        " Heroes from the alternates (Consort Yu, Dyadia, Guiguzi, Augran), then roll for Ao'yin and"
+        " Donghuang at 5 stars. If the Dragon-Snake lacks early damage, keep Gan, roll for Last Will and the"
+        " like, or freeze him as your damage dealer",
+        "Jika kurang beruntung, build ini bisa langsung beralih ke Dragon-Snake Riverlands: pilih Hero Totem"
+        " dari cadangan (Consort Yu, Dyadia, Guiguzi, Augran), lalu refresh untuk Ao'yin dan Donghuang di"
+        " bintang 5. Jika Dragon-Snake kurang damage di awal, simpan Gan, cari Last Will dan sejenisnya,"
+        " atau bekukan dia sebagai damage dealer"),
+    "存钱速升4本找诸葛亮，商店刷新明世隐和刘禅可以买，不花能量刷新。明世隐先挂诸葛亮且有多少买多少。二拍优先级:杨玉环>诸葛亮": (
+        "Save up and rush to Lv. 4 to find Kongming; buy Ming and Liu Shan when shop Refreshes show them,"
+        " but don't spend Energy on Refreshes. Link Ming to Kongming first, and buy as many as you can. 2nd"
+        " Auction priority: Yuhuan > Kongming",
+        "Menabung dan cepat naik ke Lv. 4 untuk mencari Kongming; beli Ming dan Liu Shan jika muncul di"
+        " Refresh toko, tapi jangan pakai Energy untuk Refresh. Hubungkan Ming ke Kongming dulu, dan beli"
+        " sebanyak mungkin. Prioritas Lelang ke-2: Yuhuan > Kongming"),
+    "孙膑1-2回合各一张弈星(2-3回合回溯觉醒弈星)。白歌来牌顺觉醒弈星，不顺不觉醒干拉刀4本。镜单挂弈星，每\r回合一张镜像拿手里，三回合上2本。——抖音搜肝帝": (
+        "Sun Bin: a Yixing in each of Rounds 1-2 (Undo in Rounds 2-3 to Awaken Yixing). Bai Ge: Awaken"
+        " Yixing if the cards flow; if not, skip it and push to Lv. 4. Jing: field Yixing alone, keep a"
+        " Mirror in hand every Round, and reach Lv. 2 in Round 3. Search Gandi on Douyin",
+        "Sun Bin: satu Yixing di masing-masing Ronde 1-2 (Urungkan di Ronde 2-3 untuk meng-Awaken Yixing)."
+        " Bai Ge: Awaken Yixing jika kartu lancar; jika tidak, lewati dan paksa naik ke Lv. 4. Jing: pasang"
+        " Yixing sendiri, simpan satu Mirror di tangan setiap Ronde, dan naik ke Lv. 2 di Ronde 3. Cari"
+        " Gandi di Douyin"),
+    "孙膑找到2个甄姬就可以回环。白歌找到一张甄姬小乔血量允许的情况下直接拉6本奇才甄姬启动。镜在第七回合曹操+镜像，小乔+镜像，甄姬+镜像，阿珂+镜像，然后万镜复制场上四张，然后曹操小乔直接打出，甄姬、阿珂继续跟镜像。字符有限——抖音搜肝帝": (
+        "Sun Bin: loop once you have 2 Lady Zhen. Bai Ge: once you have a Lady Zhen and a Xiao Qiao, and HP"
+        " allows, push to Lv. 6 and start with Prodigy on Lady Zhen. Jing: in Round 7, Cao Cao + Mirror,"
+        " Xiao Qiao + Mirror, Lady Zhen + Mirror and Arke + Mirror, then Myriad Mirrors copies those four on"
+        " the board; play Cao Cao and Xiao Qiao at once, and keep Lady Zhen and Arke following the Mirrors."
+        " Space is short: search Gandi on Douyin",
+        "Sun Bin: lakukan loop setelah punya 2 Lady Zhen. Bai Ge: setelah punya Lady Zhen dan Xiao Qiao, dan"
+        " HP memungkinkan, paksa naik ke Lv. 6 dan mulai dengan Prodigy pada Lady Zhen. Jing: di Ronde 7,"
+        " Cao Cao + Mirror, Xiao Qiao + Mirror, Lady Zhen + Mirror, dan Arke + Mirror, lalu Myriad Mirrors"
+        " menyalin keempatnya di papan; langsung mainkan Cao Cao dan Xiao Qiao, dan biarkan Lady Zhen serta"
+        " Arke terus mengikuti Mirror. Ruang terbatas: cari Gandi di Douyin"),
+    "尽快上6让蒙恬可以10蓝，决赛可以换上觉醒钟馗减对面C位等级。": (
+        "Reach Lv. 6 as soon as possible so Meng Tian can have 10 Mana; in the finals, swap in an Awakened"
+        " Kui to lower the enemy carry's Level.",
+        "Capai Lv. 6 secepatnya agar Meng Tian bisa punya 10 Mana; di final, masukkan Kui yang Awaken untuk"
+        " menurunkan Level carry lawan."),
     "尽快把棋手升到6级，搜司空震和其他需要的卡牌。": (
         "Raise your Chessplayer to Lv. 6 as fast as possible and search for Sikong Zhen and the other cards you need.",
         "Naikkan Chessplayer ke Lv. 6 secepat mungkin dan cari Sikong Zhen serta kartu lain yang dibutuhkan."),
+    "开场四小队稳血为主，干将前期能力不错，可以上狂铁，后期通过跳级夺取日落海核心等级。": (
+        "Open with the squad of four to protect your HP; Gan is solid early and Biron can join. Late, Steal"
+        " the Sunset core's Levels by skipping Levels.",
+        "Buka dengan regu empat untuk menjaga HP; Gan kuat di awal dan Biron bisa masuk. Di akhir, Steal"
+        " Level inti Sunset dengan lompat level."),
+    "开完朋友多多之后，把阵容找齐，就可以上6本": (
+        "After Many Friends, complete the Lineup, then go to Lv. 6",
+        "Setelah Banyak Teman, lengkapi Lineup, lalu naik ke Lv. 6"),
     "开局买一张狂铁，狂铁每回合自动成长适合前期过渡，回合2升2级。": (
         "Buy a Biron at the start: he grows automatically each Round, a good early stopgap. Level up to 2 in Round 2.",
         "Beli satu Biron di awal: dia tumbuh otomatis setiap Ronde, cocok sebagai pengisi sementara di awal. Naik ke"
@@ -868,9 +1610,39 @@ TEXTS: dict[str, tuple[str, str]] = {
         " or Yixing as stopgaps. Level up to 2 in Round 2.",
         "Beli satu Biron di awal: dia tumbuh otomatis setiap Ronde, cocok sebagai pengisi sementara di awal. Tanpa"
         " Biron, pakai Niu Mo atau Yixing sebagai pengisi sementara. Naik ke Lv. 2 di Ronde 2."),
+    "开局先打战略决策，选择低压运营和基层提拔，等到第一次拍卖回来把至高决策打出还会给战略决策，把开局没拿到的另一个补上，低压运营是根据血量来提升等级的所以前期优先拿战力高的赢": (
+        "Play Strategic Decision first and pick Low-Pressure Strategy and Base Promotion; after the first"
+        " Auction, playing Supreme Decision gives another Strategic Decision, so add the one you didn't get"
+        " at the start. Low-Pressure Strategy raises Levels based on HP, so early on prefer strong Heroes and win",
+        "Mainkan Strategic Decision dulu dan pilih Strategi Tekanan Rendah dan Promosi Dasar; setelah Lelang"
+        " pertama, memainkan Supreme Decision memberi Strategic Decision lagi, jadi tambahkan yang belum"
+        " didapat di awal. Strategi Tekanan Rendah menaikkan Level berdasarkan HP, jadi di awal utamakan"
+        " Hero kuat dan menang"),
     "开局拿一张李元芳过渡，回合2升2级。": (
         "Take a Fang at the start as a stopgap, and level up to 2 in Round 2.",
         "Ambil satu Fang di awal sebagai pengisi sementara, dan naik ke Lv. 2 di Ronde 2."),
+    "开局挂一张弈星，卖血直接升级。\n第一张卦象选节，加钱，第四回合直接拉四级。\n拍卖会优先抢芈月，核心功能给嬴政加等级的。\n其余牌可抢西施/白起/老夫子。": (
+        "Open with a single Yixing and give up HP to level up straight away.\nFor the first Hexagram pick"
+        " Moderation for money, and go to Lv. 4 in Round 4.\nAt the Auction grab Mi Yue first: her key role"
+        " is giving Ying Zheng Levels.\nFor the rest, grab Shi, Bai Qi or Fuzi.",
+        "Buka dengan satu Yixing dan korbankan HP untuk langsung naik level.\nUntuk Hexagram pertama pilih"
+        " Moderation untuk uang, dan naik ke Lv. 4 di Ronde 4.\nDi Lelang utamakan Mi Yue: peran utamanya"
+        " memberi Level ke Ying Zheng.\nSisanya, ambil Shi, Bai Qi, atau Fuzi."),
+    "弈星、牛魔开局，前期偷到什么用什么。速上3本，利用免费刷新、老夫子、梦奇找芈月。一拍优先级:芈月>西施>老夫子>梦奇>白起": (
+        "Open with Yixing and Niu Mo, and early on use whatever you steal. Rush to Lv. 3 and find Mi Yue"
+        " with free Refreshes, Fuzi and Menki. 1st Auction priority: Mi Yue > Shi > Fuzi > Menki > Bai Qi",
+        "Buka dengan Yixing dan Niu Mo, dan di awal pakai apa pun yang dicuri. Cepat naik ke Lv. 3 dan cari"
+        " Mi Yue dengan Refresh gratis, Fuzi, dan Menki. Prioritas Lelang ke-1: Mi Yue > Shi > Fuzi > Menki > Bai Qi"),
+    "弈星、狂铁开局": ("Open with Yixing and Biron", "Buka dengan Yixing dan Biron"),
+    "当我们在三本觉醒一张公孙离加任意一张大河牌觉醒 即可选择升本 ，我们直接升到五本找我们剩下的一张体系牌 ，如果你已经在三本拿到了那我们在五本不做停留直接上六 ！": (
+        "Once Arli and any one Riverlands card have Awakened at Lv. 3, level up: go straight to Lv. 5 to"
+        " find our last core card, and if you already got it at Lv. 3, don't stop at 5, go straight to 6!",
+        "Setelah Arli dan satu kartu Riverlands mana pun Awaken di Lv. 3, naik level: langsung ke Lv. 5"
+        " untuk mencari kartu inti terakhir, dan jika sudah didapat di Lv. 3, jangan berhenti di 5, langsung ke 6!"),
+    "找两个辅助": ("Find two Supports", "Cari dua Support"),
+    "找全阵容升四级找扁鹊": (
+        "Complete the Lineup, then go to Lv. 4 for Dr Bian",
+        "Lengkapi Lineup, lalu naik ke Lv. 4 untuk mencari Dr Bian"),
     "找到马超和瑶之后继续升级到6级，补一张吕布给马超加吸血。血量健康的话棋手秘技牌等凑齐4个英雄再使用，血量低可看情况提前用。": (
         "After finding Ma Chao and Yaria, keep levelling up to 6 and add a Lu Bu to give Ma Chao Lifesteal. If your HP"
         " is healthy, wait until you have all 4 Heroes before using the Chessplayer's Secret Skill Card; if HP is low,"
@@ -878,42 +1650,312 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Setelah mendapat Ma Chao dan Yaria, terus naik level sampai Lv. 6 dan tambahkan Lu Bu untuk memberi"
         " Lifesteal ke Ma Chao. Jika HP aman, tunggu sampai keempat Hero lengkap sebelum menggunakan Kartu Secret"
         " Skill Chessplayer; jika HP rendah, gunakan lebih awal sesuai situasi."),
+    "拿体系牌，4人成型，优先觉醒八戒，血量低，优先打出阿轲。": (
+        "Take the core cards: the Lineup works with 4. Awaken Zhu Bajie first, and when HP is low, play Arke first.",
+        "Ambil kartu inti: Lineup terbentuk dengan 4 Hero. Utamakan Awaken Zhu Bajie, dan saat HP rendah,"
+        " utamakan memainkan Arke."),
+    "有四张强力牌后升2级，拿到基层提拔后可以把开局四张牌选择觉醒，优先觉醒牛魔和干将，在2级找公孙离和阵容牌，用公孙离把开局的四张牌吸干就可以卖掉了": (
+        "With four strong cards, go to Lv. 2; after Base Promotion, choose to Awaken your four opening"
+        " cards, Niu Mo and Gan first. At Lv. 2, find Arli and the Lineup cards; once Arli has drained the"
+        " four opening cards' Levels, sell them",
+        "Setelah punya empat kartu kuat, naik ke Lv. 2; setelah Promosi Dasar, pilih untuk meng-Awaken empat"
+        " kartu awal, utamakan Niu Mo dan Gan. Di Lv. 2, cari Arli dan kartu Lineup; setelah Arli menyerap"
+        " habis Level empat kartu awal, jual kartunya"),
     "有弈星可以拿一张，每回合只花费1能量使用棋手技能，开出什么英雄上什么英雄，其余能量都留着升级。优先选经济类的天赋或加血的天赋。": (
         "Take a Yixing if you see one. Spend only 1 Energy per Round on the Chessplayer Skill and field whatever Hero"
         " it gives; save the rest of your Energy for levelling. Prefer economy Talents or healing Talents.",
         "Ambil satu Yixing jika ada. Pakai hanya 1 Energy per Ronde untuk Skill Chessplayer dan turunkan Hero apa pun"
         " yang didapat; simpan sisa Energy untuk naik level. Utamakan Talent ekonomi atau Talent penambah HP."),
+    "李元芳卖掉换太乙": ("Sell Fang for Taiyi", "Jual Fang dan ganti dengan Taiyi"),
+    "棋手一路直接升到六级，不使用能量刷新，升至六级后先丢金色小菟，再丢小菟": (
+        "Take the Chessplayer straight to Lv. 6 without spending Energy on Refreshes; at Lv. 6 throw the"
+        " golden Little Dodder first, then the normal Little Dodder",
+        "Naikkan Chessplayer langsung ke Lv. 6 tanpa memakai Energy untuk Refresh; di Lv. 6 lempar Little"
+        " Dodder emas dulu, lalu Little Dodder biasa"),
+    "棋手二级时，免费刷新遇到米莱迪、亚联可以拿；4回合升3级开始找牌；觉醒优先朵莉亚和米莱迪": (
+        "At Chessplayer Lv. 2, take Milady or Allain if a free Refresh shows them; go to Lv. 3 in Round 4"
+        " and start searching; Awaken Dolia and Milady first",
+        "Di Chessplayer Lv. 2, ambil Milady atau Allain jika muncul dari Refresh gratis; naik ke Lv. 3 di"
+        " Ronde 4 dan mulai mencari kartu; utamakan Awaken Dolia dan Milady"),
+    "棋手快速升5级后，商店里有体系牌要买，给到免费的铠和盾山可以作为备用前排。优先觉醒婉儿>李白>花木兰，商店有露娜先购买不用。第二轮竞拍优先：婉儿>花木兰>露娜>李白>武则天。": (
+        "After rushing the Chessplayer to Lv. 5, buy the core cards in the shop; the free Kaizer and Dunshan"
+        " can serve as a spare front row. Awaken Shangguan > Li Bai > Mulan first, and if the shop has Luna,"
+        " buy her but don't use her yet. 2nd Auction priority: Shangguan > Mulan > Luna > Li Bai > Wu Zetian.",
+        "Setelah Chessplayer cepat naik ke Lv. 5, beli kartu inti di toko; Kaizer dan Dunshan gratis bisa"
+        " jadi barisan depan cadangan. Utamakan Awaken Shangguan > Li Bai > Mulan, dan jika toko punya Luna,"
+        " beli tapi jangan dipakai dulu. Prioritas Lelang ke-2: Shangguan > Mulan > Luna > Li Bai > Wu Zetian."),
+    "牛魔、干将等一阶强力卡稳定战力，保证前期连胜；牛魔、弈星为前期提供经济优势。\n": (
+        "Strong Tier 1 cards such as Niu Mo and Gan keep your power stable and the early streak going; Niu"
+        " Mo and Yixing give an early economy edge.\n",
+        "Kartu Tier 1 kuat seperti Niu Mo dan Gan menjaga kekuatan tetap stabil dan win streak di awal; Niu"
+        " Mo dan Yixing memberi keunggulan ekonomi di awal.\n"),
+    "白歌到4或5级之后开启爆牌模式，我们可以在4级使用我们连败积累的免费刷新，搜齐我们的核心牌曹操/甄姬/小乔/孙悟空，就可以尽快上5。在有足够容错的情况下，可以在5级积攒经济上6，在6级使用我们的奇才复制甄姬或露娜，一波成型。": (
+        "From Lv. 4 or 5, Bai Ge goes into card-flood mode: at Lv. 4 use the free Refreshes saved from the"
+        " losing streak to gather the core cards Cao Cao, Lady Zhen, Xiao Qiao and Wukong, then go to Lv. 5"
+        " as soon as you can. With enough margin, save up at Lv. 5 to reach Lv. 6, and at Lv. 6 use Prodigy"
+        " to copy Lady Zhen or Luna and complete the Lineup in one go.",
+        "Mulai Lv. 4 atau 5, Bai Ge masuk mode banjir kartu: di Lv. 4 gunakan Refresh gratis dari Lose"
+        " streak untuk mengumpulkan kartu inti Cao Cao, Lady Zhen, Xiao Qiao, dan Wukong, lalu naik ke Lv. 5"
+        " secepatnya. Jika cukup aman, menabung di Lv. 5 untuk naik ke Lv. 6, dan di Lv. 6 gunakan Prodigy"
+        " untuk menyalin Lady Zhen atau Luna dan menyelesaikan Lineup sekaligus."),
+    "第1回合，上场牛魔和干将，飞行器给干将；\n第2回合，上场弈星；\r\n第3回合，棋手升2级；\r\n第1轮拍卖，优先拿阵容英雄，优先级：鬼谷子＞少司缘＞明世隐。\r": (
+        "Round 1: field Niu Mo and Gan, with the Aircraft on Gan;\nRound 2: field Yixing;\nRound 3:"
+        " Chessplayer to Lv. 2;\n1st Auction: Lineup Heroes first, priority: Guiguzi > Dyadia > Ming.\n",
+        "Ronde 1: pasang Niu Mo dan Gan, Pesawat ke Gan;\nRonde 2: pasang Yixing;\nRonde 3: Chessplayer ke Lv."
+        " 2;\nLelang ke-1: utamakan Hero Lineup, prioritas: Guiguzi > Dyadia > Ming.\n"),
+    "第4回合，棋手升3级，上阵拍卖的英雄牌，选择棋手秘技；\r\n第5—7回合，棋手升4级；\r\n第2轮拍卖，优先拿阵容英雄，优先级：海月＞太乙真人＞大司命＞东皇太一。\r": (
+        "Round 4: Chessplayer to Lv. 3, field the Hero cards from the Auction and choose a Chessplayer"
+        " Secret Skill;\nRounds 5-7: Chessplayer to Lv. 4;\n2nd Auction: Lineup Heroes first, priority: Haya >"
+        " Taiyi Zhenren > Augran > Donghuang.\n",
+        "Ronde 4: Chessplayer ke Lv. 3, pasang kartu Hero dari Lelang dan pilih Secret Skill"
+        " Chessplayer;\nRonde 5-7: Chessplayer ke Lv. 4;\nLelang ke-2: utamakan Hero Lineup, prioritas: Haya >"
+        " Taiyi Zhenren > Augran > Donghuang.\n"),
+    "第8—11回合，棋手升5级，刷新找体系牌，找到海月和三个图腾即可升级棋手；\r（海月来之前用大司命或东皇太一打工）\n第3轮拍卖，破镜之证＞扶摇直上＞能量超新星；\r\n第12回合及以后，升6级拿专属天赋，打合成开锦囊优化主C装备。\r": (
+        "Rounds 8-11: Chessplayer to Lv. 5; Refresh for core cards and level up once you have Haya and three"
+        " Totems\n(until Haya arrives, Augran or Donghuang fills in)\n3rd Auction: Proof of Breakthrough >"
+        " Soaring High > Energy Supernova;\nRound 12 onward: Lv. 6 for the Exclusive Talent, and Combine for"
+        " Kits to improve the Main Carry's Equipment.\n",
+        "Ronde 8-11: Chessplayer ke Lv. 5; Refresh untuk kartu inti dan naik level setelah ada Haya dan tiga"
+        " Totem\n(sebelum Haya datang, Augran atau Donghuang mengisi)\nLelang ke-3: Proof of Breakthrough >"
+        " Soaring High > Energy Supernova;\nRonde 12 dan seterusnya: Lv. 6 untuk Exclusive Talent, dan"
+        " Combine untuk Kit guna meningkatkan Equipment Main Carry.\n"),
+    "第一个回合我们一定要拿到牛魔干将 ，这是我们必胜的法则 ！第二个回合我们补上元芳一星 ，元芳会自动升级 到达时十级给我们香香的武器带来攻击力 ，奕欣则是在我们升旗手等级时会额外获得两点经验 稳赚不赔 ": (
+        "In Round 1 we must get Niu Mo and Gan: that's our winning rule! In Round 2 add a 1-star Fang, who"
+        " levels up on his own and at Lv. 10 adds Attack to Xiangxiang's weapon, while Yixing gives 2 extra"
+        " EXP whenever we level up the Chessplayer: a sure win",
+        "Di Ronde 1 kita wajib dapat Niu Mo dan Gan: itu kunci kemenangan! Di Ronde 2 tambahkan Fang bintang"
+        " 1, yang naik level sendiri dan di Lv. 10 menambah Attack senjata Xiangxiang, sementara Yixing"
+        " memberi 2 EXP tambahan setiap kali Chessplayer naik level: pasti untung"),
+    "第一回合买一张奕星，第二回合回溯一张奕星再买一张奕星合成，第三回合直接升级，然后再回溯一张奕星，这个时候奕星会觉醒回手，同时会给个锦囊，锦囊里拿给两张牌的，然后直接使用，然后手上的牌全部留下回合用，包括奕星": (
+        "Round 1: buy a Yixing. Round 2: Undo to get a Yixing back, buy another and Combine. Round 3: level"
+        " up and Undo another Yixing; he Awakens and returns to hand, and you get a Kit: take the one that"
+        " gives two cards and use it right away, then keep every card in hand for the next Round, Yixing included",
+        "Ronde 1: beli Yixing. Ronde 2: Urungkan untuk mendapat Yixing kembali, beli satu lagi lalu Combine."
+        " Ronde 3: naik level dan Urungkan satu Yixing lagi; dia Awaken dan kembali ke tangan, dan kamu"
+        " mendapat Kit: ambil yang memberi dua kartu dan langsung gunakan, lalu simpan semua kartu di tangan"
+        " untuk Ronde berikutnya, termasuk Yixing"),
+    "第一回合弈星卖血，二回合升二级找守约": (
+        "Round 1: Yixing, giving up HP; Round 2: reach Lv. 2 and find Shouyue",
+        "Ronde 1: Yixing sambil mengorbankan HP; Ronde 2: naik ke Lv. 2 dan cari Shouyue"),
+    "第一回合技能+弈星，第二回合上本后再使用技能。\n一拍优先级：程咬金＞铠＞盾山＞百里守约": (
+        "Round 1: Skill + Yixing; Round 2: level up, then use the Skill.\n1st Auction priority: Cheng Yaojin"
+        " > Kaizer > Dunshan > Shouyue",
+        "Ronde 1: Skill + Yixing; Ronde 2: naik level, lalu gunakan Skill.\nPrioritas Lelang ke-1: Cheng"
+        " Yaojin > Kaizer > Dunshan > Shouyue"),
+    "第三个回合我们升到二本 ，随后进入拍卖拿下我们的体系牌 张良 瑶妹 云中君 邵思源 鬼谷子 虞姬 公孙离，按此顺序拿牌即可 。然后我们直接升到三本开始搜索体系牌。优先保证鬼谷子公孙离瑶妹在场 ，剩下四张谁先来上谁 。  ": (
+        "In Round 3 raise the Chessplayer to Lv. 2, then take our core cards at the Auction in this order:"
+        " Liang, Yaria, Cirrus, Dyadia, Guiguzi, Consort Yu, Arli. Then go straight to Lv. 3 and search for"
+        " core cards. Keep Guiguzi, Arli and Yaria on the board first; the other four go in as they come.",
+        "Di Ronde 3 naikkan Chessplayer ke Lv. 2, lalu ambil kartu inti di Lelang dengan urutan: Liang,"
+        " Yaria, Cirrus, Dyadia, Guiguzi, Consort Yu, Arli. Lalu langsung naik ke Lv. 3 dan cari kartu inti."
+        " Utamakan Guiguzi, Arli, dan Yaria di papan; empat lainnya masuk sesuai yang datang."),
     "第二次拍卖优先选海诺和雅典娜。回合8-11将棋手升到5级，主要找海诺和雅典娜，海诺在每次阿科米亚核心提升等级时都可提供额外等级。": (
         "In the second Auction, pick Heino and Athena first. Raise your Chessplayer to Lv. 5 in Rounds 8-11 and look"
         " mainly for Heino and Athena; Heino gives extra Levels every time the Arcomia Core levels up.",
         "Di Lelang kedua, utamakan Heino dan Athena. Naikkan Chessplayer ke Lv. 5 di Ronde 8-11 dan cari terutama"
         " Heino dan Athena; Heino memberi Level tambahan setiap kali Arcomia Core naik Level."),
+    "等等级吸起来就开始升级，升到6级选择绝对压制给公孙离加30％免伤，再加上霸者的免伤，把场上英雄觉醒给公孙离加攻速，最后造就70％免伤和4.0攻速打半神如果选了重装上阵和全副武装就有85％的免伤谁也打不动打谁都很痛": (
+        "Once the Levels are absorbed, start leveling up. At Lv. 6 pick Absolute Suppression for 30% damage"
+        " reduction on Arli; with Overlord's damage reduction and the board's Awakened Heroes adding to her"
+        " Attack Speed, she ends up with 70% damage reduction and 4.0 Attack Speed against demigods. With"
+        " Heavy Gear and Fully Armed it reaches 85%: nobody can hurt her, and she hurts everyone",
+        "Setelah Level terserap, mulai naik level. Di Lv. 6 pilih Absolute Suppression untuk 30% pengurangan"
+        " damage pada Arli; ditambah pengurangan damage dari Overlord dan Hero Awaken di papan yang menambah"
+        " Attack Speed-nya, hasilnya 70% pengurangan damage dan 4.0 Attack Speed melawan demigod. Dengan"
+        " Heavy Gear dan Fully Armed menjadi 85%: tak ada yang bisa melukainya, dan dia melukai semua"),
+    "米莱迪、朵莉亚觉醒之后就可以升4级找雅典娜；后期上鲁班大师；鲁班大师机器人的等级就等于召唤物最高等级": (
+        "Once Milady and Dolia have Awakened, go to Lv. 4 for Athena; add Master Luban late, whose robot's"
+        " Level equals the highest Level among the summons",
+        "Setelah Milady dan Dolia Awaken, naik ke Lv. 4 untuk Athena; tambahkan Master Luban di akhir, yang"
+        " Level robotnya sama dengan Level summon tertinggi"),
+    "继续卖血，第二张卦象依然选节，继续拿钱。\n命运馈赠两张全选阴，都要能量，有钱搜的到嬴政，就能稳血。\n四级可以用免费的刷新小刷，稳一下血。\n": (
+        "Keep giving up HP and pick Moderation again for the second Hexagram, for more money.\nFor both Fate"
+        " Gifts pick Yin and take Energy; with money to find Ying Zheng, your HP stabilizes.\nAt Lv. 4, use"
+        " the free Refreshes for a small roll to steady your HP.\n",
+        "Terus korbankan HP dan pilih Moderation lagi untuk Hexagram kedua, untuk tambahan uang.\nUntuk kedua"
+        " Fate Gift pilih Yin dan ambil Energy; dengan uang untuk mencari Ying Zheng, HP jadi stabil.\nDi Lv."
+        " 4, gunakan Refresh gratis untuk sedikit refresh agar HP stabil.\n"),
+    "自然去找体系牌，升5级再去找牌切记，前期不要乱买！选秀姜子牙是必拿的！": (
+        "Find the core cards naturally and search properly only at Lv. 5; don't buy at random early! Ziya is"
+        " a must in the draft!",
+        "Cari kartu inti secara alami dan baru serius mencari di Lv. 5; jangan asal beli di awal! Ziya wajib"
+        " diambil saat draft!"),
     "苏烈一定要拿，觉醒后的苏烈前期战力很强。单挂一张苏烈，棋手技能都用给苏烈，有多余的英雄可以开战前上阵打完卖掉。": (
         "Always take Su Lie: an Awakened Su Lie is very strong early. Field a single Su Lie and use every Chessplayer"
         " Skill on him; spare Heroes can be fielded before battle and sold afterwards.",
         "Su Lie wajib diambil: Su Lie yang sudah Awaken sangat kuat di awal. Turunkan satu Su Lie saja dan gunakan"
         " semua Skill Chessplayer padanya; Hero sisa bisa diturunkan sebelum Pertempuran lalu dijual setelahnya."),
+    "觉醒狂铁开局": ("Open with an Awakened Biron", "Buka dengan Biron yang Awaken"),
+    "请输入文本": ("Enter text", "Masukkan teks"),
+    "过度": ("Transition", "Transisi"),
+    "这个就是把一阶的买四张刷到觉醒，然后把觉醒的牌全放上去，第四回合选兵的时候最好选那个冻完五阶的，那个没有，就选那个可以冻两个的，第一回合你也可以动你的坦克，然后输出最好选干将为干将是一阶牌里输出最高的。": (
+        "Buy four of each Tier 1 Hero and roll them to Awakening, then put all the Awakened cards on the"
+        " board. When choosing troops in Round 4, best pick the one that freezes Tier 5; if that's not"
+        " offered, the one that can freeze two. In Round 1 you can also freeze your tank, and for damage Gan"
+        " is best, being the strongest damage dealer among Tier 1 cards.",
+        "Beli empat dari setiap Hero Tier 1 dan refresh sampai Awaken, lalu taruh semua kartu yang Awaken di"
+        " papan. Saat memilih pasukan di Ronde 4, sebaiknya pilih yang membekukan Tier 5; jika tidak ada,"
+        " pilih yang bisa membekukan dua. Di Ronde 1 kamu juga bisa membekukan tank-mu, dan untuk damage Gan"
+        " paling baik, karena damage-nya tertinggi di antara kartu Tier 1."),
+    "通过不断的合成场上英雄，找到效果卡传承，对裴擒虎使用，大幅度增加司空震等级": (
+        "Keep Combining the Heroes on the board to find Inheritance Effect Cards, and use them on Pei to"
+        " raise Sikong Zhen's Level a lot",
+        "Terus Combine Hero di papan untuk mendapat Kartu Efek Inheritance, dan gunakan pada Pei untuk"
+        " menaikkan Level Sikong Zhen secara besar"),
+    "通过技能找牌，中期用铠、百里守约、沈梦溪过度稳血，存钱上本即可。\n二拍优先级：花木兰＞武则天＞上官婉儿": (
+        "Find cards with the Skill; mid game, use Kaizer, Shouyue and Shen Mengxi as stopgaps to protect"
+        " your HP, and save up to level up.\n2nd Auction priority: Mulan > Wu Zetian > Shangguan",
+        "Cari kartu dengan Skill; di pertengahan, pakai Kaizer, Shouyue, dan Shen Mengxi sebagai pengisi"
+        " sementara untuk menjaga HP, dan menabung untuk naik level.\nPrioritas Lelang ke-2: Mulan > Wu"
+        " Zetian > Shangguan"),
+    "速升三级开始找牌": ("Rush to Lv. 3 and start searching for cards", "Cepat naik ke Lv. 3 dan mulai mencari kartu"),
+    "遗志转海月，伞绑定海月，补上太乙、小明\r、扁鹊\n刷不到海月可以用吕布": (
+        "Last Will into Haya and bind the umbrella to her; add Taiyi, Ming and Dr Bian\nIf you can't find"
+        " Haya, Lu Bu works",
+        "Last Will ke Haya dan ikat payung padanya; tambahkan Taiyi, Ming, dan Dr Bian\nJika Haya tidak"
+        " didapat, Lu Bu juga bisa"),
+    "阵容成型后一直打合成获得锦囊【唤醒/集体唤醒/临阵磨枪/全军动员】，商店的露娜必须要买，这些都是给木兰增加复活次数的资源。不花费资源太乙作为备选复活，多余能量买钟馗觉醒可以常驻。第三轮竞拍推荐：一线生机>新生力量>破境之证>能量超新星。": (
+        "Once the Lineup is complete, keep Combining for Kits 【Awaken / Mass Awakening / Sharpening Weapons"
+        " Before Battle / Full Army Mobilization】, and always buy Luna from the shop: these all add Revives"
+        " for Mulan. Taiyi is a free backup Revive, and spare Energy can buy Kui to Awaken and keep on the"
+        " board. 3rd Auction: A Glimmer of Hope > New Force > Proof of Breakthrough > Energy Supernova.",
+        "Setelah Lineup lengkap, terus Combine untuk Kit 【Awaken / Mass Awakening / Sharpening Weapons"
+        " Before Battle / Full Army Mobilization】, dan selalu beli Luna di toko: semuanya menambah Revive"
+        " Mulan. Taiyi adalah Revive cadangan gratis, dan Energy lebih bisa membeli Kui untuk di-Awaken dan"
+        " tetap di papan. Lelang ke-3: A Glimmer of Hope > New Force > Proof of Breakthrough > Energy Supernova."),
 
     # ResSeasonAILineupDataBin: PositionDesc
+    "1.图腾可以利用东皇保护，防刺客切入。\n2.图腾位置单挂右边，防止被AOE伤害。\n3.图腾可以单围敖隐，左右双挂虞姬敖隐带冰矛风筝单体近战大哥。\n": (
+        "1. Use Donghuang to shield the Totems from diving Assassins.\n2. Keep the Totems alone on the right,"
+        " away from AOE.\n3. The Totems can ring Ao'yin, with Consort Yu on both sides; with a Frost Spear,"
+        " Ao'yin kites a lone melee carry.\n",
+        "1. Gunakan Donghuang untuk melindungi Totem dari Assassin.\n2. Taruh Totem sendiri di kanan, jauh"
+        " dari AOE.\n3. Totem bisa mengelilingi Ao'yin, dengan Consort Yu di kedua sisi; dengan Frost Spear,"
+        " Ao'yin men-kite carry melee tunggal.\n"),
+    "中期站位:小乔在中间装黄盾，大家都能吃到，猴子站位可以随便吸曹操小乔甄姬随机一个等级——抖音搜肝帝看攻略": (
+        "Mid-game setup: Xiao Qiao in the middle with the yellow shield so everyone gets it; Wukong can"
+        " stand anywhere and absorbs the Level of Cao Cao, Xiao Qiao or Lady Zhen at random. For the guide,"
+        " search Gandi on Douyin",
+        "Formasi pertengahan: Xiao Qiao di tengah dengan perisai kuning agar semua mendapatkannya; Wukong"
+        " bebas di mana saja dan menyerap Level Cao Cao, Xiao Qiao, atau Lady Zhen secara acak. Untuk"
+        " panduannya, cari Gandi di Douyin"),
+    "主C孙悟空，露娜，肉装在周瑜成型后优先给周瑜。": (
+        "The Main Carries are Wukong and Luna; once Zhou Yu is set up, give him the tank Equipment first.",
+        "Main Carry adalah Wukong dan Luna; setelah Zhou Yu terbentuk, utamakan Equipment tank untuknya."),
+    "全部站最后一排，中间的空位放3级屏障，第二排第三排铺满2级屏障，地雷和弹簧放第一排即可。": (
+        "Everyone in the back row, with a Lv. 3 Barrier in the middle gap, Lv. 2 Barriers filling rows 2 and"
+        " 3, and Mines and Springs in the front row.",
+        "Semua di barisan paling belakang, Barrier Lv. 3 di celah tengah, Barrier Lv. 2 memenuhi baris 2 dan"
+        " 3, dan Mine serta Spring di barisan depan."),
     "决赛圈注意下安琪拉的站位，如果对方有闪现的英雄，则用雅典娜和其他友方英雄将安琪拉包围住，防止闪现英雄近身。": (
         "In the finals, mind Angela's position: if the enemy has Flash Heroes, surround Angela with Athena and other"
         " allied Heroes to keep Flash Heroes from reaching her.",
         "Di final, perhatikan posisi Angela: jika lawan punya Hero Flash, kelilingi Angela dengan Athena dan Hero"
         " sekutu lain agar Hero Flash tidak bisa mendekat."),
+    "前期小鹿当前排顶前面，12回合后小鹿放后面，让其他牺牲单位先牺牲。": (
+        "Early, the deer holds the front row; after Round 12 move it back so the other Sacrifice units die first.",
+        "Di awal, rusa menahan barisan depan; setelah Ronde 12 pindahkan ke belakang agar unit Sacrifice"
+        " lain gugur lebih dulu."),
+    "前期干将主c\n缩角，曜、牛魔放前排\r\n遗志后海月放前排": (
+        "Early, Gan carries\nfrom a corner, with Yao and Niu Mo in front\nAfter Last Will, Haya goes in front",
+        "Di awal, Gan sebagai carry\ndi sudut, Yao dan Niu Mo di depan\nSetelah Last Will, Haya di depan"),
+    "前期蒙恬没有10蓝的时候站前排，后期蒙恬有10蓝了后就站角落。": (
+        "Early, while Meng Tian lacks 10 Mana, he stands in front; once he has 10 Mana late, put him in a corner.",
+        "Di awal, selama Meng Tian belum punya 10 Mana, dia di depan; setelah punya 10 Mana di akhir, taruh di sudut."),
+    "如图所示": ("As shown", "Seperti pada gambar"),
+    "嬴律缩脚保证输出环境，庄周站中间为全队提供免控的同时吃满黄盾。": (
+        "Ying Lu stays in a corner to deal damage safely; Zhuangzi in the middle gives the team Control"
+        " Immunity and gets the full yellow shield.",
+        "Ying Lu di sudut agar aman memberi damage; Zhuangzi di tengah memberi tim Kebal Kontrol sekaligus"
+        " mendapat perisai kuning penuh."),
+    "嬴政挂角落，其他人龟甲阵，把敌人聚集起来，嬴政开大后可以全打到。": (
+        "Put Ying Zheng in a corner and the rest in a turtle formation to bunch enemies up, so his Ultimate"
+        " hits them all.",
+        "Taruh Ying Zheng di sudut dan sisanya dalam formasi kura-kura untuk mengumpulkan musuh, agar"
+        " Ultimate-nya mengenai semuanya."),
+    "嬴政站最里边防刺客切入，注意钟馗的勾，站位基本随意，大招一开全屏开射。": (
+        "Ying Zheng stands deepest to stop Assassins diving him; watch for Kui's hook. Otherwise the setup"
+        " barely matters: once the Ultimate starts, he hits the whole board.",
+        "Ying Zheng berdiri paling dalam agar tidak diserang Assassin; waspadai tarikan Kui. Selain itu"
+        " formasi bebas: begitu Ultimate aktif, dia menyerang seluruh papan."),
+    "守约缩角\r\n铠和盾山压前排送死\r\n太乙复活给守约\r\n小明链子给守约": (
+        "Shouyue in a corner\nKaizer and Dunshan push the front row and die\nTaiyi's Revive goes to"
+        " Shouyue\nMing's link goes to Shouyue",
+        "Shouyue di sudut\nKaizer dan Dunshan maju di barisan depan dan gugur\nRevive Taiyi untuk"
+        " Shouyue\nHubungkan Ming ke Shouyue"),
+    "小明链子给到老虎身上就行。": ("Just link Ming to Pei.", "Cukup hubungkan Ming ke Pei."),
+    "就照着我这个站位来，后期的话就把明世隐卖掉，上钟馗（左边放花木兰，右边放程咬金），然后决战的时候把露娜卖掉，上太乙真人给花木兰复活": (
+        "Just copy my setup. Late, sell Ming and bring in Kui (Mulan on his left, Cheng Yaojin on his"
+        " right); then for the final battle sell Luna and bring in Taiyi Zhenren to Revive Mulan",
+        "Ikuti saja formasi ini. Di akhir, jual Ming dan masukkan Kui (Mulan di kirinya, Cheng Yaojin di"
+        " kanannya); lalu di pertempuran final jual Luna dan masukkan Taiyi Zhenren untuk Revive Mulan"),
+    "廉颇顶前面就行，不怕被消耗": (
+        "Lian Po just holds the front; he doesn't mind taking hits",
+        "Lian Po cukup menahan di depan; dia tidak takut diserang"),
+    "成型站位：\r\n站位如图，围着太乙真人吃【近卫荣耀】的双抗加成。\r\n明世隐和太乙真人都连接海月。\r\n决赛，可以用觉醒钟馗替换明世隐。\r\n钟馗给前排挂牺牲词条。\r\n有扁鹊可以换东皇太一。": (
+        "Final setup:\nAs shown, gather around Taiyi Zhenren for 【Guardian's Glory】's bonus to both"
+        " defenses.\nLink both Ming and Taiyi Zhenren to Haya.\nIn the finals, an Awakened Kui can replace"
+        " Ming.\nKui gives the front row the Sacrifice Trait.\nWith Dr Bian, you can swap in Donghuang.",
+        "Formasi akhir:\nSeperti pada gambar, berkumpul di sekitar Taiyi Zhenren untuk bonus kedua pertahanan"
+        " dari 【Guardian's Glory】.\nHubungkan Ming dan Taiyi Zhenren ke Haya.\nDi final, Kui yang Awaken bisa"
+        " menggantikan Ming.\nKui memberi Trait Sacrifice ke barisan depan.\nJika ada Dr Bian, bisa diganti"
+        " Donghuang."),
+    "无刺客就按图中这么站，有刺客莱西奥和司空震放第一排角落，音符搜小阿豪，有全网最细的视频教学": (
+        "Without enemy Assassins, stand as shown; against Assassins, put Alessio and Sikong Zhen in a"
+        " front-row corner. Search Xiao A'hao on Douyin for the most detailed video tutorials anywhere",
+        "Tanpa Assassin lawan, berdiri seperti pada gambar; saat ada Assassin, taruh Alessio dan Sikong Zhen"
+        " di sudut barisan depan. Cari Xiao A'hao di Douyin untuk tutorial video paling detail"),
     "明世隐和太乙真人连司空震。钟馗两侧都要放英雄来触发他的卡牌效果。": (
         "Link Ming and Taiyi Zhenren to Sikong Zhen. Place Heroes on both sides of Kui to trigger his Card Effect.",
         "Hubungkan Ming dan Taiyi Zhenren ke Sikong Zhen. Taruh Hero di kedua sisi Kui untuk memicu Efek Kartu-nya."),
+    "有东皇后，图腾不会被优先攻击，可以保证敖隐持续触发自身效果。\n面对刺客就缩角落站位，对手AOE充足就一字长蛇阵，东皇大司命站前排，其余放后排，保证图腾生存即可。": (
+        "With Donghuang on the board, Totems aren't focused first, so Ao'yin keeps triggering his"
+        " effect.\nAgainst Assassins, huddle in a corner; against heavy AOE, spread out in a single line with"
+        " Donghuang and Augran in front and the rest at the back. Just keep the Totems alive.",
+        "Dengan Donghuang di papan, Totem tidak diserang lebih dulu, jadi Ao'yin terus memicu"
+        " efeknya.\nMelawan Assassin, berkumpul di sudut; melawan AOE kuat, berbaris satu garis dengan"
+        " Donghuang dan Augran di depan dan sisanya di belakang. Cukup pastikan Totem tetap hidup."),
+    "木兰可以放在后排避免被集火消耗复活次数。特别注意小心【班叔】的三级弹簧，有班叔陷阱时，可以让队友都放到前排。": (
+        "Keep Mulan in the back row so focus fire doesn't burn her Revives. Watch out for 【Uncle Ban】's Lv."
+        " 3 Springs: against his traps, move your teammates to the front row.",
+        "Taruh Mulan di barisan belakang agar Revive-nya tidak habis karena fokus serangan. Waspadai Spring"
+        " Lv. 3 milik 【Uncle Ban】: saat ada jebakannya, pindahkan rekan ke barisan depan."),
     "李元芳和百里玄策放在一起，触发李元芳卡牌效果（李元芳周围不要放其它英雄，其英雄效果只对最近英雄生效）。太乙放在玄策旁边复活玄策。": (
         "Place Fang next to Xuance to trigger Fang's Card Effect (put no other Heroes around Fang; his Hero Effect"
         " only works on the nearest Hero). Put Taiyi beside Xuance to Revive him.",
         "Taruh Fang bersebelahan dengan Xuance untuk memicu Efek Kartu Fang (jangan taruh Hero lain di sekitar Fang;"
         " Efek Hero-nya hanya berlaku untuk Hero terdekat). Taruh Taiyi di samping Xuance untuk Revive Xuance."),
+    "没什么正位，这几个就是最强的五阶，你拿出来随便放就行了，前排放前排，后排放后排。": (
+        "No fixed setup: these are the strongest Tier 5s, so place them however you like, front-liners in"
+        " front and back-liners at the back.",
+        "Tidak ada formasi pasti: ini Hero Tier 5 terkuat, jadi taruh sesukamu, barisan depan di depan dan"
+        " barisan belakang di belakang."),
+    "海月站前面，其他都站后面": ("Haya in front, everyone else at the back", "Haya di depan, yang lain di belakang"),
     "瑶、明世隐、太乙真人都连猪八戒。": (
         "Link Yaria, Ming and Taiyi Zhenren all to Zhu Bajie.",
         "Hubungkan Yaria, Ming, dan Taiyi Zhenren semuanya ke Zhu Bajie."),
+    "瑶妹、太乙挂韩信": ("Link Yaria and Taiyi to Han Xin", "Hubungkan Yaria dan Taiyi ke Han Xin"),
     "瑶连马超，瑶的技能可以给连接的英雄增加属性。": (
         "Link Yaria to Ma Chao: Yaria's Skill boosts the stats of the Hero she is linked to.",
         "Hubungkan Yaria ke Ma Chao: Skill Yaria menambah atribut Hero yang terhubung dengannya."),
+    "站位最优解如图，司空震稳稳输出，大后期姬小满可以换成太乙提供复活或者钟馗降低对面等级！抖音-强者无敌": (
+        "The best setup is as shown: Sikong Zhen deals damage safely. Very late, swap Mayene for Taiyi to"
+        " Revive or for Kui to lower enemy Levels! Douyin: Qiangzhe Wudi",
+        "Formasi terbaik seperti pada gambar: Sikong Zhen memberi damage dengan aman. Di akhir permainan,"
+        " ganti Mayene dengan Taiyi untuk Revive atau Kui untuk menurunkan Level lawan! Douyin: Qiangzhe Wudi"),
+    "米莱狄站角落记得带炽热，防止被钩；朵莉亚位于中心，保证“泳池”可以覆盖到全部队友": (
+        "Milady goes in a corner with Sanguine Dominator so she can't be hooked; Dolia in the center so her"
+        " “pool” covers every ally",
+        "Milady di sudut dengan Sanguine Dominator agar tidak bisa ditarik; Dolia di tengah agar “kolam”-nya"
+        " menjangkau semua rekan"),
+    "英雄只放后两排前两排全放弹簧陷阱\n前两排摆放如下：句号是空格，问号是陷阱，感叹号是弹簧\n？？？。？？？\n。。！！！。。\n东皇来了之句号的位置可以放图腾\n抽到屏障就放第一排扛伤害\n升三级和六级技能给陷阱": (
+        "Heroes only in the back two rows; fill the front two with Spring Traps\nFront two rows (. = empty, ?"
+        " = trap, ! = spring):\n???.???\n..!!!..\nOnce Donghuang arrives, put Totems on the empty spots\nPut any"
+        " Barrier you draw in the front row to absorb damage\nAt Lv. 3 and Lv. 6, give the Skill to the traps",
+        "Hero hanya di dua baris belakang; isi dua baris depan dengan Spring Trap\nDua baris depan (. ="
+        " kosong, ? = jebakan, ! = spring):\n???.???\n..!!!..\nSetelah Donghuang datang, taruh Totem di tempat"
+        " kosong\nTaruh Barrier yang didapat di barisan depan untuk menahan damage\nDi Lv. 3 dan Lv. 6,"
+        " berikan Skill ke jebakan"),
     "蔡文姬的技能可以给范围内英雄回血，建议放在中间。": (
         "Cai Yan's Skill heals Heroes in range, so place her in the middle.",
         "Skill Cai Yan memulihkan HP Hero dalam jangkauan, jadi taruh dia di tengah."),
@@ -923,13 +1965,37 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Taruh Consort Yu dan Ao'yin di baris paling belakang. Setelah dapat Ao'yin, taruh semua Totem di baris"
         " paling belakang: Totem di papan memicu Efek Kartu Ao'yin, sehingga Level Ao'yin terus naik dalam"
         " Pertempuran."),
+    "通用站位鬼谷子第一排 ，少司原左边沉底，公孙离则站在右边  。注意 ！在遇到逐鹿体系以及倒转体系还有单刺客体系时我们都需要改变站位 。想系统学习请关注抖音 色彩直播间 ": (
+        "Standard setup: Guiguzi in the front row, Dyadia at the back on the left, Arli on the right. Note!"
+        " Change the setup against Zhulu Plateau, Reversal and single-Assassin builds. To learn it properly,"
+        " follow Secai's live stream on Douyin",
+        "Formasi umum: Guiguzi di barisan depan, Dyadia di belakang sebelah kiri, Arli di kanan. Perhatian!"
+        " Ubah formasi saat melawan build Zhulu Plateau, Reversal, dan Assassin tunggal. Untuk belajar"
+        " lengkap, ikuti live stream Secai di Douyin"),
+    "都在蔡文姬周围吃防御和回血，阿离在角落输出": (
+        "Everyone around Cai Yan for her defense and healing, with Arli dealing damage from a corner",
+        "Semua di sekitar Cai Yan untuk pertahanan dan pemulihannya, Arli memberi damage dari sudut"),
     "钟馗的卡牌效果可以给两侧英雄加牺牲关键词，两侧放自身不带牺牲的英雄。小明和太乙都连李信。": (
         "Kui's Card Effect gives the Heroes on both sides the Sacrifice keyword, so flank him with Heroes that lack"
         " Sacrifice. Link Ming and Taiyi both to Li Xin.",
         "Efek Kartu Kui memberi keyword Sacrifice ke Hero di kedua sisinya, jadi taruh Hero tanpa Sacrifice di kedua"
         " sisinya. Hubungkan Ming dan Taiyi ke Li Xin."),
+    "钟馗给程咬金花木兰或李白，露娜上场后不卖，防止对手卡牌。": (
+        "Link Kui to Cheng Yaojin, Mulan or Li Bai; once Luna is on the board, don't sell her, so opponents"
+        " can't take the card.",
+        "Hubungkan Kui ke Cheng Yaojin, Mulan, atau Li Bai; setelah Luna di papan, jangan dijual agar lawan"
+        " tidak mendapat kartunya."),
 
     # ResSeasonAILineupDataBin: SimpleDesc
+    "30秒学会三分倒转，首先记住三张卡:露娜、曹操、甄姬。露娜和甄姬是登场牌，从手牌上场时触发效果;曹操是整备牌，回合开始时触发，且露娜登场能触发曹操整备。字符有限，详细细节一-抖音搜肝帝": (
+        "Learn Three Kingdoms Reversal in 30 seconds. First remember three cards: Luna, Cao Cao, Lady Zhen."
+        " Luna and Lady Zhen are Deploy cards that trigger when played from your hand; Cao Cao is a Prepare"
+        " card that triggers at the start of a Round, and Luna's Deploy also triggers Cao Cao's Prepare."
+        " Space is short: for details, search Gandi on Douyin",
+        "Pelajari Three Kingdoms Reversal dalam 30 detik. Pertama ingat tiga kartu: Luna, Cao Cao, Lady"
+        " Zhen. Luna dan Lady Zhen adalah kartu Deploy yang aktif saat dimainkan dari tangan; Cao Cao adalah"
+        " kartu Prepare yang aktif di awal Ronde, dan Deploy Luna juga memicu Prepare Cao Cao. Ruang"
+        " terbatas: untuk detailnya, cari Gandi di Douyin"),
     "7回合以前都不升级，碰到牛魔、曜、干将、孙尚香都直接买，可以等有曜了再合成。前期用干将当主C，后期通过遗志、传承、换帅养周瑜或吕布。": (
         "Don't level up before Round 7; buy Niu Mo, Yao, Gan and Lady Sun whenever you see them, and you can wait for"
         " Yao before Combining. Early on Gan is the Main Carry; later build up Zhou Yu or Lu Bu with Last Will,"
@@ -947,6 +2013,18 @@ TEXTS: dict[str, tuple[str, str]] = {
         " the other slots, any Heroes that get Ancient Coin Cards will do.",
         "Xuance adalah Carry: setelah dia di papan, terus gunakan Kartu Ancient Coin padanya untuk menaikkan Level."
         " Untuk posisi lain, cukup pilih Hero yang bisa mendapat Kartu Ancient Coin."),
+    "三阶无阵营组合。八戒能给每张卡和成提供额外等级，老虎吸别人等级，小明转换成真实等级，阿轲登场提供等级。血量低，优先打阿轲。": (
+        "A factionless Tier 3 combo. Zhu Bajie gives extra Levels for each card Combined, Pei absorbs"
+        " others' Levels, Ming turns them into real Levels, and Arke gives Levels on Deploy. When HP is low,"
+        " play Arke first.",
+        "Kombo Tier 3 tanpa Faction. Zhu Bajie memberi Level tambahan untuk setiap kartu yang di-Combine,"
+        " Pei menyerap Level Hero lain, Ming mengubahnya menjadi Level asli, dan Arke memberi Level saat"
+        " Deploy. Saat HP rendah, utamakan memainkan Arke."),
+    "主c廉颇，技能生成护盾，盾破造成伤害\n不吃等级\n扁鹊上场会让廉颇伤害有质的提升\n\n\n——抖音余烬": (
+        "Lian Po carries: his Skill creates a Shield that deals damage when it breaks\nHe doesn't need"
+        " Levels\nDr Bian on the board boosts his damage dramatically\n\n\nDouyin: Yujin",
+        "Lian Po sebagai carry: Skill-nya membuat Shield yang memberi damage saat pecah\nTidak butuh Level\nDr"
+        " Bian di papan meningkatkan damage-nya secara drastis\n\n\nDouyin: Yujin"),
     "乔汐6级后专属天赋可以召唤高等级英雄入场，此英雄等级算作临时等级，可以触发司空震的卡牌效果让他也获得临时等级。明世隐能保留临时等级。": (
         "From Lv. 6, Qiao Xi's Exclusive Talent Summons a high-Level Hero onto the board. That Hero's Level counts as"
         " Temporary Level, which triggers Sikong Zhen's Card Effect so he gains Temporary Levels too. Ming can keep"
@@ -954,6 +2032,36 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Mulai Lv. 6, Exclusive Talent Qiao Xi bisa Summon Hero ber-Level tinggi ke papan. Level Hero itu dihitung"
         " sebagai Temporary Level, yang memicu Efek Kartu Sikong Zhen sehingga dia juga mendapat Temporary Level."
         " Ming bisa menyimpan Temporary Level."),
+    "使用古币可以提升花木兰复活次数，程咬金/上官婉儿整备提供古币，露娜触发整备效果，通过唤醒、集体唤醒、全军动员等牌使花木兰获得多次复活。": (
+        "Ancient Coins add Revives for Mulan: Cheng Yaojin's and Shangguan's Prepare provides the coins,"
+        " Luna triggers Prepare, and cards such as Awaken, Mass Awakening and Full Army Mobilization give"
+        " Mulan many Revives.",
+        "Ancient Coin menambah Revive Mulan: Prepare Cheng Yaojin dan Shangguan memberi koinnya, Luna memicu"
+        " Prepare, dan kartu seperti Awaken, Mass Awakening, dan Full Army Mobilization memberi Mulan banyak Revive."),
+    "使用逐鹿战术牌，可以给嬴律提供超高法术攻击，芈月提高嬴律等级，西施给嬴律减蓝达到技能无缝衔接，高频合成触发鲁班七号卡牌效果获得战术牌。": (
+        "Zhulu Plateau Tactics Cards give Ying Lu huge Magic Attack, Mi Yue raises his Level, Shi lowers his"
+        " Mana for back-to-back Skills, and frequent Combines trigger Luban No.7's Card Effect for more"
+        " Tactics Cards.",
+        "Tactics Card Zhulu Plateau memberi Ying Lu Magic Attack sangat tinggi, Mi Yue menaikkan Level-nya,"
+        " Shi menurunkan Mana-nya agar Skill bisa beruntun, dan Combine yang sering memicu Efek Kartu Luban"
+        " No.7 untuk Tactics Card tambahan."),
+    "利用11回合后小鹿牺牲会分享等级的效果，将等级集中到李信身上。局势较顺15回合后就能轻松999": (
+        "After Round 11 the deer's Sacrifice shares its Levels: pool them all into Li Xin. If things go"
+        " well, Lv. 999 comes easily after Round 15",
+        "Setelah Ronde 11, Sacrifice rusa membagi Level-nya: kumpulkan semuanya ke Li Xin. Jika lancar, Lv."
+        " 999 mudah dicapai setelah Ronde 15"),
+    "利用大河词条的联动自动升级以及大河流 卡牌极强的战斗力配合我们香香的武器取得游戏胜利 ": (
+        "Win with the Riverlands Trait's linked auto-leveling, the Riverlands cards' huge combat power and"
+        " Xiangxiang's weapon",
+        "Menang dengan naik level otomatis dari Trait Riverlands, kekuatan tempur besar kartu Riverlands,"
+        " dan senjata Xiangxiang"),
+    "利用木兰的无限复活和单体爆发收割全场。觉醒婉儿+程咬金每回合整备获得8个古币，能给木兰额外提供2次复活，打出露娜能再次触发咬金婉儿的整备效果无限叠加（复活次数上限10次）。": (
+        "Mulan's endless Revives and single-target burst sweep the board. Awakened Shangguan and Cheng"
+        " Yaojin gain 8 Ancient Coins from Prepare each Round, giving Mulan 2 more Revives, and playing Luna"
+        " triggers their Prepare again so it stacks (up to 10 Revives).",
+        "Revive tanpa batas dan burst target tunggal Mulan menyapu papan. Shangguan dan Cheng Yaojin yang"
+        " Awaken mendapat 8 Ancient Coin dari Prepare setiap Ronde, memberi Mulan 2 Revive tambahan, dan"
+        " memainkan Luna memicu Prepare mereka lagi hingga menumpuk (maks. 10 Revive)."),
     "前期优先找蔡文姬，蔡文姬上阵后不断使用【三分】英雄牌来触发蔡文姬的卡牌效果，提升整体英雄等级。小乔来了后，配合【登场】英雄加速升级。": (
         "Look for Cai Yan first. Once she is on the board, keep playing 【Three Kingdoms】 Hero Cards to trigger her"
         " Card Effect and raise every Hero's Level. Once Xiao Qiao arrives, pair her with 【Deploy】 Heroes to level up"
@@ -969,6 +2077,20 @@ TEXTS: dict[str, tuple[str, str]] = {
         " memicu Efek Kartu-nya dan menaikkan Level semua Hero. Setelah Xiao Qiao datang, pasangkan dengan Hero"
         " 【Deploy】 untuk naik level lebih cepat. Untuk Talent, utamakan yang terkait Faction Three Kingdoms atau"
         " keyword Deploy."),
+    "前期伞绑定干将叠等级\r\n优先觉醒干将后再买曜、孙膑、牛魔\r\n之后反复买这四个英雄拿锦囊开遗志\r\n前期不要升级棋手，遗志在棋手二级三级出的概率最高\r\n拿到遗志后速拉到五级找海月\r\n——抖音余烬": (
+        "Early, bind the umbrella to Gan to stack Levels\nAwaken Gan first, then buy Yao, Sun Bin and Niu"
+        " Mo\nKeep buying these four Heroes for Kits until Last Will appears\nDon't level your Chessplayer"
+        " early: Last Will is most likely at Chessplayer Lv. 2-3\nOnce you have Last Will, rush to Lv. 5 to"
+        " find Haya\nDouyin: Yujin",
+        "Di awal, ikat payung ke Gan untuk menumpuk Level\nAwaken Gan dulu, lalu beli Yao, Sun Bin, dan Niu"
+        " Mo\nTerus beli keempat Hero ini untuk Kit sampai Last Will muncul\nJangan naikkan level Chessplayer"
+        " di awal: Last Will paling sering muncul di Chessplayer Lv. 2-3\nSetelah dapat Last Will, cepat naik"
+        " ke Lv. 5 untuk mencari Haya\nDouyin: Yujin"),
+    "前期依靠三分的强势和公孙离的高等级，过度，后期上小乔甄姬露娜倒转，从头强到尾\n": (
+        "Ride Three Kingdoms' early strength and Arli's high Level through the early game, then switch to"
+        " the Xiao Qiao, Lady Zhen and Luna Reversal late: strong from start to finish\n",
+        "Andalkan kekuatan awal Three Kingdoms dan Level tinggi Arli di awal, lalu beralih ke Reversal Xiao"
+        " Qiao, Lady Zhen, dan Luna di akhir: kuat dari awal sampai akhir\n"),
     "功能英雄芈月，上阵后使用战术牌触发卡牌效果，给装备最多的英雄升级。输出英雄蒙犽，其它位置拿任意可产出战术牌的英雄。": (
         "Mi Yue is the utility Hero: once she is on the board, Tactics Cards trigger her Card Effect and level up the"
         " Hero with the most Equipment. Meng Ya is the damage dealer; fill the other slots with any Heroes that"
@@ -976,12 +2098,74 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Mi Yue adalah Hero utilitas: setelah dia di papan, Tactics Card memicu Efek Kartu-nya dan menaikkan Level"
         " Hero dengan Equipment terbanyak. Meng Ya adalah damage dealer; isi posisi lain dengan Hero apa pun yang"
         " menghasilkan Tactics Card."),
+    "司空震主c，姜子牙为司空震提供真实等级，亚瑟，莱西奥，海诺为司空震提供临时等级，姬小满提供刷新次数帮助我们找到阵容所需牌": (
+        "Sikong Zhen carries: Ziya gives him real Levels, Arthur, Alessio and Heino give him Temporary"
+        " Levels, and Mayene gives Refreshes to find the cards the Lineup needs",
+        "Sikong Zhen sebagai carry: Ziya memberinya Level asli, Arthur, Alessio, dan Heino memberinya"
+        " Temporary Level, dan Mayene memberi Refresh untuk mencari kartu yang dibutuhkan Lineup"),
+    "同行的克星，也是舞凤，闹闹，赢律，明先生，的严父。": (
+        "The bane of players on the same Lineup, and a strict father to Wufeng, Naonao, Ying Lu and Mr. Ming.",
+        "Momok bagi pemain dengan Lineup yang sama, sekaligus ayah galak bagi Wufeng, Naonao, Ying Lu, dan Mr. Ming."),
+    "大河龙蛇阵容，三图腾给敖隐、东皇提供Buff加持局内战力，多开团词条通过张良转化为等级，虞姬根据图腾数量提升等级，以此达到阵容闭环。": (
+        "A Riverlands Dragon-Snake Lineup: three Totems buff Ao'yin and Donghuang in battle, Liang turns"
+        " extra Initiate Traits into Levels, and Consort Yu gains Levels per Totem, closing the loop.",
+        "Lineup Dragon-Snake Riverlands: tiga Totem memberi Buff ke Ao'yin dan Donghuang dalam pertempuran,"
+        " Liang mengubah Trait Initiate tambahan menjadi Level, dan Consort Yu naik Level sesuai jumlah"
+        " Totem, sehingga Lineup saling melengkapi."),
     "嫦娥的技能可以提升英雄等级，秘技牌能使4个英雄同时升级，只上阵4个强力英雄可以让嫦娥技能收益最大，这套阵容只需要一直用嫦娥的技能提升等级。": (
         "Chang'e's Skill raises Hero Levels and her Secret Skill Card levels up 4 Heroes at once. Fielding only 4"
         " strong Heroes gets the most out of her Skill; this Lineup just keeps using Chang'e's Skill to raise Levels.",
         "Skill Chang'e menaikkan Level Hero dan Kartu Secret Skill-nya menaikkan Level 4 Hero sekaligus. Hanya"
         " menurunkan 4 Hero kuat memaksimalkan manfaat Skill-nya; Lineup ini cukup terus memakai Skill Chang'e untuk"
         " menaikkan Level."),
+    "嬴律的低压运营使场上英雄等级自动提升和基层提拔打出1-3阶牌额外加等级，使场上低阶牌等级疯涨，再用公孙离和猪八戒的夺取把等级集中，全觉醒公孙离攻速4.0": (
+        "Ying Lu's Low-Pressure Strategy levels the board's Heroes on its own and Base Promotion adds Levels"
+        " for each Tier 1-3 card played, so low-Tier cards skyrocket; then Arli's and Zhu Bajie's Steal"
+        " pools the Levels. Fully Awakened, Arli reaches 4.0 Attack Speed",
+        "Strategi Tekanan Rendah Ying Lu menaikkan Level Hero di papan secara otomatis dan Promosi Dasar"
+        " menambah Level untuk setiap kartu Tier 1-3 yang dimainkan, sehingga kartu Tier rendah melonjak;"
+        " lalu Steal Arli dan Zhu Bajie mengumpulkan Level-nya. Saat semua Awaken, Attack Speed Arli mencapai 4.0"),
+    "守约单核，伞绑定守约保命\r\n钟馗给前排挂牺牲\r\n前排送死降低守约蓝耗\r\n——抖音余烬": (
+        "Shouyue as the single carry, with the umbrella bound to him to keep him alive\nKui gives the front"
+        " row Sacrifice\nThe front row dies to cut Shouyue's Mana cost\nDouyin: Yujin",
+        "Shouyue sebagai carry tunggal, payung diikat padanya agar tetap hidup\nKui memberi Sacrifice ke"
+        " barisan depan\nBarisan depan gugur untuk mengurangi biaya Mana Shouyue\nDouyin: Yujin"),
+    "小菟每回合稳定提升等级，越到后期，强度越高的轮椅流阵容！": (
+        "Little Dodder raises Levels steadily every Round: an autopilot Lineup that gets stronger the longer"
+        " the game goes!",
+        "Little Dodder menaikkan Level dengan stabil setiap Ronde: Lineup autopilot yang makin kuat seiring"
+        " permainan berjalan!"),
+    "庄小鱼加强后多四点能量，这套高阶龙蛇又可以重出江湖了，克制单核近战等，": (
+        "Zhuang Xiaoyu's buff gives 4 more Energy, so this high-Tier Dragon-Snake is back; it counters"
+        " single-carry melee builds and more,",
+        "Buff Zhuang Xiaoyu memberi 4 Energy tambahan, jadi Dragon-Snake Tier tinggi ini kembali; efektif"
+        " melawan build carry tunggal melee dan lainnya,"),
+    "推荐ban逐鹿的时候再玩，别在有嬴政的时候玩，有香香看情况玩。其他情况选了必吃分": (
+        "Best played when Zhulu Plateau is banned; avoid it when Ying Zheng is around, and judge for"
+        " yourself against Xiangxiang. Otherwise it's guaranteed points",
+        "Paling baik dimainkan saat Zhulu Plateau di-ban; hindari saat ada Ying Zheng, dan lihat situasi"
+        " jika ada Xiangxiang. Selain itu, poin dijamin"),
+    "整备+开团，韩信挂机都能一回合100级": (
+        "Prepare + Initiate: Han Xin gains 100 Levels a Round on autopilot",
+        "Prepare + Initiate: Han Xin naik 100 Level per Ronde secara autopilot"),
+    "明先生综合数据全棋手第一，而这套也是他主流玩法，版本T0；\n出色的经济和搜牌能力，让明先生中期找到嬴政快速稳血， 后期通过合成效果锦囊，找到吸血和机器头，这边稳了直接夺冠。": (
+        "Mr. Ming tops every Chessplayer in overall stats, and this is his main build: T0 this patch.\nHis"
+        " strong economy and card search find Ying Zheng mid game to stabilize HP; late, Effect Guides from"
+        " Combines bring Lifesteal and Robot Head. Once that holds, you take first place.",
+        "Mr. Ming unggul dari semua Chessplayer dalam statistik keseluruhan, dan ini build utamanya: T0 di"
+        " patch ini.\nEkonomi dan pencarian kartunya yang kuat menemukan Ying Zheng di pertengahan permainan"
+        " untuk menstabilkan HP; di akhir, Panduan Efek dari Combine memberi Lifesteal dan Robot Head."
+        " Setelah stabil, kamu juara."),
+    "最强三分倒转，猴子露娜主c，周瑜主坦，小乔和阿珂为队友提供等级，甄姬给牌，曹操是中转站，露娜是启动器，孙小宾的时之回环能够让我们阵容核心快速觉醒，能再很短的时间有很大的提升": (
+        "The strongest Three Kingdoms Reversal: Wukong and Luna carry, Zhou Yu tanks, Xiao Qiao and Arke"
+        " give allies Levels, Lady Zhen gives cards, Cao Cao is the relay and Luna the starter. Sun"
+        " Xiaobin's Time Loop Awakens the core fast for a big jump in very little time",
+        "Three Kingdoms Reversal terkuat: Wukong dan Luna sebagai carry, Zhou Yu tank, Xiao Qiao dan Arke"
+        " memberi Level ke rekan, Lady Zhen memberi kartu, Cao Cao sebagai perantara dan Luna sebagai"
+        " pemicu. Time Loop Sun Xiaobin membuat inti Lineup cepat Awaken untuk lonjakan besar dalam waktu singkat"),
+    "有的时候会很爽，有的时候会很拉，完全看运气，靠赌的一个阵容。": (
+        "Sometimes it's amazing, sometimes it flops: a gamble that comes down to luck.",
+        "Kadang sangat seru, kadang gagal total: Lineup untung-untungan yang sepenuhnya bergantung keberuntungan."),
     "李信的卡牌效果是：其它英雄触发牺牲效果时，提升等级。除李信其他位置拿牺牲英雄，且复活次数越多，能触发牺牲的次数越多。小明可以保留李信在战斗中提升的等级，每回合给李信稳定升级。": (
         "Li Xin's Card Effect: he gains Levels when other Heroes trigger Sacrifice effects. Fill every slot besides Li"
         " Xin with Sacrifice Heroes; the more they Revive, the more Sacrifices they trigger. Ming keeps the Levels Li"
@@ -989,6 +2173,20 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Efek Kartu Li Xin: Level-nya naik saat Hero lain memicu efek Sacrifice. Isi semua posisi selain Li Xin"
         " dengan Hero Sacrifice; makin sering mereka Revive, makin sering Sacrifice terpicu. Ming menyimpan Level"
         " yang didapat Li Xin dalam Pertempuran, menaikkan Level-nya dengan stabil setiap Ronde."),
+    "核心-朵莉亚：凭借朵莉亚大招的“泳池”，给队友回血回蓝，更快更多的释放技能；亚连、米莱迪每回合的整备配合朵莉亚词条，可以给全员提升等级；少司缘图腾，也可以给全员加等级；后期加鲁班大师": (
+        "Core: Dolia. Her Ultimate's “pool” restores allies' HP and Mana so they cast Skills faster and more"
+        " often; Allain's and Milady's Prepare each Round works with Dolia's Trait to level up the whole"
+        " team; Dyadia's Totem also levels everyone; add Master Luban late",
+        "Inti: Dolia. “Kolam” dari Ultimate-nya memulihkan HP dan Mana rekan agar lebih cepat dan sering"
+        " memakai Skill; Prepare Allain dan Milady setiap Ronde bersama Trait Dolia menaikkan Level seluruh"
+        " tim; Totem Dyadia juga menaikkan Level semua Hero; tambahkan Master Luban di akhir"),
+    "核心英雄是蒙恬，西施提供推演战术减蒙恬的蓝上限，芈月通过效果牌提升蒙恬等级，苍可以让蒙恬召唤的小兵死后能对周围的敌人造成伤害，白起是打出位，鲁班大师最后上补伤害。": (
+        "Meng Tian is the core: Shi's Deduction Tactics lower his max Mana, Mi Yue raises his Level with"
+        " Effect Cards, Chano makes his summoned minions damage nearby enemies when they die, Bai Qi is the"
+        " play slot, and Master Luban joins last for extra damage.",
+        "Meng Tian adalah inti: Deduction Tactics dari Shi menurunkan Mana maksimalnya, Mi Yue menaikkan"
+        " Level-nya lewat Kartu Efek, Chano membuat minion panggilannya memberi damage ke musuh sekitar saat"
+        " mati, Bai Qi adalah slot main, dan Master Luban masuk terakhir untuk tambahan damage."),
     "核心英雄虞姬，找到虞姬后，凑齐三个图腾英雄，触发虞姬词条升级。次级核心张良，找到张良后，尽量多上开团英雄，提升等级。升到5级后找到敖隐和东皇阵容成型。": (
         "Consort Yu is the core Hero: once you have her, gather three Totem Heroes to trigger her Trait and level up."
         " Liang is the second core: once you have him, field as many Initiate Heroes as you can to raise Levels. At"
@@ -996,6 +2194,13 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Consort Yu adalah Hero inti: setelah mendapatkannya, kumpulkan tiga Hero Totem untuk memicu Trait-nya dan"
         " naik level. Liang adalah inti kedua: setelah mendapatkannya, turunkan Hero Initiate sebanyak mungkin untuk"
         " menaikkan Level. Di Lv. 5, Lineup lengkap setelah mendapat Ao'yin dan Donghuang."),
+    "此套阵容记住核心逻辑，两个最最关键英雄，姜子牙和司空震。姜子牙刷非河洛牌给司空震提供等级，司空震吸收临时等级，阿米亚核心分配是核心等级，333级司空震+666核心=999司空震！抖音-强者无敌": (
+        "Remember the core logic: the two key Heroes are Ziya and Sikong Zhen. Ziya rolls non-Central Plains"
+        " cards to give Sikong Zhen Levels, Sikong Zhen absorbs Temporary Levels, and the Arcomia Core"
+        " shares out the Core Level: Lv. 333 Sikong Zhen + Lv. 666 Core = Lv. 999 Sikong Zhen! Douyin: Qiangzhe Wudi",
+        "Ingat logika intinya: dua Hero kunci adalah Ziya dan Sikong Zhen. Ziya me-refresh kartu non-Central"
+        " Plains untuk memberi Level ke Sikong Zhen, Sikong Zhen menyerap Temporary Level, dan Arcomia Core"
+        " membagikan Level Core: Sikong Zhen Lv. 333 + Core Lv. 666 = Sikong Zhen Lv. 999! Douyin: Qiangzhe Wudi"),
     "猪八戒的卡牌效果可以在英雄合成时给全部同阶英雄升级，因此阵容选3阶英雄。瑶给猪八戒增加属性，刘禅战斗中提供临时等级，明世隐保留战斗中的临时等级，使猪八戒的战力最大化。姬小满提供刷新帮助找场上的英雄牌。": (
         "Zhu Bajie's Card Effect levels up every Hero of the same Tier when a Hero Combines, so the Lineup uses Tier 3"
         " Heroes. Yaria boosts Zhu Bajie's stats, Liu Shan gives Temporary Levels in battle and Ming keeps them,"
@@ -1004,12 +2209,41 @@ TEXTS: dict[str, tuple[str, str]] = {
         " memakai Hero Tier 3. Yaria menambah atribut Zhu Bajie, Liu Shan memberi Temporary Level dalam Pertempuran,"
         " dan Ming menyimpannya, sehingga kekuatan Zhu Bajie maksimal. Mayene memberi Refresh yang membantu menemukan"
         " Kartu Hero dari Hero di papan."),
+    "玉环可以治疗班叔的屏障，班叔的屏障2级后阻挡敌方近战的同时还可以挡住飞行物。玉环/干将/孙膑等超高技能频率英雄触发诸葛亮和刘禅被动，提供临时等级战力，明世隐将临时等级转化为真实等级": (
+        "Yuhuan heals Uncle Ban's Barriers, and from Lv. 2 his Barriers block projectiles as well as enemy"
+        " melee. Fast-casting Heroes such as Yuhuan, Gan and Sun Bin trigger Kongming's and Liu Shan's"
+        " passives for Temporary Levels, and Ming turns those into real Levels",
+        "Yuhuan memulihkan Barrier Uncle Ban, dan mulai Lv. 2 Barrier-nya menahan proyektil sekaligus melee"
+        " musuh. Hero dengan frekuensi Skill tinggi seperti Yuhuan, Gan, dan Sun Bin memicu pasif Kongming"
+        " dan Liu Shan untuk Temporary Level, dan Ming mengubahnya menjadi Level asli"),
+    "瑶和明世隐保护艾琳，海月在前面挡住": (
+        "Yaria and Ming protect Erin while Haya holds the front",
+        "Yaria dan Ming melindungi Erin, sementara Haya menahan di depan"),
     "这套阵容的核心是增加阿科米亚核心等级。朵莉亚是必备英雄，上阵后其它位置全部使用带【整备】关键词的英雄，触发朵莉亚卡牌效果增加阿科米亚核心等级。": (
         "This Lineup is about raising the Arcomia Core's Level. Dolia is a must: once she is on the board, fill every"
         " other slot with Heroes with the 【Prepare】 keyword to trigger her Card Effect and raise the Arcomia Core's"
         " Level.",
         "Inti Lineup ini adalah menaikkan Level Arcomia Core. Dolia wajib ada: setelah dia di papan, isi semua posisi"
         " lain dengan Hero ber-keyword 【Prepare】 untuk memicu Efek Kartu-nya dan menaikkan Level Arcomia Core."),
+    "通过整备词条提升等级，进而提升战斗力。前中期不着急打合成，在血量健康的情况下，可以等到亚瑟来了之后一起打，吃亚瑟的词条，后期可以把狂铁卖了，留一个打出位，用来打出露娜": (
+        "Prepare Traits raise Levels and with them combat power. Don't rush Combines early to mid game: with"
+        " healthy HP, wait for Arthur and Combine together to benefit from his Trait. Late, sell Biron to"
+        " keep a play slot for Luna",
+        "Trait Prepare menaikkan Level dan kekuatan tempur. Jangan buru-buru Combine di awal hingga"
+        " pertengahan permainan: jika HP aman, tunggu Arthur lalu Combine bersama agar dapat Trait-nya. Di"
+        " akhir, jual Biron untuk menyisakan slot main bagi Luna"),
+    "通过芈月词条不断打出效果卡给主C嬴政加等级，同时触发嬴政词条无限叠法强，一秒融化敌方阵容。": (
+        "Mi Yue's Trait keeps playing Effect Cards to level up the Main Carry Ying Zheng, while triggering"
+        " Ying Zheng's Trait to stack Magic Attack without limit and melt the enemy Lineup in a second.",
+        "Trait Mi Yue terus memainkan Kartu Efek untuk menaikkan Level Main Carry Ying Zheng, sekaligus"
+        " memicu Trait Ying Zheng untuk menumpuk Magic Attack tanpa batas dan melelehkan Lineup lawan dalam sedetik."),
+    "阵容原理：\r\n安琪拉飞行器自爆强化造成的伤害越高（包括对己方伤害），等级提升越多，配合大河三个图腾，能快速提升海月等级。\r\n棋手安琪拉飞行器提供临时等级，明世隐转换临时等级。\r": (
+        "How it works:\nThe more damage Angela's Aircraft self-destruct enhancement deals (allies included),"
+        " the more Levels it gives; with three Riverlands Totems, Haya levels up fast.\nChessplayer Angela's"
+        " Aircraft gives Temporary Levels, and Ming converts them.\n",
+        "Cara kerjanya:\nMakin besar damage dari peningkatan self-destruct Pesawat Angela (termasuk ke"
+        " rekan), makin banyak Level yang didapat; dengan tiga Totem Riverlands, Haya cepat naik"
+        " Level.\nPesawat Chessplayer Angela memberi Temporary Level, dan Ming mengubahnya.\n"),
     "阵容的核心是增加阿科米亚核心等级。朵莉亚是必备英雄，上阵后其它位置全部使用带【整备】关键词的英雄，触发朵莉亚卡牌效果增加阿科米亚核心等级。阿科米亚核心的等级会在开战时以临时等级均分给场上的日落海英雄。": (
         "The Lineup is about raising the Arcomia Core's Level. Dolia is a must: once she is on the board, fill every"
         " other slot with Heroes with the 【Prepare】 keyword to trigger her Card Effect and raise the Arcomia Core's"
@@ -1018,30 +2252,212 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Inti Lineup adalah menaikkan Level Arcomia Core. Dolia wajib ada: setelah dia di papan, isi semua posisi"
         " lain dengan Hero ber-keyword 【Prepare】 untuk memicu Efek Kartu-nya dan menaikkan Level Arcomia Core. Saat"
         " Pertempuran dimulai, Level Arcomia Core dibagi rata ke Hero Sunset di papan sebagai Temporary Level."),
+    "高上限的三分玩法之一，通过场上英雄的互相联动配合白歌的棋手技能": (
+        "A high-ceiling Three Kingdoms build: the Heroes on the board work off one another and Bai Ge's"
+        " Chessplayer Skill",
+        "Build Three Kingdoms dengan batas atas tinggi: Hero di papan saling terhubung dengan Skill"
+        " Chessplayer Bai Ge"),
+
+    # ResSeasonAILineupDataBin: TalentDesc (advice on Talents; game data 1.7.0.1)
+    "乐善好施加等级很快，同路人成年礼获得大量的三分牌\n": (
+        "Benevolent and Charitable adds Levels fast; Fellow Traveler and Coming of Age bring lots of Three"
+        " Kingdoms cards\n",
+        "Benevolent and Charitable menambah Level dengan cepat; Teman Seperjalanan dan Coming of Age memberi"
+        " banyak kartu Three Kingdoms\n"),
+    "优先刷牌天赋，其次给经济给能量的，回血保血的天赋也行": (
+        "Card-rolling Talents first, then economy and Energy; healing and HP-saving Talents also work",
+        "Utamakan Talent refresh kartu, lalu ekonomi dan Energy; Talent pemulihan dan penjaga HP juga boleh"),
+    "优先选择增加经验，能量以及等级的天赋": (
+        "Prefer Talents that add EXP, Energy and Levels",
+        "Utamakan Talent yang menambah EXP, Energy, dan Level"),
+    "刻舟减蓝必选，复印机加快阵容成形速度，防御/生存类天赋也可选择": (
+        "Mana Reduction is a must, Copier speeds up the Lineup, and defense or survival Talents work too",
+        "Mana Reduction wajib, Copier mempercepat Lineup terbentuk, dan Talent pertahanan atau bertahan"
+        " hidup juga boleh"),
+    "古币相关天赋均可": ("Any Ancient Coin Talent works", "Talent Ancient Coin apa pun boleh"),
+    "古币类优先": ("Ancient Coin Talents first", "Utamakan Talent Ancient Coin"),
+    "大河专属天赋基本都可以选择，破败神威这类提升普攻输出的天赋也可以选。": (
+        "Almost any Riverlands Exclusive Talent works, and Talents that boost Basic Attack damage, such as"
+        " Divine Might of Ruin, are fine too.",
+        "Hampir semua Exclusive Talent Riverlands bisa dipilih, dan Talent yang menaikkan damage Basic"
+        " Attack seperti Divine Might of Ruin juga boleh."),
+    "天赋推荐古币相关，其次是点兵点将、全军列阵或援军帮助阵容成型。装备天赋推荐机器头>魂灭灵冠>百锻刀>驱雷>青莲剑谱。": (
+        "Take Ancient Coin Talents first, then Drafting Troops, Full Army Formation or Reinforcements to"
+        " complete the Lineup. Equipment Talents: Robot Head > Soul-Destroying Crown > Hundred-Forged Blade"
+        " > Thunder Drive > Green Lotus Sword Manual.",
+        "Utamakan Talent Ancient Coin, lalu Drafting Troops, Full Army Formation, atau Reinforcements untuk"
+        " melengkapi Lineup. Talent Equipment: Robot Head > Soul-Destroying Crown > Hundred-Forged Blade >"
+        " Thunder Drive > Green Lotus Sword Manual."),
+    "天赋的选择我们只看三点给牌给等级或者给钱 ，你一定要看这波的对手去选择天赋选择能打的过的而不要选择更好的 ！": (
+        "For Talents, look at three things only: cards, Levels or economy. Always pick the Talent based on"
+        " this Round's opponents: choose what lets you beat them, not what looks better!",
+        "Untuk Talent, lihat tiga hal saja: kartu, Level, atau ekonomi. Selalu pilih Talent berdasarkan"
+        " lawan di Ronde ini: pilih yang bisa mengalahkan mereka, bukan yang terlihat lebih bagus!"),
+    "成年礼，大河最好天赋，用过才知道。\n同心协力前期战力暴涨；\n点兵点将，全员觉醒神器；\n其他推荐：紧急救援；灵祭升华等。": (
+        "Coming of Age: the best Riverlands Talent; try it and you'll see.\nConcerted Effort: a huge early"
+        " power spike;\nDrafting Troops: Awakens the whole team, a must-have;\nAlso good: Emergency Rescue,"
+        " Spirit Sacrifice Sublimation, etc.",
+        "Coming of Age: Talent Riverlands terbaik; coba sendiri dan kamu akan tahu.\nConcerted Effort:"
+        " kekuatan melonjak di awal;\nDrafting Troops: semua Hero Awaken, wajib punya;\nLainnya: Emergency"
+        " Rescue, Spirit Sacrifice Sublimation, dll."),
+    "拿可以帮我们找体系牌的天赋；升格无敌，拿到就能夺冠！": (
+        "Take Talents that help find your core cards; Ascension is unbeatable: get it and you win!",
+        "Ambil Talent yang membantu mencari kartu inti; Ascension tak tertandingi: dapatkan dan kamu juara!"),
+    "拿经济天赋，帮助我们快速升级": ("Take economy Talents to level up fast", "Ambil Talent ekonomi agar cepat naik level"),
+    "搜牌和血量类天赋对这套构筑都很关键，看到必拿。": (
+        "Card-search and HP Talents are key to this build: take them on sight.",
+        "Talent pencari kartu dan HP sangat penting untuk build ini: langsung ambil saat terlihat."),
+    "有给图腾的天赋必拿。\n【无限进步】和【泉水】提供经济和血量。\n【护命灵珠】是海月神器，提供护盾和伤害加成。": (
+        "Always take Talents that give Totems.\n【Infinite Progress】 and 【Fountain】 provide economy and"
+        " HP.\n【Life-Saving Bead】 is Haya's best Artifact, granting a Shield and bonus damage.",
+        "Selalu ambil Talent yang memberi Totem.\n【Infinite Progress】 dan 【Air Mancur】 memberi ekonomi dan"
+        " HP.\n【Life-Saving Bead】 adalah Artifact terbaik Haya, memberi Shield dan bonus damage."),
+    "看到必拿！": ("Take it on sight!", "Lihat, langsung ambil!"),
+    "经济类和人口天赋": ("Economy and Population Talents", "Talent ekonomi dan Populasi"),
+    "给装备的牌优先选择": ("Prefer cards that give Equipment", "Utamakan kartu yang memberi Equipment"),
+    "能拿五阶英雄的天赋都可以拿\n以防后期对手卡海月": (
+        "Any Talent that gives Tier 5 Heroes is good\nin case opponents hold Haya late",
+        "Talent apa pun yang memberi Hero Tier 5 boleh diambil\nuntuk jaga-jaga lawan menahan Haya di akhir"),
+    "贤士登门提高找牌效率，春风化雨提供高频合成效率，意外之财等放大合成收益的均可拿。": (
+        "Sage's Arrival finds cards faster, Spring Rain keeps Combines frequent, and anything that boosts"
+        " Combine rewards, such as Windfall, is worth taking.",
+        "Sage's Arrival mempercepat pencarian kartu, Spring Rain membuat Combine lebih sering, dan apa pun"
+        " yang memperbesar hasil Combine seperti Windfall layak diambil."),
+    "贤士登门：芈月嬴政免费送。\n春风化雨：双倍的贤士登门，拿到基本吃了。\n点兵点将：全员觉醒。\n其他天赋：紧急救援/拾荒者等": (
+        "Sage's Arrival: Mi Yue and Ying Zheng for free.\nSpring Rain: a double Sage's Arrival; get it and"
+        " you've basically won.\nDrafting Troops: the whole team Awakens.\nOthers: Emergency Rescue, Scavenger, etc.",
+        "Sage's Arrival: Mi Yue dan Ying Zheng gratis.\nSpring Rain: Sage's Arrival ganda; dapatkan dan kamu"
+        " hampir pasti menang.\nDrafting Troops: semua Hero Awaken.\nLainnya: Emergency Rescue, Scavenger, dll."),
+    "身外身吃鸡天赋，一个响指sss级棱彩天赋更快找牌，这里只能选择三个天赋，更过天赋推荐——抖音搜肝帝看攻略": (
+        "Body Double is a winning Talent, and A Snap, an SSS-grade Prismatic Talent, finds cards faster."
+        " Only three Talents fit here; for more, search Gandi on Douyin for the guide",
+        "Body Double adalah Talent kemenangan, dan A Snap, Talent Prismatic kelas SSS, mencari kartu lebih"
+        " cepat. Hanya tiga Talent muat di sini; untuk rekomendasi lain, cari Gandi di Douyin untuk panduannya"),
+    "这三个天赋是优先级的。镜像迷离是最优的，不仅把对面大哥偷过来，还偷对面大哥的等级，甚至面对同行降维打击": (
+        "These three Talents are priorities. Mirror Illusion is the best: it steals the enemy's carry along"
+        " with its Levels, crushing even players on the same Lineup",
+        "Tiga Talent ini prioritas. Mirror Illusion yang terbaik: mencuri carry lawan beserta Level-nya,"
+        " bahkan menghancurkan pemain dengan Lineup yang sama"),
+    "逐鹿 神级天赋": ("Zhulu Plateau god-tier Talent", "Talent kelas dewa Zhulu Plateau"),
+    "逐鹿神级天赋，看到就点，不用犹豫": (
+        "Zhulu Plateau's god-tier Talent: pick it the moment you see it, no hesitation",
+        "Talent kelas dewa Zhulu Plateau: langsung pilih saat terlihat, tanpa ragu"),
 
     # ResSeasonAILineupDataBin: LineupDesc (a row field, not inside the code)
+    "三分英雄登场提升等级，公孙离吸等级造成超高输出": (
+        "Three Kingdoms Heroes gain Levels on Deploy, and Arli absorbs Levels for huge damage",
+        "Hero Three Kingdoms naik Level saat Deploy, dan Arli menyerap Level untuk damage sangat besar"),
+    "以培养阿科米亚核心为主的阵容，操作简单，凑齐阵容英雄后全员自动成长": (
+        "A Lineup built around growing the Arcomia Core. Easy to play: once its Heroes are assembled, the"
+        " whole team grows on its own.",
+        "Lineup yang berfokus membesarkan Arcomia Core. Mudah dimainkan: setelah Hero Lineup lengkap,"
+        " seluruh tim tumbuh sendiri."),
     "以培养阿科米亚核心为主的阵容，操作简单，凑齐阵容英雄后全员自动成长。": (
         "A Lineup built around growing the Arcomia Core. Easy to play: once its Heroes are assembled, the whole team"
         " grows on its own.",
         "Lineup yang berfokus membesarkan Arcomia Core. Mudah dimainkan: setelah Hero Lineup lengkap, seluruh tim"
         " tumbuh sendiri."),
+    "以敖隐为核心输出的阵容，操作简单，凑齐阵容英雄后全员自动成长": (
+        "A Lineup with Ao'yin as the core damage dealer. Easy to play: once its Heroes are assembled, the"
+        " whole team grows on its own.",
+        "Lineup dengan Ao'yin sebagai damage dealer inti. Mudah dimainkan: setelah Hero Lineup lengkap,"
+        " seluruh tim tumbuh sendiri."),
     "以敖隐为核心输出的阵容，操作简单，凑齐阵容英雄后全员自动成长。": (
         "A Lineup with Ao'yin as the core damage dealer. Easy to play: once its Heroes are assembled, the whole team"
         " grows on its own.",
         "Lineup dengan Ao'yin sebagai damage dealer inti. Mudah dimainkan: setelah Hero Lineup lengkap, seluruh tim"
         " tumbuh sendiri."),
+    "以李信为单核的阵容，前期需要快速升级找到李信，后期强力": (
+        "A single-carry Lineup around Li Xin. Level up fast early to find him; strong late.",
+        "Lineup dengan Li Xin sebagai carry tunggal. Naik level cepat di awal untuk menemukannya; kuat di akhir."),
     "以李信为单核的阵容，前期需要快速升级找到李信，后期强力。": (
         "A single-carry Lineup around Li Xin. Level up fast early to find him; strong late.",
         "Lineup dengan Li Xin sebagai carry tunggal. Naik level cepat di awal untuk menemukannya; kuat di akhir."),
+    "以百里玄策为单核的阵容，随着百里玄策的等级提升，后期非常强力": (
+        "A single-carry Lineup around Xuance. As his Level rises, it becomes very strong late.",
+        "Lineup dengan Xuance sebagai carry tunggal. Seiring Level-nya naik, Lineup ini sangat kuat di akhir."),
     "以百里玄策为单核的阵容，随着百里玄策的等级提升，后期非常强力。": (
         "A single-carry Lineup around Xuance. As his Level rises, it becomes very strong late.",
         "Lineup dengan Xuance sebagai carry tunggal. Seiring Level-nya naik, Lineup ini sangat kuat di akhir."),
+    "伞给干将，前期养干将蹭蹭加等级，后期遗志找海月": (
+        "The umbrella goes to Gan, who gains Levels fast early; late, use Last Will to find Haya",
+        "Payung untuk Gan, yang cepat naik Level di awal; di akhir, gunakan Last Will untuk mencari Haya"),
     "全低阶英雄，前期操作简单，后期需要转型，有一定运营难度。": (
         "All low-Tier Heroes. Easy early on, but it must transition late, which takes some management.",
         "Semua Hero Tier rendah. Mudah di awal, tetapi perlu transisi di akhir, yang butuh sedikit pengelolaan."),
+    "利用镜像牌不断合成3阶英雄，群体升级": (
+        "Use Mirror cards to keep Combining Tier 3 Heroes for team-wide Level-ups",
+        "Gunakan kartu Mirror untuk terus meng-Combine Hero Tier 3 agar seluruh tim naik level"),
+    "前期多上英雄连胜，棋手香香也能打出超高伤害~": (
+        "Field many Heroes early for a win streak; Chessplayer Xiangxiang can deal huge damage too~",
+        "Pasang banyak Hero di awal untuk win streak; Chessplayer Xiangxiang juga bisa memberi damage sangat besar~"),
+    "嬴律的技能打出1-3阶英雄可额外加等级，配合低阶大河英雄易连胜": (
+        "Ying Lu's Skill adds Levels for each Tier 1-3 Hero played; with low-Tier Riverlands Heroes, win"
+        " streaks come easily",
+        "Skill Ying Lu menambah Level untuk setiap Hero Tier 1-3 yang dimainkan; dengan Hero Riverlands Tier"
+        " rendah, win streak mudah didapat"),
+    "嬴政无限释放技能，全屏大招爽感拉满": (
+        "Ying Zheng casts Skills endlessly: board-wide Ultimates for maximum thrills",
+        "Ying Zheng memakai Skill tanpa batas: Ultimate di seluruh papan, sangat memuaskan"),
+    "小妲己的技能提供免费刷新很适配倒转阵容，难度高，不建议新手使用": (
+        "Little Daji's Skill gives free Refreshes, which suits Reversal Lineups. Hard: not recommended for"
+        " new players",
+        "Skill Little Daji memberi Refresh gratis, cocok untuk Lineup Reversal. Sulit: tidak disarankan"
+        " untuk pemain baru"),
+    "小菟每回合稳定提升等级，越到后期越强！司空震裴擒虎双C": (
+        "Little Dodder raises Levels steadily every Round and grows stronger late! Sikong Zhen and Pei as"
+        " twin carries",
+        "Little Dodder menaikkan Level dengan stabil setiap Ronde dan makin kuat di akhir! Sikong Zhen dan"
+        " Pei sebagai carry ganda"),
+    "小菟每回合稳定提升等级，越到后期越强！艾琳可以溜各种近战英雄": (
+        "Little Dodder raises Levels steadily every Round and grows stronger late! Erin can kite all kinds"
+        " of melee Heroes",
+        "Little Dodder menaikkan Level dengan stabil setiap Ronde dan makin kuat di akhir! Erin bisa"
+        " men-kite berbagai Hero melee"),
+    "廉颇释放技能产生护盾，搭配扁鹊炸盾产生伤害": (
+        "Lian Po's Skill creates a Shield, and Dr Bian bursts it for damage",
+        "Skill Lian Po membuat Shield, dan Dr Bian meledakkannya untuk damage"),
+    "操作简单，运营思路简单，只需要合成就能全员成长": (
+        "Easy to play with a simple game plan: just Combine and the whole team grows.",
+        "Mudah dimainkan dengan rencana permainan simpel: cukup Combine dan seluruh tim tumbuh."),
     "操作简单，运营思路简单，只需要合成就能全员成长。": (
         "Easy to play with a simple game plan: just Combine and the whole team grows.",
         "Mudah dimainkan dengan rencana permainan simpel: cukup Combine dan seluruh tim tumbuh."),
+    "敖隐和东皇搭配3图腾英雄，战斗中持续提升等级": (
+        "Ao'yin and Donghuang with 3 Totem Heroes keep gaining Levels in battle",
+        "Ao'yin dan Donghuang bersama 3 Hero Totem terus naik Level dalam pertempuran"),
+    "昭君的技能可以把1阶英雄变为5阶，不怕卡牌，稳定成长": (
+        "Zhaojun's Skill turns Tier 1 Heroes into Tier 5, so blocked cards don't matter and growth is steady",
+        "Skill Zhaojun mengubah Hero Tier 1 menjadi Tier 5, jadi kartu yang ditahan lawan tidak masalah dan"
+        " pertumbuhan stabil"),
+    "朵莉亚大招“泳池”给队友回蓝回血，米莱狄苍无限召唤": (
+        "Dolia's Ultimate “pool” restores allies' Mana and HP, and Milady and Chano summon endlessly",
+        "Ultimate Dolia “kolam” memulihkan Mana dan HP rekan, dan Milady serta Chano memanggil tanpa batas"),
+    "玉环的技能提供免费卡牌很适配倒转阵容，难度高，不建议新手使用": (
+        "Yuhuan's Skill gives free cards, which suits Reversal Lineups. Hard: not recommended for new players",
+        "Skill Yuhuan memberi kartu gratis, cocok untuk Lineup Reversal. Sulit: tidak disarankan untuk pemain baru"),
+    "班叔的机关可以把敌人困住，后排英雄无伤输出": (
+        "Uncle Ban's Mechanisms trap enemies so the back-row Heroes deal damage unharmed",
+        "Mekanisme Uncle Ban menjebak musuh agar Hero barisan belakang memberi damage tanpa terluka"),
+    "用战术牌提升战力，需频繁使用卡牌，推荐有一定游戏经验后再尝试": (
+        "Builds power with Tactics Cards and needs frequent card play. Try it once you have some experience",
+        "Menambah kekuatan dengan Tactics Card dan perlu sering memainkan kartu. Coba setelah punya sedikit"
+        " pengalaman"),
+    "花木兰搭配婉儿、程咬金、露娜实现无限复活，越战越强！": (
+        "Mulan with Shangguan, Cheng Yaojin and Luna Revives endlessly and grows stronger every fight!",
+        "Mulan bersama Shangguan, Cheng Yaojin, dan Luna bisa Revive tanpa batas dan makin kuat setiap pertempuran!"),
+    "花木兰搭配婉儿、程咬金、露娜实现无限复活，越战越强！看见同行玩河洛多再选": (
+        "Mulan with Shangguan, Cheng Yaojin and Luna Revives endlessly and grows stronger every fight! Pick"
+        " it when fewer rivals play Central Plains",
+        "Mulan bersama Shangguan, Cheng Yaojin, dan Luna bisa Revive tanpa batas dan makin kuat setiap"
+        " pertempuran! Pilih saat sedikit pemain lain memakai Central Plains"),
+    "蒙恬10蓝后无限召唤小兵，全屏爆炸伤害": (
+        "At 10 Mana, Meng Tian summons minions endlessly for board-wide explosive damage",
+        "Dengan 10 Mana, Meng Tian memanggil minion tanpa batas untuk damage ledakan di seluruh papan"),
+    "运营简单，但有一定运气成分，快速搜到司空震就能赢，否则容易出局": (
+        "Simple to run but luck-dependent: find Sikong Zhen fast and you win, otherwise you are easily knocked out.",
+        "Simpel dijalankan tetapi bergantung keberuntungan: cepat dapat Sikong Zhen maka kamu menang, kalau"
+        " tidak, mudah tereliminasi."),
     "运营简单，但有一定运气成分，快速搜到司空震就能赢，否则容易出局。": (
         "Simple to run but luck-dependent: find Sikong Zhen fast and you win, otherwise you are easily knocked out.",
         "Simpel dijalankan tetapi bergantung keberuntungan: cepat dapat Sikong Zhen maka kamu menang, kalau tidak,"
@@ -1051,6 +2467,9 @@ TEXTS: dict[str, tuple[str, str]] = {
         " though finding all the Heroes takes some luck.",
         "Setelah 4 Hero-nya lengkap, Lineup ini tumbuh setiap Ronde lewat Skill Chessplayer. Mudah dimainkan, meski"
         " butuh sedikit keberuntungan untuk melengkapi Hero-nya."),
+    "这套阵容很多英雄为低阶，养成难度低，适合新手使用": (
+        "Many of this Lineup's Heroes are low-Tier, so it is easy to build up and suits new players.",
+        "Banyak Hero di Lineup ini ber-Tier rendah, jadi mudah dibesarkan dan cocok untuk pemain baru."),
     "这套阵容很多英雄为低阶，养成难度低，适合新手使用。": (
         "Many of this Lineup's Heroes are low-Tier, so it is easy to build up and suits new players.",
         "Banyak Hero di Lineup ini ber-Tier rendah, jadi mudah dibesarkan dan cocok untuk pemain baru."),
@@ -1059,6 +2478,36 @@ TEXTS: dict[str, tuple[str, str]] = {
         " once you have some experience.",
         "Lineup ini menambah kekuatan dengan Tactics Card. Cukup rumit dan perlu sering memainkan kartu, jadi coba"
         " setelah punya sedikit pengalaman."),
+    "速4找韩信，凑齐阵容每回合挂机成长": (
+        "Rush to Lv. 4 for Han Xin; with the Lineup complete, it grows every Round on autopilot",
+        "Cepat ke Lv. 4 untuk mencari Han Xin; setelah Lineup lengkap, tumbuh setiap Ronde secara autopilot"),
+    "闹闹开局选日落海，中期开技能凑齐日落海英雄，挂机成长": (
+        "Naonao opens with Sunset and uses her Skill mid game to gather the Sunset Heroes, then grows on autopilot",
+        "Naonao membuka dengan Sunset dan memakai Skill-nya di pertengahan untuk mengumpulkan Hero Sunset,"
+        " lalu tumbuh secara autopilot"),
+    "闹闹开局选河洛，中期开技能帮助找到花木兰": (
+        "Naonao opens with Central Plains and uses her Skill mid game to help find Mulan",
+        "Naonao membuka dengan Central Plains dan memakai Skill-nya di pertengahan untuk membantu mencari Mulan"),
+    "阵容构筑简单，合成就能一直升级，但与棋手适配度一般，仅推荐其他阵容禁用时选择": (
+        "Simple to build: just Combine to keep leveling up. It fits the Chessplayer only so-so, so pick it"
+        " only when other Lineups are banned",
+        "Mudah disusun: cukup Combine untuk terus naik level. Kecocokannya dengan Chessplayer biasa saja,"
+        " jadi pilih hanya saat Lineup lain di-ban"),
+    "阿离的伞给守约，后期守约一枪一个后排": (
+        "Arli's umbrella goes to Shouyue; late, Shouyue picks off a back-liner with every shot",
+        "Payung Arli untuk Shouyue; di akhir, Shouyue menumbangkan satu barisan belakang di setiap tembakan"),
+    "飞行器既能攻击敌人，又能增加英雄等级，全力养海月，后期一打多": (
+        "The Aircraft attacks enemies and raises Hero Levels: go all in on Haya, who takes on several enemies late",
+        "Pesawat menyerang musuh dan menaikkan Level Hero: fokus besarkan Haya, yang bisa melawan banyak"
+        " musuh di akhir"),
+    "高风险、高上限，通过不断打出登场牌提升战力，推荐有一定游戏经验再尝试": (
+        "High risk, high ceiling: keep playing Deploy cards to build power. Try it once you have some experience",
+        "Risiko tinggi, batas atas tinggi: terus mainkan kartu Deploy untuk menambah kekuatan. Coba setelah"
+        " punya sedikit pengalaman"),
+    "高风险、高上限，通过不断打出登场牌提升战力，推荐有一定游戏经验再尝试。": (
+        "High risk, high ceiling: keep playing Deploy cards to build power. Try it once you have some experience.",
+        "Risiko tinggi, batas atas tinggi: terus mainkan kartu Deploy untuk menambah kekuatan. Coba setelah"
+        " punya sedikit pengalaman."),
 
     # ResRecommendLineup: EquipDesc
     "亚连会给装备最多的英雄加属性，装备穿给主C，保证他穿的装备最多。": (

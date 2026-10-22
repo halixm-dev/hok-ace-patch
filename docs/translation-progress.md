@@ -148,7 +148,7 @@ by `derived`; the other 272 are listed, in both languages, every one passing `ad
 An offline build of the pristine 1.7.0.1 dump with the APK leaves **0** Chinese strings in the catalog's
 tables in both languages (the census's 5 hits are CJK inside `{tokens}`), `unknown` 1229 → 0. A device
 cycle passed on 2026-10-22 (English); it found Chinese outside the catalog tables: the Room Settings labels
-(`77A17DCDAE26967F`, uncatalogued) and 1.7.0.1's new text in the official-lineup bin `F79FB1A213A9DA90`. It adds rows to tables already counted, so no table count moves.
+(`77A17DCDAE26967F`, uncatalogued) and 1.7.0.1's new text in the official-lineup bin `F79FB1A213A9DA90`. The lineup text is supplied since (330 more entries; supplement log 1866 → 2196 strings). It adds rows to tables already counted, so no table count moves.
 
 On 2026-10-17, Chano's live card exposed two missing numeric variants (30/60 damage, where the
 catalog has 25/50). Both languages now receive these two supplement entries. A targeted check across
@@ -309,7 +309,9 @@ localization table for. Its config-asset allowlist, `SAFE_ASSETS`, is device-gat
 118 distinct strings (264 fields) inside its 28 share codes and its rows, translated and resealed
 (`lineup_codes.rewrite_bin`). Device-cleared on 2026-10-21 (Xiaomi M2007J3SG, data 1.6.0.1) in English
 and Indonesian: Newbie and Advanced read translated, *Use*, copy and import work, and a match ends
-without the popup (`docs/features/official-lineups.md`). A lineup already in My lineups keeps the text it
+without the popup (`docs/features/official-lineups.md`). Game data 1.7.0.1 doubled the bin to 57 rows: 433 of 460
+distinct strings (581 of 633 fields) are translated, the new `TalentDesc`, `EffectCardDesc` and `Author` fields
+included; the other 27 are creators' nicknames, left as written. Offline only; no device has seen the new text. A lineup already in My lineups keeps the text it
 was added with, because that list is the server's copy. The other two lineup bins, `6A2B886E5DCF22DC`
 and `C0C56FEFDCA0EA5D`, are still candidates. The four assets the allowlist held until 2026-10-05 were
 each withdrawn after a device cycle:

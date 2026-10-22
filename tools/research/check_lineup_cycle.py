@@ -8,7 +8,8 @@ field against the original:
 * every code decodes by the game's steps, with the same fields in the same order;
 * every text field reads back as its target (``catalog.unique``, resource tokens expanded), and every
   other field of the codes and rows is byte-identical;
-* no Chinese is left, and the pass run on its own output changes nothing.
+* no Chinese is left but creators' nicknames (``Provider`` in a code, ``Author`` in a row), which stay
+  as written, and the pass run on its own output changes nothing.
 
 Given ``--control`` and ``--cycle`` (two ``build_device_patch.py`` output folders, the second with
 ``--cycle-asset <hash>``), it also lists the files and package-``1`` assets that differ between them and
@@ -62,6 +63,25 @@ def _compare(old: bytes, new: bytes, schema: dict | None, target, tally: dict[st
             tally["other fields identical" if was == now else "OTHER FIELDS DIFFER"] += 1
 
 
+NICKNAME_FIELDS = (2, 19)  # OneLineup.Provider in a code, ResSeasonAILineupDataBin.Author in a row
+
+
+def _nicknames(file_hash: int, raw: bytes) -> set[str]:
+    """The creators' nicknames in <raw>: left as written, so not counted as Chinese left."""
+    code_field = lineup_codes.LINEUP_BINS[file_hash].code_field
+    found = set()
+    for number, _, row in config_bin.fields(raw):
+        if number != config_bin.ROW_FIELD:
+            continue
+        for inner, wire, value in config_bin.fields(row):
+            if inner == code_field:
+                found |= {v.decode() for n, w, v in config_bin.fields(lineup_codes.decode_code(value))
+                          if n == NICKNAME_FIELDS[0] and w == 2}
+            elif inner == NICKNAME_FIELDS[1] and wire == 2:
+                found.add(value.decode())
+    return found
+
+
 def check_bin(file_hash: int, raw: bytes, catalog, terms: dict[str, str]) -> dict[str, int | bool]:
     official = extra_text.official_only(catalog)
 
@@ -93,7 +113,9 @@ def check_bin(file_hash: int, raw: bytes, catalog, terms: dict[str, str]) -> dic
     resealed = {number: value for number, _, value in top_new}
     return {"bytes": len(new), "sealed": config_bin.is_sealed(new), "index kept": stored[3] == resealed[3],
             "old checksum stale": stored[4] != resealed[4], **tally,
-            "chinese left": len(lineup_codes.strings(file_hash, new)),
+            "chinese left": len([text for text in lineup_codes.strings(file_hash, new)
+                                 if text not in _nicknames(file_hash, raw)]),
+            "nicknames kept": len(_nicknames(file_hash, raw) & set(lineup_codes.strings(file_hash, new))),
             "rerun is a no-op": extra_text.rewrite_config(file_hash, new, catalog, print, terms) is None}
 
 

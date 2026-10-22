@@ -3889,3 +3889,43 @@ not seen. Three things stay Chinese, none of them in a catalog table:
 
 Screenshots: `D:\scratch\hok-1.7.0.1\cycle3\`. The phone now carries `out3-catalog`, which no patcher holds a
 pristine delta for; roll back with the snapshot's tar before the next patcher run.
+
+## 2026-10-22 — 1.7.0.1's official lineups translated: 330 strings, three more fields
+
+- **What 1.7.0.1 put in `F79FB1A213A9DA90`:** 57 rows (was 28), 633 Chinese text fields, 460 distinct
+  (`lineup_codes.strings` on the pristine override layer, after the schema change below). The handoff's 58
+  "runs" came from a byte search, which cannot see inside the deflated codes. The prime layer's copy is
+  still the 1.6.0.1 bin (264 fields), already covered.
+- **Three fields no shipped code carried before:** `TalentDesc` (12) and `EffectCardDesc` (13) inside the
+  codes (24 and 19 strings; every code also holds packed `TalentIDs` 10 and `EffectCardIDs` 11 now), and the
+  row field `Author` (19, the 19th field `ResSeasonAILineupDataBin` declares), which the card draws after
+  the name (`…-官方推荐`, `…-抖音一茗`). Added to `lineup_codes.ONE_LINEUP` and the bin's `text_fields`.
+- **The `· 简单 ·` badge is not text in this bin.** `Difficulty` (12) is an integer. Searched every decoded
+  asset of the override layer and the prime layer for `简单` as a whole string: only `LordChooseDiffy1` in
+  `DD5B5EDFBB69FEED` (staged as *Easy* already), a battle enum in package `10` (`F80CD24476DB5836`,
+  `TargetSearchConditionCollectionType_Simple`) and AI nicknames (`ZG.简单`). So the badge is most likely art,
+  like the `常小娥` title. Not pursued.
+- **Choices:** creators' nicknames stay as written (the user's call): 27 distinct in 52 fields. `官方推荐`
+  takes the catalog's *Official recommendation*. Inside a sentence `adaptive.validate_translation` refuses
+  any Chinese (`still_chinese`), so a handle there is romanized: `抖音搜肝帝` → *search Gandi on Douyin*,
+  `抖音-强者无敌` → *Douyin: Qiangzhe Wudi*. Slang item names the catalog lacks are described, not named
+  (`变猪` *pig-transformation item*, `鸡爪` *a claw*); `大书` is Savant's Wrath, `圣杯` Broken Grail, `机械头`
+  Robot Head, typos read as their hero (`奕星` Yixing, `阿珂` Arke, `亚联` Allain).
+- **Change:** 330 entries in `catalog_supplement.TEXTS`, both languages, each under its field (new sections
+  `EffectCardDesc`, `TalentDesc`). 7 are 1.6.0.1 descriptions minus the final `。` and reuse those targets.
+  `check` passes; all 660 targets pass `adaptive.validate_translation` (one shortened for
+  `extreme_expansion`).
+- **Offline per bin:** `tools/research/check_lineup_cycle.py` over the 1.7.0.1 dump and its prime layer:
+  every bin, both layers, both languages sealed, index kept, every text field reads back as its target,
+  no other field differs, rerun a no-op. Override `F79FB1A213A9DA90`: 635 text fields, Chinese left 0
+  besides the 27 nicknames (the check now counts `Provider`/`Author` nicknames apart).
+- **Offline build, pristine 1.7.0.1 + cached APK** (`D:\scratch\hok-1.7.0.1\out4-*`): `catalog supplement:
+  2196 strings` (was 1866), `unknown` 0, `text_skipped` and `graphics_skipped` empty, package `1`
+  `added-from-apk` 288 of 289 (the known encoder refusal), `already_english` 2307 / 2274, as before. Staged
+  `F79FB1A213A9DA90`: 84 975 bytes (EN) / 86 016 (ID), sealed, Chinese left = the 27 nicknames only.
+- **Leftover census:** 40 rows / 5 distinct in 19 tables in both languages, the same `{推演战术:…}` token
+  false positives as before.
+
+**No device verdict yet.** The longest new names (*Strongest Yixing Card-Steal Central Plains*, 42
+characters) were not checked on the narrow card, and the `TalentDesc`/`EffectCardDesc` text has not been
+seen on a screen.

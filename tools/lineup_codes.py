@@ -31,13 +31,14 @@ from pb_text import CJK
 NOT_BASE64 = re.compile(rb"[^A-Za-z0-9+/=]")
 
 # Text fields of each message a code nests, by measured field number; a dict is a submessage's schema.
-# TalentDesc (12) and EffectCardDesc (13) are left out: no shipped code carries them, so their numbers
-# are inferred from declared order only.
+# TalentDesc (12) and EffectCardDesc (13) are numbered by declared order; game data 1.7.0.1 ships them,
+# after the packed TalentIDs (10) and EffectCardIDs (11), holding talent and card advice.
 _HERO = {7: None}                                   # STLineupHero.Desc
 # SubHeroIDs (5) is the same STLineupHero type as MainHeroIDs (4), so its Desc is the same field.
 _OPERATION = {6: None, 4: _HERO, 5: _HERO}          # STOperationDetail.Desc, MainHeroIDs, SubHeroIDs
 _LORD = {2: None}                                   # STLineupLordInfo.Desc
 ONE_LINEUP = {1: None, 2: None, 5: None, 6: None, 7: None,  # Name, Provider, SimpleDesc, PositionDesc, EquipDesc
+              12: None, 13: None,                           # TalentDesc, EffectCardDesc
               3: _HERO, 8: _OPERATION, 9: _LORD}            # PreviewHeroes, OperationDetails, LordInfos
 
 
@@ -49,8 +50,10 @@ class LineupBin(NamedTuple):
 
 
 # The row text fields are the ones measured to hold Chinese; ResRecommendLineup's rows hold none.
+# Author (19) arrived with game data 1.7.0.1: the name suffix on the card, a nickname or 官方推荐.
 LINEUP_BINS: dict[int, LineupBin] = {
-    0xF79FB1A213A9DA90: LineupBin(4, frozenset({9})),  # ResSeasonAILineupDataBin: FormationDataCode, LineupDesc
+    0xF79FB1A213A9DA90: LineupBin(4, frozenset({9, 19})),  # ResSeasonAILineupDataBin: FormationDataCode,
+                                                           # LineupDesc, Author
     0x6A2B886E5DCF22DC: LineupBin(11, frozenset()),    # ResRecommendLineup: Encode
     0xC0C56FEFDCA0EA5D: LineupBin(5, frozenset({7})),  # ResHeroStrategyDataBin: LineupCode, Title
 }
