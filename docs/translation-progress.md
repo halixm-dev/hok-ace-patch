@@ -146,8 +146,9 @@ tags, room settings and King of Kings matchmaking, the Lineup Recommendation rew
 Yuhuan skin *Prismatic Scale* and music titles. 63 come from the catalog's own two-line talent texts, split
 by `derived`; the other 272 are listed, in both languages, every one passing `adaptive.validate_translation`.
 An offline build of the pristine 1.7.0.1 dump with the APK leaves **0** Chinese strings in the catalog's
-tables in both languages (the census's 5 hits are CJK inside `{tokens}`), `unknown` 1229 → 0. Device
-acceptance is pending. It adds rows to tables already counted, so no table count moves.
+tables in both languages (the census's 5 hits are CJK inside `{tokens}`), `unknown` 1229 → 0. A device
+cycle passed on 2026-10-22 (English); it found Chinese outside the catalog tables: the Room Settings labels
+(`77A17DCDAE26967F`, uncatalogued) and 1.7.0.1's new text in the official-lineup bin `F79FB1A213A9DA90`. It adds rows to tables already counted, so no table count moves.
 
 On 2026-10-17, Chano's live card exposed two missing numeric variants (30/60 damage, where the
 catalog has 25/50). Both languages now receive these two supplement entries. A targeted check across

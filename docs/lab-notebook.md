@@ -3859,3 +3859,33 @@ pristine delta for; roll back with the snapshot's tar before the next patcher ru
   translated `╆Fleeting` card texts whose only CJK is inside a `{推演战术:-5}`-style token: the 3 known false
   positives plus 2 variants (`-10`/`-20`) in the newly appended tables. No Chinese left in catalog tables.
   **No device verdict yet.**
+
+## 2026-10-22 — Device cycle: the 1.7.0.1 supplement (`out3-catalog`) — pass, three leftovers outside it
+
+| Step | Result |
+|---|---|
+| Restore | The phone carried the hand-pushed `out2-catalog` build. Access APK installed; `packages` + `Watchdog` cleared and `pristine/20261022-1.7.0.1/device-backup.tar` extracted on the phone (pushed to `/data/local/tmp`, then removed). All 772 files equal `device-sha256.txt`. A first try streaming the tar through `adb exec-in` from Git Bash stopped after 30 files with exit 0; pushing the tar first works |
+| Push | English build `D:\scratch\hok-1.7.0.1\out3-catalog` (commit `415c143`): 14 `.db` files in packages `1`, `10`, `1050016095`, `15`, `19`, `20`, `21`, each read back at the staged SHA-256; Watchdog cleared. `adb shell run-as … sh -c '…'` from Git Bash splits the quoted command: pass the whole remote command as one string |
+| Normal APK | First `adb install -r` did not replace the access APK (still `DEBUGGABLE`, no error printed); the retry succeeded. SHA-256 `29b3ee7e…defdc` on the phone, not debuggable |
+| Launch | Same pid through the walk, logcat 0 FATAL/SIGSEGV, 0 QtsVFS error lines, `normal1.log` 0 `errorCode:361` |
+| Screens, English | Hero Card: Fang's Awaken line (last cycle's leftover) reads "Prepare: Use 2 Ancient Coins on the nearest [Central Plains] Hero". Talent Card: Restrictive Evolution reads the new 3-card text. Lineup: strategy tags "Group Hero Upgrade \| Upgrade Bonus Stats". Lineup Recommendation Revamp Notes, both pages. Team room: "Recent" tab, the King of Kings tutorial hint, Room Settings rules (all four items). Career Rules overview. Achievement list and tiered titles. Lobby, mode select |
+
+Verdict: **pass** for the supplement: every 1.7.0.1 string it supplies that a reachable screen shows reads
+English, and nothing crashed or was repaired. Super Hero is not open on the server today, so its screens were
+not seen. Three things stay Chinese, none of them in a catalog table:
+
+- **Diamond Frenzy talent cards: the series line.** "General Series" / "Starting Lineup Series" (the
+  `derived` split) is drawn over a dim Chinese `通用系列` / `初始阵容系列`. `初始阵容系列` is in no other asset
+  of the override layer, the APK's prime layer or any APK entry (searched decoded assets and every zip entry,
+  UTF-8 and UTF-16), and the staged tables hold neither string, so the dim copy is most likely the card art's
+  watermark (like "TALENT" behind the name). Untranslated, the two coincided.
+- **Room Settings option labels** (`自动接受匹配`, `免邀进入房间`, `好友`/`亲密关系`/`关闭`,
+  `允许玩家加入我的王中王队伍`, `不匹配王中王玩家`): table `77A17DCDAE26967F`, which the catalog has no record
+  for; the build log already names it "needs an extra_text cycle".
+- **Official recommendation lineups**: 1.7.0.1 rewrote `F79FB1A213A9DA90` (allowlisted). Staged, it still
+  holds 58 distinct Chinese runs: about 30 new lineup descriptions, the `官方推荐` suffix, the `简单`
+  difficulty and community creators' nicknames (`抖音…`). The census counts catalog tables only, so these were
+  outside the 335.
+
+Screenshots: `D:\scratch\hok-1.7.0.1\cycle3\`. The phone now carries `out3-catalog`, which no patcher holds a
+pristine delta for; roll back with the snapshot's tar before the next patcher run.
