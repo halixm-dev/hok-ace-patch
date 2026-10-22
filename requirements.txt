@@ -1,7 +1,7 @@
 # Python 3.12 (the bundled translation runtime in resources/runtime is compiled for 3.12)
 customtkinter==6.0.0
 darkdetect==0.8.0
-pillow==12.3.0
+pillow==13.0.0
 cryptography==50.0.1
 lz4==4.4.5
 # The texture pass decodes BC7/RGBA32, encodes ASTC and unpacks Oodle chunks. wxq_patch does not
