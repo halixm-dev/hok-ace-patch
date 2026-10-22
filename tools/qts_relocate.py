@@ -325,6 +325,9 @@ class Shard:
         order (package 13's `0x7000` between `0x1000` and `0x3000`). The root gains the new page's
         lowest key as its bound, and the table gains its row. A root that is itself full, which would
         need a second internal level no package has, is refused.
+
+        Device verdict 2026-10-22, pass: package 1 on data 1.7.0.1, split from two leaves to three,
+        loads, and its appended Chessplayer Card text reads English (lab notebook).
         """
         root_logical = self._u32(0x10)
         root = self._active_page(root_logical)

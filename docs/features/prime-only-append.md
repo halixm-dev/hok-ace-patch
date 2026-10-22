@@ -141,7 +141,9 @@ out is the known encoder refusal), 442 → 730 entries, none lost, every pristin
 staged tree has 3 leaves of 257/255/490. Its page table and header words `+0x10..+0x1f` are **byte for
 byte** those of package `4`'s Tencent-built index, the layer's other 4-row tree.
 `tools/research/check_btree_split.py` checks the invariants (synthetic shard always, `--game` for a
-layer). Not yet run on a phone.
+layer). **Device verdict 2026-10-22: pass** (Xiaomi M2007J3SG, English build pushed over the pristine
+1.7.0.1 layer): startup, lobby menu and the Encyclopedia's Chessplayer Card page in English, no
+repair (lab notebook).
 
 Things that go wrong are reported rather than fatal. A B-tree leaf already holding 510 keys, a device
 copy split over several shards, or the encoder refusing a payload land in the run's `append_skipped` list

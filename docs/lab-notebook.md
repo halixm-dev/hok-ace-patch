@@ -3824,3 +3824,18 @@ reinstalled in a `finally`. The user walked the screens; logcat was recorded for
   reads; tree 3 leaves of 257/255/490 (ID 256/255/491). The staged page table and header `+0x10..+0x1f`
   equal package `4`'s Tencent-built 4-row index byte for byte. Other packages and counts unchanged
   (`text_skipped`, `graphics_skipped` empty). **No device verdict yet.**
+
+## 2026-10-22 — Device cycle: the non-root leaf split on 1.7.0.1 — pass
+
+| Step | Result |
+|---|---|
+| Phone | Xiaomi M2007J3SG, data `1.7.0.1` r0, `NewVersionInfo.json` `needDownloadSize` 0; launcher name already rewritten in `installed.apk` |
+| Backup | Live layer (`packages` + `Watchdog`) hashed through the access APK: equal to `pristine/20261022-1.7.0.1/device-sha256.txt` in every file, so that snapshot's `device-backup.tar` is the rollback |
+| Push | English build `D:\scratch\hok-1.7.0.1\out2-catalog` (commit `2db5266`): 14 `.db` files in packages `1`, `10`, `1050016095`, `15`, `19`, `20`, `21`, each read back on the phone at the staged SHA-256; Watchdog cleared. A first push from Git Bash failed on `/d/...` paths before any package file was written; re-run with `D:/...` paths |
+| Normal APK | First `adb install -r` failed with no reason given; the retry succeeded. Not debuggable, SHA-256 `29b3ee7e…defdc` |
+| Launch | Past startup, still logged in. Process alive throughout (same pid), logcat: no FATAL/SIGSEGV, no QtsVFS error lines; `normal1.log` 0 `errorCode:361` |
+| Screens | Encyclopedia → ACE Tournament → Hero Card: English (Fang's Awaken line `整备…古币` is a known 1.7.0.1 leftover). **Chessplayer Card: names, skills, card text and Category in English**, the prime-only content package `1` gets only by append. Lobby menu: English |
+
+Verdict: **pass**. The phone now carries this hand-pushed English build, which no patcher holds a
+pristine delta for; roll back with the snapshot's tar before the next patcher run. Screenshots:
+`D:\scratch\hok-1.7.0.1\cycle\`.
