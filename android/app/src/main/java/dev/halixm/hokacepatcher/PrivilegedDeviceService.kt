@@ -15,7 +15,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     companion object {
         const val GAME = "com.tencent.tmgp.osgame"
         const val FIXTURE = "io.github.hokace.fixture"
-        const val PROTOCOL_VERSION = 11
+        const val PROTOCOL_VERSION = 12
         /** The UI matches on it; keep it free of "Shizuku" and "permission". */
         const val GAME_MISSING = "The game is not installed for the phone's main user"
         private const val MAX_DIAGNOSTIC = 16384
@@ -512,6 +512,26 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
             check(result.substringBefore(' ') == sha256) { "Installed file read-back differs" }
             return JSONObject().put("relative", relative).put("sha256", sha256).put("bytes", length).toString()
         } finally { try { source.close() } catch (_: Exception) { } }
+    }
+
+    /**
+     * Delete one package file so the game downloads it again. It must still hold <sha256>, the snapshot's
+     * bytes, so rollback can write it back; a file already gone counts as deleted.
+     */
+    @Synchronized override fun deleteGameFile(session: String, relative: String, sha256: String) {
+        requireShell()
+        GameFilePolicy.session(session)
+        GameFilePolicy.validate(relative, writable = true)
+        require(sha256.matches(Regex("[0-9a-f]{64}"))) { "Invalid original hash" }
+        val target = "files/QtsVFSCache/$relative"
+        val parent = target.substringBeforeLast('/')
+        val script = GameFilePolicy.parentChecks(relative) + " && [ -d '$parent' ] || exit 1; " +
+            "if [ -e '$target' ]; then actual=\$(sha256sum '$target') || exit 1; actual=\${actual%% *}; " +
+            "[ \"\$actual\" = '$sha256' ] || { echo 'Game file changed before deletion' >&2; exit 1; }; " +
+            "rm -f '$target' && sync '$parent' || exit 1; fi; " +
+            "[ ! -e '$target' ] && printf 'deleted'"
+        check(command(listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c", lockedGameScript(script)),
+            timeoutSeconds = 900) == "deleted") { "Game file deletion was not confirmed" }
     }
 
     @Synchronized override fun clearSessionTemp(session: String, relative: String) {

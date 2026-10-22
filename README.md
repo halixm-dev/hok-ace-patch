@@ -52,6 +52,13 @@ no asset record), or on a phone another patcher (or a patcher version from befor
 let it download again to the login screen, close it and patch. Clearing data removes local game data
 and requires another login.
 
+If the game's own update stops on the translated files ("资源修复失败，请清理资源后重新下载资源"), the
+Android patcher sees it on the next Start or Remove translation: the game lists those files as broken.
+It then offers **Re-download damaged files**, which deletes only the translated packages the game
+listed and the game's update records. Open the game, let it download them and finish the update to the
+login screen, close it, then tap Start to patch again. No other game data is deleted. The Windows
+patcher does not detect this yet; clear the game's data instead.
+
 Use the APK and game data from the phone's current version. An older staged package can
 stall loading and cause the game to repair away the translation.
 

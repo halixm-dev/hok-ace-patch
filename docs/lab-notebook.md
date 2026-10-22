@@ -3944,3 +3944,35 @@ seen on a screen.
 Verdict: **pass**, English, beside `F79FB1A213A9DA90` in `extra_text.SAFE_ASSETS`. Indonesian was not walked.
 The phone now carries the hand-pushed `out5-catalog`, which no patcher holds a pristine delta for; roll back
 with `pristine/20261022-1.7.0.1/device-backup.tar` before the next patcher run.
+
+## 2026-10-22 — An update stuck on translated files, and Re-download
+
+The user's Redmi Note 9 Pro (Android 15), translated in English by Android patcher 1.7.1.1 on data
+`1.7.0.1` r810723. At 14:50 the in-game update stopped with "资源修复失败，请清理资源后重新下载资源"; Remove
+translation then refused three times (14:56–14:58; the reason is in the patcher's private trace, not read).
+Evidence in `D:\scratch\hok-update-fail\`.
+
+| Question | Finding | Grade |
+|---|---|---|
+| Did any of the update apply? | No. `0/0.info` and `1/1.info` stayed at r810723; the game's logs kept the `r810723` name. The update is all or nothing. | measured |
+| What the updater recorded | `Watchdog/BrokenList.db` (64 KB, was header only) holds 388 asset records, every one in package `1`. Record layout: `u32` 8, `u32` 60 + name length, the `u64` asset hash at +16, the package name at +64 (`tools/broken_list.py`). A copy sits in `Watchdog/collection/`. | measured |
+| What package `1` held | The translation as staged: of the pristine 442 assets, 396 unchanged, 46 changed, plus 288 appended. The 388 broken assets are the 288 appended, 44 of the changed and 56 unchanged. | measured |
+| `normal1.log` | No repair or `errorCode` line; the failure is not logged where the device cycle looks. | measured |
+
+**Re-download, by hand.** With a debuggable copy of the phone's own APK installed: package `1` (`1.db`,
+`1_0.db`, `1.info`) and `Watchdog` backed up, then deleted (the whole `Watchdog`, as every patch run
+clears it), normal APK reinstalled. The user opened the game: `needDownloadSize` 48 577, then
+"游戏资源更新完毕，请您退出后重启游戏" (update finished, restart). After the restart the login screen; logs named
+`r815437`.
+
+| Check after | Result |
+|---|---|
+| `0/0.info` | r815437 |
+| package `1` | back, 442 assets, 441 equal to the untranslated r815437 copy from the M2007J3SG this morning, 0 appended. The one other asset (`56077AC5D3F0B677`) matches neither that copy nor the translated one: the game's own per-phone difference |
+| `BrokenList.db` | 16 KB, header only |
+
+**Verdict:** an update stuck on a translated package finishes, without clearing the game's data, once that
+package's files are deleted and `Watchdog` is cleared: the game downloads the package whole. The login was
+not checked (the user reached the login screen). Measured on one phone, one package (`1`); a stuck texture
+package is unmeasured. The Android patcher's Re-download damaged files (`docs/features/update-stuck-redownload.md`)
+does the same; its own run on a phone is not yet tested.

@@ -3,8 +3,9 @@ package dev.halixm.hokacepatcher
 import org.json.JSONObject
 
 /**
- * The six steps a patch or a removal reports, as stable keys the worker record carries beside its free-text
- * line. `prepare` runs steps 1 and 2 before the confirmation; `patch` and `remove` run 3 to 6 after it.
+ * The six steps a patch, a removal or a re-download reports, as stable keys the worker record carries beside
+ * its free-text line. `prepare` runs steps 1 and 2 before the confirmation; `patch`, `remove` and
+ * `redownload` run 3 to 6 after it.
  * Recovery, first setup and Free up space report no step.
  */
 object WorkerStep {
@@ -22,14 +23,16 @@ object WorkerStep {
         "Saving complete game data" to "unlock_access",
         "Building text and graphics" to "build",
         "Rebuilding the original game files" to "build",
+        "Finding the package files the game update" to "build",
         "Applying package file" to "write",
+        "Deleting package file" to "write",
         "Restoring normal game APK" to "restore_game_app",
     )
 
     /** The first and last step of <action>, or null for an action that reports none. */
     private fun range(action: String): IntRange? = when (action) {
         "prepare" -> 0..1
-        "patch", "remove" -> 2..5
+        "patch", "remove", "redownload" -> 2..5
         else -> null
     }
 
@@ -46,12 +49,12 @@ object WorkerStep {
     }
 
     /**
-     * The log lines a run of <action> starts with, given the <saved> record it replaces. A patch or a removal
+     * The log lines a run of <action> starts with, given the <saved> record it replaces. A patch, a removal or a re-download
      * continues the preparation the confirmation was shown from, so it keeps that log and steps 1 and 2 stay
      * in it; any other run starts empty.
      */
     fun carriedMessages(action: String, saved: JSONObject?): List<String> {
-        if (action !in setOf("patch", "remove") || saved == null) return emptyList()
+        if (action !in setOf("patch", "remove", "redownload") || saved == null) return emptyList()
         if (saved.optString("status") != "prepared" || saved.optString("action") != "prepare") return emptyList()
         val messages = saved.optJSONArray("messages") ?: return emptyList()
         return (0 until messages.length()).map { messages.optString(it) }.filter { it.isNotBlank() }

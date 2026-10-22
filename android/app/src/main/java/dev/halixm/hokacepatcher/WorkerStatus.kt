@@ -28,7 +28,11 @@ object WorkerStatus {
         "setup_ready" -> "Game setup finished. Translation has not started. Prepare game files again, then confirm the update checkpoint to patch."
         "setup_cancelled" -> "Setup stopped. The original game app was verified. Translation has not started." +
             if (value.optBoolean("data_loss_may_have_happened")) " Local data may need downloading again." else ""
-        "complete" -> if (value.has("removed")) {
+        "complete" -> if (value.has("redownloaded")) {
+            "Damaged files deleted. Normal game app verified.\n" +
+                "Package files deleted: ${value.getInt("redownloaded")}\n" +
+                "Open the game, let it finish the update to the login screen, close it, then tap Start to patch again."
+        } else if (value.has("removed")) {
             "Translation removed. Normal game app verified.\n" +
                 "Original game files restored: ${value.getInt("removed")}\n" +
                 "Keep using Scan to login. For the official app, reinstall the game from the store."

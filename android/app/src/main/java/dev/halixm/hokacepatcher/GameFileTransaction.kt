@@ -53,6 +53,25 @@ class GameFileTransaction(private val journal: SessionJournal, private val devic
         if (rollback) journal.outcome(PatchPhase.RESTORING) else journal.fileCommitted(relative)
     }
 
+    /** Re-download: delete one package file still at its snapshot <hash>; [rollback] writes it back. */
+    fun delete(relative: String, hash: String) {
+        GameFilePolicy.validate(relative, writable = true)
+        journal.intent("delete_file", JSONObject().put("path", relative).put("sha256", hash))
+        device.deleteGameFile(journal.id, relative, hash)
+        journal.fileCommitted(relative)
+    }
+
+    /**
+     * Re-download's last game-file step: clear Watchdog, which drops the broken list, so the game's next
+     * launch downloads the deleted packages instead of repairing them. Nothing was written to verify.
+     */
+    fun finishDeletion() {
+        journal.intent("clear_watchdog")
+        device.clearGameWatchdog()
+        journal.outcome(PatchPhase.RESTORING, JSONObject().put("packages_dirty", false)
+            .put("patch_payload_verified", false))
+    }
+
     fun validate(manifest: File) {
         ParcelFileDescriptor.open(manifest, ParcelFileDescriptor.MODE_READ_ONLY).use {
             device.validateGameSnapshot(it)

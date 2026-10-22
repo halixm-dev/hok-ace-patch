@@ -48,17 +48,25 @@ object UiText {
     /** A running step of ② Start: its 1-based number, the total, and "Step N of M · <step>". */
     data class Step(val number: Int, val total: Int, val line: String)
 
-    /** The step <state> reports in language <code>, or null for a record without one; removal names steps 4 and 5 for the original files. */
+    /** The step <state> reports in language <code>, or null for a record without one; removal and re-download name their own steps 4 and 5. */
     fun step(code: String, state: JSONObject): Step? {
         val number = WorkerStep.number(state) ?: return null
         val total = state.optInt("steps").takeIf { it >= number } ?: return null
-        val remove = state.optString("action") == "remove"
+        val action = state.optString("action")
         val name = when (number) {
             1 -> template(code, "android_step_check_game")
             2 -> template(code, "android_step_prepare_files")
             3 -> template(code, "android_step_unlock_access")
-            4 -> if (remove) template(code, "android_step_build_original") else template(code, "step_translate")
-            5 -> if (remove) template(code, "android_step_write_original") else template(code, "android_step_write")
+            4 -> when (action) {
+                "remove" -> template(code, "android_step_build_original")
+                "redownload" -> template(code, "android_step_find_damaged")
+                else -> template(code, "step_translate")
+            }
+            5 -> when (action) {
+                "remove" -> template(code, "android_step_write_original")
+                "redownload" -> template(code, "android_step_delete_damaged")
+                else -> template(code, "android_step_write")
+            }
             else -> template(code, "android_step_restore_game_app")
         }
         return Step(number, total, template(code, "progress_step", "n" to number, "total" to total, "step" to name))
@@ -85,7 +93,11 @@ object UiText {
 
     /** The result <state> reports in language <code>, or null when the worker record is not a result. Takes a code, not a Context, so JVM tests reach it. */
     fun result(code: String, state: JSONObject): Result? = when (state.optString("status")) {
-        "complete" -> if (state.has("removed")) Result("Translation removed", translate(code, "Translation removed"), template(code, "removal_verified"),
+        // ② leads with Open game: the game's own update is the next step, and the note says what follows it.
+        "complete" -> if (state.has("redownloaded")) Result("Damaged files deleted", translate(code, "Damaged files deleted"),
+            template(code, "redownload_verified"), listOf(template(code, "redownload_files_deleted", "count" to state.getInt("redownloaded"))),
+            template(code, "redownload_next_step"), gameReady = true)
+        else if (state.has("removed")) Result("Translation removed", translate(code, "Translation removed"), template(code, "removal_verified"),
             listOf(template(code, "original_files_restored", "count" to state.getInt("removed"))), template(code, "removed_login_note"), gameReady = true)
         else {
             val counts = state.optJSONObject("counts")
@@ -111,6 +123,8 @@ object UiText {
     private fun size(bytes: Long): String = StorageBudget.freeSpaceLabel(bytes).replace(' ', ' ')
 
     fun removeConfirmation(context: Context): String = string(context, "remove_confirmation")
+
+    fun redownloadConfirmation(context: Context): String = string(context, "redownload_confirmation")
 
     fun firstSetup(context: Context): String = string(context, "first_setup_consent")
 

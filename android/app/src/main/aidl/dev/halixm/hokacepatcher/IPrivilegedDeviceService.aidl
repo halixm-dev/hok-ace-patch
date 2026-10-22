@@ -25,5 +25,6 @@ interface IPrivilegedDeviceService {
     String estimateGameSnapshot() = 18;
     void checkGameProfiles() = 19;
     String releaseReplacedGameApks() = 20;
+    void deleteGameFile(String session, String relative, String sha256) = 21;
     void destroy() = 16777114;
 }

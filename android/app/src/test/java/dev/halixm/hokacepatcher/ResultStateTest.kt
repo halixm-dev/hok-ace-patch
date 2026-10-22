@@ -40,6 +40,14 @@ class ResultStateTest {
         assertEquals("Keep using Scan to login. For the official app, reinstall the game from the store.", result.note)
     }
 
+    @Test fun damagedFilesDeletedSendsThePlayerToTheGameUpdateFirst() {
+        val result = UiText.result("en", complete().put("action", "redownload").put("redownloaded", 3).put("packages", 1))!!
+        assertEquals("Damaged files deleted", result.heading)
+        assertEquals(listOf("Package files deleted: 3"), result.items)
+        assertEquals("Open the game, let it finish the update to the login screen, close it, then tap Start to patch again.", result.note)
+        assertTrue(result.gameReady)
+    }
+
     @Test fun translationWrittenHasNoCountsAndNoNote() {
         val result = UiText.result("id", JSONObject().put("status", "recovered_unconfirmed"))!!
         assertEquals("Terjemahan ditulis", result.heading)

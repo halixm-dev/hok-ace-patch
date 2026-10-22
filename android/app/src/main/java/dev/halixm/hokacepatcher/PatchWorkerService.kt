@@ -166,6 +166,15 @@ class PatchWorkerService : Service() {
                         else EmergencyRestoreStore(this).verify(emergency, normal, worker::verifyRecoveryInstalled)
                         state(JSONObject().put("status", "verified").put("action", "verify"))
                     }
+                    "redownload" -> {
+                        val prepared = PatchRequestStore(this).claim(checkNotNull(intent.getStringExtra("request")))
+                        check(!cancelRequested.get() && !retiring.get()) { "Re-download cancelled before access" }
+                        val summary = worker.run(prepared.normal.sha256, prepared.accessFile, prepared.source,
+                            redownload = true)
+                        state(JSONObject().put("status", "complete").put("action", "redownload")
+                            .put("redownloaded", summary.getJSONArray("redownload").length())
+                            .put("packages", summary.getJSONObject("packages").length()))
+                    }
                     "patch", "remove" -> {
                         val prepared = PatchRequestStore(this).claim(checkNotNull(intent.getStringExtra("request")))
                         check(!cancelRequested.get() && !retiring.get()) { "Patch cancelled before access" }

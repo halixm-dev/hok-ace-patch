@@ -1766,6 +1766,134 @@
       "en": "OK",
       "id": "OK",
       "draft": true
+    },
+    "the_game_update_is_stuck": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game update is stuck",
+      "id": "Pembaruan game macet",
+      "draft": true
+    },
+    "the_game_could_not_update_translated": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game could not update the files this patcher translated. Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
+      "id": "Game tidak bisa memperbarui file yang diterjemahkan patcher ini. Unduh ulang file tersebut: hanya file game itu yang dihapus, lalu game mengunduhnya lagi. Data game lainnya tetap ada.",
+      "draft": true
+    },
+    "redownload_damaged_files": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Re-download damaged files",
+      "id": "Unduh ulang file rusak",
+      "draft": true
+    },
+    "finish_the_game_update": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Finish the game update",
+      "id": "Selesaikan pembaruan game",
+      "draft": true
+    },
+    "open_the_game_finish_update_then_start": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open the game and let it finish the update to the login screen. Close it, then tap Start to patch again.",
+      "id": "Buka game dan biarkan pembaruan selesai sampai layar login. Tutup game, lalu ketuk Mulai untuk menambal lagi.",
+      "draft": true
+    },
+    "i_closed_the_game": {
+      "platforms": [
+        "android"
+      ],
+      "en": "I closed the game",
+      "id": "Saya sudah menutup game",
+      "draft": true
+    },
+    "delete_and_redownload": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Delete and re-download",
+      "id": "Hapus dan unduh ulang",
+      "draft": true
+    },
+    "redownload_confirmation": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game's update stopped on the files this patcher translated. This deletes only those game files and clears the game's update records, so the game downloads them again on its next start. Nothing else is deleted.\n\nThen open the game, let it finish the update to the login screen, close it, and tap Start to patch again.",
+      "id": "Pembaruan game berhenti pada file yang diterjemahkan patcher ini. Ini hanya menghapus file game tersebut dan catatan pembaruan game, sehingga game mengunduhnya lagi saat dibuka berikutnya. Tidak ada yang lain yang dihapus.\n\nLalu buka game, biarkan pembaruan selesai sampai layar login, tutup game, dan ketuk Mulai untuk menambal lagi.",
+      "draft": true
+    },
+    "damaged_files_deleted": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Damaged files deleted",
+      "id": "File rusak dihapus",
+      "draft": true
+    },
+    "redownload_verified": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Damaged files deleted. Normal game app verified.",
+      "id": "File rusak dihapus. Aplikasi game normal terverifikasi.",
+      "draft": true
+    },
+    "redownload_files_deleted": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Package files deleted: {count}",
+      "id": "File paket dihapus: {count}",
+      "draft": true
+    },
+    "redownload_next_step": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open the game, let it finish the update to the login screen, close it, then tap Start to patch again.",
+      "id": "Buka game, biarkan pembaruan selesai sampai layar login, tutup game, lalu ketuk Mulai untuk menambal lagi.",
+      "draft": true
+    },
+    "android_step_find_damaged": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Find damaged files",
+      "id": "Cari file rusak",
+      "draft": true
+    },
+    "android_step_delete_damaged": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Delete damaged files",
+      "id": "Hapus file rusak",
+      "draft": true
+    },
+    "redownloading_damaged_game_files": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Re-downloading damaged game files",
+      "id": "Mengunduh ulang file game yang rusak",
+      "draft": true
+    },
+    "finding_package_files_update_could_not_change": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Finding the package files the game update could not change",
+      "id": "Mencari file paket yang tidak bisa diubah pembaruan game",
+      "draft": true
     }
   }
 }

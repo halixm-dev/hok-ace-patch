@@ -84,13 +84,13 @@ class SessionJournal private constructor(val directory: File, private val value:
     @Synchronized fun intent(operation: String, detail: JSONObject = JSONObject()) {
         check(!hasMutationIntent) { "An earlier mutation is unresolved" }
         check(operation in setOf("install_access", "install_normal", "first_uninstall",
-            "first_install", "write_file", "clear_watchdog", "rollback_file", "restore_watchdog")) {
+            "first_install", "write_file", "delete_file", "clear_watchdog", "rollback_file", "restore_watchdog")) {
             "Unknown journal operation"
         }
         value.put("mutation_intent", JSONObject().put("operation", operation).put("detail", detail))
         if (operation in setOf("install_access", "install_normal", "first_uninstall", "first_install"))
             value.put("normal_verified", false)
-        if (operation in setOf("write_file", "clear_watchdog")) {
+        if (operation in setOf("write_file", "delete_file", "clear_watchdog")) {
             value.put("packages_dirty", true).put("patch_payload_verified", false)
         }
         persist()
@@ -218,7 +218,7 @@ class SessionJournal private constructor(val directory: File, private val value:
             if (result.hasMutationIntent) {
                 val intent = value.getJSONObject("mutation_intent")
                 check(intent.getString("operation") in setOf("install_access", "install_normal", "first_uninstall",
-                    "first_install", "write_file", "clear_watchdog", "rollback_file", "restore_watchdog")) { "Unknown stored mutation" }
+                    "first_install", "write_file", "delete_file", "clear_watchdog", "rollback_file", "restore_watchdog")) { "Unknown stored mutation" }
                 intent.getJSONObject("detail")
             }
             if (result.phase in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) {

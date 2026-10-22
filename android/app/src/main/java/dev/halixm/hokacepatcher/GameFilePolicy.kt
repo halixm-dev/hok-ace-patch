@@ -1,6 +1,6 @@
 package dev.halixm.hokacepatcher
 
-/** Fixed game-data scope. Snapshot-only metadata is never writable through the patch adapter. */
+/** Fixed game-data scope. The global index is snapshot-only metadata, never writable through the patch adapter. */
 object GameFilePolicy {
     fun validate(relative: String, writable: Boolean = false) {
         require(relative.length <= 512 && !relative.startsWith("/")) { "Invalid game data path" }
@@ -17,7 +17,8 @@ object GameFilePolicy {
         val id = parts[1]
         require(id.matches(Regex("[0-9]{1,10}")) && id.toLong() <= 0xFFFFFFFFL) { "Invalid package ID" }
         val database = parts[2].matches(Regex("${Regex.escape(id)}(?:_[0-9]{1,3})?[.]db"))
-        require(database || (!writable && parts[2] == "$id.info")) { "Unsupported package filename" }
+        // A package's .info is writable only as Re-download deletes it and its rollback writes it back.
+        require(database || parts[2] == "$id.info") { "Unsupported package filename" }
     }
 
     fun session(value: String) {

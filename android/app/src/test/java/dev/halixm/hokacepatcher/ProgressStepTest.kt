@@ -26,6 +26,11 @@ class ProgressStepTest {
         assertEquals("Step 5 of 6 · Write translation", UiText.step("en", running("patch", "write"))?.line)
     }
 
+    @Test fun reDownloadNamesItsFindAndDeleteSteps() {
+        assertEquals("Step 4 of 6 · Find damaged files", UiText.step("en", running("redownload", "build"))?.line)
+        assertEquals("Langkah 5 dari 6 · Hapus file rusak", UiText.step("id", running("redownload", "write"))?.line)
+    }
+
     /** The step keys a run of <action> records as it reports <messages>, in order. */
     private fun steps(action: String, vararg messages: String) =
         messages.runningFold(null as String?) { step, message -> WorkerStep.next(action, step, message) }.drop(1)
@@ -46,6 +51,12 @@ class ProgressStepTest {
     @Test fun aFailedBuildRestoringTheGameAppIsNotStepSix() {
         assertEquals(listOf("unlock_access", "build", "build"), steps("remove",
             "Opening game data access", "Rebuilding the original game files from the pristine delta", "Restoring normal game APK"))
+    }
+
+    @Test fun aReDownloadCountsThreeToSix() {
+        assertEquals(listOf("unlock_access", "build", "write", "write", "restore_game_app"), steps("redownload",
+            "Opening game data access", "Finding the package files the game update could not change",
+            "Deleting package file 1/1.db", "Deleting package file 1/1_0.db", "Restoring normal game APK"))
     }
 
     @Test fun recoveryAndFreeUpSpaceReportNoStep() {

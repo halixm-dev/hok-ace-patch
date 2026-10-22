@@ -8,6 +8,11 @@ Tencent's updater patches packages with binary diffs against their original cont
   (`.scratch/language-switch/spec.md`) writes a patched file's pristine bytes back, rebuilt from its
   pristine delta, so the update's diffs find the content they expect. It writes no translation; the
   translation still goes on only after the update has finished.
+- **An update already stuck on a translation.** Measured 2026-10-22: the updater refuses the whole update
+  and lists the translated assets in `Watchdog/BrokenList.db`. Deleting the listed translated packages and
+  clearing `Watchdog` lets the game download them whole and finish; the Android patcher offers this as
+  Re-download damaged files ([update-stuck-redownload](../features/update-stuck-redownload.md)). It writes
+  no translation either.
 - **The evidence grade.** `errorCode:361` and the "binary diff" wording above come from the upstream PC
   patcher's README and were never measured here. The mechanism found since points the same way: the
   updater checks each asset against the CRC its package stores, and our writes leave those values

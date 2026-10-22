@@ -68,6 +68,8 @@ class MainActivity : Activity() {
     private var automatic = false
     /** The automatic flow ends in Remove translation rather than a patch. */
     private var removing = false
+    /** The automatic flow ends in Re-download damaged files rather than a patch. */
+    private var redownloading = false
     private var awaitingToken: String? = null
     private var awaitingAction: String? = null
     private var permissionRequested = false
@@ -122,6 +124,7 @@ class MainActivity : Activity() {
         waitingForDownloads = state?.getString("waiting-downloads")
         automatic = (awaitingToken != null || waitingForShizuku || waitingForDownloads != null) && state?.getBoolean("automatic") == true
         removing = automatic && state?.getBoolean("removing") == true
+        redownloading = automatic && state?.getBoolean("redownloading") == true
         home = GuidedHome(this) { key ->
             DiagnosticTrace.event("ui", "Tap $key; busy $busy automatic $automatic shizuku ${Shizuku.pingBinder()}")
             when (key) {
@@ -131,6 +134,10 @@ class MainActivity : Activity() {
                     home.message("This patcher has no record of a translation on this phone, so there is nothing to remove.")
                 } else if (!busy && !automatic && !PatchWorkerService.isWorking) {
                     removing = true
+                    beginAutomatic()
+                }
+                "redownload" -> if (!busy && !automatic && !PatchWorkerService.isWorking) {
+                    redownloading = true
                     beginAutomatic()
                 }
                 "stop" -> AlertDialog.Builder(this).setTitle(ui("Stop safely?"))
@@ -322,7 +329,7 @@ class MainActivity : Activity() {
         if (ensurePermission()) routeAutomatic()
     }
 
-    private fun stopAutomatic() { automatic = false; removing = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null }
+    private fun stopAutomatic() { automatic = false; removing = false; redownloading = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null }
 
     private fun openShizuku() {
         if (!ShizukuLauncher.open(this)) {
@@ -422,10 +429,11 @@ class MainActivity : Activity() {
                     val prepared = ApkPreparation(this).load(result.getString("preparation"))
                     runOnUiThread {
                         if (!automatic || destroyed) return@runOnUiThread
-                        if (removing && prepared.requiresSignatureConversion) {
+                        if ((removing || redownloading) && prepared.requiresSignatureConversion) {
                             stopAutomatic()
                             home.message("The game on this phone is the official build, which this patcher never translated, so there is nothing to remove.")
                         } else if (prepared.requiresSignatureConversion) showFirstSetupConfirmation(prepared)
+                        else if (redownloading) showRedownloadConfirmation(prepared)
                         else showPatchConfirmation(prepared, removing)
                     }
                 }
@@ -471,6 +479,14 @@ class MainActivity : Activity() {
             // Space freed hands back plain Start; the other results offer another patch.
             result != null && !pending.getOrThrow() -> home.result(result,
                 if (state.optString("status") == "space_freed") "Start" else "Start another patch")
+            // The engine's refusal for an update stuck on translated files: ② offers Re-download instead of a retry.
+            state?.optString("status") == "error" && state.optString("error").contains(UPDATE_STUCK) ->
+                home.show("The game update is stuck", "The game could not update the files this patcher translated. " +
+                    "Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
+                    "Re-download damaged files", "redownload", false, GuidedHome.Stage.ATTENTION)
+            state?.optString("status") == "error" && state.optString("error").contains(UPDATE_WAITING) ->
+                home.show("Finish the game update", "Open the game and let it finish the update to the login screen. Close it, then tap Start to patch again.",
+                    "Open game", "game", false, GuidedHome.Stage.ATTENTION)
             // With recovery on offer, ② opens it rather than asking to try again against the recovery card.
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped",
                 friendlyFailure(state?.optString("error").orEmpty(), recoverable),
@@ -483,7 +499,8 @@ class MainActivity : Activity() {
         home.languageEnabled(!busy && !live && !automatic)
         home.progress(live || (busy && automatic), step)
         buttons.forEach { it.isEnabled = !busy && !live && !automatic }
-        home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required"))
+        home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required") &&
+            listOf(UPDATE_STUCK, UPDATE_WAITING).none { state?.optString("error").orEmpty().contains(it) })
             friendlyFailure(state?.optString("error").orEmpty(), recoverable) else "")
         home.errorDetails(when {
             live -> ""
@@ -664,6 +681,34 @@ class MainActivity : Activity() {
             }.show().also(PanelDialog::style)
     }
 
+    /**
+     * Re-download damaged files deletes the translated packages a stuck game update names. The update has
+     * not finished, so its checkbox asks only that the game is closed; the request store records the
+     * same consent field a patch does.
+     */
+    private fun showRedownloadConfirmation(prepared: ApkPreparation.Prepared): AlertDialog {
+        val confirmation = CheckBox(this).apply { tag = "redownload-confirmation"; text = ui("I closed the game") }
+        val dialog = AlertDialog.Builder(this).setTitle(ui("Re-download damaged files"))
+            .setMessage(UiText.redownloadConfirmation(this))
+            .setView(confirmation).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }
+            .setPositiveButton(ui("Delete and re-download"), null).create()
+        dialog.show()
+        PanelDialog.style(dialog)
+        val start = dialog.getButton(AlertDialog.BUTTON_POSITIVE); start.isEnabled = false
+        confirmation.setOnCheckedChangeListener { _, checked -> start.isEnabled = checked }
+        start.setOnClickListener {
+            if (!busy) {
+                dialog.dismiss()
+                runTask {
+                    val request = PatchRequestStore(this).confirm(prepared, confirmation.isChecked)
+                    runOnUiThread { startWorker(Intent(this, PatchWorkerService::class.java)
+                        .setAction("redownload").putExtra("request", request)) }
+                }
+            }
+        }
+        return dialog
+    }
+
     /** <remove> asks to confirm Remove translation, which writes the original game files back instead. */
     private fun showPatchConfirmation(prepared: ApkPreparation.Prepared, remove: Boolean = false): AlertDialog {
         val confirmation = CheckBox(this).apply {
@@ -711,6 +756,9 @@ class MainActivity : Activity() {
     companion object {
         /** True while the patcher is on screen; a finished run then posts no notification. */
         @Volatile var shown = false
+        /** The engine's refusals that open Re-download and the update wait (`android_bridge.UPDATE_STUCK`, `UPDATE_WAITING`). */
+        const val UPDATE_STUCK = "The game's update stopped on translated files"
+        const val UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
     }
 
     private fun recoveryId(): String {
@@ -869,6 +917,7 @@ class MainActivity : Activity() {
         state.putString("waiting-downloads", waitingForDownloads)
         state.putBoolean("automatic", automatic)
         state.putBoolean("removing", removing)
+        state.putBoolean("redownloading", redownloading)
         state.putString("automatic-token", awaitingToken)
         state.putString("automatic-action", awaitingAction)
         state.putLong("automatic-since", awaitingSince)

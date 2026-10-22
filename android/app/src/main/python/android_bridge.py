@@ -19,6 +19,11 @@ SESSION_DELTA = "pristine-delta.bin"
 CLEAR_DATA = ("Clear the game's data (Android Settings > Apps > the game > Storage > Clear data), open the "
               "game and let it download again to the login screen, close it, then patch again.")
 OTHER_PATCHER = "If the Windows patcher patched this phone last, patch it with that patcher instead."
+# The start of the refusal for an in-game update stuck on translated files; the UI offers Re-download on it.
+UPDATE_STUCK = "The game's update stopped on translated files"
+# After Re-download: the packages it deleted, kept until the game has downloaded them again.
+REDOWNLOAD_NAME = "redownload.json"
+UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
 
 
 class PatchError(Exception):
@@ -292,6 +297,99 @@ def _read_delta(keep: Path) -> "pristine_delta.Delta | None":
                          + CLEAR_DATA) from error
 
 
+def _stuck_packages(session: Path, keep: Path, manifest: dict) -> dict[str, int]:
+    """{package: assets the game's updater could not patch} for each package this patcher translated.
+
+    The game's `Watchdog/BrokenList.db` in the snapshot names them. A package counts as translated when
+    the kept delta names one of its files, or one of its files is still at a hash this patcher staged.
+    """
+    import broken_list
+    import pristine_delta
+    from mobile_snapshot import package_files_at
+
+    listed = broken_list.read(session / "snapshot" / "Watchdog" / "BrokenList.db")
+    if not listed.assets:
+        return {}
+    delta = _read_delta(keep)
+    ours = {entry.path.split("/")[0] for entry in delta.files} if delta else set()
+    known = pristine_delta.load_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME)
+    ours |= {name.split("/")[0] for name in package_files_at(manifest, known)}
+    return {package: len(assets) for package, assets in sorted(listed.assets.items(), key=lambda item: int(item[0]))
+            if package in ours}
+
+
+def _refuse_stuck_update(session: Path, keep: Path, manifest: dict) -> None:
+    """Refuse, before any game file is written, a phone whose in-game update stopped on our files.
+
+    Patching or removing over it leaves the update stuck; the game's own repair cannot converge on a
+    translated package (lab notebook, 2026-10-22). `plan_redownload` is the way out.
+    """
+    marker = keep / REDOWNLOAD_NAME
+    if marker.is_file():
+        waiting = [package for package in json.loads(marker.read_text(encoding="utf-8"))["packages"]
+                   if not any(name.startswith(f"packages/{package}/") and name.endswith(".db")
+                              for name in manifest["files"])]
+        if waiting:
+            raise PatchError(f"{UPDATE_WAITING}: package {', '.join(waiting)}. Open the game, let it finish the "
+                             "update to the login screen, close it, then patch again.")
+        marker.unlink()
+    stuck = _stuck_packages(session, keep, manifest)
+    if stuck:
+        named = ", ".join(f"{package} ({count} assets)" for package, count in stuck.items())
+        raise PatchError(f"{UPDATE_STUCK}: package {named}. Re-download the damaged files: the patcher "
+                         "deletes only those packages, then open the game, let it finish the update to the "
+                         "login screen, close it, and patch again.")
+
+
+def plan_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
+    """Re-download damaged files: name the package files to delete so the game downloads them again.
+
+    Every file of each package `_stuck_packages` names is staged for deletion; `staged-hashes.json` holds
+    each one's snapshot SHA-256, which is what rollback writes back. Measured on 2026-10-22 (lab notebook):
+    with package `1` deleted and `Watchdog` cleared, the game downloaded it and finished the update.
+    Refuses, before any game file is changed, when no translated package is stuck.
+    """
+    root, session, keep = Path(engine_root).resolve(), Path(session_root).resolve(), Path(keep_root).resolve()
+    _prepare(root)
+    from mobile_snapshot import verify_snapshot
+
+    manifest = verify_snapshot(session / "snapshot")
+    output = session / "out"
+    if output.exists() or (session / "staged-hashes.json").exists():
+        raise PatchError("Re-download requires a fresh session layout")
+    stuck = _stuck_packages(session, keep, manifest)
+    if not stuck:
+        raise PatchError("The game's update is not stuck on translated files, so there is nothing to "
+                         "re-download. Open the game, let it finish its update, close it, then patch again.")
+    hashes = {}
+    for name, entry in manifest["files"].items():
+        parts = name.split("/")
+        if len(parts) == 3 and parts[0] == "packages" and parts[1] in stuck:
+            hashes[f"{parts[1]}/{parts[2]}"] = entry["sha256"]
+    summary = {"redownload": sorted(hashes, key=lambda name: (int(name.split("/")[0]), name)),
+               "packages": stuck}
+    output.mkdir()
+    (output / "device_patch_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (session / "staged-hashes.json").write_text(json.dumps(hashes, indent=2), encoding="utf-8")
+    return json.dumps(summary)
+
+
+def keep_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
+    """Once a Re-download run completes, remember its packages until the game downloads them again.
+
+    Until then a patch or removal would read a layer without them, so `_refuse_stuck_update` refuses it.
+    """
+    _prepare(Path(engine_root).resolve())
+    import pristine_delta
+
+    session, keep = Path(session_root).resolve(), Path(keep_root).resolve()
+    summary = json.loads((session / "out" / "device_patch_summary.json").read_text(encoding="utf-8"))
+    keep.mkdir(parents=True, exist_ok=True)
+    pristine_delta.write_atomic(keep / REDOWNLOAD_NAME,
+                                json.dumps({"packages": sorted(summary["packages"], key=int)}).encode("utf-8"))
+    return json.dumps({"packages": len(summary["packages"])})
+
+
 def estimate_snapshot_build(engine_root: str, session_root: str, normal_apk: str,
                             language: str = "en", keep_root: str | None = None) -> str:
     """Read verified snapshot and APK metadata before creating any build work/output.
@@ -411,6 +509,8 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
     builtin = game / "WXQ_Data" / "Package" / "builtin"
     if game.exists() or (session / "normal.apk").exists() or (session / "control.json").exists():
         raise PatchError("Snapshot build requires a fresh session layout")
+    if keep_root:
+        _refuse_stuck_update(session, Path(keep_root), manifest)
     restored = (_restore_pristine(session, Path(keep_root), manifest) if keep_root
                 else {"mode": "first", "rebuilt": [], "pristine": [], "sha256": {}})
     builtin.parent.mkdir(parents=True)
@@ -487,6 +587,7 @@ def build_removal(engine_root: str, session_root: str, keep_root: str) -> str:
     output = session / "out"
     if output.exists() or (session / "staged-hashes.json").exists():
         raise PatchError("Removal requires a fresh session layout")
+    _refuse_stuck_update(session, keep, manifest)
     restored = _restore_pristine(session, keep, manifest)
     if restored["mode"] != "rebuilt":
         raise PatchError("This patcher has no record of a translation on this phone, so there is nothing "
