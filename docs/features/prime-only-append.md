@@ -126,6 +126,23 @@ With no package named in `REBUILD_PACKAGES` the builder was only ever constructe
 nothing changed except that `resources/qtsvfs/` is no longer needed to reach the primed content.
 `patcher_core.build_translation` now passes the APK whether or not it found a builder.
 
+**Later: a full leaf under the internal root splits too (data 1.7.0.1).** Package `1`'s index
+(`1_0.db`) was already one internal root over two leaves on 1.6.0.1 (333/337 keys), and the append's
+keys fitted. The 1.7.0.1 update started it at 345/341, the appended keys filled the lower leaf, and the
+whole package was refused (`only a single-leaf tree can be split`), leaving all 289 prime-only tables
+Chinese. `Shard.split_leaf` now splits a full leaf whose parent is the root. The lower half stays, the
+upper half takes the next logical page from `+0x18`, chained between the leaf and its successor, and the
+root gains that page's lowest key as a bound. The page-table row words that were written by pattern
+before are now understood: they are a red-black tree over the rows in logical order (parent with bit 31
+set for black, left, right; header word 3 the root row), and every one of the 814 page tables in the
+1.6.0.1 and 1.7.0.1 layers equals the tree `_red_black` builds (1 to 82 rows, up to 81 leaves under one
+root). Measured on 1.7.0.1, English and Indonesian: package `1` takes 288 of 289 assets (the one left
+out is the known encoder refusal), 442 → 730 entries, none lost, every pristine entry still reads. The
+staged tree has 3 leaves of 257/255/490. Its page table and header words `+0x10..+0x1f` are **byte for
+byte** those of package `4`'s Tencent-built index, the layer's other 4-row tree.
+`tools/research/check_btree_split.py` checks the invariants (synthetic shard always, `--game` for a
+layer). Not yet run on a phone.
+
 Things that go wrong are reported rather than fatal. A B-tree leaf already holding 510 keys, a device
 copy split over several shards, or the encoder refusing a payload land in the run's `append_skipped` list
 and are counted by the app as images and as tables that stay in Chinese: one entry per package the pass
@@ -328,9 +345,12 @@ alongside `relocate`/`_repoint`:
   physical page; raises when the logical page is absent.
 - `insert_key(key, value) -> None` — descends from the root page at `+0x10`; internal pages are type
   `2` and store each child's lowest key; the key/value pair is inserted in order into the leaf's
-  parallel arrays and the tail count is bumped. **No page splits**: raises
-  `"...: B-tree leaf {page:#x} is full"` when the leaf already holds `KEYS_PER_PAGE` (510) keys.
-  Refreshes `self.leaves` through `_active_leaf_pages()`.
+  parallel arrays and the tail count is bumped. A leaf already holding `KEYS_PER_PAGE` (510) keys is
+  split and the insert retried: `split_root_leaf` when the leaf is the root, `split_leaf` when its
+  parent is the root. A full leaf deeper down, a full root, or no free page pair before the page table
+  raises `TreeFull`. Refreshes `self.leaves` through `_active_leaf_pages()`.
+- `_write_table(rows)` writes the page-table rows and their red-black words (`_red_black`);
+  `_allocate_pages(count)` takes logical pages from `+0x18`.
 - `append_record(record, key) -> int` — aligns `data_end` to 4, writes `<record>` with its self-offset
   patched at `+0`, extends `self.data`, then `insert_key(key, offset)`.
 
@@ -420,5 +440,5 @@ and `graphics_skipped` keep their present meanings and are not folded together.
   lookup key itself.
 - The game force-closing before the lobby (the handoff's L1/L2).
 - Re-signing, the manifest rename, and the APK rewrite path.
-- Splitting a leaf beneath an existing internal root, or an unmeasured page-table layout. Only
-  the measured single-root-leaf split (`Shard.split_root_leaf`) is supported; other full trees are reported.
+- A second internal level, or a page outside the region before the page table. No package has
+  either; a root with 510 children, a full leaf below depth 1, or a used-up page region is reported.

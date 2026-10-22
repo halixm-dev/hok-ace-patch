@@ -3766,3 +3766,61 @@ reinstalled in a `finally`. The user walked the screens; logcat was recorded for
 - **Change:** the shell service's `diagnostics()` now returns `run_as_policy` (enforcement, each file's
   numbered run-as lines, `su` on shell's path). *Save log for help* writes it as `shell run-as policy`
   when Shizuku's service is connected. The next log from a phone that refuses run-as names its rules.
+
+## 2026-10-22 — 1.7.0.1: pristine snapshot, 335 untranslated strings, package `1` append refused
+
+- **Snapshot:** Xiaomi M2007J3SG, data `1.7.0.1` revision `0` (`packages/1/1.info`), APK still 1.1.1 / 774472
+  (SHA-256 equal to the cached `installed.apk`). The user removed the translation, then let the in-game update
+  download. Pulled through the cached access APK (`run-as` tar of `packages` + `Watchdog`, 3 060 319 744 B),
+  normal APK reinstalled and its hash checked on the phone. Saved as
+  `dist/HOK ACE Patcher Data/pristine/20261022-1.7.0.1`: all 768 package files equal the phone's own
+  `sha256sum`, none missing or extra (`snapshot.json`). Read as pristine: the scan counts `already_english`
+  2307 (EN catalog) against the 1.6.0.1 pristine dump's 2303.
+- **Offline builds** (`build_device_patch.py --apk`, English and Indonesian, `D:\scratch\hok-1.7.0.1`): both
+  succeed. Census 99 tables, 187 975 records, 183 466 translated, **1229 unknown**. Package `1`: 11 tables
+  relocated, `text_skipped` empty. The extra-text pass and the textures stage as before (302 + 22 + 1 + 1).
+- **Regression: package `1`'s append is refused whole.** `append_skipped`: package `1`, 289 assets, reason
+  `1_0.db: only a single-leaf tree can be split (root type 2, 3 table rows)`. On 1.6.0.1 the same pass added
+  293 there. The update grew `1_0.db`'s index past one leaf, so its root is already internal and the leaf an
+  appended key lands in is full; `insert_key` splits only a root leaf (`qts_relocate.split_root_leaf`), and a
+  leaf under an internal page is an unmeasured layout. Every prime-only table of package `1` (the
+  chessplayer names among them) stays Chinese on this data. Packages `10`, `1050016095` (71) and `21`
+  still append.
+- **Leftover census** (each catalog table of the override layer with the staged output laid over it, CJK
+  strings, CJK inside a `{token}` not counted): **335 distinct strings, 759 table rows, in 49 tables, all
+  package `1`**, the same 335 for English and Indonesian; 314 are new in 1.7.0.1, 21 were already in the
+  1.6.0.1 sources. Diff of the two pristine layers: 427 distinct strings added, 126 removed; 5 catalog tables
+  new in 1.7.0.1 (`0FE1CF4423F97FB6`, `5560E5A826433EFA`, `A4FDF25E51B190AC`, `B990CF372E5633C5`,
+  `F1FA25BE131758CC`). What the leftovers are:
+  - card and talent rewordings repeated in every per-mode card dictionary (`28D9F8B02CAA94E2` /
+    `A336359CD92A858E` 105 each, `A07B2B9F994FB0ED` and its siblings 15-19 each, `C9BC3381603BDDB3` /
+    `EABE356D0A0BB65F` 33 each, the `C4E32B49AE8B7FFB` group 7-8 each);
+  - a new **Super Hero** (`超级英雄`) mode: its card-tag tables `5560E5A826433EFA` (39) and
+    `B990CF372E5633C5` (37), quests `049FDCA512DC8897`, promos `79E3F2A531266997` / `5E72CA8CAF015FDE`;
+  - hero skill rewordings (`8B5FA32BAA3913D9` 19; `58B4B182D74B34B0` group 11-14);
+  - room settings and King of Kings matchmaking UI (`DD5B5EDFBB69FEED` 52, `C680921B0DEC5BE9` 8), the lineup
+    recommendation rework (`CEB1AA41B4D8A0F3` rules, `EE5CF72D67A94C1F` achievements), a new starter pack
+    (`1FFFD61DB73C942F`), the Yuhuan skin `幻彩音阶` (`EBB4B2DDCD3E736F`, `76E7CED2AB798CC0`), music titles
+    (`E88B57D296721DC0`).
+  The list with tables per string: `.scratch/data-1.7.0.1/leftovers.json`. Not yet supplied in
+  `tools/catalog_supplement.py`; no device verdict.
+
+## 2026-10-22 — Package `1` appends again on 1.7.0.1: a full leaf under the root splits
+
+- **Cause, measured:** `1_0.db` was already one internal root over two leaves on 1.6.0.1 (333/337 keys);
+  1.7.0.1 starts at 345/341, and the appended keys fill the lower leaf. Only a root leaf could split.
+- **Page table read:** each row's last three words are a red-black tree over the rows in logical order
+  (parent with bit 31 = black, left, right; header word 3 = root row). All 814 tables of the 1.6.0.1 and
+  1.7.0.1 pristine layers (1-82 rows, up to 81 leaves under one internal root) equal the tree built by
+  inserting the rows in order, and hold every invariant of `tools/research/check_btree_split.py`.
+  Allocation: `+0x18` advances one pair per page and is 0xffffffff once the region before the page table
+  is used up (packages 11, 15: `0x17000` with 11 rows; 12, 14, 21: 0xffffffff).
+- **Change:** `qts_relocate.Shard.split_leaf`. The lower half stays, the upper half takes the next
+  logical page, chained after the leaf, and the root gains its bound. `_write_table` writes the
+  red-black words for both splits.
+- **Offline, pristine 1.7.0.1 + cached APK, English and Indonesian** (`D:\scratch\hok-1.7.0.1\out2-*`):
+  package `1` `added-from-apk` 288 of 289 (the one left out is the known encoder refusal,
+  `3A70308AAF6F18F8` / `0196F0E230EC1C70`), entries 442 → 730, none lost, every pristine entry still
+  reads; tree 3 leaves of 257/255/490 (ID 256/255/491). The staged page table and header `+0x10..+0x1f`
+  equal package `4`'s Tencent-built 4-row index byte for byte. Other packages and counts unchanged
+  (`text_skipped`, `graphics_skipped` empty). **No device verdict yet.**

@@ -1,0 +1,2774 @@
+{
+ "source": "pristine/20261022-1.7.0.1, offline builds 2026-10-22",
+ "strings": {
+  "%s挑战了您的夺冠阵容，挑战失败，恭喜您获得胜利。": {
+   "package": "1",
+   "tables": [
+    "F1FA25BE131758CC"
+   ],
+   "in_1.6.0.1": false
+  },
+  "2、<color=#98cbff>支持规则</color>：玩家可对认为最有机会夺冠的选手进行支持，可同时支持多位选手，每次可支持100钻石，每名选手最多可支持10000钻石。": {
+   "package": "1",
+   "tables": [
+    "CEB1AA41B4D8A0F3"
+   ],
+   "in_1.6.0.1": true
+  },
+  "6级天赋": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<a href=11><color=#ffffff>╬<b>整备</b></color></a>：对距离最近的【河洛】英雄使用2张<color=#ffffff><b>古币</b></color>。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<a href=3130012><color=#99DEB0>╆转瞬</color></a>\n指定<color=#99DEB0>1名低于5阶</color>的英雄═临时等级<color=#99DEB0>+65</color>。若战斗胜利，将永久获得此等级。若战斗失败/平局，则获得一半。": {
+   "package": "1",
+   "tables": [
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<a href=3><color=#ffffff>╪<b>开团</b></color></a>：场上每有1个<a href=321><color=#ffffff>╉<b>图腾</b></color></a>，自身及随机2名不同己方英雄等级+1。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<a href=3><color=#ffffff>╪<b>开团</b></color></a>：场上每有1个<a href=321><color=#ffffff>╉<b>图腾</b></color></a>，自身及随机4名不同己方英雄等级+1。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<a href=3><color=#ffffff>╪<b>开团</b></color></a>：距离最近的4名己方英雄获得装备<color=#ffffff><b>玄微之种</b></color>。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": true
+  },
+  "<color=#98cbff>一、房间设置</color>\n<color=#FFFFFF>房间设置用于调整您的房间准入与对局匹配规则，可在创建房间时进行设置。\n具体规则如下：\n1、自动接受匹配\n开启后，在对局匹配成功时，会自动接受匹配，无需手动确认。\n2、免邀请进入房间\n可设置为允许好友、亲密关系免邀请直接进入您的房间；\n关闭该功能后，任何人都不允许直接进入您的房间。\n3、允许玩家加入我的王中王队伍\n当王中王玩家以王中王小号创建房间后，若房间人数=1时，会出现组队开关；\n勾选后，您将在\"挑战王中王\"中做为队长组队作战；\n取消勾选后，您将在\"挑战王中王\"中单人作战。\n4、不匹配王中王玩家\n仅至尊星耀及以下玩家可用，段位抵达王者或解锁王中王后，该功能无法再进行设置。\n开启该设置后，您在匹配对局中将不会匹配到任何王中王玩家。</color>": {
+   "package": "1",
+   "tables": [
+    "CEB1AA41B4D8A0F3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<color=#98cbff>一、时间</color>\n<color=#FFFFFF>1. 祈愿时间：2026年09月25日 00:00:00-2026年10月21日 23:59:59。\n2.兑换时间：2026年10月15日更新后-2026年10月21日 23:59:59。</color>\n\n<color=#98cbff>二、祈愿规则：</color>\n<color=#FFFFFF>1. 日月行者内有日和月两个奖池，在日奖池内消耗10点券购买1个爱心投送1天体验卡可获赠1个【金穗】，在月奖池内消耗10点券购买1个爱心投送1天体验卡可获赠1个【月桂】，可分别用于日和月奖池的抽取。\n2. 日和月奖池相互独立，每个奖池内共有9个奖品，每次祈愿必定获得其中1个奖励，奖励不会重复获得，9次之内必定获得奖池内的所有奖励。\n3. 单奖池内每次消耗的【金穗】/【月桂】数量将会递增，依次为1、4、8、12、16、24、32、48、68。\n4. 获得大奖【瑶妹·朝露晓升】或【常小娥·云舒见影】后，将赠送对应奖池内剩余所有奖励。\n5. 日月同辉：\n（1）每次抽取均有可能触发日月同辉机制，若在日奖池触发，则会获得一定数量的【月桂】，若在月奖池触发，则会获得一定数量的【金穗】；\n（2）若在日奖池触发时已获得月奖池内的所有奖励，则获得的【月桂】将会转化为等量的【金穗】，在月奖池触发时同理；\n（3）若在当抽抽取后已获得日奖池和月奖池内的所有奖励，则该机制不会触发。\n6.10月15日更新后可使用一定数量的【金穗】/【月桂】在兑换商店中兑换指定商品，祈愿结束后兑换商店也将一起关闭，请拥有【金穗】/【月桂】的玩家们及时兑换，兑换时间结束后活动道具（金穗，月桂）将被清空。\n7.日月行者奖池限时开启，抽奖进度不会被其他祈愿活动继承。</color>\n\n<color=#98cbff>三、概率公示：</color>\n<color=#FFFFFF>1、奖池综合概率：\n【日奖池】\n瑶妹-朝露晓升 5.76%\n朝露晓升名片 7.59%\n个性戳戳-晨昭鹿鸣 9.41%\n聊天气泡-升曦凝露 9.41%\n表情-鹿过 10.22%\n表情-早上好 10.22%\n夺宝币*6 15.80%\n随机特效（30天） 15.80%\n亲密度道具-朝露晓升明信片*10 15.80%\n【月奖池】\n常小娥-云舒见影 5.76%\n云舒见影名片 7.59%\n个性戳戳-云疏兔影 9.41%\n聊天气泡-月隐云踪 9.41%\n表情-ME兔 10.22%\n表情-晚安 10.22%\n夺宝币*6 15.80%\n随机特效（30天） 15.80%\n亲密度道具-云舒见影明信片*10 15.80%\n2、日月同辉概率：\n每次抽取均有可能触发，触发概率独立，为5%，触发后可能获得的代币数量及概率见下方公示\n月桂/金穗*2 60%\n月桂/金穗*4 30%\n月桂/金穗*6 10%</color>": {
+   "package": "1",
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "in_1.6.0.1": true
+  },
+  "<color=#98cbff>一、时间：</color>\n<color=#FFFFFF>1.祈愿时间：2026年10月16日 00:00:00-2026年11月11日 23:59:59。\n2.兑换时间：2026年10月16日 00:00:00-2026年11月14日 23:59:59。\n注：11月11日祈愿时间结束后，线条小狗祈愿币将不可使用，请及时使用；11月11日后仅保留兑换商店，请拥有线条小狗积分的玩家们及时兑换，兑换时间结束后活动道具（线条小狗祈愿币，线条小狗积分）将被清空。</color>\n\n<color=#98cbff>二、祈愿规则：</color>\n<color=#FFFFFF>1.在活动界面消耗60点券购买6个爱心投送1天体验卡可获赠6个【线条小狗祈愿币】，每次祈愿消耗6个线条小狗祈愿币。活动期间，每人祈愿限1000次。\n2.祈愿福利： \n（1）祈愿福利1：首次进入奖池将会赠送线条小狗祈愿币×5，首抽仅需10点券；\n（2）祈愿福利2：每累计祈愿10次，可领线条小狗积分、表情奖励自选礼（限领前6次）\n3.兑换积分可用于在兑换商店中兑换指定奖励，详细兑换内容可前往兑换商店查看。\n4.重复获取：抽到已拥有的天幕、名片、特效、表情等不可重复获得的内容，将会自动转化为指定数量的线条小狗积分，具体重复转化数量如下：\n线条小狗天幕：150；线条小狗名片：60；线条小狗传送特效：45；线条小狗头像框：20；线条小狗聊天气泡：20；表情：20。\n5.线条小狗天幕祈愿奖池限时开启，抽奖进度不会被其他祈愿活动继承。</color>\n\n<color=#98cbff>三、概率公示：</color>\n<color=#FFFFFF>天幕-线条小狗的旅行：1%\n线条小狗名片：1%\n传送特效-线条小狗出动：1%\n线条小狗头像框：1.25%\n线条小狗气泡：1.25%\n表情-扔心心：1.25%\n表情-接住心心：1.25%\n表情-挥手：1.25%\n表情-走了：1.25%\n线条小狗积分*38：6%\n亲密度道具-线条小狗拍立得*1：6%\n接收心心个性戳戳（1天）：14%\n线条小狗积分*18：26%\n线条小狗积分*8：37.5%</color>": {
+   "package": "1",
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "in_1.6.0.1": true
+  },
+  "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、在对局中遇到王中王玩家即可领取奖励，包含自己。</color>\n<color=#FFFFFF>2、对局仅限万象大赛。</color>": {
+   "package": "1",
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "in_1.6.0.1": true
+  },
+  "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成每日登录和对局任务即可领取蔷薇币奖励。</color>\n<color=#FFFFFF>2、活动任务将在每日0点刷新。</color>": {
+   "package": "1",
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "in_1.6.0.1": true
+  },
+  "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成超级英雄对局任务即可领取钻石奖励。</color>": {
+   "package": "1",
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>欢迎来到英雄连连看~\n1、活动开启规则：活动持续期间内，可以随时、多次参与连连看玩法。每期活动结算时间为周日的23点59，请确保在结算时间前完成所有关卡哦（否则可能不会分到奖励喔）。\n2、奖励结算规则：完整通关（完成所有关卡）即拥有赢取钻石奖池资格。钻石奖池根据排名分取，答题总耗时越短，排名越高，分得的钻石便越多。\n3、总耗时计算规则：关卡开始到关卡结束的总耗时时长，错误1题增加15秒罚时。</color>\n<color=#98cbff>二、题库</color>\n<color=#FFFFFF>1、题库主题：基于英雄们本身的特性展开，每期不同，欢迎体验~！\n2、题库设计：根据每期主题变更题库，会从中随取，本期9个关卡。</color>": {
+   "package": "1",
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "in_1.6.0.1": true
+  },
+  "<color=#98cbff>一、生涯系统说明</color>\n\n1、生涯系统承载了您的各项游戏数据，可在主页面进行查看：游玩时长、对局总场次、获得点赞次数、王者印记拥有数量、本赛季棋手数据、成就数据以及账号的对局数据等内容。": {
+   "package": "1",
+   "tables": [
+    "CEB1AA41B4D8A0F3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<color=#99DEB0>╥阿科米亚核心</color>等级<color=#99DEB0>+200</color>。场上英雄升级时，<color=#99DEB0>╥阿科米亚核心</color>会获得<color=#99DEB0>60%</color>的等级（仅真实等级）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<color=#99DEB0>召唤╉图腾</color>，己方所有【大河】英雄获得相当于<a><color=#99DEB0>╉<b>图腾</b></color></a>等级<color=#99DEB0>50%</color>的<a>═临时等级</a>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<color=#ffffff><b>唯一</b></color>。释放技能时，<color=#ffffff>35%概率重复释放一次</color>。每有7级，额外提升1%概率。近战英雄总上限70%。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<color=#ffffff><b>唯一</b></color>，<color=#ffffff><b>限定远程英雄</b></color>。普通攻击会释放飞箭，对生命值最低的2名敌人造成<color=#ffffff>55%物理攻击力的物理伤害</color>。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<color=#ffffffbf>被动：</color>冲锋并戳刺造成<color=#dfa15e>物理伤害</color>。\n<color=#ffffffbf>主动：</color>获得伤害加成。": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": true
+  },
+  "<color=#ffffffbf>被动：</color>圣殿骑士每次冲锋后进行戳刺，造成<color=#dfa15e>[0]点物理伤害</color><color=#dfa15e>（[1]+[2]%自身最大生命值）</color>。\n<color=#ffffffbf>主动：</color>获得15%伤害加成，持续5秒。": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "<color=#ffffffbf>被动：</color>马超靠近冷晖枪时会拾取回收，同时<color=#9ff5d0>恢复自身100+75%物理攻击力的生命值</color>，并提升<color=#dfa15e>5点物理攻击力</color>。\n<color=#ffffffbf>主动：</color>马超立即<color=#9ff5d0>恢复自身100点生命值</color>，快速突袭至3格内最远的敌人身边，对其造成<color=#dfa15e>50+100%物理攻击力的物理伤害</color>并留下1把冷晖枪。": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "We Are（我们）": {
+   "package": "1",
+   "tables": [
+    "E88B57D296721DC0"
+   ],
+   "in_1.6.0.1": false
+  },
+  "{0}的亲密关系进入了房间": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "{0}的好友进入了房间": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "╉图腾系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "╊夺取系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "╋闪现系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "═临时等级系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "╥阿科米亚核心不再分配等级。每秒对1个随机敌方单位造成<color=#FFE897>6次核心等级×1</color>的法术伤害。每击败1名敌方英雄，阿科米亚核心获得自身1%的等级成长。": {
+   "package": "1",
+   "tables": [
+    "C4E32B49AE8B7FFB",
+    "F628F40CE23D983E",
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "666DC40230B31A30",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "9BE81CD52C660467",
+    "28D9F8B02CAA94E2",
+    "5EB61A0269CD8550",
+    "04F21C6735D0D555",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "27BBF8CDFFFA177F",
+    "9799DF91AB4F4FA3",
+    "42E8DB43608C2FF1"
+   ],
+   "in_1.6.0.1": false
+  },
+  "╥阿科米亚核心系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "╨登场系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "╪开团系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "╫牺牲系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "╬整备系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "【克制关系】": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "三分牌加等级": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "上阵6个所选阵营英雄时，获得1张<color=#FFE897>朋友多多</color>。\n<color=#FFE897>朋友多多</color>：随机获得5张技能所选阵营的英雄牌。": {
+   "package": "1",
+   "tables": [
+    "C4E32B49AE8B7FFB",
+    "F628F40CE23D983E",
+    "C059EA43719099F1",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "5EB61A0269CD8550",
+    "04F21C6735D0D555",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1"
+   ],
+   "in_1.6.0.1": true
+  },
+  "买牌得效果牌": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "从姜导，镜，明先生，昭君，阿离，安琪拉6个棋手中，选择1个获得一张3天体验卡！": {
+   "package": "1",
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "以后不会弹出": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "任意途径获得的<a href=3130011><color=#99DEB0>═临时等级</color></a>增加<color=#99DEB0>80%</color>，且获得临时等级的<color=#99DEB0>30%</color>立即可转化为永久等级。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "低阶系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你在战斗中<a href=16><color=#99DEB0>╧复生</color></a>的英雄，会无敌<color=#99DEB0>3秒</color>，并且获得<color=#99DEB0>300%</color>攻击速度和<color=#99DEB0>100%</color>暴击率（不可叠加）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你在战斗过程中<color=#FFE897>╧复生</color>的英雄，获得200%攻速、100%暴击率和70%伤害减免，持续1.5秒。": {
+   "package": "1",
+   "tables": [
+    "C4E32B49AE8B7FFB",
+    "F628F40CE23D983E",
+    "A07B2B9F994FB0ED",
+    "4476EC307E0F2142",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "666DC40230B31A30",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "9BE81CD52C660467",
+    "28D9F8B02CAA94E2",
+    "5EB61A0269CD8550",
+    "04F21C6735D0D555",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "27BBF8CDFFFA177F",
+    "9799DF91AB4F4FA3",
+    "42E8DB43608C2FF1"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的<a href=321><color=#99DEB0>╉图腾</color></a>获得额外效果。\n<a href=324><color=#99DEB0>╉先知图腾</color></a>：友方英雄阵亡时，其等级的70%会作为<a href=3130011><color=#99DEB0>═临时等级</color></a>分配给己方等级最低的英雄。\n<a href=322><color=#99DEB0>╉往生图腾</color></a>：己方全体英雄物理及法术防御<color=#99DEB0>+15</color>。\n<a href=323><color=#99DEB0>╉因缘图腾</color></a>：己方全体英雄普攻<color=#99DEB0>2次</color>或释放技能时，等级<color=#99DEB0>+2</color>。": {
+   "package": "1",
+   "tables": [
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的【日落海】英雄每提升<color=#99DEB0>10级</color>，<color=#99DEB0>╥阿科米亚核心</color>获得<color=#99DEB0>4等级</color>。\n【日落海】英雄首次≥<color=#99DEB0>6名</color>时：获得<color=#99DEB0>2张</color>【远洋宝藏】；保持≥<color=#99DEB0>6名</color>时，每穿戴<color=#99DEB0>1件</color>【日落海专属装备】，<color=#99DEB0>╬整备额外触发1次</color>。\n【日落海】英雄≥<color=#99DEB0>8名</color>时：每回合战斗开始，随机召唤<color=#99DEB0>1名</color>与<color=#99DEB0>╥阿科米亚核心</color>同等级的【日落海】英雄（等级上限999）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄每次触发<a href=11><color=#99DEB0>╬整备</color></a>时，己方英雄<color=#99DEB0>+1%</color>最大生命值。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄每次触发<a href=1><color=#99DEB0>╨登场</color></a>时，等级最高的<color=#99DEB0>2个</color><a href=1><color=#99DEB0>╨登场</color></a>英雄<color=#99DEB0>+18级</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄每次触发<a href=3><color=#99DEB0>╪开团</color></a>时，己方英雄永久<color=#99DEB0>+8%</color>攻击速度。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄每次触发<a href=3><color=#99DEB0>╪开团</color></a>时，所有英雄等级<color=#99DEB0>+6</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄每次触发<color=#99DEB0>╬整备</color>时，己方英雄<color=#99DEB0>+1%</color>最大生命值。": {
+   "package": "1",
+   "tables": [
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄每触发2次<a href=1><color=#ffffff>╨<b>登场</b></color></a>效果，大乔的法力值上限永久-5且等级+1。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄触发<a href=10><color=#99DEB0>╫牺牲</color></a>时，所有英雄等级<color=#99DEB0>+8</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄触发<a href=11><color=#99DEB0>╬整备</color></a>时，所有英雄等级<color=#99DEB0>+3</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄触发<a href=1><color=#99DEB0>╨登场</color></a>时，所有英雄等级<color=#99DEB0>+3</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄触发<a href=200><color=#99DEB0>╊夺取</color></a>时，所有英雄等级<color=#99DEB0>+6</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "你的英雄触发<a href=3><color=#99DEB0>╪开团</color></a>时，所有英雄等级永久<color=#99DEB0>+5</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "使用古币复活": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "保护图腾": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "保护队友": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "光辉伤害提升至17%法术攻击力": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "光辉伤害提升至[0]+[1]%法术攻击力": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "光辉伤害提升至[142302p1q1]+[142302p1q3/100]%法术攻击力": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "克制关系": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "关键牌一分为二": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "关键词开团": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "关键词登场": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "关闭本功能后，在匹配成功后将不再自动接受匹配": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "养成无敌王牌": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "养成海月": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "冻结低阶变高阶": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "冻结英雄": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "减少廉颇蓝条": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "减少法力值": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "减少蒙恬蓝条": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "初始阵容系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "前期过渡": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "匹配中，无法进行设置": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "升级附加属性": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "卡牌指定英雄，最大生命值<color=#99DEB0>+55%</color>、法术攻击力<color=#99DEB0>+55%</color>、法术吸血<color=#99DEB0>+25%</color>；该英雄每回合等级<color=#99DEB0>+65</color>，等级上限突破至<color=#99DEB0>9999</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "变为高阶": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "古币系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "只有房主可以设置房间匹配规则": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "只能获得<color=#99DEB0>1-3阶</color>英雄卡；该类英雄最大生命值<color=#99DEB0>+20%</color>、物理攻击力<color=#99DEB0>+20%</color>、攻击速度<color=#99DEB0>+35%</color>。回合开始时，场上英雄等级<color=#99DEB0>+25</color>，等级上限突破至<color=#99DEB0>6666</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "召唤单位（召唤物、图腾）时，额外获得<color=#99DEB0>100</color>+召唤者等级×<color=#99DEB0>80%</color>的<a href=3130011><color=#99DEB0>═临时等级</color></a>，每回合前<color=#99DEB0>15</color>个召唤单位获得<color=#99DEB0>╧完美复生</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "召唤敌方最强英雄": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "召唤系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "召唤随机英雄": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "可上阵人数<color=#99DEB0>+1</color>，己方英雄获得<color=#99DEB0>3%</color>的伤害加成。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "合成同阶升级": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "合成系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "合成英雄时随机额外获得<color=#99DEB0>6-66级</color>。累计获得<color=#99DEB0>300级</color>时（每名英雄限<color=#99DEB0>1次</color>），场上等级最低的英雄<color=#99DEB0>+60级</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "后期王牌": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "听从裙摆": {
+   "package": "1",
+   "tables": [
+    "E88B57D296721DC0"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回合开始时获得<color=#99DEB0>1张</color><a href=3130012><color=#99DEB0>╆转瞬</color></a>战歌：指定<color=#99DEB0>1名低于5阶</color>英雄<a href=3130011><color=#99DEB0>═临时等级</color></a><color=#99DEB0>+65</color>。战斗胜利则永久获得，失败/平局获得一半。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回合开始时，你每有<color=#99DEB0>1名</color><a href=100><color=#99DEB0>╋闪现</color></a>英雄，所有英雄等级<color=#99DEB0>+7</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回合开始时，场上友方英雄获得主要阵营人数+2的等级。": {
+   "package": "1",
+   "tables": [
+    "C4E32B49AE8B7FFB",
+    "F628F40CE23D983E",
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "666DC40230B31A30",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "9BE81CD52C660467",
+    "28D9F8B02CAA94E2",
+    "5EB61A0269CD8550",
+    "04F21C6735D0D555",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "27BBF8CDFFFA177F",
+    "9799DF91AB4F4FA3",
+    "42E8DB43608C2FF1"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回合开始时，场上友方英雄获得场上5阶英雄数量×2的等级。": {
+   "package": "1",
+   "tables": [
+    "C4E32B49AE8B7FFB",
+    "F628F40CE23D983E",
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "666DC40230B31A30",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "9BE81CD52C660467",
+    "28D9F8B02CAA94E2",
+    "5EB61A0269CD8550",
+    "04F21C6735D0D555",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "27BBF8CDFFFA177F",
+    "9799DF91AB4F4FA3",
+    "42E8DB43608C2FF1"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回合开始时，随机获得<color=#99DEB0>2张</color>高阶战术牌。\n你的【逐鹿】英雄最大生命值<color=#99DEB0>+8%</color>、物理及法术防御<color=#99DEB0>+8</color>。\n【逐鹿】英雄≥<color=#99DEB0>5名</color>时：【逐鹿】英雄释放技能时，己方所有英雄获得巨盾：物理及法术防御<color=#99DEB0>+2</color>，上限<color=#99DEB0>5层</color>。\n【逐鹿】英雄≥<color=#99DEB0>7名</color>时：获得<color=#99DEB0>2张</color>装备牌【机关匣】以及<color=#99DEB0>1张</color>【珍品宝箱】。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回合开始时，随机获得<color=#99DEB0>4张</color>你<color=#99DEB0>人数最多阵营</color>的英雄牌。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回溯卡牌": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回环打出2次卡牌": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回蓝更快召唤": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "回血保护队友": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "在100局比赛中，使用过阵容推荐": {
+   "package": "1",
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "在10局比赛中，使用过阵容推荐": {
+   "package": "1",
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "在50局比赛中，使用过阵容推荐": {
+   "package": "1",
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "在万象大赛的单个回合中，通过装备【驱雷】击杀至少5名友方英雄": {
+   "package": "1",
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "在钻石狂潮中，近10场比赛的盈亏总额": {
+   "package": "1",
+   "tables": [
+    "00BF2528D217FFFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "场上存在【无阵营】英雄时，己方英雄击败敌方英雄掠夺其<color=#99DEB0>30级</color>；每掠夺<color=#99DEB0>200级</color>，己方全体英雄永久<color=#99DEB0>+50级</color>（上限<color=#99DEB0>+300级</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "场上每存在<color=#99DEB0>1名</color>【无阵营】英雄，【无阵营】英雄获得<color=#99DEB0>33%</color>攻击速度、<color=#99DEB0>33</color>物理及法术攻击力、<color=#99DEB0>333</color>生命值。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "场上每有<color=#99DEB0>1个╉图腾</color>，【大河流域】英雄最大生命值<color=#99DEB0>+5%</color>、物理及法术防御<color=#99DEB0>+5</color>。\n【大河】英雄≥<color=#99DEB0>6名</color>时，战斗开始时，<color=#99DEB0>╉图腾周围1格内的己方单位</color>生命值上限<color=#99DEB0>+8%</color>、攻击速度<color=#99DEB0>+20%</color>，可叠加。\n【大河】英雄≥<color=#99DEB0>8名</color>时，开战时随机召唤<color=#99DEB0>1个</color>先知图腾、因缘图腾或往生图腾。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "场上每有<color=#99DEB0>1名1-3阶的英雄</color>，回合开始时所有英雄等级<color=#99DEB0>+3</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "场上每有<color=#99DEB0>1名</color><a href=100><color=#99DEB0>╋闪现</color></a>英雄，己方英雄获得<color=#99DEB0>15%</color>暴击率和<color=#99DEB0>15%</color>暴击伤害。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "场上每有<color=#99DEB0>1名</color>【三分】英雄，全体【三分】英雄物理攻击力、法术攻击力<color=#99DEB0>+2%</color>，物理防御、法术防御<color=#99DEB0>+2%</color>。\n【三分】英雄首次≥<color=#99DEB0>5名</color>：永久召唤「猛虎擂台」，台中【三分】英雄物攻/法攻+<color=#99DEB0>30</color>点。擂台内敌人被击败则吸收灵魂，物攻/法攻+<color=#99DEB0>10</color>点。每吸收<color=#99DEB0>5次</color>，范围+<color=#99DEB0>1格</color>，最多<color=#99DEB0>3次</color>。\n【三分】英雄首次≥<color=#99DEB0>7名</color>：获得<color=#99DEB0>1张</color>【三分旗帜】。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "场外火力支持": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "增加6点物理和法术防御力；毒奶改为造成10+45%法术攻击力的法术伤害，恢复10+45%法术攻击力的生命值。": {
+   "package": "1",
+   "tables": [
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "增加临时等级": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "增加召唤物伤害": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "增加廉颇生命": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "增加攻击": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "增加核心等级": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "增加王牌等级": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "增强链接英雄": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "处于队伍中，无法进行祈愿": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "复制不断": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "复制场上英雄": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "复制敌方英雄牌": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "复活": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "复活增加容错": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "多阵营系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "大司命灵体以外的1-3阶己方召唤物上场时，吸收该单位使<a href=321><color=#ffffff>╉<b>往生图腾</b></color></a>等级永久+2并获得20点法力值。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": true
+  },
+  "大量买牌": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "契约系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "契约英雄共战时，任意一方每击败<color=#99DEB0>1名</color>敌方英雄，双方物理攻击力、法术攻击力<color=#99DEB0>+5%</color>（上限<color=#99DEB0>60%</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "契约英雄共战时，战斗开始时契约英雄双方获取己方其他英雄等级之和×<color=#99DEB0>30%</color>的等级。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "契约英雄共战时，每<color=#99DEB0>2秒</color>临时提升其<color=#99DEB0>8%</color>物理攻击力和法术攻击力（上限<color=#99DEB0>80%</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "契约英雄共战时，每次升级<color=#99DEB0>额外+4级</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "她的琴音看得见——字面意义上的。": {
+   "package": "1",
+   "tables": [
+    "EBB4B2DDCD3E736F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "孙尚香朝目标敌人发射1发弩炮，造成<color=#dfa15e>50+100%物理攻击力的物理伤害</color>，并降低命中敌人50%物理防御，持续5秒。": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "孙膑向目标敌人投掷1枚定时炸弹，2秒后爆炸对其及附近1格内的敌人造成<color=#d487e4>[118141p1q1]+[118141p1q3/100]%法术攻击力的法术伤害</color>。": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "安琪拉引导魔力朝敌人最多的方向施放炽热光辉，持续3秒，对路径上的敌人每0.1秒造成<color=#d487e4>10%法术攻击力的法术伤害</color>。": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "安琪拉引导魔力朝敌人最多的方向施放炽热光辉，持续3秒，对路径上的敌人每0.1秒造成<color=#d487e4>[0]点法术伤害</color><color=#d487e4>（[1]+[2]%法术攻击力）</color>。": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "安琪拉引导魔力朝敌人最多的方向施放炽热光辉，持续3秒，对路径上的敌人每0.1秒造成<color=#d487e4>[142300p1q1]+[142300p1q3/100]%法术攻击力的法术伤害</color>。": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "完成1局超级英雄": {
+   "package": "1",
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "in_1.6.0.1": false
+  },
+  "完成3局超级英雄": {
+   "package": "1",
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "in_1.6.0.1": false
+  },
+  "导弹伤害提升至30+80%物理攻击力": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "小兵爆炸伤害": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "小鹿前排承伤": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "小鹿阵亡均分等级": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "尝新棋手": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "己方<a href=321><color=#99DEB0>╉图腾</color></a>强化：<a href=324><color=#99DEB0>╉先知图腾</color></a>-额外获得<a href=3130011><color=#99DEB0>═临时等级</color></a>、<a href=323><color=#99DEB0>╉因缘图腾</color></a>-普攻/技能释放额外获得等级、<a href=322><color=#99DEB0>╉往生图腾</color></a>：增加己方物理及法术防御。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "己方单位获得护盾、护盾被击破时，该单位生命值上限永久<color=#99DEB0>+110</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "己方英雄每释放<color=#99DEB0>1次</color>技能，所有英雄等级<color=#99DEB0>+2</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "己方英雄触发<a href=10><color=#99DEB0>╫牺牲</color></a>时，场上随机<color=#99DEB0>1名</color><a href=10><color=#99DEB0>╫牺牲</color></a>英雄获得<color=#99DEB0>该英雄总等级x35%的等级</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "己方英雄触发<a href=11><color=#99DEB0>╬整备</color></a>时，所有英雄获得场上<a href=11><color=#99DEB0>╬整备</color></a>英雄数量x<color=#99DEB0>1.5</color>的等级。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "已使用古币": {
+   "package": "1",
+   "tables": [
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "已投稿": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "已替换": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "布置3种机关": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "带队获胜": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "平均得分": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "幻彩音阶": {
+   "package": "1",
+   "tables": [
+    "EBB4B2DDCD3E736F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "幻彩音阶名片": {
+   "package": "1",
+   "tables": [
+    "76E7CED2AB798CC0"
+   ],
+   "in_1.6.0.1": false
+  },
+  "廉颇用臂甲砸向目标敌人，获得持续4秒的<color=#ffffff>100点护盾</color>，造成<color=#dfa15e>50+80%物理攻击力的物理伤害</color>。": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "开启本功能后，在匹配成功后将会自动接受匹配": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "开局及棋手5级时获得1张<color=#ffffff><b>便携式机关</b></color>。\n棋手升至2/3/4级时，从<color=#ffffff><b>热能陷阱</b></color>、<color=#ffffff><b>电磁弹簧</b></color>、<color=#ffffff><b>等离子屏障</b></color>3种机关卡中随机获得1张。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "弩炮伤害提升至50+150%物理攻击力": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "当前处于组队状态，将无法触发王中王组队": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "快速释放技能": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "我们·一直都在": {
+   "package": "1",
+   "tables": [
+    "E88B57D296721DC0"
+   ],
+   "in_1.6.0.1": false
+  },
+  "我们·为你而来": {
+   "package": "1",
+   "tables": [
+    "E88B57D296721DC0"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战力保护": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战斗开始后，<color=#99DEB0>每9秒将随机敌方2个单位变猪</color>，持续<color=#99DEB0>3秒</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战斗开始时，你的人数最多的同品阶英雄获得1%×已打出<color=#ffffff><b>宝藏牌</b></color>数量的伤害提升。": {
+   "package": "1",
+   "tables": [
+    "C4E32B49AE8B7FFB",
+    "F628F40CE23D983E",
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "666DC40230B31A30",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "9BE81CD52C660467",
+    "28D9F8B02CAA94E2",
+    "5EB61A0269CD8550",
+    "04F21C6735D0D555",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "27BBF8CDFFFA177F",
+    "9799DF91AB4F4FA3",
+    "42E8DB43608C2FF1"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战斗开始时，你的全体英雄获得0.7%×已打出<color=#ffffff><b>宝藏牌</b></color>数量的伤害提升。": {
+   "package": "1",
+   "tables": [
+    "C4E32B49AE8B7FFB",
+    "F628F40CE23D983E",
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "666DC40230B31A30",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "9BE81CD52C660467",
+    "28D9F8B02CAA94E2",
+    "5EB61A0269CD8550",
+    "04F21C6735D0D555",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "27BBF8CDFFFA177F",
+    "9799DF91AB4F4FA3",
+    "42E8DB43608C2FF1"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战斗开始时，你的英雄获得<color=#99DEB0>35</color><a href=3130011><color=#99DEB0>═临时等级</color></a>。战斗结束时，存活英雄的此等级转化为永久等级。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战斗开始时，将<color=#99DEB0>1200</color><a href=3130011><color=#99DEB0>═临时等级</color></a>随机分配给你的英雄。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战斗开始时，己方每阵亡<color=#99DEB0>2名</color>英雄，随机在己方战场内召唤<color=#99DEB0>命运图腾</color>：消灭击败该图腾的敌人。每场最多<color=#99DEB0>2</color>次。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战斗开始时，己方英雄<color=#99DEB0>每次释放技能</color>，所有英雄获得<color=#99DEB0>1%</color>物理吸血和<color=#99DEB0>1%</color>法术吸血（上限<color=#99DEB0>30%</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战斗开始时，所有【河洛】英雄获得累计使用古币数（获得此天赋后）的<color=#99DEB0>═临时等级</color>。\n【河洛】英雄≥<color=#99DEB0>5名</color>时：【河洛】英雄受到致命伤害时进入无敌，攻击速度<color=#99DEB0>+80%</color>，持续<color=#99DEB0>0.5秒</color>。战斗中每触发<color=#99DEB0>1次╫牺牲</color>，无敌时间<color=#99DEB0>+0.25秒</color>（上限<color=#99DEB0>2秒</color>）。\n【河洛】英雄≥<color=#99DEB0>7名</color>时：【河洛】英雄获得<color=#99DEB0>╫牺牲</color>：所有友方单位<color=#99DEB0>+7═临时等级</color>，每次触发此<color=#99DEB0>╫牺牲</color>时，<color=#99DEB0>═临时等级</color>额外<color=#99DEB0>+7</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战斗开始时，若己方有<color=#99DEB0>至少2个</color>阵营，所有英雄获得<color=#99DEB0>20</color>×阵营数的等级。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "战术牌系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "房主关闭了{0}设置": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "房主可以设置不匹配王中王玩家": {
+   "package": "1",
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "房主开启了{0}设置": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "房间内已有最强王者段位或已开启王中王的玩家，暂时无法设置此项": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "打出【无阵营】英雄时，等级最高的<color=#99DEB0>3个</color>【无阵营】英雄等级<color=#99DEB0>+15</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "打出古币时有概率<color=#99DEB0>额外触发2-4次</color>。你的古币额外提供<color=#99DEB0>6级</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "打出古币时有概率额外触发<color=#99DEB0>2-4</color>次。你的古币额外提供<color=#99DEB0>6级</color>。": {
+   "package": "1",
+   "tables": [
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "打出后获得累积的钻石（当前{810299Diamond:0|0}）和全体英雄等级（当前{810299Level:0}）。持有时：胜利钻石<color=#99DEB0>+{0|5}</color>、等级<color=#99DEB0>+10</color>；失败钻石<color=#99DEB0>+{0|1}</color>、等级<color=#99DEB0>+50</color>；平局不计入。": {
+   "package": "1",
+   "tables": [
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "打出战术牌时，己方全体英雄等级 <color=#99DEB0>+10</color>。你获取的所有战术牌变为超·增强版。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "打开礼包必定获得：夺宝币*24，改名卡*1、高级点心礼盒*1。": {
+   "package": "1",
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "技能伤害提升至50+120%物理攻击力，护盾提升至250点": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "护盾系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "持有时每场战斗后累积奖励：\n胜利：钻石<color=#99DEB0>+{0|5}</color>、全体英雄等级<color=#99DEB0>+10</color>\n失败：钻石<color=#99DEB0>+{0|1}</color>、全体英雄等级<color=#99DEB0>+50</color>\n平局不计入。打出后领取全部累积（当前钻石{810299Diamond:0|0}，等级{810299Level:0}）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "掌控全局": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "提供位移": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "提供刷新": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "提供召唤物": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "提供吸血免控": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "提供增益": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "提供群体等级": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "提供阵营效果牌": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "收藏{0}阵容成功": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "攻击群体升级": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "攻略面板": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "效果牌系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "整备触发登场": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "新建棋手阵容": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "新手礼包": {
+   "package": "1",
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "新玩法超级英雄": {
+   "package": "1",
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "in_1.6.0.1": false
+  },
+  "施法时会标记当前目标，降低其10点物理及法术防御力；标记目标被击败时玄策进入狂暴状态（攻速提高150%，移速提高40%），持续7秒": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "施法直接获得最大护盾值（不再需要多次施法提升）并恢复10%最大生命值": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "无推荐阵容": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "无阵营系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "无限买卖": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "星级根据完成人数动态变化,完成人数越少,星级越高": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "普通攻击会释放飞箭，对生命值最低的2名敌人造成<color=#ffffff>55%物理攻击力的物理伤害</color>。": {
+   "package": "1",
+   "tables": [
+    "69512BBC6B8D18CE",
+    "8D167C92A38E79A0",
+    "3FF82F7E6C74870C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "暂无最近一起玩过的玩家": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "更换房主后，{0}已关闭": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "更换房主后，{0}已开启": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "最近": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "本局事件：{0}": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "本局奖池：{0}": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "本赛季尚未参加排位赛": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "机关效果多样": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "机械仆从获得200%法术攻击的额外生命值；机械仆从到达上限后，再次施放技能转而恢复仆从们的<color=#9ff5d0>所有生命值</color>": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "机械仆从获得200%法术攻击的额外生命值；机械仆从到达上限后，再次施放技能转而恢复仆从们的所有生命值": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "棋手无推荐阵容": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "正在配置棋手皮肤、棋盘皮肤": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "每{0}抽（<color=#ED6962>{1}</color>/{0}）可领1个自选礼包，已选自选礼包<color=#ED6962>{2}</color>/{3}个": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": true
+  },
+  "每召唤<color=#99DEB0>1个</color>单位（仅召唤物、<a href=321><color=#99DEB0>╉图腾</color></a>），和召唤者同阵营的己方英雄获得<color=#99DEB0>2%</color>最大生命值（上限<color=#99DEB0>40%</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "每召唤<color=#99DEB0>1个</color>单位（仅召唤物，<a href=321><color=#99DEB0>╉图腾</color></a>），下回合开始时所有英雄等级<color=#99DEB0>+2</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "每召唤<color=#99DEB0>1个</color>单位（仅召唤物，╉图腾），下回合开始时所有英雄等级<color=#99DEB0>+2</color>。": {
+   "package": "1",
+   "tables": [
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "每当你的英雄触发<a href=1><color=#ffffff>╨<b>登场</b></color></a>效果，大乔的法力值上限永久-5且等级+1。": {
+   "package": "1",
+   "tables": [
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C13DF45E3492CA0C",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E",
+    "9799DF91AB4F4FA3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "每次召唤2个机械仆从；攻击伤害提升至50+60%法术攻击力": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "每次施法护盾值额外提升40点，最多5次": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "每触发<color=#99DEB0>1次</color><a href=1><color=#99DEB0>╨登场</color></a>，己方在场英雄物理攻击力和法术攻击力<color=#99DEB0>+1%</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "每触发<color=#99DEB0>1次</color>╨登场，己方在场英雄物理攻击力和法术攻击力<color=#99DEB0>+1%</color>。": {
+   "package": "1",
+   "tables": [
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "海诺朝目标方向掷出能量化的命运神杖，对命中的敌人造成<color=#d487e4>100+150%法术攻击力的法术伤害</color>并朝目标敌人附近2名敌人掷出子杖，造成<color=#d487e4>50+100%法术攻击力的法术伤害</color>。": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "灵活多变": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "炸弹伤害提升至100+175%法术攻击力": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "炸盾造成伤害": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "独自获胜": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "猛虎擂台吸收": {
+   "package": "1",
+   "tables": [
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "玄策舞动钩镰对目标敌人造成<color=#dfa15e>50+100%物理攻击力的物理伤害</color>，而后将其甩向玄策身后，落地时造成<color=#dfa15e>50+100%物理攻击力的物理伤害</color>并眩晕1秒。": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "玉环的舞台，在大厦最豪华的演播厅。\n\n据说，玉环的琴由这个时代最先进的光谱材料构造，能为观众带来如梦似幻的可视化演出。\n在她演奏的时候，一个个可爱的音符光影随着音乐起舞，时而聚作璀璨星河，时而散作漫天流萤。\n仅玉环一人一琴，便可以完成这场既生动又热闹的演出。\n\n“这绝对是这个时代最伟大的发明！”\n“我起猛了，竟然看到音符飞起来了！”\n“这个八分音符摸起来凉凉的耶！”\n\n玉环的舞台，可以在任何地方。\n\n天桥上的风有点大，少女的抽泣声碎在风里。她抱着琴走过去，没说话，挨着少女坐下。\n手指一拨，几个暖橙色的音符跳出来，在傍晚的空气里晕开。\n她弹得轻，音符却很聪明，像活泼的精灵，围绕在少女身边。\n一个音符绕着她飞了一圈，带走她脸上的点点泪光，然后飞到天上，融成了晚霞。\n\n“你的琴，竟然有这样的魔力？我好像没有那么难过了。”\n少女停止了哭泣，看着玉环的眼睛。\n玉环停下手指，微笑着点了点头": {
+   "package": "1",
+   "tables": [
+    "EBB4B2DDCD3E736F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "王牌加冕": {
+   "package": "1",
+   "tables": [
+    "E88B57D296721DC0"
+   ],
+   "in_1.6.0.1": false
+  },
+  "王牌对决·万象大赛在每天16:00-23:00开启，每整点在备战区段位分排名前列的玩家中随机确认6名玩家开启1场对局。参与选手对局排位分按五倍计算（输赢都按基础得分的五倍计算）。对局时刻如下：": {
+   "package": "1",
+   "tables": [
+    "8B66029B19910129"
+   ],
+   "in_1.6.0.1": true
+  },
+  "王牌对决·钻石狂潮在每天12:00-15:00开启，每整点在备战区总盈利钻石数排名前列的玩家中随机确认6名玩家开启1场对局。对局固定带入50000钻石。对局时刻如下：": {
+   "package": "1",
+   "tables": [
+    "8B66029B19910129"
+   ],
+   "in_1.6.0.1": true
+  },
+  "留存治愈时刻，把线条小狗的快乐打包送出。赠送可增加 10 点亲密度。「小狗限定快照」": {
+   "package": "1",
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "in_1.6.0.1": true
+  },
+  "登场增加等级": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "登场提供古币": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "登场给效果牌": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "确认后将关闭王中王组队功能：加入王中王队伍、挑战者队伍可获得有分同享效果。单人挑战可获得胜利多加分，失败不扣分效果。": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "确认棋手后刷新出对应阵容": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "神杖伤害提升至150+250%法术攻击力；子杖伤害提升至100+150%法术攻击力": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "突袭伤害提升至50+150%物理攻击力": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>1张夺取援兵</color>。回合开始时，获得<color=#99DEB0>2张夺取援兵</color>：随机获得<color=#99DEB0>1张</color>具有<a href=200><color=#99DEB0>╊夺取</color></a>词条的英雄牌。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>1张时光虹吸</color>：指定英雄在战斗开始时获得<color=#99DEB0>8%×当前回合数的法术吸血</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>1张激昂奋战</color>：指定英雄每承受<color=#99DEB0>2500点</color>伤害，恢复自身<color=#99DEB0>12%最大生命值</color>（最多触发<color=#99DEB0>5次</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>1张登神之路</color>：指定英雄在战斗中每击败<color=#99DEB0>1名</color>敌人获得<color=#99DEB0>25%攻击速度和3%物理吸血</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>1张直击本源</color>：指定英雄会将<color=#99DEB0>0.5%</color>×自身等级的伤害<color=#99DEB0>转化为真实伤害</color>，最高<color=#99DEB0>50%</color>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>2张</color><a href=1><color=#99DEB0>╨登场</color></a>英雄牌。回合开始时，随机获得<color=#99DEB0>4张</color><a href=1><color=#99DEB0>╨登场</color></a>英雄牌。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>2张</color><a href=3><color=#99DEB0>╪开团</color></a>英雄牌。己方单位触发<a href=3><color=#99DEB0>╪开团</color></a>时，获得<color=#99DEB0>1张</color><a href=3><color=#99DEB0>╪开团</color></a>英雄牌（每回合最多<color=#99DEB0>3张</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>3张</color><a href=11><color=#99DEB0>╬整备</color></a>英雄牌。你的英雄触发<a href=11><color=#99DEB0>╬整备</color></a>时，获得<color=#99DEB0>1张</color><a href=11><color=#99DEB0>╬整备</color></a>英雄牌（每回合最多<color=#99DEB0>3张</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>4张</color><a href=10><color=#99DEB0>╫牺牲</color></a>英雄牌。你的英雄触发<a href=10><color=#99DEB0>╫牺牲</color></a>时，获得<color=#99DEB0>1张</color><a href=10><color=#99DEB0>╫牺牲</color></a>英雄牌（每回合最多<color=#99DEB0>4张</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "立即获得<color=#99DEB0>4张</color>召唤、<a href=321><color=#99DEB0>╉图腾</color></a>系列英雄牌。<color=#99DEB0>召唤单位时（含召唤物，<a href=321><color=#99DEB0>╉图腾</color></a>）</color>，获得<color=#99DEB0>1张</color>召唤、<a href=321><color=#99DEB0>╉图腾</color></a>系列英雄牌（每回合最多<color=#99DEB0>4张</color>）。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "第6/11回合": {
+   "package": "1",
+   "tables": [
+    "A4FDF25E51B190AC"
+   ],
+   "in_1.6.0.1": false
+  },
+  "等待最终排名结算中": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "等级最高的<color=#99DEB0>2名</color>己方英雄首次阵亡后，会随机以<color=#99DEB0>1%</color>、<color=#99DEB0>10%</color>、<color=#99DEB0>20%</color>、<color=#99DEB0>30%</color>的生命值<a href=16><color=#99DEB0>╧复生</color></a>。": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "简介": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "米莱狄在距离自己最远的敌人附近召唤1个机械仆从，继承自己<color=#d487e4>100%法术攻击力</color>。\n仆从每次攻击造成<color=#d487e4>50+30%法术攻击力的法术伤害</color>，机械仆从到达最大数量后，再次施放技能，增加仆从15%攻击速度，持续5秒。": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "米莱狄在距离自己最远的敌人附近召唤1个机械仆从，继承自己<color=#d487e4>100%法术攻击力</color>。\n仆从每次攻击造成<color=#d487e4>[0]点法术伤害</color><color=#d487e4>（[1]+[2]%法术攻击力）</color>，机械仆从到达最大数量后，再次施放技能，增加仆从60%攻击速度，持续5秒（不可叠加）。": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "米莱狄在距离自己最远的敌人附近召唤1个机械仆从，继承自己<color=#d487e4>100%法术攻击力</color>。\n仆从每次攻击造成<color=#d487e4>[504040p1q1]+[504040p1q3/100]%法术攻击力的法术伤害</color>，机械仆从到达最大数量后，再次施放技能，增加仆从60%攻击速度，持续5秒（不可叠加）。": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "累计夺冠1000场": {
+   "package": "1",
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "累计夺冠100场": {
+   "package": "1",
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "累计夺冠500场": {
+   "package": "1",
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "线条小狗天幕祈愿即将下线": {
+   "package": "1",
+   "tables": [
+    "5E72CA8CAF015FDE"
+   ],
+   "in_1.6.0.1": false
+  },
+  "经济倒转": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "群体增加等级": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "群体爆炸": {
+   "package": "1",
+   "tables": [
+    "B990CF372E5633C5"
+   ],
+   "in_1.6.0.1": false
+  },
+  "群体英雄升级": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "群体英雄增伤": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "能量刷新二选一": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "自选棋手体验卡（3天）": {
+   "package": "1",
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "in_1.6.0.1": false
+  },
+  "草根系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "获取同阵营英雄": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "获奖总人次": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "获得3张天赋牌<color=#FFE897>限制性进化</color>：指定移除1名1~2阶英雄，获得高2阶的随机英雄牌，且上阵时为原等级+10。": {
+   "package": "1",
+   "tables": [
+    "C4E32B49AE8B7FFB",
+    "F628F40CE23D983E",
+    "A07B2B9F994FB0ED",
+    "57C03656175B0904",
+    "4476EC307E0F2142",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "666DC40230B31A30",
+    "3D889D9ABCEDE2A8",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "23C9A9DEBB3BF40C",
+    "9BE81CD52C660467",
+    "28D9F8B02CAA94E2",
+    "5EB61A0269CD8550",
+    "04F21C6735D0D555",
+    "A336359CD92A858E",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "27BBF8CDFFFA177F",
+    "9799DF91AB4F4FA3",
+    "42E8DB43608C2FF1"
+   ],
+   "in_1.6.0.1": false
+  },
+  "获得“接收心心”个性戳戳1天使用权，在定制系统中装配后可在组队房间内使用。": {
+   "package": "1",
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "in_1.6.0.1": true
+  },
+  "获得“接收心心”个性戳戳30天使用权，在定制系统中装配后可在组队房间内使用。": {
+   "package": "1",
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "in_1.6.0.1": true
+  },
+  "获得“接收心心”个性戳戳365天使用权，在定制系统中装配后可在组队房间内使用。": {
+   "package": "1",
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "in_1.6.0.1": true
+  },
+  "获得“接收心心”个性戳戳，使用后可一直生效，在定制系统中装配后可在组队房间内使用。": {
+   "package": "1",
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "in_1.6.0.1": true
+  },
+  "获得随机宝藏": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "蒙犽发射12枚导弹攻击随机敌人，每枚造成<color=#dfa15e>30+60%物理攻击力的物理伤害</color>。多枚导弹命中同一目标时，后续伤害衰减40%。": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "蒙犽发射12枚导弹攻击随机敌人，每枚造成<color=#dfa15e>[0]点物理伤害</color><color=#dfa15e>（[1]+[2]%物理攻击力）</color>。多枚导弹命中同一目标时，后续伤害衰减40%。": {
+   "package": "1",
+   "tables": [
+    "4332819ABE8E29C8",
+    "7F7F60ACED822B5E",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C"
+   ],
+   "in_1.6.0.1": true
+  },
+  "装备知识": {
+   "package": "1",
+   "tables": [
+    "805FE814788EA4C6"
+   ],
+   "in_1.6.0.1": false
+  },
+  "该玩家设置了不允许任何人免邀请进入房间": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "该玩家设置了仅允许亲密关系免邀请进入房间": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "该玩法不可用": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "该阵容未推荐当前棋手，无法收藏": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "该阵容未配置推荐棋手，无法收藏": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "请输入克制关系": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "购买<color=#ed6962ff>{0}x{1}</color>，可获赠<color=#ed6962ff>{2}x{3}</color>，可参与祈愿获得奖励": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": true
+  },
+  "超快成长！养出超级英雄": {
+   "package": "1",
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "in_1.6.0.1": false
+  },
+  "超级周末：每天前{1}次翻出钻石翻倍（{0} / {1}）": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "超级英雄活动奖励": {
+   "package": "1",
+   "tables": [
+    "5E72CA8CAF015FDE"
+   ],
+   "in_1.6.0.1": false
+  },
+  "超级英雄进入前3名": {
+   "package": "1",
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "in_1.6.0.1": false
+  },
+  "超速觉醒": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "输入阵容名称": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "这是棋手适配的阵容": {
+   "package": "1",
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "这里可以对房间进行设置": {
+   "package": "1",
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "这里可以设置允许主动进入房间的玩家类型": {
+   "package": "1",
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "这里可以设置是否允许玩家加入我的王中王队伍": {
+   "package": "1",
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "这里可以设置是否自动接受匹配": {
+   "package": "1",
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "这里是棋手列表": {
+   "package": "1",
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "选择一套阵容": {
+   "package": "1",
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "选择四种武器": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "通用系列": {
+   "package": "1",
+   "tables": [
+    "28D9F8B02CAA94E2",
+    "A336359CD92A858E"
+   ],
+   "in_1.6.0.1": false
+  },
+  "释放技能时，<color=#ffffff>35%概率重复释放一次</color>。每有7级，额外提升1%概率。近战英雄总上限70%。": {
+   "package": "1",
+   "tables": [
+    "69512BBC6B8D18CE",
+    "8D167C92A38E79A0",
+    "3FF82F7E6C74870C"
+   ],
+   "in_1.6.0.1": false
+  },
+  "钩镰伤害提升至50+130%物理攻击力": {
+   "package": "1",
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "in_1.6.0.1": false
+  },
+  "队伍加入了王者或王中王玩家，{0}玩家设置将不可用": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "队伍已无王者或王中王玩家，{0}玩家设置已可用": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.6.0.1": false
+  },
+  "阵容投稿时必填内容如下：\n1、至少添加2个及以上英雄\n2、至少编辑1个阵容核心标签（王牌、坦克核心、功能核心）\n3、有填写阵容标题和阵容描述\n4、至少有1个英雄穿戴装备": {
+   "package": "1",
+   "tables": [
+    "CEB1AA41B4D8A0F3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "阵容推荐改版说明": {
+   "package": "1",
+   "tables": [
+    "CEB1AA41B4D8A0F3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "阵容推荐系统改造为先选择棋手，再展示阵容。": {
+   "package": "1",
+   "tables": [
+    "CEB1AA41B4D8A0F3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "阵容瞬间成型": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "阵容系统将由固定栏位调整为每位棋手独立持有对应数量的栏位。版本更新前已解锁的阵容栏位会折算为等量栏位扩充卡，通过邮件发放。": {
+   "package": "1",
+   "tables": [
+    "CEB1AA41B4D8A0F3"
+   ],
+   "in_1.6.0.1": false
+  },
+  "集齐线条小狗1个天幕、1张名片、1个传送特效、1个头像框、1个聊天气泡和5个表情": {
+   "package": "1",
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "in_1.6.0.1": true
+  },
+  "额外获得阵营天赋": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  },
+  "飞行器可输出": {
+   "package": "1",
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "in_1.6.0.1": false
+  }
+ }
+}
