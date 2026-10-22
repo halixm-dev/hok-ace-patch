@@ -4,11 +4,14 @@ The catalog is the PC pipeline's file and is not edited here (`AGENTS.md`), so d
 reword strings in tables the catalog already covers leave those rows Chinese until upstream catches up.
 Game data 1.5.0.1 and 1.6.0.1 added about 1200 such strings to package `1`: an achievement-title system
 whose titles come in numbered tiers (`完美橱窗(二)`), four weekly leaderboards ranked 1 to 100, the King of
-Kings sub-account, the Line Puppy event, and card texts whose numbers changed. `apply` fills them in.
+Kings sub-account, the Line Puppy event, and card texts whose numbers changed. Game data 1.7.0.1 added 335
+more: the Super Hero mode, room settings, the reworked Lineup Recommendation, strategy tags, and talent texts
+split from their series header. `apply` fills them in.
 The official lineups' strategy text is here too: it lives in config bins the catalog does not cover, inside
 their share codes, for the share-code pass to write.
 `derived` adds the short forms the card-pack covers label each cover with (`逆天改命卡包`, `河洛-李白`),
-whose wording the catalog carries only inside its own longer strings; that bin itself was withdrawn.
+whose wording the catalog carries only inside its own longer strings; that bin itself was withdrawn. It
+also splits the catalog's two-line talent texts into the effect and the series name the new tables hold.
 
 Three rules keep this from becoming a second catalog:
 
@@ -1414,6 +1417,901 @@ TEXTS: dict[str, tuple[str, str]] = {
     # ResHeroStrategyDataBin: Title (test rows)
     "小妲己测试": ("Little Daji Test", "Tes Little Daji"),
     "瑶妹测试": ("Yaria Test", "Tes Yaria"),
+
+    # Card, talent and skill texts 1.7.0.1 added or reworded.
+    "<a href=11><color=#ffffff>╬<b>整备</b></color></a>：对距离最近的【河洛】英雄使用2张<color=#ffffff><b>古币</b></color>。": (
+        "<a href=11><color=#ffffff>╬<b>Prepare</b></color></a>: Use 2 <color=#ffffff><b>Ancient Coins</b></color> on the"
+        " nearest [Central Plains] Hero.",
+        "<a href=11><color=#ffffff>╬<b>Prepare</b></color></a>: Gunakan 2 <color=#ffffff><b>Ancient Coin</b></color> pada"
+        " Hero [Central Plains] terdekat."),
+    "<a href=3130012><color=#99DEB0>╆转瞬</color></a>\n指定<color=#99DEB0>1名低于5阶</color>的英雄═临时等级<color=#99DEB0>+65</color>。若战斗胜利，将永久获得此等级。若战斗失败/平局，则获得一半。": (
+        "<a href=3130012><color=#99DEB0>╆Fleeting</color></a>\nTarget <color=#99DEB0>1 Hero below Tier 5</color> to gain"
+        " ═Temporary Level <color=#99DEB0>+65</color>. If you win the Battle, this Level becomes permanent. If you"
+        " lose/draw, gain half.",
+        "<a href=3130012><color=#99DEB0>╆Fleeting</color></a>\nTargetkan <color=#99DEB0>1 Hero di bawah Tier 5</color>"
+        " untuk mendapat ═Temporary Level <color=#99DEB0>+65</color>. Jika kamu memenangkan Pertempuran, Level ini"
+        " menjadi permanen. Jika kalah/seri, dapatkan setengahnya."),
+    "<a href=3><color=#ffffff>╪<b>开团</b></color></a>：场上每有1个<a href=321><color=#ffffff>╉<b>图腾</b></color></a>，自身及随机2名不同己方英雄等级+1。": (
+        "<a href=3><color=#ffffff>╪<b>Initiate</b></color></a>: For every <a href=321><color=#ffffff>╉<b>Totem</b></color></a>"
+        " on the board, this Hero and 2 random different allied Heroes gain +1 Level.",
+        "<a href=3><color=#ffffff>╪<b>Initiate</b></color></a>: Untuk setiap <a href=321><color=#ffffff>╉<b>Totem</b></color></a>"
+        " di papan, Hero ini dan 2 Hero ally berbeda secara acak mendapatkan +1 Level."),
+    "<a href=3><color=#ffffff>╪<b>开团</b></color></a>：场上每有1个<a href=321><color=#ffffff>╉<b>图腾</b></color></a>，自身及随机4名不同己方英雄等级+1。": (
+        "<a href=3><color=#ffffff>╪<b>Initiate</b></color></a>: For every <a href=321><color=#ffffff>╉<b>Totem</b></color></a>"
+        " on the board, this Hero and 4 random different allied Heroes gain +1 Level.",
+        "<a href=3><color=#ffffff>╪<b>Initiate</b></color></a>: Untuk setiap <a href=321><color=#ffffff>╉<b>Totem</b></color></a>"
+        " di papan, Hero ini dan 4 Hero ally berbeda secara acak mendapatkan +1 Level."),
+    "<a href=3><color=#ffffff>╪<b>开团</b></color></a>：距离最近的4名己方英雄获得装备<color=#ffffff><b>玄微之种</b></color>。": (
+        "<a href=3><color=#ffffff>╪<b>Initiate</b></color></a>: The 4 nearest allied Heroes gain the"
+        " <color=#ffffff><b>Seed of Xuanwei</b></color> Equipment.",
+        "<a href=3><color=#ffffff>╪<b>Initiate</b></color></a>: 4 Hero ally terdekat mendapat Equipment"
+        " <color=#ffffff><b>Seed of Xuanwei</b></color>."),
+    "<color=#99DEB0>╥阿科米亚核心</color>等级<color=#99DEB0>+200</color>。场上英雄升级时，<color=#99DEB0>╥阿科米亚核心</color>会获得<color=#99DEB0>60%</color>的等级（仅真实等级）。": (
+        "<color=#99DEB0>╥Arcomia Core</color> Level <color=#99DEB0>+200</color>. When Heroes on the field gain Levels,"
+        " <color=#99DEB0>╥Arcomia Core</color> gains <color=#99DEB0>60%</color> of those Levels (actual Levels only).",
+        "<color=#99DEB0>╥Arcomia Core</color> Level <color=#99DEB0>+200</color>. Saat Hero di papan naik Level,"
+        " <color=#99DEB0>╥Arcomia Core</color> mendapatkan <color=#99DEB0>60%</color> dari Level tersebut (hanya Level"
+        " asli)."),
+    "<color=#99DEB0>召唤╉图腾</color>，己方所有【大河】英雄获得相当于<a><color=#99DEB0>╉<b>图腾</b></color></a>等级<color=#99DEB0>50%</color>的<a>═临时等级</a>。": (
+        "<color=#99DEB0>Summon a ╉Totem</color>. All your [Riverlands] Heroes gain the"
+        " <a><color=#99DEB0>╉<b>Totem</b></color></a>'s Level × <color=#99DEB0>50%</color> as <a>═Temporary Level</a>.",
+        "<color=#99DEB0>Summon ╉Totem</color>. Semua Hero [Riverlands] kamu mendapatkan Level"
+        " <a><color=#99DEB0>╉<b>Totem</b></color></a> × <color=#99DEB0>50%</color> sebagai <a>═Temporary Level</a>."),
+    "<color=#ffffff><b>唯一</b></color>。释放技能时，<color=#ffffff>35%概率重复释放一次</color>。每有7级，额外提升1%概率。近战英雄总上限70%。": (
+        "<color=#ffffff><b>Unique</b></color>. When casting a Skill, there is a <color=#ffffff>35% chance to cast it"
+        " again</color>. For every 7 levels, the chance increases by an additional 1%. Melee Heroes are capped at 70%.",
+        "<color=#ffffff><b>Unique</b></color>. Saat memakai Skill, ada <color=#ffffff>peluang 35% untuk memakainya"
+        " lagi</color>. Setiap 7 level, peluang bertambah 1%. Batas total Hero Melee 70%."),
+    "释放技能时，<color=#ffffff>35%概率重复释放一次</color>。每有7级，额外提升1%概率。近战英雄总上限70%。": (
+        "When casting a Skill, there is a <color=#ffffff>35% chance to cast it again</color>. The chance increases by 1%"
+        " for every 7 levels. Melee Heroes are capped at 70%.",
+        "Saat memakai Skill, ada <color=#ffffff>peluang 35% untuk memakainya lagi</color>. Peluangnya naik 1% setiap 7"
+        " level. Batas total Hero Melee 70%."),
+    "<color=#ffffff><b>唯一</b></color>，<color=#ffffff><b>限定远程英雄</b></color>。普通攻击会释放飞箭，对生命值最低的2名敌人造成<color=#ffffff>55%物理攻击力的物理伤害</color>。": (
+        "<color=#ffffff><b>Unique</b></color>, <color=#ffffff><b>Ranged Heroes Only</b></color>. Basic attacks fire"
+        " arrows, dealing <color=#ffffff>55% Physical Attack as Physical Damage</color> to the 2 enemies with the lowest"
+        " Health.",
+        "<color=#ffffff><b>Unique</b></color>, <color=#ffffff><b>Khusus Hero Ranged</b></color>. Basic Attack"
+        " menembakkan panah, memberikan <color=#ffffff>Physical Damage sebesar 55% Physical Attack</color> ke 2 musuh"
+        " dengan Health terendah."),
+    "普通攻击会释放飞箭，对生命值最低的2名敌人造成<color=#ffffff>55%物理攻击力的物理伤害</color>。": (
+        "Basic attacks fire arrows, dealing <color=#ffffff>55% Physical Attack as Physical Damage</color> to the 2"
+        " enemies with the lowest Health.",
+        "Basic Attack menembakkan panah, memberikan <color=#ffffff>Physical Damage sebesar 55% Physical Attack</color>"
+        " ke 2 musuh dengan Health terendah."),
+    "<color=#ffffffbf>被动：</color>冲锋并戳刺造成<color=#dfa15e>物理伤害</color>。\n<color=#ffffffbf>主动：</color>获得伤害加成。": (
+        "<color=#ffffffbf>Passive:</color> Charges and thrusts, dealing <color=#dfa15e>Physical Damage</color>.\n"
+        "<color=#ffffffbf>Active:</color> Gains a Damage bonus.",
+        "<color=#ffffffbf>Pasif:</color> Menyerbu dan menusuk, memberikan <color=#dfa15e>Physical Damage</color>.\n"
+        "<color=#ffffffbf>Aktif:</color> Mendapatkan bonus Damage."),
+    "<color=#ffffffbf>被动：</color>圣殿骑士每次冲锋后进行戳刺，造成<color=#dfa15e>[0]点物理伤害</color><color=#dfa15e>（[1]+[2]%自身最大生命值）</color>。\n<color=#ffffffbf>主动：</color>获得15%伤害加成，持续5秒。": (
+        "<color=#ffffffbf>Passive:</color> After each Charge, the Templar thrusts, dealing <color=#dfa15e>[0] Physical"
+        " Damage</color><color=#dfa15e> ([1]+[2]% of its own Max HP)</color>.\n<color=#ffffffbf>Active:</color> Gains a"
+        " 15% Damage bonus for 5 seconds.",
+        "<color=#ffffffbf>Pasif:</color> Setelah setiap Charge, Templar menusuk, memberikan <color=#dfa15e>[0] Physical"
+        " Damage</color><color=#dfa15e> ([1]+[2]% Max HP-nya sendiri)</color>.\n<color=#ffffffbf>Aktif:</color>"
+        " Mendapatkan bonus Damage 15% selama 5 detik."),
+    "<color=#ffffffbf>被动：</color>马超靠近冷晖枪时会拾取回收，同时<color=#9ff5d0>恢复自身100+75%物理攻击力的生命值</color>，并提升<color=#dfa15e>5点物理攻击力</color>。\n<color=#ffffffbf>主动：</color>马超立即<color=#9ff5d0>恢复自身100点生命值</color>，快速突袭至3格内最远的敌人身边，对其造成<color=#dfa15e>50+100%物理攻击力的物理伤害</color>并留下1把冷晖枪。": (
+        "<color=#ffffffbf>Passive:</color> When Ma Chao approaches a Cold Dawn Spear, he retrieves it,"
+        " <color=#9ff5d0>restoring 100+75% Physical Attack as Health</color> and gaining <color=#dfa15e>5 Physical"
+        " Attack</color>.\n<color=#ffffffbf>Active:</color> Ma Chao immediately <color=#9ff5d0>restores 100"
+        " Health</color>, rushes to the farthest enemy within 3 tiles, deals <color=#dfa15e>50+100% Physical Attack as"
+        " Physical Damage</color> to it, and leaves behind 1 Cold Dawn Spear.",
+        "<color=#ffffffbf>Pasif:</color> Saat Ma Chao mendekati Cold Dawn Spear, ia mengambilnya kembali,"
+        " <color=#9ff5d0>memulihkan Health sebesar 100+75% Physical Attack</color> dan mendapatkan <color=#dfa15e>5"
+        " Physical Attack</color>.\n<color=#ffffffbf>Aktif:</color> Ma Chao langsung <color=#9ff5d0>memulihkan 100"
+        " Health</color>, menyerbu ke musuh terjauh dalam 3 petak, memberikan <color=#dfa15e>Physical Damage sebesar"
+        " 50+100% Physical Attack</color>, dan meninggalkan 1 Cold Dawn Spear."),
+    "╥阿科米亚核心不再分配等级。每秒对1个随机敌方单位造成<color=#FFE897>6次核心等级×1</color>的法术伤害。每击败1名敌方英雄，阿科米亚核心获得自身1%的等级成长。": (
+        "╥Arcomia Core no longer distributes Levels. Every second, it deals <color=#FFE897>6 hits of Magic Damage equal"
+        " to Core Level × 1</color> to a random enemy unit. For each enemy Hero defeated, Arcomia Core grows by 1% of"
+        " its own Level.",
+        "╥Arcomia Core tidak lagi membagikan Level. Setiap detik, Core memberikan <color=#FFE897>6 kali Magic Damage"
+        " sebesar Level Core × 1</color> ke 1 unit musuh acak. Setiap 1 Hero musuh dikalahkan, Level Arcomia Core"
+        " tumbuh 1% dari Level-nya sendiri."),
+    "上阵6个所选阵营英雄时，获得1张<color=#FFE897>朋友多多</color>。\n<color=#FFE897>朋友多多</color>：随机获得5张技能所选阵营的英雄牌。": (
+        "When you deploy 6 Heroes of the chosen Faction, gain 1 <color=#FFE897>Lots of Friends</color>.\n"
+        "<color=#FFE897>Lots of Friends</color>: randomly gain 5 Hero Cards of the Faction chosen by the Skill.",
+        "Saat kamu menurunkan 6 Hero dari Faction yang dipilih, dapatkan 1 <color=#FFE897>Lots of Friends</color>.\n"
+        "<color=#FFE897>Lots of Friends</color>: dapatkan 5 Kartu Hero acak dari Faction yang dipilih oleh Skill."),
+    "你在战斗过程中<color=#FFE897>╧复生</color>的英雄，获得200%攻速、100%暴击率和70%伤害减免，持续1.5秒。": (
+        "Heroes that <color=#FFE897>╧Revive</color> during combat gain 200% Attack Speed, 100% Crit Rate and 70% Damage"
+        " Reduction for 1.5 seconds.",
+        "Hero yang <color=#FFE897>╧Revive</color> selama pertempuran mendapatkan 200% Attack Speed, 100% Crit Rate, dan"
+        " 70% Damage Reduction selama 1,5 detik."),
+    "你的<a href=321><color=#99DEB0>╉图腾</color></a>获得额外效果。\n<a href=324><color=#99DEB0>╉先知图腾</color></a>：友方英雄阵亡时，其等级的70%会作为<a href=3130011><color=#99DEB0>═临时等级</color></a>分配给己方等级最低的英雄。\n<a href=322><color=#99DEB0>╉往生图腾</color></a>：己方全体英雄物理及法术防御<color=#99DEB0>+15</color>。\n<a href=323><color=#99DEB0>╉因缘图腾</color></a>：己方全体英雄普攻<color=#99DEB0>2次</color>或释放技能时，等级<color=#99DEB0>+2</color>。": (
+        "Your <a href=321><color=#99DEB0>╉Totem</color></a> gains extra effects.\n<a href=324><color=#99DEB0>╉Seer"
+        " Totem</color></a>: When an allied Hero is Defeated, 70% of their Level is distributed as <a href=3130011>"
+        "<color=#99DEB0>═Temporary Level</color></a> to the allied Hero with the lowest Level.\n<a href=322>"
+        "<color=#99DEB0>╉Afterlife Totem</color></a>: All allied Heroes gain <color=#99DEB0>+15</color> Physical and"
+        " Magic Defense.\n<a href=323><color=#99DEB0>╉Destiny Totem</color></a>: Each time an allied Hero performs"
+        " <color=#99DEB0>2</color> basic attacks or casts a Skill, its Level <color=#99DEB0>+2</color>.",
+        "<a href=321><color=#99DEB0>╉Totem</color></a> kamu mendapatkan efek tambahan.\n<a href=324><color=#99DEB0>╉Seer"
+        " Totem</color></a>: Saat Hero ally dikalahkan, 70% Level-nya dibagikan sebagai <a href=3130011>"
+        "<color=#99DEB0>═Temporary Level</color></a> ke Hero ally dengan Level terendah.\n<a href=322>"
+        "<color=#99DEB0>╉Afterlife Totem</color></a>: Semua Hero ally mendapatkan <color=#99DEB0>+15</color> Physical"
+        " dan Magic Defense.\n<a href=323><color=#99DEB0>╉Destiny Totem</color></a>: Setiap kali Hero ally melakukan"
+        " <color=#99DEB0>2</color> basic attack atau memakai Skill, Level-nya <color=#99DEB0>+2</color>."),
+    "你的【日落海】英雄每提升<color=#99DEB0>10级</color>，<color=#99DEB0>╥阿科米亚核心</color>获得<color=#99DEB0>4等级</color>。\n【日落海】英雄首次≥<color=#99DEB0>6名</color>时：获得<color=#99DEB0>2张</color>【远洋宝藏】；保持≥<color=#99DEB0>6名</color>时，每穿戴<color=#99DEB0>1件</color>【日落海专属装备】，<color=#99DEB0>╬整备额外触发1次</color>。\n【日落海】英雄≥<color=#99DEB0>8名</color>时：每回合战斗开始，随机召唤<color=#99DEB0>1名</color>与<color=#99DEB0>╥阿科米亚核心</color>同等级的【日落海】英雄（等级上限999）。": (
+        "For every <color=#99DEB0>10 Levels</color> your [Sunset] Heroes gain, <color=#99DEB0>╥Arcomia Core</color>"
+        " gains <color=#99DEB0>4 Levels</color>.\nWhen you first have ≥<color=#99DEB0>6</color> [Sunset] Heroes: gain"
+        " <color=#99DEB0>2</color> [Ocean Treasure]. While you keep ≥<color=#99DEB0>6</color>, for each"
+        " <color=#99DEB0>1</color> [Sunset Exclusive Equipment] worn, <color=#99DEB0>╬Prepare triggers 1 extra"
+        " time</color>.\nWith ≥<color=#99DEB0>8</color> [Sunset] Heroes: at the start of each Round's Battle, randomly"
+        " Summon <color=#99DEB0>1</color> [Sunset] Hero with the same Level as <color=#99DEB0>╥Arcomia Core</color>"
+        " (Level capped at 999).",
+        "Setiap kali Hero [Sunset] kamu naik <color=#99DEB0>10 Level</color>, <color=#99DEB0>╥Arcomia Core</color>"
+        " mendapatkan <color=#99DEB0>4 Level</color>.\nSaat jumlah Hero [Sunset] pertama kali ≥<color=#99DEB0>6</color>:"
+        " dapatkan <color=#99DEB0>2</color> [Ocean Treasure]. Selama tetap ≥<color=#99DEB0>6</color>, untuk setiap"
+        " <color=#99DEB0>1</color> [Sunset Exclusive Equipment] yang dipakai, <color=#99DEB0>╬Prepare terpicu 1 kali"
+        " tambahan</color>.\nDengan ≥<color=#99DEB0>8</color> Hero [Sunset]: di awal Pertempuran setiap Ronde, Summon"
+        " <color=#99DEB0>1</color> Hero [Sunset] acak dengan Level yang sama dengan <color=#99DEB0>╥Arcomia Core</color>"
+        " (Level maksimal 999)."),
+    "你的英雄每次触发<a href=11><color=#99DEB0>╬整备</color></a>时，己方英雄<color=#99DEB0>+1%</color>最大生命值。": (
+        "Each time your Hero triggers <a href=11><color=#99DEB0>╬Prepare</color></a>, your Heroes gain"
+        " <color=#99DEB0>+1%</color> Max HP.",
+        "Setiap kali Hero kamu memicu <a href=11><color=#99DEB0>╬Prepare</color></a>, Hero kamu mendapatkan"
+        " <color=#99DEB0>+1%</color> Max HP."),
+    "你的英雄每次触发<color=#99DEB0>╬整备</color>时，己方英雄<color=#99DEB0>+1%</color>最大生命值。": (
+        "Each time your Hero triggers <color=#99DEB0>╬Prepare</color>, your Heroes gain <color=#99DEB0>+1%</color> Max"
+        " HP.",
+        "Setiap kali Hero kamu memicu <color=#99DEB0>╬Prepare</color>, Hero kamu mendapatkan <color=#99DEB0>+1%</color>"
+        " Max HP."),
+    "你的英雄每触发2次<a href=1><color=#ffffff>╨<b>登场</b></color></a>效果，大乔的法力值上限永久-5且等级+1。": (
+        "Every time your Heroes trigger <a href=1><color=#ffffff>╨<b>Deploy</b></color></a> effects 2 times, Da Qiao's"
+        " Max Mana is permanently reduced by 5 and her Level +1.",
+        "Setiap kali Hero kamu memicu efek <a href=1><color=#ffffff>╨<b>Deploy</b></color></a> 2 kali, Max Mana Da Qiao"
+        " berkurang permanen sebesar 5 dan Level-nya +1."),
+    "光辉伤害提升至17%法术攻击力": (
+        "Radiance damage increased to 17% Magic Attack", "Damage Radiance meningkat jadi 17% Magic Attack"),
+    "光辉伤害提升至[0]+[1]%法术攻击力": (
+        "Radiance damage increased to [0]+[1]% Magic Attack", "Damage Radiance meningkat jadi [0]+[1]% Magic Attack"),
+    "光辉伤害提升至[142302p1q1]+[142302p1q3/100]%法术攻击力": (
+        "Radiance damage increased to [142302p1q1]+[142302p1q3/100]% Magic Attack",
+        "Damage Radiance meningkat jadi [142302p1q1]+[142302p1q3/100]% Magic Attack"),
+    "卡牌指定英雄，最大生命值<color=#99DEB0>+55%</color>、法术攻击力<color=#99DEB0>+55%</color>、法术吸血<color=#99DEB0>+25%</color>；该英雄每回合等级<color=#99DEB0>+65</color>，等级上限突破至<color=#99DEB0>9999</color>。": (
+        "Target a Hero: Max HP <color=#99DEB0>+55%</color>, Magic Attack <color=#99DEB0>+55%</color>, Magic Lifesteal"
+        " <color=#99DEB0>+25%</color>; that Hero gains <color=#99DEB0>+65</color> levels per Round, with a Level cap"
+        " increased to <color=#99DEB0>9999</color>.",
+        "Pilih satu Hero: Max HP <color=#99DEB0>+55%</color>, Magic Attack <color=#99DEB0>+55%</color>, Magic Lifesteal"
+        " <color=#99DEB0>+25%</color>; Hero itu mendapat <color=#99DEB0>+65</color> level per Ronde, dengan batas Level"
+        " meningkat menjadi <color=#99DEB0>9999</color>."),
+    "只能获得<color=#99DEB0>1-3阶</color>英雄卡；该类英雄最大生命值<color=#99DEB0>+20%</color>、物理攻击力<color=#99DEB0>+20%</color>、攻击速度<color=#99DEB0>+35%</color>。回合开始时，场上英雄等级<color=#99DEB0>+25</color>，等级上限突破至<color=#99DEB0>6666</color>。": (
+        "Only <color=#99DEB0>Tier 1-3</color> Hero cards can be obtained; these Heroes gain <color=#99DEB0>+20%</color>"
+        " Max HP, <color=#99DEB0>+20%</color> Physical Attack, and <color=#99DEB0>+35%</color> Attack Speed. At the start"
+        " of the Round, field Hero levels <color=#99DEB0>+25</color>, with the Level cap increased to"
+        " <color=#99DEB0>6666</color>.",
+        "Hanya Hero Card <color=#99DEB0>Tier 1-3</color> yang bisa didapat; Hero ini mendapatkan"
+        " <color=#99DEB0>+20%</color> Max HP, <color=#99DEB0>+20%</color> Physical Attack, dan <color=#99DEB0>+35%</color>"
+        " Attack Speed. Di awal Ronde, level Hero di lapangan <color=#99DEB0>+25</color>, dengan batas Level dinaikkan"
+        " menjadi <color=#99DEB0>6666</color>."),
+    "回合开始时获得<color=#99DEB0>1张</color><a href=3130012><color=#99DEB0>╆转瞬</color></a>战歌：指定<color=#99DEB0>1名低于5阶</color>英雄<a href=3130011><color=#99DEB0>═临时等级</color></a><color=#99DEB0>+65</color>。战斗胜利则永久获得，失败/平局获得一半。": (
+        "At the start of the Round, gain <color=#99DEB0>1</color> <a href=3130012><color=#99DEB0>╆Fleeting</color></a>"
+        " War Song: Target <color=#99DEB0>1 Hero below Tier 5</color> to gain <a href=3130011><color=#99DEB0>═Temporary"
+        " Level</color></a> <color=#99DEB0>+65</color>. Gain permanently on victory; gain half on draw/defeat.",
+        "Di awal Ronde, dapatkan <color=#99DEB0>1</color> War Song <a href=3130012><color=#99DEB0>╆Fleeting</color></a>:"
+        " pilih <color=#99DEB0>1 Hero di bawah Tier 5</color> untuk mendapatkan <a href=3130011><color=#99DEB0>═Temporary"
+        " Level</color></a> <color=#99DEB0>+65</color>. Didapat permanen jika menang Pertempuran; setengahnya jika"
+        " kalah/seri."),
+    "回合开始时，场上友方英雄获得主要阵营人数+2的等级。": (
+        "At the start of the Round, allied heroes on the field gain Levels equal to the number of heroes in the Main"
+        " Faction +2.",
+        "Di awal Ronde, hero ally di lapangan mendapat Level sebesar jumlah hero di Faction Utama +2."),
+    "回合开始时，场上友方英雄获得场上5阶英雄数量×2的等级。": (
+        "At the start of the Round, allied heroes on the field gain levels equal to the number of Tier 5 Heroes on the"
+        " field ×2.",
+        "Di awal Ronde, hero ally di lapangan mendapat level sebesar jumlah Hero Tier 5 di lapangan ×2."),
+    "回合开始时，随机获得<color=#99DEB0>2张</color>高阶战术牌。\n你的【逐鹿】英雄最大生命值<color=#99DEB0>+8%</color>、物理及法术防御<color=#99DEB0>+8</color>。\n【逐鹿】英雄≥<color=#99DEB0>5名</color>时：【逐鹿】英雄释放技能时，己方所有英雄获得巨盾：物理及法术防御<color=#99DEB0>+2</color>，上限<color=#99DEB0>5层</color>。\n【逐鹿】英雄≥<color=#99DEB0>7名</color>时：获得<color=#99DEB0>2张</color>装备牌【机关匣】以及<color=#99DEB0>1张</color>【珍品宝箱】。": (
+        "At the start of the Round, randomly gain <color=#99DEB0>2</color> high-Tier Tactics Cards.\nYour [Zhulu"
+        " Plateau] Heroes gain Max HP <color=#99DEB0>+8%</color> and Physical and Magic Defense"
+        " <color=#99DEB0>+8</color>.\nWith ≥<color=#99DEB0>5</color> [Zhulu Plateau] Heroes: when a [Zhulu Plateau] Hero"
+        " casts a Skill, all your Heroes gain Great Shield: Physical and Magic Defense <color=#99DEB0>+2</color>, up to"
+        " <color=#99DEB0>5 stacks</color>.\nWith ≥<color=#99DEB0>7</color> [Zhulu Plateau] Heroes: gain"
+        " <color=#99DEB0>2</color> [Mechanism Box] Equipment Cards and <color=#99DEB0>1</color> [Treasure Chest].",
+        "Di awal Ronde, dapatkan <color=#99DEB0>2</color> Tactics Card Tier tinggi secara acak.\nHero [Zhulu Plateau]"
+        " kamu mendapatkan Max HP <color=#99DEB0>+8%</color> serta Physical dan Magic Defense"
+        " <color=#99DEB0>+8</color>.\nDengan ≥<color=#99DEB0>5</color> Hero [Zhulu Plateau]: saat Hero [Zhulu Plateau]"
+        " menggunakan Skill, semua Hero kamu mendapatkan Great Shield: Physical dan Magic Defense"
+        " <color=#99DEB0>+2</color>, maksimal <color=#99DEB0>5 Stack</color>.\nDengan ≥<color=#99DEB0>7</color> Hero"
+        " [Zhulu Plateau]: dapatkan <color=#99DEB0>2</color> Equipment Card [Mechanism Box] dan"
+        " <color=#99DEB0>1</color> [Treasure Chest]."),
+    "场上每有<color=#99DEB0>1个╉图腾</color>，【大河流域】英雄最大生命值<color=#99DEB0>+5%</color>、物理及法术防御<color=#99DEB0>+5</color>。\n【大河】英雄≥<color=#99DEB0>6名</color>时，战斗开始时，<color=#99DEB0>╉图腾周围1格内的己方单位</color>生命值上限<color=#99DEB0>+8%</color>、攻击速度<color=#99DEB0>+20%</color>，可叠加。\n【大河】英雄≥<color=#99DEB0>8名</color>时，开战时随机召唤<color=#99DEB0>1个</color>先知图腾、因缘图腾或往生图腾。": (
+        "For every <color=#99DEB0>1 ╉Totem</color> on the board, [Riverlands] Heroes gain <color=#99DEB0>+5%</color> Max"
+        " HP and <color=#99DEB0>+5</color> Physical and Magic Defense.\nWith ≥<color=#99DEB0>6</color> [Riverlands]"
+        " Heroes: at the start of Battle, <color=#99DEB0>allied units within 1 tile of a ╉Totem</color> gain"
+        " <color=#99DEB0>+8%</color> Max HP and <color=#99DEB0>+20%</color> Attack Speed. This can stack.\nWith"
+        " ≥<color=#99DEB0>8</color> [Riverlands] Heroes: at the start of Battle, randomly Summon"
+        " <color=#99DEB0>1</color> Seer Totem, Destiny Totem or Afterlife Totem.",
+        "Untuk setiap <color=#99DEB0>1 ╉Totem</color> di papan, Hero [Riverlands] mendapat <color=#99DEB0>+5%</color> Max"
+        " HP dan <color=#99DEB0>+5</color> Physical dan Magic Defense.\nDengan ≥<color=#99DEB0>6</color> Hero"
+        " [Riverlands]: di awal Pertempuran, <color=#99DEB0>unit ally dalam jarak 1 petak dari ╉Totem</color> mendapat"
+        " <color=#99DEB0>+8%</color> Max HP dan <color=#99DEB0>+20%</color> Attack Speed. Ini bisa stack.\nDengan"
+        " ≥<color=#99DEB0>8</color> Hero [Riverlands]: di awal Pertempuran, Summon <color=#99DEB0>1</color> Seer Totem,"
+        " Destiny Totem, atau Afterlife Totem secara acak."),
+    "场上每有<color=#99DEB0>1名</color>【三分】英雄，全体【三分】英雄物理攻击力、法术攻击力<color=#99DEB0>+2%</color>，物理防御、法术防御<color=#99DEB0>+2%</color>。\n【三分】英雄首次≥<color=#99DEB0>5名</color>：永久召唤「猛虎擂台」，台中【三分】英雄物攻/法攻+<color=#99DEB0>30</color>点。擂台内敌人被击败则吸收灵魂，物攻/法攻+<color=#99DEB0>10</color>点。每吸收<color=#99DEB0>5次</color>，范围+<color=#99DEB0>1格</color>，最多<color=#99DEB0>3次</color>。\n【三分】英雄首次≥<color=#99DEB0>7名</color>：获得<color=#99DEB0>1张</color>【三分旗帜】。": (
+        "For every <color=#99DEB0>1</color> [Three Kingdoms] Hero on the board, all [Three Kingdoms] Heroes gain"
+        " <color=#99DEB0>+2%</color> Physical and Magic Attack and <color=#99DEB0>+2%</color> Physical and Magic"
+        " Defense.\nThe first time you have ≥<color=#99DEB0>5</color> [Three Kingdoms] Heroes: permanently Summon the"
+        " \"Tiger Arena\"; [Three Kingdoms] Heroes in it gain Physical/Magic Attack +<color=#99DEB0>30</color>. When an"
+        " enemy is Defeated in the arena, it absorbs their soul: Physical/Magic Attack +<color=#99DEB0>10</color>. Every"
+        " <color=#99DEB0>5</color> souls absorbed, its range +<color=#99DEB0>1 tile</color>, up to"
+        " <color=#99DEB0>3 times</color>.\nThe first time you have ≥<color=#99DEB0>7</color> [Three Kingdoms] Heroes:"
+        " gain <color=#99DEB0>1</color> [Three Kingdoms Banner].",
+        "Untuk setiap <color=#99DEB0>1</color> Hero [Three Kingdoms] di papan, semua Hero [Three Kingdoms] mendapat"
+        " <color=#99DEB0>+2%</color> Physical dan Magic Attack serta <color=#99DEB0>+2%</color> Physical dan Magic"
+        " Defense.\nSaat pertama kali kamu memiliki ≥<color=#99DEB0>5</color> Hero [Three Kingdoms]: panggil \"Tiger"
+        " Arena\" secara permanen; Hero [Three Kingdoms] di dalamnya mendapat Physical/Magic Attack"
+        " +<color=#99DEB0>30</color>. Saat musuh dikalahkan di dalam arena, arena menyerap jiwanya: Physical/Magic"
+        " Attack +<color=#99DEB0>10</color>. Setiap <color=#99DEB0>5</color> jiwa terserap, jangkauan"
+        " +<color=#99DEB0>1 petak</color>, hingga <color=#99DEB0>3 kali</color>.\nSaat pertama kali kamu memiliki"
+        " ≥<color=#99DEB0>7</color> Hero [Three Kingdoms]: dapatkan <color=#99DEB0>1</color> [Three Kingdoms Banner]."),
+    "增加6点物理和法术防御力；毒奶改为造成10+45%法术攻击力的法术伤害，恢复10+45%法术攻击力的生命值。": (
+        "Increases Physical and Magic Defense by 6; Toxic Healing now deals 10+45% Magic Attack as Magic Damage and"
+        " restores 10+45% Magic Attack as Health.",
+        "Meningkatkan Physical dan Magic Defense sebesar 6; Toxic Healing kini memberikan Magic Damage sebesar 10+45%"
+        " Magic Attack dan memulihkan Health sebesar 10+45% Magic Attack."),
+    "大司命灵体以外的1-3阶己方召唤物上场时，吸收该单位使<a href=321><color=#ffffff>╉<b>往生图腾</b></color></a>等级永久+2并获得20点法力值。": (
+        "When a Tier 1-3 friendly Summon (excluding Augran's spirit) enters the field, absorb it to permanently increase"
+        " <a href=321><color=#ffffff>╉<b>Afterlife Totem</b></color></a> Level by 2 and gain 20 Mana.",
+        "Saat Summon sekutu Tier 1-3 (kecuali roh Augran) masuk ke papan, serap untuk menaikkan Level <a href=321>"
+        "<color=#ffffff>╉<b>Afterlife Totem</b></color></a> secara permanen sebesar 2 dan dapatkan 20 Mana."),
+    "契约英雄共战时，任意一方每击败<color=#99DEB0>1名</color>敌方英雄，双方物理攻击力、法术攻击力<color=#99DEB0>+5%</color>（上限<color=#99DEB0>60%</color>）。": (
+        "When Contract Heroes fight together, for every <color=#99DEB0>1</color> enemy Hero defeated by either of them,"
+        " both gain <color=#99DEB0>+5%</color> Physical and Magic Attack (up to <color=#99DEB0>60%</color>).",
+        "Saat Hero Contract bertarung bersama, untuk setiap <color=#99DEB0>1</color> Hero musuh yang dikalahkan salah"
+        " satunya, keduanya mendapatkan <color=#99DEB0>+5%</color> Physical Attack dan Magic Attack (maksimal"
+        " <color=#99DEB0>60%</color>)."),
+    "契约英雄共战时，战斗开始时契约英雄双方获取己方其他英雄等级之和×<color=#99DEB0>30%</color>的等级。": (
+        "When Contract Heroes fight together, at the start of combat both gain Levels equal to the sum of your other"
+        " Heroes' Levels ×<color=#99DEB0>30%</color>.",
+        "Saat Hero Contract bertarung bersama, di awal Pertempuran keduanya mendapatkan Level sebesar total Level Hero"
+        " kamu yang lain ×<color=#99DEB0>30%</color>."),
+    "契约英雄共战时，每<color=#99DEB0>2秒</color>临时提升其<color=#99DEB0>8%</color>物理攻击力和法术攻击力（上限<color=#99DEB0>80%</color>）。": (
+        "When Contract Heroes fight together, they temporarily gain <color=#99DEB0>8%</color> Physical Attack and Magic"
+        " Attack every <color=#99DEB0>2 seconds</color> (up to <color=#99DEB0>80%</color>).",
+        "Saat Hero Contract bertarung bersama, mereka mendapatkan <color=#99DEB0>8%</color> Physical Attack dan Magic"
+        " Attack sementara setiap <color=#99DEB0>2 detik</color> (maksimal <color=#99DEB0>80%</color>)."),
+    "契约英雄共战时，每次升级<color=#99DEB0>额外+4级</color>。": (
+        "When Contract Heroes fight together, they gain <color=#99DEB0>+4 extra levels</color> each time they level up.",
+        "Saat Hero Contract bertarung bersama, mereka mendapatkan <color=#99DEB0>+4 Level tambahan</color> setiap kali"
+        " naik Level."),
+    "孙尚香朝目标敌人发射1发弩炮，造成<color=#dfa15e>50+100%物理攻击力的物理伤害</color>，并降低命中敌人50%物理防御，持续5秒。": (
+        "Lady Sun fires a crossbow bolt at the target enemy, dealing <color=#dfa15e>50+100% Physical Attack as Physical"
+        " Damage</color> and reducing the hit enemy's Physical Defense by 50% for 5 seconds.",
+        "Lady Sun menembakkan anak panah crossbow ke musuh target, memberikan <color=#dfa15e>Physical Damage sebesar"
+        " 50+100% Physical Attack</color> dan mengurangi Physical Defense musuh yang terkena sebesar 50% selama 5"
+        " detik."),
+    "孙膑向目标敌人投掷1枚定时炸弹，2秒后爆炸对其及附近1格内的敌人造成<color=#d487e4>[118141p1q1]+[118141p1q3/100]%法术攻击力的法术伤害</color>。": (
+        "Sun Bin throws a time bomb at the target enemy, which explodes after 2 seconds, dealing"
+        " <color=#d487e4>[118141p1q1]+[118141p1q3/100]% Magic Attack as Magic Damage</color> to the target and enemies"
+        " within 1 grid.",
+        "Sun Bin melempar bom waktu ke musuh target, yang meledak setelah 2 detik, memberikan <color=#d487e4>Magic"
+        " Damage sebesar [118141p1q1]+[118141p1q3/100]% Magic Attack</color> ke target dan musuh dalam jarak 1"
+        " petak."),
+    "安琪拉引导魔力朝敌人最多的方向施放炽热光辉，持续3秒，对路径上的敌人每0.1秒造成<color=#d487e4>10%法术攻击力的法术伤害</color>。": (
+        "Angela channels magic to cast Blazing Radiance in the direction of the most enemies for 3 seconds, dealing"
+        " <color=#d487e4>10% Magic Attack as Magic Damage</color> to enemies in the path every 0.1 seconds.",
+        "Angela menyalurkan sihir untuk melepaskan Blazing Radiance ke arah musuh terbanyak selama 3 detik, memberikan"
+        " <color=#d487e4>Magic Damage sebesar 10% Magic Attack</color> ke musuh di jalurnya setiap 0,1 detik."),
+    "安琪拉引导魔力朝敌人最多的方向施放炽热光辉，持续3秒，对路径上的敌人每0.1秒造成<color=#d487e4>[0]点法术伤害</color><color=#d487e4>（[1]+[2]%法术攻击力）</color>。": (
+        "Angela channels magic to cast Blazing Radiance in the direction of the most enemies for 3 seconds, dealing"
+        " <color=#d487e4>[0] Magic Damage</color><color=#d487e4> ([1]+[2]% Magic Attack)</color> every 0.1 seconds to"
+        " enemies in her path.",
+        "Angela menyalurkan sihir untuk melepaskan Blazing Radiance ke arah musuh terbanyak selama 3 detik, memberikan"
+        " <color=#d487e4>[0] Magic Damage</color><color=#d487e4> ([1]+[2]% Magic Attack)</color> setiap 0,1 detik ke"
+        " musuh di jalurnya."),
+    "安琪拉引导魔力朝敌人最多的方向施放炽热光辉，持续3秒，对路径上的敌人每0.1秒造成<color=#d487e4>[142300p1q1]+[142300p1q3/100]%法术攻击力的法术伤害</color>。": (
+        "Angela channels magic to cast Blazing Radiance in the direction of the most enemies for 3 seconds, dealing"
+        " <color=#d487e4>[142300p1q1]+[142300p1q3/100]% Magic Attack as Magic Damage</color> to enemies in the path"
+        " every 0.1 seconds.",
+        "Angela menyalurkan sihir untuk melepaskan Blazing Radiance ke arah musuh terbanyak selama 3 detik, memberikan"
+        " <color=#d487e4>Magic Damage sebesar [142300p1q1]+[142300p1q3/100]% Magic Attack</color> ke musuh di jalurnya"
+        " setiap 0,1 detik."),
+    "导弹伤害提升至30+80%物理攻击力": (
+        "Missile Damage Up to 30+80% Physical Attack", "Damage Misil Naik menjadi 30+80% Physical Attack"),
+    "己方单位获得护盾、护盾被击破时，该单位生命值上限永久<color=#99DEB0>+110</color>。": (
+        "Whenever an allied unit gains a Shield or has its Shield broken, that unit's Max HP permanently"
+        " <color=#99DEB0>+110</color>.",
+        "Setiap kali unit kamu mendapatkan Shield atau Shield-nya hancur, Max HP unit itu bertambah permanen"
+        " <color=#99DEB0>+110</color>."),
+    "己方英雄每释放<color=#99DEB0>1次</color>技能，所有英雄等级<color=#99DEB0>+2</color>。": (
+        "Each time your Hero casts a Skill <color=#99DEB0>1 time</color>, All Heroes gain <color=#99DEB0>+2</color>"
+        " Level.",
+        "Setiap kali Hero kamu menggunakan Skill <color=#99DEB0>1 kali</color>, semua Hero mendapatkan"
+        " <color=#99DEB0>+2</color> Level."),
+    "廉颇用臂甲砸向目标敌人，获得持续4秒的<color=#ffffff>100点护盾</color>，造成<color=#dfa15e>50+80%物理攻击力的物理伤害</color>。": (
+        "Lian Po smashes the target enemy with his gauntlets, gaining a <color=#ffffff>100-point Shield</color> for 4"
+        " seconds and dealing <color=#dfa15e>50+80% Physical Attack as Physical Damage</color>.",
+        "Lian Po menghantam musuh target dengan sarung tangannya, mendapat <color=#ffffff>Shield 100 poin</color> selama"
+        " 4 detik dan memberikan <color=#dfa15e>Physical Damage sebesar 50+80% Physical Attack</color>."),
+    "开局及棋手5级时获得1张<color=#ffffff><b>便携式机关</b></color>。\n棋手升至2/3/4级时，从<color=#ffffff><b>热能陷阱</b></color>、<color=#ffffff><b>电磁弹簧</b></color>、<color=#ffffff><b>等离子屏障</b></color>3种机关卡中随机获得1张。": (
+        "At the start of the match and at Chessplayer Level 5, gain 1 <color=#ffffff><b>Portable Mechanism</b></color>.\n"
+        "When the Chessplayer reaches Level 2/3/4, randomly gain 1 of 3 Mechanism cards: <color=#ffffff><b>Thermal"
+        " Trap</b></color>, <color=#ffffff><b>Electromagnetic Spring</b></color>, or <color=#ffffff><b>Plasma"
+        " Barrier</b></color>.",
+        "Di awal pertandingan dan saat Chessplayer Level 5, dapatkan 1 <color=#ffffff><b>Portable"
+        " Mechanism</b></color>.\nSaat Chessplayer mencapai Level 2/3/4, dapatkan secara acak 1 dari 3 kartu Mechanism:"
+        " <color=#ffffff><b>Thermal Trap</b></color>, <color=#ffffff><b>Electromagnetic Spring</b></color>, atau"
+        " <color=#ffffff><b>Plasma Barrier</b></color>."),
+    "弩炮伤害提升至50+150%物理攻击力": (
+        "Crossbow bolt damage increased to 50+150% Physical Attack",
+        "Damage anak panah crossbow meningkat menjadi 50+150% Physical Attack"),
+    "技能伤害提升至50+120%物理攻击力，护盾提升至250点": (
+        "Skill damage increased to 50+120% Physical Attack, and Shield increased to 250",
+        "Damage Skill meningkat menjadi 50+120% Physical Attack, dan Shield meningkat menjadi 250"),
+    "战斗开始时，你的人数最多的同品阶英雄获得1%×已打出<color=#ffffff><b>宝藏牌</b></color>数量的伤害提升。": (
+        "At the start of combat, your most numerous Hero Tier gains +1% Damage for every <color=#ffffff><b>Treasure"
+        " card</b></color> played.",
+        "Di awal pertarungan, Tier Hero terbanyak milikmu mendapat +1% damage untuk setiap <color=#ffffff><b>Treasure"
+        " card</b></color> yang dimainkan."),
+    "战斗开始时，你的全体英雄获得0.7%×已打出<color=#ffffff><b>宝藏牌</b></color>数量的伤害提升。": (
+        "At the start of combat, all your Heroes gain +0.7% Damage for every <color=#ffffff><b>Treasure card</b></color>"
+        " played.",
+        "Di awal pertarungan, semua Hero milikmu mendapat +0,7% damage untuk setiap <color=#ffffff><b>Treasure"
+        " card</b></color> yang dimainkan."),
+    "战斗开始时，所有【河洛】英雄获得累计使用古币数（获得此天赋后）的<color=#99DEB0>═临时等级</color>。\n【河洛】英雄≥<color=#99DEB0>5名</color>时：【河洛】英雄受到致命伤害时进入无敌，攻击速度<color=#99DEB0>+80%</color>，持续<color=#99DEB0>0.5秒</color>。战斗中每触发<color=#99DEB0>1次╫牺牲</color>，无敌时间<color=#99DEB0>+0.25秒</color>（上限<color=#99DEB0>2秒</color>）。\n【河洛】英雄≥<color=#99DEB0>7名</color>时：【河洛】英雄获得<color=#99DEB0>╫牺牲</color>：所有友方单位<color=#99DEB0>+7═临时等级</color>，每次触发此<color=#99DEB0>╫牺牲</color>时，<color=#99DEB0>═临时等级</color>额外<color=#99DEB0>+7</color>。": (
+        "At the start of Battle, all [Central Plains] Heroes gain <color=#99DEB0>═Temporary Level</color> equal to the"
+        " number of Ancient Coins used (since gaining this Talent).\nWith ≥<color=#99DEB0>5</color> [Central Plains]"
+        " Heroes: when a [Central Plains] Hero takes fatal Damage, it becomes Invincible and gains"
+        " <color=#99DEB0>+80%</color> Attack Speed for <color=#99DEB0>0.5 seconds</color>. Each"
+        " <color=#99DEB0>1 ╫Sacrifice</color> triggered in Battle adds <color=#99DEB0>+0.25 seconds</color> of"
+        " Invincibility (up to <color=#99DEB0>2 seconds</color>).\nWith ≥<color=#99DEB0>7</color> [Central Plains]"
+        " Heroes: [Central Plains] Heroes gain <color=#99DEB0>╫Sacrifice</color>: all allied units gain"
+        " <color=#99DEB0>+7 ═Temporary Level</color>; each time this <color=#99DEB0>╫Sacrifice</color> triggers, its"
+        " <color=#99DEB0>═Temporary Level</color> gains an extra <color=#99DEB0>+7</color>.",
+        "Di awal Pertempuran, semua Hero [Central Plains] mendapat <color=#99DEB0>═Temporary Level</color> sebesar"
+        " jumlah Ancient Coin yang digunakan (sejak mendapatkan Talent ini).\nDengan ≥<color=#99DEB0>5</color> Hero"
+        " [Central Plains]: saat Hero [Central Plains] menerima damage fatal, Hero itu menjadi Invincible dan mendapat"
+        " <color=#99DEB0>+80%</color> Attack Speed selama <color=#99DEB0>0,5 detik</color>. Setiap"
+        " <color=#99DEB0>1 ╫Sacrifice</color> yang terpicu dalam Pertempuran menambah durasi Invincible"
+        " <color=#99DEB0>+0,25 detik</color> (maksimal <color=#99DEB0>2 detik</color>).\nDengan"
+        " ≥<color=#99DEB0>7</color> Hero [Central Plains]: Hero [Central Plains] mendapat"
+        " <color=#99DEB0>╫Sacrifice</color>: semua unit ally mendapat <color=#99DEB0>+7 ═Temporary Level</color>;"
+        " setiap kali <color=#99DEB0>╫Sacrifice</color> ini terpicu, <color=#99DEB0>═Temporary Level</color>-nya"
+        " bertambah <color=#99DEB0>+7</color> lagi."),
+    "打出古币时有概率<color=#99DEB0>额外触发2-4次</color>。你的古币额外提供<color=#99DEB0>6级</color>。": (
+        "Ancient Coins have a chance to <color=#99DEB0>Trigger 2-4 Extra times</color>. Your Ancient Coins provide an"
+        " additional <color=#99DEB0>6 levels</color>.",
+        "Ancient Coin berpeluang <color=#99DEB0>terpicu 2-4 kali tambahan</color>. Ancient Coin kamu memberikan tambahan"
+        " <color=#99DEB0>6 Level</color>."),
+    "打出古币时有概率额外触发<color=#99DEB0>2-4</color>次。你的古币额外提供<color=#99DEB0>6级</color>。": (
+        "Ancient Coins have a chance to Trigger <color=#99DEB0>2-4</color> Extra times. Your Ancient Coins provide an"
+        " additional <color=#99DEB0>6 levels</color>.",
+        "Ancient Coin berpeluang terpicu <color=#99DEB0>2-4</color> kali tambahan. Ancient Coin kamu memberikan tambahan"
+        " <color=#99DEB0>6 Level</color>."),
+    "打出后获得累积的钻石（当前{810299Diamond:0|0}）和全体英雄等级（当前{810299Level:0}）。持有时：胜利钻石<color=#99DEB0>+{0|5}</color>、等级<color=#99DEB0>+10</color>；失败钻石<color=#99DEB0>+{0|1}</color>、等级<color=#99DEB0>+50</color>；平局不计入。": (
+        "When played, claim the accumulated Diamonds (currently {810299Diamond:0|0}) and All Hero Levels (currently"
+        " {810299Level:0}). While held: Win: Diamonds <color=#99DEB0>+{0|5}</color>, Levels <color=#99DEB0>+10</color>;"
+        " Loss: Diamonds <color=#99DEB0>+{0|1}</color>, Levels <color=#99DEB0>+50</color>; draws do not count.",
+        "Saat dimainkan, klaim Diamond yang terkumpul (saat ini {810299Diamond:0|0}) dan Level Semua Hero (saat ini"
+        " {810299Level:0}). Selama dipegang: Menang: Diamond <color=#99DEB0>+{0|5}</color>, Level"
+        " <color=#99DEB0>+10</color>; Kalah: Diamond <color=#99DEB0>+{0|1}</color>, Level <color=#99DEB0>+50</color>;"
+        " seri tidak dihitung."),
+    "持有时每场战斗后累积奖励：\n胜利：钻石<color=#99DEB0>+{0|5}</color>、全体英雄等级<color=#99DEB0>+10</color>\n失败：钻石<color=#99DEB0>+{0|1}</color>、全体英雄等级<color=#99DEB0>+50</color>\n平局不计入。打出后领取全部累积（当前钻石{810299Diamond:0|0}，等级{810299Level:0}）。": (
+        "Accumulate Rewards after each combat while held:\nWin: Diamonds <color=#99DEB0>+{0|5}</color>, All Hero Levels"
+        " <color=#99DEB0>+10</color>\nLoss: Diamonds <color=#99DEB0>+{0|1}</color>, All Hero Levels"
+        " <color=#99DEB0>+50</color>\nDraws do not count. Claim All accumulated Rewards upon playing (Current Diamonds"
+        " {810299Diamond:0|0}, Levels {810299Level:0}).",
+        "Kumpulkan Hadiah setelah setiap pertempuran selama dipegang:\nMenang: Diamond <color=#99DEB0>+{0|5}</color>,"
+        " Level Semua Hero <color=#99DEB0>+10</color>\nKalah: Diamond <color=#99DEB0>+{0|1}</color>, Level Semua Hero"
+        " <color=#99DEB0>+50</color>\nSeri tidak dihitung. Klaim semua Hadiah yang terkumpul saat dimainkan (Diamond"
+        " saat ini {810299Diamond:0|0}, Level {810299Level:0})."),
+    "施法时会标记当前目标，降低其10点物理及法术防御力；标记目标被击败时玄策进入狂暴状态（攻速提高150%，移速提高40%），持续7秒": (
+        "Marks the current target on cast, reducing its Physical and Magic Defense by 10. When the marked target is"
+        " Defeated, Xuance enters a Berserk state (Attack Speed +150%, Movement Speed +40%) for 7 seconds",
+        "Menandai target saat ini ketika skill digunakan, mengurangi Physical dan Magic Defense-nya sebesar 10. Saat"
+        " target yang ditandai dikalahkan, Xuance memasuki kondisi Berserk (Attack Speed +150%, Movement Speed +40%)"
+        " selama 7 detik"),
+    "施法直接获得最大护盾值（不再需要多次施法提升）并恢复10%最大生命值": (
+        "Casting instantly grants the max Shield value (no longer requires multiple casts to stack) and restores 10%"
+        " Max HP",
+        "Menggunakan skill langsung memberikan nilai Shield maksimal (tidak perlu lagi beberapa kali cast untuk stack)"
+        " dan memulihkan 10% Max HP"),
+    "机械仆从获得200%法术攻击的额外生命值；机械仆从到达上限后，再次施放技能转而恢复仆从们的<color=#9ff5d0>所有生命值</color>": (
+        "Mechanical Minions gain extra Health equal to 200% Magic Attack; once Mechanical Minions reach the limit,"
+        " casting the Skill again instead restores <color=#9ff5d0>all of the minions' Health</color>",
+        "Mechanical Minion mendapat Health tambahan sebesar 200% Magic Attack; setelah Mechanical Minion mencapai batas,"
+        " menggunakan Skill lagi justru memulihkan <color=#9ff5d0>seluruh Health minion</color>"),
+    "机械仆从获得200%法术攻击的额外生命值；机械仆从到达上限后，再次施放技能转而恢复仆从们的所有生命值": (
+        "Mechanical Minions gain extra Health equal to 200% Magic Attack; once Mechanical Minions reach the limit,"
+        " casting the Skill again instead restores all of the minions' Health",
+        "Mechanical Minion mendapat Health tambahan sebesar 200% Magic Attack; setelah Mechanical Minion mencapai batas,"
+        " menggunakan Skill lagi justru memulihkan seluruh Health minion"),
+    "每召唤<color=#99DEB0>1个</color>单位（仅召唤物，<a href=321><color=#99DEB0>╉图腾</color></a>），下回合开始时所有英雄等级<color=#99DEB0>+2</color>。": (
+        "For every <color=#99DEB0>1</color> unit summoned (only Summons and <a href=321><color=#99DEB0>╉Totems</color></a>),"
+        " all Heroes gain <color=#99DEB0>+2</color> Levels at the start of the next Round.",
+        "Untuk setiap <color=#99DEB0>1</color> unit yang dipanggil (hanya Summon dan <a href=321><color=#99DEB0>╉Totem"
+        "</color></a>), semua Hero mendapatkan <color=#99DEB0>+2</color> Level di awal Ronde berikutnya."),
+    "每召唤<color=#99DEB0>1个</color>单位（仅召唤物，╉图腾），下回合开始时所有英雄等级<color=#99DEB0>+2</color>。": (
+        "For every <color=#99DEB0>1</color> unit summoned (only Summons and ╉Totems), all Heroes gain"
+        " <color=#99DEB0>+2</color> Levels at the start of the next Round.",
+        "Untuk setiap <color=#99DEB0>1</color> unit yang dipanggil (hanya Summon dan ╉Totem), semua Hero mendapat"
+        " <color=#99DEB0>+2</color> Level di awal Ronde berikutnya."),
+    "每当你的英雄触发<a href=1><color=#ffffff>╨<b>登场</b></color></a>效果，大乔的法力值上限永久-5且等级+1。": (
+        "Whenever your Hero triggers a <a href=1><color=#ffffff>╨<b>Deploy</b></color></a> Effect, Da Qiao's Max Mana is"
+        " permanently reduced by 5 and her Level +1.",
+        "Setiap kali Hero-mu memicu efek <a href=1><color=#ffffff>╨<b>Deploy</b></color></a>, Max Mana Da Qiao berkurang"
+        " permanen sebesar 5 dan Level-nya +1."),
+    "每次召唤2个机械仆从；攻击伤害提升至50+60%法术攻击力": (
+        "Summons 2 Mechanical Minions each time; attack damage increased to 50+60% Magic Attack",
+        "Memanggil 2 Mechanical Minion setiap kali; damage serangan meningkat menjadi 50+60% Magic Attack"),
+    "每次施法护盾值额外提升40点，最多5次": (
+        "Shield value additionally increases by 40 per cast, up to 5 times",
+        "Nilai Shield bertambah 40 setiap kali digunakan, hingga 5 kali"),
+    "每触发<color=#99DEB0>1次</color><a href=1><color=#99DEB0>╨登场</color></a>，己方在场英雄物理攻击力和法术攻击力<color=#99DEB0>+1%</color>。": (
+        "Each time <color=#99DEB0>1</color> <a href=1><color=#99DEB0>╨Deploy</color></a> triggers, your Heroes on the"
+        " field gain <color=#99DEB0>+1%</color> Physical Attack and Magic Attack.",
+        "Setiap kali <color=#99DEB0>1</color> <a href=1><color=#99DEB0>╨Deploy</color></a> terpicu, Hero kamu di papan"
+        " mendapatkan <color=#99DEB0>+1%</color> Physical Attack dan Magic Attack."),
+    "每触发<color=#99DEB0>1次</color>╨登场，己方在场英雄物理攻击力和法术攻击力<color=#99DEB0>+1%</color>。": (
+        "Each time <color=#99DEB0>1</color> ╨Deploy triggers, your Heroes on the field gain <color=#99DEB0>+1%</color>"
+        " Physical Attack and Magic Attack.",
+        "Setiap kali <color=#99DEB0>1</color> ╨Deploy terpicu, Hero kamu di papan mendapatkan <color=#99DEB0>+1%</color>"
+        " Physical Attack dan Magic Attack."),
+    "海诺朝目标方向掷出能量化的命运神杖，对命中的敌人造成<color=#d487e4>100+150%法术攻击力的法术伤害</color>并朝目标敌人附近2名敌人掷出子杖，造成<color=#d487e4>50+100%法术攻击力的法术伤害</color>。": (
+        "Heino throws his energized Fate Staff in the target direction, dealing <color=#d487e4>100+150% Magic Attack as"
+        " Magic Damage</color> to enemies hit, and throws sub-staves at 2 enemies near the target, dealing"
+        " <color=#d487e4>50+100% Magic Attack as Magic Damage</color>.",
+        "Heino melempar Fate Staff berenergi ke arah target, memberikan <color=#d487e4>Magic Damage sebesar 100+150%"
+        " Magic Attack</color> ke musuh yang terkena, dan melempar staf kecil ke 2 musuh di dekat target, memberikan"
+        " <color=#d487e4>Magic Damage sebesar 50+100% Magic Attack</color>."),
+    "炸弹伤害提升至100+175%法术攻击力": (
+        "Increases Bomb Damage to 100+175% Magic Attack", "Meningkatkan damage Bom menjadi 100+175% Magic Attack"),
+    "玄策舞动钩镰对目标敌人造成<color=#dfa15e>50+100%物理攻击力的物理伤害</color>，而后将其甩向玄策身后，落地时造成<color=#dfa15e>50+100%物理攻击力的物理伤害</color>并眩晕1秒。": (
+        "Xuance swings his hook-sickle to deal <color=#dfa15e>50+100% Physical Attack as Physical Damage</color> to the"
+        " target enemy, then flings it behind him, dealing <color=#dfa15e>50+100% Physical Attack as Physical"
+        " Damage</color> on landing and stunning it for 1 second.",
+        "Xuance mengayunkan sabit kaitnya untuk memberikan <color=#dfa15e>Physical Damage sebesar 50+100% Physical"
+        " Attack</color> ke musuh target, lalu melemparkannya ke belakangnya, memberikan <color=#dfa15e>Physical Damage"
+        " sebesar 50+100% Physical Attack</color> saat mendarat dan membuatnya stun selama 1 detik."),
+    "神杖伤害提升至150+250%法术攻击力；子杖伤害提升至100+150%法术攻击力": (
+        "Fate Staff damage increased to 150+250% Magic Attack; sub-staff damage increased to 100+150% Magic Attack",
+        "Damage Fate Staff meningkat menjadi 150+250% Magic Attack; damage staf kecil meningkat menjadi 100+150% Magic"
+        " Attack"),
+    "突袭伤害提升至50+150%物理攻击力": (
+        "Dash damage increased to 50+150% Physical Attack", "Damage dash meningkat menjadi 50+150% Physical Attack"),
+    "米莱狄在距离自己最远的敌人附近召唤1个机械仆从，继承自己<color=#d487e4>100%法术攻击力</color>。\n仆从每次攻击造成<color=#d487e4>50+30%法术攻击力的法术伤害</color>，机械仆从到达最大数量后，再次施放技能，增加仆从15%攻击速度，持续5秒。": (
+        "Milady summons 1 Mechanical Minion near the enemy farthest from her; it inherits <color=#d487e4>100% of her"
+        " Magic Attack</color>.\nEach minion attack deals <color=#d487e4>50+30% Magic Attack as Magic Damage</color>."
+        " Once the minions reach their maximum number, casting the Skill again gives them +15% Attack Speed for 5"
+        " seconds.",
+        "Milady memanggil 1 Mechanical Minion di dekat musuh terjauh darinya, yang mewarisi <color=#d487e4>100% Magic"
+        " Attack-nya</color>.\nSetiap serangan minion memberikan <color=#d487e4>Magic Damage sebesar 50+30% Magic"
+        " Attack</color>. Setelah jumlah minion mencapai maksimal, menggunakan Skill lagi menambah Attack Speed minion"
+        " 15% selama 5 detik."),
+    "米莱狄在距离自己最远的敌人附近召唤1个机械仆从，继承自己<color=#d487e4>100%法术攻击力</color>。\n仆从每次攻击造成<color=#d487e4>[0]点法术伤害</color><color=#d487e4>（[1]+[2]%法术攻击力）</color>，机械仆从到达最大数量后，再次施放技能，增加仆从60%攻击速度，持续5秒（不可叠加）。": (
+        "Milady summons 1 Mechanical Minion near the enemy farthest from her; it inherits <color=#d487e4>100% of her"
+        " Magic Attack</color>.\nEach minion attack deals <color=#d487e4>[0] Magic Damage</color><color=#d487e4> ([1] +"
+        " [2]% Magic Attack)</color>. Once the minions reach their maximum number, casting the Skill again gives them"
+        " +60% Attack Speed for 5 seconds (does not stack).",
+        "Milady memanggil 1 Mechanical Minion di dekat musuh terjauh darinya, yang mewarisi <color=#d487e4>100% Magic"
+        " Attack-nya</color>.\nSetiap serangan minion memberikan <color=#d487e4>[0] Magic Damage</color>"
+        "<color=#d487e4> ([1] + [2]% Magic Attack)</color>. Setelah jumlah minion mencapai maksimal, menggunakan Skill"
+        " lagi menambah Attack Speed minion 60% selama 5 detik (tidak menumpuk)."),
+    "米莱狄在距离自己最远的敌人附近召唤1个机械仆从，继承自己<color=#d487e4>100%法术攻击力</color>。\n仆从每次攻击造成<color=#d487e4>[504040p1q1]+[504040p1q3/100]%法术攻击力的法术伤害</color>，机械仆从到达最大数量后，再次施放技能，增加仆从60%攻击速度，持续5秒（不可叠加）。": (
+        "Milady summons 1 Mechanical Minion near the enemy farthest from her; it inherits <color=#d487e4>100% of her"
+        " Magic Attack</color>.\nEach minion attack deals <color=#d487e4>[504040p1q1]+[504040p1q3/100]% Magic Attack as"
+        " Magic Damage</color>. Once the minions reach their maximum number, casting the Skill again gives them +60%"
+        " Attack Speed for 5 seconds (does not stack).",
+        "Milady memanggil 1 Mechanical Minion di dekat musuh terjauh darinya, yang mewarisi <color=#d487e4>100% Magic"
+        " Attack-nya</color>.\nSetiap serangan minion memberikan <color=#d487e4>Magic Damage sebesar"
+        " [504040p1q1]+[504040p1q3/100]% Magic Attack</color>. Setelah jumlah minion mencapai maksimal, menggunakan"
+        " Skill lagi menambah Attack Speed minion 60% selama 5 detik (tidak menumpuk)."),
+    "第6/11回合": ("Round 6/11", "Ronde 6/11"),
+    "获得3张天赋牌<color=#FFE897>限制性进化</color>：指定移除1名1~2阶英雄，获得高2阶的随机英雄牌，且上阵时为原等级+10。": (
+        "Gain 3 <color=#FFE897>Restrictive Evolution</color> Talent Cards: remove 1 Tier 1-2 Hero to gain a random Hero"
+        " Card 2 Tiers higher, which enters at the original Level +10.",
+        "Dapatkan 3 Talent Card <color=#FFE897>Restrictive Evolution</color>: singkirkan 1 Hero Tier 1-2 untuk"
+        " mendapatkan 1 Kartu Hero acak dengan Tier 2 lebih tinggi, yang masuk dengan Level asli +10."),
+    "蒙犽发射12枚导弹攻击随机敌人，每枚造成<color=#dfa15e>30+60%物理攻击力的物理伤害</color>。多枚导弹命中同一目标时，后续伤害衰减40%。": (
+        "Meng Ya fires 12 missiles at random enemies, each dealing <color=#dfa15e>30+60% Physical Attack as Physical"
+        " Damage</color>. When several missiles hit the same target, each further hit deals 40% less Damage.",
+        "Meng Ya meluncurkan 12 rudal untuk menyerang musuh acak, masing-masing memberikan <color=#dfa15e>Physical"
+        " Damage sebesar 30+60% Physical Attack</color>. Saat beberapa rudal mengenai target yang sama, damage"
+        " berikutnya berkurang 40%."),
+    "蒙犽发射12枚导弹攻击随机敌人，每枚造成<color=#dfa15e>[0]点物理伤害</color><color=#dfa15e>（[1]+[2]%物理攻击力）</color>。多枚导弹命中同一目标时，后续伤害衰减40%。": (
+        "Meng Ya launches 12 missiles to attack random enemies, each dealing <color=#dfa15e>[0] Physical"
+        " Damage</color><color=#dfa15e> ([1]+[2]% Physical Attack)</color>. When multiple missiles hit the same target,"
+        " subsequent Damage is reduced by 40%.",
+        "Meng Ya meluncurkan 12 rudal untuk menyerang musuh acak, masing-masing memberikan <color=#dfa15e>[0] Physical"
+        " Damage</color><color=#dfa15e> ([1]+[2]% Physical Attack)</color>. Saat beberapa rudal mengenai target yang"
+        " sama, damage berikutnya berkurang 40%."),
+    "钩镰伤害提升至50+130%物理攻击力": (
+        "Hook sickle damage increased to 50+130% Physical Attack",
+        "Damage hook sickle meningkat menjadi 50+130% Physical Attack"),
+
+    # Achievements 1.7.0.1 added.
+    "在10局比赛中，使用过阵容推荐": (
+        "Use Lineup Recommendation in 10 matches", "Gunakan Rekomendasi Lineup dalam 10 pertandingan"),
+    "在50局比赛中，使用过阵容推荐": (
+        "Use Lineup Recommendation in 50 matches", "Gunakan Rekomendasi Lineup dalam 50 pertandingan"),
+    "在100局比赛中，使用过阵容推荐": (
+        "Use Lineup Recommendation in 100 matches", "Gunakan Rekomendasi Lineup dalam 100 pertandingan"),
+    "累计夺冠100场": ("Win the Championship 100 times in total", "Raih Juara total 100 kali"),
+    "累计夺冠500场": ("Win the Championship 500 times in total", "Raih Juara total 500 kali"),
+    "累计夺冠1000场": ("Win the Championship 1,000 times in total", "Raih Juara total 1.000 kali"),
+    "在万象大赛的单个回合中，通过装备【驱雷】击杀至少5名友方英雄": (
+        "Defeat at least 5 allied heroes using the [Thunder Drive] Equipment in a single Round of the ACE Tournament.",
+        "Defeat setidaknya 5 hero ally menggunakan Equipment [Thunder Drive] dalam satu Ronde ACE Tournament."),
+    "在钻石狂潮中，近10场比赛的盈亏总额": (
+        "Total profit and loss in the last 10 Diamond Frenzy games",
+        "Total untung dan rugi dalam 10 game Diamond Frenzy terakhir"),
+    "集齐线条小狗1个天幕、1张名片、1个传送特效、1个头像框、1个聊天气泡和5个表情": (
+        "Collect 1 Line Puppy Sky Screen, 1 Nameplate, 1 Teleport Effect, 1 Avatar Frame, 1 Chat Bubble and 5 Emotes",
+        "Kumpulkan 1 Sky Screen, 1 Nameplate, 1 Efek Teleportasi, 1 Bingkai Avatar, 1 Chat Bubble, dan 5 Emote Line"
+        " Puppy"),
+    "完成1局超级英雄": ("Complete 1 Super Hero match", "Selesaikan 1 pertandingan Super Hero"),
+    "完成3局超级英雄": ("Complete 3 Super Hero matches", "Selesaikan 3 pertandingan Super Hero"),
+    "超级英雄进入前3名": ("Finish in the top 3 in Super Hero", "Masuk 3 besar di Super Hero"),
+    "星级根据完成人数动态变化,完成人数越少,星级越高": (
+        "The star rating changes with the number of players who complete it: the fewer players, the higher the stars",
+        "Rating bintang berubah sesuai jumlah pemain yang menyelesaikannya: makin sedikit pemain, makin tinggi"
+        " bintangnya"),
+
+    # Super Hero: the mode 1.7.0.1 added, and its event.
+    "新玩法超级英雄": ("New Mode: Super Hero", "Mode Baru: Super Hero"),
+    "超快成长！养出超级英雄": ("Super-fast growth! Raise a Super Hero", "Tumbuh super cepat! Bentuk Super Hero"),
+    "超级英雄活动奖励": ("Super Hero Event Rewards", "Hadiah Event Super Hero"),
+    "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成超级英雄对局任务即可领取钻石奖励。</color>": (
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete Super Hero match missions to claim Diamond"
+        " rewards.</color>",
+        "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi pertandingan Super Hero untuk klaim"
+        " hadiah Diamond.</color>"),
+    "超级周末：每天前{1}次翻出钻石翻倍（{0} / {1}）": (
+        "Super Weekend: Diamonds from your first {1} flips each day are doubled ({0} / {1})",
+        "Super Weekend: Diamond dari {1} balik kartu pertama setiap hari jadi ganda ({0} / {1})"),
+
+    # Strategy tags on the Chessplayer and Hero guides (tables B990CF372E5633C5, 5560E5A826433EFA): a short
+    # label on a narrow chip, worded like the catalog's own tags there ("Keyword: Prepare", "Group Upgrade").
+    "6级天赋": ("Level 6 Talent", "Talent Level 6"),
+    "三分牌加等级": ("Three Kingdoms Cards Gain Levels", "Kartu Three Kingdoms Naik Level"),
+    "使用古币复活": ("Revive with Ancient Coins", "Revive dengan Ancient Coins"),
+    "保护图腾": ("Protect Totems", "Lindungi Totem"),
+    "保护队友": ("Protect Allies", "Lindungi Ally"),
+    "关键词开团": ("Keyword: Initiate", "Kata Kunci: Initiate"),
+    "关键词登场": ("Keyword: Deploy", "Kata Kunci: Deploy"),
+    "养成海月": ("Build Up Haya", "Kembangkan Haya"),
+    "冻结英雄": ("Freeze Heroes", "Bekukan Hero"),
+    "减少廉颇蓝条": ("Reduce Lian Po's Mana Bar", "Kurangi Mana Bar Lian Po"),
+    "减少法力值": ("Reduce Mana", "Kurangi Mana"),
+    "减少蒙恬蓝条": ("Reduce Meng Tian's Mana Bar", "Kurangi Mana Bar Meng Tian"),
+    "前期过渡": ("Early-Game Transition", "Transisi Early-Game"),
+    "变为高阶": ("Become High Tier", "Jadi Tier Tinggi"),
+    "合成同阶升级": ("Combine Same Tier to Upgrade", "Combine Tier Sama untuk Upgrade"),
+    "后期王牌": ("Late-Game Ace", "Ace Late-Game"),
+    "回蓝更快召唤": ("Faster Mana, Faster Summons", "Mana Cepat, Summon Cepat"),
+    "回血保护队友": ("Heal to Protect Allies", "Heal untuk Lindungi Ally"),
+    "增加临时等级": ("Increase Temporary Level", "Naikkan Temporary Level"),
+    "增加召唤物伤害": ("Increase Summon Damage", "Naikkan Damage Summon"),
+    "增加廉颇生命": ("Increase Lian Po's HP", "Naikkan HP Lian Po"),
+    "增加攻击": ("Increase Attack", "Naikkan Attack"),
+    "增加核心等级": ("Increase Core Level", "Naikkan Level Core"),
+    "复活": ("Revive", "Revive"),
+    "复活增加容错": ("Revive for Margin of Error", "Revive untuk Toleransi Kesalahan"),
+    "小兵爆炸伤害": ("Soldier Explosion Damage", "Damage Ledakan Prajurit"),
+    "快速释放技能": ("Fast Skill Casting", "Skill Cepat"),
+    "提供刷新": ("Grants Refreshes", "Memberikan Refresh"),
+    "提供召唤物": ("Grants Summons", "Memberikan Summon"),
+    "提供增益": ("Grants Buffs", "Memberikan Buff"),
+    "攻击群体升级": ("Attacks Upgrade the Group", "Serangan Upgrade Grup"),
+    "整备触发登场": ("Prepare Triggers Deploy", "Prepare Memicu Deploy"),
+    "炸盾造成伤害": ("Shield Burst Deals Damage", "Shield Burst Memberikan Damage"),
+    "登场增加等级": ("Deploy Increases Level", "Deploy Menaikkan Level"),
+    "登场提供古币": ("Deploy Provides Ancient Coins", "Deploy Memberikan Ancient Coins"),
+    "登场给效果牌": ("Deploy Grants Effect Card", "Deploy Memberikan Kartu Efek"),
+    "群体爆炸": ("Group Explosion", "Ledakan Grup"),
+    "买牌得效果牌": ("Buy Cards for Effect Cards", "Beli Kartu dapat Kartu Efek"),
+    "关键牌一分为二": ("Split a Key Card in Two", "Belah Kartu Kunci Jadi Dua"),
+    "养成无敌王牌": ("Build an Invincible Ace", "Kembangkan Ace Tak Terkalahkan"),
+    "冻结低阶变高阶": ("Freeze Low Tier into High Tier", "Bekukan Tier Rendah jadi Tier Tinggi"),
+    "升级附加属性": ("Upgrade Bonus Stats", "Upgrade Bonus Atribut"),
+    "召唤敌方最强英雄": ("Summon the Enemy's Strongest Hero", "Summon Hero Terkuat Musuh"),
+    "召唤随机英雄": ("Summon Random Heroes", "Summon Hero Acak"),
+    "回溯卡牌": ("Rewind Cards", "Putar Balik Kartu"),
+    "回环打出2次卡牌": ("Loop: Play Cards Twice", "Loop: Mainkan Kartu 2 Kali"),
+    "场外火力支持": ("Off-Field Fire Support", "Dukungan Tembakan dari Luar"),
+    "增加王牌等级": ("Increase Ace Level", "Naikkan Level Ace"),
+    "增强链接英雄": ("Empower the Linked Hero", "Perkuat Hero Terhubung"),
+    "复制不断": ("Endless Copies", "Salin Tanpa Henti"),
+    "复制场上英雄": ("Copy Heroes on the Board", "Salin Hero di Papan"),
+    "复制敌方英雄牌": ("Copy Enemy Hero Cards", "Salin Kartu Hero Musuh"),
+    "大量买牌": ("Buy Lots of Cards", "Beli Banyak Kartu"),
+    "小鹿前排承伤": ("Deer Tanks in Front Row", "Rusa Menahan Damage di Depan"),
+    "小鹿阵亡均分等级": ("Fallen Deer Shares Its Levels", "Rusa Gugur Membagi Level"),
+    "布置3种机关": ("Place 3 Kinds of Mechanisms", "Pasang 3 Jenis Mekanisme"),
+    "掌控全局": ("Control the Whole Game", "Kuasai Seluruh Permainan"),
+    "提供位移": ("Grants Mobility", "Memberikan Mobilitas"),
+    "提供吸血免控": ("Grants Lifesteal and CC Immunity", "Memberikan Lifesteal dan Kebal CC"),
+    "提供群体等级": ("Grants Group Levels", "Memberikan Level Grup"),
+    "提供阵营效果牌": ("Grants Faction Effect Cards", "Memberikan Kartu Efek Faction"),
+    "无限买卖": ("Endless Buying and Selling", "Jual Beli Tanpa Batas"),
+    "机关效果多样": ("Varied Mechanism Effects", "Efek Mekanisme Beragam"),
+    "灵活多变": ("Flexible", "Fleksibel"),
+    "经济倒转": ("Economy Reversal", "Pembalikan Ekonomi"),
+    "群体增加等级": ("Group Level Increase", "Naikkan Level Grup"),
+    "群体英雄升级": ("Group Hero Upgrade", "Upgrade Hero Grup"),
+    "群体英雄增伤": ("Group Hero Damage Boost", "Boost Damage Hero Grup"),
+    "能量刷新二选一": ("Energy Refresh: Choose 1 of 2", "Refresh Energy: Pilih 1 dari 2"),
+    "获取同阵营英雄": ("Get Same-Faction Heroes", "Dapatkan Hero Faction Sama"),
+    "获得随机宝藏": ("Gain Random Treasures", "Dapatkan Harta Acak"),
+    "超速觉醒": ("Rapid Awakening", "Awaken Super Cepat"),
+    "选择四种武器": ("Choose from Four Weapons", "Pilih dari Empat Senjata"),
+    "阵容瞬间成型": ("Lineup Forms Instantly", "Lineup Langsung Terbentuk"),
+    "额外获得阵营天赋": ("Extra Faction Talent", "Talent Faction Tambahan"),
+    "飞行器可输出": ("Aircraft Deals Damage", "Pesawat Memberikan Damage"),
+    "初始阵容系列": ("Starting Lineup Series", "Seri Lineup Awal"),
+    "已使用古币": ("Ancient Coins used", "Ancient Coin terpakai"),
+    "猛虎擂台吸收": ("Tiger Arena absorbed", "Diserap Tiger Arena"),
+    "装备知识": ("Equipment Knowledge", "Pengetahuan Equipment"),
+
+    # Room settings and King of Kings matchmaking (1.7.0.1).
+    "{0}的亲密关系进入了房间": ("An Intimate Relationship of {0} entered the room", "Hubungan Dekat {0} masuk ke room"),
+    "{0}的好友进入了房间": ("A friend of {0} entered the room", "Teman {0} masuk ke room"),
+    "以后不会弹出": ("This won't pop up again", "Ini tidak akan muncul lagi"),
+    "开启本功能后，在匹配成功后将会自动接受匹配": (
+        "When on, matches are accepted automatically once found",
+        "Saat aktif, pertandingan otomatis diterima begitu ditemukan"),
+    "关闭本功能后，在匹配成功后将不再自动接受匹配": (
+        "When off, matches are no longer accepted automatically once found",
+        "Saat nonaktif, pertandingan tidak lagi otomatis diterima begitu ditemukan"),
+    "匹配中，无法进行设置": ("Can't change settings while matchmaking", "Tidak bisa mengubah pengaturan saat mencari pertandingan"),
+    "只有房主可以设置房间匹配规则": (
+        "Only the room owner can set the room's matchmaking rules",
+        "Hanya pemilik room yang bisa mengatur aturan matchmaking room"),
+    "处于队伍中，无法进行祈愿": ("Can't Wish while in a team", "Tidak bisa Doa saat berada di tim"),
+    "当前处于组队状态，将无法触发王中王组队": (
+        "You're in a team, so a King of Kings team can't be formed",
+        "Kamu sedang dalam tim, jadi tim King of Kings tidak bisa dibentuk"),
+    "房主关闭了{0}设置": ("The room owner turned off the {0} setting", "Pemilik room menonaktifkan pengaturan {0}"),
+    "房主开启了{0}设置": ("The room owner turned on the {0} setting", "Pemilik room mengaktifkan pengaturan {0}"),
+    "更换房主后，{0}已关闭": ("The room owner changed; {0} is now off", "Pemilik room berganti; {0} kini nonaktif"),
+    "更换房主后，{0}已开启": ("The room owner changed; {0} is now on", "Pemilik room berganti; {0} kini aktif"),
+    "房间内已有最强王者段位或已开启王中王的玩家，暂时无法设置此项": (
+        "A player in the room is Strongest King rank or has unlocked King of Kings, so this can't be set for now",
+        "Ada pemain di room dengan rank Strongest King atau yang sudah membuka King of Kings, jadi ini belum bisa"
+        " diatur"),
+    "该玩家设置了不允许任何人免邀请进入房间": (
+        "This player doesn't allow anyone to join their room without an invitation",
+        "Pemain ini tidak mengizinkan siapa pun masuk ke room-nya tanpa undangan"),
+    "该玩家设置了仅允许亲密关系免邀请进入房间": (
+        "This player only allows Intimate Relationships to join their room without an invitation",
+        "Pemain ini hanya mengizinkan Hubungan Dekat masuk ke room-nya tanpa undangan"),
+    "队伍加入了王者或王中王玩家，{0}玩家设置将不可用": (
+        "An Honor or King of Kings player joined the team; the {0} player setting is unavailable",
+        "Pemain Honor atau King of Kings bergabung ke tim; pengaturan pemain {0} tidak tersedia"),
+    "队伍已无王者或王中王玩家，{0}玩家设置已可用": (
+        "The team no longer has an Honor or King of Kings player; the {0} player setting is available",
+        "Tim tidak lagi punya pemain Honor atau King of Kings; pengaturan pemain {0} tersedia"),
+    "确认后将关闭王中王组队功能：加入王中王队伍、挑战者队伍可获得有分同享效果。单人挑战可获得胜利多加分，失败不扣分效果。": (
+        "Confirming turns off King of Kings teaming. Joining a King of Kings team or a challenger team grants Shared"
+        " Score; challenging solo grants extra points on a win and no point loss on a defeat.",
+        "Konfirmasi akan menonaktifkan tim King of Kings. Bergabung ke tim King of Kings atau tim penantang memberikan"
+        " Shared Score; menantang solo memberikan poin tambahan saat menang dan tidak mengurangi poin saat kalah."),
+    "带队获胜": ("Won as Captain", "Menang sebagai Kapten"),
+    "独自获胜": ("Won Solo", "Menang Solo"),
+    "平均得分": ("Average Score", "Skor Rata-rata"),
+    "战力保护": ("Combat Power Protection", "Proteksi Combat Power"),
+    "暂无最近一起玩过的玩家": ("No players you've played with recently", "Belum ada pemain yang baru-baru ini main bersamamu"),
+    "最近": ("Recent", "Terbaru"),
+    "本局事件：{0}": ("Match Event: {0}", "Event Pertandingan: {0}"),
+    "本局奖池：{0}": ("Match Prize Pool: {0}", "Prize Pool Pertandingan: {0}"),
+    "本赛季尚未参加排位赛": ("You haven't played Ranked this season", "Kamu belum main Ranked di season ini"),
+    "等待最终排名结算中": ("Waiting for the final ranking", "Menunggu peringkat akhir"),
+    "该玩法不可用": ("This mode is unavailable", "Mode ini tidak tersedia"),
+    "获奖总人次": ("Total Winners", "Total Pemenang"),
+    "正在配置棋手皮肤、棋盘皮肤": (
+        "Setting up Chessplayer and chessboard skins", "Menyiapkan skin Chessplayer dan skin papan catur"),
+    "%s挑战了您的夺冠阵容，挑战失败，恭喜您获得胜利。": (
+        "%s challenged your Championship Lineup but failed. Congratulations on your Victory.",
+        "%s menantang Lineup Juara kamu tetapi gagal. Selamat atas Kemenanganmu."),
+    "房主可以设置不匹配王中王玩家": (
+        "The room owner can choose not to match King of Kings players",
+        "Pemilik room bisa memilih untuk tidak dicocokkan dengan pemain King of Kings"),
+    "这里可以对房间进行设置": ("Set up the room here", "Atur room di sini"),
+    "这里可以设置允许主动进入房间的玩家类型": (
+        "Choose here which players may join the room on their own",
+        "Pilih di sini pemain mana yang boleh masuk ke room sendiri"),
+    "这里可以设置是否允许玩家加入我的王中王队伍": (
+        "Choose here whether players may join your King of Kings team",
+        "Pilih di sini apakah pemain boleh bergabung ke tim King of Kings-mu"),
+    "这里可以设置是否自动接受匹配": (
+        "Choose here whether to auto-accept matches", "Pilih di sini apakah pertandingan diterima otomatis"),
+    "<color=#98cbff>一、房间设置</color>\n<color=#FFFFFF>房间设置用于调整您的房间准入与对局匹配规则，可在创建房间时进行设置。\n具体规则如下：\n1、自动接受匹配\n开启后，在对局匹配成功时，会自动接受匹配，无需手动确认。\n2、免邀请进入房间\n可设置为允许好友、亲密关系免邀请直接进入您的房间；\n关闭该功能后，任何人都不允许直接进入您的房间。\n3、允许玩家加入我的王中王队伍\n当王中王玩家以王中王小号创建房间后，若房间人数=1时，会出现组队开关；\n勾选后，您将在\"挑战王中王\"中做为队长组队作战；\n取消勾选后，您将在\"挑战王中王\"中单人作战。\n4、不匹配王中王玩家\n仅至尊星耀及以下玩家可用，段位抵达王者或解锁王中王后，该功能无法再进行设置。\n开启该设置后，您在匹配对局中将不会匹配到任何王中王玩家。</color>": (
+        "<color=#98cbff>I. Room Settings</color>\n<color=#FFFFFF>Room settings adjust who may enter your room and how"
+        " its matches are made. Set them when you create a room.\nThe rules are as follows:\n1. Auto-accept matches\n"
+        "When on, a match is accepted automatically once found, with no manual confirmation.\n2. Join without an"
+        " invitation\nYou can allow friends and Intimate Relationships to enter your room directly without an"
+        " invitation;\nwhen this is off, no one may enter your room directly.\n3. Allow players to join my King of"
+        " Kings team\nWhen a King of Kings player creates a room with their King of Kings sub-account and the room has"
+        " 1 player, a team switch appears;\nwhen ticked, you fight as the Captain of a team in \"Challenge the King of"
+        " Kings\";\nwhen unticked, you fight solo in \"Challenge the King of Kings\".\n4. Don't match King of Kings"
+        " players\nAvailable only to players at Supreme Star or below; once you reach Honor rank or unlock King of"
+        " Kings, this can no longer be set.\nWhen on, you will not be matched with any King of Kings player.</color>",
+        "<color=#98cbff>I. Pengaturan Room</color>\n<color=#FFFFFF>Pengaturan room mengatur siapa yang boleh masuk ke"
+        " room-mu dan aturan matchmaking-nya. Atur saat membuat room.\nAturannya sebagai berikut:\n1. Terima"
+        " pertandingan otomatis\nSaat aktif, pertandingan otomatis diterima begitu ditemukan, tanpa konfirmasi"
+        " manual.\n2. Masuk tanpa undangan\nKamu bisa mengizinkan teman dan Hubungan Dekat masuk langsung ke room-mu"
+        " tanpa undangan;\nsaat nonaktif, tidak ada yang boleh masuk langsung ke room-mu.\n3. Izinkan pemain bergabung"
+        " ke tim King of Kings-ku\nSaat pemain King of Kings membuat room dengan sub-akun King of Kings dan room berisi"
+        " 1 pemain, muncul tombol tim;\njika dicentang, kamu bertarung sebagai Kapten tim di \"Challenge the King of"
+        " Kings\";\njika tidak dicentang, kamu bertarung solo di \"Challenge the King of Kings\".\n4. Jangan cocokkan"
+        " dengan pemain King of Kings\nHanya untuk pemain Supreme Star ke bawah; setelah mencapai rank Honor atau"
+        " membuka King of Kings, ini tidak bisa diatur lagi.\nSaat aktif, kamu tidak akan dicocokkan dengan pemain King"
+        " of Kings mana pun.</color>"),
+
+    # Lineup Recommendation: the rework that picks a Chessplayer first.
+    "阵容推荐改版说明": ("Lineup Recommendation Revamp Notes", "Catatan Pembaruan Rekomendasi Lineup"),
+    "阵容推荐系统改造为先选择棋手，再展示阵容。": (
+        "Lineup Recommendation now asks you to choose a Chessplayer first, then shows its lineups.",
+        "Rekomendasi Lineup kini memintamu memilih Chessplayer dulu, lalu menampilkan lineup-nya."),
+    "阵容系统将由固定栏位调整为每位棋手独立持有对应数量的栏位。版本更新前已解锁的阵容栏位会折算为等量栏位扩充卡，通过邮件发放。": (
+        "Lineup slots change from a fixed set to slots held by each Chessplayer separately. Lineup slots unlocked"
+        " before the update are converted into the same number of Slot Expansion Cards and sent by mail.",
+        "Slot lineup berubah dari jumlah tetap menjadi slot yang dimiliki tiap Chessplayer secara terpisah. Slot lineup"
+        " yang dibuka sebelum update diubah menjadi Slot Expansion Card dalam jumlah yang sama dan dikirim lewat"
+        " mail."),
+    "阵容投稿时必填内容如下：\n1、至少添加2个及以上英雄\n2、至少编辑1个阵容核心标签（王牌、坦克核心、功能核心）\n3、有填写阵容标题和阵容描述\n4、至少有1个英雄穿戴装备": (
+        "A lineup submission must include:\n1. At least 2 Heroes\n2. At least 1 lineup core tag (Ace, Tank Core,"
+        " Functional Core)\n3. A lineup title and lineup description\n4. At least 1 Hero wearing Equipment",
+        "Pengiriman lineup wajib berisi:\n1. Minimal 2 Hero\n2. Minimal 1 tag core lineup (Ace, Tank Core, Functional"
+        " Core)\n3. Judul lineup dan deskripsi lineup\n4. Minimal 1 Hero memakai Equipment"),
+    "已投稿": ("Submitted", "Terkirim"),
+    "已替换": ("Replaced", "Diganti"),
+    "尝新棋手": ("Try New Chessplayers", "Coba Chessplayer Baru"),
+    "攻略面板": ("Guide Panel", "Panel Panduan"),
+    "新建棋手阵容": ("New Chessplayer Lineup", "Lineup Chessplayer Baru"),
+    "无推荐阵容": ("No recommended lineups", "Tidak ada lineup rekomendasi"),
+    "棋手无推荐阵容": ("This Chessplayer has no recommended lineups", "Chessplayer ini tidak punya lineup rekomendasi"),
+    "收藏{0}阵容成功": ("Saved the {0} lineup to Favorites", "Lineup {0} berhasil disimpan ke Favorit"),
+    "该阵容未推荐当前棋手，无法收藏": (
+        "This lineup isn't recommended for the current Chessplayer and can't be saved to Favorites",
+        "Lineup ini tidak direkomendasikan untuk Chessplayer saat ini dan tidak bisa disimpan ke Favorit"),
+    "该阵容未配置推荐棋手，无法收藏": (
+        "This lineup has no recommended Chessplayer and can't be saved to Favorites",
+        "Lineup ini tidak punya Chessplayer rekomendasi dan tidak bisa disimpan ke Favorit"),
+    "确认棋手后刷新出对应阵容": (
+        "Confirm a Chessplayer to show its lineups", "Konfirmasi Chessplayer untuk menampilkan lineup-nya"),
+    "这是棋手适配的阵容": ("These are lineups suited to the Chessplayer", "Ini lineup yang cocok untuk Chessplayer"),
+    "这里是棋手列表": ("This is the Chessplayer list", "Ini daftar Chessplayer"),
+    "选择一套阵容": ("Choose a lineup", "Pilih lineup"),
+    "输入阵容名称": ("Enter lineup name", "Masukkan nama lineup"),
+    "简介": ("Overview", "Ringkasan"),
+    "克制关系": ("Counters", "Counter"),
+    "【克制关系】": ("[Counters]", "[Counter]"),
+    "请输入克制关系": ("Enter counters", "Masukkan counter"),
+    "<color=#98cbff>一、生涯系统说明</color>\n\n1、生涯系统承载了您的各项游戏数据，可在主页面进行查看：游玩时长、对局总场次、获得点赞次数、王者印记拥有数量、本赛季棋手数据、成就数据以及账号的对局数据等内容。": (
+        "<color=#98cbff>I. Career System Overview</color>\n\n1. The Career System records your various game data,"
+        " viewable on the main page: playtime, total matches played, Likes received, Mark of Kings owned, this season's"
+        " Chessplayer data, Achievement data, your account's match data and more.",
+        "<color=#98cbff>I. Ikhtisar Career System</color>\n\n1. Career System mencatat berbagai data game-mu, yang bisa"
+        " dilihat di halaman utama: waktu bermain, total pertandingan, Like yang diterima, jumlah Mark of Kings, data"
+        " Chessplayer season ini, data Achievement, data pertandingan akunmu, dan lainnya."),
+
+    # Ace Duel schedules.
+    "王牌对决·万象大赛在每天16:00-23:00开启，每整点在备战区段位分排名前列的玩家中随机确认6名玩家开启1场对局。参与选手对局排位分按五倍计算（输赢都按基础得分的五倍计算）。对局时刻如下：": (
+        "Ace Duel · ACE Tournament opens daily from 16:00-23:00. On every hour, 6 players are picked at random from"
+        " the top-ranked players by Rank points in the Prepare area for 1 match. Participants' Ranked points count five"
+        " times (wins and losses both count at five times the base score). Match times are as follows:",
+        "Ace Duel · ACE Tournament dibuka setiap hari pukul 16:00-23:00. Setiap jam tepat, 6 pemain dipilih acak dari"
+        " pemain dengan poin Rank teratas di area Prepare untuk 1 pertandingan. Poin Ranked peserta dihitung lima kali"
+        " lipat (menang maupun kalah dihitung lima kali skor dasar). Jadwal pertandingan sebagai berikut:"),
+    "王牌对决·钻石狂潮在每天12:00-15:00开启，每整点在备战区总盈利钻石数排名前列的玩家中随机确认6名玩家开启1场对局。对局固定带入50000钻石。对局时刻如下：": (
+        "Ace Duel · Diamond Frenzy opens daily from 12:00-15:00. On every hour, 6 players are picked at random from the"
+        " top-ranked players by total Diamond profit in the Prepare area for 1 match. Each match has a fixed stake of"
+        " 50000 Diamonds. Match times are as follows:",
+        "Ace Duel · Diamond Frenzy dibuka setiap hari pukul 12:00-15:00. Setiap jam tepat, 6 pemain dipilih acak dari"
+        " pemain dengan total keuntungan Diamond teratas di area Prepare untuk 1 pertandingan. Setiap pertandingan"
+        " punya taruhan tetap 50000 Diamond. Jadwal pertandingan sebagai berikut:"),
+
+    # Events, shop and gifts.
+    "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、在对局中遇到王中王玩家即可领取奖励，包含自己。</color>\n<color=#FFFFFF>2、对局仅限万象大赛。</color>": (
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Meet a King of Kings player in a match (including"
+        " yourself) to claim the reward.</color>\n<color=#FFFFFF>2. ACE Tournament matches only.</color>",
+        "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Bertemu pemain King of Kings dalam pertandingan"
+        " (termasuk diri sendiri) untuk klaim hadiah.</color>\n<color=#FFFFFF>2. Hanya pertandingan ACE"
+        " Tournament.</color>"),
+    "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成每日登录和对局任务即可领取蔷薇币奖励。</color>\n<color=#FFFFFF>2、活动任务将在每日0点刷新。</color>": (
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete the daily login and match tasks to claim Rose"
+        " Coin rewards.</color>\n<color=#FFFFFF>2. Event tasks reset daily at 0:00.</color>",
+        "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan tugas login harian dan pertandingan untuk"
+        " klaim hadiah Rose Coin.</color>\n<color=#FFFFFF>2. Tugas Event di-reset setiap hari pukul 0:00.</color>"),
+    "线条小狗天幕祈愿即将下线": ("Line Puppy Sky Screen Wish ends soon", "Doa Sky Screen Line Puppy segera berakhir"),
+    "每{0}抽（<color=#ED6962>{1}</color>/{0}）可领1个自选礼包，已选自选礼包<color=#ED6962>{2}</color>/{3}个": (
+        "Claim 1 Selectable Gift Pack every {0} draws (<color=#ED6962>{1}</color>/{0}). Selectable Gift Packs chosen:"
+        " <color=#ED6962>{2}</color>/{3}",
+        "Klaim 1 Gift Pack Pilihan setiap {0} tarikan (<color=#ED6962>{1}</color>/{0}). Gift Pack Pilihan dipilih:"
+        " <color=#ED6962>{2}</color>/{3}"),
+    "购买<color=#ed6962ff>{0}x{1}</color>，可获赠<color=#ed6962ff>{2}x{3}</color>，可参与祈愿获得奖励": (
+        "Buy <color=#ed6962ff>{0}x{1}</color> to receive <color=#ed6962ff>{2}x{3}</color> for Wishes that earn rewards",
+        "Beli <color=#ed6962ff>{0}x{1}</color> untuk mendapat <color=#ed6962ff>{2}x{3}</color> yang bisa dipakai Doa"
+        " untuk mendapat hadiah"),
+    "新手礼包": ("Starter Pack", "Paket Pemula"),
+    "打开礼包必定获得：夺宝币*24，改名卡*1、高级点心礼盒*1。": (
+        "Opening the pack always grants: Treasure Coin x24, Rename Card x1, Advanced Snack Box x1.",
+        "Membuka paket pasti memberikan: Treasure Coin x24, Kartu Ganti Nama x1, Advanced Snack Box x1."),
+    "自选棋手体验卡（3天）": ("Selectable Chessplayer Trial Card (3 Days)", "Kartu Trial Chessplayer Pilihan (3 Hari)"),
+    "从姜导，镜，明先生，昭君，阿离，安琪拉6个棋手中，选择1个获得一张3天体验卡！": (
+        "Choose 1 of 6 Chessplayers: Director Jiang, Jing, Mr. Ming, Zhaojun, Arli and Angela, and get a 3-day Trial"
+        " Card!",
+        "Pilih 1 dari 6 Chessplayer: Director Jiang, Jing, Mr. Ming, Zhaojun, Arli, dan Angela, dan dapatkan Kartu"
+        " Trial 3 hari!"),
+    "留存治愈时刻，把线条小狗的快乐打包送出。赠送可增加 10 点亲密度。「小狗限定快照」": (
+        "Keep a healing moment and send Line Puppy's joy as a gift. Send to increase Intimacy by 10. \"A puppy-only"
+        " snapshot\"",
+        "Simpan momen yang menenangkan dan kirim kebahagiaan Line Puppy sebagai hadiah. Kirim untuk menambah Intimacy"
+        " sebesar 10. \"Foto khusus anak anjing\""),
+    "获得“接收心心”个性戳戳1天使用权，在定制系统中装配后可在组队房间内使用。": (
+        "Obtain 1-day Usage rights for the \"Receive Hearts\" Personalized Poke. Equip it in the Custom System to use"
+        " it in team rooms.",
+        "Dapatkan hak pakai 1 hari untuk Personalized Poke \"Terima Hati\". Pasang di Sistem Kustomisasi untuk"
+        " menggunakannya di room tim."),
+    "获得“接收心心”个性戳戳30天使用权，在定制系统中装配后可在组队房间内使用。": (
+        "Obtain 30-day Usage rights for the \"Receive Hearts\" Personalized Poke. Equip it in the Custom System to use"
+        " it in team rooms.",
+        "Dapatkan hak pakai 30 hari untuk Personalized Poke \"Terima Hati\". Pasang di Sistem Kustomisasi untuk"
+        " menggunakannya di room tim."),
+    "获得“接收心心”个性戳戳365天使用权，在定制系统中装配后可在组队房间内使用。": (
+        "Obtain 365-day Usage rights for the \"Receive Hearts\" Personalized Poke. Equip it in the Custom System to"
+        " use it in team rooms.",
+        "Dapatkan hak pakai 365 hari untuk Personalized Poke \"Terima Hati\". Pasang di Sistem Kustomisasi untuk"
+        " menggunakannya di room tim."),
+    "获得“接收心心”个性戳戳，使用后可一直生效，在定制系统中装配后可在组队房间内使用。": (
+        "Obtain the \"Receive Hearts\" Personalized Poke. Once used, it remains permanently active. Equip it in the"
+        " Custom System to use it in team rooms.",
+        "Dapatkan Personalized Poke \"Terima Hati\". Setelah digunakan, aktif secara permanen. Pasang di Sistem"
+        " Kustomisasi untuk menggunakannya di room tim."),
+
+    # Music titles.
+    "We Are（我们）": ("We Are", "We Are"),
+    "听从裙摆": ("Follow the Hem", "Ikuti Ayunan Rok"),
+    "我们·一直都在": ("Us · Always Here", "Kita · Selalu Ada"),
+    "我们·为你而来": ("Us · Here for You", "Kita · Datang untukmu"),
+    "王牌加冕": ("Crowning the Ace", "Penobatan Sang Ace"),
+
+    # Yuhuan's skin Prismatic Scale.
+    "幻彩音阶": ("Prismatic Scale", "Prismatic Scale"),
+    "幻彩音阶名片": ("Prismatic Scale Nameplate", "Nameplate Prismatic Scale"),
+    "她的琴音看得见——字面意义上的。": ("You can see her music, literally.", "Musiknya bisa dilihat, secara harfiah."),
+    "玉环的舞台，在大厦最豪华的演播厅。\n\n据说，玉环的琴由这个时代最先进的光谱材料构造，能为观众带来如梦似幻的可视化演出。\n在她演奏的时候，一个个可爱的音符光影随着音乐起舞，时而聚作璀璨星河，时而散作漫天流萤。\n仅玉环一人一琴，便可以完成这场既生动又热闹的演出。\n\n“这绝对是这个时代最伟大的发明！”\n“我起猛了，竟然看到音符飞起来了！”\n“这个八分音符摸起来凉凉的耶！”\n\n玉环的舞台，可以在任何地方。\n\n天桥上的风有点大，少女的抽泣声碎在风里。她抱着琴走过去，没说话，挨着少女坐下。\n手指一拨，几个暖橙色的音符跳出来，在傍晚的空气里晕开。\n她弹得轻，音符却很聪明，像活泼的精灵，围绕在少女身边。\n一个音符绕着她飞了一圈，带走她脸上的点点泪光，然后飞到天上，融成了晚霞。\n\n“你的琴，竟然有这样的魔力？我好像没有那么难过了。”\n少女停止了哭泣，看着玉环的眼睛。\n玉环停下手指，微笑着点了点头": (
+        "Yuhuan's stage is the grandest studio in the tower.\n\nThey say Yuhuan's instrument is built from this era's"
+        " most advanced spectral materials, giving the audience a dreamlike visual show.\nAs she plays, lovely notes of"
+        " light dance to the music, now gathering into a glittering galaxy, now scattering like a sky full of"
+        " fireflies.\nYuhuan alone, with one instrument, can put on a show this vivid and lively.\n\n\"This has to be"
+        " the greatest invention of our time!\"\n\"Am I dreaming? I just saw the notes fly!\"\n\"This eighth note feels"
+        " cool to the touch!\"\n\nYuhuan's stage can be anywhere.\n\nThe wind on the footbridge was strong, and a girl's"
+        " sobs broke apart in it. Yuhuan walked over with her instrument, said nothing, and sat down beside her.\nWith"
+        " one pluck, a few warm orange notes leapt out and spread through the evening air.\nShe played softly, yet the"
+        " notes were clever, circling the girl like lively sprites.\nOne note flew a loop around her, carried away the"
+        " tears on her face, then rose into the sky and melted into the sunset.\n\n\"Your instrument has magic like"
+        " this? I don't feel so sad anymore.\"\nThe girl stopped crying and looked into Yuhuan's eyes.\nYuhuan rested"
+        " her fingers, smiled and nodded",
+        "Panggung Yuhuan ada di studio termegah di menara.\n\nKonon, alat musik Yuhuan dibuat dari material spektrum"
+        " tercanggih di zaman ini, menghadirkan pertunjukan visual bak mimpi bagi penonton.\nSaat ia bermain, not-not"
+        " cahaya yang lucu menari mengikuti musik, kadang berkumpul menjadi galaksi berkilauan, kadang menyebar seperti"
+        " kunang-kunang memenuhi langit.\nHanya Yuhuan seorang dengan satu alat musik, pertunjukan yang hidup dan"
+        " meriah ini pun tercipta.\n\n\"Ini pasti penemuan terhebat di zaman ini!\"\n\"Aku mimpi, ya? Aku lihat not-not"
+        " itu terbang!\"\n\"Not seperdelapan ini terasa dingin saat disentuh!\"\n\nPanggung Yuhuan bisa di mana"
+        " saja.\n\nAngin di jembatan penyeberangan cukup kencang, dan isak tangis seorang gadis pecah terbawa angin."
+        " Yuhuan menghampirinya sambil membawa alat musiknya, tanpa berkata apa-apa, lalu duduk di sampingnya.\nSekali"
+        " petik, beberapa not jingga hangat melompat keluar dan menyebar di udara senja.\nIa bermain pelan, tapi"
+        " not-not itu cerdik, mengelilingi sang gadis seperti peri yang lincah.\nSatu not terbang memutarinya, membawa"
+        " pergi air mata di wajahnya, lalu naik ke langit dan melebur menjadi lembayung senja.\n\n\"Alat musikmu punya"
+        " sihir seperti ini? Aku jadi tidak terlalu sedih lagi.\"\nGadis itu berhenti menangis dan menatap mata"
+        " Yuhuan.\nYuhuan menghentikan jarinya, tersenyum, dan mengangguk"),
+
+    # Wish and event rules 1.7.0.1 reworded: the catalog's own text with the new dates and numbers.
+    "<color=#98cbff>一、时间</color>\n<color=#FFFFFF>1. 祈愿时间：2026年09月25日 00:00:00-2026年10月21日 23:59:59。\n2.兑换时间：2026年10月15日更新后-2026年10月21日 23:59:59。</color>\n\n<color=#98cbff>二、祈愿规则：</color>\n<color=#FFFFFF>1. 日月行者内有日和月两个奖池，在日奖池内消耗10点券购买1个爱心投送1天体验卡可获赠1个【金穗】，在月奖池内消耗10点券购买1个爱心投送1天体验卡可获赠1个【月桂】，可分别用于日和月奖池的抽取。\n2. 日和月奖池相互独立，每个奖池内共有9个奖品，每次祈愿必定获得其中1个奖励，奖励不会重复获得，9次之内必定获得奖池内的所有奖励。\n3. 单奖池内每次消耗的【金穗】/【月桂】数量将会递增，依次为1、4、8、12、16、24、32、48、68。\n4. 获得大奖【瑶妹·朝露晓升】或【常小娥·云舒见影】后，将赠送对应奖池内剩余所有奖励。\n5. 日月同辉：\n（1）每次抽取均有可能触发日月同辉机制，若在日奖池触发，则会获得一定数量的【月桂】，若在月奖池触发，则会获得一定数量的【金穗】；\n（2）若在日奖池触发时已获得月奖池内的所有奖励，则获得的【月桂】将会转化为等量的【金穗】，在月奖池触发时同理；\n（3）若在当抽抽取后已获得日奖池和月奖池内的所有奖励，则该机制不会触发。\n6.10月15日更新后可使用一定数量的【金穗】/【月桂】在兑换商店中兑换指定商品，祈愿结束后兑换商店也将一起关闭，请拥有【金穗】/【月桂】的玩家们及时兑换，兑换时间结束后活动道具（金穗，月桂）将被清空。\n7.日月行者奖池限时开启，抽奖进度不会被其他祈愿活动继承。</color>\n\n<color=#98cbff>三、概率公示：</color>\n<color=#FFFFFF>1、奖池综合概率：\n【日奖池】\n瑶妹-朝露晓升 5.76%\n朝露晓升名片 7.59%\n个性戳戳-晨昭鹿鸣 9.41%\n聊天气泡-升曦凝露 9.41%\n表情-鹿过 10.22%\n表情-早上好 10.22%\n夺宝币*6 15.80%\n随机特效（30天） 15.80%\n亲密度道具-朝露晓升明信片*10 15.80%\n【月奖池】\n常小娥-云舒见影 5.76%\n云舒见影名片 7.59%\n个性戳戳-云疏兔影 9.41%\n聊天气泡-月隐云踪 9.41%\n表情-ME兔 10.22%\n表情-晚安 10.22%\n夺宝币*6 15.80%\n随机特效（30天） 15.80%\n亲密度道具-云舒见影明信片*10 15.80%\n2、日月同辉概率：\n每次抽取均有可能触发，触发概率独立，为5%，触发后可能获得的代币数量及概率见下方公示\n月桂/金穗*2 60%\n月桂/金穗*4 30%\n月桂/金穗*6 10%</color>": (
+        "<color=#98cbff>I. Time</color>\n<color=#FFFFFF>1. Wish period: September 25, 2026, 00:00:00 - October 21, 2026, 23:59:59.\n2. Redemption period: after the October 15, 2026 update - October 21, 2026, 23:59:59.</color>\n\n<color=#98cbff>II. Wish Rules:</color>\n<color=#FFFFFF>1. The Sun & Moon Traveler Event features two prize pools: Sun and Moon. Purchasing a 1-Day Love Delivery trial card for 10 Coupons in the Sun pool grants 1 [Golden Spike]. Purchasing a 1-Day Love Delivery trial card for 10 Coupons in the Moon pool grants 1 [Laurel]. These can be used to draw from their respective pools.\n2. The Sun and Moon pools are independent. Each contains 9 rewards. Each Wish guarantees 1 reward, with no duplicates. All rewards in a pool are guaranteed within 9 draws.\n3. The cost of [Golden Spike]/[Laurel] per draw increases within a single pool: 1, 4, 8, 12, 16, 24, 32, 48, 68.\n4. Obtaining the grand prize [Yaria: Morning Dew] or [Chang Xiao'e: Cloud Shadow] grants all Remaining rewards in that pool.\n5. Sun & Moon Radiance:\n(1) Every draw has a chance to Trigger the Sun & Moon Radiance mechanic. If triggered in the Sun pool, you receive a certain amount of [Laurel]. If triggered in the Moon pool, you receive a certain amount of [Golden Spike];\n(2) If all rewards in the Moon pool have already been Obtained when triggered in the Sun pool, the [Laurel] will be converted into an equal amount of [Golden Spike], and vice versa;\n(3) This mechanic will not Trigger if all rewards from both pools have already been Obtained.\n6. After the October 15 update, a set amount of [Golden Spike]/[Laurel] can be redeemed for specific items in the Exchange Shop. The Exchange Shop closes together with the Wish event, so players holding [Golden Spike]/[Laurel] should redeem them in time; when the redemption period ends, the event items (Golden Spike, Laurel) will be cleared.\n7. The Sun & Moon Traveler prize pools are available for a limited time. Progress will not carry over to other Wish events.</color>\n\n<color=#98cbff>III. Probability Disclosure:</color>\n<color=#FFFFFF>1. Overall Pool Probabilities:\n[Sun Pool]\nYaria - Morning Dew 5.76%\nMorning Dew Nameplate 7.59%\nCustom Poke - Morning Deer 9.41%\nChat Bubble - Dawn Dew 9.41%\nEmote - Deer Passing 10.22%\nEmote - Good Morning 10.22%\nTreasure Coin x6 15.80%\nRandom Effect (30 Days) 15.80%\nIntimacy Item - Morning Dew Postcard x10 15.80%\n[Moon Pool]\nChang Xiao'e - Cloud Shadow 5.76%\nCloud Shadow Nameplate 7.59%\nCustom Poke - Cloud Rabbit 9.41%\nChat Bubble - Moon Shadow 9.41%\nEmote - ME Rabbit 10.22%\nEmote - Good Night 10.22%\nTreasure Coin x6 15.80%\nRandom Effect (30 Days) 15.80%\nIntimacy Item - Cloud Shadow Postcard x10 15.80%\n2. Sun & Moon Radiance Probability:\nEach draw has a 5% independent chance to Trigger. Token quantities and probabilities upon Trigger are as follows:\nLaurel/Golden Spike x2 60%\nLaurel/Golden Spike x4 30%\nLaurel/Golden Spike x6 10%</color>",
+        "<color=#98cbff>I. Waktu</color>\n<color=#FFFFFF>1. Waktu Doa: 25 September 2026, 00:00:00 - 21 Oktober 2026, 23:59:59.\n2. Waktu Penukaran: setelah update 15 Oktober 2026 - 21 Oktober 2026, 23:59:59.</color>\n\n<color=#98cbff>II. Aturan Doa:</color>\n<color=#FFFFFF>1. Event Sun & Moon Traveler memiliki dua prize pool: Sun dan Moon. Membeli kartu uji coba 1 Hari Love Delivery seharga 10 Kupon di pool Sun memberikan 1 [Golden Spike]. Membeli kartu uji coba 1 Hari Love Delivery seharga 10 Kupon di pool Moon memberikan 1 [Laurel]. Keduanya bisa digunakan untuk menarik dari pool masing-masing.\n2. Pool Sun dan Moon terpisah. Masing-masing berisi 9 hadiah. Setiap Doa menjamin 1 hadiah, tanpa duplikat. Semua hadiah di satu pool dijamin didapat dalam 9 tarikan.\n3. Biaya [Golden Spike]/[Laurel] per tarikan meningkat dalam satu pool: 1, 4, 8, 12, 16, 24, 32, 48, 68.\n4. Mendapatkan hadiah utama [Yaria: Morning Dew] atau [Chang Xiao'e: Cloud Shadow] memberikan semua hadiah yang Tersisa di pool tersebut.\n5. Sun & Moon Radiance:\n(1) Setiap tarikan berpeluang Memicu mekanik Sun & Moon Radiance. Jika terpicu di pool Sun, kamu menerima sejumlah [Laurel]. Jika terpicu di pool Moon, kamu menerima sejumlah [Golden Spike];\n(2) Jika semua hadiah di pool Moon sudah Didapat saat terpicu di pool Sun, [Laurel] akan diubah menjadi [Golden Spike] dalam jumlah yang sama, dan sebaliknya;\n(3) Mekanik ini tidak akan Terpicu jika semua hadiah dari kedua pool sudah Didapat.\n6. Setelah update 15 Oktober, sejumlah [Golden Spike]/[Laurel] bisa ditukar dengan item tertentu di Exchange Shop. Exchange Shop ditutup bersama event Doa, jadi pemain yang memiliki [Golden Spike]/[Laurel] harap segera menukarnya; setelah waktu penukaran berakhir, item event (Golden Spike, Laurel) akan dihapus.\n7. Prize pool Sun & Moon Traveler tersedia dalam waktu terbatas. Progres tidak akan dibawa ke event Doa lainnya.</color>\n\n<color=#98cbff>III. Pengungkapan Peluang:</color>\n<color=#FFFFFF>1. Peluang Pool Keseluruhan:\n[Sun Pool]\nYaria - Morning Dew 5,76%\nMorning Dew Nameplate 7,59%\nCustom Poke - Morning Deer 9,41%\nChat Bubble - Dawn Dew 9,41%\nEmote - Deer Passing 10,22%\nEmote - Good Morning 10,22%\nTreasure Coin x6 15,80%\nEfek Acak (30 Hari) 15,80%\nItem Intimacy - Morning Dew Postcard x10 15,80%\n[Moon Pool]\nChang Xiao'e - Cloud Shadow 5,76%\nCloud Shadow Nameplate 7,59%\nCustom Poke - Cloud Rabbit 9,41%\nChat Bubble - Moon Shadow 9,41%\nEmote - ME Rabbit 10,22%\nEmote - Good Night 10,22%\nTreasure Coin x6 15,80%\nEfek Acak (30 Hari) 15,80%\nItem Intimacy - Cloud Shadow Postcard x10 15,80%\n2. Peluang Sun & Moon Radiance:\nSetiap tarikan memiliki peluang independen 5% untuk Terpicu. Jumlah Token dan peluang saat Terpicu sebagai berikut:\nLaurel/Golden Spike x2 60%\nLaurel/Golden Spike x4 30%\nLaurel/Golden Spike x6 10%</color>"),
+    "<color=#98cbff>一、时间：</color>\n<color=#FFFFFF>1.祈愿时间：2026年10月16日 00:00:00-2026年11月11日 23:59:59。\n2.兑换时间：2026年10月16日 00:00:00-2026年11月14日 23:59:59。\n注：11月11日祈愿时间结束后，线条小狗祈愿币将不可使用，请及时使用；11月11日后仅保留兑换商店，请拥有线条小狗积分的玩家们及时兑换，兑换时间结束后活动道具（线条小狗祈愿币，线条小狗积分）将被清空。</color>\n\n<color=#98cbff>二、祈愿规则：</color>\n<color=#FFFFFF>1.在活动界面消耗60点券购买6个爱心投送1天体验卡可获赠6个【线条小狗祈愿币】，每次祈愿消耗6个线条小狗祈愿币。活动期间，每人祈愿限1000次。\n2.祈愿福利： \n（1）祈愿福利1：首次进入奖池将会赠送线条小狗祈愿币×5，首抽仅需10点券；\n（2）祈愿福利2：每累计祈愿10次，可领线条小狗积分、表情奖励自选礼（限领前6次）\n3.兑换积分可用于在兑换商店中兑换指定奖励，详细兑换内容可前往兑换商店查看。\n4.重复获取：抽到已拥有的天幕、名片、特效、表情等不可重复获得的内容，将会自动转化为指定数量的线条小狗积分，具体重复转化数量如下：\n线条小狗天幕：150；线条小狗名片：60；线条小狗传送特效：45；线条小狗头像框：20；线条小狗聊天气泡：20；表情：20。\n5.线条小狗天幕祈愿奖池限时开启，抽奖进度不会被其他祈愿活动继承。</color>\n\n<color=#98cbff>三、概率公示：</color>\n<color=#FFFFFF>天幕-线条小狗的旅行：1%\n线条小狗名片：1%\n传送特效-线条小狗出动：1%\n线条小狗头像框：1.25%\n线条小狗气泡：1.25%\n表情-扔心心：1.25%\n表情-接住心心：1.25%\n表情-挥手：1.25%\n表情-走了：1.25%\n线条小狗积分*38：6%\n亲密度道具-线条小狗拍立得*1：6%\n接收心心个性戳戳（1天）：14%\n线条小狗积分*18：26%\n线条小狗积分*8：37.5%</color>": (
+        "<color=#98cbff>I. Time:</color>\n<color=#FFFFFF>1. Wish period: 2026-10-16 00:00:00 - 2026-11-11 23:59:59.\n2. Redemption period: 2026-10-16 00:00:00 - 2026-11-14 23:59:59.\nNote: After the Wish period ends on November 11, Line Puppy Wish Coins can no longer be used, so please use them in time. After November 11 only the Exchange Shop remains; players holding Line Puppy Points should redeem them in time. When the redemption period ends, the event items (Line Puppy Wish Coins, Line Puppy Points) will be cleared.</color>\n\n<color=#98cbff>II. Wish Rules:</color>\n<color=#FFFFFF>1. On the event screen, spend 60 Coupons to buy 6 Love Delivery 1-Day Trial Cards and receive 6 [Line Puppy Wish Coins] as a bonus. Each Wish costs 6 Line Puppy Wish Coins. Each player is limited to 1000 Wishes during the event.\n2. Wish perks:\n(1) Perk 1: On first entering the prize pool you receive Line Puppy Wish Coin x5, so your first draw costs only 10 Coupons;\n(2) Perk 2: Every 10 Wishes, claim Line Puppy Points and an Emote Reward Selectable Gift (first 6 times only)\n3. Exchange Points can be used to redeem specific rewards in the Exchange Shop; see the Exchange Shop for details.\n4. Duplicates: drawing a Sky Screen, Nameplate, Effect, Emote or other non-repeatable item you already own automatically converts it into a set number of Line Puppy Points, as follows:\nLine Puppy Sky Screen: 150; Line Puppy Nameplate: 60; Line Puppy Teleport Effect: 45; Line Puppy Avatar Frame: 20; Line Puppy Chat Bubble: 20; Emote: 20.\n5. The Line Puppy Sky Screen Wish pool is open for a limited time, and draw progress does not carry over to other Wish events.</color>\n\n<color=#98cbff>III. Probability Disclosure:</color>\n<color=#FFFFFF>Sky Screen - Line Puppy's Journey: 1%\nLine Puppy Nameplate: 1%\nTeleport Effect - Line Puppy, Go!: 1%\nLine Puppy Avatar Frame: 1.25%\nLine Puppy Bubble: 1.25%\nEmote - Throw Hearts: 1.25%\nEmote - Catch the Heart: 1.25%\nEmote - Wave: 1.25%\nEmote - I'm Leaving: 1.25%\nLine Puppy Points x38: 6%\nIntimacy Item - Line Puppy Instant Photo x1: 6%\nReceive Hearts Personalized Poke (1 Day): 14%\nLine Puppy Points x18: 26%\nLine Puppy Points x8: 37.5%</color>",
+        "<color=#98cbff>I. Waktu:</color>\n<color=#FFFFFF>1. Waktu Doa: 16 Oktober 2026 00:00:00 - 11 November 2026 23:59:59.\n2. Waktu Penukaran: 16 Oktober 2026 00:00:00 - 14 November 2026 23:59:59.\nCatatan: Setelah waktu Doa berakhir pada 11 November, Koin Doa Line Puppy tidak bisa digunakan lagi, jadi segera gunakan. Setelah 11 November hanya Exchange Shop yang tersisa; pemain yang memiliki Poin Line Puppy harap segera menukarnya. Setelah waktu penukaran berakhir, item event (Koin Doa Line Puppy, Poin Line Puppy) akan dihapus.</color>\n\n<color=#98cbff>II. Aturan Doa:</color>\n<color=#FFFFFF>1. Di layar event, habiskan 60 Kupon untuk membeli 6 Kartu Uji Coba 1 Hari Love Delivery dan dapatkan bonus 6 [Koin Doa Line Puppy]. Setiap Doa memakai 6 Koin Doa Line Puppy. Setiap pemain dibatasi 1000 Doa selama event.\n2. Bonus Doa:\n(1) Bonus 1: Saat pertama kali masuk prize pool kamu mendapat Koin Doa Line Puppy x5, jadi tarikan pertama hanya 10 Kupon;\n(2) Bonus 2: Setiap 10 Doa, klaim Poin Line Puppy dan Hadiah Emote Pilihan (hanya 6 kali pertama)\n3. Poin penukaran bisa digunakan untuk menukar hadiah tertentu di Exchange Shop; lihat Exchange Shop untuk detailnya.\n4. Duplikat: mendapatkan Sky Screen, Nameplate, Efek, Emote, atau item tidak berulang lain yang sudah kamu miliki akan otomatis diubah menjadi sejumlah Poin Line Puppy, sebagai berikut:\nSky Screen Line Puppy: 150; Nameplate Line Puppy: 60; Efek Teleportasi Line Puppy: 45; Bingkai Avatar Line Puppy: 20; Chat Bubble Line Puppy: 20; Emote: 20.\n5. Prize pool Doa Sky Screen Line Puppy dibuka dalam waktu terbatas, dan progres tarikan tidak dibawa ke event Doa lainnya.</color>\n\n<color=#98cbff>III. Pengungkapan Peluang:</color>\n<color=#FFFFFF>Sky Screen - Perjalanan Line Puppy: 1%\nNameplate Line Puppy: 1%\nEfek Teleportasi - Line Puppy Beraksi: 1%\nBingkai Avatar Line Puppy: 1,25%\nBubble Line Puppy: 1,25%\nEmote - Lempar Hati: 1,25%\nEmote - Tangkap Hati: 1,25%\nEmote - Lambaian: 1,25%\nEmote - Aku Pergi: 1,25%\nPoin Line Puppy x38: 6%\nItem Intimacy - Foto Instan Line Puppy x1: 6%\nPersonalized Poke Terima Hati (1 Hari): 14%\nPoin Line Puppy x18: 26%\nPoin Line Puppy x8: 37,5%</color>"),
+    "2、<color=#98cbff>支持规则</color>：玩家可对认为最有机会夺冠的选手进行支持，可同时支持多位选手，每次可支持100钻石，每名选手最多可支持10000钻石。": (
+        "2. <color=#98cbff>Support Rules</color>: Players can support the contestant they think has the best chance of winning the Championship. They can support multiple contestants simultaneously, with each support costing 100 Diamonds, and each contestant can be supported with up to 10,000 Diamonds.",
+        "2. <color=#98cbff>Aturan Dukungan</color>: Pemain bisa mendukung kontestan yang menurut mereka paling berpeluang menjadi Juara. Mereka bisa mendukung beberapa kontestan sekaligus, setiap dukungan memerlukan 100 Diamond, dan setiap kontestan bisa didukung hingga maksimal 10.000 Diamond."),
+    "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>欢迎来到英雄连连看~\n1、活动开启规则：活动持续期间内，可以随时、多次参与连连看玩法。每期活动结算时间为周日的23点59，请确保在结算时间前完成所有关卡哦（否则可能不会分到奖励喔）。\n2、奖励结算规则：完整通关（完成所有关卡）即拥有赢取钻石奖池资格。钻石奖池根据排名分取，答题总耗时越短，排名越高，分得的钻石便越多。\n3、总耗时计算规则：关卡开始到关卡结束的总耗时时长，错误1题增加15秒罚时。</color>\n<color=#98cbff>二、题库</color>\n<color=#FFFFFF>1、题库主题：基于英雄们本身的特性展开，每期不同，欢迎体验~！\n2、题库设计：根据每期主题变更题库，会从中随取，本期9个关卡。</color>": (
+        "<color=#98cbff>1. Event Rules</color>\n<color=#FFFFFF>Welcome to Hero Match-Up~\n1. Event Rules: You can Participate in Match-Up at any Time during the Event. Each round ends on Sunday at 23:59. Please ensure all levels are completed before the deadline (otherwise you may not receive Rewards).\n2. Reward Rules: Complete all levels to qualify for the Diamond Prize pool. Diamonds are distributed based on Ranking; the shorter the total Time, the higher the rank and the more Diamonds you receive.\n3. Time Calculation: Total Time from Start to Finish. Each incorrect answer adds a 15-second penalty.</color>\n<color=#98cbff>2. Question Bank</color>\n<color=#FFFFFF>1. Themes: Based on Hero characteristics, changing each round.\n2. Design: 9 levels this round, randomly selected based on the Theme.</color>",
+        "<color=#98cbff>1. Aturan Event</color>\n<color=#FFFFFF>Selamat datang di Hero Match-Up~\n1. Aturan Event: Kamu bisa ikut Match-Up kapan saja selama Event. Tiap ronde berakhir hari Minggu pukul 23:59. Pastikan semua level selesai sebelum batas waktu (jika tidak, kamu mungkin tidak menerima Hadiah).\n2. Aturan Hadiah: Selesaikan semua level untuk lolos ke Prize pool Diamond. Diamonds dibagikan berdasarkan Peringkat; makin singkat total Waktu, makin tinggi peringkat dan makin banyak Diamonds yang kamu terima.\n3. Perhitungan Waktu: Total Waktu dari Mulai sampai Selesai. Tiap jawaban salah menambah penalti 15 detik.</color>\n<color=#98cbff>2. Bank Soal</color>\n<color=#FFFFFF>1. Tema: Berdasarkan karakteristik Hero, berganti setiap ronde.\n2. Desain: 9 level di ronde ini, dipilih secara acak berdasarkan Tema.</color>"),
 }
 
 # The weekly leaderboards, ranked 第一 .. 第一百. `%s%s` is the season and the Chessplayer.
@@ -1476,6 +2374,11 @@ FACTION_HEROES = (
     "河洛-李白", "河洛-李信", "日落海-艾琳", "日落海-莱西奥", "三分-诸葛亮", "三分-甄姬",
     "逐鹿-蒙犽", "逐鹿-嬴政", "逐鹿-扁鹊", "大河-韩信", "大河-刘邦", "大河-大司命",
 )
+# Game data 1.7.0.1 split each talent's text: the catalog has "<series header>\n<effect>" as one string,
+# the new tables hold the effect alone and the series name (`╬整备系列`) without its tags. `derived`
+# takes both from the catalog's two-line form.
+_SERIES = "系列"
+_TAG = re.compile(r"<[^<>]*>")
 
 
 def chinese_number(value: int) -> str:
@@ -1529,6 +2432,15 @@ def derived(unique: dict[str, str]) -> dict[str, str]:
         parts = unique.get(faction), unique.get(hero) or out.get(hero)
         if all(parts):
             out[zh] = f"{parts[0]} - {parts[1]}"
+    for zh, target in unique.items():
+        head, _, body = zh.partition("\n")
+        target_head, _, target_body = target.partition("\n")
+        series = _TAG.sub("", head)
+        if not series.endswith(_SERIES) or not target_body or body.count("\n") != target_body.count("\n"):
+            continue
+        for source, text in ((body, target_body), (series, _TAG.sub("", target_head))):
+            if text.strip() and not check({source: text}):
+                out.setdefault(source, text.strip())
     return out
 
 

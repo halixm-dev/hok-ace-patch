@@ -3839,3 +3839,23 @@ reinstalled in a `finally`. The user walked the screens; logcat was recorded for
 Verdict: **pass**. The phone now carries this hand-pushed English build, which no patcher holds a
 pristine delta for; roll back with the snapshot's tar before the next patcher run. Screenshots:
 `D:\scratch\hok-1.7.0.1\cycle\`.
+
+## 2026-10-22 — 1.7.0.1: the 335 leftover strings supplied, English and Indonesian
+
+- **Change:** `tools/catalog_supplement.py`. 63 of the 335 are the catalog's own two-line talent texts
+  (`<series header>\n<effect>`) split apart: 1.7.0.1's tables hold the effect alone and the series name
+  untagged (`╬整备系列`). `derived` now takes both halves from the catalog, and only where a half keeps its
+  source's markup. The other 272 are listed in `TEXTS`, each worded after its closest catalog string
+  (most card texts differ from one by a number or a keyword). The four long Wish and event rules (Sun & Moon
+  Traveler, Line Puppy Sky Screen, Ace Duel support, Hero Match-Up) are the catalog's own text with the new
+  dates and numbers substituted.
+- **Checks:** `check` passes for both languages; every supplement target (listed and derived, both
+  languages) passes `adaptive.validate_translation`: 0 failures. All 335 have an entry in both languages.
+- **Offline, pristine 1.7.0.1 + cached APK** (`D:\scratch\hok-1.7.0.1\out3-*`): log `catalog supplement:
+  1866 strings` in both. Summary `unknown` **1229 → 0** in both; `text_skipped` and `graphics_skipped` empty;
+  package `1` `added-from-apk` 288 of 289 (the known encoder refusal). `already_english` 2307 (EN) / 2274 (ID).
+- **Leftover census** (staged output over the override layer, the 288 appended tables included): **1253
+  rows / 338 distinct → 40 rows / 5 distinct in 19 tables**, the same for both languages. All 5 are
+  translated `╆Fleeting` card texts whose only CJK is inside a `{推演战术:-5}`-style token: the 3 known false
+  positives plus 2 variants (`-10`/`-20`) in the newly appended tables. No Chinese left in catalog tables.
+  **No device verdict yet.**

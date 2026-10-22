@@ -140,6 +140,15 @@ of the 1.5.0.1 card fixes), every one passing `adaptive.validate_translation`; a
 pristine 1.6.0.1 dump with the APK then leaves **0** Chinese rows in the catalog's tables, in both
 languages, with `text_skipped` empty. It adds rows to tables already counted, so no table count moves.
 
+Game data **1.7.0.1** (2026-10-22) left **335 distinct strings** (1253 rows with the appended tables) of
+package `1`'s catalog tables Chinese: card and talent rewordings, the new Super Hero mode and its strategy
+tags, room settings and King of Kings matchmaking, the Lineup Recommendation rework, a starter pack, the
+Yuhuan skin *Prismatic Scale* and music titles. 63 come from the catalog's own two-line talent texts, split
+by `derived`; the other 272 are listed, in both languages, every one passing `adaptive.validate_translation`.
+An offline build of the pristine 1.7.0.1 dump with the APK leaves **0** Chinese strings in the catalog's
+tables in both languages (the census's 5 hits are CJK inside `{tokens}`), `unknown` 1229 → 0. Device
+acceptance is pending. It adds rows to tables already counted, so no table count moves.
+
 On 2026-10-17, Chano's live card exposed two missing numeric variants (30/60 damage, where the
 catalog has 25/50). Both languages now receive these two supplement entries. A targeted check across
 23 text-table copies in the saved override and prime layers translates all 55 occurrences of the
