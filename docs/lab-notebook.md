@@ -3738,14 +3738,26 @@ reinstalled in a `finally`. The user walked the screens; logcat was recorded for
   paths. Both logs read `package 1: 1 extra assets translated`. So a normal run now ships the bytes the
   phone cleared.
 
-## 2026-10-21 — run-as refused on a nubia; who can read the run-as rules (nubia NX809J, Redmi Note 9 Pro)
+## 2026-10-21 — run-as refused on an Infinix; who can read the run-as rules (Infinix X6833B, Redmi Note 9 Pro)
 
-- **Report (log 8, nubia NX809J, Android 16, patcher 1.6.1.13):** both patch runs install the access APK,
+- **Report (log 8, Infinix X6833B, Android 16, patcher 1.6.1.13):** both patch runs install the access APK,
   then the first `run-as com.tencent.tmgp.osgame` (snapshot estimate) fails:
   `seapp_context_lookup_internal: No match for app with uid 10478, seinfo default:targetSdkVersion=30:fromRunAs`.
   Recovery reinstalls the normal APK and verifies it each time; no game file was written. The same build
-  passes this step on the vivo V2561 (Android 16, logs 6 and 7). The log carries a spoofed Infinix
-  Android 14 fingerprint, so the phone may be rooted. Cause not settled: the log has no policy lines.
+  passes this step on the vivo V2561 (Android 16, logs 6 and 7). The phone is an Infinix X6833B (the
+  reporter, and log 9's model fields), yet log 8's `Build` model fields read `nubia NX809J`, a nubia gaming
+  phone, with an Infinix Android 14 fingerprint on an Android 16 build. Logs 8 and 9 share the build
+  incremental `1783308526`. A model that changes between exports is spoofed, which usually takes a root or
+  LSPosed module, so the phone may be rooted. Cause not settled: the log has no policy lines.
+- **Log 9 (1.6.1.14):** the same refusal, now for uid 10420 after first setup reinstalled the game, so stale
+  package state is ruled out. The export read `shell run-as policy: unavailable (Shizuku service not
+  connected)`: the screen bound its Shizuku service only on a permission result, so a recreated screen
+  (the language change at 00:52:37) or a restarted process with permission already granted never bound
+  it. The screen now binds whenever Shizuku is running and allowed, and the export binds on demand.
+- **Root confirmed (reporter, 2026-10-22):** the phone runs Vector, JingMatrix's LSPosed successor, a Zygisk
+  module that needs Magisk or KernelSU. No public report links Vector to run-as. Zygisk does not inject
+  into run-as, so the root tool's live policy or a module replacing rule files is the closer suspect.
+  Next: retry with every module off, then the policy lines from the next export.
 - **Who can read the rule files (Redmi Note 9 Pro, Android 12, over adb):** shell (`u:r:shell:s0`, the
   domain Shizuku's worker runs in) reads `plat_`, `system_ext_`, `product_` and `vendor_seapp_contexts`.
   An app process (`runas_app`, via `run-as` of a debuggable app) gets `Permission denied` on

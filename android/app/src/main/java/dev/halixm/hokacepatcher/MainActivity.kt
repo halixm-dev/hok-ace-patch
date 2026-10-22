@@ -32,6 +32,7 @@ import java.util.Date
 /** A launcher shortcut's Start waits for Shizuku's binder this many times, this long apart (3 s in all). */
 private const val SHORTCUT_TRIES = 15
 private const val SHORTCUT_WAIT_MS = 200L
+private const val EXPORT_BIND_MS = 5000L
 
 /** Feasibility UI: independent engine checks and explicit, fixed device probes. */
 class MainActivity : Activity() {
@@ -89,7 +90,8 @@ class MainActivity : Activity() {
     }
     private val received = Shizuku.OnBinderReceivedListener {
         log("Shizuku available")
-        runOnUiThread { ensurePermission() }
+        // Sticky: every new activity hears it, so a recreated screen or a restarted process binds again.
+        runOnUiThread { if (ensurePermission()) connect() }
     }
     private val died = Shizuku.OnBinderDeadListener {
         service = null
@@ -767,13 +769,31 @@ class MainActivity : Activity() {
         if (requestCode != 1402 || resultCode != RESULT_OK || data?.data == null) return
         val uri = data.data!!
         runTask {
+            val device = awaitService()
             checkNotNull(contentResolver.openOutputStream(uri, "wt")).bufferedWriter().use { output ->
-                DiagnosticLogExport(this, service).write(output)
+                DiagnosticLogExport(this, device).write(output)
             }
             log("Diagnostic logs exported to the selected document")
         }
     }
+    /**
+     * The export's shell view needs the activity's service: bind it now if Shizuku is running and allowed,
+     * and wait up to [EXPORT_BIND_MS] for it. Worker thread only. Null means the export goes without it.
+     */
+    private fun awaitService(): IPrivilegedDeviceService? {
+        service?.let { return it }
+        val allowed = runCatching { Shizuku.pingBinder() &&
+            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED }.getOrDefault(false)
+        if (!allowed) return null
+        runOnUiThread { connect() }
+        val deadline = System.currentTimeMillis() + EXPORT_BIND_MS
+        while (service == null && System.currentTimeMillis() < deadline && !destroyed) Thread.sleep(100)
+        DiagnosticTrace.event("ui", "Export bound activity UserService on demand: ${service != null}")
+        return service
+    }
+
     private fun connect() {
+        if (service != null) return
         DiagnosticTrace.event("ui", "Binding activity UserService")
         try { Shizuku.bindUserService(args, connection) }
         catch (error: Exception) { DiagnosticTrace.error("ui", "bindUserService refused", error); log("Cannot bind UserService: ${error.message}") }
