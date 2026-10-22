@@ -118,6 +118,10 @@ _Avoid_: PC patcher, Windows GUI, Windows app, desktop patcher
 The app that installs the translation onto the phone it runs on.
 _Avoid_: Android app, mobile patcher
 
+**Shell provider**:
+What gives the Android patcher the privileges to reach the game's files, chosen by the user: Shizuku, wireless debugging or root.
+_Avoid_: access method (access is the access APK's word), route, mode
+
 **PC patcher**:
 The upstream patcher for the PC edition of the game, which produces the catalog and the translation runtime this project ships.
 _Avoid_: using it for the Windows patcher
