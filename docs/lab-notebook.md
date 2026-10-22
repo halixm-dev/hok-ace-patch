@@ -3929,3 +3929,18 @@ pristine delta for; roll back with the snapshot's tar before the next patcher ru
 **No device verdict yet.** The longest new names (*Strongest Yixing Card-Steal Central Plains*, 42
 characters) were not checked on the narrow card, and the `TalentDesc`/`EffectCardDesc` text has not been
 seen on a screen.
+
+## 2026-10-22 — Device cycle: 1.7.0.1's official lineups (`out5-catalog`) — pass
+
+| Step | Result |
+|---|---|
+| Phone | Xiaomi M2007J3SG, data `1.7.0.1` r0 (`packages/1/1.info` SHA-256 equal to the dump's), `needDownloadSize` 0. It carried the hand-pushed `out3-catalog` |
+| Push 1 | English `out4-catalog` (commit `539c63d`): 14 `.db` files in packages `1`, `10`, `1050016095`, `15`, `19`, `20`, `21`, each read back at the staged SHA-256; Watchdog cleared; normal APK reinstalled at the first try, not debuggable |
+| Wording fix | `小菟` (Chang Xiao'e's rabbit) read *Little Dodder*, after the catalog's standalone entry, a misreading of 菟 as in 菟丝子. The user chose *Little Rabbit*, the catalog's name for `小菟助力`; 5 entries changed in both languages. English rebuilt as `out5-catalog`: only `1/1_0.db` differs from `out4`, summary unchanged (`unknown` 0, `text_skipped` empty, `added-from-apk` 288) |
+| Push 2 | `1/1_0.db` from `out5-catalog`, read back equal, with `1.db`, `10_0.db` and `19_0.db` spot-checked equal; Watchdog cleared; normal APK at the first try |
+| Logs | logcat (12 055 lines, `D:\scratch\hok-1.7.0.1\cycle4-logcat.txt`): 0 FATAL/SIGSEGV, 0 QtsVFS errors, 0 `QTSFailureTips`. The run's game log is `normal5.log` (the newest; `normal1.log` is from 2026-10-17): 0 `errorCode:361`, 0 repair lines |
+| Screens (user) | Lineup → Official recommendation: names, descriptions and the author suffix read English; a lineup's detail reads English; no popup |
+
+Verdict: **pass**, English, beside `F79FB1A213A9DA90` in `extra_text.SAFE_ASSETS`. Indonesian was not walked.
+The phone now carries the hand-pushed `out5-catalog`, which no patcher holds a pristine delta for; roll back
+with `pristine/20261022-1.7.0.1/device-backup.tar` before the next patcher run.

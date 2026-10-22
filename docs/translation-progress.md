@@ -311,7 +311,7 @@ localization table for. Its config-asset allowlist, `SAFE_ASSETS`, is device-gat
 and Indonesian: Newbie and Advanced read translated, *Use*, copy and import work, and a match ends
 without the popup (`docs/features/official-lineups.md`). Game data 1.7.0.1 doubled the bin to 57 rows: 433 of 460
 distinct strings (581 of 633 fields) are translated, the new `TalentDesc`, `EffectCardDesc` and `Author` fields
-included; the other 27 are creators' nicknames, left as written. Offline only; no device has seen the new text. A lineup already in My lineups keeps the text it
+included; the other 27 are creators' nicknames, left as written. Device-checked in English on 2026-10-22: pass. A lineup already in My lineups keeps the text it
 was added with, because that list is the server's copy. The other two lineup bins, `6A2B886E5DCF22DC`
 and `C0C56FEFDCA0EA5D`, are still candidates. The four assets the allowlist held until 2026-10-05 were
 each withdrawn after a device cycle:

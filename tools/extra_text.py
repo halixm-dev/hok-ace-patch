@@ -38,6 +38,9 @@ BOT_NAME_ASSETS = {0x2D1113B0AD51A562}
 #                        lineup's detail draws, Use puts it on the board, copy and import work, and a match
 #                        ends without the QTS-failure popup. A lineup already in My lineups keeps the
 #                        language it was added in until it is removed and added again (the server's copy).
+#                        Data 1.7.0.1 (57 rows, plus TalentDesc, EffectCardDesc and Author): passed
+#                        2026-10-22, same phone, English: names, descriptions, the author suffix and a
+#                        lineup's detail read translated, no popup, no repair.
 SAFE_ASSETS: frozenset[int] = frozenset({0xF79FB1A213A9DA90})
 # Rewrites that were tried on device and withdrawn (2026-09-30 / 10-01). Each was a single-variable
 # device cycle: the same build, with one more asset enabled, watching the screen it feeds.

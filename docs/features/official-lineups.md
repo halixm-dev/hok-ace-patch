@@ -47,7 +47,9 @@ declares.
   the list looks the same way.
 - **Gate:** the bin stays on `SAFE_ASSETS`. The new fields go through the same rewrite and reseal, and
   `check_lineup_cycle.py` reads every field back on both layers in both languages (lab notebook,
-  2026-10-22). No device has shown the new text yet.
+  2026-10-22). **Device: pass, 2026-10-22, English** (Xiaomi M2007J3SG): names, descriptions, the author
+  suffix and a lineup's detail read English, no popup, no repair. Indonesian was not walked. `小菟` reads
+  *Little Rabbit* (Chang Xiao'e's rabbit), not the catalog's standalone *little dodder*.
 
 ### Verification
 

@@ -1180,8 +1180,8 @@ TEXTS: dict[str, tuple[str, str]] = {
         "At Lv. 3, find every Lineup Hero except Taiyi",
         "Di Lv. 3, cari semua Hero Lineup kecuali Taiyi"),
     "上阵觉醒苏烈后不再购买苏烈，每回合记得丢小菟": (
-        "Once an Awakened Su Lie is on the board, stop buying Su Lie, and remember to throw Little Dodder every Round",
-        "Setelah Su Lie yang Awaken di papan, berhenti membeli Su Lie, dan ingat lempar Little Dodder setiap Ronde"),
+        "Once an Awakened Su Lie is on the board, stop buying Su Lie, and remember to throw Little Rabbit every Round",
+        "Setelah Su Lie yang Awaken di papan, berhenti membeli Su Lie, dan ingat lempar Little Rabbit setiap Ronde"),
     "不搜牌，有多余能量就升级，升到4级开始搜马超和瑶。": (
         "Don't search for cards; spend spare Energy on levelling up, and at Lv. 4 start searching for Ma Chao and"
         " Yaria.",
@@ -1669,9 +1669,9 @@ TEXTS: dict[str, tuple[str, str]] = {
     "李元芳卖掉换太乙": ("Sell Fang for Taiyi", "Jual Fang dan ganti dengan Taiyi"),
     "棋手一路直接升到六级，不使用能量刷新，升至六级后先丢金色小菟，再丢小菟": (
         "Take the Chessplayer straight to Lv. 6 without spending Energy on Refreshes; at Lv. 6 throw the"
-        " golden Little Dodder first, then the normal Little Dodder",
+        " golden Little Rabbit first, then the normal Little Rabbit",
         "Naikkan Chessplayer langsung ke Lv. 6 tanpa memakai Energy untuk Refresh; di Lv. 6 lempar Little"
-        " Dodder emas dulu, lalu Little Dodder biasa"),
+        " Rabbit emas dulu, lalu Little Rabbit biasa"),
     "棋手二级时，免费刷新遇到米莱迪、亚联可以拿；4回合升3级开始找牌；觉醒优先朵莉亚和米莱迪": (
         "At Chessplayer Lv. 2, take Milady or Allain if a free Refresh shows them; go to Lv. 3 in Round 4"
         " and start searching; Awaken Dolia and Milady first",
@@ -2131,9 +2131,9 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Shouyue sebagai carry tunggal, payung diikat padanya agar tetap hidup\nKui memberi Sacrifice ke"
         " barisan depan\nBarisan depan gugur untuk mengurangi biaya Mana Shouyue\nDouyin: Yujin"),
     "小菟每回合稳定提升等级，越到后期，强度越高的轮椅流阵容！": (
-        "Little Dodder raises Levels steadily every Round: an autopilot Lineup that gets stronger the longer"
+        "Little Rabbit raises Levels steadily every Round: an autopilot Lineup that gets stronger the longer"
         " the game goes!",
-        "Little Dodder menaikkan Level dengan stabil setiap Ronde: Lineup autopilot yang makin kuat seiring"
+        "Little Rabbit menaikkan Level dengan stabil setiap Ronde: Lineup autopilot yang makin kuat seiring"
         " permainan berjalan!"),
     "庄小鱼加强后多四点能量，这套高阶龙蛇又可以重出江湖了，克制单核近战等，": (
         "Zhuang Xiaoyu's buff gives 4 more Energy, so this high-Tier Dragon-Snake is back; it counters"
@@ -2405,14 +2405,14 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Skill Little Daji memberi Refresh gratis, cocok untuk Lineup Reversal. Sulit: tidak disarankan"
         " untuk pemain baru"),
     "小菟每回合稳定提升等级，越到后期越强！司空震裴擒虎双C": (
-        "Little Dodder raises Levels steadily every Round and grows stronger late! Sikong Zhen and Pei as"
+        "Little Rabbit raises Levels steadily every Round and grows stronger late! Sikong Zhen and Pei as"
         " twin carries",
-        "Little Dodder menaikkan Level dengan stabil setiap Ronde dan makin kuat di akhir! Sikong Zhen dan"
+        "Little Rabbit menaikkan Level dengan stabil setiap Ronde dan makin kuat di akhir! Sikong Zhen dan"
         " Pei sebagai carry ganda"),
     "小菟每回合稳定提升等级，越到后期越强！艾琳可以溜各种近战英雄": (
-        "Little Dodder raises Levels steadily every Round and grows stronger late! Erin can kite all kinds"
+        "Little Rabbit raises Levels steadily every Round and grows stronger late! Erin can kite all kinds"
         " of melee Heroes",
-        "Little Dodder menaikkan Level dengan stabil setiap Ronde dan makin kuat di akhir! Erin bisa"
+        "Little Rabbit menaikkan Level dengan stabil setiap Ronde dan makin kuat di akhir! Erin bisa"
         " men-kite berbagai Hero melee"),
     "廉颇释放技能产生护盾，搭配扁鹊炸盾产生伤害": (
         "Lian Po's Skill creates a Shield, and Dr Bian bursts it for damage",
