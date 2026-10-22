@@ -1783,6 +1783,30 @@
       "id": "Game tidak bisa memperbarui file yang diterjemahkan patcher ini. Unduh ulang file tersebut: hanya file game itu yang dihapus, lalu game mengunduhnya lagi. Data game lainnya tetap ada.",
       "draft": true
     },
+    "some_game_files_are_still_translated": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Some game files are still translated",
+      "id": "Beberapa file game masih diterjemahkan",
+      "draft": true
+    },
+    "a_game_update_kept_part_of_translation": {
+      "platforms": [
+        "android"
+      ],
+      "en": "A game update kept part of the earlier translation in some game files, so the patcher cannot restore them. Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
+      "id": "Pembaruan game menyisakan sebagian terjemahan sebelumnya di beberapa file game, sehingga patcher tidak bisa memulihkannya. Unduh ulang file tersebut: hanya file game itu yang dihapus, lalu game mengunduhnya lagi. Data game lainnya tetap ada.",
+      "draft": true
+    },
+    "the_patcher_cannot_restore_untranslated": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The patcher cannot restore the untranslated game files. Clear the game's data in Android Settings, open the game and let it download again to the login screen, close it, then tap Start. Open Technical tools for the reason.",
+      "id": "Patcher tidak bisa memulihkan file game yang belum diterjemahkan. Hapus data game di Pengaturan Android, buka game dan biarkan mengunduh lagi sampai layar login, tutup, lalu ketuk Mulai. Buka Alat teknis untuk melihat alasannya.",
+      "draft": true
+    },
     "redownload_damaged_files": {
       "platforms": [
         "android"

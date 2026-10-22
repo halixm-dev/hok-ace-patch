@@ -21,6 +21,9 @@ CLEAR_DATA = ("Clear the game's data (Android Settings > Apps > the game > Stora
 OTHER_PATCHER = "If the Windows patcher patched this phone last, patch it with that patcher instead."
 # The start of the refusal for an in-game update stuck on translated files; the UI offers Re-download on it.
 UPDATE_STUCK = "The game's update stopped on translated files"
+# The start of the refusal for packages an update rewrote around this patcher's translation; the UI offers
+# Re-download on it too.
+UPDATE_MIXED = "A game update kept part of this patcher's translation"
 # After Re-download: the packages it deleted, kept until the game has downloaded them again.
 REDOWNLOAD_NAME = "redownload.json"
 UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
@@ -341,13 +344,41 @@ def _refuse_stuck_update(session: Path, keep: Path, manifest: dict) -> None:
                          "login screen, close it, and patch again.")
 
 
+def _mixed_packages(session: Path, keep: Path, manifest: dict) -> dict[str, str]:
+    """{package: reason} for each package `_restore_pristine` refuses with `UPDATE_MIXED`, or {}.
+
+    The same decision, without writing the pristine copy: an update rewrote the package's files, but
+    this patcher's bytes or translated assets are still in it.
+    """
+    import pristine_delta
+    from mobile_snapshot import package_files_at
+
+    delta = _read_delta(keep)
+    if delta is None:
+        return {}
+    packages = session / "snapshot" / "packages"
+    report = pristine_delta.RebuildReport()
+    for entry in delta.files:
+        state = pristine_delta.classify(entry, packages)
+        if state in (pristine_delta.MISSING, pristine_delta.CHANGED):
+            report.unmatched[entry.path] = state
+        else:
+            (report.rebuilt if state == pristine_delta.REBUILT else report.pristine).append(entry.path)
+    known = pristine_delta.load_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME)
+    if report.complete or not package_files_at(manifest, known):
+        return {}
+    return pristine_delta.accept_replaced(packages, delta, report)[1]
+
+
 def plan_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
     """Re-download damaged files: name the package files to delete so the game downloads them again.
 
-    Every file of each package `_stuck_packages` names is staged for deletion; `staged-hashes.json` holds
-    each one's snapshot SHA-256, which is what rollback writes back. Measured on 2026-10-22 (lab notebook):
-    with package `1` deleted and `Watchdog` cleared, the game downloaded it and finished the update.
-    Refuses, before any game file is changed, when no translated package is stuck.
+    The packages are those `_stuck_packages` names ({package: broken assets}), or, with none stuck,
+    those `_mixed_packages` names ({package: reason}). Every file of each is staged for deletion;
+    `staged-hashes.json` holds each one's snapshot SHA-256, which is what rollback writes back. Measured
+    on 2026-10-22 (lab notebook): with package `1` deleted and `Watchdog` cleared, the game downloaded it
+    and finished the update. A mixed package is deleted after the update finished, which is unmeasured.
+    Refuses, before any game file is changed, when no translated package is stuck or mixed.
     """
     root, session, keep = Path(engine_root).resolve(), Path(session_root).resolve(), Path(keep_root).resolve()
     _prepare(root)
@@ -357,9 +388,9 @@ def plan_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
     output = session / "out"
     if output.exists() or (session / "staged-hashes.json").exists():
         raise PatchError("Re-download requires a fresh session layout")
-    stuck = _stuck_packages(session, keep, manifest)
+    stuck = _stuck_packages(session, keep, manifest) or _mixed_packages(session, keep, manifest)
     if not stuck:
-        raise PatchError("The game's update is not stuck on translated files, so there is nothing to "
+        raise PatchError("No game files hold a translation the patcher cannot rebuild, so there is nothing to "
                          "re-download. Open the game, let it finish its update, close it, then patch again.")
     hashes = {}
     for name, entry in manifest["files"].items():
@@ -454,8 +485,10 @@ def _restore_pristine(session: Path, keep: Path, manifest: dict | None = None) -
         if refused:
             names = ", ".join(f"{name} ({state})" for name, state in sorted(report.unmatched.items()))
             reasons = "; ".join(f"package {package}: {reason}" for package, reason in refused.items())
-            raise PatchError(f"The game files changed since the last patch (a game update or repair): {names} "
-                             f"({reasons}). The patcher cannot rebuild the untranslated files. " + CLEAR_DATA)
+            raise PatchError(f"{UPDATE_MIXED}: package {', '.join(refused)}. Re-download those packages: the "
+                             "patcher deletes only their files, then open the game, let it download them to the "
+                             "login screen, close it, and patch again. The game files changed since the last "
+                             f"patch (a game update or repair): {names} ({reasons}).")
     leftover = [name for name in translated if name not in report.rebuilt]
     if leftover:
         raise PatchError(f"Translated game files the patcher has no record of: {', '.join(leftover)}. "

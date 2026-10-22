@@ -484,6 +484,11 @@ class MainActivity : Activity() {
                 home.show("The game update is stuck", "The game could not update the files this patcher translated. " +
                     "Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
                     "Re-download damaged files", "redownload", false, GuidedHome.Stage.ATTENTION)
+            // Packages an update rewrote around the translation: the same way out as a stuck update.
+            state?.optString("status") == "error" && state.optString("error").contains(UPDATE_MIXED) ->
+                home.show("Some game files are still translated", "A game update kept part of the earlier translation in some game files, so the patcher cannot restore them. " +
+                    "Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
+                    "Re-download damaged files", "redownload", false, GuidedHome.Stage.ATTENTION)
             state?.optString("status") == "error" && state.optString("error").contains(UPDATE_WAITING) ->
                 home.show("Finish the game update", "Open the game and let it finish the update to the login screen. Close it, then tap Start to patch again.",
                     "Open game", "game", false, GuidedHome.Stage.ATTENTION)
@@ -500,7 +505,7 @@ class MainActivity : Activity() {
         home.progress(live || (busy && automatic), step)
         buttons.forEach { it.isEnabled = !busy && !live && !automatic }
         home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required") &&
-            listOf(UPDATE_STUCK, UPDATE_WAITING).none { state?.optString("error").orEmpty().contains(it) })
+            listOf(UPDATE_STUCK, UPDATE_MIXED, UPDATE_WAITING).none { state?.optString("error").orEmpty().contains(it) })
             friendlyFailure(state?.optString("error").orEmpty(), recoverable) else "")
         home.errorDetails(when {
             live -> ""
@@ -515,6 +520,9 @@ class MainActivity : Activity() {
         StorageBudget.explainFailure(message, filesDir.usableSpace)?.let { return UiText.storage(this, it) }
         if (message.contains("GB free for this step")) return UiText.storage(this, message.removePrefix("ERROR: "))
         return when {
+            // The engine's way out it cannot avoid; its path names Android's Storage page, not a lack of space.
+            message.contains(CLEAR_DATA) ->
+                "The patcher cannot restore the untranslated game files. Clear the game's data in Android Settings, open the game and let it download again to the login screen, close it, then tap Start. Open Technical tools for the reason."
             message.contains("space", true) || message.contains("storage", true) ->
                 ui("Free now:") + " ${StorageBudget.freeSpaceLabel(filesDir.usableSpace)}.\n" +
                     ui("The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files.")
@@ -756,8 +764,13 @@ class MainActivity : Activity() {
     companion object {
         /** True while the patcher is on screen; a finished run then posts no notification. */
         @Volatile var shown = false
-        /** The engine's refusals that open Re-download and the update wait (`android_bridge.UPDATE_STUCK`, `UPDATE_WAITING`). */
+        /**
+         * The engine's refusals that open Re-download and the update wait (`android_bridge.UPDATE_STUCK`,
+         * `UPDATE_MIXED`, `UPDATE_WAITING`), and the start of its clear-data advice (`CLEAR_DATA`).
+         */
         const val UPDATE_STUCK = "The game's update stopped on translated files"
+        const val UPDATE_MIXED = "A game update kept part of this patcher's translation"
+        const val CLEAR_DATA = "Clear the game's data (Android Settings"
         const val UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
     }
 
