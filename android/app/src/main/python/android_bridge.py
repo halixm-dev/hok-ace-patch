@@ -26,6 +26,15 @@ UPDATE_STUCK = "The game's update stopped on translated files"
 UPDATE_MIXED = "A game update kept part of this patcher's translation"
 # After Re-download: the packages it deleted, kept until the game has downloaded them again.
 REDOWNLOAD_NAME = "redownload.json"
+# Packages a build over restored or replaced files refused on the text signal: Re-download takes them
+# instead of restoring or accepting them again. Cleared once a run or a Re-download completes.
+RESTORE_REFUSED_NAME = "restore-refused.json"
+# In a session: where `_mixed_packages` tries asset restore, discarded afterwards.
+RESTORE_TRIAL = "restore-trial"
+# The copy of a package asset restore takes grows by each relocated chunk's slot header and trailer (at
+# most 64 bytes with alignment) and is rounded up to the shard's growth step (`qts_relocate.FILE_GROWTH`).
+SLOT_OVERHEAD = 64
+SHARD_GROWTH = 0x4000
 UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
 
 
@@ -344,11 +353,74 @@ def _refuse_stuck_update(session: Path, keep: Path, manifest: dict) -> None:
                          "login screen, close it, and patch again.")
 
 
+def _restore_refused(keep: Path) -> set[str]:
+    """The packages a build refused on the text signal after restore or replace (`RESTORE_REFUSED_NAME`)."""
+    try:
+        return set(json.loads((keep / RESTORE_REFUSED_NAME).read_text(encoding="utf-8"))["packages"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return set()
+
+
+def _decide_mixed(packages: Path, delta: "pristine_delta.Delta", report: "pristine_delta.RebuildReport",
+                  keep: Path, target: Path) -> tuple[list[str], dict[str, dict[str, str]], dict[str, str]]:
+    """`accept_replaced`, then asset restore into <target>: (accepted files, {package: {file: SHA-256}}
+    restored, {package: reason} refused). The one decision `_restore_pristine` and `_mixed_packages` share.
+
+    A package an earlier build refused on the text signal (`RESTORE_REFUSED_NAME`) is refused outright,
+    whether restore or accept would take it, so Re-download takes it instead.
+    """
+    import pristine_delta
+
+    accepted, restorable, refused = pristine_delta.accept_replaced(packages, delta, report)
+    for package in sorted(_restore_refused(keep), key=int):
+        ours = [name for name in accepted if name.split("/")[0] == package]
+        if ours or package in restorable:
+            accepted = [name for name in accepted if name not in ours]
+            restorable.pop(package, None)
+            refused[package] = "a build over it read translated text"
+    taken: dict[str, dict[str, str]] = {}
+    for package, reason in restorable.items():
+        try:
+            taken[package] = _restore_package(packages, target, delta, package)
+        except Exception as error:  # noqa: BLE001 - any failure leaves the package to Re-download
+            shutil.rmtree(target / package, ignore_errors=True)
+            refused[package] = f"{reason}, and restoring them failed ({error})"
+    return accepted, taken, refused
+
+
+def _restore_package(packages: Path, target: Path, delta: "pristine_delta.Delta",
+                     package: str) -> dict[str, str]:
+    """Copy <package> whole under <target> and restore its carried-over assets (ADR 0008).
+
+    Returns {file: SHA-256} for every file of the copy. Raises on anything that does not read back.
+    """
+    import pristine_delta
+    from asset_fingerprints import package_assets
+
+    copy = target / package
+    if any(entry.created for entry in delta.files if entry.path.split("/")[0] == package):
+        raise pristine_delta.DeltaError("the patch created one of its files")
+    recorded = delta.assets[package]
+    shutil.rmtree(copy, ignore_errors=True)
+    copy.mkdir(parents=True)
+    for item in (packages / package).iterdir():
+        if not item.is_file():
+            raise pristine_delta.DeltaError(f"{item.name} is not a file")
+        shutil.copyfile(item, copy / item.name)
+    pristine_delta.restore_assets(copy, recorded, delta.bodies[package])
+    current = package_assets(copy, set(recorded))
+    left = [name for name, (_, staged) in recorded.items() if current.get(name) == staged]
+    if left:
+        raise pristine_delta.DeltaError(f"{len(left)} assets still translated after restore")
+    return {f"{package}/{item.name}": pristine_delta.sha256_file(item) for item in sorted(copy.iterdir())}
+
+
 def _mixed_packages(session: Path, keep: Path, manifest: dict) -> dict[str, str]:
     """{package: reason} for each package `_restore_pristine` refuses with `UPDATE_MIXED`, or {}.
 
-    The same decision, without writing the pristine copy: an update rewrote the package's files, but
-    this patcher's bytes or translated assets are still in it.
+    The same decision, without keeping the pristine copy: an update rewrote the package's files, but
+    this patcher's bytes or translated assets are still in it, and asset restore cannot take it (tried
+    on a copy that is then discarded).
     """
     import pristine_delta
     from mobile_snapshot import package_files_at
@@ -367,7 +439,11 @@ def _mixed_packages(session: Path, keep: Path, manifest: dict) -> dict[str, str]
     known = pristine_delta.load_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME)
     if report.complete or not package_files_at(manifest, known):
         return {}
-    return pristine_delta.accept_replaced(packages, delta, report)[1]
+    trial = session / RESTORE_TRIAL
+    try:
+        return _decide_mixed(packages, delta, report, keep, trial)[2]
+    finally:
+        shutil.rmtree(trial, ignore_errors=True)
 
 
 def plan_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
@@ -418,6 +494,7 @@ def keep_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
     keep.mkdir(parents=True, exist_ok=True)
     pristine_delta.write_atomic(keep / REDOWNLOAD_NAME,
                                 json.dumps({"packages": sorted(summary["packages"], key=int)}).encode("utf-8"))
+    (keep / RESTORE_REFUSED_NAME).unlink(missing_ok=True)  # the game downloads those packages afresh
     return json.dumps({"packages": len(summary["packages"])})
 
 
@@ -437,9 +514,37 @@ def estimate_snapshot_build(engine_root: str, session_root: str, normal_apk: str
     # Sizes only: `build_snapshot`, which runs next, verifies every file before the build reads it.
     manifest = read_manifest(session / "snapshot")
     delta = _read_delta(Path(keep_root)) if keep_root else None
-    copy_bytes = sum(entry.pristine_size for entry in delta.files) if delta else 0
+    copy_bytes = _copy_bytes(delta, manifest)
     return json.dumps(estimate(session / "snapshot/packages", catalog, Path(normal_apk), manifest,
                                scratch=session, pristine_copy_bytes=copy_bytes))
+
+
+def _copy_bytes(delta: "pristine_delta.Delta | None", manifest: dict | None) -> int:
+    """The most the session's pristine copy can hold: every file the delta rebuilds, except that a
+    package asset restore may take (one with kept bodies whose files an update changed, by the
+    snapshot's <manifest>) counts as a whole copy of it grown by its kept chunks. Without <manifest>,
+    every package with kept bodies counts as its larger side plus those chunks."""
+    if delta is None:
+        return 0
+    total = sum(entry.pristine_size for entry in delta.files)
+    for package, kept in (delta.bodies or {}).items():
+        if not kept:
+            continue
+        entries = [entry for entry in delta.files if entry.path.split("/")[0] == package]
+        if manifest is None:
+            total += sum(max(entry.staged_size, entry.pristine_size) for entry in entries)
+        else:
+            listed = {name.removeprefix("packages/"): item for name, item in manifest["files"].items()
+                      if name.startswith(f"packages/{package}/")}
+            if all(listed.get(entry.path, {}).get("sha256") in (entry.staged_sha256, entry.pristine_sha256)
+                   for entry in entries):
+                continue  # the delta rebuilds the package whole
+            # Restore copies the package whole in place of the files the rebuild would write.
+            total += sum(item["bytes"] for item in listed.values()) - sum(entry.pristine_size for entry in entries)
+        # Each relocated chunk also takes a slot header and trailer, and the shard grows in 16 KiB steps.
+        chunks = sum(len(body.chunks) for body in kept.values())
+        total += delta.package_body_bytes(package) + SLOT_OVERHEAD * chunks + SHARD_GROWTH
+    return total
 
 
 def _restore_pristine(session: Path, keep: Path, manifest: dict | None = None) -> dict:
@@ -448,10 +553,14 @@ def _restore_pristine(session: Path, keep: Path, manifest: dict | None = None) -
     Returns `{"mode": "rebuilt" | "first", "rebuilt": [...], "pristine": [...], "sha256": {...}}`, the
     last naming the pristine SHA-256 of every file the copy holds. `replaced` names the files a game
     update rewrote that `pristine_delta.accept_replaced` takes as the new pristine: the build reads them
-    from the snapshot, and the text signal must then pass. Raises PatchError, before any game file is
-    written, when the snapshot is neither at the delta's staged bytes nor at pristine and no update
-    replaced it cleanly. <manifest> is the snapshot's, verified by the caller just before; without it
-    the snapshot's package files are hashed here.
+    from the snapshot, and the text signal must then pass. A package it calls restorable is copied
+    whole and its carried-over assets written back (`pristine_delta.restore_assets`, ADR 0008):
+    `assets_restored` names each such package's files restore changed ({package: [files]}), the copy
+    holds every file of it, and the text signal must pass too. Raises PatchError, before any game file
+    is written, when the snapshot is neither at the delta's staged bytes nor at pristine and no update
+    replaced it cleanly or restore could not take it (`UPDATE_MIXED`, naming only those packages).
+    <manifest> is the snapshot's, verified by the caller just before; without it the snapshot's package
+    files are hashed here.
     """
     import pristine_delta
     from mobile_snapshot import package_files_at
@@ -480,8 +589,11 @@ def _restore_pristine(session: Path, keep: Path, manifest: dict | None = None) -
         shutil.rmtree(copy, ignore_errors=True)
         return {"mode": "first", "rebuilt": [], "pristine": [], "sha256": {}, "stale": len(report.unmatched)}
     replaced: list[str] = []
+    taken: dict[str, dict[str, str]] = {}
     if not report.complete:
-        replaced, refused = pristine_delta.accept_replaced(packages, delta, report)
+        # Restore is tried even when another package refuses, so the refusal names exactly what
+        # `_mixed_packages` does.
+        replaced, taken, refused = _decide_mixed(packages, delta, report, keep, copy)
         if refused:
             names = ", ".join(f"{name} ({state})" for name, state in sorted(report.unmatched.items()))
             reasons = "; ".join(f"package {package}: {reason}" for package, reason in refused.items())
@@ -493,10 +605,22 @@ def _restore_pristine(session: Path, keep: Path, manifest: dict | None = None) -
     if leftover:
         raise PatchError(f"Translated game files the patcher has no record of: {', '.join(leftover)}. "
                          + CLEAR_DATA)
+    sha256 = {entry.path: entry.pristine_sha256 for entry in delta.files
+              if not entry.created and entry.path not in replaced}
+    restored_files: dict[str, list[str]] = {}
+    for package, hashes in taken.items():
+        sha256.update(hashes)
+        restored_files[package] = [name for name, digest in hashes.items() if digest != (
+            manifest["files"][f"packages/{name}"]["sha256"] if manifest is not None
+            else pristine_delta.sha256_file(packages / name))]
     return {"mode": "rebuilt", "rebuilt": report.rebuilt, "pristine": report.pristine, "replaced": replaced,
-            "sha256": {entry.path: entry.pristine_sha256 for entry in delta.files
-                       if not entry.created and entry.path not in replaced},
+            "sha256": sha256, "assets_restored": restored_files,
             "deleted": [entry.path for entry in delta.files if entry.created and entry.path not in replaced]}
+
+
+def _restored_files(restored: dict) -> list[str]:
+    """The files asset restore changed, from `_restore_pristine`'s result."""
+    return [name for names in restored.get("assets_restored", {}).values() for name in names]
 
 
 def _link_build_input(session: Path, builtin: Path, restored: dict) -> None:
@@ -565,8 +689,21 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
         return json.dumps(summary)
     import pristine_delta
 
-    if restored.get("replaced"):
+    restored_packages = sorted(restored.get("assets_restored", {}), key=int)
+    if restored.get("replaced") or restored_packages:
         reason = pristine_delta.text_not_pristine(summary)
+        if reason and restored_packages:
+            # Restore read back, yet the layer is not pristine. The text pass does not say which package
+            # holds the text, so Re-download takes every package restored or replaced instead.
+            suspects = set(restored_packages) | {name.split("/")[0] for name in restored["replaced"]}
+            keep = Path(keep_root)
+            named = sorted(_restore_refused(keep) | suspects, key=int)
+            pristine_delta.write_atomic(keep / RESTORE_REFUSED_NAME, json.dumps({"packages": named}).encode("utf-8"))
+            raise PatchError(f"{UPDATE_MIXED}: package {', '.join(sorted(suspects, key=int))}. Re-download those "
+                             "packages: the patcher deletes only their files, then open the game, let it download "
+                             "them to the login screen, close it, and patch again. The patcher wrote the original "
+                             f"bytes back into package {', '.join(restored_packages)}, but the build still read "
+                             f"translated text ({reason}).")
         if reason:
             raise PatchError(f"The game update left some of this patcher's translation in the files it changed "
                              f"({reason}), so the patcher cannot rebuild the untranslated files. " + CLEAR_DATA)
@@ -578,8 +715,10 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
                              "without its untranslated game files. " + CLEAR_DATA + " " + OTHER_PATCHER)
     output = session / "out"
     hashes = json.loads((session / "staged-hashes.json").read_text(encoding="utf-8"))
-    # A file the previous install translated and this build leaves alone goes back to pristine too.
-    untranslated = [name for name in restored["rebuilt"] if name not in hashes]
+    # A file the previous install translated and this build leaves alone goes back to pristine too, and
+    # so does a file asset restore changed.
+    untranslated = [name for name in [*restored["rebuilt"], *_restored_files(restored)]
+                    if name not in hashes]
     for name in untranslated:
         (output / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(session / PRISTINE_COPY / name, output / name)
@@ -592,15 +731,21 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
     summary["pristine"] = {"mode": restored["mode"], "rebuilt": len(restored["rebuilt"]),
                            "already_pristine": len(restored["pristine"]), "restored": untranslated,
                            "delta_bytes": delta.range_bytes, "stale": restored.get("stale", 0),
-                           "replaced": restored.get("replaced", [])}
+                           "replaced": restored.get("replaced", []),
+                           "assets_restored": sorted(restored.get("assets_restored", {}), key=int)}
     return json.dumps(summary)
 
 
-def removal_bytes(engine_root: str, keep_root: str) -> int:
-    """The pristine bytes `build_removal` will rebuild: what Remove translation must reserve."""
+def removal_bytes(engine_root: str, keep_root: str, session_root: str | None = None) -> int:
+    """The pristine bytes `build_removal` will rebuild: what Remove translation must reserve.
+
+    With <session_root>, its snapshot's manifest says which packages asset restore may copy.
+    """
     _prepare(Path(engine_root).resolve())
-    delta = _read_delta(Path(keep_root))
-    return sum(entry.pristine_size for entry in delta.files) if delta else 0
+    from mobile_snapshot import read_manifest
+
+    manifest = read_manifest(Path(session_root).resolve() / "snapshot") if session_root else None
+    return _copy_bytes(_read_delta(Path(keep_root)), manifest)
 
 
 def build_removal(engine_root: str, session_root: str, keep_root: str) -> str:
@@ -627,10 +772,11 @@ def build_removal(engine_root: str, session_root: str, keep_root: str) -> str:
                          "to remove. " + OTHER_PATCHER)
     if restored.get("deleted"):
         raise PatchError("Removing a package file the patch created is not supported")
-    if not restored["rebuilt"]:
+    restored_files = _restored_files(restored)
+    if not restored["rebuilt"] and not restored_files:
         raise PatchError("The game files are already untranslated; there is nothing to remove.")
     hashes = {}
-    for name in restored["rebuilt"]:
+    for name in [*restored["rebuilt"], *restored_files]:
         (output / name).parent.mkdir(parents=True, exist_ok=True)
         (session / PRISTINE_COPY / name).replace(output / name)
         hashes[name] = restored["sha256"][name]
@@ -643,7 +789,8 @@ def build_removal(engine_root: str, session_root: str, keep_root: str) -> str:
                                                    "made": time.strftime("%Y-%m-%dT%H:%M:%S")}),
                          session / SESSION_DELTA)
     summary["pristine"] = {"mode": "removed", "rebuilt": len(hashes),
-                           "already_pristine": len(restored["pristine"]), "restored": sorted(hashes)}
+                           "already_pristine": len(restored["pristine"]), "restored": sorted(hashes),
+                           "assets_restored": sorted(restored.get("assets_restored", {}), key=int)}
     return json.dumps(summary)
 
 
@@ -659,6 +806,7 @@ def keep_delta(engine_root: str, session_root: str, keep_root: str) -> str:
     session, keep = Path(session_root).resolve(), Path(keep_root).resolve()
     delta = pristine_delta.read(session / SESSION_DELTA)
     pristine_delta.record_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME, delta.staged_hashes)
+    (keep / RESTORE_REFUSED_NAME).unlink(missing_ok=True)  # the layer it describes is pristine again
     if delta.files:
         pristine_delta.write(delta, keep / pristine_delta.DELTA_NAME)
     else:

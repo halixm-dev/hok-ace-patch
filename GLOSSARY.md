@@ -30,6 +30,14 @@ _Avoid_: restore delta, backup, undo
 A file the pristine delta names that a game update rewrote, so it matches neither side of its entry. It becomes the new pristine only when the delta's asset record shows none of this patcher's assets left in its package.
 _Avoid_: updated file, stale file
 
+**Mixed package**:
+A package with replaced files in which some assets this patcher changed are still at their staged bytes. Asset restore takes it when every such asset was modified and its body kept; otherwise Re-download.
+_Avoid_: half-updated package
+
+**Asset restore**:
+Writing a modified asset's kept pristine stored chunks and record fields back into a copy of a mixed package (ADR 0008).
+_Avoid_: repair (the game's own), rollback
+
 **Prime-only**:
 Said of an asset the prime layer carries and the override layer does not.
 

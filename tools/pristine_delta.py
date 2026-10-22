@@ -13,7 +13,10 @@ valid exactly while that file holds the staged SHA-256 it records.
 
 File format: `MAGIC`, one line of JSON (the header: `schema`, `info`, `files`, `body_bytes`,
 `body_sha256`, and `assets` when fingerprinted), then a zlib body holding every range's pristine bytes
-in header order.
+in header order. A fingerprinted delta also keeps each modified asset's pristine stored chunks and index
+record (`asset_bodies`, `asset_body_bytes`, `asset_body_sha256` in the header), stored uncompressed
+after the zlib body: they are mostly Oodle textures, which zlib does not shrink. A reader that does not
+know them reads the rest as before.
 
 **After an in-game update.** A file the update rewrote matches neither side of its entry, so the delta
 cannot rebuild it. `accept_replaced` decides, package by package, whether the update's bytes stand as
@@ -21,6 +24,12 @@ the new pristine: no file of the package may still hold this patcher's bytes, an
 install changed may still be at its staged bytes (`assets`: per package, each changed asset's
 uncompressed SHA-256 on both sides, from `asset_fingerprints`). The caller then also requires the text
 pass to read the layer as pristine. A delta made before `assets` existed accepts no replaced file.
+
+**Asset restore** ([ADR 0008](../docs/adr/0008-restore-a-carried-over-translated-asset.md)). A package
+refused only because assets this install *modified* are still translated is restorable when the delta
+kept their bodies: `restore_assets` writes each one's pristine stored chunks and record fields back into
+a copy of the updated package, and the copy stands as the new pristine. Anything it cannot restore stays
+refused, and the caller falls back to Re-download.
 """
 from __future__ import annotations
 
@@ -42,6 +51,12 @@ SUB_BLOCK_SIZE = 64
 COALESCE_GAP = 256
 # Read size while comparing; a whole multiple of BLOCK_SIZE so block boundaries stay aligned.
 READ_SIZE = 256 * BLOCK_SIZE
+# An asset's index record (`asset_fingerprints.asset_bodies`): the u32 raw length, and the 16-byte check
+# token the game's updater compares (ADR 0008's spec, Design 1); the u32 chunk size sits at the record's
+# head size plus CHUNK_SIZE_AFTER_HEAD (as `device_extensions.write_assets` writes it).
+RAW_LENGTH_AT = 44
+TOKEN_START, TOKEN_END = 52, 68
+CHUNK_SIZE_AFTER_HEAD = 24
 # Where each patcher keeps its delta and the staged hashes of every install it made.
 DELTA_NAME = "delta.bin"
 STAGED_HASHES_NAME = "staged-hashes.json"
@@ -74,11 +89,27 @@ class FileEntry:
 
 
 @dataclass(frozen=True)
+class AssetBody:
+    """One modified asset's pristine bytes as stored: its index record and every chunk, in chunk-id order."""
+
+    record: bytes
+    head_size: int
+    chunks: tuple[tuple[int, bytes], ...]  # (raw size, stored payload)
+
+    @property
+    def stored_bytes(self) -> int:
+        return len(self.record) + sum(len(payload) for _, payload in self.chunks)
+
+
+@dataclass(frozen=True)
 class Delta:
     files: tuple[FileEntry, ...]
     info: dict = field(default_factory=dict)
     # {package id: {asset hash: [pristine SHA-256 or None, staged SHA-256]}}; None when not fingerprinted.
     assets: dict | None = None
+    # {package id: {asset hash: AssetBody}} for every asset in `assets` with a pristine SHA-256; None
+    # when not kept (not fingerprinted, or made before asset restore existed).
+    bodies: dict | None = None
 
     def entry(self, path: str) -> FileEntry | None:
         return next((item for item in self.files if item.path == path), None)
@@ -86,6 +117,13 @@ class Delta:
     @property
     def range_bytes(self) -> int:
         return sum(len(data) for item in self.files for _, data in item.ranges)
+
+    @property
+    def kept_body_bytes(self) -> int:
+        return sum(body.stored_bytes for kept in (self.bodies or {}).values() for body in kept.values())
+
+    def package_body_bytes(self, package: str) -> int:
+        return sum(body.stored_bytes for body in ((self.bodies or {}).get(package) or {}).values())
 
     @property
     def staged_hashes(self) -> set[str]:
@@ -167,7 +205,8 @@ def make(pristine_dir: Path, staged_dir: Path, *, info: dict | None = None,
     <staged_dir> is a staged output (`<id>/<file>.db`, as `build_patch` writes it) or a layer holding
     the installed bytes; <pristine_dir> is the pristine layer the install was built from. With
     <fingerprint> (it needs the translation runtime), every staged package's changed assets are
-    recorded for `accept_replaced`; a package that will not read is left out of them.
+    recorded for `accept_replaced`, and each modified asset's pristine body is kept for
+    `restore_assets`; a package that will not read is left out of both.
     """
     entries = []
     for name in package_files(staged_dir):
@@ -184,17 +223,22 @@ def make(pristine_dir: Path, staged_dir: Path, *, info: dict | None = None,
                 ranges.append((start, stream.read(end - start)))
         entries.append(FileEntry(name, pristine.stat().st_size, pristine_sha,
                                  staged.stat().st_size, staged_sha, tuple(ranges)))
-    assets = None
+    assets = bodies = None
     if fingerprint:
-        from asset_fingerprints import UnreadablePackage, changed_assets
+        from asset_fingerprints import UnreadablePackage, asset_bodies, changed_assets
 
-        assets = {}
+        assets, bodies = {}, {}
         for package in sorted({entry.path.split("/")[0] for entry in entries}, key=int):
             try:
-                assets[package] = changed_assets(pristine_dir / package, staged_dir / package)
+                changed = changed_assets(pristine_dir / package, staged_dir / package)
+                modified = {name for name, (before, _) in changed.items() if before is not None}
+                kept = asset_bodies(pristine_dir / package, modified) if modified else {}
             except UnreadablePackage:
                 continue
-    return Delta(tuple(entries), dict(info or {}), assets)
+            assets[package] = changed
+            bodies[package] = {name: AssetBody(record, head, tuple(chunks))
+                               for name, (record, head, chunks) in sorted(kept.items())}
+    return Delta(tuple(entries), dict(info or {}), assets, bodies)
 
 
 def _fsync_directory(directory: Path) -> None:
@@ -240,7 +284,58 @@ def encode(delta: Delta) -> bytes:
     }
     if delta.assets is not None:
         header["assets"] = delta.assets
-    return MAGIC + json.dumps(header, separators=(",", ":")).encode("utf-8") + b"\n" + zlib.compress(body, 6)
+    kept = bytearray()
+    if delta.bodies is not None:
+        layout: dict = {}
+        for package, assets in delta.bodies.items():
+            layout[package] = {}
+            for name, item in assets.items():
+                chunks = []
+                for raw_size, payload in item.chunks:
+                    chunks.append([raw_size, len(kept), len(payload)])
+                    kept += payload
+                layout[package][name] = {"record": [len(kept), len(item.record)], "head": item.head_size,
+                                         "chunks": chunks}
+                kept += item.record
+        header["asset_bodies"] = layout
+        header["asset_body_bytes"] = len(kept)
+        header["asset_body_sha256"] = hashlib.sha256(kept).hexdigest()
+    return (MAGIC + json.dumps(header, separators=(",", ":")).encode("utf-8") + b"\n" + zlib.compress(body, 6)
+            + bytes(kept))
+
+
+def _decode_bodies(header: dict, kept: bytes) -> dict | None:
+    """The `asset_bodies` of a header, read from the bytes stored after the zlib body."""
+    layout = header.get("asset_bodies")
+    if layout is None:
+        if kept:
+            raise DeltaError("pristine delta has bytes after its body")
+        return None
+    if len(kept) != header.get("asset_body_bytes") or hashlib.sha256(kept).hexdigest() != header.get(
+            "asset_body_sha256"):
+        raise DeltaError("pristine delta's asset bodies do not match its header")
+
+    def span(offset: int, length: int) -> bytes:
+        if not (type(offset) is int and type(length) is int and 0 <= offset and 0 <= length
+                and offset + length <= len(kept)):
+            raise ValueError((offset, length))
+        return kept[offset:offset + length]
+
+    bodies: dict = {}
+    try:
+        for package, assets in layout.items():
+            if not package.isdecimal():
+                raise ValueError(package)
+            bodies[package] = {}
+            for name, item in assets.items():
+                chunks = tuple((raw_size, span(offset, length)) for raw_size, offset, length in item["chunks"])
+                if not chunks or not all(type(raw_size) is int and raw_size >= 0 for raw_size, _ in chunks) \
+                        or type(item["head"]) is not int:
+                    raise ValueError(name)
+                bodies[package][name] = AssetBody(span(*item["record"]), item["head"], chunks)
+    except (AttributeError, KeyError, TypeError, ValueError) as error:
+        raise DeltaError(f"pristine delta's asset bodies do not read ({error!r})") from error
+    return bodies
 
 
 def decode(data: bytes) -> Delta:
@@ -254,7 +349,10 @@ def decode(data: bytes) -> Delta:
     if header.get("schema") != SCHEMA:
         raise DeltaError(f"pristine delta schema {header.get('schema')!r} is not {SCHEMA}")
     try:
-        body = zlib.decompress(data[line_end + 1:])
+        stream = zlib.decompressobj()
+        body = stream.decompress(data[line_end + 1:])
+        if not stream.eof:
+            raise zlib.error("the body is cut short")
     except zlib.error as error:
         raise DeltaError(f"pristine delta body does not decompress: {error}") from error
     if len(body) != header["body_bytes"] or hashlib.sha256(body).hexdigest() != header["body_sha256"]:
@@ -278,7 +376,7 @@ def decode(data: bytes) -> Delta:
             and all(isinstance(pair, list) and len(pair) == 2 for pair in changed.values())
             for package, changed in assets.items())):
         raise DeltaError("pristine delta's asset record does not read")
-    return Delta(tuple(files), header.get("info") or {}, assets)
+    return Delta(tuple(files), header.get("info") or {}, assets, _decode_bodies(header, stream.unused_data))
 
 
 def write(delta: Delta, path: Path) -> None:
@@ -362,15 +460,18 @@ def rebuild(layer_dir: Path, delta: Delta, out_dir: Path, *, fallback: Delta | N
 
 
 def accept_replaced(layer_dir: Path, delta: Delta, report: RebuildReport, *,
-                    fallback: Delta | None = None) -> tuple[list[str], dict[str, str]]:
-    """Which files an update replaced stand as the new pristine, and why each other package cannot.
+                    fallback: Delta | None = None) -> tuple[list[str], dict[str, str], dict[str, str]]:
+    """Which files an update replaced stand as the new pristine, which packages `restore_assets` can
+    take, and why each other package cannot.
 
-    Returns (accepted file paths, {package id: reason}). <report> is `rebuild`'s over <layer_dir>, which
-    holds the phone's bytes for every package that has a file in `report.unmatched`. A package's
-    replaced files are accepted only when none of its files is still at its staged bytes, and none of
-    the assets the install changed is still at its staged bytes (read from <layer_dir>). A package
-    the update removed whole is accepted too. Text the update left in a file is caught afterwards by
-    the text signal (`text_not_pristine`), which the caller must also require.
+    Returns (accepted file paths, {package id: reason} restorable, {package id: reason} refused).
+    <report> is `rebuild`'s over <layer_dir>, which holds the phone's bytes for every package that has a
+    file in `report.unmatched`. A package's replaced files are accepted only when none of its files is
+    still at its staged bytes, and none of the assets the install changed is still at its staged bytes
+    (read from <layer_dir>). A package the update removed whole is accepted too. A package refused only
+    because changed assets are still at their staged bytes is restorable instead when every one of them
+    was modified, not appended, and the delta kept its body. Text the update left in a file is caught
+    afterwards by the text signal (`text_not_pristine`), which the caller must also require.
     """
     from asset_fingerprints import UnreadablePackage, package_assets
 
@@ -378,7 +479,9 @@ def accept_replaced(layer_dir: Path, delta: Delta, report: RebuildReport, *,
     for item in [*delta.files, *(fallback.files if fallback else ())]:
         entries.setdefault(item.path.split("/")[0], []).append(item)
     recorded_by_package = {**((fallback.assets if fallback else None) or {}), **(delta.assets or {})}
+    bodies_by_package = _bodies_by_package(delta, fallback)
     accepted: list[str] = []
+    restorable: dict[str, str] = {}
     refused: dict[str, str] = {}
     for package in sorted({name.split("/")[0] for name in report.unmatched}, key=int):
         ours = sorted({item.path for item in entries[package] if item.path in report.rebuilt})
@@ -408,10 +511,97 @@ def accept_replaced(layer_dir: Path, delta: Delta, report: RebuildReport, *,
             continue
         surviving = [name for name, (_, staged) in recorded.items() if current.get(name) == staged]
         if surviving:
-            refused[package] = f"{len(surviving)} of the assets this patcher changed are still translated"
+            reason = f"{len(surviving)} of the assets this patcher changed are still translated"
+            kept = bodies_by_package.get(package) or {}
+            appended = [name for name in surviving if recorded[name][0] is None]
+            if appended:
+                refused[package] = f"{reason}, {len(appended)} of them added by the patcher"
+            elif not all(name in kept for name in surviving):
+                refused[package] = f"{reason}, and the patcher kept no copy of their original bytes"
+            else:
+                restorable[package] = reason
             continue
         accepted += unmatched
-    return accepted, refused
+    return accepted, restorable, refused
+
+
+def _bodies_by_package(delta: Delta, fallback: Delta | None) -> dict:
+    """Each package's kept bodies, from the same delta `accept_replaced` takes its asset record from."""
+    found = {}
+    for source in (fallback, delta):
+        if source is not None and source.assets is not None:
+            for package in source.assets:
+                found[package] = (source.bodies or {}).get(package)
+    return found
+
+
+def restore_assets(package_dir: Path, recorded: dict, bodies: dict) -> list[str]:
+    """Write each recorded asset still at its staged bytes back to pristine, in <package_dir>, a copy.
+
+    <recorded> and <bodies> are one package's entries of a delta's `assets` and `bodies`. Per asset: the
+    updated record must still carry the pristine check token (record bytes +52..+67) and the record
+    and chunk shapes must be the pristine ones; each pristine stored chunk is relocated back through
+    `Shard.relocate` (no key is added, so no leaf splits), and the record's raw length and chunk size
+    are written back, every other record byte staying as the update left it. Every restored asset is
+    then read back: its SHA-256 and stored chunks must be the pristine ones. Returns the restored asset
+    hashes. Raises DeltaError on anything else, having maybe written <package_dir>: the caller discards
+    the copy, and the package falls back to Re-download.
+    """
+    from asset_fingerprints import UnreadablePackage, asset_bodies, package_assets
+    from qts_relocate import Shard
+    from wxq_patch.qtsvfs import QtsPackage
+
+    try:
+        current = package_assets(package_dir, set(recorded))
+    except UnreadablePackage as error:
+        raise DeltaError(f"it does not read ({error})") from error
+    surviving = sorted(name for name, (_, staged) in recorded.items() if current.get(name) == staged)
+    if not surviving:
+        return []
+    try:
+        package = QtsPackage(package_dir)  # asset_fingerprints installed the B-tree slot map
+        slots = package.build_slot_map()
+        if len(package.shard_paths) != 1:
+            raise DeltaError(f"{len(package.shard_paths)} shards; restore handles one")
+        shard = Shard(package.shard_paths[0])
+        index = bytearray(package.index_path.read_bytes())
+    except DeltaError:
+        raise
+    except Exception as error:  # noqa: BLE001 - any parse failure means the copy will not restore
+        raise DeltaError(f"it does not read ({error})") from error
+    for name in surviving:
+        body = bodies.get(name)
+        if recorded[name][0] is None or body is None:
+            raise DeltaError(f"{name}: no original bytes kept")
+        entry = package.entries[int(name, 16)]
+        start = entry.entry_offset
+        record = index[start:start + entry.entry_size]
+        if (entry.entry_size, entry.head_size) != (len(body.record), body.head_size):
+            raise DeltaError(f"{name}: its index record changed shape")
+        if record[TOKEN_START:TOKEN_END] != body.record[TOKEN_START:TOKEN_END]:
+            raise DeltaError(f"{name}: the update changed its check token")
+        chunks = slots.get(int(name, 16), {})
+        if len(chunks) != len(body.chunks):
+            raise DeltaError(f"{name}: {len(chunks)} chunks, {len(body.chunks)} originally")
+        try:
+            for (_, slot), (raw_size, payload) in zip(sorted(chunks.items()), body.chunks):
+                shard.relocate(slot, payload, raw_size)
+        except (RuntimeError, ValueError, IndexError) as error:  # a chunk the B-tree does not reach
+            raise DeltaError(f"{name}: {error}") from error
+        for field_at in (RAW_LENGTH_AT, entry.head_size + CHUNK_SIZE_AFTER_HEAD):
+            index[start + field_at:start + field_at + 4] = body.record[field_at:field_at + 4]
+    try:
+        shard.save()
+        package.index_path.write_bytes(bytes(index))
+        after = package_assets(package_dir, set(surviving))
+        stored = asset_bodies(package_dir, set(surviving))
+    except (OSError, RuntimeError, UnreadablePackage) as error:
+        raise DeltaError(f"the restored copy does not read ({error})") from error
+    for name in surviving:
+        body = bodies[name]
+        if after.get(name) != recorded[name][0] or stored.get(name, (None, None, None))[2] != list(body.chunks):
+            raise DeltaError(f"{name}: does not read back as its original bytes")
+    return surviving
 
 
 def text_not_pristine(summary: dict) -> str | None:

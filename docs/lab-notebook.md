@@ -3976,3 +3976,20 @@ package's files are deleted and `Watchdog` is cleared: the game downloads the pa
 not checked (the user reached the login screen). Measured on one phone, one package (`1`); a stuck texture
 package is unmeasured. The Android patcher's Re-download damaged files (`docs/features/update-stuck-redownload.md`)
 does the same; its own run on a phone is not yet tested.
+
+## 2026-10-22 — Asset restore offline: mixed packages back to pristine from kept chunks
+
+`tools/research/check_asset_restore.py` on the 1.7.0.1 pristine snapshot (`20261022-1.7.0.1`) and the
+English install from it (`D:\scratch\hok-1.7.0.1\out5-catalog`). A mixed package is faked from the staged
+one by rewriting one never-translated asset one byte shorter with `device_extensions.write_assets`, for the
+five packages the r815437 update left mixed. No real mixed package exists here (the 16:30 phone was not
+pulled), so this is not the spec's Cycle 0. ADR 0008.
+
+| Question | Finding | Grade |
+|---|---|---|
+| Delta growth | 5 270 726 B → 69 084 027 B; kept bodies 63 774 737 B for 427 modified assets (`1`: 100, `10`: 1, `15`: 302, `19`: 22, `20`: 1, `1050016095`: 1). `make` 17 s | measured |
+| Pristine and staged index records of a modified asset | Differ only in the raw length (+44) where it changed; the check token (+52..+67) and chunk size are equal (`10`, `19`, `20` sampled) | measured |
+| Which packages restore takes | `15`, `19`, `20`; `10` and `21` refuse (an appended asset survives) | measured |
+| Restore | 302, 22 and 1 assets back at their pristine SHA-256 and stored chunks; every other asset's stored chunks unchanged; shards +55.6 MB, +1.3 MB, +16 KB; 1.6–2.8 s each; idempotent | measured |
+| Refusal and Re-download | `UPDATE_MIXED` names package `10, 21`; Re-download plans their 4 files only (22 s, mostly the trial restore) | measured |
+| Whether the next update accepts a restored package | Not measurable offline (spec, Cycle 3) | unmeasured |

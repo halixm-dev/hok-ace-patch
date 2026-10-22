@@ -18,7 +18,9 @@ and checks what `pristine_delta.accept_replaced` decides:
 - a shard missing beside its index: refused;
 - a delta made before asset fingerprints existed: refused.
 
-The Android bridge's `_restore_pristine` then runs over six of them in its snapshot layout. Unless
+`accept_replaced` calls the partial repair restorable; the Windows patcher refuses it like any other,
+as `decide` does. The Android bridge's `_restore_pristine` then runs over six of them in its snapshot
+layout, and restores the partial repair's 151 textures instead (ADR 0008). Unless
 --skip-build, it then runs the Windows patcher's own pull, rebuild, build (with the APK when
 given), text signal and push against a fake phone holding the accepted update, and a second run over
 the result, which must rebuild from the new delta. Faked updates stand in for a real one: what a real
@@ -101,8 +103,8 @@ def decide(layer: Path, delta, out: Path):
     report = pristine_delta.rebuild(layer, delta, out)
     if report.complete:
         return report, [], {}
-    accepted, refused = pristine_delta.accept_replaced(layer, delta, report)
-    return report, accepted, refused
+    accepted, restorable, refused = pristine_delta.accept_replaced(layer, delta, report)
+    return report, accepted, {**restorable, **refused}  # as the Windows patcher, which refuses both
 
 
 class Checks:
@@ -214,7 +216,8 @@ class Checks:
         pristine_delta.write(self.delta, keep / pristine_delta.DELTA_NAME)
         pristine_delta.record_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME, self.delta.staged_hashes)
         for name, refuse in [("no-update", False), ("replaced", False), ("full-repair", False),
-                             ("package-removed", False), ("merge-over-patched", True), ("partial-repair", True)]:
+                             ("package-removed", False), ("merge-over-patched", True),
+                             ("partial-repair", False)]:  # asset restore (ADR 0008) takes the repaired half
             session = self.work / "android" / name
             link_tree(self.work / "scenarios" / name, session / "snapshot" / "packages")
             try:
@@ -228,9 +231,11 @@ class Checks:
             copied = all((copy / item).is_file() and pristine_delta.sha256_file(copy / item) == digest
                          for item, digest in restored["sha256"].items())
             outside = not set(restored["replaced"]) & set(restored["sha256"])
-            self.expect(f"android {name}", not refuse and copied and outside,
+            taken = sorted(restored["assets_restored"], key=int)
+            self.expect(f"android {name}", not refuse and copied and outside
+                        and taken == (["15"] if name == "partial-repair" else []),
                         f"mode {restored['mode']}, rebuilt {len(restored['rebuilt'])}, replaced "
-                        f"{restored['replaced']}, copy matches {copied}")
+                        f"{restored['replaced']}, assets restored in {taken}, copy matches {copied}")
 
     def run_patcher(self, update: Path, apk: Path | None) -> None:
         """The Windows patcher's own steps over the faked update, then a second run over its result."""

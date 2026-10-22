@@ -18,6 +18,8 @@ The same offer now replaces "clear the game's data" when an update finished but 
 package around the translation (`UPDATE_MIXED`): the pristine delta cannot rebuild such a package, and
 deleting it lets the game download it whole. Seen on the user's phone at 16:30 on 2026-10-22: packages
 `10`, `15`, `19`, `20` and `21` kept 2, 302, 22, 1 and 1 translated assets after the r815437 update.
+Since [asset restore](asset-restore.md), a mixed package whose carried-over assets the patcher can write
+back is restored instead, and only the rest are refused and re-downloaded (`10` and `21` in that case).
 
 The recipe was measured by hand on the user's phone (lab notebook, 2026-10-22, "An update stuck on
 translated files, and Re-download"). The patcher's own run of it has passed offline checks and unit tests
@@ -46,7 +48,7 @@ refuses. Until now the only way out was clearing the game's data, about 2.8 GB t
 | Area | Behavior |
 |---|---|
 | Detection | `build_snapshot` and `build_removal` read the snapshot's `Watchdog/BrokenList.db`. A package it names counts when this patcher translated it: the kept delta names one of its files, or one of its files is at a staged hash. Any such package refuses the run with `UPDATE_STUCK`, before the pristine rebuild |
-| Mixed package | With no stuck package, `_restore_pristine` refuses each package `pristine_delta.accept_replaced` refuses (this patcher's bytes or translated assets left in an updated package) with `UPDATE_MIXED`, naming them. `plan_redownload` names the same packages through `_mixed_packages`, which classifies without writing the pristine copy |
+| Mixed package | With no stuck package, `_restore_pristine` refuses each package `pristine_delta.accept_replaced` refuses (this patcher's bytes or translated assets left in an updated package), and each restorable one [asset restore](asset-restore.md) cannot take, with `UPDATE_MIXED`, naming them. `plan_redownload` names the same packages through `_mixed_packages`, which tries the restore on a copy it then discards |
 | Not ours | Broken assets only in packages this patcher never touched do not refuse; the game repairs those itself |
 | Re-download | A patch run up to the snapshot, then `plan_redownload` stages every file of each stuck package (`.db` and `.info`) for deletion, with its snapshot SHA-256 in `staged-hashes.json`. Each deletion is journaled (`delete_file`, packages dirty) and checks the file still holds that hash. Then `Watchdog` is cleared and the normal APK restored |
 | Rollback | As for a patch: an interrupted run writes every staged file back from the snapshot, then restores `Watchdog` |

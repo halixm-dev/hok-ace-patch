@@ -333,7 +333,7 @@ class PatchCoordinator @JvmOverloads constructor(
                 return@exclusive result
             }
             val summary = if (remove) {
-                val copyBytes = bridge("removal_bytes", engine.path, pristine.path).toLong()
+                val copyBytes = bridge("removal_bytes", engine.path, pristine.path, journal.directory.path).toLong()
                 val space = requireSpace("original game files and normal restore", copyBytes, normal.bytes)
                 journal.outcome(PatchPhase.BUILDING, JSONObject().put("build_storage_check", space)
                     .put("remove", true))

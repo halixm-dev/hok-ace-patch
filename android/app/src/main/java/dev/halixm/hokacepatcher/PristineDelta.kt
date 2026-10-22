@@ -22,7 +22,7 @@ object PristineDelta {
     /** Log lines for `build_snapshot`'s `pristine` report. */
     fun describe(pristine: JSONObject): List<String> {
         if (pristine.optString("mode") == "removed") {
-            return listOf("Restoring ${pristine.optInt("rebuilt")} original game files")
+            return listOfNotNull("Restoring ${pristine.optInt("rebuilt")} original game files", assetsRestored(pristine))
         }
         if (pristine.optString("mode") != "rebuilt") {
             val stale = pristine.optInt("stale")
@@ -39,6 +39,15 @@ object PristineDelta {
         if (restored != null && restored.length() > 0) {
             lines += "${restored.length()} file(s) this build leaves untranslated go back to their original bytes"
         }
+        assetsRestored(pristine)?.let { lines += it }
         return lines
+    }
+
+    /** The packages asset restore (ADR 0008) wrote original bytes back into, or null when none. */
+    private fun assetsRestored(pristine: JSONObject): String? {
+        val packages = pristine.optJSONArray("assets_restored") ?: return null
+        if (packages.length() == 0) return null
+        val names = (0 until packages.length()).joinToString(", ") { packages.getString(it) }
+        return "Wrote the original bytes back into package $names, which a game update kept partly translated"
     }
 }

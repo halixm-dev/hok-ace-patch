@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import BinaryIO
 
 
 class UnreadablePackage(Exception):
@@ -59,6 +60,35 @@ def _stored(package_dir: Path) -> dict[str, tuple]:
                 chunks.append((chunk_id, slot.uncompressed_size,
                                hashlib.sha256(handle.read(slot.compressed_size)).hexdigest()))
             found[f"{file_hash:016X}"] = (entry.compression, tuple(chunks))
+    finally:
+        for handle in handles.values():
+            handle.close()
+    return found
+
+
+def asset_bodies(package_dir: Path, wanted: set[str]) -> dict[str, tuple[bytes, int, list[tuple[int, bytes]]]]:
+    """{asset hash: (index record, its head size, [(raw size, stored payload)] in chunk-id order)} for <wanted>.
+
+    The stored chunks verbatim, as the B-tree reaches them, and the asset's whole index record: what
+    `pristine_delta.restore_assets` writes back. An asset the package does not hold is left out.
+    """
+    package, slots = _open(package_dir)
+    index = package.index_path.read_bytes()
+    found = {}
+    handles: dict[Path, BinaryIO] = {}
+    try:
+        for file_hash, entry in package.entries.items():
+            name = f"{file_hash:016X}"
+            if name not in wanted:
+                continue
+            chunks = []
+            for _, slot in sorted(slots.get(file_hash, {}).items()):
+                if slot.shard_path not in handles:
+                    handles[slot.shard_path] = open(slot.shard_path, "rb")
+                handle = handles[slot.shard_path]
+                handle.seek(slot.payload_offset)
+                chunks.append((slot.uncompressed_size, handle.read(slot.compressed_size)))
+            found[name] = (index[entry.entry_offset:entry.entry_offset + entry.entry_size], entry.head_size, chunks)
     finally:
         for handle in handles.values():
             handle.close()

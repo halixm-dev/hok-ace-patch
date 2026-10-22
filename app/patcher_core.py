@@ -616,8 +616,11 @@ class Patcher:
         if not report.complete:
             for name, state in sorted(report.unmatched.items()):
                 self.log(f"  {name}: {state} since the last install")
-            accepted, refused = pristine_delta.accept_replaced(layer, delta or pending, report,
-                                                               fallback=pending if delta else None)
+            accepted, restorable, refused = pristine_delta.accept_replaced(layer, delta or pending, report,
+                                                                           fallback=pending if delta else None)
+            # Asset restore (ADR 0008) is the Android patcher's alone for now: here a restorable package
+            # is refused like any other.
+            refused = {**restorable, **refused}
             for package, reason in refused.items():
                 self.log(f"  package {package} cannot be read as untranslated: {reason}")
             if refused:
