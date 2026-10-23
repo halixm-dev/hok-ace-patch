@@ -4256,3 +4256,22 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   `D:\hokace-work\redmi-ebad528e\baseline-2026-10-23.tar` (3 147 747 328 bytes, 1178 entries). It is the
   rollback for every shell-provider cycle on this phone.
 - **Not measurable here:** WeChat/QQ direct login under root, since the game is already re-signed.
+
+## 2026-10-24 — Shell providers ticket 01 on a phone (`c69c251`) — pass
+
+- **Phone:** Redmi Note 9 Pro (`ebad528e`), state as in the 2026-10-23 entry. Debug app and `androidTest` APK built
+  from `c69c251` installed over 1.7.2.1; Shizuku 13.6.0 started from adb (`libshizuku.so`, server uid 2000).
+- **Probes:** 17 run, 15 pass. Both failures are `WorkerProbeTest`, whose expected normal-APK hash (`b0b08f…`) is
+  another phone's; the pre-01 app (`9bcdee0`) fails the same two the same way.
+- **Picker, driven by `uiautomator`:** placeholder guides and a refusing Start for Root and Wireless debugging; the
+  choice persists in `shared_prefs/shell-provider.xml` across a force-stop; options disabled during a run.
+- **Rooted Shizuku:** server restarted with `su -c` (uid 0). ③ shows the refusal string, and no `:device` worker
+  process appears after Start.
+- **Diagnostic export:** second line `Shell provider: shizuku`.
+- **Shizuku end to end:** the first patch refused, as before the ticket: *update stopped on translated files:
+  package 1 (324 assets)*. Re-download (9 package files) → game opened and updated to the login screen (v1.7.2) →
+  patch `complete` at 01:07:51: 4 files rebuilt from the delta, package 19 written back to pristine, a 14-file pristine
+  delta kept, normal APK restored and verified. Game started (no `errorCode:361`, no QtsVFS errors in logcat), the
+  session was still logged in, and the lobby reads in English (`D:\hokace-work\redmi-ebad528e\t01\lobby2.png`).
+- **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/01-provider-picker.md`.
+- **Not checked:** the launcher name, and a Shizuku authorization prompt (Shizuku already allowed HOK ACE).
