@@ -4100,3 +4100,42 @@ translated layer is now one Re-download, one game start and one Start, with no c
   (`幻化`/`夺宝`/`限时`) are byte-equal too and stay Chinese until an extra-text cycle.
 
 **No device verdict yet.**
+
+## 2026-10-23 — Latin line breaks: what `TextRendering.SetFlag` does, read statically
+
+Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadata.dat` v29, packages `1` and
+`10`) with capstone. No phone. Ticket: `.scratch/latin-line-breaks/`.
+
+- **The rules object.** `TextRendering::SetFlag` and `::LoadLinebreakingRules` (icall table in `libunity.so`)
+  call into one object held at `.bss` `0x1D5D148`, built at `0x158DEE0` with vtable `0x1C72578` and its byte at
+  `+0x80` zeroed. Slot 7 parses the three TextAssets; slots 8/9/10 are set lookups (leading `+0x08`, following
+  `+0x30`, number `+0x58`); slot 11 is `SetFlag(bool)`: `strb w1, [x0, #0x80]`; slot 12 reads it back.
+- **Parsing.** Each TextAsset is converted to UTF-16 and every code unit except `\n` and `\r` joins the set
+  (spaces included). A null asset returns before clearing, leaving that set as it was. TalkHelper's Lua
+  (`B8F9CB837E428E71`) states the same rule.
+- **Shipped lists (package `1`, `1_0.db`, LZ4 SerializedFiles).** `Font/NumberCharacters` holds only block
+  glyphs (`▁ ▂ ▃ … ▏ ▓ ▔ ▕ ■`), no Latin letters. `Font/LineBreakingLeadingCharacters` holds opening brackets
+  and quotes, CJK and ASCII.
+- **What the flag changes** (`TextGenerator`, `0x158BE5C`):
+  - Flag on: a character in `'/'..'9'` or the number set extends a run, and every other character is a break
+    point. On overflow the generator backs over the run to its start and consults the following set
+    (slot 9). Latin letters are each a break point, which yields "Coi n".
+  - Flag off: the first non-space after a space records the word start. On overflow `0x158A96C` breaks there,
+    or at the current character when the line has no word start. This is ordinary word wrap. No rule set is
+    consulted on this path.
+- **Who sets the flag: no caller found.** `libil2cpp.so` has the icall string for `LoadLinebreakingRules`
+  but none for `SetFlag`, so no compiled managed code calls it. No native code calls slot 11, and no Lua
+  names it. The object's constructor writes 0.
+- **The contradiction.** Flag off should wrap English at spaces, but the Card screen splits words. TalkHelper's
+  comments also describe the following-set bug, which only the flag-on path can reach. Either a setter exists
+  that this pass missed, or card text is wrapped by something other than this generator. The binary alone
+  cannot settle which.
+- **Levers re-weighed.**
+  - A Lua `LoadLinebreakingRules(nil, nil, TextAsset(...))` cannot work: `UnityEngine.TextAsset` has no
+    constructor in this build (stripped).
+  - `SetFlag` is `public static` in the metadata, but with no compiled body an xLua call to it may fail.
+  - Adding `A–Z a–z` to `Font/NumberCharacters` is harmless when the flag is off (the set is never read) and
+    would keep words whole when it is on. It is a new asset kind (a TextAsset in package `1`) and needs a
+    device cycle.
+
+**No device verdict yet.**
