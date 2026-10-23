@@ -4065,3 +4065,38 @@ Captures in `D:\scratch\hok-update-cycle-2\<label>`; the patcher's `trace.log` i
 (`1`, `10`, `21`), where Round A needed two. The stuck-update refusal also fires when the game itself did not
 stop: its broken list named package `1` although its own scan found nothing. Recovery from an update over a
 translated layer is now one Re-download, one game start and one Start, with no clear.
+
+## 2026-10-23 — 1.7.0.2: six leftover strings supplied, English and Indonesian
+
+- **Offline builds, pristine 1.7.0.2 + cached APK** (`build_device_patch.py --apk`, `D:\scratch\hok-1.7.0.2\out1-*`),
+  before the change: both succeed. Census 99 tables, 187 980 records, **6 unknown** (1.7.0.1: 187 975 records,
+  1229 unknown before its supplement). `already_english` 2307 (EN) / 2274 (ID), `text_skipped` and
+  `graphics_skipped` empty. Package `1` `added-from-apk` 288 of 289, `append_skipped` only the known encoder
+  refusal (`3A70308AAF6F18F8` EN / `0196F0E230EC1C70` ID); `10` 1, `1050016095` 71, `21` 1. Textures 302 + 22
+  + 1 + 1, extra-text one asset each in `1` and `10`, package `1` full 88 + relocated 11: every package entry
+  and count equals 1.7.0.1's `out5`. No regression.
+- **What 1.7.0.2 changed in the catalog tables:** the same 100 catalog tables as 1.7.0.1's layer, none new,
+  none missing; 11 distinct Chinese strings added, 58 removed. The 80 on-demand packages absent from the
+  snapshot hold no catalog table (every catalog table of the 1.7.0.1 layer is present). Five of the 11 are card
+  texts the catalog already translates (`你的召唤单位…+5`, `朋友多多…4张`, `×1.5`, `开战时…传送`, Arthur's
+  `回复最大生命值`), in `666DC40230B31A30` / `F628F40CE23D983E`.
+- **Leftover census** (each catalog table of the override layer with the staged output laid over it, 388
+  tables with the appended ones; CJK inside a `{token}` not counted): **6 distinct strings, 6 rows, 1 table**
+  (`DD5B5EDFBB69FEED`, package `1`), the same for both languages, all new in 1.7.0.2: Lineup Recommendation
+  hints and errors (`EmbattleClassicLineup_SelectLord`, `EmbattleClassicLineup_Desc`,
+  `ERR_USE_LINEUP_RECOMMEND_CARD_INVALID`, `ERR_LINEUP_RECOMMEND_CARD_ITEM_NOT_ENOUGH`,
+  `ERR_LINEUP_RECOMMEND_UNLOCK_SLOT_REACHED`, and `点击下方头像添加棋手`). List:
+  `.scratch/data-1.7.0.2/leftovers.json`.
+- **Change:** the 6 listed in `catalog_supplement.TEXTS`, both languages, worded after the catalog's
+  `点击下方头像添加推荐棋手`, `导入阵容`, `阵容推荐卡解锁` and `物品不足`, with 棋手 as *Chessplayer* like the rest
+  of the Lineup Recommendation section. `check` passes for both languages; all supplement targets pass
+  `adaptive.validate_translation` (0 failures).
+- **Offline again** (`out2-*`): `catalog supplement: 2202 strings` (was 2196), `unknown` **6 → 0** in both;
+  everything else as above. Only `1/1.db` and `1/1_0.db` differ from `out1`. Census: 0 rows; the 5 token-only
+  `{推演战术:…}` texts in 19 tables are the known false positives.
+- **Outside the catalog tables, unchanged from 1.7.0.1:** `F79FB1A213A9DA90` is byte-equal to 1.7.0.1's
+  (`check_lineup_cycle.py`: 635 text fields read back, 0 Chinese besides the 27 nicknames, both languages);
+  the uncatalogued `77A17DCDAE26967F` (Room Settings), `3914DBBFECD1E54D` (`高光表情`) and `63922EF4D4C86526`
+  (`幻化`/`夺宝`/`限时`) are byte-equal too and stay Chinese until an extra-text cycle.
+
+**No device verdict yet.**

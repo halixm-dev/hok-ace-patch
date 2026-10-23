@@ -1,0 +1,67 @@
+{
+ "source": "pristine/20261023-1.7.0.2, offline builds 2026-10-23 (D:\\scratch\\hok-1.7.0.2\\out1-*), census of catalog tables with the staged output laid over the layer; the same for English and Indonesian",
+ "census": {
+  "distinct": 6,
+  "rows": 6,
+  "tables": 1,
+  "catalog_tables_read": 388
+ },
+ "diff_1.7.0.1_to_1.7.0.2": {
+  "catalog_tables_compared": 100,
+  "cjk_strings_added": 11,
+  "cjk_strings_removed": 58,
+  "new_catalog_tables": [],
+  "catalog_tables_absent": [],
+  "added_already_in_catalog": [
+   "<color=#FFE897>你的召唤单位</color>等级+5。每回合开始时，再+5。",
+   "上阵6个所选阵营英雄时，获得1张<color=#FFE897>朋友多多</color>。\n<color=#FFE897>朋友多多</color>：随机获得4张技能所选阵营的英雄牌。",
+   "回合开始时，场上友方英雄获得已觉醒英雄数量×1.5的等级。",
+   "开战时，随机传送1个100级的英雄进入战场（不含卡牌效果），传送等级每回合+40。",
+   "战斗开始时，亚瑟周围一格的友方英雄<color=#FFE897>变身为圣殿骑士</color>。亚瑟的普攻变为为血量最低的圣殿骑士回复最大生命值；技能改为指挥全体圣殿骑士朝敌人<color=#FFE897>冲锋</color>。"
+  ]
+ },
+ "strings": {
+  "所有可用阵容推荐解锁格子都已解锁": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.7.0.1": false
+  },
+  "收藏到对应棋手下才可在局内使用": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.7.0.1": false
+  },
+  "点击下方头像添加棋手": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.7.0.1": false
+  },
+  "请选择一个棋手导入阵容": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.7.0.1": false
+  },
+  "阵容推荐卡无效": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.7.0.1": false
+  },
+  "阵容推荐卡物品不足": {
+   "package": "1",
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "in_1.7.0.1": false
+  }
+ }
+}

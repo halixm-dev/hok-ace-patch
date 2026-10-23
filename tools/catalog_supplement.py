@@ -6,7 +6,8 @@ Game data 1.5.0.1 and 1.6.0.1 added about 1200 such strings to package `1`: an a
 whose titles come in numbered tiers (`完美橱窗(二)`), four weekly leaderboards ranked 1 to 100, the King of
 Kings sub-account, the Line Puppy event, and card texts whose numbers changed. Game data 1.7.0.1 added 335
 more: the Super Hero mode, room settings, the reworked Lineup Recommendation, strategy tags, and talent texts
-split from their series header. `apply` fills them in.
+split from their series header. Game data 1.7.0.2 added six Lineup Recommendation hints and errors.
+`apply` fills them in.
 The official lineups' strategy text is here too: it lives in config bins the catalog does not cover, inside
 their share codes, for the share-code pass to write.
 `derived` adds the short forms the card-pack covers label each cover with (`逆天改命卡包`, `河洛-李白`),
@@ -3635,6 +3636,17 @@ TEXTS: dict[str, tuple[str, str]] = {
         "<color=#98cbff>I. Ikhtisar Career System</color>\n\n1. Career System mencatat berbagai data game-mu, yang bisa"
         " dilihat di halaman utama: waktu bermain, total pertandingan, Like yang diterima, jumlah Mark of Kings, data"
         " Chessplayer season ini, data Achievement, data pertandingan akunmu, dan lainnya."),
+    # Lineup Recommendation hints and errors 1.7.0.2 added (DD5B5EDFBB69FEED).
+    "点击下方头像添加棋手": ("Click avatar below to add a Chessplayer", "Klik avatar di bawah untuk menambah Chessplayer"),
+    "请选择一个棋手导入阵容": ("Select a Chessplayer to import the lineup", "Pilih Chessplayer untuk impor lineup"),
+    "收藏到对应棋手下才可在局内使用": (
+        "Save it under its Chessplayer to use it in matches",
+        "Simpan ke Chessplayer-nya untuk menggunakannya dalam pertandingan"),
+    "阵容推荐卡无效": ("Invalid Lineup Recommendation Card", "Kartu Rekomendasi Lineup tidak valid"),
+    "阵容推荐卡物品不足": ("Not enough Lineup Recommendation Cards", "Kartu Rekomendasi Lineup tidak cukup"),
+    "所有可用阵容推荐解锁格子都已解锁": (
+        "All available Lineup Recommendation slots are already unlocked",
+        "Semua slot Rekomendasi Lineup yang tersedia sudah terbuka"),
 
     # Ace Duel schedules.
     "王牌对决·万象大赛在每天16:00-23:00开启，每整点在备战区段位分排名前列的玩家中随机确认6名玩家开启1场对局。参与选手对局排位分按五倍计算（输赢都按基础得分的五倍计算）。对局时刻如下：": (

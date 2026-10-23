@@ -150,6 +150,12 @@ tables in both languages (the census's 5 hits are CJK inside `{tokens}`), `unkno
 cycle passed on 2026-10-22 (English); it found Chinese outside the catalog tables: the Room Settings labels
 (`77A17DCDAE26967F`, uncatalogued) and 1.7.0.1's new text in the official-lineup bin `F79FB1A213A9DA90`. The lineup text is supplied since (330 more entries; supplement log 1866 → 2196 strings). It adds rows to tables already counted, so no table count moves.
 
+Game data **1.7.0.2** (2026-10-23) left **6 distinct strings** (6 rows, one table, `DD5B5EDFBB69FEED`) of
+package `1`'s catalog tables Chinese: Lineup Recommendation hints and errors. They are listed in both
+languages (supplement log 2196 → 2202 strings). An offline build of the pristine 1.7.0.2 dump with the APK
+leaves **0** Chinese strings in the catalog's tables in both languages, `unknown` 6 → 0. Device acceptance is
+pending. It adds rows to tables already counted, so no table count moves.
+
 On 2026-10-17, Chano's live card exposed two missing numeric variants (30/60 damage, where the
 catalog has 25/50). Both languages now receive these two supplement entries. A targeted check across
 23 text-table copies in the saved override and prime layers translates all 55 occurrences of the
