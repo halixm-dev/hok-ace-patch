@@ -128,7 +128,7 @@ is `tools/pristine_delta.py`, shared with the Android patcher; `patcher_core` dr
   either delta's staged bytes. A file the previous delta named and this build no longer stages is
   pushed back at its pristine bytes, so no file keeps the old language.
 - The LANGUAGE card says no clear is needed while the working folder keeps a delta.
-- **Remove translation** (ticket 06; since shared-design ticket 16 a secondary button in ① Language, shown only while the working folder keeps a delta, behind a plain confirmation):
+- **Remove translation** (ticket 06; since [shared-design](shared-design.md) ticket 16 a secondary button in ① Language, shown only while the working folder keeps a delta, behind a plain confirmation):
   `Patcher(remove=True)` runs the same steps up to `restore_pristine`, skips the build and pushes the
   rebuilt pristine files through `push_translation`, which then deletes the delta (and the pending
   one), so the next patch run is a first install under both pristine signals. It refuses, before any

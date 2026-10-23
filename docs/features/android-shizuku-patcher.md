@@ -328,7 +328,7 @@ app carries its own; it is device-verified on the Infinix X6853.
 - A failed run shows the error's cause, not its stack: the live log keeps `ErrorSummary.cause`, and an
   error card directly under ② Start (`error-card`, error colours) copies the worker's full raw error
   and offers Save log for help (`error-export-log`). The "Game won't open?" card (`recovery-card`,
-  warning colours) follows it, both above the log (shared-design ticket 10).
+  warning colours) follows it, both above the log ([shared-design](shared-design.md) ticket 10).
 - After a stop, the recovery card appears only when `RecoveryMaterial` finds something to recover (an
   interrupted patch, a first setup in progress, or a retained normal APK), and shows only the actions
   those records serve; records that cannot be read keep every action. A stop in the read-only checks

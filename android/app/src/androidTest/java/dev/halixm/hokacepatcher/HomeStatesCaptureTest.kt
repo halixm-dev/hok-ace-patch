@@ -15,7 +15,7 @@ import org.junit.Test
 import java.io.File
 
 /**
- * The home screen brief's states (`.scratch/shared-design/home-screen-brief.md`, section 5), each
+ * The home screen's states (`DESIGN.md`, Layout; `docs/features/shared-design.md`), each
  * drawn as a full page in both languages at the phone's current font size, saved to `cache/home-states/<code>-<fontScale>-<state>.png`. Fails on any shown text that is
  * ellipsized, broken inside a word, taller than its view, or wider than the page. UI only: never
  * starts a worker. Run it once per font size (`settings put system font_scale`).
