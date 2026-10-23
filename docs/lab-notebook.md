@@ -2086,11 +2086,11 @@ and Yao's description saying `upgraded` while its footer says `Combine`.
 
 | Evidence | Result |
 |---|---|
-| Screenshots | `.scratch/untranslated-card/screen.png` (Chano), `.scratch/untranslated-card/yao-before.png` (Yao) |
+| Screenshots | `0e65e16:.scratch/untranslated-card/screen.png` (Chano), `0e65e16:.scratch/untranslated-card/yao-before.png` (Yao) |
 | Both-layer scan | `probe.py` reads the saved pristine 1.6.0.1 override layer and cached prime package 1. Updated 30/60 sources occur in catalog tables including `A07B2B9F994FB0ED` and `A336359CD92A858E`; the prime copies retain 25/50. |
 | Chano cause | Both catalogs lack the exact updated numeric placeholders. The real `adaptive.translate_table` leaves 30/60 Chinese before the fix. `catalog_supplement.TEXTS` now supplies both measured variants for both languages using the catalog's older wording with the new placeholders. |
 | Yao cause | English catalog maps `合成`, `href=13`, to `upgraded` once. Indonesian already uses Combine. A source-keyed terminology rule changes the measured label to Combine; other prose Upgrade wording is preserved. |
-| Targeted verification | `.venv/Scripts/python.exe -X utf8 .scratch/untranslated-card/verify_fixes.py` passes for both languages: 23 table copies across both layers, all 55 updated Chano occurrences translated, Yao checked in 22 table copies. Baseline assertions reproduce the missing Chano entries and English upgraded label. Placeholder/tag checks, validation of both new pairs, and terminology idempotence pass. |
+| Targeted verification | `.venv/Scripts/python.exe -X utf8 0e65e16:.scratch/untranslated-card/verify_fixes.py` (restore the folder with `git restore -s 0e65e16 -- :/.scratch/untranslated-card`) passes for both languages: 23 table copies across both layers, all 55 updated Chano occurrences translated, Yao checked in 22 table copies. Baseline assertions reproduce the missing Chano entries and English upgraded label. Placeholder/tag checks, validation of both new pairs, and terminology idempotence pass. |
 | Documentation references | `check_references.py` passes. |
 | Phone state | Normal APK is not debuggable; current private package bytes could not be read. Screenshots/search only; no APK replacement, data push or device cycle. These saved-layer checks do not establish the phone's current data revision. |
 | Full English staging | `build_device_patch.py` succeeds on the pristine 1.6.0.1 dump with the cached APK; output `artifacts/chano-yao-fix/out`. No skipped text tables; the existing single append encoder refusal remains. |
