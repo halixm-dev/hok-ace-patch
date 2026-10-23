@@ -49,7 +49,7 @@ them, so it could not rebuild such a package; the user had to re-download it who
 ## [S3] Out of Scope
 
 Appended assets (no B-tree delete); the Windows patcher; using the orphaned pristine slots instead of kept
-bytes; restoring before an update instead of after (`.scratch/language-switch` ticket 07).
+bytes; restoring before an update instead of after ([language-switch](language-switch.md), withdrawn).
 
 ## Verification
 

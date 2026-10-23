@@ -24,7 +24,7 @@ layout, and restores the partial repair's 151 textures instead (ADR 0008). Unles
 --skip-build, it then runs the Windows patcher's own pull, rebuild, build (with the APK when
 given), text signal and push against a fake phone holding the accepted update, and a second run over
 the result, which must rebuild from the new delta. Faked updates stand in for a real one: what a real
-update leaves is ticket 01 of `.scratch/language-switch`.
+update leaves was ticket 01 of language-switch (`docs/features/language-switch.md`).
 """
 from __future__ import annotations
 

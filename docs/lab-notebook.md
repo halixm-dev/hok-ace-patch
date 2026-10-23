@@ -2969,7 +2969,7 @@ re-patch over a restored layer without clearing its data is unmeasured.
 
 ## 2026-10-17 — What the game's updater records, and what it checks
 
-Offline, for the repatch-after-update design (`.scratch/language-switch/spec.md`). Sources: the
+Offline, for the repatch-after-update design (`docs/features/language-switch.md`). Sources: the
 `Watchdog/` of the pristine 1.6.0.1 backup `dist/HOK ACE Patcher Data/pristine/20261016-101124/device-backup.tar`
 (taken right after a full re-download), strings in `resources/qtsvfs/QtsVFS.dll`, and
 `grid-regression/old-patched-game/1` (10-02, patched) against that pristine package `1`.
@@ -2999,7 +2999,7 @@ patched layer.
 
 ## 2026-10-17 — The pristine delta shipped
 
-Offline, uncommitted on `fd1a279`, for `.scratch/language-switch` tickets 02–05. Pristine 1.6.0.1 snapshot
+Offline, uncommitted on `fd1a279`, for language-switch (`docs/features/language-switch.md`) tickets 02–05. Pristine 1.6.0.1 snapshot
 `dist/HOK ACE Patcher Data/pristine/20261016-101124` with the cached `installed.apk`; no phone touched.
 
 | Check | Result |
@@ -3023,7 +3023,7 @@ without a repair is still unmeasured (ticket 08).
 
 ## 2026-10-17 — Remove translation
 
-Ticket 06 of `.scratch/language-switch`. `tools/research/check_windows_repatch.py`: 11 cases OK, including
+Ticket 06 of language-switch (`docs/features/language-switch.md`). `tools/research/check_windows_repatch.py`: 11 cases OK, including
 Remove after an English install (both files back at pristine, empty delta kept, a second Remove writes
 nothing, a following Indonesian patch builds from the pristine layer) and Remove with no record refused.
 On the Xiaomi M2007J3SG (Android 12), `am instrument` of `RemovalRollbackProbeTest` and
@@ -3049,7 +3049,7 @@ now expects `keep_delta` to delete `delta.bin`. On the Xiaomi M2007J3SG (Android
 
 ## 2026-10-17 — Language switch without a clear (Windows patcher)
 
-Ticket 08 of `.scratch/language-switch`, Windows half. Xiaomi M2007J3SG (`f15a72e`, Android 12). The
+Ticket 08 of language-switch (`docs/features/language-switch.md`), Windows half. Xiaomi M2007J3SG (`f15a72e`, Android 12). The
 patcher ran from source (`run.bat`, `master` at `ca2f190`, then `f1ec4de`), working folder
 `D:\HOK ACE Patcher Data\cache\HOK ACE Patcher Data`.
 
@@ -4001,7 +4001,7 @@ pulled), so this is not the spec's Cycle 0. ADR 0008.
 
 ## 2026-10-23 — An update over a patched layer, captured end to end (Round A)
 
-`.scratch/language-switch` ticket 01, first half. Xiaomi M2007J3SG (`f15a72e`), game 1.1.1 / 774472, Android
+language-switch (`docs/features/language-switch.md`) ticket 01, first half. Xiaomi M2007J3SG (`f15a72e`), game 1.1.1 / 774472, Android
 patcher 1.7.1.3. Each step captured with `tools/research/update_cycle.py` (layer hashes on the phone,
 `Watchdog/`, `QtsVFS.log`, `normal1.log`, `NewVersionInfo.json`, and the package bytes no snapshot holds), in
 `D:\scratch\hok-update-cycle\<label>`.

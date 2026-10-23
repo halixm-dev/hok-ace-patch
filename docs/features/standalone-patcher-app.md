@@ -105,7 +105,7 @@ source runs (the frozen exe gets it via PyInstaller `--paths`), and `resources/r
 
 ### Repatch from the pristine delta (2026-10-17)
 
-From [`.scratch/language-switch`](../../.scratch/language-switch/spec.md), tickets 03 and 05. The delta
+From [language-switch](language-switch.md) (tickets 03 and 05). The delta
 is `tools/pristine_delta.py`, shared with the Android patcher; `patcher_core` drives it.
 
 - `<working folder>/pristine/` holds `delta.bin` and `staged-hashes.json` (every hash an install of

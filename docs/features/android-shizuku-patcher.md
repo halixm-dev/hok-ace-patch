@@ -385,7 +385,7 @@ app carries its own; it is device-verified on the Infinix X6853.
 
 ### Repatch from the pristine delta (2026-10-17)
 
-From [`.scratch/language-switch`](../../.scratch/language-switch/spec.md), ticket 04. The engine makes
+From [language-switch](language-switch.md) (ticket 04). The engine makes
 and applies the delta (`tools/pristine_delta.py`, staged into `engine/tools` with the other tools);
 Kotlin only names the files (`PristineDelta.kt`).
 

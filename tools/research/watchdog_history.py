@@ -3,7 +3,7 @@
 Each in-game update and repair appends records here; a fresh download logs one merge per package it
 patched through diffs (214 on the 2026-10-16 download, lab notebook 2026-10-17, "What the game's updater
 records"). A merge dated after the last install says the game updated over the translation. A research reader
-(`.scratch/language-switch` ticket 01): no patcher pass reads it.
+(language-switch ticket 01, `docs/features/language-switch.md`): no patcher pass reads it.
 
 The file is a QtsVFS shard (`broken_list` reads the same slots): `u32` self offset, `-1`, `u32` payload
 size, `u64` key, payload. Each record's payload is `u32` 8, `u32` body length, seven `u32` local time

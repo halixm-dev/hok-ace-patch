@@ -4,7 +4,7 @@
     .venv\\Scripts\\python.exe tools\\research\\update_cycle.py capture <label> --cycle <dir>
     .venv\\Scripts\\python.exe tools\\research\\update_cycle.py compare <label-a> <label-b> --cycle <dir>
 
-For `.scratch/language-switch` tickets 01 and 07. <cycle> holds one folder per capture and an `objects/`
+For language-switch tickets 01 and 07 (`docs/features/language-switch.md`). <cycle> holds one folder per capture and an `objects/`
 store of package bytes by SHA-256. A capture installs the access APK, hashes every file under
 `files/QtsVFSCache` on the phone, keeps `Watchdog/` and the game's logs whole, and pulls only the package
 files whose bytes no snapshot or earlier capture holds. The normal APK goes back in a `finally`, and its

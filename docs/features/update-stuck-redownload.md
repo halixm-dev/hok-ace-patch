@@ -66,8 +66,8 @@ refuses. Until now the only way out was clearing the game's data, about 2.8 GB t
 
 The Windows patcher; detecting a stuck update before the user runs the patcher (the broken list is
 readable only under the access APK); a stuck texture package, which follows the same path but is
-unmeasured; writing the pristine bytes back before an update so it never sticks (`.scratch/language-switch`
-ticket 07 dropped it: nothing on the phone precedes an update).
+unmeasured; writing the pristine bytes back before an update so it never sticks ([language-switch](language-switch.md)
+withdrew it: nothing on the phone precedes an update).
 
 ## Verification
 

@@ -5,9 +5,10 @@ Tencent's updater patches packages with binary diffs against their original cont
 ## Consequences
 
 - **One write before an update is allowed: pristine bytes.** The repatch-after-update flow
-  (`.scratch/language-switch/spec.md`) writes a patched file's pristine bytes back, rebuilt from its
+  ([language-switch](../features/language-switch.md)) would write a patched file's pristine bytes back, rebuilt from its
   pristine delta, so the update's diffs find the content they expect. It writes no translation; the
-  translation still goes on only after the update has finished.
+  translation still goes on only after the update has finished. Unused: no signal on the phone precedes an
+  update, so the patcher has no moment to write first (measured 2026-10-23).
 - **An update already stuck on a translation.** Measured 2026-10-22: the updater refuses the whole update
   and lists the translated assets in `Watchdog/BrokenList.db`. Deleting the listed translated packages and
   clearing `Watchdog` lets the game download them whole and finish; the Android patcher offers this as
