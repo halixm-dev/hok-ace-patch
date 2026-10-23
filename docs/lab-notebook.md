@@ -4206,7 +4206,6 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   and 1 Random Hero / to gain +2 levels.", Related "effect / items, etc." (probe v1: "+3 lev / els", "g / ain",
   "ite / ms"). Support Tactics wraps between words. Hero Card, Mulan: "cards used / this Round", "Front / row"
   (v1: "Front ro / w"). Evidence: `v2-encyclopedia-*.jpg`.
-- **The match is not in the log.** No `InTheGame`/HUD prefab was created through `UIPrefabClass:Create`.
-  Either the match HUD uses another path, or the match fell outside the log.
+- **A match was not played in this cycle** (user, same day), so in-match text is untested with v2.
 - **Verdict:** a reset at every `UIPrefabClass:Create` keeps the Encyclopedia and Card text wrapping between
   words. The match is not yet covered.
