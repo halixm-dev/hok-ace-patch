@@ -30,7 +30,7 @@ is one Lua edit that keeps it off.
   - English and Indonesian builds from the 1.7.0.2 snapshot both succeed, and read back with the call once.
     Only package `10` differs from the control.
 - **On a phone** (M2007J3SG, data 1.7.0.2, 2026-10-23), the shipped build (`out-fix-catalog`, package `10`
-  only): Card, Encyclopedia and a match wrap English between words.
+  only): Card, Encyclopedia and a match wrap English between words. Shipped in Android patcher 1.7.2.2.
 - **Not checked yet:**
   - Re-login and other scene changes.
   - Chat. `TalkHelper` clamps punctuation runs for the flag-on generator.
