@@ -4180,3 +4180,33 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   None of the 66 text-rendering icalls writes the flag byte or calls slot 11.
 - **Verdict: partial.** `SetFlag(false)` works and is reachable, but a single call does not hold for the
   session. A fix has to re-apply it, or find and answer the setter.
+
+## 2026-10-23 — Device cycle: probe v2, the flag read and reset on every UI create — pass on the Encyclopedia
+
+- **Build:** `build_probe.py --v2` (`.scratch/latin-line-breaks/probe/`). It adds `probe_v2.lua` to
+  `UIPrefabClass` (`3482BF89614B5ABB`, prime-only), which reaches the phone through the append pass
+  (package `10` "added from the APK" went from 1 to 2). It runs at the top of `UIPrefabClass:Create`:
+  - reads the flag by laying out a sample (a break inside a word means on);
+  - calls `SetFlag(false)`;
+  - logs class and path.
+
+  Only package `10` was pushed (`10.db` `5b531cd2…`, `10_0.db` `47d3f05d…`), over the same phone and data as
+  probe v1. The normal APK was reinstalled.
+- **Log** (`probe/evidence/latin_line_break_probe_v2.txt`): 938 creates, 196 found the flag on, no errors, no
+  `?`.
+  - The first create (`UILockInput`) found it on, then it stayed off through login and the lobby.
+  - It comes back on only after specific Encyclopedia (`GameAtlas`) list items are created. The create right
+    after each one finds it on: `UIGameAtlasEffectItem` → `UICommonHeroCardLevel` (20),
+    `UICommonHeroCardLevel` → `UIGameAtlasHeroItem` (27), `UIGameAtlasHeroItem` → `UICommonHeroCardAvatarItem`
+    (24), `UIGameAtlasTalentItem` ↔ `UITalentItemStyle` (32 + 28), `UIGameAtlasEquipItem` ↔
+    `UICommonEquipmentItem1` (16 + 10), `UIGameAtlasLordItem` (8).
+  - These scripts share no Lua call, so the setter runs while those prefabs are instantiated, from a C# or
+    native component. The setter is still unidentified.
+- **Screens with v2:** Encyclopedia > Effect Card, Simple Collaboration: "Target 1 Hero to gain +3 / levels,
+  and 1 Random Hero / to gain +2 levels.", Related "effect / items, etc." (probe v1: "+3 lev / els", "g / ain",
+  "ite / ms"). Support Tactics wraps between words. Hero Card, Mulan: "cards used / this Round", "Front / row"
+  (v1: "Front ro / w"). Evidence: `v2-encyclopedia-*.jpg`.
+- **The match is not in the log.** No `InTheGame`/HUD prefab was created through `UIPrefabClass:Create`.
+  Either the match HUD uses another path, or the match fell outside the log.
+- **Verdict:** a reset at every `UIPrefabClass:Create` keeps the Encyclopedia and Card text wrapping between
+  words. The match is not yet covered.
