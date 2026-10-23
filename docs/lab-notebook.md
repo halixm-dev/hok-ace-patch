@@ -3253,14 +3253,19 @@ The Xiaomi M2007J3SG lobby (data 1.6.0.1) read `Ranking  match  Training  Custom
 
 ## 2026-10-18 — Android patch run: stage timings and five fewer passes
 
+The patch-speed scripts and receipts left the tree when the investigation closed. Paths below written
+`be15bd3:.scratch/patch-speed/<file>` are read with `git show be15bd3:.scratch/patch-speed/<file>`;
+restore the folder with `git restore -s be15bd3 -- :/.scratch/patch-speed` before running a
+command that names one. The investigation's record is `docs/features/patch-speed.md`.
+
 Question: where does an Android patch run spend the time outside its build, and how much of it can go
 without weakening a check? Phone: **Redmi Note 9 Pro `ebad528e`, Android 15 (custom ROM), 8 cores**. This
 is not the device of record. English, data `1.6.0.1`. Every timing comes from `adb logcat` lines that
 `DiagnosticTrace` already writes (worker progress and engine-call durations), split into stages by
-`.scratch/patch-speed/timeline.py`. Runs were started by `start_patch.sh` (UI taps), after checking that the
+`be15bd3:.scratch/patch-speed/timeline.py`. Runs were started by `start_patch.sh` (UI taps), after checking that the
 game was closed and `needDownloadSize` was 0.
 
-Source inspection (`.scratch/patch-speed/findings.md`) counted about 13 full passes over the game layer and
+Source inspection (`be15bd3:.scratch/patch-speed/findings.md`) counted about 13 full passes over the game layer and
 19 over the 2 GB APK per run. The changes, all in the Android bridge and coordinator:
 
 1. `estimate_snapshot_build` reads the snapshot manifest without rehashing it. `build_snapshot` still
@@ -3299,7 +3304,7 @@ time is about 113–121 s, so `build_snapshot` spent roughly 140–180 s on chec
 
 | Verification | Result |
 |---|---|
-| Staged bytes, desktop | The real `build_snapshot` of HEAD and of the change, over the pristine `20261018-071235` layer and the cached `installed.apk`, gives equal staged SHA-256 for all 14 files, an equal pristine report, counts, skip lists and normalized full summary, both as a first install and rebuilding from the Windows delta with its staged files laid over the layer (`.scratch/patch-speed/bridge-*.json`). The rebuilt output also equals the first-install output. |
+| Staged bytes, desktop | The real `build_snapshot` of HEAD and of the change, over the pristine `20261018-071235` layer and the cached `installed.apk`, gives equal staged SHA-256 for all 14 files, an equal pristine report, counts, skip lists and normalized full summary, both as a first install and rebuilding from the Windows delta with its staged files laid over the layer (`be15bd3:.scratch/patch-speed/bridge-*.json`). The rebuilt output also equals the first-install output. |
 | Staged bytes, phone | Not hash-compared: the journal keeps no file hashes, and the export has no `staged-hashes.json`. The device's own read-back (`sha256sum` of each written file, then `validateGameSnapshot` of the applied manifest) passed on every run. |
 | Streamed snapshot | A 2.95 GB tar of the real layer (741 files) through an OS pipe gives the same manifest as file extraction, and its stream identity equals the tar's. Truncated, header-cut and oversized streams are refused and leave no destination (`tools/research/check_mobile_snapshot.py`, 8 tests). |
 | Manifest lookup | `package_files_at` equals `pristine_delta.files_at` on a pristine layer (741 files, none staged) and a staged one (all 11). |
@@ -3326,7 +3331,7 @@ command to the result, took 603 s, in line with the 616–621 s above. The worke
 installs. Each restart took about 0.3 s and measured 0–12 KiB freed within its 1 s window. Free space went
 from **15.66 → 10.24 (lowest) → 15.66 GiB**, so the run ended with no net loss. Before the fix, every run
 lost the replaced APKs. A manual `am force-stop` of the launcher afterwards freed nothing (−4 KiB), so no
-replaced APK was still held. Receipts: `.scratch/patch-speed/launcher-run-logcat.txt` and
+replaced APK was still held. Receipts: `be15bd3:.scratch/patch-speed/launcher-run-logcat.txt` and
 `launcher-run-free-space.txt` (phone epoch seconds, KiB free).
 
 Probes on the same phone (debug app plus its `androidTest` APK, `am instrument`): 17 of 18 pass, in 7.8 s.
@@ -3335,7 +3340,7 @@ The classes are `TransactionProbeTest`, `RemovalRollbackProbeTest`, `JournalProb
 `CoordinatorSourceGuardProbeTest`. The one failure, `CoordinatorSourceGuardProbeTest`, stops in
 `ApkIdentity.read` on its hard-coded 1.4.0.2 recovery APK (`b0b08f4a…`), which this phone does not have.
 `CoordinatorRecoveryProbeTest`, `FullCoordinatorProbeTest` and `ApkPreparationProbeTest` need the same
-1.4.0.2 fixtures under `files/scratch` and were not run (`.scratch/patch-speed/launcher-probes.txt`).
+1.4.0.2 fixtures under `files/scratch` and were not run (`be15bd3:.scratch/patch-speed/launcher-probes.txt`).
 Afterwards the release build was reinstalled and the test package removed.
 
 **Verdict:** shipped in source, uncommitted at the time of writing. On this phone a rebuild-from-delta run
