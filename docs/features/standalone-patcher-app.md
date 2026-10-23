@@ -87,7 +87,7 @@ app is the same product surface; only the translation pipeline behind it differs
 
 | File | Role |
 |---|---|
-| `hok_patcher.py` | customtkinter GUI, seven-step stepper, log pane, working-folder picker |
+| `hok_patcher.py` | customtkinter GUI on the shared design (`DESIGN.md`): one column with ① Language, ② Start (device, working folder, progress and results in place), the error card and the log |
 | `patcher_core.py` | device workflow: adb, APK re-sign, data pull, translation, push, reinstall |
 | `apk_tools.py` | APK entry rewrite and APK Signature Scheme v2 signing (no Java / build-tools) |
 | `build_exe.py` | PyInstaller one-file build |
@@ -128,7 +128,7 @@ is `tools/pristine_delta.py`, shared with the Android patcher; `patcher_core` dr
   either delta's staged bytes. A file the previous delta named and this build no longer stages is
   pushed back at its pristine bytes, so no file keeps the old language.
 - The LANGUAGE card says no clear is needed while the working folder keeps a delta.
-- **Remove Translation** (ticket 06, a secondary button under Start Patch, behind a confirmation):
+- **Remove translation** (ticket 06; since shared-design ticket 16 a secondary button in ① Language, shown only while the working folder keeps a delta, behind a plain confirmation):
   `Patcher(remove=True)` runs the same steps up to `restore_pristine`, skips the build and pushes the
   rebuilt pristine files through `push_translation`, which then deletes the delta (and the pending
   one), so the next patch run is a first install under both pristine signals. It refuses, before any

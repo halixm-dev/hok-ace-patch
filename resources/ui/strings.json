@@ -349,7 +349,8 @@
     },
     "save_log_for_help": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "Save log for help",
       "id": "Simpan log untuk bantuan"
@@ -396,7 +397,8 @@
     },
     "remove_the_translation": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "Remove the translation",
       "id": "Hapus terjemahan"
@@ -433,7 +435,8 @@
     },
     "translation_removed": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "Translation removed",
       "id": "Terjemahan dihapus"
@@ -487,7 +490,8 @@
     },
     "02_working": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "02  /  IN PROGRESS",
       "id": "02  /  SEDANG BERJALAN",
@@ -495,7 +499,8 @@
     },
     "02_done": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "02  /  DONE",
       "id": "02  /  SELESAI",
@@ -503,7 +508,8 @@
     },
     "02_needs_attention": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "02  /  NEEDS ATTENTION",
       "id": "02  /  PERLU PERHATIAN",
@@ -663,7 +669,8 @@
     },
     "working_on_your_game": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "Working on your game",
       "id": "Sedang memproses game"
@@ -839,7 +846,8 @@
     },
     "ready_when_you_are": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "Ready when you are",
       "id": "Siap dimulai"
@@ -1260,7 +1268,8 @@
     },
     "error_details": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "Error details",
       "id": "Rincian galat"
@@ -1324,8 +1333,7 @@
     },
     "completed_counts": {
       "platforms": [
-        "android",
-        "windows"
+        "android"
       ],
       "en": "Patch complete. Normal game app verified.\nText tables applied: {text_tables}\nImages applied: {applied_textures}\nText tables skipped: {skipped_tables}\nImages skipped: {skipped_textures}",
       "id": "Patch selesai. Aplikasi game normal terverifikasi.\nTabel teks diterapkan: {text_tables}\nGambar diterapkan: {applied_textures}\nTabel teks dilewati: {skipped_tables}\nGambar dilewati: {skipped_textures}"
@@ -1563,16 +1571,8 @@
       "platforms": [
         "windows"
       ],
-      "en": "Ready. Connect your phone and click Start.",
-      "id": "Siap. Sambungkan ponsel lalu klik Mulai.",
-      "draft": true
-    },
-    "running": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "Running…",
-      "id": "Sedang berjalan…",
+      "en": "Connect your phone and click Start. Keep the game closed while we work.",
+      "id": "Hubungkan ponsel dan klik Mulai. Jangan buka game selama proses.",
       "draft": true
     },
     "run_again": {
@@ -1581,38 +1581,6 @@
       ],
       "en": "Run again",
       "id": "Jalankan lagi",
-      "draft": true
-    },
-    "done_title": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "Done",
-      "id": "Selesai",
-      "draft": true
-    },
-    "failed_title": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "Failed",
-      "id": "Gagal",
-      "draft": true
-    },
-    "done_status": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "Done! Translation installed.",
-      "id": "Selesai! Terjemahan terpasang.",
-      "draft": true
-    },
-    "done_removed_status": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "Done! Translation removed.",
-      "id": "Selesai! Terjemahan dihapus.",
       "draft": true
     },
     "already_untranslated": {
@@ -1635,48 +1603,8 @@
       "platforms": [
         "windows"
       ],
-      "en": "Failed. See the log for details.",
-      "id": "Gagal. Lihat log untuk rinciannya.",
-      "draft": true
-    },
-    "result_counts": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "{text} text tables and {images} images translated. ",
-      "id": "{text} tabel teks dan {images} gambar diterjemahkan. ",
-      "draft": true
-    },
-    "result_nothing_new": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "Nothing new to install. ",
-      "id": "Tidak ada yang baru untuk dipasang. ",
-      "draft": true
-    },
-    "result_already_installed": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "The translation was already installed. ",
-      "id": "Terjemahan sudah terpasang. ",
-      "draft": true
-    },
-    "result_tables_dropped": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "{count} text tables could not be applied and stay in Chinese. ",
-      "id": "{count} tabel teks tidak dapat diterapkan dan tetap berbahasa Mandarin. ",
-      "draft": true
-    },
-    "result_images_skipped": {
-      "platforms": [
-        "windows"
-      ],
-      "en": "{count} images could not be translated and stay in Chinese. ",
-      "id": "{count} gambar tidak dapat diterjemahkan dan tetap berbahasa Mandarin. ",
+      "en": "The cause is below. Fix it, then click Try again. Save the log if you need help.",
+      "id": "Penyebabnya ada di bawah. Perbaiki, lalu klik Coba lagi. Simpan log jika perlu bantuan.",
       "draft": true
     },
     "result_open_game": {
@@ -1918,6 +1846,61 @@
       "en": "Finding the package files the game update could not change",
       "id": "Mencari file paket yang tidak bisa diubah pembaruan game",
       "draft": true
+    },
+    "drive_free_not_enough": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{free} GB free on this drive: not enough. Choose a folder on another drive.",
+      "id": "{free} GB kosong di drive ini: tidak cukup. Pilih folder di drive lain.",
+      "draft": true
+    },
+    "device_connected": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{name}  ·  Android {release}",
+      "id": "{name}  ·  Android {release}",
+      "draft": true
+    },
+    "device_one_phone_only": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "More than one phone or emulator is connected. Keep only one.",
+      "id": "Lebih dari satu ponsel atau emulator terhubung. Sisakan satu saja.",
+      "draft": true
+    },
+    "device_allow_usb_debugging": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "On the phone, tap 'Allow' on the 'Allow USB debugging' prompt.",
+      "id": "Di ponsel, ketuk 'Izinkan' pada permintaan 'Izinkan debugging USB'.",
+      "draft": true
+    },
+    "device_connect_usb": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Connect the phone with a USB cable and enable USB debugging (Settings > Developer options > USB debugging).",
+      "id": "Hubungkan ponsel dengan kabel USB dan aktifkan debugging USB (Setelan > Opsi developer > Debugging USB).",
+      "draft": true
+    },
+    "log_saved": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Log saved: {path}",
+      "id": "Log disimpan: {path}",
+      "draft": true
+    },
+    "applied_counts": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Text tables applied: {text_tables}\nImages applied: {applied_textures}\nText tables skipped: {skipped_tables}\nImages skipped: {skipped_textures}",
+      "id": "Tabel teks diterapkan: {text_tables}\nGambar diterapkan: {applied_textures}\nTabel teks dilewati: {skipped_tables}\nGambar dilewati: {skipped_textures}"
     }
   }
 }

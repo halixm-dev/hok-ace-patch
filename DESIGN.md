@@ -166,10 +166,13 @@ Top to bottom:
    Its eyebrow names the state: `02  /  READY TO PLAY` while idle or not ready, `NEEDS SHIZUKU`
    above *Install Shizuku* and *Start Shizuku*, `IN PROGRESS` while running, `DONE` on a result and
    `NEEDS ATTENTION` on a failure or unfinished work. A failure or a missing Shizuku never sits
-   under READY TO PLAY. **Windows** keeps READY TO PLAY until its result states land (ticket 16).
+   under READY TO PLAY. **Windows** has no Shizuku and no recovery, so it uses READY TO PLAY, IN
+   PROGRESS, DONE and NEEDS ATTENTION.
 
-   **Windows**: device status and the working folder (with its free space and Change…) sit above
-   the Start button in this card.
+   **Windows**: the card opens with the short *Before you start* checklist (idle and failed only),
+   then device status and the working folder (with its free space and Change…), above the state and
+   the Start button. A folder short of space is the not-ready blocker. The *Translation added*
+   counts leave out the "game app verified" line, which only the Android patcher checks.
 4. **Warning or error card**, directly under ② Start, when one exists:
    - The **warning card** holds anything that needs action. On Android it is "Game won't open?",
      with the recovery options folded behind *Show recovery options*, which reads *Hide recovery

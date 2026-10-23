@@ -60,7 +60,8 @@ OTHER_PATCHER = "If the Android patcher patched this phone last, patch it with t
 
 PLAY_PROTECT_HINT = "If Google Play Protect shows a pop-up on the phone, tap 'More details' -> 'Install anyway'."
 
-# (key, label) in display order; the UI renders these as a stepper.
+# (key, label) in display order. The label names the step in the log; the UI shows the shared string
+# `step_<key>` in the interface language.
 STEPS = [
     ("device", "Connect phone"),
     ("apk", "Prepare game APK"),
@@ -74,6 +75,24 @@ STEPS = [
 
 class PatchError(Exception):
     """Expected failure with a message meant for the user."""
+
+
+UI_STRINGS = json.loads((BUNDLE / "ui" / "strings.json").read_text(encoding="utf-8"))["strings"]
+# The language choice in ① also sets the interface language (DESIGN.md, Wording and language).
+_interface_language = languages.DEFAULT_LANGUAGE
+
+
+def set_interface_language(code: str) -> None:
+    global _interface_language
+    _interface_language = languages.get(code).code
+
+
+def ui_text(key: str, **values: object) -> str:
+    """The shared interface string <key> (resources/ui/strings.json) in the interface language."""
+    text = UI_STRINGS[key][_interface_language]
+    for name, value in values.items():
+        text = text.replace("{" + name + "}", str(value))
+    return text
 
 
 def default_work_dir() -> Path:
@@ -192,7 +211,7 @@ class Ui(Protocol):
     def log(self, line: str) -> None: ...
     def set_step(self, key: str, state: str, detail: str = "") -> None: ...
     def set_device(self, text: str, connected: bool) -> None: ...
-    def ask(self, title: str, message: str) -> bool: ...
+    def ask(self, title: str, message: str, danger: bool = True) -> bool: ...
     def wait_user(self, title: str, message: str) -> None: ...
 
 
@@ -332,19 +351,18 @@ class Patcher:
                 model = self.adb.shell("getprop ro.product.model", check=False)
                 release = self.adb.shell("getprop ro.build.version.release", check=False)
                 name = f"{brand} {model}".strip()
-                self.ui.set_device(f"{name}  ·  Android {release}", True)
+                self.ui.set_device(ui_text("device_connected", name=name, release=release), True)
                 self.log(f"Phone detected: {name} (Android {release})")
                 self.done("device", name)
                 return
             if len(states) > 1:
-                hint = "More than one phone/emulator is connected. Keep only one."
+                hint = ui_text("device_one_phone_only")
             elif "unauthorized" in states:
-                hint = "On the phone, tap 'Allow' on the 'Allow USB debugging' prompt."
+                hint = ui_text("device_allow_usb_debugging")
             else:
-                hint = ("Connect the phone with a USB cable and enable USB debugging "
-                        "(Settings > Developer options > USB debugging).")
+                hint = ui_text("device_connect_usb")
             if hint not in hinted:
-                self.log(hint)
+                self.log(f"Waiting for one authorised phone; adb reports {states or 'no device'}")
                 self.ui.set_device(hint, False)
                 hinted.add(hint)
             time.sleep(2)
@@ -422,13 +440,7 @@ class Patcher:
             return
 
         self.log("The game is the official Tencent build.")
-        if not self.ui.ask(
-            "Reinstall required",
-            "The game on this phone uses the official Tencent signature, so it must be reinstalled "
-            "with the patcher signature.\n\nThis DELETES the game data on the phone and the game will "
-            "download its data again (~1.7 GB). Direct WeChat/QQ login will no longer work; use "
-            "'Scan to login' instead.\n\nContinue?",
-        ):
+        if not self.ui.ask(ui_text("reinstall_required_title"), ui_text("reinstall_required")):
             raise PatchError("Cancelled by the user.")
         self.step("apk", "building the patcher-signed APK")
         resigned = self.work / "normal.apk"
@@ -438,11 +450,7 @@ class Patcher:
         self.adb.run("uninstall", PACKAGE, check=False)
         self.log(PLAY_PROTECT_HINT)
         self.adb.install(resigned)
-        self.ui.wait_user(
-            "Download game data",
-            "Open the game on the phone, accept the policies and wait until the data download "
-            "finishes and the login screen appears.\n\nThen CLOSE the game and click OK here.",
-        )
+        self.ui.wait_user(ui_text("download_game_data_title"), ui_text("download_game_data"))
         self.done("apk", "reinstalled")
 
     def build_signed(self, source: Path, target: Path, replacements: dict[str, bytes]) -> None:
@@ -824,7 +832,8 @@ class Patcher:
                 return
             except PatchError as error:
                 self.log(str(error))
-                if attempt < 2 and not self.ui.ask("Retry install?", "Installing the normal game APK failed. Try again?"):
+                if attempt < 2 and not self.ui.ask(ui_text("retry_install_title"), ui_text("retry_install"),
+                                                   danger=False):
                     break
         self.ui.set_step("restore", "error")
         self.current = None

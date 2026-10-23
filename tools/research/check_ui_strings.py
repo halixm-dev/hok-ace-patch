@@ -11,7 +11,7 @@ reads the file and the patchers' sources as text (nothing is imported or built) 
   action key, and a literal with a ``$`` template is composed of checked parts; both are skipped;
 - either patcher looks a key up that the file lacks, or for another platform, or fills placeholders the
   string does not have: ``UiText.string(context, "key", "name" to value)`` and ``template(code, "key", ...)``
-  on Android, ``ui_text("key", name=value)`` on Windows.
+  on Android, ``ui_text("key", name=value)`` on Windows (the GUI and ``patcher_core``).
 
 Text that reaches the screen through a variable (worker progress lines, update-check results, installer
 errors) is not seen here; ``AppUpdateCheckerTest`` and ``InterfaceProbeTest`` cover the ones that matter.
@@ -33,7 +33,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 STRINGS = ROOT / "resources" / "ui" / "strings.json"
 ANDROID = ROOT / "android" / "app" / "src" / "main" / "java"
-WINDOWS = ROOT / "app" / "hok_patcher.py"
+# The GUI and the device workflow, whose dialogs and device hints reach the screen through the GUI.
+WINDOWS = (ROOT / "app" / "hok_patcher.py", ROOT / "app" / "patcher_core.py")
 
 LANGUAGES = ("en", "id")
 PLATFORMS = {"android", "windows"}
@@ -131,13 +132,15 @@ def _check_android(strings: dict) -> list[str]:
 
 
 def _check_windows(strings: dict) -> list[str]:
-    source = WINDOWS.read_text(encoding="utf-8")
     failures = []
-    for match in WINDOWS_LOOKUPS.finditer(source):
-        call = _arguments(source, source.index("(", match.start()) + 1)
-        filled = set(re.findall(r"\b(\w+)\s*=", call))
-        line = source.count("\n", 0, match.start()) + 1
-        failures += _check_lookup(strings, "windows", f"app/hok_patcher.py:{line}", match.group(1), filled)
+    for path in WINDOWS:
+        source = path.read_text(encoding="utf-8")
+        name = path.relative_to(ROOT).as_posix()
+        for match in WINDOWS_LOOKUPS.finditer(source):
+            call = _arguments(source, source.index("(", match.start()) + 1)
+            filled = set(re.findall(r"\b(\w+)\s*=", call))
+            line = source.count("\n", 0, match.start()) + 1
+            failures += _check_lookup(strings, "windows", f"{name}:{line}", match.group(1), filled)
     return failures
 
 

@@ -21,9 +21,10 @@ each run reports what it actually applied and skipped.
 2. Enable **USB debugging** in the phone's Developer options. Connect it to Windows by USB
    and tap **Allow** on the phone's debugging prompt.
 3. Open `dist\HOK ACE Language Patcher.exe`, or [run from source](#run-or-build-from-source).
-4. Choose **LANGUAGE** and a **WORKING FOLDER** with at least 8 GB free. Keep working data
-   outside this repository; the default folder is `HOK ACE Patcher Data` beside the exe.
-5. Click **Start Patch** and follow the installation prompts. Keep the game closed until
+4. In ① **Language**, choose the translation; the interface follows it. In ② choose a
+   **WORKING FOLDER** with at least 8 GB free. Keep working data outside this repository; the
+   default folder is `HOK ACE Patcher Data` beside the exe.
+5. Click **Start** and follow the installation prompts. Keep the game closed until
    the patch finishes and the normal APK is restored.
 6. Open the game and use **Scan to login**. Direct WeChat/QQ login breaks when the APK is re-signed.
 
@@ -37,8 +38,8 @@ and the log says `rebuilt N files from the pristine delta`. Each patcher keeps i
 switch with the patcher that translated the phone last. The Windows patcher can also make a first
 delta from a working folder that still holds the session of an earlier install.
 
-To go back to the untranslated game, use **Remove Translation** (Windows, under Start Patch) or
-**Remove translation** (Android, on the Language card, shown while the patcher keeps a delta). It writes
+To go back to the untranslated game, use **Remove translation**, on the Language card of both
+patchers, shown while the patcher keeps a delta (Windows: in its working folder). It writes
 the original files back the same way an install writes a translation; nothing is downloaded and no
 game data is deleted. The patcher-signed app stays installed, so keep using **Scan to login**; for the
 official app, reinstall the game from the store.
