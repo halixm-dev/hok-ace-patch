@@ -54,10 +54,6 @@ PULL_RECORD = "pull.json"
 LAYER_NAME = re.compile(r"[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*")
 # Characters of file names per `tar` command, well under adb's command length on old devices.
 PULL_BATCH_CHARS = 3000
-CLEAR_DATA = ("Clear the game's data on the phone (Settings > Apps > the game > Storage > Clear data), open "
-              "the game and let it download again to the login screen, close it, then run the patcher again.")
-OTHER_PATCHER = "If the Android patcher patched this phone last, patch it with that patcher instead."
-
 PLAY_PROTECT_HINT = "If Google Play Protect shows a pop-up on the phone, tap 'More details' -> 'Install anyway'."
 
 # (key, label) in display order. The label names the step in the log; the UI shows the shared string
@@ -73,10 +69,6 @@ STEPS = [
 ]
 
 
-class PatchError(Exception):
-    """Expected failure with a message meant for the user."""
-
-
 UI_STRINGS = json.loads((BUNDLE / "ui" / "strings.json").read_text(encoding="utf-8"))["strings"]
 # The language choice in ① also sets the interface language (DESIGN.md, Wording and language).
 _interface_language = languages.DEFAULT_LANGUAGE
@@ -87,12 +79,33 @@ def set_interface_language(code: str) -> None:
     _interface_language = languages.get(code).code
 
 
-def ui_text(key: str, **values: object) -> str:
-    """The shared interface string <key> (resources/ui/strings.json) in the interface language."""
-    text = UI_STRINGS[key][_interface_language]
+def _render(key: str, language: str, values: dict[str, object]) -> str:
+    text = UI_STRINGS[key][language]
     for name, value in values.items():
         text = text.replace("{" + name + "}", str(value))
     return text
+
+
+def ui_text(key: str, **values: object) -> str:
+    """The shared interface string <key> (resources/ui/strings.json) in the interface language."""
+    return _render(key, _interface_language, values)
+
+
+class PatchError(Exception):
+    """Expected failure meant for the user: shared strings <keys>, joined by blank lines.
+
+    ``str()`` is the English text, for the log, which stays raw; ``shown()`` is the interface language.
+    """
+
+    def __init__(self, *keys: str, **values: object) -> None:
+        self.keys, self.values = keys, values
+        super().__init__(self._text("en"))
+
+    def _text(self, language: str) -> str:
+        return "\n\n".join(_render(key, language, self.values) for key in self.keys)
+
+    def shown(self) -> str:
+        return self._text(_interface_language)
 
 
 def default_work_dir() -> Path:
@@ -156,11 +169,10 @@ def check_work_dir(path: Path) -> None:
         probe.write_bytes(b"ok")
         probe.unlink()
     except OSError as error:
-        raise PatchError(f"The working folder cannot be used:\n{path}\n{error}\n\nChoose another folder.") from error
+        raise PatchError("error_work_dir_unusable", path=path, error=error) from error
     free = shutil.disk_usage(path).free
     if free < MIN_FREE_BYTES:
-        raise PatchError(f"Not enough disk space in the working folder ({path}). At least 8 GB free is "
-                         f"needed (currently {free / 1024**3:.1f} GB). Choose a folder on another drive.")
+        raise PatchError("error_work_dir_full", path=path, free=f"{free / 1024**3:.1f}")
 
 
 def parse_device_hashes(output: str) -> dict[str, str] | None:
@@ -230,7 +242,7 @@ class Adb:
                                 errors="replace", creationflags=NO_WINDOW)
         output = (result.stdout + result.stderr).strip()
         if check and result.returncode != 0:
-            raise PatchError(f"adb command failed: adb {' '.join(args)}\n{output}")
+            raise PatchError("error_adb_failed", command=" ".join(args), output=output)
         return output
 
     def shell(self, command: str, check: bool = True) -> str:
@@ -244,15 +256,15 @@ class Adb:
             result = subprocess.run([self.exe, "exec-out", command], stdout=out, stderr=subprocess.PIPE,
                                     creationflags=NO_WINDOW)
         if result.returncode != 0:
-            raise PatchError(f"Could not read data from the phone:\n{result.stderr.decode(errors='replace')}")
+            stderr = result.stderr.decode(errors="replace")
+            raise PatchError("error_read_failed", output=stderr)
 
     def install(self, apk: Path) -> None:
         output = self.run("install", "-r", str(apk), check=False)
         if "Success" not in output:
             if "INSTALL_FAILED_VERIFICATION_FAILURE" in output:
-                raise PatchError("Google Play Protect blocked the install. Try again and on the phone tap "
-                                 "'More details' -> 'Install anyway'.")
-            raise PatchError(f"APK install failed:\n{output}")
+                raise PatchError("error_play_protect_blocked")
+            raise PatchError("error_install_failed", output=output)
 
     @staticmethod
     def kill_server(work: Path) -> None:
@@ -371,9 +383,9 @@ class Patcher:
         output = self.adb.shell(f"pm path {PACKAGE}", check=False)
         paths = [line[len("package:"):].strip() for line in output.splitlines() if line.startswith("package:")]
         if not paths:
-            raise PatchError("HOK ACE (王者万象棋) is not installed on this phone. Install the game first.")
+            raise PatchError("error_game_not_installed")
         if len(paths) > 1:
-            raise PatchError("This game build is installed as split APKs, which the patcher does not support yet.")
+            raise PatchError("error_split_apks")
         return paths[0]
 
     def manifest_to_install(self, manifest: bytes) -> bytes:
@@ -431,8 +443,7 @@ class Patcher:
             self.build_signed(local, clean, {"AndroidManifest.xml": wanted})
             clean.replace(local)
         if self.remove and not mine:
-            raise PatchError("The game on this phone is the official build, which this patcher never "
-                             "translated, so there is nothing to remove.")
+            raise PatchError("error_official_nothing_to_remove")
         if mine:
             self.log("The game uses the patcher-signed APK (signature matches).")
             self.normal_apk = local
@@ -441,7 +452,7 @@ class Patcher:
 
         self.log("The game is the official Tencent build.")
         if not self.ui.ask(ui_text("reinstall_required_title"), ui_text("reinstall_required")):
-            raise PatchError("Cancelled by the user.")
+            raise PatchError("error_cancelled")
         self.step("apk", "building the patcher-signed APK")
         resigned = self.work / "normal.apk"
         self.build_signed(local, resigned, {"AndroidManifest.xml": wanted})
@@ -484,8 +495,7 @@ class Patcher:
         self.step("pull", "~2 GB")
         info = self.adb.shell(f"run-as {PACKAGE} cat files/QtsVFSCache/packages/1/1.info", check=False)
         if '"version"' not in info:
-            raise PatchError("The game data has not been downloaded yet. Open the game, wait for the download to "
-                             "reach the login screen, close the game, then run the patcher again.")
+            raise PatchError("error_game_data_missing")
         self.log(f"Game data version: {info.strip()}")
         self.data_version = info.strip()
         session = self.work / "sessions" / datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -590,8 +600,7 @@ class Patcher:
         try:
             return pristine_delta.read(path)
         except pristine_delta.DeltaError as error:
-            raise PatchError(f"The patcher's record of the untranslated game files is damaged ({error}).\n\n"
-                             + CLEAR_DATA) from error
+            raise PatchError("error_delta_damaged", "clear_game_data", error=error) from error
 
     def restore_pristine(self, session: Path) -> list[str] | None:
         """Rebuild the pristine layer in the session's copy, before anything is built or written.
@@ -610,8 +619,7 @@ class Patcher:
         if delta is None and pending is None:
             if translated:
                 self.log("  this phone holds files this patcher wrote, but no record of their original bytes")
-                raise PatchError("This phone is already translated, and the patcher cannot rebuild its "
-                                 "untranslated game files.\n\n" + CLEAR_DATA)
+                raise PatchError("error_cannot_rebuild", "clear_game_data")
             self.log("  no pristine delta for this phone: building from the files as pulled")
             return None
         report = pristine_delta.rebuild(layer, delta or pending, layer, fallback=pending if delta else None)
@@ -633,8 +641,7 @@ class Patcher:
                 self.log(f"  package {package} cannot be read as untranslated: {reason}")
             if refused:
                 self.log(f"  cannot rebuild from the pristine delta: {len(report.unmatched)} file(s) changed")
-                raise PatchError("The game files changed since the last patch (a game update or repair), so the "
-                                 "patcher cannot rebuild the untranslated files.\n\n" + CLEAR_DATA)
+                raise PatchError("error_files_changed", "clear_game_data")
             # The update's bytes stand as the new pristine; the text pass must still read them as such.
             self.replaced = accepted
             self.log(f"  {len(accepted)} file(s) the game update replaced hold none of this patcher's "
@@ -642,8 +649,7 @@ class Patcher:
         leftover = [name for name in translated if name not in report.rebuilt]
         if leftover:
             self.log(f"  still translated after the rebuild: {', '.join(leftover)}")
-            raise PatchError("Some translated game files are not covered by the patcher's record.\n\n"
-                             + CLEAR_DATA)
+            raise PatchError("error_uncovered_files", "clear_game_data")
         self.log(f"  rebuilt {len(report.rebuilt)} files from the pristine delta"
                  + (f" ({len(report.pristine)} already untranslated)" if report.pristine else ""))
         return report.rebuilt
@@ -654,11 +660,8 @@ class Patcher:
         if reason:
             self.log(f"  not the pristine layer: {reason}")
             if self.replaced:
-                raise PatchError("The game update left some of this patcher's translation in the files it "
-                                 "changed, so the patcher cannot rebuild the untranslated files.\n\n" + CLEAR_DATA)
-            raise PatchError("This phone is already translated (by an older patcher version or another "
-                             "patcher), so the patcher cannot switch or update the translation without its "
-                             "untranslated game files.\n\n" + CLEAR_DATA + "\n\n" + OTHER_PATCHER)
+                raise PatchError("error_update_kept_translation", "clear_game_data")
+            raise PatchError("error_translated_elsewhere", "clear_game_data", "use_other_patcher")
 
     def bootstrap_delta(self, session: Path) -> pristine_delta.Delta | None:
         """Make a first delta from a kept session, so a phone patched before deltas existed needs no clear.
@@ -715,8 +718,7 @@ class Patcher:
         translation on it.
         """
         if restored is None:
-            raise PatchError("This patcher has no record of a translation on this phone, so there is "
-                             "nothing to remove.\n\n" + OTHER_PATCHER)
+            raise PatchError("error_no_record_to_remove", "use_other_patcher")
         self.skip("translate", "removing the translation")
         if not restored:
             self.skip("install", "already untranslated")

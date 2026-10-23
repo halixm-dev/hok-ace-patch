@@ -507,7 +507,7 @@ class App(ctk.CTk):
             note = ui_text("removed_login_note")
         elif kind == "failed":
             stage, heading, detail = ui_text("02_needs_attention"), ui_text("work_stopped"), ui_text("failed_status")
-            self.error_text.configure(text=value or ui_text("unexpected_error"))
+            self.error_text.configure(text=value.shown() if value else ui_text("unexpected_error"))
             self.error_card.grid()
         else:
             stage, heading = ui_text("02_ready_to_play"), ui_text("ready_when_you_are")
@@ -676,7 +676,7 @@ class App(ctk.CTk):
             counts = (text, images, count_untranslated_text(summary), count_untranslated_graphics(summary))
             self.messages.put(("done", ("added", counts)))
         except PatchError as error:
-            self.messages.put(("done", ("failed", str(error))))
+            self.messages.put(("done", ("failed", error)))
         except Exception:
             self.messages.put(("log", traceback.format_exc()))
             self.messages.put(("done", ("failed", None)))
@@ -685,7 +685,7 @@ class App(ctk.CTk):
         self.busy = False
         self.result = (kind, value)
         if kind == "failed":
-            self.log("\nFAILED: " + (value or "unexpected error"))
+            self.log(f"\nFAILED: {value or 'unexpected error'}")
         elif kind == "added":
             self.log("\nSUCCESS: {} text tables and {} images applied, {} text tables and {} images skipped"
                      .format(*value))

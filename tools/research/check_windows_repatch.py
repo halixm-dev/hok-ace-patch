@@ -87,7 +87,7 @@ class FakeAdb:
     def run(self, *args, check=True):
         if args[0] == "push":
             if self.fail_after is not None and len(self.pushed) >= self.fail_after:
-                raise PatchError("cable pulled")
+                raise PatchError("error_adb_failed", command="push", output="cable pulled")
             name = args[2].split("/hokace/", 1)[1]
             self.pushed.append(name)
             (self.phone / name).parent.mkdir(parents=True, exist_ok=True)

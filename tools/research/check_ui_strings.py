@@ -11,7 +11,9 @@ reads the file and the patchers' sources as text (nothing is imported or built) 
   action key, and a literal with a ``$`` template is composed of checked parts; both are skipped;
 - either patcher looks a key up that the file lacks, or for another platform, or fills placeholders the
   string does not have: ``UiText.string(context, "key", "name" to value)`` and ``template(code, "key", ...)``
-  on Android, ``ui_text("key", name=value)`` on Windows (the GUI and ``patcher_core``).
+  on Android, ``ui_text("key", name=value)`` on Windows (the GUI and ``patcher_core``);
+- a Windows ``PatchError(...)`` is raised with anything but keys: ``PatchError("key", "key", name=value)``
+  joins its keys, so together they must have exactly the placeholders it fills.
 
 Text that reaches the screen through a variable (worker progress lines, update-check results, installer
 errors) is not seen here; ``AppUpdateCheckerTest`` and ``InterfaceProbeTest`` cover the ones that matter.
@@ -45,6 +47,7 @@ ANDROID_SINKS = re.compile(r"(?<![\w.])(?:ui|text|button|eyebrow|message|show|te
                            r"\bUiText\.(?:text|progress)\(")
 ANDROID_LOOKUPS = re.compile(r"\b(?:UiText\.string|string|template)\(\s*[^,()]+,\s*\"(\w+)\"")
 WINDOWS_LOOKUPS = re.compile(r"\bui_text\(\s*[\"'](\w+)[\"']")
+WINDOWS_ERRORS = re.compile(r"(?<!class )\bPatchError\(")
 
 
 def _arguments(source: str, start: int) -> str:
@@ -141,6 +144,30 @@ def _check_windows(strings: dict) -> list[str]:
             filled = set(re.findall(r"\b(\w+)\s*=", call))
             line = source.count("\n", 0, match.start()) + 1
             failures += _check_lookup(strings, "windows", f"{name}:{line}", match.group(1), filled)
+        for match in WINDOWS_ERRORS.finditer(source):
+            failures += _check_error(strings, f"{name}:{source.count(chr(10), 0, match.start()) + 1}",
+                                     _arguments(source, match.end()))
+    return failures
+
+
+def _check_error(strings: dict, where: str, call: str) -> list[str]:
+    """A PatchError raised as one or more keys, then the values of their placeholders."""
+    positional = re.split(r"\b\w+\s*=", call, maxsplit=1)[0]
+    keys = re.findall(r"[\"'](\w+)[\"']", positional)
+    if not keys or re.sub(r"[\"']\w+[\"']|[\s,]", "", positional):
+        return [f"{where}: PatchError is raised with text, not keys from the strings file"]
+    failures, wanted = [], set()
+    for key in keys:
+        entry = strings.get(key)
+        if entry is None:
+            failures.append(f"{where}: key {key!r} is not in the strings file")
+            continue
+        if "windows" not in entry.get("platforms", []):
+            failures.append(f"{where}: key {key!r} is not marked for windows")
+        wanted |= set(PLACEHOLDER.findall(entry["en"]))
+    filled = set(re.findall(r"\b(\w+)\s*=", call))
+    if not failures and filled != wanted:
+        failures.append(f"{where}: PatchError{tuple(keys)} fills {sorted(filled)}, the strings have {sorted(wanted)}")
     return failures
 
 

@@ -1901,6 +1901,166 @@
       ],
       "en": "Text tables applied: {text_tables}\nImages applied: {applied_textures}\nText tables skipped: {skipped_tables}\nImages skipped: {skipped_textures}",
       "id": "Tabel teks diterapkan: {text_tables}\nGambar diterapkan: {applied_textures}\nTabel teks dilewati: {skipped_tables}\nGambar dilewati: {skipped_textures}"
+    },
+    "clear_game_data": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Clear the game's data on the phone (Settings > Apps > the game > Storage > Clear data), open the game and let it download again to the login screen, close it, then run the patcher again.",
+      "id": "Hapus data game di ponsel (Setelan > Aplikasi > game > Penyimpanan > Hapus data), buka game dan biarkan mengunduh lagi sampai layar login, tutup game, lalu jalankan patcher lagi.",
+      "draft": true
+    },
+    "use_other_patcher": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "If the Android patcher patched this phone last, patch it with that patcher instead.",
+      "id": "Jika patcher Android yang terakhir mem-patch ponsel ini, gunakan patcher itu untuk mem-patch-nya.",
+      "draft": true
+    },
+    "error_work_dir_unusable": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The working folder cannot be used:\n{path}\n{error}\n\nChoose another folder.",
+      "id": "Folder kerja tidak dapat digunakan:\n{path}\n{error}\n\nPilih folder lain.",
+      "draft": true
+    },
+    "error_work_dir_full": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Not enough disk space in the working folder ({path}). At least 8 GB free is needed (currently {free} GB). Choose a folder on another drive.",
+      "id": "Ruang disk di folder kerja tidak cukup ({path}). Diperlukan minimal 8 GB kosong (saat ini {free} GB). Pilih folder di drive lain.",
+      "draft": true
+    },
+    "error_adb_failed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "adb command failed: adb {command}\n{output}",
+      "id": "Perintah adb gagal: adb {command}\n{output}",
+      "draft": true
+    },
+    "error_read_failed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Could not read data from the phone:\n{output}",
+      "id": "Tidak dapat membaca data dari ponsel:\n{output}",
+      "draft": true
+    },
+    "error_play_protect_blocked": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Google Play Protect blocked the install. Try again and on the phone tap 'More details' -> 'Install anyway'.",
+      "id": "Google Play Protect memblokir pemasangan. Coba lagi, lalu di ponsel ketuk 'Detail lainnya' -> 'Tetap instal'.",
+      "draft": true
+    },
+    "error_install_failed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "APK install failed:\n{output}",
+      "id": "Pemasangan APK gagal:\n{output}",
+      "draft": true
+    },
+    "error_game_not_installed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "HOK ACE (王者万象棋) is not installed on this phone. Install the game first.",
+      "id": "HOK ACE (王者万象棋) belum terpasang di ponsel ini. Pasang game terlebih dahulu.",
+      "draft": true
+    },
+    "error_split_apks": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "This game build is installed as split APKs, which the patcher does not support yet.",
+      "id": "Build game ini terpasang sebagai split APK, yang belum didukung patcher.",
+      "draft": true
+    },
+    "error_official_nothing_to_remove": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The game on this phone is the official build, which this patcher never translated, so there is nothing to remove.",
+      "id": "Game di ponsel ini adalah build resmi, yang tidak pernah diterjemahkan patcher ini, jadi tidak ada yang perlu dihapus.",
+      "draft": true
+    },
+    "error_cancelled": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Cancelled by the user.",
+      "id": "Dibatalkan oleh pengguna.",
+      "draft": true
+    },
+    "error_game_data_missing": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The game data has not been downloaded yet. Open the game, wait for the download to reach the login screen, close the game, then run the patcher again.",
+      "id": "Data game belum diunduh. Buka game, tunggu unduhan sampai layar login, tutup game, lalu jalankan patcher lagi.",
+      "draft": true
+    },
+    "error_delta_damaged": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The patcher's record of the untranslated game files is damaged ({error}).",
+      "id": "Catatan patcher tentang file game yang belum diterjemahkan rusak ({error}).",
+      "draft": true
+    },
+    "error_cannot_rebuild": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "This phone is already translated, and the patcher cannot rebuild its untranslated game files.",
+      "id": "Ponsel ini sudah diterjemahkan, dan patcher tidak dapat membangun ulang file game yang belum diterjemahkan.",
+      "draft": true
+    },
+    "error_files_changed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The game files changed since the last patch (a game update or repair), so the patcher cannot rebuild the untranslated files.",
+      "id": "File game berubah sejak patch terakhir (pembaruan atau perbaikan game), sehingga patcher tidak dapat membangun ulang file yang belum diterjemahkan.",
+      "draft": true
+    },
+    "error_uncovered_files": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Some translated game files are not covered by the patcher's record.",
+      "id": "Sebagian file game yang diterjemahkan tidak tercakup dalam catatan patcher.",
+      "draft": true
+    },
+    "error_update_kept_translation": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The game update left some of this patcher's translation in the files it changed, so the patcher cannot rebuild the untranslated files.",
+      "id": "Pembaruan game menyisakan sebagian terjemahan patcher ini di file yang diubahnya, sehingga patcher tidak dapat membangun ulang file yang belum diterjemahkan.",
+      "draft": true
+    },
+    "error_translated_elsewhere": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "This phone is already translated (by an older patcher version or another patcher), so the patcher cannot switch or update the translation without its untranslated game files.",
+      "id": "Ponsel ini sudah diterjemahkan (oleh versi patcher lama atau patcher lain), sehingga patcher tidak dapat mengganti atau memperbarui terjemahan tanpa file game yang belum diterjemahkan.",
+      "draft": true
+    },
+    "error_no_record_to_remove": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "This patcher has no record of a translation on this phone, so there is nothing to remove.",
+      "id": "Patcher ini tidak punya catatan terjemahan di ponsel ini, jadi tidak ada yang perlu dihapus.",
+      "draft": true
     }
   }
 }

@@ -63,7 +63,7 @@ Read it before editing the pipeline, and change it in the same edit as the code;
 
 ## Code style
 
-Module docstring, `from __future__ import annotations`, type hints, `pathlib.Path`. Constants `UPPER_CASE` at module level. Private helpers `_name`. User-facing failures raise `PatchError`.
+Module docstring, `from __future__ import annotations`, type hints, `pathlib.Path`. Constants `UPPER_CASE` at module level. Private helpers `_name`. User-facing failures raise `PatchError`; in `patcher_core` it takes keys from `resources/ui/strings.json`, never text.
 
 ## Constraints
 
