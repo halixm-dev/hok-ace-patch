@@ -12,6 +12,8 @@
 
 **Status:** ready-for-agent
 
+**Device test:** not requested
+
 - [ ] Client ported, builds at `minSdk 30` for every shipped ABI; APK size change recorded
 - [ ] Pairing by notification reply works on an emulator
 - [ ] Worker starts as uid 2000 over ADB; the rest of the run is unchanged

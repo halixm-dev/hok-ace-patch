@@ -4239,3 +4239,20 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
 - **Not checked:** re-login and scene changes beyond the match, chat (`TalkHelper` tunes punctuation runs for
   the flag-on generator), Chinese that the catalog leaves untranslated (it loses the line-start rules), and
   Indonesian (`out-fix-catalog_id`, built and read back only).
+
+## 2026-10-23 — Shell providers: the test phone's starting state
+
+- **Phone:** Redmi Note 9 Pro (`ebad528e`, joyeuse, arm64-v8a), PixelAge custom ROM on Android 15 (SDK 35),
+  kernel `4.14.357-openela-kinesis-omega-r8.0`. SELinux enforcing.
+- **Root:** KernelSU, `ksud 3.3.0-55`. `su` is exposed only to apps granted in its Superuser list; with Shell
+  granted, `adb shell su -c id` reports `uid=0 context=u:r:ksu:s0`.
+- **Game:** `com.tencent.tmgp.osgame` 1.1.1 (`versionCode 774472`), uid 10246, already re-signed by the
+  patcher; data `1.7.0.2` revision `0`. Package files are owned by `u0_a246` and labelled
+  `u:object_r:app_data_file:s0:c246,c256,c512,c768` (the label a root write must end with).
+- **Patcher:** `dev.halixm.hokacepatcher` 1.7.2.1, with a pristine delta (`files/pristine/delta.bin`). Its last
+  run ended in `PatchError`: the update stopped on translated files in package `1` (324 assets).
+- **Shizuku:** 13.6.0.r1086 installed, not running. Wi-Fi connected; wireless debugging on.
+- **Baseline backup:** `packages` (2.9 GB) and `Watchdog` streamed with `su -c tar` to
+  `D:\hokace-work\redmi-ebad528e\baseline-2026-10-23.tar` (3 147 747 328 bytes, 1178 entries). It is the
+  rollback for every shell-provider cycle on this phone.
+- **Not measurable here:** WeChat/QQ direct login under root, since the game is already re-signed.

@@ -12,6 +12,8 @@
 
 **Status:** ready-for-agent
 
+**Device test:** not requested
+
 - [ ] Picker, persistence and log header, with unit tests
 - [ ] Starter seam: Shizuku is one implementation, behaviour unchanged
 - [ ] Rooted-Shizuku refusal

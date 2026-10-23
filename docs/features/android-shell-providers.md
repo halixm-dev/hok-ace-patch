@@ -20,7 +20,7 @@ measured on a phone yet, and no coverage count moves.
 - Feasibility read of the code: the worker needs only a shell process, and `ShellServiceStarter` already
   starts it without Shizuku, so any provider that can run one shell command can start it — settled by
   reading, not measured (2026-10-22).
-- Grilling rounds 1–3 settled the design (2026-10-22).
+- Grilling rounds 1–3 settled the design (2026-10-22). Round 4 kept the six progress steps under root (two skipped), put KernelSU first and set the device-test handshake (2026-10-23).
 
 ## [S1] Problem
 

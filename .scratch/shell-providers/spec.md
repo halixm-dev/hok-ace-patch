@@ -2,7 +2,7 @@
 
 Status: needs-triage
 
-Tickets: [`issues/`](issues/) 01–04. Settled through grilling rounds 1–3 (2026-10-22). Decision record: [ADR 0007](../../docs/adr/0007-on-a-rooted-phone-write-the-override-layer-directly.md).
+Tickets: [`issues/`](issues/) 01–04. Settled through grilling rounds 1–3 (2026-10-22) and round 4 (2026-10-23: the progress steps under root, KernelSU first, the device-test handshake). Decision record: [ADR 0007](../../docs/adr/0007-on-a-rooted-phone-write-the-override-layer-directly.md).
 
 ## Problem
 
@@ -43,7 +43,8 @@ The user picks a **shell provider** on the home screen: Shizuku, Wireless debugg
 - **Start:** `su -c` runs the same `app_process` command `ShellServiceStarter` uses today; the worker runs as uid 0.
 - **One worker:** `PrivilegedDeviceService` stays the only worker class. It reads its uid at start: 2000 takes today's path, 0 takes the root path, anything else is refused. Snapshot, pristine delta, verification and the applied-layer audit are shared.
 - **Root path:** no APK is prepared, installed or reinstalled; whatever is installed stays. The worker force-stops the game, writes each package file directly, then gives it the game's owner and SELinux label. A phone first patched through root keeps the game's signature, so WeChat/QQ direct login keeps working, and keeps the game's own launcher name.
-- **Root managers:** any `su` whose `su -c id` reports uid 0 is accepted. The guide marks a manager *tested* only once it has passed a device cycle; Magisk first, then KernelSU and APatch.
+- **Root managers:** any `su` whose `su -c id` reports uid 0 is accepted. The guide marks a manager *tested* only once it has passed a device cycle; KernelSU first (the test phone runs it), then Magisk and APatch.
+- **Progress steps:** the six steps stay one list for every provider. Under root, *Unlock access* and *Restore game app* show as skipped, with a reason saying Root does not need them.
 - **Anti-cheat:** hiding root from the game is the user's job. The patcher never touches it; the guide says so in one line.
 
 ### Shared by all providers
@@ -61,7 +62,7 @@ Wireless debugging first, then root. Both ship together in one early-testing rel
 Unit tests sit beside the existing ones in `android/app/src/test/` (provider choice persistence, uid dispatch, string selection); device proof follows [device-cycle](../../docs/runbooks/device-cycle.md) and lands in the lab notebook. Measured on a phone, never assumed:
 
 - Wireless: pairing by notification reply on at least two OEMs; a run with the screen off; wireless debugging switched off mid-run (expect worker-loss recovery).
-- Root: whether files written as uid 0 need an explicit `chown` and `restorecon` before the game reads them; a full patch, a repatch and a restore on Magisk; Shizuku-then-root and root-then-Shizuku on one phone, sharing one pristine delta.
+- Root: whether files written as uid 0 need an explicit `chown` and `restorecon` before the game reads them; a full patch, a repatch and a restore on KernelSU; Shizuku-then-root and root-then-Shizuku on one phone, sharing one pristine delta.
 - Build: Conscrypt and the ported client build at `minSdk 30` for every shipped ABI; the size each adds.
 
 ## Out of Scope
@@ -72,6 +73,8 @@ Unit tests sit beside the existing ones in `android/app/src/test/` (provider cho
 - Restoring the game's original signature on a phone that already has a re-signed normal APK.
 - The Windows patcher, which keeps its USB ADB connection.
 
-## Open questions
+## Device testing
 
-- What the six progress steps show under root, where *Unlock access* and *Restore game app* have nothing to do: skipped with a reason, or the step list shortened for that provider.
+Each ticket that ships code carries a `Device test:` line beside `Status:`. The implementing session sets `Device test: requested` in the commit that finishes the ticket and starts no further ticket. A test session watches `master`, runs the unit tests, the instrumented probes and an end-to-end run on the phone, and commits `Device test: pass <sha>` or `Device test: fail <sha>` with a `## Device findings` section. On fail the implementing session fixes and requests again. The test session writes only `.scratch/shell-providers/` and `docs/lab-notebook.md`, plus probe tests in `android/app/src/androidTest/`.
+
+Test phone: Redmi Note 9 Pro (`ebad528e`), KernelSU, its game already re-signed. Device order: 01, then wireless debugging, then root, then the cross-provider runs. WeChat/QQ direct login under root cannot be measured on it.
