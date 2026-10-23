@@ -40,7 +40,7 @@ Steps 2 and 3 below are done; the evidence is in the lab notebook ("Latin line b
 - Lever 3 (Lua builds a TextAsset and reloads only the number set) is out: `TextAsset` has no constructor in
   this build.
 
-## Device cycle, 2026-10-23: pass
+## Device cycle, 2026-10-23: partial
 
 The probe (`probe/`) ran on the M2007J3SG with data 1.7.0.2; the evidence is in `probe/evidence/` and the lab
 notebook ("Device cycle: the Latin line-break probe").
@@ -49,18 +49,25 @@ notebook ("Device cycle: the Latin line-break probe").
 - `CS.UnityEngine.TextRendering.SetFlag(false)` is reachable from xLua and returns without error. After it, the
   same sentence wraps at spaces, and every card description on Card > All wraps between words.
 
+- **The flag comes back on within the session.** The Encyclopedia, and then the Card screen reopened, break
+  words again. One call at the first rank title does not hold. The setter is not in Lua and not in the
+  text-rendering icalls.
+
 ## Next steps
 
-1. **Turn lever 1 into a real edit.** A `SCRIPT_EDITS` entry calls `CS.UnityEngine.TextRendering.SetFlag(false)`,
+1. **Find when the flag flips (probe v2).** Each time a UI prefab opens, lay out the sample to read the flag
+   (mid-word breaks mean on), log it with the prefab's name, then call `SetFlag(false)`. The log shows which
+   screen or event turns it back on, and the screens show whether re-applying on every open is enough.
+2. **Turn lever 1 into a real edit.** A `SCRIPT_EDITS` entry calls `CS.UnityEngine.TextRendering.SetFlag(false)`,
    inside a `pcall`, in a script that runs early. It must run before the first wrapped English text and
    after whatever turns the flag on. The probe hook (`vGetRankTitle`) runs too late: the lobby never calls it.
    Also, decide whether lever 2 (`NumberCharacters`) is still worth building to keep line-start rules for the
    Chinese that remains.
-2. **Check what flag-off costs**, in its own cycle:
+3. **Check what flag-off costs**, in its own cycle:
    - Chinese strings the catalog leaves untranslated (no line-start rules for punctuation).
    - Chat. `TalkHelper` clamps punctuation runs for the flag-on generator; check that nothing it measures now
      disagrees.
    - Indonesian.
    - Whether the flag comes back on later in a session (battle, scene change, re-login).
-3. **Record coverage.** Adding the edit moves the Lua-edit count in `AGENTS.md` ("one Lua format edit") and in
+4. **Record coverage.** Adding the edit moves the Lua-edit count in `AGENTS.md` ("one Lua format edit") and in
    `docs/translation-progress.md`.

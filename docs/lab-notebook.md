@@ -4140,7 +4140,7 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
 
 **No device verdict yet.**
 
-## 2026-10-23 — Device cycle: the Latin line-break probe (`SetFlag(false)` from Lua) — pass
+## 2026-10-23 — Device cycle: the Latin line-break probe (`SetFlag(false)` from Lua) — partial
 
 - **Setup:** Xiaomi M2007J3SG, data `1.7.0.2` revision `0` (`packages/1/1.info`), APK SHA-256 `29b3ee7e…`
   (the cached `installed.apk`, launcher already `Honor of Kings: ACE`). The phone held an English patch from
@@ -4169,3 +4169,14 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   - Chat, which TalkHelper tunes for the flag-on generator.
   - Indonesian.
   - Whether a later scene sets the flag on again. The probe ran once, before the Card screen.
+- **Later in the same session the flag is on again** (user report, then screenshots
+  `probe/evidence/encyclopedia-effect.jpg`, `encyclopedia-hero.jpg`, `card-screen-reopened.jpg`):
+  - Encyclopedia > Effect Card breaks mid-word ("+3 lev / els", "effect ite / ms").
+  - Encyclopedia > Hero Card breaks the same Su Lie text the Card screen had wrapped whole
+    ("Su Lie's Level pe / rmanently +2.").
+  - Reopening Card > All breaks it too ("Ancient Coi / n", "Free refres / h").
+  - So something turns the flag back on during a session, after the probe's single `SetFlag(false)`.
+- **No setter was found.** It is not in the 1.7.0.2 Lua (override layer and APK: only TalkHelper's comments).
+  None of the 66 text-rendering icalls writes the flag byte or calls slot 11.
+- **Verdict: partial.** `SetFlag(false)` works and is reachable, but a single call does not hold for the
+  session. A fix has to re-apply it, or find and answer the setter.
