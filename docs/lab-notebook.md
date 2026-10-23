@@ -4041,3 +4041,27 @@ phone precedes the update, so the patcher has no moment to write it (ticket 07 d
   changed (base packages `0`–`30` among them). The 80 absent packages (`10001`, `1010010090`…, `1020001004`…)
   are listed in `NewVersionInfo.json`'s `subidFilesizePtr`: downloaded on demand and not yet fetched since the
   clear. A patch built from this snapshot sees only the 208 present packages.
+
+## 2026-10-23 — One Re-download takes a stuck package and the mixed ones together (Round A repeated) — pass
+
+Round A again, with the debug Android patcher built from `48f10fa` (`plan_redownload` in one run): code 73,
+SHA-256 `58b6801c…f10f`, signed with the private key and lineage, installed over 1.7.1.3 in place; the
+packaged `android_bridge.pyc` equals a fresh compile of the source. Xiaomi M2007J3SG, game 1.1.1 / 774472.
+Captures in `D:\scratch\hok-update-cycle-2\<label>`; the patcher's `trace.log` is saved in
+`after-redownload` and `after-repatch`.
+
+| Step | Finding | Grade |
+|---|---|---|
+| `push` | The phone held pristine 1.7.0.2 (equal to `20261023-1.7.0.2`). Pristine 1.6.0.1 (`20261016-101124`) pushed: all 549 package files equal `snapshot.json` | measured |
+| `after-patch` | The patcher patched over the stale delta: 11 files in `1`, `10`, `1050016095`, `15`, `19`, `20`, `21`; `BrokenList.db` empty | measured |
+| `after-update` | The game updated 1.6.0.1 → 1.7.0.2 (`1.info`) by itself and, unlike Round A, did not show "资源修复失败": its scan at the next start (19:24) counted 0 broken files. `BrokenList.db` still names 50 assets of package `1` (kind 6 records at 19:21:33). `1`, `10`, `15`, `19`, `20`, `21` were merged around the translation: none of their `.db` files equals pristine 1.7.0.2 | measured |
+| Start | Refused before any write: "The game's update stopped on translated files: package 1 (50 assets)", with Re-download damaged files | measured |
+| Re-download | `plan_redownload` 38 s; deleted `1`, `10`, `21`, all 9 files, in one run (`"redownloaded":9,"packages":3`); Round A's build deleted `1` alone. The game then removed and downloaded the three whole (19:43:04–19:43:33); `1.db` equals pristine 1.7.0.2 | measured |
+| `after-finish` | Game opened to the login screen and closed: `needDownloadSize` 0, `BrokenList.db` empty, scan 0 broken files | measured |
+| `after-repatch` | Start patched English with no `UPDATE_MIXED` and no clear; asset restore wrote back `15`, `19`, `20` ("which a game update kept partly translated"). Counts: 390 text tables, 398 textures applied, 1 table and 0 textures skipped; a new 14-file pristine delta. 9 files changed in `1`, `10`, `15`, `19`, `20`, `21` | measured |
+| In game | The user checked the game reads English after Scan to login, and the login survived the repatch | measured (user) |
+
+**Verdict:** pass. One Re-download takes the stuck package and the mixed packages restore cannot take
+(`1`, `10`, `21`), where Round A needed two. The stuck-update refusal also fires when the game itself did not
+stop: its broken list named package `1` although its own scan found nothing. Recovery from an update over a
+translated layer is now one Re-download, one game start and one Start, with no clear.

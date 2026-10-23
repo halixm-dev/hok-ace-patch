@@ -1,6 +1,6 @@
 ---
 feature: update-stuck-redownload
-status: built, device-tested in two runs; the one-run plan offline only
+status: built, device-tested (one-run plan on a phone 2026-10-23)
 updated: 2026-10-23
 branch: master
 ---
@@ -25,8 +25,9 @@ The recipe was measured by hand on the user's phone (lab notebook, 2026-10-22, "
 translated files, and Re-download"), and the patcher's own runs passed on a phone on 2026-10-23 (lab
 notebook, "An update over a patched layer, captured end to end"): a stuck update on package `1`, then a
 Start refusing `10` and `21` as mixed, each re-downloaded, and Start then patched without a clear. Since
-then one Re-download takes both: the stuck packages and the mixed ones asset restore cannot take. The
-Windows patcher does not detect a stuck update.
+then one Re-download takes both: the stuck packages and the mixed ones asset restore cannot take, which
+passed on a phone the same day (lab notebook, "One Re-download takes a stuck package and the mixed ones
+together"). The Windows patcher does not detect a stuck update.
 
 | what landed | where |
 |---|---|
@@ -85,7 +86,10 @@ ticket 07 dropped it: nothing on the phone precedes an update).
   plan refuses as there is nothing to re-download.
 - Device runs (2026-10-23, Xiaomi M2007J3SG, patcher 1.7.1.3): Re-download of a stuck package `1`, the game
   downloaded it and finished; Re-download of mixed `10` and `21` after the update had finished, the game
-  downloaded them too; Start then patched. That build planned the two runs apart; the one-run plan in the
-  next item has not run on a phone.
+  downloaded them too; Start then patched. That build planned the two runs apart.
 - `tools/research/check_update_redownload.py` on that phone's captured layers: over the stuck layer the plan
   names `1`, `10`, `21` in one run; over the finished layer, `10`, `21`, as the phone did.
+- Device run of the one-run plan (2026-10-23, same phone, debug build of `48f10fa`, update 1.6.0.1 → 1.7.0.2
+  over an English install): Start refused the stuck package `1` (50 assets); one Re-download deleted `1`, `10`
+  and `21` (9 files); the game downloaded them and reached the login screen; Start patched English with asset
+  restore for `15`, `19`, `20`, no refusal and no clear; the game reads English and the login survived.

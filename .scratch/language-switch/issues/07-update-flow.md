@@ -20,7 +20,7 @@
       `tools/research/check_update_repatch.py` on the real 1.6.0.1 packages with faked updates.
 - [x] Device cycle at a real update: update finishes, repatch succeeds, no clear, login kept (Android
       patcher, 2026-10-23: no clear, the login screen reached, and the user checked the game reads Indonesian;
-      that the login itself survived is not recorded)
+      the repeat the same day kept the login after the repatch)
 - [x] One Re-download for a stuck update: it also takes the mixed packages restore cannot
       (`plan_redownload`; `tools/research/check_update_redownload.py` on the captured phone states)
 
@@ -39,7 +39,9 @@ owner chose the after-update path: the Android patcher's Re-download (stuck pack
 (mixed packages) already recover without a clear, measured on the phone. What changed here:
 `plan_redownload` takes the stuck packages and the mixed packages restore cannot take in one run, where
 the phone needed two (`1`, then `10` and `21`). Checked offline against the real captures:
-`after-update` plans `1`, `10`, `21`; `after-finish` plans `10`, `21`, as the phone did. The one-run
-Re-download itself is not yet run on a phone. The Windows patcher still does not detect a stuck update;
+`after-update` plans `1`, `10`, `21`; `after-finish` plans `10`, `21`, as the phone did. On a phone the
+same day (Round A repeated, update 1.6.0.1 → 1.7.0.2) one Re-download deleted `1`, `10` and `21`, and Start
+then patched with no refusal (lab notebook, "One Re-download takes a stuck package and the mixed ones
+together"). The Windows patcher still does not detect a stuck update;
 the spec owner's choice leaves that side as it was (Re-download is Android-only).
 Done.
