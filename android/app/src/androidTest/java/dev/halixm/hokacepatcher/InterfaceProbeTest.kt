@@ -175,7 +175,7 @@ class InterfaceProbeTest {
                             home.result(UiText.result(code, state)!!, "Start")
                             val texts = shownTexts(card)
                             assertTrue("$code: $heading in $texts", heading in texts)
-                            assertEquals(UiText.translate(code, "02  /  DONE"), eyebrow.text.toString())
+                            assertEquals(UiText.translate(code, "03  /  DONE"), eyebrow.text.toString())
                             // A result that leaves the game ready leads with Open game; Space freed keeps Start alone.
                             val primary = view.findViewWithTag<TextView>("next-step")
                             val again = view.findViewWithTag<TextView>("start-again")
@@ -209,11 +209,11 @@ class InterfaceProbeTest {
                         // Any other state clears the counts; the eyebrow names the state, never "READY TO PLAY" on a failure.
                         home.show("Ready when you are", "Tap Start.", "Start", "start", true)
                         assertEquals(View.GONE, items.visibility)
-                        assertEquals(UiText.translate(code, "02  /  READY TO PLAY"), eyebrow.text.toString())
-                        home.show("Start Shizuku", "Tap Open Shizuku.", "Open Shizuku", "start", false, GuidedHome.Stage.SHIZUKU)
-                        assertEquals(UiText.translate(code, "02  /  NEEDS SHIZUKU"), eyebrow.text.toString())
+                        assertEquals(UiText.translate(code, "03  /  READY TO PLAY"), eyebrow.text.toString())
+                        home.show("Start Shizuku", "Tap Open Shizuku.", "Open Shizuku", "start", false, GuidedHome.Stage.ACCESS)
+                        assertEquals(UiText.translate(code, "03  /  NEEDS ACCESS"), eyebrow.text.toString())
                         home.show("Work stopped", "Tap Try again.", "Try again", "start", true, GuidedHome.Stage.ATTENTION)
-                        assertEquals(UiText.translate(code, "02  /  NEEDS ATTENTION"), eyebrow.text.toString())
+                        assertEquals(UiText.translate(code, "03  /  NEEDS ATTENTION"), eyebrow.text.toString())
                         // One Save log for help: the recovery group's steps aside while the error card shows.
                         val recoveryExport = view.findViewWithTag<View>("export-log")
                         assertEquals(View.VISIBLE, recoveryExport.visibility)

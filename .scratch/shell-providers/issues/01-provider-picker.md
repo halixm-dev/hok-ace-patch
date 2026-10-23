@@ -12,9 +12,15 @@
 
 **Status:** ready-for-agent
 
-**Device test:** not requested
+**Device test:** requested
 
-- [ ] Picker, persistence and log header, with unit tests
-- [ ] Starter seam: Shizuku is one implementation, behaviour unchanged
-- [ ] Rooted-Shizuku refusal
-- [ ] `tools/research/check_ui_strings.py` passes
+- [x] Picker, persistence and log header, with unit tests
+- [x] Starter seam: Shizuku is one implementation, behaviour unchanged
+- [x] Rooted-Shizuku refusal
+- [x] `tools/research/check_ui_strings.py` passes
+
+## Comments
+
+**Implementation (2026-10-24).** `ShellProvider` holds the choice (shared preferences `shell-provider`, Shizuku when nothing is saved) and `WorkerAccess` the worker's uid dispatch. `WorkerDeviceConnection` now takes a `WorkerStarter`; `ShizukuWorkerStarter` is today's two-path Shizuku start, moved unchanged, plus the refusal of a Shizuku server whose uid is 0. Wireless debugging and Root are `available = false` until 02 and 03: their guide says so, and Start and the worker refuse them. The home screen gains ② Shell provider; Start becomes ③ (`03  /  …` eyebrows, `NEEDS SHIZUKU` is now `NEEDS ACCESS`). The diagnostic export's second line is `Shell provider: <key>`. Unit tests: `ShellProviderTest`. The instrumented build was broken at HEAD (`DiagnosticLogExportProbeTest` calls a Kotlin default-argument constructor from Java); `@JvmOverloads` fixes it.
+
+What to check on the phone: the picker persists across an app restart and locks while a run is in progress; Shizuku patch end to end unchanged (`WorkerBindingProbeTest`, `InterfaceProbeTest`); choosing Wireless debugging or Root shows the placeholder guide and Start refuses; Shizuku started with root shows the refusal; an exported log names the provider.

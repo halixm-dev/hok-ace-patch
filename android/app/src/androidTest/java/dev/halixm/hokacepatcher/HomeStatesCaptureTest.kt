@@ -30,10 +30,10 @@ class HomeStatesCaptureTest {
             home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
         },
         "install-shizuku" to { home, _ ->
-            home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", false, GuidedHome.Stage.SHIZUKU)
+            home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", false, GuidedHome.Stage.ACCESS)
         },
         "start-shizuku" to { home, _ ->
-            home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", false, GuidedHome.Stage.SHIZUKU)
+            home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", false, GuidedHome.Stage.ACCESS)
         },
         "running" to { home, activity ->
             val step = UiText.step(PatchLanguage.current(activity), JSONObject().put("status", "running")

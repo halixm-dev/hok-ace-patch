@@ -1,40 +1,41 @@
 package dev.halixm.hokacepatcher
 
-import android.content.ComponentName
 import android.content.Context
-import android.content.ServiceConnection
-import android.content.pm.PackageManager
 import android.os.Binder
-import android.os.Build
 import android.os.IBinder
-import java.lang.reflect.InvocationTargetException
+import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import java.util.UUID
-import rikka.shizuku.Shizuku
-import rikka.shizuku.ShizukuRemoteProcess
 
 /**
  * The foreground worker owns its binding independently of activity recreation.
  *
- * It asks Shizuku for a user service first. Some ROMs crash inside Shizuku's starter before the service
- * class loads (see [ShellServiceStarter]), and nothing reports that back: the binder simply never comes.
- * After [SHIZUKU_SECONDS] the connection also starts the worker itself through Shizuku's shell-process
- * API, takes whichever binder arrives first, and remembers per phone and Shizuku build that the second
- * path was the one that worked, so later runs start there.
+ * A [WorkerStarter], one per [ShellProvider], starts the worker; this connection takes the first binder
+ * it delivers, watches it for death, and reports a loss once through <lost>. Any starter that can run
+ * one shell command can use [WorkerLink.ownCommand], which starts [ShellServiceStarter] with this APK as
+ * its class path and a one-time token for [WorkerBinderProvider].
  */
-class WorkerDeviceConnection(context: Context, private val lost: () -> Unit) : AutoCloseable {
-    private companion object {
+class WorkerDeviceConnection(context: Context, private val starter: WorkerStarter,
+                             private val lost: () -> Unit) : AutoCloseable, WorkerLink {
+    companion object {
         // A cold app_process start of this APK on a slow phone; a delivered binder returns at once.
         const val CONNECT_SECONDS = 45L
-        const val SHIZUKU_SECONDS = 10L
-        const val SHIZUKU_APP = "moe.shizuku.privileged.api"
-        const val PREFERENCES = "worker-starter"
-        const val OUTPUT_LINES = 200
+        private const val OUTPUT_LINES = 200
+
+        /** The connection for <provider>; a provider this build cannot start is refused here. */
+        fun open(context: Context, provider: ShellProvider, lost: () -> Unit): WorkerDeviceConnection {
+            DiagnosticTrace.event("connection", "Shell provider ${provider.key}")
+            check(provider.available) { "${provider.label} is not available in this build" }
+            val starter = when (provider) {
+                ShellProvider.SHIZUKU -> ShizukuWorkerStarter(context)
+                ShellProvider.WIRELESS, ShellProvider.ROOT -> error("${provider.label} has no worker starter")
+            }
+            return WorkerDeviceConnection(context, starter, lost)
+        }
     }
     private val appContext = context.applicationContext
-    private val packages = appContext.packageManager
     private val bindStarted = android.os.SystemClock.elapsedRealtime()
     private val service = AtomicReference<IPrivilegedDeviceService?>(null)
     private val connected = CountDownLatch(1)
@@ -44,21 +45,15 @@ class WorkerDeviceConnection(context: Context, private val lost: () -> Unit) : A
     private var binder: IBinder? = null
     private var recipient: IBinder.DeathRecipient? = null
     private var via: String? = null
-    private var bound = false
-    private var process: ShizukuRemoteProcess? = null
     // Held for the connection's lifetime: the shell starter exits when this binder dies.
     private val client = Binder()
-    private val tag = "hokace-worker-${UUID.randomUUID()}"
+    override val tag = "hokace-worker-${UUID.randomUUID()}"
     private val token = UUID.randomUUID().toString()
-    private val args = Shizuku.UserServiceArgs(ComponentName(context, PrivilegedDeviceService::class.java))
-        .daemon(false).processNameSuffix("worker").tag(tag)
-        .version(PrivilegedDeviceService.PROTOCOL_VERSION)
-    private val death = Shizuku.OnBinderDeadListener { disconnected("Shizuku server disconnected") }
 
-    private fun elapsed() = android.os.SystemClock.elapsedRealtime() - bindStarted
+    override fun elapsed() = android.os.SystemClock.elapsedRealtime() - bindStarted
 
-    private fun disconnected(message: String, expected: IBinder? = null) {
-        DiagnosticTrace.event("shizuku", "$message after ${elapsed()} ms ($tag)")
+    override fun disconnected(message: String, expected: IBinder?) {
+        DiagnosticTrace.event("connection", "$message after ${elapsed()} ms ($tag)")
         val notify = synchronized(guard) {
             if (closed || failure != null || (expected != null && binder !== expected)) false
             else {
@@ -69,24 +64,24 @@ class WorkerDeviceConnection(context: Context, private val lost: () -> Unit) : A
             }
         }
         if (notify) runCatching { lost() }.onFailure {
-            DiagnosticTrace.error("shizuku", "Could not persist service-loss recovery state", it)
+            DiagnosticTrace.error("connection", "Could not persist service-loss recovery state", it)
         }
     }
 
-    /** Accept the first worker binder from either path; a later one is refused. */
-    private fun attach(connectedBinder: IBinder, path: String): Boolean {
-        DiagnosticTrace.event("shizuku", "Worker binder from $path after ${elapsed()} ms, " +
+    /** Accept the first worker binder from any path; a later one is refused. */
+    override fun attach(connectedBinder: IBinder, path: String): Boolean {
+        DiagnosticTrace.event("connection", "Worker binder from $path after ${elapsed()} ms, " +
             "binder alive ${connectedBinder.isBinderAlive}")
         var failed = false
         synchronized(guard) {
             if (closed || failure != null || binder != null) {
-                DiagnosticTrace.event("shizuku", "Ignoring worker binder from $path; connection already settled by $via")
+                DiagnosticTrace.event("connection", "Ignoring worker binder from $path; connection already settled by $via")
                 return false
             }
             binder = connectedBinder
             via = path
             val deathRecipient = IBinder.DeathRecipient {
-                disconnected("Shizuku worker disconnected ($path)", connectedBinder)
+                disconnected("Worker disconnected ($path)", connectedBinder)
             }
             recipient = deathRecipient
             try {
@@ -94,136 +89,125 @@ class WorkerDeviceConnection(context: Context, private val lost: () -> Unit) : A
                 service.set(IPrivilegedDeviceService.Stub.asInterface(connectedBinder))
                 connected.countDown()
             } catch (error: android.os.RemoteException) {
-                DiagnosticTrace.error("shizuku", "Cannot watch the worker binder", error)
+                DiagnosticTrace.error("connection", "Cannot watch the worker binder", error)
                 failed = true
             }
         }
-        if (failed) disconnected("Shizuku worker disconnected ($path)", connectedBinder)
+        if (failed) disconnected("Worker disconnected ($path)", connectedBinder)
         return !failed
     }
 
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, connectedBinder: IBinder) {
-            attach(connectedBinder, "Shizuku user service")
-        }
-        override fun onServiceDisconnected(name: ComponentName) { disconnected("Shizuku worker disconnected") }
-    }
-
     init {
-        DiagnosticTrace.event("shizuku", "Connecting worker $tag: ${environment()}")
-        check(Shizuku.pingBinder()) { "Start Shizuku before starting a patch or recovery" }
-        check(Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-            "Authorize HOK ACE in Shizuku before starting"
-        }
-        Shizuku.addBinderDeadListener(death)
-        try {
-            if (preferences().getBoolean(phoneKey(), false)) {
-                DiagnosticTrace.event("shizuku", "This phone needed the app's own starter before; starting it directly")
-                startOwn()
-            } else {
-                Shizuku.bindUserService(args, connection)
-                synchronized(guard) { bound = true }
-            }
-        } catch (error: Throwable) {
-            DiagnosticTrace.error("shizuku", "Worker start refused", error)
-            Shizuku.removeBinderDeadListener(death)
+        DiagnosticTrace.event("connection", "Connecting worker $tag: ${environment()}")
+        try { starter.start(this) } catch (error: Throwable) {
+            DiagnosticTrace.error("connection", "Worker start refused", error)
             WorkerBinderProvider.forget(token)
+            runCatching { starter.close() }
             throw error
         }
     }
 
     fun await(): IPrivilegedDeviceService {
-        val first = synchronized(guard) { bound && process == null }
-        if (first && !connected.await(SHIZUKU_SECONDS, TimeUnit.SECONDS)) {
-            DiagnosticTrace.event("shizuku", "No binder from Shizuku's user-service starter after ${elapsed()} ms; " +
-                "starting the worker with the app's own starter")
-            runCatching { startOwn() }.onFailure {
-                DiagnosticTrace.error("shizuku", "The app's own starter could not be launched", it)
+        val patience = starter.patienceSeconds
+        if (patience > 0 && !connected.await(patience, TimeUnit.SECONDS)) {
+            DiagnosticTrace.event("connection", "No binder after ${elapsed()} ms; telling the starter")
+            runCatching { starter.stalled(this) }.onFailure {
+                DiagnosticTrace.error("connection", "The starter's second attempt could not be launched", it)
             }
         }
         val remaining = CONNECT_SECONDS * 1000 - elapsed()
         if (!connected.await(maxOf(remaining, 0), TimeUnit.MILLISECONDS)) {
-            val detail = environment()
-            DiagnosticTrace.event("shizuku", "No worker binder after ${elapsed()} ms from either starter; Shizuku server " +
-                "ping ${runCatching { Shizuku.pingBinder() }.getOrDefault(false)}")
-            error("Shizuku worker connection timed out ($detail)")
+            DiagnosticTrace.event("connection", "No worker binder after ${elapsed()} ms")
+            error("Worker connection timed out (${environment()})")
         }
         return synchronized(guard) {
-            check(!closed) { "Shizuku worker connection closed" }
+            check(!closed) { "Worker connection closed" }
             check(failure == null) { failure!! }
-            checkNotNull(service.get()).also { check(it.asBinder().isBinderAlive) { "Shizuku worker disconnected" } }
-        }.also { remember() }
+            checkNotNull(service.get()).also { check(it.asBinder().isBinderAlive) { "Worker disconnected" } }
+        }.also { starter.connected(checkNotNull(synchronized(guard) { via })) }
     }
 
-    /** Launch [ShellServiceStarter] as shell through Shizuku, with this APK as its class path. */
-    private fun startOwn() {
-        synchronized(guard) { if (closed || process != null) return }
-        WorkerBinderProvider.expect(token) { delivered -> if (attach(delivered, "app's own starter")) client else null }
+    /** `sh -c` starting [ShellServiceStarter] under app_process, with this APK as its class path. */
+    override fun ownCommand(): Array<String> {
+        WorkerBinderProvider.expect(token) { delivered -> if (attach(delivered, OWN_STARTER)) client else null }
         val apk = appContext.applicationInfo.sourceDir
-        val command = arrayOf("/system/bin/sh", "-c",
+        return arrayOf("/system/bin/sh", "-c",
             "CLASSPATH=\"\$1\" exec /system/bin/app_process /system/bin --nice-name=\"\$2\" " +
                 "${ShellServiceStarter::class.java.name} \"\$3\" \"\$4\" 2>&1",
             "hokace-worker", apk, "${appContext.packageName}:worker", token, WorkerBinderProvider.authority(appContext))
-        val started = try {
-            Shizuku::class.java.getDeclaredMethod("newProcess", Array<String>::class.java, Array<String>::class.java,
-                String::class.java).apply { isAccessible = true }.invoke(null, command, null, null) as ShizukuRemoteProcess
-        } catch (error: InvocationTargetException) {
-            WorkerBinderProvider.forget(token)
-            throw error.targetException
-        }
-        val keep = synchronized(guard) { if (closed) false else { process = started; true } }
-        if (!keep) { runCatching { started.destroy() }; return }
-        DiagnosticTrace.event("shizuku", "Started the app's own worker starter after ${elapsed()} ms")
-        Thread({ watch(started) }, "hokace-worker-starter").apply { isDaemon = true }.start()
     }
+
+    override fun forgetOwnCommand() = WorkerBinderProvider.forget(token)
 
     /** Trace the starter's output; if it exits before handing over a binder, fail now instead of timing out. */
-    private fun watch(started: ShizukuRemoteProcess) {
-        runCatching {
-            started.inputStream.bufferedReader().useLines { lines ->
-                lines.take(OUTPUT_LINES).forEach { DiagnosticTrace.event("starter", it) }
+    override fun watch(output: InputStream, exit: () -> Int?) {
+        Thread({
+            runCatching {
+                output.bufferedReader().useLines { lines ->
+                    lines.take(OUTPUT_LINES).forEach { DiagnosticTrace.event("starter", it) }
+                }
             }
-        }
-        val code = runCatching { started.waitFor() }.getOrNull()
-        DiagnosticTrace.event("starter", "Own worker starter exited with code $code after ${elapsed()} ms")
-        val pending = synchronized(guard) { binder == null && !closed }
-        if (pending) disconnected("The app's own worker starter exited with code $code before connecting")
+            val code = runCatching { exit() }.getOrNull()
+            DiagnosticTrace.event("starter", "Own worker starter exited with code $code after ${elapsed()} ms")
+            val pending = synchronized(guard) { binder == null && !closed }
+            if (pending) disconnected("The app's own worker starter exited with code $code before connecting")
+        }, "hokace-worker-starter").apply { isDaemon = true }.start()
     }
 
-    private fun preferences() = appContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+    override val isClosed: Boolean get() = synchronized(guard) { closed }
 
-    /** A new ROM build or Shizuku release gets Shizuku's own starter tried again. */
-    private fun phoneKey(): String {
-        val app = runCatching { packages.getPackageInfo(SHIZUKU_APP, 0).longVersionCode }.getOrDefault(-1L)
-        return "own:${Build.FINGERPRINT}:${runCatching { Shizuku.getVersion() }.getOrDefault(-1)}:$app"
-    }
-
-    private fun remember() {
-        val own = synchronized(guard) { via == "app's own starter" }
-        runCatching { preferences().edit().clear().putBoolean(phoneKey(), own).apply() }
-    }
-
-    private fun environment(): String {
-        val server = runCatching { "Shizuku ${Shizuku.getVersion()} uid ${Shizuku.getUid()}" }.getOrElse { "Shizuku unknown" }
-        val app = runCatching { "app ${packages.getPackageInfo(SHIZUKU_APP, 0).versionName}" }.getOrElse { "app missing" }
-        return "$server $app, ${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE} API ${Build.VERSION.SDK_INT}, ${CONNECT_SECONDS}s"
-    }
+    private fun environment() = runCatching { starter.environment() }.getOrElse { "environment unknown (${it.message})" } +
+        ", ${CONNECT_SECONDS}s"
 
     override fun close() {
-        val (unbind, started) = synchronized(guard) {
+        synchronized(guard) {
             if (closed) return
             closed = true
-            DiagnosticTrace.event("shizuku", "Closing worker $tag via $via after ${elapsed()} ms")
+            DiagnosticTrace.event("connection", "Closing worker $tag via $via after ${elapsed()} ms")
             binder?.let { target -> recipient?.let { runCatching { target.unlinkToDeath(it, 0) } } }
             binder = null
             recipient = null
             service.set(null)
             connected.countDown()
-            bound to process
         }
         WorkerBinderProvider.forget(token)
-        Shizuku.removeBinderDeadListener(death)
-        if (unbind) runCatching { Shizuku.unbindUserService(args, connection, true) }
-        started?.let { runCatching { it.destroy() } }
+        runCatching { starter.close() }
     }
+}
+
+/** The path name [WorkerLink.ownCommand]'s binder arrives under. */
+const val OWN_STARTER = "app's own starter"
+
+/** What a [WorkerStarter] may ask of its connection. */
+interface WorkerLink {
+    /** Unique per connection; a starter may name its own processes or services after it. */
+    val tag: String
+    val isClosed: Boolean
+    fun elapsed(): Long
+    /** Offer a worker binder that arrived through <path>; false when the connection refused it. */
+    fun attach(connectedBinder: IBinder, path: String): Boolean
+    /** The worker or its starter is gone; <expected> limits the loss to that one binder. */
+    fun disconnected(message: String, expected: IBinder? = null)
+    /** The command that starts [ShellServiceStarter] as whoever runs it, armed for one binder. */
+    fun ownCommand(): Array<String>
+    /** Disarm [ownCommand] when it could not be launched. */
+    fun forgetOwnCommand()
+    /** Trace a launched [ownCommand]'s <output>; <exit> waits for its exit code. */
+    fun watch(output: InputStream, exit: () -> Int?)
+}
+
+/** Starts the worker for one [WorkerDeviceConnection]; one implementation per [ShellProvider]. */
+interface WorkerStarter {
+    /** Begin starting the worker, or throw why it cannot; binders arrive through <link>. */
+    fun start(link: WorkerLink)
+    /** Seconds [WorkerDeviceConnection.await] waits before calling [stalled]; 0 never calls it. */
+    val patienceSeconds: Long get() = 0
+    /** No binder arrived within [patienceSeconds]: a second way to start, if the starter has one. */
+    fun stalled(link: WorkerLink) {}
+    /** The worker's binder arrived through <path>. */
+    fun connected(path: String) {}
+    /** One line for traces and the timeout message: provider, versions, phone. */
+    fun environment(): String
+    /** Release whatever [start] took; called once, after a refusal too. */
+    fun close()
 }

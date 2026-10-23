@@ -10,13 +10,16 @@ import java.security.MessageDigest
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-/** Shizuku shell process. No normal application Context or arbitrary command endpoint. */
+/**
+ * The worker, started by the chosen [ShellProvider] as shell (uid 2000). No normal application Context or
+ * arbitrary command endpoint. It reads its uid on every call through [WorkerAccess] and refuses any other.
+ */
 open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     companion object {
         const val GAME = "com.tencent.tmgp.osgame"
         const val FIXTURE = "io.github.hokace.fixture"
         const val PROTOCOL_VERSION = 12
-        /** The UI matches on it; keep it free of "Shizuku" and "permission". */
+        /** The UI matches on it; keep it free of any shell provider's name and of "permission". */
         const val GAME_MISSING = "The game is not installed for the phone's main user"
         private const val MAX_DIAGNOSTIC = 16384
         /** The rule files run-as reads to enter an app. Shell may read them; an app process may not. */
@@ -36,7 +39,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
 
     private fun requireShell() {
         check(installerPackage in setOf(GAME, FIXTURE) && dataPackage in setOf(GAME, FIXTURE)) { "Unsupported fixed device target" }
-        check(Process.myUid() == 2000) { "Only Shizuku started as shell UID 2000 is supported" }
+        WorkerAccess.of(Process.myUid())
         check(command(listOf("/system/bin/am", "get-current-user")).trim() == "0") {
             "Only the primary Android user is supported"
         }

@@ -24,10 +24,11 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /** Read-only, bounded raw diagnostics remain exportable when recovery records cannot be loaded. */
-class DiagnosticLogExport(private val context: Context, private val device: IPrivilegedDeviceService? = null) {
+class DiagnosticLogExport @JvmOverloads constructor(private val context: Context, private val device: IPrivilegedDeviceService? = null) {
     fun write(output: Writer) {
         val root = context.filesDir
         output.write("HOK ACE diagnostics. Raw records below are UNVALIDATED evidence, not recovery authorization.\n")
+        output.write("Shell provider: ${runCatching { ShellProvider.current(context).key }.getOrElse { "unreadable (${it.message})" }}\n")
         section(output, "Environment") { environment(it) }
         section(output, "Previous app process exits") { exits(it) }
         section(output, "App storage") { storage(it) }

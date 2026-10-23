@@ -146,7 +146,13 @@ Top to bottom:
      patcher or an older version translated. It never opens with the data-clearing instruction.
    - Remove translation shows only while a pristine delta is kept (Windows: in its working folder).
    - The choices and Remove translation lock together while work runs, in the disabled colours.
-3. **② Start** — a card with the single Start button. It rewrites itself in place for each state:
+3. **② Shell provider** (Android only) — a card with, in order: the eyebrow `02  /  SHELL PROVIDER`,
+   the title, one supporting line, the three choices (Shizuku, then Wireless debugging and Root,
+   each with a `·  Beta` tag while in early testing), then the chosen provider's numbered guide, one
+   line per step. A provider the build cannot start yet shows one line saying so instead of steps.
+   The choices lock while work runs, like the language choices. **Windows** has no shell provider,
+   so its Start card stays ②.
+4. **③ Start** (② on Windows) — a card with the single Start button. It rewrites itself in place for each state:
    - **Idle** and **not ready**: the Start button, with the blocker as the next step when there is one.
    - **Work stopped**: while the warning card offers recovery, the button opens it (*Open recovery
      options*) instead of offering *Try again* against the card's "Use recovery first". With no
@@ -163,27 +169,28 @@ Top to bottom:
      `ink` mark, as tall as the text); an informational one has none. It is not a card, and the
      next notice replaces it.
 
-   Its eyebrow names the state: `02  /  READY TO PLAY` while idle or not ready, `NEEDS SHIZUKU`
-   above *Install Shizuku* and *Start Shizuku*, `IN PROGRESS` while running, `DONE` on a result and
-   `NEEDS ATTENTION` on a failure or unfinished work. A failure or a missing Shizuku never sits
-   under READY TO PLAY. **Windows** has no Shizuku and no recovery, so it uses READY TO PLAY, IN
+   Its eyebrow names the state: `03  /  READY TO PLAY` while idle or not ready, `NEEDS ACCESS`
+   above a shell provider that is not ready (*Install Shizuku*, *Start Shizuku*, *Choose a shell
+   provider*), `IN PROGRESS` while running, `DONE` on a result and `NEEDS ATTENTION` on a failure or
+   unfinished work. A failure or a provider that is not ready never sits under READY TO PLAY.
+   **Windows** has no shell provider and no recovery, so it uses `02  /` with READY TO PLAY, IN
    PROGRESS, DONE and NEEDS ATTENTION.
 
    **Windows**: the card opens with the short *Before you start* checklist (idle and failed only),
    then device status and the working folder (with its free space and Change…), above the state and
    the Start button. A folder short of space is the not-ready blocker. The *Translation added*
    counts leave out the "game app verified" line, which only the Android patcher checks.
-4. **Warning or error card**, directly under ② Start, when one exists:
+5. **Warning or error card**, directly under Start, when one exists:
    - The **warning card** holds anything that needs action. On Android it is "Game won't open?",
      with the recovery options folded behind *Show recovery options*, which reads *Hide recovery
      options* while they are open. Restore interrupted patch comes first, a secondary button. The
      other tools follow as text buttons under a `text-muted` *More recovery tools* label, and
-     their *Save log for help* is hidden while the error card or ② already offers it: one per screen.
+     their *Save log for help* is hidden while the error card or Start already offers it: one per screen.
    - The **error card** holds the cause and the next step, with *Copy error details* (Android) and
      *Save log for help*.
-5. **Log** — the live activity log; on Android also the technical log. Each log scrolls inside its
+6. **Log** — the live activity log; on Android also the technical log. Each log scrolls inside its
    own height-bounded panel while the page scrolls outside it.
-6. **Footer** — the installed version, then one row of text buttons: *Technical tools*, *Check for
+7. **Footer** — the installed version, then one row of text buttons: *Technical tools*, *Check for
    updates* and, on Android, *Free up space*. They are not full-width buttons. At a large system font they stack, one per line, still text buttons (see Buttons).
 
 Warnings and recovery messages never appear as extra steps.

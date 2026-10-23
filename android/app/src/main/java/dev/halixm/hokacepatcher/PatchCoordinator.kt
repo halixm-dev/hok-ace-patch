@@ -56,7 +56,7 @@ class PatchCoordinator @JvmOverloads constructor(
 
     private fun checkpoint() {
         check(!cancelled.get()) { "Patch cancelled; restoring verified originals" }
-        check(device.asBinder().isBinderAlive) { "Shizuku service disconnected" }
+        check(device.asBinder().isBinderAlive) { "Worker service disconnected" }
     }
 
     private fun bridge(name: String, vararg arguments: Any): String {
@@ -495,7 +495,7 @@ class PatchCoordinator @JvmOverloads constructor(
     private fun restoreNormalAfterFailure(journal: SessionJournal, cause: Throwable) {
         try {
             val normal = store.verify(journal.recoveryId)
-            check(device.asBinder().isBinderAlive) { "Shizuku is unavailable for normal APK restoration" }
+            check(device.asBinder().isBinderAlive) { "Worker disconnected before normal APK restoration" }
             if (!runCatching { verifyInstalled(normal) }.isSuccess) {
                 requireSpace("emergency normal APK restore", normal.bytes)
                 journal.beginRecoveryNormal(normal)

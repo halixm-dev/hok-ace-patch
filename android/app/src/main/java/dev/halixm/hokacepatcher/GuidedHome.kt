@@ -30,12 +30,12 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     /**
-     * What ② is doing, named by its eyebrow so a failure, a result or a missing Shizuku never sits
-     * under "READY TO PLAY".
+     * What ③ is doing, named by its eyebrow so a failure, a result or a shell provider that is not ready
+     * never sits under "READY TO PLAY".
      */
     enum class Stage(val eyebrow: String) {
-        READY("02  /  READY TO PLAY"), SHIZUKU("02  /  NEEDS SHIZUKU"), WORKING("02  /  IN PROGRESS"),
-        DONE("02  /  DONE"), ATTENTION("02  /  NEEDS ATTENTION"),
+        READY("03  /  READY TO PLAY"), ACCESS("03  /  NEEDS ACCESS"), WORKING("03  /  IN PROGRESS"),
+        DONE("03  /  DONE"), ATTENTION("03  /  NEEDS ATTENTION"),
     }
 
     private val ink = activity.getColor(R.color.ink)
@@ -43,7 +43,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val root = column()
     private val stage = eyebrow(Stage.READY.eyebrow).apply { tag = "start-eyebrow" }
     private val heading = text("Let's get started", Type.HEADING)
-    private val detail = text("Start Shizuku, then come back here.", Type.BODY)
+    private val detail = text("", Type.BODY)
     private val primary = button("Start", "next-step", true) { invoke(next) }
     /** Under Open game, on a result that leaves the game ready: the result's own label (Start another patch). */
     private val again = button("Start another patch", "start-again") { invoke("start") }.apply { visibility = View.GONE }
@@ -58,7 +58,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         tag = "progress-bar"
         layoutParams = LinearLayout.LayoutParams(-1, dp(8)).apply { setMargins(0, dp(12), 0, dp(12)) }
     }
-    /** One ink line under ②'s instruction; a notice that reports a failure leads with the warning disc. */
+    /** One ink line under ③'s instruction; a notice that reports a failure leads with the warning disc. */
     private val notice = text("", Type.BODY).apply { tag = "friendly-notice"; layoutParams = LinearLayout.LayoutParams(0, -2, 1f) }
     private val noticeMark = android.widget.ImageView(activity).apply {
         tag = "notice-mark"; setImageResource(R.drawable.ic_notice_warning); visibility = View.GONE
@@ -112,33 +112,29 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private var choosingLanguage = false
     private val languages = RadioGroup(activity).apply {
         tag = "language-picker"; orientation = LinearLayout.VERTICAL
-        PatchLanguage.choices.forEach { (code, name) ->
-            addView(RadioButton(activity).apply {
-                id = View.generateViewId(); text = name; tag = "language-$code"
-                setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_button))
-                typeface = activity.resources.getFont(R.font.barlow_semibold)
-                minHeight = dp(48)
-                // Locked choices take the disabled colours, not only a lower alpha.
-                setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
-                    intArrayOf(activity.getColor(R.color.disabled_text), ink)))
-                buttonTintList = ColorStateList(
-                    arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf(android.R.attr.state_checked), intArrayOf()),
-                    intArrayOf(activity.getColor(R.color.disabled_text), ink, muted))
-                background = android.graphics.drawable.StateListDrawable().apply {
-                    addState(intArrayOf(-android.R.attr.state_enabled), background(activity.getColor(R.color.disabled_fill)))
-                    addState(intArrayOf(), background(activity.getColor(R.color.card_solid)))
-                }
-                setPadding(dp(12), dp(6), dp(12), dp(6))
-                layoutParams = RadioGroup.LayoutParams(-1, -2).apply { setMargins(0, dp(4), 0, dp(4)) }
-            })
-        }
+        PatchLanguage.choices.forEach { (code, name) -> addView(choice(name, "language-$code")) }
         setOnCheckedChangeListener { group, checked ->
             val code = group.findViewById<RadioButton>(checked)?.tag?.toString()?.removePrefix("language-")
             if (!choosingLanguage && code != null) invoke("language:$code")
         }
     }
+    private var choosingProvider = false
+    /** ② Shell provider: Shizuku first, the two new providers tagged Beta while in early testing. */
+    private val providers = RadioGroup(activity).apply {
+        tag = "provider-picker"; orientation = LinearLayout.VERTICAL
+        ShellProvider.entries.forEach { provider ->
+            addView(choice(ui(provider.label) + if (provider.beta) "  ·  " + ui("Beta") else "", "provider-${provider.key}"))
+        }
+        setOnCheckedChangeListener { group, checked ->
+            val key = group.findViewById<RadioButton>(checked)?.tag?.toString()?.removePrefix("provider-")
+            if (!choosingProvider && key != null) invoke("provider:$key")
+        }
+    }
+    /** The chosen provider's numbered guide, one line per step; its tag names the provider shown. */
+    private val guide = column().apply { tag = "provider-guide" }
+    private var guideShown: ShellProvider? = null
 
-    /** Hidden while the screen already offers Save log for help: the error card's, or ② itself. */
+    /** Hidden while the screen already offers Save log for help: the error card's, or ③ itself. */
     private val recoveryExport by lazy { textButton("Save log for help", "export-log") { invoke("export") } }
     private val recoverPatch by lazy { button("Restore interrupted patch", "recover-patch") { invoke("recover") } }
     private val recoverSetup by lazy { textButton("Finish or repair first setup", "recover-setup") { invoke("setup_recover") } }
@@ -185,7 +181,16 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         languageCard.addView(languages)
         languageCard.addView(removeButton)
         root.addView(languageCard)
-        // ② rewrites itself in place: heading, instruction, the notice line, a result's counts and note, then the button.
+        root.addView(card().apply {
+            tag = "provider-card"
+            addView(eyebrow("02  /  SHELL PROVIDER"))
+            addView(text("How the patcher reaches the game", Type.HEADING))
+            addView(text("Pick what gives the patcher access to the game's files. You can change it whenever no work is running.",
+                Type.BODY, supporting = true))
+            addView(providers)
+            addView(guide)
+        })
+        // ③ rewrites itself in place: heading, instruction, the notice line, a result's counts and note, then the button.
         val card = card().apply { tag = "start-card" }
         card.addView(stage)
         card.addView(heading); card.addView(detail); card.addView(noticeRow)
@@ -196,7 +201,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         bar.visibility = View.GONE; stop.visibility = View.GONE
         card.addView(bar); card.addView(stop)
         root.addView(card)
-        // Anything that needs the player sits directly under ②, above the log.
+        // Anything that needs the player sits directly under ③, above the log.
         root.addView(errorBox)
         recovery.tag = "recovery-card"
         root.addView(recovery)
@@ -311,7 +316,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         recoveryToggle.text = ui(if (open) "Hide recovery options" else "Show recovery options")
     }
 
-    /** One Save log for help per screen: the recovery group's steps aside for the error card's or ②'s. */
+    /** One Save log for help per screen: the recovery group's steps aside for the error card's or ③'s. */
     private fun showRecoveryExport() {
         recoveryExport.visibility = if (errorBox.visibility == View.VISIBLE || next == "export") View.GONE else View.VISIBLE
     }
@@ -337,7 +342,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     fun working(value: Boolean) { primary.isEnabled = !value; again.isEnabled = !value; freeSpaceButton.isEnabled = !value }
 
     /**
-     * A launcher shortcut's <key>, acted on like a tap. Start is refused while ② offers only Save log for help
+     * A launcher shortcut's <key>, acted on like a tap. Start is refused while ③ offers only Save log for help
      * (recovery records cannot be read): the player could not tap Start there either.
      */
     fun shortcut(key: String) { if (key != "start" || next != "export") invoke(key) }
@@ -353,6 +358,31 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         if (button.isChecked) return
         choosingLanguage = true
         try { languages.check(button.id) } finally { choosingLanguage = false }
+    }
+
+    /** Show <provider> as chosen, without reporting it back as a new choice, and its guide. */
+    fun provider(provider: ShellProvider) {
+        val button = providers.findViewWithTag<RadioButton>("provider-${provider.key}") ?: return
+        if (!button.isChecked) {
+            choosingProvider = true
+            try { providers.check(button.id) } finally { choosingProvider = false }
+        }
+        if (guideShown == provider) return
+        guideShown = provider
+        guide.removeAllViews()
+        guideLines(provider).forEach { guide.addView(text(it, Type.BODY)) }
+    }
+
+    /** Each provider's numbered steps; one this build cannot start says so instead. */
+    private fun guideLines(provider: ShellProvider): List<String> = when {
+        !provider.available -> listOf(UiText.string(activity, "provider_not_ready", "provider" to ui(provider.label)))
+        else -> listOf(ui("1. Install Shizuku from Google Play."), ui("2. Start Shizuku, following the steps it shows."),
+            ui("3. Come back here and tap Start. Allow HOK ACE when Shizuku asks."))
+    }
+
+    /** A run reads the provider once at its start, so the choice is locked while work is in progress. */
+    fun providerEnabled(value: Boolean) {
+        for (index in 0 until providers.childCount) providers.getChildAt(index).isEnabled = value
     }
 
     /** Whether switching needs a clear: not once the patcher keeps a pristine delta for the phone. */
@@ -380,7 +410,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         if (value.isNotEmpty()) message(value, failure = true)
     }
 
-    /** Show <value> under ②'s instruction; [failure] marks a notice that reports something that went wrong. */
+    /** Show <value> under ③'s instruction; [failure] marks a notice that reports something that went wrong. */
     fun message(value: String, failure: Boolean = false) {
         noticeMark.visibility = if (failure) View.VISIBLE else View.GONE
         if (notice.text.toString() == ui(value)) return
@@ -425,6 +455,25 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     private fun ui(value: String) = UiText.text(activity, value)
+
+    /** One picker choice, a full-width radio row; a locked choice takes the disabled colours, not only a lower alpha. */
+    private fun choice(label: String, testTag: String) = RadioButton(activity).apply {
+        id = View.generateViewId(); text = label; tag = testTag
+        setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_button))
+        typeface = activity.resources.getFont(R.font.barlow_semibold)
+        minHeight = dp(48)
+        setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
+            intArrayOf(activity.getColor(R.color.disabled_text), ink)))
+        buttonTintList = ColorStateList(
+            arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf(android.R.attr.state_checked), intArrayOf()),
+            intArrayOf(activity.getColor(R.color.disabled_text), ink, muted))
+        background = android.graphics.drawable.StateListDrawable().apply {
+            addState(intArrayOf(-android.R.attr.state_enabled), background(activity.getColor(R.color.disabled_fill)))
+            addState(intArrayOf(), background(activity.getColor(R.color.card_solid)))
+        }
+        setPadding(dp(12), dp(6), dp(12), dp(6))
+        layoutParams = RadioGroup.LayoutParams(-1, -2).apply { setMargins(0, dp(4), 0, dp(4)) }
+    }
 
     private fun dp(value: Int) = (value * activity.resources.displayMetrics.density).toInt()
     private fun space(token: Int) = activity.resources.getDimensionPixelSize(token)

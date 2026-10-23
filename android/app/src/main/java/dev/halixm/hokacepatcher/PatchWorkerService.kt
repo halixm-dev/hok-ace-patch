@@ -117,12 +117,14 @@ class PatchWorkerService : Service() {
         recentMessages.addAll(WorkerStep.carriedMessages(activeAction, savedState()))
         state(JSONObject().put("status", "running").put("action", intent?.action))
         show("Preparing verified recovery material")
+        // Read once: changing the provider while a run is in progress is refused, and this run keeps its own.
+        val provider = ShellProvider.current(this)
         executor.execute {
             try {
-                val bound = WorkerDeviceConnection(this) {
+                val bound = WorkerDeviceConnection.open(this, provider) {
                     cancelRequested.set(true)
-                    coordinator?.interrupted("Shizuku disconnected; recovery required")
-                    setup?.interrupted("Shizuku disconnected; game setup recovery required")
+                    coordinator?.interrupted("${provider.label} disconnected; recovery required")
+                    setup?.interrupted("${provider.label} disconnected; game setup recovery required")
                 }
                 connection = bound
                 val device = bound.await()
@@ -191,7 +193,7 @@ class PatchWorkerService : Service() {
                 }
             } catch (error: Throwable) {
                 val failureMessage = error.message?.takeIf { it.isNotBlank() } ?:
-                    "The operation stopped unexpectedly. Keep the game closed, check Shizuku, then retry verification or recovery."
+                    "The operation stopped unexpectedly. Keep the game closed, check ${provider.label}, then retry verification or recovery."
                 if (!retiring.get()) runCatching { state(setup?.pendingRecoveryResult() ?: coordinator?.pendingRecoveryResult() ?:
                     JSONObject().put("status", if (activeAction == "prepare" && cancelRequested.get()) "cancelled" else "error")
                         .put("action", activeAction).put("error", failureMessage).put("error_type", error.javaClass.name)) }

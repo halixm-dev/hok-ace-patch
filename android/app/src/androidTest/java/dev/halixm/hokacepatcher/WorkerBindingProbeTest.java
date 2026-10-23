@@ -25,8 +25,8 @@ public final class WorkerBindingProbeTest {
     @Test public void testClosingOneOwnerCannotDestroyTheNextBinding() throws Exception {
         Context context = ready();
         AtomicInteger lost = new AtomicInteger();
-        try (WorkerDeviceConnection first = new WorkerDeviceConnection(context, () -> { lost.incrementAndGet(); return kotlin.Unit.INSTANCE; });
-             WorkerDeviceConnection second = new WorkerDeviceConnection(context, () -> { lost.incrementAndGet(); return kotlin.Unit.INSTANCE; })) {
+        try (WorkerDeviceConnection first = WorkerDeviceConnection.Companion.open(context, ShellProvider.SHIZUKU, () -> { lost.incrementAndGet(); return kotlin.Unit.INSTANCE; });
+             WorkerDeviceConnection second = WorkerDeviceConnection.Companion.open(context, ShellProvider.SHIZUKU, () -> { lost.incrementAndGet(); return kotlin.Unit.INSTANCE; })) {
             assertEquals(2000, new JSONObject(first.await().diagnostics()).getInt("uid"));
             IPrivilegedDeviceService next = second.await();
             first.close(); first.close();
@@ -43,7 +43,7 @@ public final class WorkerBindingProbeTest {
     @Test public void testUserServiceDeathWakesWaitersAndCannotReconnect() throws Exception {
         Context context = ready();
         AtomicInteger lost = new AtomicInteger(); CountDownLatch died = new CountDownLatch(1);
-        try (WorkerDeviceConnection owner = new WorkerDeviceConnection(context, () -> {
+        try (WorkerDeviceConnection owner = WorkerDeviceConnection.Companion.open(context, ShellProvider.SHIZUKU, () -> {
             lost.incrementAndGet(); died.countDown(); return kotlin.Unit.INSTANCE;
         })) {
             IPrivilegedDeviceService service = owner.await();

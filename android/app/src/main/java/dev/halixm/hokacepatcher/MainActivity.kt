@@ -126,7 +126,8 @@ class MainActivity : Activity() {
         removing = automatic && state?.getBoolean("removing") == true
         redownloading = automatic && state?.getBoolean("redownloading") == true
         home = GuidedHome(this) { key ->
-            DiagnosticTrace.event("ui", "Tap $key; busy $busy automatic $automatic shizuku ${Shizuku.pingBinder()}")
+            DiagnosticTrace.event("ui", "Tap $key; busy $busy automatic $automatic provider ${provider().key} " +
+                "shizuku ${Shizuku.pingBinder()}")
             when (key) {
                 "check_update" -> checkAppUpdate()
                 "start" -> beginAutomatic()
@@ -153,6 +154,18 @@ class MainActivity : Activity() {
                     } else actions["Authorize Shizuku"]?.let { runTask(it) }
                 }
                 "recovery_options" -> home.showRecovery()
+                "provider:shizuku", "provider:wireless", "provider:root" -> {
+                    val chosen = ShellProvider.of(key.removePrefix("provider:"))
+                    if (busy || automatic || PatchWorkerService.isWorking) home.provider(provider())
+                    else runCatching { ShellProvider.set(this, chosen) }
+                        .onSuccess {
+                            log("Shell provider: ${chosen.label}")
+                            home.provider(chosen)
+                            if (ensurePermission()) connect()
+                            refreshHome()
+                        }
+                        .onFailure { log("ERROR: ${it.message}"); home.provider(provider()) }
+                }
                 "free_space" -> if (busy || automatic || PatchWorkerService.isWorking) {
                     home.message("Finish the current work before freeing space.")
                 } else showFreeSpaceConfirmation()
@@ -182,6 +195,7 @@ class MainActivity : Activity() {
             }
         }
         home.language(PatchLanguage.current(this))
+        home.provider(provider())
         workerStatus = TextView(this).apply { tag = "worker-status"; setTextIsSelectable(true) }
         home.advanced.addView(workerStatus)
         fun action(label: String, task: () -> Unit) {
@@ -264,14 +278,23 @@ class MainActivity : Activity() {
     private fun shortcut(key: String, tries: Int) {
         statusHandler.postDelayed({
             if (destroyed) return@postDelayed
-            if (key == "start" && !Shizuku.pingBinder() && tries > 1) shortcut(key, tries - 1)
+            if (key == "start" && usesShizuku() && !Shizuku.pingBinder() && tries > 1) shortcut(key, tries - 1)
             else home.shortcut(key)
         }, SHORTCUT_WAIT_MS)
     }
 
+    /** The provider a run started now would use; the worker reads the same choice. */
+    private fun provider() = ShellProvider.current(this)
+
+    private fun usesShizuku() = provider() == ShellProvider.SHIZUKU
+
+    /** A running Shizuku server whose uid is root: its worker would take the Root provider's write path. */
+    private fun shizukuAsRoot() = runCatching { Shizuku.pingBinder() && Shizuku.getUid() == WorkerAccess.ROOT_UID }.getOrDefault(false)
+
+    /** Ask Shizuku for access, only while Shizuku is the chosen provider and runs as shell. */
     private fun ensurePermission(): Boolean {
         return try {
-            if (!Shizuku.pingBinder()) return false
+            if (!usesShizuku() || !Shizuku.pingBinder() || shizukuAsRoot()) return false
             if (Shizuku.isPreV11()) { stopAutomatic(); home.message("Update Shizuku before starting.", failure = true); return false }
             if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) return true
             if (!permissionRequested) {
@@ -321,13 +344,22 @@ class MainActivity : Activity() {
         if (busy || PatchWorkerService.isWorking || awaitingToken != null) return
         automatic = true
         permissionRequested = false
+        val provider = provider()
+        if (!provider.available) {
+            stopAutomatic(); home.message(notReady(provider), failure = true); return
+        }
+        if (provider != ShellProvider.SHIZUKU) { routeAutomatic(); return }
         if (!Shizuku.pingBinder()) {
             waitingForShizuku = true
             openShizuku()
             return
         }
+        if (shizukuAsRoot()) { stopAutomatic(); home.message(ShellProvider.SHIZUKU_AS_ROOT, failure = true); return }
         if (ensurePermission()) routeAutomatic()
     }
+
+    /** The guide's line for a provider this build cannot start yet. */
+    private fun notReady(provider: ShellProvider) = UiText.string(this, "provider_not_ready", "provider" to ui(provider.label))
 
     private fun stopAutomatic() { automatic = false; removing = false; redownloading = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null }
 
@@ -341,8 +373,10 @@ class MainActivity : Activity() {
     /** Only the Start action arms continuation; opening the app never starts game changes. */
     private fun routeAutomatic() {
         if (!automatic || busy || destroyed || awaitingToken != null || PatchWorkerService.isWorking) return
-        if (!Shizuku.pingBinder()) { waitingForShizuku = true; return }
-        if (!ensurePermission()) return
+        if (usesShizuku()) {
+            if (!Shizuku.pingBinder()) { waitingForShizuku = true; return }
+            if (!ensurePermission()) return
+        }
         waitingForShizuku = false
         runTask {
             val emergency = EmergencyRestoreStore(this).snapshot()?.takeIf {
@@ -411,7 +445,8 @@ class MainActivity : Activity() {
             if (!PatchWorkerService.isWorking && result?.optString("flow") != awaitingToken &&
                 (android.os.SystemClock.elapsedRealtime() < awaitingSince ||
                     android.os.SystemClock.elapsedRealtime() - awaitingSince > 30_000)) {
-                stopAutomatic(); home.message("Work could not start. Check Shizuku, then tap Start again.", failure = true)
+                stopAutomatic()
+                home.message(UiText.string(this, "work_could_not_start_check_provider", "provider" to ui(provider().label)), failure = true)
                 return
             }
             if (!PatchWorkerService.isWorking && result?.optString("flow") == awaitingToken &&
@@ -462,6 +497,8 @@ class MainActivity : Activity() {
         home.logs(if (messages == null) emptyList() else
             (0 until messages.length()).map { messages.optString(it) })
         val live = PatchWorkerService.isWorking || awaitingToken != null
+        val provider = provider()
+        val shizuku = provider == ShellProvider.SHIZUKU
         // Once a run is under way, Shizuku's dialog is behind us: ask for notifications now, once.
         if (PatchWorkerService.isWorking && RunNotification.askOnce(this))
             home.message("Allow notifications to see the patch's progress and hear when it is done.")
@@ -474,12 +511,16 @@ class MainActivity : Activity() {
                 "Checking and preparing files…") ?: "Checking and preparing files…"), "Please wait", "start", false, GuidedHome.Stage.WORKING)
             busy && automatic -> home.show("Checking game files", "Please wait. We are checking the saved game app and recovery files.", "Please wait", "start", false, GuidedHome.Stage.WORKING)
             pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true, GuidedHome.Stage.ATTENTION)
-            !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.SHIZUKU)
-            !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.SHIZUKU)
+            !provider.available -> home.show("Choose a shell provider", notReady(provider), "Start", "start",
+                pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
+            shizuku && !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
+            shizuku && !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
+            shizuku && shizukuAsRoot() -> home.show("Choose a shell provider", ShellProvider.SHIZUKU_AS_ROOT, "Start", "start",
+                pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             // Space freed hands back plain Start; the other results offer another patch.
             result != null && !pending.getOrThrow() -> home.result(result,
                 if (state.optString("status") == "space_freed") "Start" else "Start another patch")
-            // The engine's refusal for an update stuck on translated files: ② offers Re-download instead of a retry.
+            // The engine's refusal for an update stuck on translated files: ③ offers Re-download instead of a retry.
             state?.optString("status") == "error" && state.optString("error").contains(UPDATE_STUCK) ->
                 home.show("The game update is stuck", "The game could not update the files this patcher translated. " +
                     "Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
@@ -492,7 +533,7 @@ class MainActivity : Activity() {
             state?.optString("status") == "error" && state.optString("error").contains(UPDATE_WAITING) ->
                 home.show("Finish the game update", "Open the game and let it finish the update to the login screen. Close it, then tap Start to patch again.",
                     "Open game", "game", false, GuidedHome.Stage.ATTENTION)
-            // With recovery on offer, ② opens it rather than asking to try again against the recovery card.
+            // With recovery on offer, ③ opens it rather than asking to try again against the recovery card.
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped",
                 friendlyFailure(state?.optString("error").orEmpty(), recoverable),
                 if (recoverable) "Open recovery options" else "Try again", if (recoverable) "recovery_options" else "start",
@@ -502,6 +543,7 @@ class MainActivity : Activity() {
         }
         home.working(busy || live || (automatic && !waitingForShizuku))
         home.languageEnabled(!busy && !live && !automatic)
+        home.providerEnabled(!busy && !live && !automatic)
         home.progress(live || (busy && automatic), step)
         buttons.forEach { it.isEnabled = !busy && !live && !automatic }
         home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required") &&
@@ -526,8 +568,10 @@ class MainActivity : Activity() {
             message.contains("space", true) || message.contains("storage", true) ->
                 ui("Free now:") + " ${StorageBudget.freeSpaceLabel(filesDir.usableSpace)}.\n" +
                     ui("The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files.")
-            message.contains("Shizuku worker connection timed out") ->
+            message.contains(ShellProvider.SHIZUKU_AS_ROOT) -> ShellProvider.SHIZUKU_AS_ROOT
+            message.contains("Worker connection timed out") -> if (usesShizuku())
                 "Shizuku is running, but the patcher's helper did not start. Open Shizuku, stop it and start it again, then return here and tap Try again. If it happens again, save a log for help. Keep the game closed."
+                else "The patcher's helper did not start. Tap Try again. If it happens again, save a log for help. Keep the game closed."
             message.contains(PrivilegedDeviceService.GAME_MISSING) -> when (FirstSetupPackagePolicy.missingReason(message)) {
                 FirstSetupPackagePolicy.Missing.HIDDEN ->
                     "The game is installed but hidden or switched off in this phone's main space, for example by Hide apps. Show it again, open it once, close it, then tap Try again."
@@ -544,12 +588,15 @@ class MainActivity : Activity() {
                 "The installed game app is not the saved app this check looks for. It is a different app, not a damaged one. If no patch was started, tap Try again. Otherwise check recovery options below, or save a log for help. Keep the game closed."
             message.contains("USER_RESTRICTED", true) ->
                 "The phone blocked installation. Unlock it and accept the install prompt. Open Technical tools for the full error."
-            // The command ran, so Shizuku is working; the phone itself refused the step.
-            message.contains("Device command failed") -> if (recoverable)
-                "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help."
-                else "The phone refused a step, although Shizuku is working. Keep the game closed. Tap Try again, or save a log for help."
-            message.contains("Shizuku", true) || message.contains("permission", true) ->
-                "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed."
+            // The command ran, so the shell provider is working; the phone itself refused the step.
+            message.contains("Device command failed") -> UiText.string(this,
+                if (recoverable) "phone_refused_step_check_recovery" else "phone_refused_step_try_again", "provider" to ui(provider().label))
+            message.contains("Shizuku", true) || message.contains("permission", true) ||
+                message.contains("disconnected", true) || message.contains("is not available in this build") -> when {
+                    !provider().available -> notReady(provider())
+                    usesShizuku() -> "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed."
+                    else -> UiText.string(this, "work_could_not_start_check_provider", "provider" to ui(provider().label))
+                }
             else -> if (recoverable) "Work stopped. Keep the game closed. Check recovery options below, or save a log for help."
                 else "Work stopped. Keep the game closed. Tap Try again, or save a log for help."
         }
@@ -843,7 +890,7 @@ class MainActivity : Activity() {
      */
     private fun awaitService(): IPrivilegedDeviceService? {
         service?.let { return it }
-        val allowed = runCatching { Shizuku.pingBinder() &&
+        val allowed = runCatching { Shizuku.pingBinder() && !shizukuAsRoot() &&
             Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED }.getOrDefault(false)
         if (!allowed) return null
         runOnUiThread { connect() }

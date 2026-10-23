@@ -45,7 +45,7 @@ object UiText {
         return keys[source]?.let { strings.getValue(it)[code] } ?: template(code, "progress_fallback")
     }
 
-    /** A running step of ② Start: its 1-based number, the total, and "Step N of M · <step>". */
+    /** A running step of ③ Start: its 1-based number, the total, and "Step N of M · <step>". */
     data class Step(val number: Int, val total: Int, val line: String)
 
     /** The step <state> reports in language <code>, or null for a record without one; removal and re-download name their own steps 4 and 5. */
@@ -85,15 +85,15 @@ object UiText {
     }
 
     /**
-     * A result state of ② Start: its heading, one summary line, the run's own counts, then the login note; <english> names it in traces.
-     * <gameReady> marks a result that leaves the game ready to play, so ② leads with Open game.
+     * A result state of ③ Start: its heading, one summary line, the run's own counts, then the login note; <english> names it in traces.
+     * <gameReady> marks a result that leaves the game ready to play, so ③ leads with Open game.
      */
     data class Result(val english: String, val heading: String, val summary: String, val items: List<String>, val note: String = "",
                       val gameReady: Boolean = false)
 
     /** The result <state> reports in language <code>, or null when the worker record is not a result. Takes a code, not a Context, so JVM tests reach it. */
     fun result(code: String, state: JSONObject): Result? = when (state.optString("status")) {
-        // ② leads with Open game: the game's own update is the next step, and the note says what follows it.
+        // ③ leads with Open game: the game's own update is the next step, and the note says what follows it.
         "complete" -> if (state.has("redownloaded")) Result("Damaged files deleted", translate(code, "Damaged files deleted"),
             template(code, "redownload_verified"), listOf(template(code, "redownload_files_deleted", "count" to state.getInt("redownloaded"))),
             template(code, "redownload_next_step"), gameReady = true)

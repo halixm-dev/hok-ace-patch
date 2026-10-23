@@ -480,12 +480,152 @@
       "en": "02  /  READY TO PLAY",
       "id": "02  /  SIAP BERMAIN"
     },
-    "02_needs_shizuku": {
+    "03_needs_access": {
       "platforms": [
         "android"
       ],
-      "en": "02  /  NEEDS SHIZUKU",
-      "id": "02  /  PERLU SHIZUKU",
+      "en": "03  /  NEEDS ACCESS",
+      "id": "03  /  PERLU AKSES",
+      "draft": true
+    },
+    "03_ready_to_play": {
+      "platforms": [
+        "android"
+      ],
+      "en": "03  /  READY TO PLAY",
+      "id": "03  /  SIAP BERMAIN"
+    },
+    "03_working": {
+      "platforms": [
+        "android"
+      ],
+      "en": "03  /  IN PROGRESS",
+      "id": "03  /  SEDANG BERJALAN",
+      "draft": true
+    },
+    "03_done": {
+      "platforms": [
+        "android"
+      ],
+      "en": "03  /  DONE",
+      "id": "03  /  SELESAI",
+      "draft": true
+    },
+    "03_needs_attention": {
+      "platforms": [
+        "android"
+      ],
+      "en": "03  /  NEEDS ATTENTION",
+      "id": "03  /  PERLU PERHATIAN",
+      "draft": true
+    },
+    "02_shell_provider": {
+      "platforms": [
+        "android"
+      ],
+      "en": "02  /  SHELL PROVIDER",
+      "id": "02  /  PENYEDIA SHELL",
+      "draft": true
+    },
+    "shell_provider_heading": {
+      "platforms": [
+        "android"
+      ],
+      "en": "How the patcher reaches the game",
+      "id": "Cara patcher menjangkau game",
+      "draft": true
+    },
+    "shell_provider_note": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Pick what gives the patcher access to the game's files. You can change it whenever no work is running.",
+      "id": "Pilih yang memberi patcher akses ke file game. Pilihan ini bisa diganti kapan saja selama tidak ada proses berjalan.",
+      "draft": true
+    },
+    "provider_shizuku": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Shizuku",
+      "id": "Shizuku"
+    },
+    "provider_wireless": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging",
+      "id": "Debugging nirkabel",
+      "draft": true
+    },
+    "provider_root": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Root",
+      "id": "Root"
+    },
+    "provider_beta": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Beta",
+      "id": "Beta"
+    },
+    "shizuku_guide_install": {
+      "platforms": [
+        "android"
+      ],
+      "en": "1. Install Shizuku from Google Play.",
+      "id": "1. Pasang Shizuku dari Google Play.",
+      "draft": true
+    },
+    "shizuku_guide_start": {
+      "platforms": [
+        "android"
+      ],
+      "en": "2. Start Shizuku, following the steps it shows.",
+      "id": "2. Jalankan Shizuku dengan mengikuti langkah yang ditampilkannya.",
+      "draft": true
+    },
+    "shizuku_guide_allow": {
+      "platforms": [
+        "android"
+      ],
+      "en": "3. Come back here and tap Start. Allow HOK ACE when Shizuku asks.",
+      "id": "3. Kembali ke sini dan ketuk Mulai. Izinkan HOK ACE saat Shizuku meminta.",
+      "draft": true
+    },
+    "provider_not_ready": {
+      "platforms": [
+        "android"
+      ],
+      "en": "{provider} arrives in a coming test build. Choose Shizuku for now.",
+      "id": "{provider} hadir di build uji berikutnya. Untuk sekarang, pilih Shizuku.",
+      "draft": true
+    },
+    "choose_a_shell_provider": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Choose a shell provider",
+      "id": "Pilih penyedia shell",
+      "draft": true
+    },
+    "shizuku_as_root": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Shizuku is running with root. Choose the Root provider instead.",
+      "id": "Shizuku berjalan dengan root. Pilih penyedia Root sebagai gantinya.",
+      "draft": true
+    },
+    "helper_did_not_start": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The patcher's helper did not start. Tap Try again. If it happens again, save a log for help. Keep the game closed.",
+      "id": "Layanan pendukung patcher tidak mulai. Ketuk Coba lagi. Jika terulang, simpan log untuk bantuan. Jangan buka game.",
       "draft": true
     },
     "02_working": {
@@ -645,12 +785,12 @@
       "en": "Saved progress cannot be read. Keep the game closed and save a log for help.",
       "id": "Progres tersimpan tidak bisa dibaca. Jangan buka game dan simpan log untuk bantuan."
     },
-    "work_could_not_start_check_shizuku_then": {
+    "work_could_not_start_check_provider": {
       "platforms": [
         "android"
       ],
-      "en": "Work could not start. Check Shizuku, then tap Start again.",
-      "id": "Proses tidak bisa dimulai. Periksa Shizuku, lalu ketuk Mulai lagi."
+      "en": "Work could not start. Check {provider}, then tap Start again.",
+      "id": "Proses tidak bisa dimulai. Periksa {provider}, lalu ketuk Mulai lagi."
     },
     "work_was_interrupted_tap_start_to_check": {
       "platforms": [
@@ -894,19 +1034,19 @@
       "en": "The installed game app is not the saved app this check looks for. It is a different app, not a damaged one. If no patch was started, tap Try again. Otherwise check recovery options below, or save a log for help. Keep the game closed.",
       "id": "Aplikasi game yang terpasang bukan aplikasi tersimpan yang diperiksa. Aplikasinya berbeda, bukan rusak. Jika patch belum dimulai, ketuk Coba lagi. Jika sudah, periksa pilihan pemulihan di bawah atau simpan log untuk bantuan. Jangan buka game."
     },
-    "the_phone_refused_a_step_although": {
+    "phone_refused_step_check_recovery": {
       "platforms": [
         "android"
       ],
-      "en": "The phone refused a step, although Shizuku is working. Keep the game closed. Check recovery options below, or save a log for help.",
-      "id": "Ponsel menolak satu langkah, meskipun Shizuku berjalan. Jangan buka game. Periksa pilihan pemulihan di bawah atau simpan log untuk bantuan."
+      "en": "The phone refused a step, although {provider} is working. Keep the game closed. Check recovery options below, or save a log for help.",
+      "id": "Ponsel menolak satu langkah, meskipun {provider} berjalan. Jangan buka game. Periksa pilihan pemulihan di bawah atau simpan log untuk bantuan."
     },
-    "the_phone_refused_a_step_try_again": {
+    "phone_refused_step_try_again": {
       "platforms": [
         "android"
       ],
-      "en": "The phone refused a step, although Shizuku is working. Keep the game closed. Tap Try again, or save a log for help.",
-      "id": "Ponsel menolak satu langkah, meskipun Shizuku berjalan. Jangan buka game. Ketuk Coba lagi atau simpan log untuk bantuan."
+      "en": "The phone refused a step, although {provider} is working. Keep the game closed. Tap Try again, or save a log for help.",
+      "id": "Ponsel menolak satu langkah, meskipun {provider} berjalan. Jangan buka game. Ketuk Coba lagi atau simpan log untuk bantuan."
     },
     "work_stopped_keep_the_game_closed_try_again": {
       "platforms": [
