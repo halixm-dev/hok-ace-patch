@@ -200,8 +200,20 @@ switch and the newer-translation case do not depend on the updater and ship firs
 - **Measured:** an update can change package content while `1.info` keeps its version (lab notebook,
   2026-10-10); `Watchdog` holds no per-file checksum, size or version, only package names, timestamps
   and the package-hash merge history.
+- **Measured at a real update over a patched layer (2026-10-23, ticket 01; lab notebook, "An update over
+  a patched layer, captured end to end"):** the game updates the moment it opens, with no prompt, and
+  `NewVersionInfo.json` does not change before, during or after. The update merges diffs into the
+  translated packages too, rather than failing on them: package `1` (appended assets, split index) is
+  then corrupt for the repair (`detected db corruption 1_0`, `put page failed`) and the update sticks,
+  and the texture packages are left mixed. `History.db` logs the merges with their time (signal (ii)).
+  Deleting a stuck or mixed package lets the game download it whole and finish.
 
 The pristine delta is what lets the patcher put pristine bytes back where a diff needs them.
+
+**Decided after ticket 01 (2026-10-23):** with no signal before the update runs, the write-back before
+it and the two-access-cycle run are dropped. The after-update path stands: Re-download for a stuck update
+(it now takes the mixed packages asset restore cannot take in the same run), then asset restore and a
+normal patch. The one write ADR 0002 allows before an update stays allowed, and unused.
 
 ## Out of Scope
 

@@ -449,12 +449,13 @@ def _mixed_packages(session: Path, keep: Path, manifest: dict) -> dict[str, str]
 def plan_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
     """Re-download damaged files: name the package files to delete so the game downloads them again.
 
-    The packages are those `_stuck_packages` names ({package: broken assets}), or, with none stuck,
-    those `_mixed_packages` names ({package: reason}). Every file of each is staged for deletion;
-    `staged-hashes.json` holds each one's snapshot SHA-256, which is what rollback writes back. Measured
-    on 2026-10-22 (lab notebook): with package `1` deleted and `Watchdog` cleared, the game downloaded it
-    and finished the update. A mixed package is deleted after the update finished, which is unmeasured.
-    Refuses, before any game file is changed, when no translated package is stuck or mixed.
+    The packages are those `_stuck_packages` names ({package: broken assets}) and those `_mixed_packages`
+    names ({package: reason}), in one run: an update that sticks on package `1` has already merged
+    around the translation in the others (lab notebook, 2026-10-23), and they would otherwise refuse the
+    next Start for a second Re-download. Every file of each is staged for deletion; `staged-hashes.json`
+    holds each one's snapshot SHA-256, which is what rollback writes back. Measured on 2026-10-22 and
+    2026-10-23 (in two runs, before the plan took both in one): with the packages deleted and `Watchdog`
+    cleared, the game downloaded them and finished the update. Refuses, before any game file is changed, when no translated package is stuck or mixed.
     """
     root, session, keep = Path(engine_root).resolve(), Path(session_root).resolve(), Path(keep_root).resolve()
     _prepare(root)
@@ -464,17 +465,25 @@ def plan_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
     output = session / "out"
     if output.exists() or (session / "staged-hashes.json").exists():
         raise PatchError("Re-download requires a fresh session layout")
-    stuck = _stuck_packages(session, keep, manifest) or _mixed_packages(session, keep, manifest)
-    if not stuck:
+    packages = {package: f"{count} assets the game could not patch"
+                for package, count in _stuck_packages(session, keep, manifest).items()}
+    try:
+        mixed = _mixed_packages(session, keep, manifest)
+    except Exception:  # noqa: BLE001 - a stuck layer may not read; its stuck packages still re-download
+        if not packages:
+            raise
+        mixed = {}
+    packages = {**mixed, **packages}
+    if not packages:
         raise PatchError("No game files hold a translation the patcher cannot rebuild, so there is nothing to "
                          "re-download. Open the game, let it finish its update, close it, then patch again.")
     hashes = {}
     for name, entry in manifest["files"].items():
         parts = name.split("/")
-        if len(parts) == 3 and parts[0] == "packages" and parts[1] in stuck:
+        if len(parts) == 3 and parts[0] == "packages" and parts[1] in packages:
             hashes[f"{parts[1]}/{parts[2]}"] = entry["sha256"]
     summary = {"redownload": sorted(hashes, key=lambda name: (int(name.split("/")[0]), name)),
-               "packages": stuck}
+               "packages": packages}
     output.mkdir()
     (output / "device_patch_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     (session / "staged-hashes.json").write_text(json.dumps(hashes, indent=2), encoding="utf-8")

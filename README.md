@@ -46,9 +46,11 @@ official app, reinstall the game from the store.
 
 After a game update, run the patcher again. When the update rewrote a translated file, the patcher
 checks that package asset by asset: if none of its translation is left in it, it builds from the
-update's files and keeps a new delta against them. A run that cannot rebuild the untranslated files
-stops before it writes anything and tells you to clear the game's data: when an update left part of
-the translation in a file it changed, when the delta was made by patcher 1.6.1.5 or older (it has
+update's files and keeps a new delta against them. When some of the translation is still in it, the
+Android patcher writes the original bytes of those assets back (asset restore), or, when it cannot,
+offers **Re-download damaged files** for that package (below). A run that cannot rebuild the
+untranslated files otherwise stops before it writes anything and tells you to clear the game's data:
+when the Windows patcher finds part of the translation left in a file an update changed, when the delta was made by patcher 1.6.1.5 or older (it has
 no asset record), or on a phone another patcher (or a patcher version from before deltas) translated. Then clear the game's data,
 let it download again to the login screen, close it and patch. Clearing data removes local game data
 and requires another login.
@@ -56,7 +58,8 @@ and requires another login.
 If the game's own update stops on the translated files ("资源修复失败，请清理资源后重新下载资源"), the
 Android patcher sees it on the next Start or Remove translation: the game lists those files as broken.
 It then offers **Re-download damaged files**, which deletes only the translated packages the game
-listed and the game's update records. Open the game, let it download them and finish the update to the
+listed, the mixed packages it cannot restore (an update rewrote them while some of the translation is
+still in them), and the game's update records. Open the game, let it download them and finish the update to the
 login screen, close it, then tap Start to patch again. No other game data is deleted. The Windows
 patcher does not detect this yet; clear the game's data instead.
 

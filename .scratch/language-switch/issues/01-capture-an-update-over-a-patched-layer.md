@@ -11,10 +11,22 @@
 
 **Status:** ready-for-human
 
-- [ ] Update over a patched layer captured (logs, `Watchdog`, layer before and after)
-- [ ] Pristine write-back before the update tried and compared
-- [ ] Lab notebook entry with the verdict; spec's update section updated
+- [x] Update over a patched layer captured (logs, `Watchdog`, layer before and after)
+- [ ] Pristine write-back before the update tried and compared (not run: see Notes, 2026-10-23)
+- [x] Lab notebook entry with the verdict; spec's update section updated
 
 ## Notes
 
 Follow [device-cycle](../../../docs/runbooks/device-cycle.md). The signals ticket 07 relies on (a changed file hash, `History.db` merge events after the install) should be checked here against what the update actually leaves.
+
+2026-10-23: captured on the Xiaomi M2007J3SG with `tools/research/update_cycle.py`, pristine 1.6.0.1 pushed,
+Android patcher English, then the game's own update to 1.7.0.1 (lab notebook, "An update over a patched
+layer, captured end to end"). The update gives no prompt and leaves no trace before it runs
+(`NewVersionInfo.json` unchanged throughout); it merged diffs into 38 packages, the translated ones among
+them, then stuck on package `1` (`detected db corruption 1_0`, the repair's `put page failed`) and left
+`10`, `15`, `19`, `20`, `21` mixed. `History.db` logged the merges after the install (signal (ii) holds;
+`tools/research/watchdog_history.py` read the 38 merges). Re-download, then asset restore, recovered without a clear.
+
+The write-back trial was not run: nothing on the phone shows an update before the game opens and runs
+it, so the patcher has no moment to write the pristine bytes back first. The spec owner chose the
+after-update path for ticket 07 instead (2026-10-23). Done.

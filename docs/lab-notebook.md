@@ -3998,3 +3998,33 @@ pulled), so this is not the spec's Cycle 0. ADR 0008.
 | Restore | 302, 22 and 1 assets back at their pristine SHA-256 and stored chunks; every other asset's stored chunks unchanged; shards +55.6 MB, +1.3 MB, +16 KB; 1.6–2.8 s each; idempotent | measured |
 | Refusal and Re-download | `UPDATE_MIXED` names package `10, 21`; Re-download plans their 4 files only (22 s, mostly the trial restore) | measured |
 | Whether the next update accepts a restored package | Not measurable offline (spec, Cycle 3) | unmeasured |
+
+## 2026-10-23 — An update over a patched layer, captured end to end (Round A)
+
+`.scratch/language-switch` ticket 01, first half. Xiaomi M2007J3SG (`f15a72e`), game 1.1.1 / 774472, Android
+patcher 1.7.1.3. Each step captured with `tools/research/update_cycle.py` (layer hashes on the phone,
+`Watchdog/`, `QtsVFS.log`, `normal1.log`, `NewVersionInfo.json`, and the package bytes no snapshot holds), in
+`D:\scratch\hok-update-cycle\<label>`.
+
+| Step | Finding | Grade |
+|---|---|---|
+| `push` | The phone held 1.7.0.1 r0 + English (11 files differ from `20261022-1.7.0.1`, backed up). Pristine 1.6.0.1 (`20261016-101124`) pushed: all 549 package files equal `snapshot.json` | measured |
+| `after-patch` | The Android patcher took the stale delta as a first install and patched English: 11 files in `1`, `10`, `1050016095`, `15`, `19`, `20`, `21`; `Watchdog` cleared | measured |
+| Update prompt | None. Opening the game started the download at once; `NewVersionInfo.json` was byte-identical before the update, after it and after it finished (`isNeedUpdating` 1, `needDownloadSize` 0). Nothing on the phone said an update was waiting before it ran | measured |
+| `after-update` | `History.db`: 38 merges from 13:19:24 into 38 packages, every translated one but `1050016095` among them (`1`, `10`, `15`, `19`, `20`, `21`). `1.info` → 1.7.0.1; 542 of 564 package files equal the 1.7.0.1 snapshot. The game then showed "资源修复失败" | measured |
+| Why it stuck | `QtsVFS.log` (from the game start at 13:20:28; the merge's own log was overwritten): `detected db corruption 1_0 … Get item failed`, scan 338 broken files, all package `1`; each `QtsfFixer::FixFile` then fails `put page failed (corrupted)` and the fix ends `with db-corruption`. Package `1` carries appended assets and a split index; the repair cannot write into it | measured (the cause inferred from the log) |
+| Mixed packages | `10`, `15`, `19`, `20`, `21` match neither pristine 1.7.0.1 nor the install: the merge applied around the translated assets. `BrokenList.db` named none of them, and the game reached the login once `1` was fixed | measured |
+| Re-download, first | The patcher reported the stuck update and deleted package `1`'s three files only, `Watchdog` cleared. The game downloaded `1` whole (7 merges from its prime hash at 13:48), `BrokenList` empty, login screen. `1.db` equals the r815437 copy from 2026-10-22 | measured |
+| Start | `UPDATE_MIXED`: `10` (2 translated assets, 1 appended) and `21` (1, appended) | measured |
+| Re-download, second | `10` and `21` deleted and downloaded whole; login screen | measured |
+| `after-repatch` | Start patched Indonesian over the result, no clear; packages `15`, `19`, `20` taken by asset restore (no refusal named them) | measured |
+
+**Verdict:** an update run over a translated layer merges into the translated packages instead of skipping
+them, leaves package `1` corrupt for the game's own repair and the texture packages mixed, and the Android
+patcher recovers without a clear in two Re-downloads (packages `1`, then `10` and `21`) and one asset restore.
+Signal (ii) of ticket 07 holds: `History.db` carries merges dated after the install. `NewVersionInfo.json` is
+no signal. The two Re-downloads could be one: `10` and `21` were already mixed when the update stuck; since
+2026-10-23 `plan_redownload` takes them in the same run (`tools/research/check_update_redownload.py` on these
+captures: `after-update` plans `1`, `10`, `21`, `after-finish` plans `10`, `21`). The user checked the game
+reads Indonesian after the repatch. The pristine write-back before an update was not run: no signal on the
+phone precedes the update, so the patcher has no moment to write it (ticket 07 dropped it).
