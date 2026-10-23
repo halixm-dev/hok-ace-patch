@@ -14,7 +14,7 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **one Lua format edit** (`extra_text.SCRIPT_EDITS`) **and one config bin**
+(`extra_text.SCRIPT_LABELS`), **two Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
 (`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21) —
 nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
@@ -332,10 +332,16 @@ each withdrawn after a device cycle:
 What the pass still writes is `SCRIPT_LABELS`: exact literals in Lua UI scripts, today one, the Effect
 Card filter's hard-coded `通用` in `9BD30F0DF58B1FBF` (package `10`, prime-only, so it is appended). It
 reads **General** on the phone and survived a full match without the popup. Beside it, `SCRIPT_EDITS`
-holds exact literal edits to a script's own formatting, today one: `PVPRankDataClass`
+holds exact literal edits to a script's own formatting or behaviour, today two. The first is `PVPRankDataClass`
 (`6CB505C6553141B4`, package `10`) joins a rank's tier and numeral with `"%s%s"`, which read
 "Supreme StarIII" in the lobby; the edit makes both rank-title formats `"%s %s"` ("Supreme Star III").
 Device-verified on 1.6.0.1 on 2026-10-18: the lobby reads "Supreme Star III" and its tabs "Ranking  Match".
+The second is `UIPrefabClass` (`3482BF89614B5ABB`, package `10`, prime-only, so it is appended). The
+engine's `TextRendering` line-break flag treats every letter as a break point, so wrapped English split
+inside words ("Ancient Coi n"). The edit turns the flag off at the top of every UI prefab's `Create`, so a prefab that turns the
+flag on is answered at the next `Create`, not before its own text is laid out.
+Measured on 1.7.0.2 on 2026-10-23 with a probe doing the same reset: Card and Encyclopedia text wraps
+between words. The shipped edit itself has not yet been on a phone, and neither has a match.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 

@@ -4209,3 +4209,21 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
 - **A match was not played in this cycle** (user, same day), so in-match text is untested with v2.
 - **Verdict:** a reset at every `UIPrefabClass:Create` keeps the Encyclopedia and Card text wrapping between
   words. The match is not yet covered.
+
+## 2026-10-23 — The line-break reset as a `SCRIPT_EDITS` entry, offline
+
+- **Change:** `extra_text.SCRIPT_EDITS[0x3482BF89614B5ABB]` (`UIPrefabClass`). A module-level local is declared
+  above `apply_decoration()`. On the first `Create`, it resolves `CS.UnityEngine.TextRendering.SetFlag`
+  inside `pcall`, lazily as probe v2 did. Every `Create` then calls it with `false` (again inside `pcall`)
+  before `vGetPath()`. There is no logging.
+- **Offline checks:**
+  - The edit applies once to the APK's 41 029-byte script (→ 41 304), compiles under Lua 5.3, and a second
+    pass changes nothing.
+  - Run against a mocked engine, it turns the flag off, and `Create` still runs when `TextRendering` is
+    missing.
+- **Builds** (1.7.0.2 snapshot + cached APK, `D:\scratch\latin-line-breaks\out-fix-catalog` and
+  `out-fix-catalog_id`): both exit 0, and package `10` has 2 assets added from the APK (control: 1).
+  - Read back, `UIPrefabClass` holds the call once and compiles, and the rank-title edit is intact.
+  - Against `out-control`, only `10/10.db`, `10/10_0.db` and the summary's package-`10` append count differ.
+
+**No device verdict for the shipped edit yet.**

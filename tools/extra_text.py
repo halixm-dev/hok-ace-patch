@@ -6,7 +6,7 @@
 * UI text components in Unity prefabs get the official English for exact matches, when a package is
   listed as carrying them.
 * A Lua UI script that hard-codes a label (`SCRIPT_LABELS`) gets that one literal replaced, and one that
-  joins words the Chinese way (`SCRIPT_EDITS`) gets that one literal edited.
+  joins or wraps words the Chinese way (`SCRIPT_EDITS`) gets that one literal edited.
 * A lineup bin (`lineup_codes.LINEUP_BINS`), when a cycle enables it, gets the text inside its share
   codes and rows translated and its checksum resealed (`rewrite_config`).
 
@@ -162,8 +162,8 @@ SCRIPT_LABELS: dict[int, tuple[tuple[str, str], ...]] = {
     # in 1.4.0.2, so it reaches the phone through the append pass.
     0x9BD30F0DF58B1FBF: (('name = "{}"', "通用"),),
 }
-# Lua UI scripts whose own formatting is wrong for a translation: each entry is an exact source literal
-# and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
+# Lua UI scripts whose own formatting or behaviour is wrong for a translation: each entry is an exact
+# source literal and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     # PVPRankDataClass (package 10): a rank title is the tier name and its sub-level numeral joined with
     # no space, which reads "至尊星耀III" in Chinese and "Supreme StarIII" translated (the lobby's rank
@@ -176,6 +176,29 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
          '"RankLevel%s", rank)), romanCArray[level])',
          'string.format("%s %s", Localize.GetString(string.format(simple and "SimpleRankLevel%s" or '
          '"RankLevel%s", rank)), romanCArray[level])'),
+    ),
+    # UIPrefabClass (package 10, prime-only, so it is appended): the engine's `TextRendering` flag makes
+    # every character a line-break point, the Chinese way, so a wrapped English line splits inside a word
+    # ("Ancient Coi n"). Something outside Lua turns it on at startup and as some Encyclopedia list items
+    # are instantiated, so every UI prefab's Create turns it off before the prefab fills its text. A probe
+    # doing the same reset kept Card and Encyclopedia text whole on 1.7.0.2 (2026-10-23); this edit and a
+    # match are not device-verified yet. `.scratch/latin-line-breaks/`.
+    0x3482BF89614B5ABB: (
+        ("apply_decoration()\n---@param parentPrefabClass UIPrefabClass | "
+         "Assets.Scripts.Framework.UI.UIPrefabBaseClass\n---@param parentTf UnityEngine.Transform\n"
+         "function UIPrefabClass:Create(mediator, parentPrefabClass, parentTf, argument, customID, addCanvas, "
+         "localScale, lifeType)\n    local resourcePath = self:vGetPath()\n",
+         "local _setLineBreakFlag = nil\n\n"
+         "apply_decoration()\n---@param parentPrefabClass UIPrefabClass | "
+         "Assets.Scripts.Framework.UI.UIPrefabBaseClass\n---@param parentTf UnityEngine.Transform\n"
+         "function UIPrefabClass:Create(mediator, parentPrefabClass, parentTf, argument, customID, addCanvas, "
+         "localScale, lifeType)\n"
+         "    if _setLineBreakFlag == nil then\n"
+         "        _setLineBreakFlag = false\n"
+         "        pcall(function() _setLineBreakFlag = CS.UnityEngine.TextRendering.SetFlag end)\n"
+         "    end\n"
+         "    if _setLineBreakFlag then\n        pcall(_setLineBreakFlag, false)\n    end\n"
+         "    local resourcePath = self:vGetPath()\n"),
     ),
 }
 # Every Lua script the pass may write.

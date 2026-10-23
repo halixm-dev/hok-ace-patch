@@ -55,19 +55,23 @@ notebook ("Device cycle: the Latin line-break probe").
 
 ## Next steps
 
-1. **Find when the flag flips (probe v2).** Each time a UI prefab opens, lay out the sample to read the flag
-   (mid-word breaks mean on), log it with the prefab's name, then call `SetFlag(false)`. The log shows which
-   screen or event turns it back on, and the screens show whether re-applying on every open is enough.
-2. **Turn lever 1 into a real edit.** A `SCRIPT_EDITS` entry calls `CS.UnityEngine.TextRendering.SetFlag(false)`,
-   inside a `pcall`, in a script that runs early. It must run before the first wrapped English text and
-   after whatever turns the flag on. The probe hook (`vGetRankTitle`) runs too late: the lobby never calls it.
-   Also, decide whether lever 2 (`NumberCharacters`) is still worth building to keep line-start rules for the
-   Chinese that remains.
-3. **Check what flag-off costs**, in its own cycle:
-   - Chinese strings the catalog leaves untranslated (no line-start rules for punctuation).
-   - Chat. `TalkHelper` clamps punctuation runs for the flag-on generator; check that nothing it measures now
-     disagrees.
-   - Indonesian.
-   - Whether the flag comes back on later in a session (battle, scene change, re-login).
-4. **Record coverage.** Adding the edit moves the Lua-edit count in `AGENTS.md` ("one Lua format edit") and in
-   `docs/translation-progress.md`.
+Probe v2 (2026-10-23) found that the flag comes back on as some Encyclopedia list items are instantiated.
+Turning it off at the top of every `UIPrefabClass:Create` keeps the Card and Encyclopedia text wrapping
+between words. Lever 1 is now an `extra_text.SCRIPT_EDITS` entry on `UIPrefabClass` (`3482BF89614B5ABB`)
+that does exactly that, with no logging.
+
+1. **Verify the shipped edit on a phone:** a normal build with the edit (`D:\scratch\latin-line-breaks\out-fix-catalog`),
+   then walk Card, Encyclopedia (Effect, Hero, Talent and Equipment tabs), **a match**, a scene change and
+   a re-login. None of these has been tested: if in-match text still splits words, its HUD needs a second
+   hook. The reset answers a prefab that turns the flag on only at the next `Create`, so text that prefab
+   lays out itself may still split. Probe v2's screens passed regardless.
+2. **Check what flag-off costs** in the same cycle: Chinese the catalog leaves untranslated (no line-start
+   rules for punctuation), chat (`TalkHelper` clamps punctuation runs for the flag-on generator), and
+   Indonesian (`out-fix-catalog_id`).
+3. **When it passes**, record the device verdict beside the entry in `tools/extra_text.py` and in
+   `docs/translation-progress.md`. Then promote this folder to `docs/features/latin-line-breaks.md` and
+   delete it (`docs/agents/issue-tracker.md`).
+4. **Lever 2 is deferred, not dropped.** `NumberCharacters` with Latin letters would keep the flag on and keep
+   the line-start rules for the Chinese that remains. Build it only if step 2 shows flag-off costs too much.
+5. **Optional:** find the setter (a C# or native component on the Encyclopedia list items). It is not
+   needed while the reset holds.
