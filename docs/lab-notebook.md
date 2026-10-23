@@ -4028,3 +4028,16 @@ no signal. The two Re-downloads could be one: `10` and `21` were already mixed w
 captures: `after-update` plans `1`, `10`, `21`, `after-finish` plans `10`, `21`). The user checked the game
 reads Indonesian after the repatch. The pristine write-back before an update was not run: no signal on the
 phone precedes the update, so the patcher has no moment to write it (ticket 07 dropped it).
+
+## 2026-10-23 — 1.7.0.2: pristine snapshot after a data clear
+
+- **Snapshot:** Xiaomi M2007J3SG, data `1.7.0.2` revision `0` (`packages/1/1.info`), APK still 1.1.1 / 774472
+  (SHA-256 `29b3ee7e…`, equal to the cached `installed.apk`). The user cleared the game's data, and the game
+  downloaded 1.7.0.2 in full (`NewVersionInfo.json` `needDownloadSize` 0). Pulled through the cached access APK
+  (`run-as` tar of `packages` + `Watchdog`, 2 202 533 888 B), normal APK reinstalled and its hash checked on the
+  phone. Saved as `dist/HOK ACE Patcher Data/pristine/20261023-1.7.0.2`: all 527 package files equal the
+  phone's own `sha256sum`, none missing or extra; the layer did not change during the pull. `BrokenList.db` empty.
+- **Against 1.7.0.1** (768 files, 288 packages): 208 packages, none new; 149 files byte-equal, the rest
+  changed (base packages `0`–`30` among them). The 80 absent packages (`10001`, `1010010090`…, `1020001004`…)
+  are listed in `NewVersionInfo.json`'s `subidFilesizePtr`: downloaded on demand and not yet fetched since the
+  clear. A patch built from this snapshot sees only the 208 present packages.
