@@ -1,0 +1,17 @@
+---- script loaded 0
+---- probe 0 final flag false
+TextRendering type: table: 0xb4000076f762db40
+TextRendering.SetFlag: function: 0xb400007584fc3500
+font from Text 'Txt_Num': OSGameFont_Content size 20
+one-line width 1157.3
+before width=254.6 lines=5 midword=3 [Every time 2 Chang'an An] [cient Coins are played, thi] [s levels up and refreshes ] [permanently. Tiers 3-5 gai] [n 12/34 refreshes.]
+before width=405.1 lines=3 midword=1 [Every time 2 Chang'an Ancient Coins are ] [played, this levels up and refreshes perma] [nently. Tiers 3-5 gain 12/34 refreshes.]
+before width=578.7 lines=3 midword=1 [Every time 2 Chang'an Ancient Coins are played, this levels ] [up and refreshes permanently. Tiers 3-5 gain 12/34 refreshe] [s.]
+SetFlag(true): ok
+flag=true width=254.6 lines=5 midword=3 [Every time 2 Chang'an An] [cient Coins are played, thi] [s levels up and refreshes ] [permanently. Tiers 3-5 gai] [n 12/34 refreshes.]
+flag=true width=405.1 lines=3 midword=1 [Every time 2 Chang'an Ancient Coins are ] [played, this levels up and refreshes perma] [nently. Tiers 3-5 gain 12/34 refreshes.]
+flag=true width=578.7 lines=3 midword=1 [Every time 2 Chang'an Ancient Coins are played, this levels ] [up and refreshes permanently. Tiers 3-5 gain 12/34 refreshe] [s.]
+SetFlag(false): ok
+flag=false width=254.6 lines=6 midword=0 [Every time 2 Chang'an ] [Ancient Coins are played, ] [this levels up and ] [refreshes permanently. ] [Tiers 3-5 gain 12/34 ] [refreshes.]
+flag=false width=405.1 lines=4 midword=0 [Every time 2 Chang'an Ancient Coins are ] [played, this levels up and refreshes ] [permanently. Tiers 3-5 gain 12/34 ] [refreshes.]
+flag=false width=578.7 lines=3 midword=0 [Every time 2 Chang'an Ancient Coins are played, this levels ] [up and refreshes permanently. Tiers 3-5 gain 12/34 ] [refreshes.]

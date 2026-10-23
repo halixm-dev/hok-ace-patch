@@ -4139,3 +4139,33 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
     device cycle.
 
 **No device verdict yet.**
+
+## 2026-10-23 — Device cycle: the Latin line-break probe (`SetFlag(false)` from Lua) — pass
+
+- **Setup:** Xiaomi M2007J3SG, data `1.7.0.2` revision `0` (`packages/1/1.info`), APK SHA-256 `29b3ee7e…`
+  (the cached `installed.apk`, launcher already `Honor of Kings: ACE`). The phone held an English patch from
+  21:06 that is not byte-equal to a PC build. Only package `10` was replaced, with `out-probe/10`
+  (`.scratch/latin-line-breaks/probe/`; `10.db` `9cb31d84…`, `10_0.db` `473f8513…`, read back on the phone).
+  The other packages were left as they were. Backup of `packages` + `Watchdog` (3.1 GB):
+  `D:\scratch\latin-line-breaks\backup-before-probe.tar`. The normal APK was reinstalled.
+- **Launch:** loading reached 100% with no repair, and the login screen is English. The probe's
+  `script loaded` line appeared at startup. The lobby alone did not call `GetRankTitle`; opening a screen
+  showing the rank did. (In xLua here, `os.date` printed `0`.)
+- **Probe log** (`probe/evidence/latin_line_break_probe.txt`; font `OSGameFont_Content` 20 from `Txt_Num`,
+  one-line width 1157.3, widths 254.6 / 405.1 / 578.7):
+  - **As started:** `midword` 3 / 1 / 1 ("Chang'an An|cient", "thi|s levels", "perma|nently").
+  - **`SetFlag(true)`:** the same lines, character for character.
+  - **`SetFlag(false)`:** `midword` 0 / 0 / 0, breaking at spaces ("Chang'an |Ancient Coins").
+  - `CS.UnityEngine.TextRendering` and `SetFlag` both resolve from xLua, and both calls return without error.
+- **Verdict:**
+  - **The flag is on in the shipped game.** The static entry above ("no caller found") is wrong about the
+    state; the setter is somewhere that pass did not read.
+  - **Lever 1 works.** One Lua `SetFlag(false)` gives word wrap.
+- **Card screen with the flag off** (`probe/evidence/card-screen-flag-off.jpg`, Card > All): all ten visible
+  descriptions wrap between words ("Gain 1 Free / refresh.", "Su Lie's Level / permanently +2.").
+  No word is split.
+- **Not checked in this cycle:**
+  - Chinese text that remains, which loses its line-start rules with the flag off.
+  - Chat, which TalkHelper tunes for the flag-on generator.
+  - Indonesian.
+  - Whether a later scene sets the flag on again. The probe ran once, before the Card screen.
