@@ -180,9 +180,9 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     # UIPrefabClass (package 10, prime-only, so it is appended): the engine's `TextRendering` flag makes
     # every character a line-break point, the Chinese way, so a wrapped English line splits inside a word
     # ("Ancient Coi n"). Something outside Lua turns it on at startup and as some Encyclopedia list items
-    # are instantiated, so every UI prefab's Create turns it off before the prefab fills its text. A probe
-    # doing the same reset kept Card and Encyclopedia text whole on 1.7.0.2 (2026-10-23); this edit and a
-    # match are not device-verified yet. `.scratch/latin-line-breaks/`.
+    # are instantiated, so every UI prefab's Create turns it off before the prefab fills its text.
+    # Device-verified 2026-10-23 on 1.7.0.2: Card, Encyclopedia and a match wrap between words.
+    # `docs/features/latin-line-breaks.md`.
     0x3482BF89614B5ABB: (
         ("apply_decoration()\n---@param parentPrefabClass UIPrefabClass | "
          "Assets.Scripts.Framework.UI.UIPrefabBaseClass\n---@param parentTf UnityEngine.Transform\n"

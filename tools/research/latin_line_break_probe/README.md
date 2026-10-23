@@ -1,5 +1,8 @@
 # Latin line-break probe (throwaway)
 
+Research record for [latin-line-breaks](../../../docs/features/latin-line-breaks.md): the two probes that found
+the line-break flag and the reset that fixed it, with their device evidence in `evidence/`. Nothing imports it.
+
 A device cycle that answers one question: **is `TextRendering`'s flag on, and does turning it off make the
 Card screen wrap English at spaces?** It is a diagnostic build, never a release. Nothing under `tools/`
 changes: `build_probe.py` adds `probe.lua` to the `PVPRankDataClass` script edit (`6CB505C6553141B4`,
@@ -26,7 +29,7 @@ section means `vGetRankTitle` never ran, not that the edit failed to land.
 Built 2026-10-23 against the 1.7.0.2 pristine snapshot and the cached APK:
 
 ```bat
-.venv\Scripts\python.exe .scratch\latin-line-breaks\probe\build_probe.py --runtime resources\runtime ^
+.venv\Scripts\python.exe tools\research\latin_line_break_probe\build_probe.py --runtime resources\runtime ^
     --game "dist\HOK ACE Patcher Data\pristine\20261023-1.7.0.2\game" --catalog resources\catalog ^
     --work D:\scratch\latin-line-breaks\work-probe --output D:\scratch\latin-line-breaks\out-probe ^
     --apk "D:\HOK ACE Patcher Data\cache\HOK ACE Patcher Data\installed.apk"
@@ -70,7 +73,7 @@ Follow `docs/runbooks/device-cycle.md`. Notes for this cycle:
 | `flag=true` and `flag=false` lines identical | The flag does not change this generator's layout; re-read the static notes. |
 
 Whatever it shows, the Card screenshot with the flag off is the screen evidence. Record the verdict in
-`docs/lab-notebook.md` and in `findings.md` before the next cycle.
+`docs/lab-notebook.md` before the next cycle.
 
 ## Probe v2
 

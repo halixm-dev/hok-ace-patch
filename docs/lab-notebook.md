@@ -4104,7 +4104,7 @@ translated layer is now one Re-download, one game start and one Start, with no c
 ## 2026-10-23 — Latin line breaks: what `TextRendering.SetFlag` does, read statically
 
 Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadata.dat` v29, packages `1` and
-`10`) with capstone. No phone. Ticket: `.scratch/latin-line-breaks/`.
+`10`) with capstone. No phone. Record: `docs/features/latin-line-breaks.md`.
 
 - **The rules object.** `TextRendering::SetFlag` and `::LoadLinebreakingRules` (icall table in `libunity.so`)
   call into one object held at `.bss` `0x1D5D148`, built at `0x158DEE0` with vtable `0x1C72578` and its byte at
@@ -4145,13 +4145,13 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
 - **Setup:** Xiaomi M2007J3SG, data `1.7.0.2` revision `0` (`packages/1/1.info`), APK SHA-256 `29b3ee7e…`
   (the cached `installed.apk`, launcher already `Honor of Kings: ACE`). The phone held an English patch from
   21:06 that is not byte-equal to a PC build. Only package `10` was replaced, with `out-probe/10`
-  (`.scratch/latin-line-breaks/probe/`; `10.db` `9cb31d84…`, `10_0.db` `473f8513…`, read back on the phone).
+  (`tools/research/latin_line_break_probe/`; `10.db` `9cb31d84…`, `10_0.db` `473f8513…`, read back on the phone).
   The other packages were left as they were. Backup of `packages` + `Watchdog` (3.1 GB):
   `D:\scratch\latin-line-breaks\backup-before-probe.tar`. The normal APK was reinstalled.
 - **Launch:** loading reached 100% with no repair, and the login screen is English. The probe's
   `script loaded` line appeared at startup. The lobby alone did not call `GetRankTitle`; opening a screen
   showing the rank did. (In xLua here, `os.date` printed `0`.)
-- **Probe log** (`probe/evidence/latin_line_break_probe.txt`; font `OSGameFont_Content` 20 from `Txt_Num`,
+- **Probe log** (`tools/research/latin_line_break_probe/evidence/latin_line_break_probe.txt`; font `OSGameFont_Content` 20 from `Txt_Num`,
   one-line width 1157.3, widths 254.6 / 405.1 / 578.7):
   - **As started:** `midword` 3 / 1 / 1 ("Chang'an An|cient", "thi|s levels", "perma|nently").
   - **`SetFlag(true)`:** the same lines, character for character.
@@ -4161,7 +4161,7 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   - **The flag is on in the shipped game.** The static entry above ("no caller found") is wrong about the
     state; the setter is somewhere that pass did not read.
   - **Lever 1 works.** One Lua `SetFlag(false)` gives word wrap.
-- **Card screen with the flag off** (`probe/evidence/card-screen-flag-off.jpg`, Card > All): all ten visible
+- **Card screen with the flag off** (`tools/research/latin_line_break_probe/evidence/card-screen-flag-off.jpg`, Card > All): all ten visible
   descriptions wrap between words ("Gain 1 Free / refresh.", "Su Lie's Level / permanently +2.").
   No word is split.
 - **Not checked in this cycle:**
@@ -4170,7 +4170,7 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   - Indonesian.
   - Whether a later scene sets the flag on again. The probe ran once, before the Card screen.
 - **Later in the same session the flag is on again** (user report, then screenshots
-  `probe/evidence/encyclopedia-effect.jpg`, `encyclopedia-hero.jpg`, `card-screen-reopened.jpg`):
+  `tools/research/latin_line_break_probe/evidence/encyclopedia-effect.jpg`, `encyclopedia-hero.jpg`, `card-screen-reopened.jpg`):
   - Encyclopedia > Effect Card breaks mid-word ("+3 lev / els", "effect ite / ms").
   - Encyclopedia > Hero Card breaks the same Su Lie text the Card screen had wrapped whole
     ("Su Lie's Level pe / rmanently +2.").
@@ -4183,7 +4183,7 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
 
 ## 2026-10-23 — Device cycle: probe v2, the flag read and reset on every UI create — pass on the Encyclopedia
 
-- **Build:** `build_probe.py --v2` (`.scratch/latin-line-breaks/probe/`). It adds `probe_v2.lua` to
+- **Build:** `build_probe.py --v2` (`tools/research/latin_line_break_probe/`). It adds `probe_v2.lua` to
   `UIPrefabClass` (`3482BF89614B5ABB`, prime-only), which reaches the phone through the append pass
   (package `10` "added from the APK" went from 1 to 2). It runs at the top of `UIPrefabClass:Create`:
   - reads the flag by laying out a sample (a break inside a word means on);
@@ -4192,7 +4192,7 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
 
   Only package `10` was pushed (`10.db` `5b531cd2…`, `10_0.db` `47d3f05d…`), over the same phone and data as
   probe v1. The normal APK was reinstalled.
-- **Log** (`probe/evidence/latin_line_break_probe_v2.txt`): 938 creates, 196 found the flag on, no errors, no
+- **Log** (`tools/research/latin_line_break_probe/evidence/latin_line_break_probe_v2.txt`): 938 creates, 196 found the flag on, no errors, no
   `?`.
   - The first create (`UILockInput`) found it on, then it stayed off through login and the lobby.
   - It comes back on only after specific Encyclopedia (`GameAtlas`) list items are created. The create right
@@ -4227,3 +4227,15 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   - Against `out-control`, only `10/10.db`, `10/10_0.db` and the summary's package-`10` append count differ.
 
 **No device verdict for the shipped edit yet.**
+
+## 2026-10-23 — Device cycle: the line-break reset as shipped (`out-fix-catalog`) — pass
+
+- **Setup:** the same M2007J3SG, data `1.7.0.2` revision `0`. Only package `10` from `out-fix-catalog` was pushed
+  (`10.db` `0fdd72f2…`, `10_0.db` `09cb7cdc…`, read back on the phone), replacing probe v2. The normal APK was
+  reinstalled (`29b3ee7e…`). The game started and logged in.
+- **Screens** (user report): Card, Encyclopedia and a match all wrap English between words.
+- **Verdict: pass.** The `UIPrefabClass` `SCRIPT_EDITS` entry fixes the mid-word breaks. The verdict is beside
+  the entry in `tools/extra_text.py`.
+- **Not checked:** re-login and scene changes beyond the match, chat (`TalkHelper` tunes punctuation runs for
+  the flag-on generator), Chinese that the catalog leaves untranslated (it loses the line-start rules), and
+  Indonesian (`out-fix-catalog_id`, built and read back only).

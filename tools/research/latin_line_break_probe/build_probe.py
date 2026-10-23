@@ -3,7 +3,7 @@
 Never ship this output. It runs `build_device_patch.main` with one extra `extra_text.SCRIPT_EDITS` entry
 added in memory, so `tools/` stays untouched. Arguments are `build_device_patch.py`'s own:
 
-    .venv\\Scripts\\python.exe .scratch\\latin-line-breaks\\probe\\build_probe.py [--v2] --runtime resources\\runtime ^
+    .venv\\Scripts\\python.exe tools\\research\\latin_line_break_probe\\build_probe.py [--v2] --runtime resources\\runtime ^
         --game <dump> --catalog resources\\catalog --work <work> --output <out> --apk <apk>
 
 Without `--v2`: probe.lua in PVPRankDataClass (`6CB505C6553141B4`), run once at the first rank title.

@@ -85,7 +85,7 @@ filter's `通用`), which is not a config bin, was verified on its screen and ac
 phone through the append because the script is prime-only. `SCRIPT_EDITS` carries exact literal edits
 to a Lua script's own formatting or behaviour under the same once-only rule: the rank title's `"%s%s"` in
 `6CB505C6553141B4`, which joined "Supreme Star" and "III" with no space, and the line-break flag reset at
-the top of `UIPrefabClass:Create` (`3482BF89614B5ABB`, `.scratch/latin-line-breaks/`). Symptoms and dates are beside the allowlist in
+the top of `UIPrefabClass:Create` (`3482BF89614B5ABB`, [latin-line-breaks](latin-line-breaks.md)). Symptoms and dates are beside the allowlist in
 `tools/extra_text.py`; the evidence is in `docs/lab-notebook.md`'s 2026-10-05 section.
 
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the

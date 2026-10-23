@@ -340,8 +340,8 @@ The second is `UIPrefabClass` (`3482BF89614B5ABB`, package `10`, prime-only, so 
 engine's `TextRendering` line-break flag treats every letter as a break point, so wrapped English split
 inside words ("Ancient Coi n"). The edit turns the flag off at the top of every UI prefab's `Create`, so a prefab that turns the
 flag on is answered at the next `Create`, not before its own text is laid out.
-Measured on 1.7.0.2 on 2026-10-23 with a probe doing the same reset: Card and Encyclopedia text wraps
-between words. The shipped edit itself has not yet been on a phone, and neither has a match.
+Device-verified on 1.7.0.2 on 2026-10-23: Card, Encyclopedia and a match wrap between words
+([latin-line-breaks](features/latin-line-breaks.md)).
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 
