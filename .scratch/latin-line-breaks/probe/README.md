@@ -71,3 +71,24 @@ Follow `docs/runbooks/device-cycle.md`. Notes for this cycle:
 
 Whatever it shows, the Card screenshot with the flag off is the screen evidence. Record the verdict in
 `docs/lab-notebook.md` and in `findings.md` before the next cycle.
+
+## Probe v2
+
+Probe v1 showed the flag comes back on within a session. `build_probe.py --v2` puts `probe_v2.lua` into
+`UIPrefabClass` (`3482BF89614B5ABB`, prime-only, carried by the append pass). On every
+`UIPrefabClass:Create`, before the prefab initialises, it does three things:
+
+1. Lays the sample out at a narrow width to read the flag (`on` when a break falls inside a word).
+2. Calls `SetFlag(false)`.
+3. Appends `n  clock  state  class  path` to `files/latin_line_break_probe_v2.txt`.
+
+A line marked `<<< flag was ON` means the flag was turned on since the previous create. The log stops at
+2000 creates; the reset continues.
+
+Built 2026-10-23 to `D:\scratch\latin-line-breaks\out-probe-v2`. It differs from `out-control` only in
+package `10`, which was pushed alone (`10.db` `5b531cd2…`, `10_0.db` `47d3f05d…`). The staged `UIPrefabClass`
+is 45 821 bytes and compiles. Pull the log with:
+
+```bat
+adb pull /sdcard/Android/data/com.tencent.tmgp.osgame/files/latin_line_break_probe_v2.txt
+```
