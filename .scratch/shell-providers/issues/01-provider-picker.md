@@ -38,10 +38,10 @@ What to check on the phone: the picker persists across an app restart and locks 
 
 Not failures of this ticket, for whoever touches them next:
 
-- `WorkerProbeTest` (2 tests) fails here on this commit and on the pre-01 app alike: it hardcodes another phone's normal-APK hash (`WorkerProbeTest.java:27`, `b0b08f…`), and this phone's recovery material is `63bec2…`.
+- `WorkerProbeTest` (2 tests) fails here on this commit and on the pre-01 app alike: it hardcodes another phone's normal-APK hash (`WorkerProbeTest.java:27`, `b0b08f…`), and this phone's recovery material is `63bec2…`. **Fixed in `b167e7b`:** the probe takes the newest retained recovery folder; both tests pass on `ebad528e`.
 - A user's explicit choice (Root) is kept across restarts on a phone that has a patch. Read as intended: *stays selected* applies to the default, not to an explicit pick.
-- On Android 15 the footer row sits partly under the gesture bar at the bottom of the scroll; the page insets are unchanged by this commit.
+- On Android 15 the footer row sits partly under the gesture bar at the bottom of the scroll; the page insets are unchanged by this commit. **Not a defect (2026-10-24, `b167e7b`):** the captures (`t01/rec.xml`, `tools.xml`, `root1.xml`) were mid-scroll, cut by the viewport. Scrolled to the end, the footer row ends at y 2262 and the open Technical tools at 2262, above the gesture bar at 2341; the system-bar padding works. No code change.
 - Running the probes leaves `worker-state.json` in an error state (`FirstSetupWorkerGuardProbeTest`, `WorkerProbeTest`), so ③ shows *Work stopped* until the next real run.
 
 
-**Resolved (2026-10-24).** Built and device-tested (pass `c69c251`); the picker carries tickets 02 and 03. Leftovers stay open as findings above: `WorkerProbeTest`'s other-phone hash and the footer under the gesture bar.
+**Resolved (2026-10-24).** Built and device-tested (pass `c69c251`); the picker carries tickets 02 and 03. Both leftovers are now closed: `WorkerProbeTest` fixed in `b167e7b`; the footer finding was a mid-scroll capture.

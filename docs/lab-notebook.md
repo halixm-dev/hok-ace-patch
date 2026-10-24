@@ -4398,3 +4398,16 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   login, `errorCode=0` (`t04\d1-wireless-screenoff-unlocked-*`).
 - **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/02-wireless-debugging-provider.md` and `04-device-cycles.md`.
 - **Evidence:** `D:\hokace-work\redmi-ebad528e\t02b\` (`idle-off*`, `prepare-loss*`, `prepare-loss2*`, `root-prepare-loss*`).
+
+## 2026-10-24 — Shell providers: ticket 01's leftovers, `WorkerProbeTest` and the footer (`b167e7b`) — pass
+
+- **Phone:** Redmi Note 9 Pro (`ebad528e`, Android 15), debug app and test APK from `b167e7b`; retained normal APK
+  `recovery/63bec2…`.
+- **`WorkerProbeTest`:** with the hash taken from the newest retained recovery folder, `OK (2 tests)` in 61 s;
+  `worker-state.json` ends `{"status":"verified","action":"verify"}`, so ③ stays *Ready when you are*. Before: both
+  failed on the hardcoded `b0b08f…` (`t01/rec.png`, `identity.json: ENOENT`).
+- **Footer and the gesture bar:** navigation bar frame y 2341–2400. Scrolled to the end, the footer row ends at 2262; with
+  Technical tools open, the page ends at 2262. The earlier captures (`t01/rec.xml`, `tools.xml`, `root1.xml`, bottom
+  2400) were mid-scroll: opening recovery scrolls to its top. No code change.
+- **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/01-provider-picker.md`.
+- **Evidence:** `D:\hokace-work\redmi-ebad528e\` (`t01-footer-before.png`, `t01-footer-tools.png`).
