@@ -10,7 +10,7 @@
 
 **Blocked by:** none
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Device test:** pass c69c251
 
@@ -43,3 +43,5 @@ Not failures of this ticket, for whoever touches them next:
 - On Android 15 the footer row sits partly under the gesture bar at the bottom of the scroll; the page insets are unchanged by this commit.
 - Running the probes leaves `worker-state.json` in an error state (`FirstSetupWorkerGuardProbeTest`, `WorkerProbeTest`), so ③ shows *Work stopped* until the next real run.
 
+
+**Resolved (2026-10-24).** Built and device-tested (pass `c69c251`); the picker carries tickets 02 and 03. Leftovers stay open as findings above: `WorkerProbeTest`'s other-phone hash and the footer under the gesture bar.

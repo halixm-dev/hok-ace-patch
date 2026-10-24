@@ -10,7 +10,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Device test:** pass 1f5301a
 
@@ -65,3 +65,5 @@ Not failures of this ticket, for whoever touches them next:
 - **Recovery:** Wireless debugging back on, *Restore interrupted patch* over a new uid 2000 worker → `recovered` (phase `CANCELLED`) at 15:18:24, *Normal game APK verified*. The game started English (`wireless-run2-recovered-game.png`), no QtsVFS errors, QTS scan `errorCode=0`; no worker process left.
 - Still open from the first test: the connection log reads `Wireless debugging port -1` and `connection lost (null)`; only the journal's line was fixed.
 - The *Start translation* confirmations and the *Recover interrupted patch* chooser were driven by this session through `uiautomator`. The provider was left on Wireless debugging.
+
+**Resolved (2026-10-24).** Device test pass on `9aa1b4e` and again, independently, on `1f5301a`. The log findings (port `-1`, `connection lost (null)`) are fixed in `fd071d1`. Still open: a loss during prepare shows the generic notice, and ③ reads *Ready when you are* while Wireless debugging is off. Pairing on a second OEM, the screen-off run and the cross-provider runs are ticket 04.

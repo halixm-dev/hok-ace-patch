@@ -10,7 +10,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Device test:** pass 1f5301a
 
@@ -64,3 +64,5 @@
 - **Recovery:** *Restore interrupted patch* → `recovered` (phase `CANCELLED`) at 14:41:07, no install. All 1327 entries kept the game's owner and label (`root-run2-recovered-files-stat.txt`); the game started English (`root-run2-recovered-game.png`), no QtsVFS errors, QTS scan `errorCode=0`.
 - Still open from the first test: the recovery tools offer *Reinstall saved game app* under Root, and ③'s *Patch complete. Normal game app verified.* reads as shell wording under Root.
 - The *Start translation* confirmations and the *Recover interrupted patch* chooser were driven by this session through `uiautomator`.
+
+**Resolved (2026-10-24).** Device test pass on `75a7f69` and again, independently, on `1f5301a`. The wording and recovery-tools findings are fixed in `fd071d1`: root results say *The game app was not replaced*, and a retained normal APK alone no longer offers *Reinstall saved game app* under Root. Magisk, APatch, direct login and the cross-provider runs are ticket 04.
