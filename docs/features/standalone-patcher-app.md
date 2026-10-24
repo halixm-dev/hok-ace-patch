@@ -11,7 +11,7 @@ commits: 7b9769b..9f151a8
 ## Report
 
 **Versioning (2026-10-17):** the root `VERSION` file sets the Windows header version,
-currently `1.7.2.2` (three game version numbers plus patch revision). PyInstaller bundles
+currently `1.7.2.3` (three game version numbers plus patch revision). PyInstaller bundles
 the file so source and frozen builds read the same version. See
 [patch versions](../../README.md#patch-versions) for increment rules.
 
