@@ -4354,3 +4354,30 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   `03-root-provider.md`. The connection log still reads `port -1` and `connection lost (null)`.
 - **Evidence:** `D:\hokace-work\redmi-ebad528e\retest\` (`root-run*`, `wireless-run*`: traces, logcats, screenshots,
   `stat` listings).
+
+## 2026-10-24 — Shell providers ticket 04 on `ebad528e` (`fd071d1`): cross-provider and screen-off runs — pass
+
+- **Phone:** Redmi Note 9 Pro (`ebad528e`), KernelSU, HOK ACE granted Superuser, paired with Wireless debugging. Debug app
+  from `fd071d1` (root results say *The game app was not replaced*; a retained normal APK alone offers no reinstall
+  under Root; the wireless log names no port before it finds one). Shizuku 13.6.0 started from adb (`libshizuku.so`,
+  uid 2000). UI driven through `uiautomator`.
+- **Method:** after each run, the delta header (`HOKACE-PRISTINE-DELTA`, line 2) was pulled and compared per file
+  (pristine and staged SHA-256 and length, `body_sha256`, `asset_body_sha256`). The 14 installed package files were
+  hashed against its staged SHA-256. The game was then started from adb and its logcat read.
+- **Shizuku → Root:** Shizuku `complete` 16:00:09 (11 rebuilt from the Wireless run's delta). Root `complete` 16:10:27
+  (391/398, 1 table skipped; 11 rebuilt from the Shizuku delta; no APK installed). Both deltas are identical except for
+  `info.made`. Installed files match the delta; 1322 entries `u0_a246` with
+  `app_data_file:s0:c246,c256,c512,c768`; English login, QTS scan `errorCode=0`, no QtsVFS errors.
+- **Root → Shizuku:** Shizuku `complete` 16:28:12 (11 rebuilt from the Root delta; normal APK restored and verified);
+  delta identical except for `made`; files match; English login (`b2-shizuku-game.png`), `errorCode=0`.
+- **Root loss after Shizuku:** `pkill -9` of the uid-0 worker at 16:39:12 after `15/15_0.db` → ③ *Root access
+  stopped…*; recovery options without *Reinstall saved game app*, retained `recovery/63bec2…` present. *Restore
+  interrupted patch* → `recovered` 16:41:30; files match the delta, 1328 entries keep owner and label; English login.
+- **Wireless debugging, screen off:** after the patch was confirmed at 16:46:21, `dumpsys battery unplug` and the screen
+  turned off. Doze `QUICK_DOZE_DELAY` → `IDLE` by 16:49 (22 of 26 polls `IDLE`); run `complete` 16:59:07, 11 rebuilt,
+  delta identical except for `made`, normal APK installed (`63bec2…`), files match. Game start not observed: the
+  phone returned to its secure lock screen.
+- **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/04-device-cycles.md`.
+- **Evidence:** `D:\hokace-work\redmi-ebad528e\t04\` (`a1-shizuku-*`, `a2-root-*`, `b2-shizuku-*`, `c1-root-loss-*`,
+  `d1-wireless-screenoff-*`, `delta-after-*.json`, `*-packages-sha.txt`, `*-files-stat.txt`, game logcats and
+  screenshots).
