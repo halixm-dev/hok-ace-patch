@@ -17,8 +17,15 @@ data class RecoveryMaterial(val patch: Boolean, val setup: Boolean, val savedApk
             val retained = File(context.filesDir, "recovery").listFiles().orEmpty().any {
                 it.isDirectory && it.name.matches(Regex("[0-9a-f]{64}"))
             }
-            return RecoveryMaterial(SessionJournal.pending(File(context.filesDir, "sessions")).isNotEmpty(),
-                FirstSetupJournal.pending(context).isNotEmpty(), emergency || retained)
+            return of(SessionJournal.pending(File(context.filesDir, "sessions")).isNotEmpty(),
+                FirstSetupJournal.pending(context).isNotEmpty(), emergency, retained, ShellProvider.current(context) == ShellProvider.ROOT)
         }
+
+        /**
+         * Under Root a retained normal APK is a shell run's leftover: a root run never replaces the game app, so
+         * only a pending emergency restore offers the reinstall there (ADR 0007).
+         */
+        fun of(patch: Boolean, setup: Boolean, emergency: Boolean, retained: Boolean, root: Boolean) =
+            RecoveryMaterial(patch, setup, emergency || (retained && !root))
     }
 }

@@ -91,21 +91,20 @@ object UiText {
     data class Result(val english: String, val heading: String, val summary: String, val items: List<String>, val note: String = "",
                       val gameReady: Boolean = false)
 
-    /** The result <state> reports in language <code>, or null when the worker record is not a result. Takes a code, not a Context, so JVM tests reach it. */
+    /**
+     * The result <state> reports in language <code>, or null when the worker record is not a result. Takes a code, not a Context, so JVM tests reach it.
+     * A root run's record carries `root`: it never replaced the game app, so its summary says so instead of naming the normal app.
+     */
     fun result(code: String, state: JSONObject): Result? = when (state.optString("status")) {
         // ③ leads with Open game: the game's own update is the next step, and the note says what follows it.
-        "complete" -> if (state.has("redownloaded")) Result("Damaged files deleted", translate(code, "Damaged files deleted"),
-            template(code, "redownload_verified"), listOf(template(code, "redownload_files_deleted", "count" to state.getInt("redownloaded"))),
-            template(code, "redownload_next_step"), gameReady = true)
-        else if (state.has("removed")) Result("Translation removed", translate(code, "Translation removed"), template(code, "removal_verified"),
-            listOf(template(code, "original_files_restored", "count" to state.getInt("removed"))), template(code, "removed_login_note"), gameReady = true)
-        else {
-            val counts = state.optJSONObject("counts")
-            // The template's first line is the summary; each further line is one count.
-            val lines = if (counts == null) listOf(template(code, "completed_no_counts")) else template(code, "completed_counts",
-                "text_tables" to counts.getInt("text_tables"), "applied_textures" to counts.getInt("applied_textures"),
-                "skipped_tables" to counts.getInt("skipped_tables"), "skipped_textures" to counts.getInt("skipped_textures")).lines()
-            Result("Translation added", translate(code, "Translation added"), lines.first(), lines.drop(1), template(code, "added_login_note"), gameReady = true)
+        "complete" -> {
+            val suffix = if (state.optBoolean("root")) "_root" else ""
+            if (state.has("redownloaded")) Result("Damaged files deleted", translate(code, "Damaged files deleted"),
+                template(code, "redownload_verified$suffix"), listOf(template(code, "redownload_files_deleted", "count" to state.getInt("redownloaded"))),
+                template(code, "redownload_next_step"), gameReady = true)
+            else if (state.has("removed")) Result("Translation removed", translate(code, "Translation removed"), template(code, "removal_verified$suffix"),
+                listOf(template(code, "original_files_restored", "count" to state.getInt("removed"))), template(code, "removed_login_note"), gameReady = true)
+            else completed(code, state, suffix)
         }
         "recovered_unconfirmed" -> Result("Translation written", translate(code, "Translation written"), translate(code, WorkerStatus.UNCONFIRMED), emptyList(), gameReady = true)
         "space_freed" -> Result("Space freed", translate(code, "Space freed"),
@@ -113,6 +112,15 @@ object UiText {
             template(code, "freed_amounts", "freed" to StorageBudget.freeSpaceLabel(state.optLong("freed_bytes")),
                 "free" to StorageBudget.freeSpaceLabel(state.optLong("free_bytes"))).lines())
         else -> null
+    }
+
+    private fun completed(code: String, state: JSONObject, suffix: String): Result {
+        val counts = state.optJSONObject("counts")
+        // The template's first line is the summary; each further line is one count.
+        val lines = if (counts == null) listOf(template(code, "completed_no_counts$suffix")) else template(code, "completed_counts$suffix",
+            "text_tables" to counts.getInt("text_tables"), "applied_textures" to counts.getInt("applied_textures"),
+            "skipped_tables" to counts.getInt("skipped_tables"), "skipped_textures" to counts.getInt("skipped_textures")).lines()
+        return Result("Translation added", translate(code, "Translation added"), lines.first(), lines.drop(1), template(code, "added_login_note"), gameReady = true)
     }
 
     /** Free up space's opt-in: <saved> is what it frees, <prepare> what the next preparation needs free. */

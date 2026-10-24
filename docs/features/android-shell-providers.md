@@ -13,7 +13,7 @@ providers: Shizuku (today's), Wireless debugging and Root, picked by the user on
 work in flight is [`.scratch/shell-providers/`](../../.scratch/shell-providers/spec.md), tickets 01–04;
 the root write path is decided in [ADR 0007](../adr/0007-on-a-rooted-phone-write-the-override-layer-directly.md).
 Shizuku's own history stays in [android-shizuku-patcher](android-shizuku-patcher.md). Ticket 01 passed on a phone;
-ticket 02 passed on the same phone. No coverage count moves.
+tickets 02 and 03 passed on the same phone, and passed again in an independent retest. No coverage count moves.
 
 ### Journey log
 
@@ -28,6 +28,8 @@ ticket 02 passed on the same phone. No coverage count moves.
 - Ticket 03 built: the Root provider. `su -c` starts the worker as uid 0, which runs the same locked scripts in the game's data directory and gives what it creates the owner and SELinux label of `files/QtsVFSCache` (`chown`, `chcon`, umask 000 to match `run-as`; measured as root on KernelSU, see the ticket). A root preparation copies only the installed game app for the build; a root run installs nothing, records the installed app in its journal (`root_installed`) and verifies it is still installed at the end. Unlock access and Restore game app are skipped with a log line each. A run recovers only through the kind of provider that started it. Device test requested (2026-10-24).
 - Ticket 03 device test failed on eb1943d: KernelSU's `su` runs in the patcher's mount namespace, where app data isolation hides `/data/user/0/<game>`. A root run now falls back to `/data_mirror/data_ce/null/0/<game>`, and the KernelSU grant lines say to reopen HOK ACE, since a grant reaches only processes started after it. Device test requested again (2026-10-24).
 - Ticket 03 device test passed on `75a7f69` (KernelSU): patch, game start, loss mid-write and recovery. A dead worker's call is now journalled as *Worker disconnected* rather than `null` (2026-10-24).
+- Tickets 02 and 03 passed an independent retest on `1f5301a`: the dead-worker line reaches ③ as each provider's own line (2026-10-24).
+- The tests' minor findings fixed: the wireless connection log names no port before it finds one and gives a lost connection's exception type instead of `null`; a root run's result says *The game app was not replaced* instead of naming the normal app; under Root a retained normal APK alone no longer offers *Reinstall saved game app* (a pending emergency restore still does). Tickets 01–03 resolved (2026-10-24).
 
 ## [S1] Problem
 

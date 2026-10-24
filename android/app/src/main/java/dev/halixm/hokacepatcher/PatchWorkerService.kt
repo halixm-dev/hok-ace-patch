@@ -184,7 +184,7 @@ class PatchWorkerService : Service() {
                             "Re-download cancelled before access", redownload = true)
                         state(JSONObject().put("status", "complete").put("action", "redownload")
                             .put("redownloaded", summary.getJSONArray("redownload").length())
-                            .put("packages", summary.getJSONObject("packages").length()))
+                            .put("packages", summary.getJSONObject("packages").length()).put("root", rootRun))
                     }
                     "patch", "remove" -> {
                         val summary = claimAndRun(worker, checkNotNull(intent.getStringExtra("request")),
@@ -192,7 +192,7 @@ class PatchWorkerService : Service() {
                         val root = EngineAssets.prepare(this)
                         val result = JSONObject().put("status", "complete").put("counts", JSONObject(
                             com.chaquo.python.Python.getInstance().getModule("android_bridge").callAttr(
-                                "result_counts", root.path, summary.toString()).toString()))
+                                "result_counts", root.path, summary.toString()).toString())).put("root", rootRun)
                         summary.optJSONArray("removed")?.let { result.put("removed", it.length()) }
                         state(result)
                     }

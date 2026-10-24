@@ -73,6 +73,29 @@ class ResultStateTest {
         assertFalse(UiText.result("en", JSONObject().put("status", "space_freed"))!!.gameReady)
     }
 
+    /** A root run never replaced the game app (ADR 0007), so its results do not name the normal app. */
+    @Test fun rootResultsSayTheGameAppWasNotReplaced() {
+        assertEquals("Patch complete. The game app was not replaced.", UiText.result("en", complete(counts).put("root", true))!!.summary)
+        assertEquals(listOf("Text tables applied: 12345", "Images applied: 3", "Text tables skipped: 0", "Images skipped: 1"),
+            UiText.result("en", complete(counts).put("root", true))!!.items)
+        assertEquals("Patch complete. The game app was not replaced; result counts are unavailable.",
+            UiText.result("en", complete().put("root", true))!!.summary)
+        assertEquals("Translation removed. The game app was not replaced.",
+            UiText.result("en", complete().put("removed", 7).put("root", true))!!.summary)
+        assertEquals("Damaged files deleted. The game app was not replaced.",
+            UiText.result("en", complete().put("redownloaded", 3).put("root", true))!!.summary)
+        assertEquals("Patch selesai. Aplikasi game tidak diganti.", UiText.result("id", complete(counts).put("root", true))!!.summary)
+        assertTrue(WorkerStatus.describe(complete(counts).put("root", true)).startsWith("Patch complete. The game app was not replaced.\n"))
+        assertTrue(WorkerStatus.describe(complete(counts)).startsWith("Patch complete. Normal game app verified.\n"))
+    }
+
+    /** Under Root a retained normal APK alone offers no reinstall; a pending emergency restore still does. */
+    @Test fun rootOffersTheSavedAppOnlyForAnEmergencyRestore() {
+        assertFalse(RecoveryMaterial.of(patch = false, setup = false, emergency = false, retained = true, root = true).savedApk)
+        assertTrue(RecoveryMaterial.of(patch = false, setup = false, emergency = true, retained = true, root = true).savedApk)
+        assertTrue(RecoveryMaterial.of(patch = false, setup = false, emergency = false, retained = true, root = false).savedApk)
+    }
+
     @Test fun otherStatesAreNotResults() {
         assertNull(UiText.result("en", JSONObject().put("status", "error")))
     }

@@ -448,6 +448,14 @@
       "en": "Translation removed. Normal game app verified.",
       "id": "Terjemahan dihapus. Aplikasi game normal terverifikasi."
     },
+    "removal_verified_root": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Translation removed. The game app was not replaced.",
+      "id": "Terjemahan dihapus. Aplikasi game tidak diganti.",
+      "draft": true
+    },
     "original_files_restored": {
       "platforms": [
         "android",
@@ -1726,12 +1734,28 @@
       "en": "Patch complete. Normal game app verified.\nText tables applied: {text_tables}\nImages applied: {applied_textures}\nText tables skipped: {skipped_tables}\nImages skipped: {skipped_textures}",
       "id": "Patch selesai. Aplikasi game normal terverifikasi.\nTabel teks diterapkan: {text_tables}\nGambar diterapkan: {applied_textures}\nTabel teks dilewati: {skipped_tables}\nGambar dilewati: {skipped_textures}"
     },
+    "completed_counts_root": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Patch complete. The game app was not replaced.\nText tables applied: {text_tables}\nImages applied: {applied_textures}\nText tables skipped: {skipped_tables}\nImages skipped: {skipped_textures}",
+      "id": "Patch selesai. Aplikasi game tidak diganti.\nTabel teks diterapkan: {text_tables}\nGambar diterapkan: {applied_textures}\nTabel teks dilewati: {skipped_tables}\nGambar dilewati: {skipped_textures}",
+      "draft": true
+    },
     "completed_no_counts": {
       "platforms": [
         "android"
       ],
       "en": "Patch complete. Normal game app verified; result counts are unavailable.",
       "id": "Patch selesai. Aplikasi game normal terverifikasi; jumlah hasil tidak tersedia."
+    },
+    "completed_no_counts_root": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Patch complete. The game app was not replaced; result counts are unavailable.",
+      "id": "Patch selesai. Aplikasi game tidak diganti; jumlah hasil tidak tersedia.",
+      "draft": true
     },
     "first_setup_consent": {
       "platforms": [
@@ -2185,6 +2209,14 @@
       ],
       "en": "Damaged files deleted. Normal game app verified.",
       "id": "File rusak dihapus. Aplikasi game normal terverifikasi.",
+      "draft": true
+    },
+    "redownload_verified_root": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Damaged files deleted. The game app was not replaced.",
+      "id": "File rusak dihapus. Aplikasi game tidak diganti.",
       "draft": true
     },
     "redownload_files_deleted": {

@@ -28,26 +28,32 @@ object WorkerStatus {
         "setup_ready" -> "Game setup finished. Translation has not started. Prepare game files again, then confirm the update checkpoint to patch."
         "setup_cancelled" -> "Setup stopped. The original game app was verified. Translation has not started." +
             if (value.optBoolean("data_loss_may_have_happened")) " Local data may need downloading again." else ""
-        "complete" -> if (value.has("redownloaded")) {
-            "Damaged files deleted. Normal game app verified.\n" +
-                "Package files deleted: ${value.getInt("redownloaded")}\n" +
-                "Open the game, let it finish the update to the login screen, close it, then tap Start to patch again."
-        } else if (value.has("removed")) {
-            "Translation removed. Normal game app verified.\n" +
-                "Original game files restored: ${value.getInt("removed")}\n" +
-                "Keep using Scan to login. For the official app, reinstall the game from the store."
-        } else value.optJSONObject("counts")?.let { counts ->
-            "Patch complete. Normal game app verified.\n" +
-                "Text tables applied: ${counts.getInt("text_tables")}\n" +
-                "Images applied: ${counts.getInt("applied_textures")}\n" +
-                "Text tables skipped: ${counts.getInt("skipped_tables")}\n" +
-                "Images skipped: ${counts.getInt("skipped_textures")}"
-        } ?: "Patch complete. Normal game app verified; counts unavailable."
+        "complete" -> completed(value)
         "recovery_required" -> "Recovery required. Keep the game closed.\n" +
             InstallerFailure.explain(value.optString("error"), value.optString("action"), true)
         "cancelled" -> "Preparation cancelled. No game files changed."
         "error" -> "Stopped: " + InstallerFailure.explain(value.optString("error", "Unknown error"),
             value.optString("action"), false)
         else -> "No saved worker result."
+    }
+
+    /** A root run never replaced the game app, so it does not name the normal app (ADR 0007). */
+    private fun completed(value: JSONObject): String {
+        val app = if (value.optBoolean("root")) "The game app was not replaced" else "Normal game app verified"
+        return if (value.has("redownloaded")) {
+            "Damaged files deleted. $app.\n" +
+                "Package files deleted: ${value.getInt("redownloaded")}\n" +
+                "Open the game, let it finish the update to the login screen, close it, then tap Start to patch again."
+        } else if (value.has("removed")) {
+            "Translation removed. $app.\n" +
+                "Original game files restored: ${value.getInt("removed")}\n" +
+                "Keep using Scan to login. For the official app, reinstall the game from the store."
+        } else value.optJSONObject("counts")?.let { counts ->
+            "Patch complete. $app.\n" +
+                "Text tables applied: ${counts.getInt("text_tables")}\n" +
+                "Images applied: ${counts.getInt("applied_textures")}\n" +
+                "Text tables skipped: ${counts.getInt("skipped_tables")}\n" +
+                "Images skipped: ${counts.getInt("skipped_textures")}"
+        } ?: "Patch complete. $app; counts unavailable."
     }
 }

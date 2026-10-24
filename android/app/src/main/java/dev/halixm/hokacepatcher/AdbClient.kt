@@ -82,7 +82,7 @@ class AdbClient(private val host: String, private val port: Int, private val key
             val reason = try {
                 pump(remote, sink)
             } catch (error: IOException) {
-                if (closed) "closed by the patcher" else "connection lost (${error.message})"
+                if (closed) "closed by the patcher" else "connection lost (${error.message ?: error.javaClass.simpleName})"
             }
             // The reason first: the stream's reader also reports the end, with less to say.
             runCatching { ended(reason) }

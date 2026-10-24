@@ -189,8 +189,9 @@ class WirelessWorkerStarter(context: Context) : WorkerStarter {
         link.watch(output) { null }
     }
 
+    // Logged before start finds the port; start logs the port itself.
     override fun environment(): String =
-        "Wireless debugging port $port, ${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE} API ${Build.VERSION.SDK_INT}"
+        "Wireless debugging, ${Build.MANUFACTURER} ${Build.MODEL}, Android ${Build.VERSION.RELEASE} API ${Build.VERSION.SDK_INT}"
 
     override fun close() {
         client?.close()
