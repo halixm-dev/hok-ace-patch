@@ -740,6 +740,38 @@
       "id": "Sambungkan debugging nirkabel",
       "draft": true
     },
+    "turn_on_wireless_debugging": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Turn on wireless debugging",
+      "id": "Aktifkan debugging nirkabel",
+      "draft": true
+    },
+    "wireless_off_idle": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging is off. Turn it on in Developer options, then tap Start.",
+      "id": "Debugging nirkabel nonaktif. Aktifkan di Opsi pengembang, lalu ketuk Mulai.",
+      "draft": true
+    },
+    "wireless_lost_in_prepare": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging disconnected. No game files changed. Turn Wi-Fi and Wireless debugging back on, then tap Start.",
+      "id": "Debugging nirkabel terputus. Tidak ada file game yang diubah. Aktifkan lagi Wi-Fi dan Debugging nirkabel, lalu ketuk Mulai.",
+      "draft": true
+    },
+    "root_lost_in_prepare": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Root access stopped. No game files changed. Check HOK ACE in your root manager, then tap Start.",
+      "id": "Akses root berhenti. Tidak ada file game yang diubah. Periksa HOK ACE di pengelola root Anda, lalu ketuk Mulai.",
+      "draft": true
+    },
     "pair_wireless_instruction": {
       "platforms": [
         "android"

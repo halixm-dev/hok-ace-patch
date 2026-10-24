@@ -521,6 +521,16 @@ class MainActivity : Activity() {
             // The translation is on the phone; patching again is the user's call, not automatic.
             "recovered_unconfirmed" -> stopAutomatic()
             "complete" -> stopAutomatic()
+            // The provider dropped the worker during prepare: nothing was written, so its own line says so and leads back to Start.
+            "cancelled" -> if (result.optString("error").contains("disconnected", true)) {
+                stopAutomatic()
+                log(WorkerStatus.describe(result))
+                home.message(when (provider()) {
+                    ShellProvider.WIRELESS -> "Wireless debugging disconnected. No game files changed. Turn Wi-Fi and Wireless debugging back on, then tap Start."
+                    ShellProvider.ROOT -> "Root access stopped. No game files changed. Check HOK ACE in your root manager, then tap Start."
+                    else -> friendlyFailure(result.optString("error"), recoverable = false)
+                }, failure = true)
+            } else { stopAutomatic(); log("ERROR: " + WorkerStatus.describe(result)) }
             else -> { stopAutomatic(); log("ERROR: " + WorkerStatus.describe(result)) }
         }
     }
@@ -562,6 +572,9 @@ class MainActivity : Activity() {
             provider == ShellProvider.WIRELESS && !WirelessDebugging.paired(this) -> home.show("Pair wireless debugging",
                 "Turn on Wireless debugging, tap Pair, then type the pairing code into the patcher's notification.",
                 "Pair", "pair", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
+            provider == ShellProvider.WIRELESS && !WirelessDebugging.switchedOn(this) -> home.show("Turn on wireless debugging",
+                "Wireless debugging is off. Turn it on in Developer options, then tap Start.", "Start", "start",
+                pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && shizukuAsRoot() -> home.show("Choose a shell provider", ShellProvider.SHIZUKU_AS_ROOT, "Start", "start",

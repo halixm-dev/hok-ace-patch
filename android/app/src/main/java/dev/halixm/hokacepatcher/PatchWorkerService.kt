@@ -28,6 +28,8 @@ class PatchWorkerService : Service() {
     private val busy = AtomicBoolean(false)
     private val retiring = AtomicBoolean(false)
     private val cancelRequested = AtomicBoolean(false)
+    /** Set when the provider dropped the worker: a prepare it cancels reports this line, which ③ reads as that provider's loss. */
+    @Volatile private var lost: String? = null
     @Volatile private var coordinator: PatchCoordinator? = null
     @Volatile private var setup: FirstSetupCoordinator? = null
     @Volatile private var connection: WorkerDeviceConnection? = null
@@ -126,6 +128,7 @@ class PatchWorkerService : Service() {
         executor.execute {
             try {
                 val bound = WorkerDeviceConnection.open(this, provider) {
+                    lost = "${provider.label} disconnected"
                     cancelRequested.set(true)
                     coordinator?.interrupted("${provider.label} disconnected; recovery required")
                     setup?.interrupted("${provider.label} disconnected; game setup recovery required")
@@ -166,6 +169,7 @@ class PatchWorkerService : Service() {
                         }
                         check(!retiring.get()) { "Preparation worker stopped" }
                         state(if (cancelRequested.get()) JSONObject().put("status", "cancelled").put("action", "prepare")
+                                .apply { lost?.let { put("error", it) } }
                             else result.put("status", "prepared").put("action", "prepare"))
                     }
                     "recover" -> state(worker.recover(checkNotNull(intent.getStringExtra("session")),
@@ -199,10 +203,11 @@ class PatchWorkerService : Service() {
                     else -> error("Unsupported worker request")
                 }
             } catch (error: Throwable) {
-                val failureMessage = error.message?.takeIf { it.isNotBlank() } ?:
+                val prepareCancelled = activeAction == "prepare" && cancelRequested.get()
+                val failureMessage = (if (prepareCancelled) lost else null) ?: error.message?.takeIf { it.isNotBlank() } ?:
                     "The operation stopped unexpectedly. Keep the game closed, check ${provider.label}, then retry verification or recovery."
                 if (!retiring.get()) runCatching { state(setup?.pendingRecoveryResult() ?: coordinator?.pendingRecoveryResult() ?:
-                    JSONObject().put("status", if (activeAction == "prepare" && cancelRequested.get()) "cancelled" else "error")
+                    JSONObject().put("status", if (prepareCancelled) "cancelled" else "error")
                         .put("action", activeAction).put("error", failureMessage).put("error_type", error.javaClass.name)) }
                 DiagnosticTrace.error("worker", "Patch/recovery stopped during $activeAction", error)
             } finally {
