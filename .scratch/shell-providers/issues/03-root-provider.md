@@ -12,7 +12,7 @@
 
 **Status:** ready-for-agent
 
-**Device test:** requested
+**Device test:** fail eb1943d
 
 - [x] uid-0 dispatch in the worker, with unit tests
 - [x] Direct write path, sharing the pristine delta and audits
@@ -27,3 +27,17 @@
 - **Preparation and run:** a root preparation keeps one copy of the installed game app (`preparations/<id>/original.apk`, receipt `root: true`), reused while the installed app still matches it. `PatchCoordinator.runRoot` shares the run body with the shell path; the journal's `recovery_id` is the installed app's sha256 and `root_installed` its identity, and the run ends by verifying that app is still installed. A shell journal is not recovered through root, nor the reverse (`OTHER_PROVIDER`); an installed access build is refused (`ROOT_ACCESS_INSTALLED`).
 - **Steps:** under root a patch, removal or re-download runs steps 4 and 5; `WorkerStep.ROOT_SKIPS_ACCESS` and `ROOT_SKIPS_RESTORE` are the log lines that say why 3 and 6 are skipped.
 - **Guide:** four lines; no manager is marked tested until this ticket passes on KernelSU.
+
+## Device findings
+
+**2026-10-24, `eb1943d`, Redmi Note 9 Pro (`ebad528e`, Android 15, PixelAge, KernelSU): fail.** Run by the implementing session at the user's request. Evidence in `docs/lab-notebook.md` (2026-10-24, ticket 03) and `D:\hokace-workedmi-ebad528e	03\`.
+
+- Unit tests pass. `check_ui_strings.py`: OK (342 strings).
+- Root picked: the guide shows its four lines, the hiding-root line included.
+- Before HOK ACE had root in KernelSU, *Check restored game app* refused with *Root access is not available to HOK ACE…* and started no worker.
+- **The grant needs a fresh app process.** With Superuser turned on in KernelSU, the running patcher still got `Cannot run program "su": error=2`; after HOK ACE was closed and reopened, `su -c id` gave `uid=0 … context=u:r:ksu:s0`. The refusal line says only *tap Start again*.
+- Worker start: `su` started the starter in 213 ms, the binder came back after 1.2 s, the worker attached as uid 0, *Check restored game app* verified the installed game app, and the worker exited with code 0 when closed; no worker process was left.
+- **Fail: the worker cannot reach the game's data.** Prepare made the root copy of the game app (step 1, step 2) and the patch went from step 2 to step 4 with *Skipped Unlock access…* in the log, but the first game script failed: `cd: /data/user/0/com.tencent.tmgp.osgame: No such file or directory`. `su` started from an app runs in the app's mount namespace, where Android's app data isolation hides every other app's data directory (`/data/user/0` and `/data/data` list only the patcher and GMS). In that namespace the game's data is at `/data_mirror/data_ce/null/0/com.tencent.tmgp.osgame`. KernelSU's `su` also has `-M` / `--mount-master` for the global namespace.
+- The failed run wrote nothing: it recovered at once (*Game app verified; interrupted session recovered*), and ③ showed *The phone refused a step, although Root is working…*.
+- The *Start translation* confirmation was confirmed on the phone by hand, not by this session.
+

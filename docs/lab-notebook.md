@@ -4297,3 +4297,20 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
 - **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/02-wireless-debugging-provider.md`, with the minor
   findings (port `-1` in the log, `null` loss reasons, the generic line for a loss during prepare).
 - **Evidence:** `D:\hokace-work\redmi-ebad528e\t02\` (`trace.log`, `logcat-run.txt`, `game1.png`).
+
+## 2026-10-24 — Shell providers ticket 03 on a phone (`eb1943d`) — fail
+
+- **Phone:** Redmi Note 9 Pro (`ebad528e`), KernelSU (`ksud` 3.3.0). Debug app and `androidTest` APK built from `eb1943d`
+  installed over the ticket 02 build; provider set to Root.
+- **Grant:** before KernelSU's Superuser was turned on for HOK ACE (uid 10229), the Root start refused with the
+  *not available* line. Turned on while the patcher ran: `su` still not found (`error=2`) until the app was restarted;
+  KernelSU exposes `su` to a granted uid only in processes started after the grant.
+- **Worker:** `su -c id` → `uid=0(root) … context=u:r:ksu:s0`; starter up in 213 ms, binder after 1203 ms, worker
+  uid 0; `copyGameApk` and the installed-app check passed; closed with exit 0, no worker left.
+- **Patch:** stopped at the snapshot estimate: `cd: /data/user/0/com.tencent.tmgp.osgame: No such file or directory`.
+  Entering the patcher's mount namespace as root (`nsenter -t <pid> -m`): `/data/user/0` and `/data/data` hold only
+  the patcher and GMS (app data isolation); the game's data is at `/data_mirror/data_ce/null/0/com.tencent.tmgp.osgame`.
+  KernelSU `su` lists `-M, --mount-master`. Nothing was written; the journal recovered at once.
+- **Verdict: fail.** Recorded in `.scratch/shell-providers/issues/03-root-provider.md`.
+- **Evidence:** `D:\hokace-workedmi-ebad528e	03\` (`run1-logcat.txt`).
+
