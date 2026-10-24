@@ -12,7 +12,7 @@
 
 **Status:** ready-for-agent
 
-**Device test:** requested
+**Device test:** pass 75a7f69
 
 - [x] uid-0 dispatch in the worker, with unit tests
 - [x] Direct write path, sharing the pristine delta and audits
@@ -41,3 +41,13 @@
 - The failed run wrote nothing: it recovered at once (*Game app verified; interrupted session recovered*), and ③ showed *The phone refused a step, although Root is working…*.
 - The *Start translation* confirmation was confirmed on the phone by hand, not by this session.
 
+**2026-10-24, `75a7f69`, Redmi Note 9 Pro (`ebad528e`, Android 15, PixelAge, KernelSU): pass.** Run by the implementing session at the user's request. Evidence in `docs/lab-notebook.md` (2026-10-24, ticket 03 retest) and `D:\hokace-work\redmi-ebad528e\t03\`.
+
+- Unit tests pass. `check_ui_strings.py`: OK (342 strings). The guide's KernelSU line now says to close and reopen HOK ACE.
+- **Patch through Root:** `su -c id` gave uid 0 (`u:r:ksu:s0`), the starter came up in 212 ms and the worker attached as uid 0. The snapshot ran in the `/data_mirror` path, and the run applied 391 text tables and 398 images (1 table skipped), rebuilt 11 files from the pristine delta and kept a 14-file delta. The log shows *Skipped Unlock access…* and *Skipped Restore game app…*, and no APK was installed. ③ read *Translation added*.
+- **Files:** all 1314 entries under the game's `files/` are `u0_a246:u0_a246` with `u:object_r:app_data_file:s0:c246,c256,c512,c768`, and none is owned by root. No worker process was left.
+- **Game:** started to an English login screen (`run2-login.png`) with no QtsVFS errors. A second Root patch over the translated layer also completed.
+- **Loss mid-write:** `pkill -9` of the uid-0 worker during *Applying package file* (after `15/15_0.db`, before `19`) → `recovery_required`, `packages_dirty`. *Restore interrupted patch* → `recovered` (phase `CANCELLED`) in 95 s, with no install. The game started English again (`run3-recovered-login.png`, QTS scan `errorCode=0`), and all 1322 entries kept the game's owner and label.
+- **Minor: the loss line read `null; recovery: null`.** The `DeadObjectException` from `writeGameFile` reached the journal before the disconnect callback, so ③ showed the generic *Work stopped* line rather than *Root access stopped…*. This is the same as ticket 02's `null` loss reasons. Fixed after this test: a dead worker's call is journalled as *Worker disconnected*. That fix is not device-tested.
+- **Minor:** the recovery tools still offer *Reinstall saved game app* under Root, because of a normal APK retained from an earlier Shizuku run. ③'s *Patch complete. Normal game app verified.* reads as shell wording under Root.
+- The *Start translation* confirmations were ticked by this session. The *Recover interrupted patch* chooser was confirmed on the phone by hand.

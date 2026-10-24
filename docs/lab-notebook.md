@@ -4314,3 +4314,21 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
 - **Verdict: fail.** Recorded in `.scratch/shell-providers/issues/03-root-provider.md`.
 - **Evidence:** `D:\hokace-work\redmi-ebad528e\t03\` (`run1-logcat.txt`).
 
+## 2026-10-24 — Shell providers ticket 03 on a phone (`75a7f69`) — pass
+
+- **Phone:** Redmi Note 9 Pro (`ebad528e`), KernelSU, HOK ACE granted Superuser; debug app from `75a7f69` installed
+  over `eb1943d`, app restarted; provider Root.
+- **Fix under test:** the root worker enters `/data/user/0/<game>` or, when app data isolation hides it, falls back to
+  `/data_mirror/data_ce/null/0/<game>`.
+- **Patch:** worker uid 0 in 212 ms; snapshot 13:22:21, build 13:24:16, apply 13:29:21–13:29:47, `complete` with 391 text
+  tables, 398 textures applied, 1 table skipped; 11 files rebuilt from the delta; 14-file delta kept; no APK installed.
+  All 1314 entries under `files/` are `u0_a246` with `app_data_file:s0:c246,c256,c512,c768`; none root-owned.
+- **Game:** English login screen, no QtsVFS errors (`run2-login.png`, `run2-game-logcat.txt`). A second patch over the
+  translated layer also completed.
+- **Loss:** `pkill -9 -f hokacepatcher:worker` at 13:55:07 during the write (after `15/15_0.db`) → `recovery_required`,
+  `packages_dirty`; error `null; recovery: null` (dead-object call, no message), so ③ showed the generic line.
+  *Restore interrupted patch* → `recovered` at 14:02:12; the game started English (QTS scan `errorCode=0`); 1322
+  entries kept the game's owner and label.
+- **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/03-root-provider.md`, with the minor findings.
+- **Evidence:** `D:\hokace-work\redmi-ebad528e\t03\` (`run2-game-logcat.txt`, `run2-login.png`, `run3-loss-logcat.txt`,
+  `run3-recovered-game-logcat.txt`, `run3-recovered-login.png`).
