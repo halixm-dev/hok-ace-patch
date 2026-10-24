@@ -11,14 +11,19 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * The worker, started by the chosen [ShellProvider] as shell (uid 2000). No normal application Context or
- * arbitrary command endpoint. It reads its uid on every call through [WorkerAccess] and refuses any other.
+ * The worker, started by the chosen [ShellProvider] as shell (uid 2000) or root (uid 0). No normal application
+ * Context or arbitrary command endpoint. It reads its uid on every call through [WorkerAccess] and refuses any
+ * other. Shell reaches the game's files through `run-as` and the access APK; root runs the same scripts in the
+ * game's data directory, gives what it creates the game's owner and label, and never installs or removes the
+ * game app (ADR 0007).
  */
 open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     companion object {
         const val GAME = "com.tencent.tmgp.osgame"
         const val FIXTURE = "io.github.hokace.fixture"
         const val PROTOCOL_VERSION = 12
+        /** Root writes the game's files itself; an APK install or removal under root is a bug, refused here. */
+        const val ROOT_INSTALLS = "Root never installs or removes the game app"
         /** The UI matches on it; keep it free of any shell provider's name and of "permission". */
         const val GAME_MISSING = "The game is not installed for the phone's main user"
         private const val MAX_DIAGNOSTIC = 16384
@@ -37,9 +42,19 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     // The release service always targets GAME. Only a debug-only fixture service overrides this.
     protected open val installerPackage: String get() = GAME
 
+    private val access: WorkerAccess get() = WorkerAccess.of(Process.myUid())
+
+    private fun requireInstalls() = check(access == WorkerAccess.SHELL) { ROOT_INSTALLS }
+
+    /** [script] in the game's data directory: as the game through `run-as`, or as root in that directory. */
+    private fun inGame(script: String): List<String> = when (access) {
+        WorkerAccess.SHELL -> listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c", script)
+        WorkerAccess.ROOT -> listOf("/system/bin/sh", "-c", "cd '/data/user/0/$dataPackage' || exit 1; $script")
+    }
+
     private fun requireShell() {
         check(installerPackage in setOf(GAME, FIXTURE) && dataPackage in setOf(GAME, FIXTURE)) { "Unsupported fixed device target" }
-        WorkerAccess.of(Process.myUid())
+        access
         check(command(listOf("/system/bin/am", "get-current-user")).trim() == "0") {
             "Only the primary Android user is supported"
         }
@@ -111,7 +126,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
 
     @Synchronized override fun diagnostics(): String {
         requireShell()
-        return JSONObject().put("uid", Process.myUid())
+        return JSONObject().put("uid", Process.myUid()).put("access", access.name.lowercase())
             .put("selinux", command(listOf("/system/bin/id", "-Z")).trim())
             .put("user", 0).put("apk_package", installerPackage).put("data_package", dataPackage)
             .put("run_as_policy", runAsPolicy()).toString()
@@ -212,6 +227,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
 
     @Synchronized override fun reinstallFixture(abandonAfterWrite: Boolean): String {
         requireShell()
+        requireInstalls()
         // Replay only the fixture's own currently installed APK. No caller-supplied APK/path.
         val paths = command(listOf("/system/bin/pm", "path", "--user", "0", FIXTURE))
             .lineSequence().filter { it.isNotBlank() }.toList()
@@ -278,6 +294,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     @Synchronized override fun replaceGameApk(source: ParcelFileDescriptor, length: Long): String {
         try {
             requireShell()
+            requireInstalls()
             gameApk() // Require an existing unsplit installation; this endpoint cannot uninstall it.
             return installGame(source, length, true)
         } finally { runCatching { source.close() } }
@@ -319,6 +336,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     }
 
     @Synchronized override fun removeGameForFirstSetup(expectedSourceSha256: String) {
+        requireInstalls()
         validateFirstSetupSource(expectedSourceSha256)
         requireNoOtherGameUsers()
         // No -k: the confirmed signature conversion deliberately removes local game data.
@@ -331,6 +349,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     @Synchronized override fun installFirstSetupGame(source: ParcelFileDescriptor, length: Long): String {
         try {
             requireShell()
+            requireInstalls()
             requireNoOtherGameUsers()
             check(firstSetupGameAbsent()) { "First setup cannot replace an installed game" }
             return installGame(source, length, false)
@@ -375,11 +394,10 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     @Synchronized override fun probeGame(payload: ByteArray): String {
         requireShell()
         require(payload.size in 1..4096) { "Probe payload must be 1–4096 bytes" }
-        val info = command(listOf("/system/bin/run-as", dataPackage, "/system/bin/cat",
-            "files/QtsVFSCache/packages/1/1.info"))
+        val info = command(inGame("cat files/QtsVFSCache/packages/1/1.info"))
         val script = "mkdir -p files && d=\$(mktemp -d files/hok-shizuku-probe.XXXXXX) || exit 1; " +
             "trap 'rm -rf \"\$d\"' EXIT; cat > \"\$d/payload\" && cat \"\$d/payload\""
-        val result = binaryCommand(listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c", script), payload)
+        val result = binaryCommand(inGame(script), payload)
         check(result.contentEquals(payload)) { "Game binary read-back differs" }
         return JSONObject().put("data_info", info).put("roundtrip_bytes", result.size).toString()
     }
@@ -398,13 +416,12 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
         return result.toByteArray()
     }
 
-    private fun lockedGameScript(body: String): String = GameFileLock.script(body)
+    private fun lockedGameScript(body: String): String = GameFileLock.script(body, access == WorkerAccess.ROOT)
 
     @Synchronized override fun estimateGameSnapshot(): String {
         requireShell()
         val script = """cd files/QtsVFSCache || exit 1; sizes=@D@(find packages Watchdog -exec stat -c %s {} +) || exit 1; printf '%s\n' "@D@sizes" | awk 'NF { if (@D@0 !~ /^[0-9]+$/) exit 1; bytes += @D@0; count++ } END { printf "%.0f %.0f\n", bytes, count }'""".replace("@D@", "${'$'}")
-        val fields = command(listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c",
-            lockedGameScript(script)), timeoutSeconds = 120).trim().split(Regex("\\s+"))
+        val fields = command(inGame(lockedGameScript(script)), timeoutSeconds = 120).trim().split(Regex("\\s+"))
         check(fields.size == 2) { "Cannot measure game snapshot" }
         val bytes = fields[0].toLong(); val count = fields[1].toLong()
         check(bytes > 0 && count in 1..8192) { "Unsupported game snapshot size/file count" }
@@ -417,8 +434,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
     @Synchronized override fun snapshotGame(destination: ParcelFileDescriptor, maximumBytes: Long): String {
         requireShell()
         require(maximumBytes in 1..(8L * 1024 * 1024 * 1024)) { "Unsupported snapshot budget" }
-        val process = ProcessBuilder("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c",
-            lockedGameScript("tar -cf - -C files/QtsVFSCache packages Watchdog")).start()
+        val process = ProcessBuilder(inGame(lockedGameScript("tar -cf - -C files/QtsVFSCache packages Watchdog"))).start()
         val pool = Executors.newFixedThreadPool(2)
         try {
             process.outputStream.close()
@@ -486,7 +502,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
             "actual=\$(sha256sum \"\$path\") || exit 1; actual=\${actual%% *}; " +
             "[ \"\$actual\" = \"\$expected\" ] || { echo \"Game file changed: \$path\" >&2; exit 1; }; " +
             "done; printf 'verified'"
-        check(command(listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c", lockedGameScript(script)),
+        check(command(inGame(lockedGameScript(script)),
             (rows.joinToString("\n") + "\n").toByteArray(Charsets.UTF_8), timeoutSeconds = 900) == "verified")
         return JSONObject().put("verified_files", files.length()).toString()
     }
@@ -503,14 +519,14 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
         val temp = "$parent/.${target.substringAfterLast('/')}.hok-$session.tmp"
         val script = GameFilePolicy.parentChecks(relative) + " && [ -d '$parent' ] || exit 1; " +
             "[ ! -e '$temp' ] && [ ! -L '$temp' ] || { echo 'Unresolved session temporary file' >&2; exit 1; }; " +
-            "trap 'rm -f \"$temp\"' EXIT; cat > '$temp' || exit 1; " +
+            "trap 'rm -f \"$temp\"' EXIT; cat > '$temp' && own '$temp' || exit 1; " +
             "[ \"\$(stat -c %s '$temp')\" -eq $length ] || exit 1; " +
             "actual=\$(sha256sum '$temp'); actual=\${actual%% *}; " +
             "[ \"\$actual\" = '$sha256' ] || { echo 'Staged file hash differs' >&2; exit 1; }; " +
             "sync '$temp' && mv -f '$temp' '$target' && sync '$parent' || exit 1; " +
             "sha256sum '$target'"
         try {
-            val result = String(binaryCommand(listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c", lockedGameScript(script)),
+            val result = String(binaryCommand(inGame(lockedGameScript(script)),
                 descriptor = source, timeoutSeconds = 900), Charsets.UTF_8)
             check(result.substringBefore(' ') == sha256) { "Installed file read-back differs" }
             return JSONObject().put("relative", relative).put("sha256", sha256).put("bytes", length).toString()
@@ -533,7 +549,7 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
             "[ \"\$actual\" = '$sha256' ] || { echo 'Game file changed before deletion' >&2; exit 1; }; " +
             "rm -f '$target' && sync '$parent' || exit 1; fi; " +
             "[ ! -e '$target' ] && printf 'deleted'"
-        check(command(listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c", lockedGameScript(script)),
+        check(command(inGame(lockedGameScript(script)),
             timeoutSeconds = 900) == "deleted") { "Game file deletion was not confirmed" }
     }
 
@@ -543,15 +559,14 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
         GameFilePolicy.validate(relative, writable = true)
         val target = "files/QtsVFSCache/$relative"
         val temp = "${target.substringBeforeLast('/')}/.${target.substringAfterLast('/')}.hok-$session.tmp"
-        command(listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c",
-            lockedGameScript(GameFilePolicy.parentChecks(relative) + " && rm -f '$temp'")), timeoutSeconds = 900)
+        command(inGame(lockedGameScript(GameFilePolicy.parentChecks(relative) + " && rm -f '$temp'")), timeoutSeconds = 900)
     }
 
     @Synchronized override fun clearGameWatchdog() {
         requireShell()
-        command(listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c", lockedGameScript(
+        command(inGame(lockedGameScript(
             "[ ! -L files/QtsVFSCache/Watchdog ] && " +
-                "rm -rf files/QtsVFSCache/Watchdog && mkdir files/QtsVFSCache/Watchdog && " +
+                "rm -rf files/QtsVFSCache/Watchdog && mkdir files/QtsVFSCache/Watchdog && own files/QtsVFSCache/Watchdog && " +
                 "sync files/QtsVFSCache/Watchdog && sync files/QtsVFSCache")), timeoutSeconds = 900)
     }
 
@@ -567,8 +582,9 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
             checks += "[ ! -L '$path' ]"
             directories += path
         }
-        command(listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c", lockedGameScript(
+        command(inGame(lockedGameScript(
             checks.joinToString(" && ") + " && mkdir -p '$path' && " +
+                directories.drop(1).joinToString(" && ") { "own '$it'" } + " && " +
                 directories.asReversed().joinToString(" && ") { "sync '$it'" })), timeoutSeconds = 900)
     }
 

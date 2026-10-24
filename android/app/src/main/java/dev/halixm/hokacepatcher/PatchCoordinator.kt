@@ -32,9 +32,15 @@ class PatchCoordinator @JvmOverloads constructor(
 
     fun cancel() { cancelled.set(true) }
 
-    private companion object {
+    companion object {
         /** `validateGameSnapshot`'s reasons for a layer the game itself changed. */
-        val GAME_CHANGED = listOf("Game file set changed", "Game file changed: ")
+        private val GAME_CHANGED = listOf("Game file set changed", "Game file changed: ")
+        /** Root's refusals the UI shows as they are. */
+
+        const val ROOT_ACCESS_INSTALLED = "The installed game app is the patcher's temporary access build. " +
+            "Recover the game app with the provider that patched it, then try again."
+        const val OTHER_PROVIDER = "This interrupted run was started with another shell provider. " +
+            "Choose that provider to recover it."
     }
 
     fun pendingRecoveryResult(): JSONObject? {
@@ -211,7 +217,7 @@ class PatchCoordinator @JvmOverloads constructor(
      * interrupted run writes the deleted files back.
      */
     private fun redownloadLocked(journal: SessionJournal, transaction: GameFileTransaction, enginePath: String,
-                                 normalId: String, normal: ApkIdentity): JSONObject {
+                                 apks: RunApks): JSONObject {
         journal.outcome(PatchPhase.BUILDING, JSONObject().put("redownload", true))
         report("Finding the package files the game update could not change")
         // Refuses, before any game file is changed, a phone whose update is not stuck on translated files.
@@ -220,7 +226,7 @@ class PatchCoordinator @JvmOverloads constructor(
         val hashes = JSONObject(File(journal.directory, "staged-hashes.json").readText())
         transaction.verifyOriginals()
         hashes.keys().asSequence().forEach { GameFilePolicy.validate("packages/$it", writable = true) }
-        requireSpace("normal restore", normal.bytes)
+        requireSpace("normal restore", apks.restoreBytes)
         checkpoint()
         device.forceStopGame()
         validateLayer(File(journal.directory, "snapshot/manifest.json"))
@@ -235,8 +241,27 @@ class PatchCoordinator @JvmOverloads constructor(
         }
         checkpoint()
         transaction.finishDeletion()
-        install(journal, store.normal(normalId), false, PatchPhase.COMPLETE)
+        restoreGameApp(journal, apks, PatchPhase.COMPLETE)
         return summary
+    }
+
+    /**
+     * What a run reads and leaves installed. The shell path installs <access> for the run and the saved normal
+     * APK <recoveryId> after it. Under root (<installed> set) nothing is installed: the run reads the saved copy
+     * of the installed game app and leaves the app in place (ADR 0007). <restoreBytes> is the installer space
+     * the normal restore needs, reserved beside every allocation; root needs none.
+     */
+    private class RunApks(val recoveryId: String, val buildApk: File, val access: ApkIdentity?,
+                          val accessApk: File?, val installed: ApkIdentity?, val restoreBytes: Long) {
+        val root: Boolean get() = installed != null
+    }
+
+    private fun requireNoPendingWork(remove: Boolean, redownload: Boolean) {
+        check(!(remove && redownload)) { "Remove and Re-download are separate runs" }
+        EmergencyRestoreStore(context).requireResolved()
+        val unfinished = SessionJournal.pending(sessions)
+        check(unfinished.isEmpty()) { "Recover the unfinished session before starting another patch" }
+        check(FirstSetupJournal.pending(context).isEmpty()) { "Finish or recover first-time setup before starting a patch" }
     }
 
     /**
@@ -247,11 +272,7 @@ class PatchCoordinator @JvmOverloads constructor(
      */
     @JvmOverloads fun run(normalId: String, accessApk: File, sourceIdentity: ApkIdentity? = null,
                           remove: Boolean = false, redownload: Boolean = false): JSONObject = exclusive {
-        check(!(remove && redownload)) { "Remove and Re-download are separate runs" }
-        EmergencyRestoreStore(context).requireResolved()
-        val unfinished = SessionJournal.pending(sessions)
-        check(unfinished.isEmpty()) { "Recover the unfinished session before starting another patch" }
-        check(FirstSetupJournal.pending(context).isEmpty()) { "Finish or recover first-time setup before starting a patch" }
+        requireNoPendingWork(remove, redownload)
         val normal = store.verify(normalId)
         val installedSource = sourceIdentity ?: normal
         installedSource.requireRecovery()
@@ -263,6 +284,35 @@ class PatchCoordinator @JvmOverloads constructor(
             access.versionCode == normal.versionCode && access.versionName == normal.versionName) {
             "Access and recovery APK identities do not match"
         }
+        runLocked(RunApks(normalId, store.normal(normalId), access, accessApk, null, normal.bytes),
+            installedSource, remove, redownload)
+    }
+
+    /**
+     * Root's run (ADR 0007): the same snapshot, build, write and rollback, with no APK installed. <installedApk>
+     * is the saved copy of the installed game app <installed>, which the build reads and the run leaves in place.
+     */
+    @JvmOverloads fun runRoot(installedApk: File, installed: ApkIdentity, remove: Boolean = false,
+                              redownload: Boolean = false): JSONObject = exclusive {
+        requireNoPendingWork(remove, redownload)
+        check(installed.packageName == PrivilegedDeviceService.GAME) { "Unsupported game package" }
+        check(!installed.debuggable) { ROOT_ACCESS_INSTALLED }
+        runLocked(RunApks(installed.sha256, installedApk, null, null, installed, 0L), installed, remove, redownload)
+    }
+
+    /** The run's last step: the shell path installs the normal APK; root checks the game app it never replaced. */
+    private fun restoreGameApp(journal: SessionJournal, apks: RunApks, next: PatchPhase,
+                               updates: JSONObject = JSONObject()) {
+        val installed = apks.installed
+        if (installed == null) { install(journal, store.normal(apks.recoveryId), false, next, updates = updates); return }
+        report("Checking the installed game app")
+        verifyInstalled(installed)
+        journal.outcome(next, updates.put("normal_verified", true))
+        report(WorkerStep.ROOT_SKIPS_RESTORE)
+
+    }
+
+    private fun runLocked(apks: RunApks, installedSource: ApkIdentity, remove: Boolean, redownload: Boolean): JSONObject {
         val engine = EngineAssets.prepare(context)
         bridge("engine_preflight", engine.path)
         // Read once: the whole run builds one language even if the picker changes meanwhile.
@@ -271,12 +321,17 @@ class PatchCoordinator @JvmOverloads constructor(
         promoteSessionDelta(engine.path)
         // Space the patch can reclaim goes before the first budget, so that budget is not short by it.
         releaseResolvedSessions()
-        runCatching { ApkPreparation(context).releaseUnneeded(installedSource, accessApk.parentFile?.parentFile, report) }
-            .onFailure { report("Could not remove unneeded saved APKs (${it.javaClass.simpleName})") }
-        StorageBudget.releaseReplacedGameApks(device, report)
-        requireSpace("APK install and normal restore", maxOf(access.bytes, normal.bytes))
+        val restoreBytes = apks.restoreBytes
+        val accessApk = apks.accessApk
+        val access = apks.access
+        if (accessApk != null && access != null) {
+            runCatching { ApkPreparation(context).releaseUnneeded(installedSource, accessApk.parentFile?.parentFile, report) }
+                .onFailure { report("Could not remove unneeded saved APKs (${it.javaClass.simpleName})") }
+            StorageBudget.releaseReplacedGameApks(device, report)
+            requireSpace("APK install and normal restore", maxOf(access.bytes, restoreBytes))
+        }
         checkpoint()
-        val journal = SessionJournal.create(sessions, normalId, engine.name)
+        val journal = SessionJournal.create(sessions, apks.recoveryId, engine.name, apks.installed)
         activeJournal.set(journal)
         report(when {
             redownload -> "Re-downloading damaged game files"
@@ -287,30 +342,19 @@ class PatchCoordinator @JvmOverloads constructor(
         val metrics = RunMetrics(context, File(journal.directory, "resource-metrics.json"))
         var metricStatus = "interrupted"
         try {
-            val sessionAccess = File(journal.directory, "access.apk")
-            try {
-                // A retained immutable inode keeps the session independently addressable without another 2 GB copy.
-                check(accessApk.setReadOnly()) { "Cannot protect the access APK" }
-                try { android.system.Os.link(accessApk.path, sessionAccess.path) }
-                catch (error: android.system.ErrnoException) {
-                    check(accessApk.canonicalPath.startsWith(context.filesDir.canonicalPath + File.separator)) {
-                        "Access APK reference leaves private storage"
-                    }
-                    android.system.Os.symlink(accessApk.canonicalPath, sessionAccess.path)
-                }
-                DurableFiles.syncDirectory(journal.directory)
-            } catch (error: android.system.ErrnoException) {
-                requireSpace("access APK copy, install and normal restore", access.bytes, maxOf(access.bytes, normal.bytes))
-                accessApk.inputStream().use { input -> sessionAccess.outputStream().use {
-                    input.copyTo(it, 1024 * 1024); it.fd.sync()
-                } }
-                check(sessionAccess.setReadOnly()) { "Cannot protect session access APK" }
-                DurableFiles.syncDirectory(journal.directory)
+            if (accessApk != null && access != null) {
+                linkSessionAccess(journal, accessApk, access, restoreBytes)
+                checkpoint()
+                device.forceStopGame()
+                // install() reads the session copy and requires it to be the access APK checked above.
+                install(journal, File(journal.directory, "access.apk"), true, PatchPhase.SNAPSHOT_ACCESS_INSTALLED, access)
+            } else {
+                report(WorkerStep.ROOT_SKIPS_ACCESS)
+                checkpoint()
+                device.forceStopGame()
+                // Root reads the game's files as they are: no access APK to install (ADR 0007).
+                journal.outcome(PatchPhase.SNAPSHOT_ACCESS_INSTALLED)
             }
-            checkpoint()
-            device.forceStopGame()
-            // install() reads the session copy and requires it to be the access APK checked above.
-            install(journal, File(journal.directory, "access.apk"), true, PatchPhase.SNAPSHOT_ACCESS_INSTALLED, access)
             report("Measuring downloaded game data and required backup space")
             val snapshotEstimate = JSONObject(device.estimateGameSnapshot())
             val snapshotBudget = snapshotEstimate.getLong("archive_budget")
@@ -319,7 +363,7 @@ class PatchCoordinator @JvmOverloads constructor(
             // its own files. Reserve both now, so a copy that fits is not followed by a build that cannot,
             // plus independent installer space for normal restore.
             requireSpace("measured snapshot, extraction, build and normal restore", snapshotBudget,
-                previousBuildEstimate(), normal.bytes)
+                previousBuildEstimate(), restoreBytes)
             report("Saving complete game data and Watchdog snapshot")
             streamSnapshot(engine.path, File(journal.directory, "snapshot"), snapshotBudget)
             validateLayer(File(journal.directory, "snapshot/manifest.json"))
@@ -328,13 +372,13 @@ class PatchCoordinator @JvmOverloads constructor(
             // must stay closed throughout, and one install pair less is minutes less on a slow phone.
             checkpoint()
             if (redownload) {
-                val result = redownloadLocked(journal, transaction, engine.path, normalId, normal)
+                val result = redownloadLocked(journal, transaction, engine.path, apks)
                 metricStatus = "complete"
-                return@exclusive result
+                return result
             }
             val summary = if (remove) {
                 val copyBytes = bridge("removal_bytes", engine.path, pristine.path, journal.directory.path).toLong()
-                val space = requireSpace("original game files and normal restore", copyBytes, normal.bytes)
+                val space = requireSpace("original game files and normal restore", copyBytes, restoreBytes)
                 journal.outcome(PatchPhase.BUILDING, JSONObject().put("build_storage_check", space)
                     .put("remove", true))
                 report("Rebuilding the original game files from the pristine delta")
@@ -344,17 +388,17 @@ class PatchCoordinator @JvmOverloads constructor(
                 // With a kept pristine delta the estimate includes the build input's copy of the files it
                 // names, so the check below reserves it before the build makes it.
                 val buildEstimate = JSONObject(bridge("estimate_snapshot_build", engine.path,
-                    journal.directory.path, store.normal(normalId).path, language, pristine.path))
+                    journal.directory.path, apks.buildApk.path, language, pristine.path))
                 check(buildEstimate.getInt("schema") == 2 && buildEstimate.getBoolean("estimate_only"))
                 val buildBytes = buildEstimate.getLong("additional_bytes")
                 check(buildBytes > 0) { "Invalid offline build storage estimate" }
-                val buildSpace = requireSpace("offline build and normal restore", buildBytes, normal.bytes)
+                val buildSpace = requireSpace("offline build and normal restore", buildBytes, restoreBytes)
                 journal.outcome(PatchPhase.BUILDING, JSONObject().put("build_storage_estimate", buildEstimate)
                     .put("build_storage_check", buildSpace).put("language", language))
                 report("Building text and graphics from the verified private snapshot")
                 // Refuses, before any game file is written, a layer it can neither rebuild nor read as pristine.
                 JSONObject(bridge("build_snapshot", engine.path, journal.directory.path,
-                    store.normal(normalId).path, normalId, language, pristine.path))
+                    apks.buildApk.path, apks.recoveryId, language, pristine.path))
             }
             summary.optJSONObject("pristine")?.let { PristineDelta.describe(it).forEach(report) }
             journal.outcome(PatchPhase.STAGED, JSONObject().put("counts", JSONObject(
@@ -375,23 +419,23 @@ class PatchCoordinator @JvmOverloads constructor(
                 originals.getJSONObject(it).getLong("bytes")
             }.maxOrNull() ?: 0L
             val writeReserve = maxOf(largestStaged, largestOriginal)
-            requireSpace("file writes and normal restore", normal.bytes, writeReserve)
+            requireSpace("file writes and normal restore", restoreBytes, writeReserve)
             device.forceStopGame()
             // Still the access APK from the snapshot; the layer is checked again before the first write.
             validateLayer(File(journal.directory, "snapshot/manifest.json"))
             journal.outcome(PatchPhase.APPLYING)
             for (name in hashes.keys().asSequence().sorted()) {
                 checkpoint()
-                requireSpace("package write and normal restore", normal.bytes, writeReserve)
+                requireSpace("package write and normal restore", restoreBytes, writeReserve)
                 report("Applying package file $name")
                 transaction.write("packages/$name", File(journal.directory, "out/$name"), hashes.getString(name))
             }
             checkpoint()
             transaction.finishApply(hashes, verifiedOriginals)
-            install(journal, store.normal(normalId), false, PatchPhase.COMPLETE)
+            restoreGameApp(journal, apks, PatchPhase.COMPLETE)
             metricStatus = "complete"
             promoteSessionDelta(engine.path)
-            summary
+            return summary
         } catch (error: Throwable) {
             journal.recoveryRequired(error.message ?: error.javaClass.simpleName)
             try { recoverLocked(journal) } catch (recovery: Throwable) {
@@ -402,13 +446,36 @@ class PatchCoordinator @JvmOverloads constructor(
             if (journal.phase == PatchPhase.COMPLETE) {
                 metricStatus = "complete"
                 report("Verified patch and normal APK recovered after interrupted final installation")
-                JSONObject(File(journal.directory, "out/device_patch_summary.json").readText())
+                return JSONObject(File(journal.directory, "out/device_patch_summary.json").readText())
             } else throw error
         } finally {
             runCatching { metrics.finish(metricStatus) }.onFailure {
                 android.util.Log.w("HokAceMetrics", "Resource metrics could not be retained", it)
             }
             releaseIfResolved(journal)
+        }
+    }
+
+    /** A retained immutable inode keeps the session independently addressable without another 2 GB copy. */
+    private fun linkSessionAccess(journal: SessionJournal, accessApk: File, access: ApkIdentity, restoreBytes: Long) {
+        val sessionAccess = File(journal.directory, "access.apk")
+        try {
+            check(accessApk.setReadOnly()) { "Cannot protect the access APK" }
+            try { android.system.Os.link(accessApk.path, sessionAccess.path) }
+            catch (error: android.system.ErrnoException) {
+                check(accessApk.canonicalPath.startsWith(context.filesDir.canonicalPath + File.separator)) {
+                    "Access APK reference leaves private storage"
+                }
+                android.system.Os.symlink(accessApk.canonicalPath, sessionAccess.path)
+            }
+            DurableFiles.syncDirectory(journal.directory)
+        } catch (error: android.system.ErrnoException) {
+            requireSpace("access APK copy, install and normal restore", access.bytes, maxOf(access.bytes, restoreBytes))
+            accessApk.inputStream().use { input -> sessionAccess.outputStream().use {
+                input.copyTo(it, 1024 * 1024); it.fd.sync()
+            } }
+            check(sessionAccess.setReadOnly()) { "Cannot protect session access APK" }
+            DurableFiles.syncDirectory(journal.directory)
         }
     }
 
@@ -421,9 +488,11 @@ class PatchCoordinator @JvmOverloads constructor(
         }.onFailure { android.util.Log.w("HokAceStorage", "Resolved session files could not be removed", it) }
     }
 
-    fun recover(sessionId: String) = exclusive {
+    /** <root> is whether the worker runs as root; a run recovers only through the kind of provider that started it. */
+    @JvmOverloads fun recover(sessionId: String, root: Boolean = false) = exclusive {
         GameFilePolicy.session(sessionId)
         val journal = SessionJournal.load(File(sessions, sessionId))
+        check(journal.root == root) { OTHER_PROVIDER }
         activeJournal.set(journal)
         try { recoverLocked(journal) } catch (error: Throwable) {
             journal.recoveryRequired(error.message ?: "Recovery interrupted")
@@ -462,11 +531,12 @@ class PatchCoordinator @JvmOverloads constructor(
         }
         for (journal in unfinished) {
             report("Checking the installed normal game app")
-            val normal = store.verify(journal.recoveryId)
+            val normal = journal.rootInstalled ?: store.verify(journal.recoveryId)
             check(runCatching { verifyInstalled(normal) }.isSuccess) {
                 "Restore the interrupted patch first: the normal game app is not installed"
             }
-            installed = normal
+            if (!journal.root) installed = normal
+
             journal.closeUnconfirmed("Closed by Free up space; the game files were not checked again")
             report("Closed an interrupted run that left no game file half-changed")
         }
@@ -493,6 +563,8 @@ class PatchCoordinator @JvmOverloads constructor(
     }
 
     private fun restoreNormalAfterFailure(journal: SessionJournal, cause: Throwable) {
+        // Root never replaced the game app, so there is nothing to restore before package recovery.
+        if (journal.root) return
         try {
             val normal = store.verify(journal.recoveryId)
             check(device.asBinder().isBinderAlive) { "Worker disconnected before normal APK restoration" }
@@ -513,12 +585,18 @@ class PatchCoordinator @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Under root ([SessionJournal.root]) nothing is installed: the audit and the rollback read and write the
+     * game's files as they are, and the run closes once the game app it left in place is verified (ADR 0007).
+     */
     private fun recoverLocked(journal: SessionJournal) {
         check(journal.phase !in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) { "Session already resolved" }
         var unconfirmed: String? = null
-        val normal = store.verify(journal.recoveryId)
+        val rootInstalled = journal.rootInstalled
+        val normal = rootInstalled ?: store.verify(journal.recoveryId)
+        val restoreBytes = if (rootInstalled != null) 0L else normal.bytes
         device.forceStopGame()
-        StorageBudget.releaseReplacedGameApks(device, report)
+        if (rootInstalled == null) StorageBudget.releaseReplacedGameApks(device, report)
         val transaction = if (journal.dirtyPackages) GameFileTransaction(journal, device) else null
         val forward = !journal.dirtyPackages && journal.snapshot().optBoolean("patch_payload_verified", false)
         val applied = if (forward) GameFileTransaction(journal, device).verifyAppliedManifest() else null
@@ -527,14 +605,16 @@ class PatchCoordinator @JvmOverloads constructor(
         journal.outcome(PatchPhase.RESTORING)
         if (applied != null) {
             // A durable earlier verification cannot establish the layer after a restart or update.
-            val accessFile = File(journal.directory, "access.apk")
-            val access = ApkIdentity.read(context, accessFile)
-            check(access.debuggable && access.certificateSha256 == normal.certificateSha256 &&
-                access.versionCode == normal.versionCode && access.versionName == normal.versionName) {
-                "Retained access and recovery APK identities differ"
+            if (rootInstalled == null) {
+                val accessFile = File(journal.directory, "access.apk")
+                val access = ApkIdentity.read(context, accessFile)
+                check(access.debuggable && access.certificateSha256 == normal.certificateSha256 &&
+                    access.versionCode == normal.versionCode && access.versionName == normal.versionName) {
+                    "Retained access and recovery APK identities differ"
+                }
+                requireSpace("applied-layer recovery audit and normal restore", maxOf(normal.bytes, access.bytes))
+                install(journal, accessFile, true, PatchPhase.RESTORING)
             }
-            requireSpace("applied-layer recovery audit and normal restore", maxOf(normal.bytes, access.bytes))
-            install(journal, accessFile, true, PatchPhase.RESTORING)
             // The game may have run since the write was verified: it refills Watchdog, and may repair or
             // update packages. A clean run has nothing to roll back, so a changed layer closes it
             // unconfirmed rather than leaving it unrecoverable. Any other audit failure still stops here.
@@ -549,15 +629,24 @@ class PatchCoordinator @JvmOverloads constructor(
         if (transaction != null) {
             val files = checkNotNull(originals).getJSONObject("files")
             val largest = files.keys().asSequence().map { files.getJSONObject(it).getLong("bytes") }.maxOrNull() ?: 0L
-            val access = ApkIdentity.read(context, File(journal.directory, "access.apk"))
-            requireSpace("complete rollback and normal restore", maxOf(normal.bytes, access.bytes), largest)
-            install(journal, File(journal.directory, "access.apk"), true, PatchPhase.RESTORING)
-            transaction.rollback { source -> requireSpace("rollback file and normal restore", normal.bytes, source.length()) }
+            if (rootInstalled == null) {
+                val access = ApkIdentity.read(context, File(journal.directory, "access.apk"))
+                requireSpace("complete rollback and normal restore", maxOf(normal.bytes, access.bytes), largest)
+                install(journal, File(journal.directory, "access.apk"), true, PatchPhase.RESTORING)
+            } else requireSpace("complete rollback", largest)
+            transaction.rollback { source -> requireSpace("rollback file and normal restore", restoreBytes, source.length()) }
         }
         // A failed offline build may fill storage while the already-verified normal APK stays
         // installed. Verify that identity before spending another APK-sized installer allocation.
         val completion = if (unconfirmed != null) PatchPhase.CANCELLED else journal.recoveryCompletionPhase
         fun closing() = JSONObject().apply { unconfirmed?.let { put("layer_unconfirmed", it.take(4096)) } }
+        if (rootInstalled != null) {
+            report("Checking the installed game app")
+            verifyInstalled(rootInstalled)
+            journal.outcome(completion, closing().put("normal_verified", true))
+            report("Game app verified; interrupted session recovered")
+            return
+        }
         val alreadyNormal = runCatching { verifyInstalled(normal) }.isSuccess
         if (alreadyNormal) {
             journal.outcome(completion, closing().put("normal_verified", true))

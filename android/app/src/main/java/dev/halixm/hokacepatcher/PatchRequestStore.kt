@@ -46,7 +46,43 @@ class PatchRequestStore(private val context: Context) {
         return id
     }
 
-    fun claim(id: String): ApkPreparation.Prepared {
+    /** Root's confirmation: bound to the saved copy of the installed game app, the only APK a root run reads. */
+    fun confirmRoot(prepared: ApkPreparation.RootPrepared, updateFinishedAndGameClosed: Boolean): String {
+        check(updateFinishedAndGameClosed) { "Wait for the complete game update and close the game first" }
+        noPendingRecovery()
+        val preparation = prepared.directory.name; GameFilePolicy.session(preparation)
+        check(prepared.directory.canonicalFile == File(context.filesDir, "preparations/$preparation").canonicalFile)
+        val metadata = JSONObject(String(DurableFiles.readCommitted(receipt(preparation)), Charsets.UTF_8))
+        check(metadata.optBoolean("root") && ApkIdentity.fromJson(metadata.getJSONObject("source")) == prepared.installed) {
+            "Prepared files changed before confirmation"
+        }
+        val id = UUID.randomUUID().toString()
+        write(id, JSONObject().put("schema", 1).put("id", id).put("preparation", preparation).put("root", true)
+            .put("installed", prepared.installed.sha256)
+            .put("receipt_sha256", ApkIdentity.digest(receipt(preparation)))
+            .put("confirmed_ms", System.currentTimeMillis()).put("update_finished_and_game_closed", true)
+            .put("consumed", false))
+        return id
+    }
+
+    /** Whether request <id> was confirmed for a root run; [claimRoot] claims it, [claim] refuses it. */
+    fun isRoot(id: String): Boolean =
+        JSONObject(String(DurableFiles.readCommitted(file(id)), Charsets.UTF_8)).optBoolean("root")
+
+    fun claimRoot(id: String): ApkPreparation.RootPrepared = claimed(id, true) { saved, preparation ->
+        val prepared = ApkPreparation(context).loadRoot(preparation)
+        check(prepared.installed.sha256 == saved.getString("installed")) { "Prepared identities changed" }
+        prepared
+    }
+
+    fun claim(id: String): ApkPreparation.Prepared = claimed(id, false) { saved, preparation ->
+        val prepared = ApkPreparation(context).load(preparation)
+        check(!prepared.requiresSignatureConversion && prepared.normal.sha256 == saved.getString("normal") &&
+            prepared.access.sha256 == saved.getString("access")) { "Prepared identities changed" }
+        prepared
+    }
+
+    private fun <T> claimed(id: String, rootRun: Boolean, load: (JSONObject, String) -> T): T {
         DurableFiles.createDirectories(root)
         RandomAccessFile(File(root, "claim.lock"), "rw").use { handle -> handle.channel.use { channel ->
             checkNotNull(channel.tryLock()) { "Another patch request is being checked" }.use {
@@ -56,6 +92,7 @@ class PatchRequestStore(private val context: Context) {
                 check(saved.getInt("schema") == 1 && saved.getString("id") == id &&
                     saved.getBoolean("update_finished_and_game_closed")) { "Confirm the completed game update first" }
                 check(!saved.getBoolean("consumed")) { "This confirmation was already used; confirm again" }
+                check(saved.optBoolean("root") == rootRun) { "This confirmation was made for another shell provider; confirm again" }
                 val elapsed = System.currentTimeMillis() - saved.getLong("confirmed_ms")
                 check(elapsed in 0..(15 * 60 * 1000L)) { "Update confirmation expired; confirm again" }
                 noPendingRecovery()
@@ -63,10 +100,9 @@ class PatchRequestStore(private val context: Context) {
                 check(ApkIdentity.digest(receipt(preparation)) == saved.getString("receipt_sha256")) {
                     "Prepared files changed; prepare and confirm again"
                 }
-                val prepared = ApkPreparation(context).load(preparation)
-                check(!prepared.requiresSignatureConversion && prepared.normal.sha256 == saved.getString("normal") &&
-                    prepared.access.sha256 == saved.getString("access")) { "Prepared identities changed" }
+                val prepared = load(saved, preparation)
                 write(id, saved.put("consumed", true).put("claimed_ms", System.currentTimeMillis()))
+
                 return prepared
             }
         } }

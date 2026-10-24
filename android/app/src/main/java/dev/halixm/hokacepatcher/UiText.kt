@@ -122,7 +122,9 @@ object UiText {
     /** A size that never wraps between its number and its unit. */
     private fun size(bytes: Long): String = StorageBudget.freeSpaceLabel(bytes).replace(' ', ' ')
 
-    fun removeConfirmation(context: Context): String = string(context, "remove_confirmation")
+    /** <root>: a root run writes the files back and never touches the game app (ADR 0007). */
+    fun removeConfirmation(context: Context, root: Boolean = false): String =
+        string(context, if (root) "remove_confirmation_root" else "remove_confirmation")
 
     fun redownloadConfirmation(context: Context): String = string(context, "redownload_confirmation")
 
@@ -130,8 +132,10 @@ object UiText {
 
     fun setupUpdate(context: Context): String = string(context, "setup_update")
 
-    fun patchConfirmation(context: Context): String =
-        string(context, "patch_confirmation", "language" to PatchLanguage.name(PatchLanguage.current(context)))
+    fun patchConfirmation(context: Context, root: Boolean = false): String =
+        string(context, if (root) "patch_confirmation_root" else "patch_confirmation",
+            "language" to PatchLanguage.name(PatchLanguage.current(context)))
+
 
     fun restore(context: Context, version: String): String = string(context, "restore_apk_only", "version" to version)
 }

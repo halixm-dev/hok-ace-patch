@@ -22,6 +22,12 @@ class SessionJournal private constructor(val directory: File, private val value:
     val hasRecoveryNormalIntent: Boolean get() = !value.isNull("recovery_normal_intent")
     val dirtyPackages: Boolean get() = value.optBoolean("packages_dirty", false)
     val recoveryId: String get() = value.getString("recovery_id")
+    /**
+     * Under root (ADR 0007): the installed game app the run leaves in place, whose sha256 is [recoveryId].
+     * Null on the shell path, whose [recoveryId] is the saved normal APK.
+     */
+    val rootInstalled: ApkIdentity? get() = value.optJSONObject("root_installed")?.let { ApkIdentity.fromJson(it) }
+    val root: Boolean get() = value.has("root_installed")
     /** The run wrote and verified its whole payload, so its pristine delta describes what it overwrote. */
     val payloadVerified: Boolean get() = value.optBoolean("patch_payload_verified", false)
     /** Closed with its payload written but the game files not checked again; see [closeUnconfirmed]. */
@@ -132,7 +138,7 @@ class SessionJournal private constructor(val directory: File, private val value:
             }
         }
         for (name in updates.keys()) {
-            check(name !in setOf("schema", "id", "recovery_id", "engine_id", "mutation_intent", "phase")) {
+            check(name !in setOf("schema", "id", "recovery_id", "engine_id", "root_installed", "mutation_intent", "phase")) {
                 "Cannot replace a journal identity field"
             }
             value.put(name, updates.get(name))
@@ -174,8 +180,10 @@ class SessionJournal private constructor(val directory: File, private val value:
     companion object {
         private const val INITIALIZING = ".creating-"
         private const val MAX_BYTES = 1024 * 1024
-        fun create(parent: File, recoveryId: String, engineId: String): SessionJournal {
+        /** <rootInstalled> marks a root run ([rootInstalled]); its sha256 must be <recoveryId>. */
+        @JvmOverloads fun create(parent: File, recoveryId: String, engineId: String, rootInstalled: ApkIdentity? = null): SessionJournal {
             require(recoveryId.matches(Regex("[0-9a-f]{64}"))) { "Invalid recovery identity" }
+            require(rootInstalled == null || rootInstalled.sha256 == recoveryId) { "Invalid root identity" }
             require(engineId.matches(Regex("[0-9a-f]{64}"))) { "Invalid engine identity" }
             val id = UUID.randomUUID().toString()
             val directory = File(parent, id)
@@ -186,6 +194,7 @@ class SessionJournal private constructor(val directory: File, private val value:
                 .put("created_ms", System.currentTimeMillis()).put("normal_verified", false)
                 .put("packages_dirty", false).put("mutation_intent", JSONObject.NULL)
                 .put("committed_files", JSONArray())
+            rootInstalled?.let { value.put("root_installed", it.json()) }
             // A discoverable session must already have its complete, durable initial journal.
             SessionJournal(staging, value).persist()
             check(staging.renameTo(directory)) { "Cannot publish patch journal" }
@@ -211,6 +220,10 @@ class SessionJournal private constructor(val directory: File, private val value:
             check(value.has("mutation_intent")) { "Session mutation state is missing" }
             value.getBoolean("normal_verified")
             value.getBoolean("packages_dirty")
+            value.optJSONObject("root_installed")?.let {
+                check(ApkIdentity.fromJson(it).sha256 == value.getString("recovery_id")) { "Invalid root identity" }
+            }
+
             val committed = value.getJSONArray("committed_files")
             check(committed.length() <= 8192) { "Too many committed files" }
             for (index in 0 until committed.length()) GameFilePolicy.validate(committed.getString(index), writable = true)

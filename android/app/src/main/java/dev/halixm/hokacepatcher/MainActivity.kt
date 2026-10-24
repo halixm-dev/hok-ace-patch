@@ -491,17 +491,29 @@ class MainActivity : Activity() {
         }
         awaitingToken = null; awaitingAction = null
         when (result!!.getString("status")) {
-            "prepared" -> {
+            "prepared" -> if (result.optBoolean("root")) {
+                // Root installs no APK: no first setup, and the confirmation binds only the saved copy of the game app.
+                runTask {
+                    val prepared = ApkPreparation(this).loadRoot(result.getString("preparation"))
+                    val confirm = { checked: Boolean -> PatchRequestStore(this).confirmRoot(prepared, checked) }
+                    runOnUiThread {
+                        if (!automatic || destroyed) return@runOnUiThread
+                        if (redownloading) showRedownloadConfirmation(confirm)
+                        else showPatchConfirmation(confirm, removing, root = true)
+                    }
+                }
+            } else {
                 runTask {
                     val prepared = ApkPreparation(this).load(result.getString("preparation"))
+                    val confirm = { checked: Boolean -> PatchRequestStore(this).confirm(prepared, checked) }
                     runOnUiThread {
                         if (!automatic || destroyed) return@runOnUiThread
                         if ((removing || redownloading) && prepared.requiresSignatureConversion) {
                             stopAutomatic()
                             home.message("The game on this phone is the official build, which this patcher never translated, so there is nothing to remove.")
                         } else if (prepared.requiresSignatureConversion) showFirstSetupConfirmation(prepared)
-                        else if (redownloading) showRedownloadConfirmation(prepared)
-                        else showPatchConfirmation(prepared, removing)
+                        else if (redownloading) showRedownloadConfirmation(confirm)
+                        else showPatchConfirmation(confirm, removing)
                     }
                 }
             }
@@ -607,6 +619,14 @@ class MainActivity : Activity() {
                     ui("The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files.")
             message.contains(ShellProvider.SHIZUKU_AS_ROOT) -> ShellProvider.SHIZUKU_AS_ROOT
             WirelessDebugging.REFUSALS.any { message.contains(it) } -> WirelessDebugging.REFUSALS.first { message.contains(it) }
+            RootWorkerStarter.REFUSALS.any { message.contains(it) } -> RootWorkerStarter.REFUSALS.first { message.contains(it) }
+            message.contains(PatchCoordinator.ROOT_ACCESS_INSTALLED) -> PatchCoordinator.ROOT_ACCESS_INSTALLED
+            message.contains(PatchCoordinator.OTHER_PROVIDER) -> PatchCoordinator.OTHER_PROVIDER
+            // A run's lost root: the root manager revoked HOK ACE, or its su ended.
+            provider() == ShellProvider.ROOT && message.contains("disconnected", true) -> if (recoverable)
+                "Root access stopped. Keep the game closed. Check HOK ACE in your root manager, then check recovery options below."
+                else "Root access stopped. Keep the game closed. Check HOK ACE in your root manager, then tap Try again."
+
             // A run's lost connection: Wi-Fi or wireless debugging went off under it.
             provider() == ShellProvider.WIRELESS && message.contains("disconnected", true) -> if (recoverable)
                 "Wireless debugging disconnected. Keep the game closed. Turn Wi-Fi and Wireless debugging back on, then check recovery options below."
@@ -660,7 +680,7 @@ class MainActivity : Activity() {
                         log("Checking prepared game files")
                         val prepared = ApkPreparation(this).load(choices[index].name)
                         check(!prepared.requiresSignatureConversion) { "Use First setup and confirm its separate data-loss warning first" }
-                        runOnUiThread { showPatchConfirmation(prepared) }
+                        runOnUiThread { showPatchConfirmation({ PatchRequestStore(this).confirm(prepared, it) }) }
                     }
                 }.setNegativeButton(ui("Cancel"), null).show()
         }
@@ -783,7 +803,7 @@ class MainActivity : Activity() {
      * not finished, so its checkbox asks only that the game is closed; the request store records the
      * same consent field a patch does.
      */
-    private fun showRedownloadConfirmation(prepared: ApkPreparation.Prepared): AlertDialog {
+    private fun showRedownloadConfirmation(confirm: (Boolean) -> String): AlertDialog {
         val confirmation = CheckBox(this).apply { tag = "redownload-confirmation"; text = ui("I closed the game") }
         val dialog = AlertDialog.Builder(this).setTitle(ui("Re-download damaged files"))
             .setMessage(UiText.redownloadConfirmation(this))
@@ -797,7 +817,7 @@ class MainActivity : Activity() {
             if (!busy) {
                 dialog.dismiss()
                 runTask {
-                    val request = PatchRequestStore(this).confirm(prepared, confirmation.isChecked)
+                    val request = confirm(confirmation.isChecked)
                     runOnUiThread { startWorker(Intent(this, PatchWorkerService::class.java)
                         .setAction("redownload").putExtra("request", request)) }
                 }
@@ -806,13 +826,17 @@ class MainActivity : Activity() {
         return dialog
     }
 
-    /** <remove> asks to confirm Remove translation, which writes the original game files back instead. */
-    private fun showPatchConfirmation(prepared: ApkPreparation.Prepared, remove: Boolean = false): AlertDialog {
+    /**
+     * <remove> asks to confirm Remove translation, which writes the original game files back instead. <confirm>
+     * records the checked confirmation and returns its request; <root> words it for a run that keeps the game app.
+     */
+    private fun showPatchConfirmation(confirm: (Boolean) -> String, remove: Boolean = false,
+                                      root: Boolean = false): AlertDialog {
         val confirmation = CheckBox(this).apply {
             tag = "update-confirmation"; text = ui("All in-game updates finished, and I closed the game")
         }
         val dialog = AlertDialog.Builder(this).setTitle(ui(if (remove) "Remove translation" else "Start translation"))
-            .setMessage(if (remove) UiText.removeConfirmation(this) else UiText.patchConfirmation(this))
+            .setMessage(if (remove) UiText.removeConfirmation(this, root) else UiText.patchConfirmation(this, root))
             .setView(confirmation).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }
             .setPositiveButton(ui(if (remove) "Remove the translation" else "Start patch"), null).create()
         dialog.show()
@@ -824,7 +848,7 @@ class MainActivity : Activity() {
                 if (!busy) {
                     dialog.dismiss()
                     runTask {
-                        val request = PatchRequestStore(this).confirm(prepared, confirmation.isChecked)
+                        val request = confirm(confirmation.isChecked)
                         runOnUiThread { startWorker(Intent(this, PatchWorkerService::class.java)
                             .setAction(if (remove) "remove" else "patch").putExtra("request", request)) }
                     }

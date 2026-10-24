@@ -10,7 +10,7 @@ import android.content.Context
 enum class ShellProvider(val key: String, val label: String, val beta: Boolean, val available: Boolean) {
     SHIZUKU("shizuku", "Shizuku", false, true),
     WIRELESS("wireless", "Wireless debugging", true, true),
-    ROOT("root", "Root", true, false);
+    ROOT("root", "Root", true, true);
 
     companion object {
         /** Shizuku stays the default, so a phone patched before the picker existed keeps the provider that patched it. */
@@ -35,9 +35,12 @@ enum class ShellProvider(val key: String, val label: String, val beta: Boolean, 
     }
 }
 
-/** What the worker does at the uid it was started as: 2000 is shell, 0 is root, anything else is refused. */
+/**
+ * What the worker does at the uid it was started as: 2000 is shell, which reaches the game through the
+ * access APK and `run-as`; 0 is root, which writes the game's files itself (ADR 0007). Anything else is refused.
+ */
 enum class WorkerAccess {
-    SHELL;
+    SHELL, ROOT;
 
     companion object {
         const val SHELL_UID = 2000
@@ -45,8 +48,13 @@ enum class WorkerAccess {
 
         fun of(uid: Int): WorkerAccess = when (uid) {
             SHELL_UID -> SHELL
-            ROOT_UID -> error("The worker runs as root, which this build does not support yet")
-            else -> error("The worker runs as uid $uid; only shell (2000) is supported")
+            ROOT_UID -> ROOT
+            else -> error("The worker runs as uid $uid; only shell (2000) and root (0) are supported")
         }
+
+        /** The running worker's own access, as its uid reports it. */
+        fun of(device: IPrivilegedDeviceService): WorkerAccess =
+            of(org.json.JSONObject(device.diagnostics()).getInt("uid"))
+
     }
 }

@@ -21,6 +21,105 @@ class ApkPreparation(private val context: Context) {
         val accessFile: File get() = File(directory, "apks/access.apk")
     }
 
+    /**
+     * A root preparation (ADR 0007): only a copy of the installed game app, the build's input. Root never
+     * installs an APK, so there is no normal or access APK and no recovery copy; the run leaves <installed> in
+     * place and verifies it is still installed when it finishes.
+     */
+    data class RootPrepared(val directory: File, val installed: ApkIdentity) {
+        val apk: File get() = File(directory, "original.apk")
+    }
+
+    /**
+     * Root's preparation: reuse a saved root copy the installed game still matches, or copy it afresh. Only the
+     * newest root copy is kept; shell preparations are left alone (a phone may switch providers).
+     */
+    fun prepareRoot(device: IPrivilegedDeviceService, report: (String) -> Unit, checkpoint: () -> Unit): RootPrepared {
+        RandomAccessFile(File(context.filesDir, "preparation.lock"), "rw").use { file ->
+            file.channel.use { channel ->
+                val lock = checkNotNull(channel.tryLock()) { "Another APK preparation is running" }
+                lock.use { return prepareRootLocked(device, report, checkpoint) }
+            }
+        }
+    }
+
+    private fun rootFolders(): List<File> = File(context.filesDir, "preparations").listFiles().orEmpty()
+        .filter { it.isDirectory && !Files.isSymbolicLink(it.toPath()) && File(it, "receipt.json").isFile }
+        .filter { folder -> runCatching { receipt(folder).optBoolean("root") }.getOrDefault(false) }
+        .sortedByDescending { it.lastModified() }
+
+    private fun receipt(folder: File) =
+        JSONObject(String(DurableFiles.readCommitted(File(folder, "receipt.json")), Charsets.UTF_8))
+
+    private fun prepareRootLocked(device: IPrivilegedDeviceService, report: (String) -> Unit,
+                                  checkpoint: () -> Unit): RootPrepared {
+        checkpoint()
+        check(FirstSetupJournal.pending(context).isEmpty()) { "Finish or recover first-time setup before preparing more game files" }
+        check(SessionJournal.pending(File(context.filesDir, "sessions")).isEmpty()) {
+            "Recover the interrupted patch before preparing more game files"
+        }
+        val bytes = JSONObject(device.gameApkInfo()).getLong("bytes")
+        check(bytes in 1..(3L * 1024 * 1024 * 1024)) { "Unsupported source APK size" }
+        report("Checking the saved copy of the game app")
+        val folders = rootFolders()
+        var kept: RootPrepared? = null
+        for (folder in folders) {
+            checkpoint()
+            val saved = runCatching { loadRoot(folder.name) }.getOrNull() ?: continue
+            if (saved.installed.bytes != bytes) continue
+            if (runCatching { InstalledGameVerifier(context, device).verify(saved.installed) }.isFailure) continue
+            kept = saved
+            break
+        }
+        // A root copy the installed game no longer matches is never read again.
+        for (folder in folders) if (folder.canonicalFile != kept?.directory?.canonicalFile) {
+            runCatching { DurableFiles.deleteTree(folder); DurableFiles.syncDirectory(folder.parentFile!!) }
+                .onFailure { report("Could not remove an older copy of the game app; keeping it") }
+        }
+        kept?.let { report("Reusing the verified saved copy of the game app"); return it }
+        StorageBudget.requireAvailable(context.filesDir, "game app copy", bytes)
+        val directory = File(context.filesDir, "preparations/${UUID.randomUUID()}")
+        check(!directory.exists())
+        DurableFiles.createDirectories(directory)
+        try {
+            val source = File(directory, "original.apk")
+            report("Copying and verifying the installed source APK")
+            ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_CREATE or
+                ParcelFileDescriptor.MODE_WRITE_ONLY or ParcelFileDescriptor.MODE_TRUNCATE).use {
+                val copied = JSONObject(device.copyGameApk(it))
+                check(copied.getLong("bytes") == bytes && source.length() == bytes &&
+                    copied.getString("sha256") == ApkIdentity.digest(source)) { "Source APK transport changed" }
+            }
+            checkpoint()
+            val installed = ApkIdentity.read(context, source)
+            check(source.setReadOnly()) { "Cannot protect prepared APK material" }
+            val receipt = JSONObject().put("schema", 1).put("root", true).put("source", installed.json())
+            val storage = AtomicFile(File(directory, "receipt.json"))
+            val stream = storage.startWrite()
+            try {
+                stream.write(receipt.toString().toByteArray(Charsets.UTF_8)); stream.fd.sync(); storage.finishWrite(stream)
+                DurableFiles.syncDirectory(directory)
+            } catch (error: Throwable) { storage.failWrite(stream); throw error }
+            return RootPrepared(directory, installed)
+        } catch (error: Throwable) {
+            if (!File(directory, "receipt.json").exists()) runCatching {
+                DurableFiles.deleteTree(directory); DurableFiles.syncDirectory(directory.parentFile!!)
+            }
+            throw error
+        }
+    }
+
+    fun loadRoot(id: String): RootPrepared {
+        GameFilePolicy.session(id)
+        val directory = File(context.filesDir, "preparations/$id")
+        val receipt = receipt(directory)
+        check(receipt.getInt("schema") == 1 && receipt.getBoolean("root")) { "Not a root preparation" }
+        val installed = ApkIdentity.fromJson(receipt.getJSONObject("source"))
+        check(ApkIdentity.read(context, File(directory, "original.apk")) == installed) { "Saved game app copy changed" }
+        return RootPrepared(directory, installed)
+    }
+
+
     fun prepare(device: IPrivilegedDeviceService, report: (String) -> Unit): Prepared =
         prepare(device, report, {})
 

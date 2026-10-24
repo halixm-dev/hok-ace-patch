@@ -31,7 +31,7 @@ class WorkerDeviceConnection(context: Context, private val starter: WorkerStarte
             val starter = when (provider) {
                 ShellProvider.SHIZUKU -> ShizukuWorkerStarter(context)
                 ShellProvider.WIRELESS -> WirelessWorkerStarter(context)
-                ShellProvider.ROOT -> error("${provider.label} has no worker starter")
+                ShellProvider.ROOT -> RootWorkerStarter()
             }
             return WorkerDeviceConnection(context, starter, lost)
         }

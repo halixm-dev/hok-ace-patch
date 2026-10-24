@@ -381,6 +381,11 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             ui("3. In Developer options, turn on Wireless debugging."),
             ui("4. Tap Pair here. In Wireless debugging, tap Pair device with pairing code, then type the six-digit code into the patcher's notification."),
             ui("5. Come back here and tap Start. Keep Wi-Fi and Wireless debugging on until the work is done."))
+        provider == ShellProvider.ROOT -> listOf(ui("1. Root this phone with a root manager, such as KernelSU, Magisk or APatch."),
+            ui("2. Allow root for HOK ACE: in KernelSU, under Superuser; Magisk and APatch ask when you tap Start."),
+            ui("3. Come back here and tap Start. The patcher writes the game files itself and never replaces the game app."),
+            ui("4. Hiding root from the game is up to you; the patcher does not touch it."))
+
         else -> listOf(ui("1. Install Shizuku from Google Play."), ui("2. Start Shizuku, following the steps it shows."),
             ui("3. Come back here and tap Start. Allow HOK ACE when Shizuku asks."))
     }

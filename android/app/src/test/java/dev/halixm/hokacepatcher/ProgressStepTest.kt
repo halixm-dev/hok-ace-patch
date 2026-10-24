@@ -59,7 +59,29 @@ class ProgressStepTest {
             "Deleting package file 1/1.db", "Deleting package file 1/1_0.db", "Restoring normal game APK"))
     }
 
+    /** As [steps], for a run whose provider is Root. */
+    private fun rootSteps(action: String, vararg messages: String) =
+        messages.runningFold(null as String?) { step, message -> WorkerStep.next(action, step, message, root = true) }.drop(1)
+
+    @Test fun aRootPatchSkipsUnlockAccessAndRestoreGameApp() {
+        assertEquals(listOf("build", "build", "build", "build", "write", "write", "write"), rootSteps("patch",
+            "Preparing verified recovery material", WorkerStep.ROOT_SKIPS_ACCESS, "Saving complete game data and Watchdog snapshot",
+            "Building text and graphics from the verified private snapshot", "Applying package file 21",
+            "Checking the installed game app", WorkerStep.ROOT_SKIPS_RESTORE))
+        // The confirmation is shown at step 2; the run carries on from step 4, whatever step it saved.
+        assertEquals("build", WorkerStep.next("remove", "prepare_files", "Removing the translation", root = true))
+    }
+
+    @Test fun aRootPreparationReportsStepsOneAndTwo() {
+        assertEquals(listOf("check_game", "check_game", "prepare_files"), rootSteps("prepare",
+            "Preparing verified recovery material", "Checking the saved copy of the game app",
+            "Copying and verifying the installed source APK"))
+        assertEquals(listOf("check_game", "prepare_files"), rootSteps("prepare",
+            "Checking the saved copy of the game app", "Reusing the verified saved copy of the game app"))
+    }
+
     @Test fun recoveryAndFreeUpSpaceReportNoStep() {
+
         assertEquals(listOf(null, null), steps("recover", "Opening game data access", "Restoring normal game APK"))
         assertEquals(listOf(null), steps("free_space", "Checking the installed normal game app"))
     }

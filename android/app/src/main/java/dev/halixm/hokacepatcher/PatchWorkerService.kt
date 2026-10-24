@@ -35,6 +35,8 @@ class PatchWorkerService : Service() {
     @Volatile private var activeAction = ""
     /** The run's current [WorkerStep] key; null for an action that reports no step. */
     @Volatile private var activeStep: String? = null
+    /** The run's provider is Root, whose runs skip two of the steps. */
+    @Volatile private var rootRun = false
 
     @Synchronized private fun state(value: JSONObject) {
         if (retiring.get() && value.optString("status") !in setOf("recovery_required", "cancelled")) return
@@ -77,7 +79,7 @@ class PatchWorkerService : Service() {
 
     private fun show(message: String) {
         if (retiring.get()) return
-        activeStep = WorkerStep.next(activeAction, activeStep, message)
+        activeStep = WorkerStep.next(activeAction, activeStep, message, rootRun)
         state(JSONObject().put("status", "running").put("action", activeAction).put("progress", message).also { running ->
             activeStep?.let { running.put("step", it).put("steps", WorkerStep.KEYS.size) }
         })
@@ -113,12 +115,14 @@ class PatchWorkerService : Service() {
         activeFlow = intent?.getStringExtra("flow")
         activeAction = intent?.action ?: ""
         activeStep = null
+        // Read once: changing the provider while a run is in progress is refused, and this run keeps its own.
+        val provider = ShellProvider.current(this)
+        rootRun = provider == ShellProvider.ROOT
         recentMessages.clear()
         recentMessages.addAll(WorkerStep.carriedMessages(activeAction, savedState()))
         state(JSONObject().put("status", "running").put("action", intent?.action))
         show("Preparing verified recovery material")
-        // Read once: changing the provider while a run is in progress is refused, and this run keeps its own.
-        val provider = ShellProvider.current(this)
+
         executor.execute {
             try {
                 val bound = WorkerDeviceConnection.open(this, provider) {
@@ -149,16 +153,23 @@ class PatchWorkerService : Service() {
                     "setup_update" -> state(setupWorker.finishUpdate(checkNotNull(intent.getStringExtra("setup")),
                         intent.getBooleanExtra("confirmed", false)))
                     "prepare" -> {
-                        val prepared = ApkPreparation(this).prepare(device, { message -> show(message) }, {
-                            check(!cancelRequested.get() && !retiring.get()) { "Preparation cancelled" }
-                        })
+                        val checkpoint = { check(!cancelRequested.get() && !retiring.get()) { "Preparation cancelled" } }
+                        // Root installs no APK, so it prepares only a copy of the installed game app (ADR 0007).
+                        val result = if (WorkerAccess.of(device) == WorkerAccess.ROOT) {
+                            val prepared = ApkPreparation(this).prepareRoot(device, { message -> show(message) }, checkpoint)
+                            JSONObject().put("preparation", prepared.directory.name).put("root", true)
+                                .put("normal", prepared.installed.sha256).put("requires_signature_conversion", false)
+                        } else {
+                            val prepared = ApkPreparation(this).prepare(device, { message -> show(message) }, checkpoint)
+                            JSONObject().put("preparation", prepared.directory.name).put("normal", prepared.normal.sha256)
+                                .put("requires_signature_conversion", prepared.requiresSignatureConversion)
+                        }
                         check(!retiring.get()) { "Preparation worker stopped" }
                         state(if (cancelRequested.get()) JSONObject().put("status", "cancelled").put("action", "prepare")
-                            else JSONObject().put("status", "prepared").put("action", "prepare")
-                                .put("preparation", prepared.directory.name).put("normal", prepared.normal.sha256)
-                                .put("requires_signature_conversion", prepared.requiresSignatureConversion))
+                            else result.put("status", "prepared").put("action", "prepare"))
                     }
-                    "recover" -> state(worker.recover(checkNotNull(intent.getStringExtra("session"))))
+                    "recover" -> state(worker.recover(checkNotNull(intent.getStringExtra("session")),
+                        WorkerAccess.of(device) == WorkerAccess.ROOT))
                     "free_space" -> state(worker.freeSpace(intent.getBooleanExtra("remove_saved_apks", false)))
                     "verify" -> {
                         val normal = checkNotNull(intent.getStringExtra("normal"))
@@ -169,19 +180,15 @@ class PatchWorkerService : Service() {
                         state(JSONObject().put("status", "verified").put("action", "verify"))
                     }
                     "redownload" -> {
-                        val prepared = PatchRequestStore(this).claim(checkNotNull(intent.getStringExtra("request")))
-                        check(!cancelRequested.get() && !retiring.get()) { "Re-download cancelled before access" }
-                        val summary = worker.run(prepared.normal.sha256, prepared.accessFile, prepared.source,
-                            redownload = true)
+                        val summary = claimAndRun(worker, checkNotNull(intent.getStringExtra("request")),
+                            "Re-download cancelled before access", redownload = true)
                         state(JSONObject().put("status", "complete").put("action", "redownload")
                             .put("redownloaded", summary.getJSONArray("redownload").length())
                             .put("packages", summary.getJSONObject("packages").length()))
                     }
                     "patch", "remove" -> {
-                        val prepared = PatchRequestStore(this).claim(checkNotNull(intent.getStringExtra("request")))
-                        check(!cancelRequested.get() && !retiring.get()) { "Patch cancelled before access" }
-                        val summary = worker.run(prepared.normal.sha256, prepared.accessFile, prepared.source,
-                            remove = intent.action == "remove")
+                        val summary = claimAndRun(worker, checkNotNull(intent.getStringExtra("request")),
+                            "Patch cancelled before access", remove = intent.action == "remove")
                         val root = EngineAssets.prepare(this)
                         val result = JSONObject().put("status", "complete").put("counts", JSONObject(
                             com.chaquo.python.Python.getInstance().getModule("android_bridge").callAttr(
@@ -213,7 +220,22 @@ class PatchWorkerService : Service() {
         return START_NOT_STICKY
     }
 
+    /** Claim confirmation <request> and run it on the path it was confirmed for: root's, or the shell path's. */
+    private fun claimAndRun(worker: PatchCoordinator, request: String, cancelled: String,
+                            remove: Boolean = false, redownload: Boolean = false): JSONObject {
+        val store = PatchRequestStore(this)
+        if (store.isRoot(request)) {
+            val prepared = store.claimRoot(request)
+            check(!cancelRequested.get() && !retiring.get()) { cancelled }
+            return worker.runRoot(prepared.apk, prepared.installed, remove, redownload)
+        }
+        val prepared = store.claim(request)
+        check(!cancelRequested.get() && !retiring.get()) { cancelled }
+        return worker.run(prepared.normal.sha256, prepared.accessFile, prepared.source, remove, redownload)
+    }
+
     override fun onTimeout(startId: Int, fgsType: Int) {
+
         DiagnosticTrace.event("worker", "Foreground service timeout during $activeAction (type $fgsType)")
         retiring.set(true)
         cancelRequested.set(true)

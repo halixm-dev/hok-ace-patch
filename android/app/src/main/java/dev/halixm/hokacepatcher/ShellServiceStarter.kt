@@ -17,13 +17,16 @@ import kotlin.system.exitProcess
  * that process, so every user service dies before any code of ours runs (measured on an Infinix X6853,
  * Android 16). [PrivilegedDeviceService] needs no Context, so this starter skips that step. The app starts
  * it through Shizuku's shell-process API with this APK as the class path, and it hands the binder to
- * [WorkerBinderProvider] with the one-time token it was given. Runs as uid 2000 under app_process.
+ * [WorkerBinderProvider] with the one-time token it was given. Runs under app_process as uid 2000, or as
+ * uid 0 when the Root provider starts it through `su`.
  */
 object ShellServiceStarter {
     const val ATTACH = "attach"
     const val BINDER = "binder"
     const val CLIENT = "client"
     private const val SHELL = "com.android.shell"
+    /** The package Android's app ops resolve uid 0 to. */
+    private const val ROOT = "root"
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -35,6 +38,11 @@ object ShellServiceStarter {
             val client = handOff(authority, token, service)
             // The app holds this binder for the connection's lifetime; its death means nobody can use us.
             client.linkToDeath({ println("app connection gone; exiting"); exitProcess(0) }, 0)
+            // The app cannot signal a uid-0 process; RootWorkerStarter closes su's input instead.
+            if (Process.myUid() == WorkerAccess.ROOT_UID) Thread({
+                runCatching { while (System.`in`.read() >= 0) { } }
+                println("su input closed; exiting"); exitProcess(0)
+            }, "hokace-root-input").apply { isDaemon = true }.start()
             println("worker attached as uid ${Process.myUid()} pid ${Process.myPid()}")
             Looper.loop()
         } catch (error: Throwable) {
@@ -66,10 +74,12 @@ object ShellServiceStarter {
         val methods = Class.forName("android.content.IContentProvider").methods.filter { it.name == "call" }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val method = methods.first { it.parameterTypes.size == 5 && it.parameterTypes[0] == AttributionSource::class.java }
-            val source = AttributionSource.Builder(Process.myUid()).setPackageName(SHELL).build()
+            val source = AttributionSource.Builder(Process.myUid()).setPackageName(caller()).build()
             return method.invoke(provider, source, authority, ATTACH, token, extras) as Bundle?
         }
         val method = methods.first { it.parameterTypes.size == 6 }
-        return method.invoke(provider, SHELL, null, authority, ATTACH, token, extras) as Bundle?
+        return method.invoke(provider, caller(), null, authority, ATTACH, token, extras) as Bundle?
     }
+
+    private fun caller() = if (Process.myUid() == WorkerAccess.ROOT_UID) ROOT else SHELL
 }

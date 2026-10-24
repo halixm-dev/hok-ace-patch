@@ -12,12 +12,11 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Receives the worker binder from [ShellServiceStarter]. The manifest guards it with a permission only
- * the shell holds, and each call must also come from uid 2000 and present a token that a live
+ * the shell and root hold, and each call must also come from uid 2000 or 0 and present a token that a live
  * [WorkerDeviceConnection] is waiting on. A token is single use. Nothing here reads or writes data.
  */
 class WorkerBinderProvider : ContentProvider() {
     companion object {
-        private const val SHELL_UID = 2000
         private val pending = ConcurrentHashMap<String, (IBinder) -> IBinder?>()
 
         fun authority(context: Context) = "${context.packageName}.worker"
@@ -32,7 +31,7 @@ class WorkerBinderProvider : ContentProvider() {
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
         val caller = Binder.getCallingUid()
-        if (caller != SHELL_UID) throw SecurityException("Worker attach refused for uid $caller")
+        if (runCatching { WorkerAccess.of(caller) }.isFailure) throw SecurityException("Worker attach refused for uid $caller")
         require(method == ShellServiceStarter.ATTACH) { "Unsupported worker call" }
         val receive = arg?.let { pending.remove(it) } ?: throw SecurityException("Unknown or used worker token")
         val binder = requireNotNull(extras?.getBinder(ShellServiceStarter.BINDER)) { "No worker binder" }
