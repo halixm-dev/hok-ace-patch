@@ -30,7 +30,7 @@
 
 ## Device findings
 
-**2026-10-24, `eb1943d`, Redmi Note 9 Pro (`ebad528e`, Android 15, PixelAge, KernelSU): fail.** Run by the implementing session at the user's request. Evidence in `docs/lab-notebook.md` (2026-10-24, ticket 03) and `D:\hokace-workedmi-ebad528e	03\`.
+**2026-10-24, `eb1943d`, Redmi Note 9 Pro (`ebad528e`, Android 15, PixelAge, KernelSU): fail.** Run by the implementing session at the user's request. Evidence in `docs/lab-notebook.md` (2026-10-24, ticket 03) and `D:\hokace-work\redmi-ebad528e\t03\`.
 
 - Unit tests pass. `check_ui_strings.py`: OK (342 strings).
 - Root picked: the guide shows its four lines, the hiding-root line included.

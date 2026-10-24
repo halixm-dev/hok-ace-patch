@@ -4312,5 +4312,5 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   the patcher and GMS (app data isolation); the game's data is at `/data_mirror/data_ce/null/0/com.tencent.tmgp.osgame`.
   KernelSU `su` lists `-M, --mount-master`. Nothing was written; the journal recovered at once.
 - **Verdict: fail.** Recorded in `.scratch/shell-providers/issues/03-root-provider.md`.
-- **Evidence:** `D:\hokace-workedmi-ebad528e	03\` (`run1-logcat.txt`).
+- **Evidence:** `D:\hokace-work\redmi-ebad528e\t03\` (`run1-logcat.txt`).
 
