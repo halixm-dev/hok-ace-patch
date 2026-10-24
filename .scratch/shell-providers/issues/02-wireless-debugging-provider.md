@@ -67,3 +67,10 @@ Not failures of this ticket, for whoever touches them next:
 - The *Start translation* confirmations and the *Recover interrupted patch* chooser were driven by this session through `uiautomator`. The provider was left on Wireless debugging.
 
 **Resolved (2026-10-24).** Device test pass on `9aa1b4e` and again, independently, on `1f5301a`. The log findings (port `-1`, `connection lost (null)`) are fixed in `fd071d1`. Still open: a loss during prepare shows the generic notice, and ③ reads *Ready when you are* while Wireless debugging is off. Pairing on a second OEM, the screen-off run and the cross-provider runs are ticket 04.
+
+**2026-10-24, `cfc9890`, Redmi Note 9 Pro (`ebad528e`): the two open findings fixed and tested on the phone.** Evidence in `docs/lab-notebook.md` (2026-10-24, the prepare-loss and switched-off lines) and `D:\hokace-work\redmi-ebad528e\t02b\`.
+
+- **③ while Wireless debugging is off:** with the switch off (`adb_wifi_enabled 0`), ③ reads *Turn on wireless debugging* / *Wireless debugging is off. Turn it on in Developer options, then tap Start.* (`NEEDS ACCESS`), not *Ready when you are*. Start still refuses with the *…tap Start again* line, and no worker starts. With the switch back on, ③ returns to the previous result.
+- **Loss during prepare:** switched off 2 s after the worker reported *Checking saved normal and access APKs*. The result is `cancelled` with error *Wireless debugging disconnected*, and the connection log reads `connection lost (EOFException)`. The notice reads *Wireless debugging disconnected. No game files changed. Turn Wi-Fi and Wireless debugging back on, then tap Start.*, and ③ shows *Turn on wireless debugging* with Start. The game app was not replaced.
+- **The same under Root:** `pkill -9` of the uid-0 worker while it copied the game app. The result is `cancelled` with *Root disconnected*, and the notice reads *Root access stopped. No game files changed. Check HOK ACE in your root manager, then tap Start.*
+- A first build reused the *…tap Try again* lines, which named a button ③ does not show there. The shipped lines say *tap Start*.

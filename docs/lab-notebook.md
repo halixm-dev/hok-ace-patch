@@ -4375,9 +4375,26 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   interrupted patch* → `recovered` 16:41:30; files match the delta, 1328 entries keep owner and label; English login.
 - **Wireless debugging, screen off:** after the patch was confirmed at 16:46:21, `dumpsys battery unplug` and the screen
   turned off. Doze `QUICK_DOZE_DELAY` → `IDLE` by 16:49 (22 of 26 polls `IDLE`); run `complete` 16:59:07, 11 rebuilt,
-  delta identical except for `made`, normal APK installed (`63bec2…`), files match. Game start not observed: the
-  phone returned to its secure lock screen.
+  delta identical except for `made`, normal APK installed (`63bec2…`), files match. Game start not observed then (phone
+  locked); checked later, see the next entry.
 - **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/04-device-cycles.md`.
 - **Evidence:** `D:\hokace-work\redmi-ebad528e\t04\` (`a1-shizuku-*`, `a2-root-*`, `b2-shizuku-*`, `c1-root-loss-*`,
   `d1-wireless-screenoff-*`, `delta-after-*.json`, `*-packages-sha.txt`, `*-files-stat.txt`, game logcats and
   screenshots).
+
+## 2026-10-24 — Shell providers: a provider lost during prepare, and Wireless debugging switched off at rest (`cfc9890`) — pass
+
+- **Phone:** Redmi Note 9 Pro (`ebad528e`), debug app from `cfc9890` installed over `fd071d1`; translated layer from the
+  ticket 04 screen-off run.
+- **At rest, switch off:** `adb_wifi_enabled 0` → ③ `NEEDS ACCESS`, *Turn on wireless debugging*; Start refuses with
+  *Wireless debugging is off…tap Start again*, no worker. Switch on → ③ back to *Translation added*.
+- **Wireless lost in prepare:** switched off at 18:20:29, 2 s after *Checking saved normal and access APKs*; link loss
+  `connection lost (EOFException)`; result 18:21:03 `{"status":"cancelled","action":"prepare","error":"Wireless debugging
+  disconnected"}`; notice *Wireless debugging disconnected. No game files changed. … then tap Start.* (before the fix:
+  *Work stopped… check recovery options below*, `t02\trace.log` 12:09:11).
+- **Root lost in prepare:** `pkill -9 -f hokacepatcher:worker` at 18:21:33 during *Copying and verifying the installed
+  source APK* → `cancelled`, *Root disconnected*; notice *Root access stopped. No game files changed. … then tap Start.*
+- **Ticket 04's missing check:** the game started on the screen-off run's layer (files still match its delta), English
+  login, `errorCode=0` (`t04\d1-wireless-screenoff-unlocked-*`).
+- **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/02-wireless-debugging-provider.md` and `04-device-cycles.md`.
+- **Evidence:** `D:\hokace-work\redmi-ebad528e\t02b\` (`idle-off*`, `prepare-loss*`, `prepare-loss2*`, `root-prepare-loss*`).
