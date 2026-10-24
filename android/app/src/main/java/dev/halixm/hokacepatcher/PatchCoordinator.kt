@@ -1,6 +1,7 @@
 package dev.halixm.hokacepatcher
 
 import android.content.Context
+import android.os.DeadObjectException
 import android.os.ParcelFileDescriptor
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
@@ -59,6 +60,10 @@ class PatchCoordinator @JvmOverloads constructor(
             if (journal.phase !in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) journal.recoveryRequired(reason)
         }
     }
+
+    /** A failure's line for the journal; a worker that died mid-call says so, which ③ reads as a lost provider. */
+    private fun reason(error: Throwable) = error.message
+        ?: if (error is DeadObjectException) "Worker disconnected" else error.javaClass.simpleName
 
     private fun checkpoint() {
         check(!cancelled.get()) { "Patch cancelled; restoring verified originals" }
@@ -437,9 +442,9 @@ class PatchCoordinator @JvmOverloads constructor(
             promoteSessionDelta(engine.path)
             return summary
         } catch (error: Throwable) {
-            journal.recoveryRequired(error.message ?: error.javaClass.simpleName)
+            journal.recoveryRequired(reason(error))
             try { recoverLocked(journal) } catch (recovery: Throwable) {
-                journal.recoveryRequired("${error.message}; recovery: ${recovery.message}")
+                journal.recoveryRequired("${reason(error)}; recovery: ${reason(recovery)}")
                 restoreNormalAfterFailure(journal, recovery)
                 error.addSuppressed(recovery)
             }
@@ -581,7 +586,7 @@ class PatchCoordinator @JvmOverloads constructor(
             report("Normal APK verified; do not launch until package recovery is resolved")
         } catch (restore: Throwable) {
             cause.addSuppressed(restore)
-            journal.recoveryRequired("${cause.message}; normal APK restore: ${restore.message}")
+            journal.recoveryRequired("${reason(cause)}; normal APK restore: ${reason(restore)}")
         }
     }
 

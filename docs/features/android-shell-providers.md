@@ -8,7 +8,7 @@ updated: 2026-10-24
 
 ## Report
 
-**Where it stands (2026-10-24).** Shizuku, Wireless debugging and Root built; Root awaits its device test. The Android patcher offers three shell
+**Where it stands (2026-10-24).** Shizuku, Wireless debugging and Root built and device-tested. The Android patcher offers three shell
 providers: Shizuku (today's), Wireless debugging and Root, picked by the user on the home screen. The
 work in flight is [`.scratch/shell-providers/`](../../.scratch/shell-providers/spec.md), tickets 01–04;
 the root write path is decided in [ADR 0007](../adr/0007-on-a-rooted-phone-write-the-override-layer-directly.md).
@@ -27,6 +27,7 @@ ticket 02 passed on the same phone. No coverage count moves.
 - Ticket 02 passed its device test on the Redmi Note 9 Pro: pairing by notification, a full patch, a loss mid-write recovered, and the three refusals (2026-10-24).
 - Ticket 03 built: the Root provider. `su -c` starts the worker as uid 0, which runs the same locked scripts in the game's data directory and gives what it creates the owner and SELinux label of `files/QtsVFSCache` (`chown`, `chcon`, umask 000 to match `run-as`; measured as root on KernelSU, see the ticket). A root preparation copies only the installed game app for the build; a root run installs nothing, records the installed app in its journal (`root_installed`) and verifies it is still installed at the end. Unlock access and Restore game app are skipped with a log line each. A run recovers only through the kind of provider that started it. Device test requested (2026-10-24).
 - Ticket 03 device test failed on eb1943d: KernelSU's `su` runs in the patcher's mount namespace, where app data isolation hides `/data/user/0/<game>`. A root run now falls back to `/data_mirror/data_ce/null/0/<game>`, and the KernelSU grant lines say to reopen HOK ACE, since a grant reaches only processes started after it. Device test requested again (2026-10-24).
+- Ticket 03 device test passed on `75a7f69` (KernelSU): patch, game start, loss mid-write and recovery. A dead worker's call is now journalled as *Worker disconnected* rather than `null` (2026-10-24).
 
 ## [S1] Problem
 
