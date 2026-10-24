@@ -24,7 +24,12 @@ public final class WorkerProbeTest {
     }
 
     private void verify(boolean emergency) throws Exception {
-        String expected = "b0b08f4a77244d990ea22e4fbde73542028b4b5785d88243b62ac907fbe3fc0a";
+        File[] retained = new File(InstrumentationRegistry.getInstrumentation().getTargetContext().getFilesDir(),
+            "recovery").listFiles(folder -> folder.isDirectory() && folder.getName().matches("[0-9a-f]{64}"));
+        org.junit.Assume.assumeTrue("Needs this phone's retained normal APK", retained != null && retained.length > 0);
+        // The newest retained normal APK is this phone's own, as MainActivity.recoveryId picks it.
+        java.util.Arrays.sort(retained, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+        String expected = retained[0].getName();
         try (ParcelFileDescriptor.AutoCloseInputStream launch = new ParcelFileDescriptor.AutoCloseInputStream(
             InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(
                 "am start -W -n dev.halixm.hokacepatcher/.MainActivity"))) {
