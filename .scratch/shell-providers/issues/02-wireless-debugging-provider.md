@@ -12,7 +12,7 @@
 
 **Status:** ready-for-agent
 
-**Device test:** pass 9aa1b4e
+**Device test:** pass 1f5301a
 
 - [x] Client ported, builds at `minSdk 30` for every shipped ABI; APK size change recorded
 - [x] Pairing by notification reply works on an emulator
@@ -54,3 +54,14 @@ Not failures of this ticket, for whoever touches them next:
 - The *Start translation* confirmation of the first run was confirmed on the phone by hand, not by this session.
 - The game came up logged out, so the lobby was not checked; the login screen is English.
 - `WorkerProbeTest`'s leftover error state from ticket 01 (`worker-state.json`) was removed before the run.
+
+**2026-10-24, `1f5301a`, Redmi Note 9 Pro (`ebad528e`, Android 15, PixelAge, KernelSU): pass.** Independent retest by a separate test session, on master with the *Worker disconnected* fix. Evidence in `docs/lab-notebook.md` (2026-10-24, tickets 02 and 03 retest) and `D:\hokace-work\redmi-ebad528e\retest\`.
+
+**Device test:** pass 1f5301a
+
+- Unit tests pass (`testDebugUnitTest`). `check_ui_strings.py`: OK (342 strings). Shizuku's server was not running, so every worker came from Wireless debugging; the phone stayed paired from the earlier test.
+- **Patch:** the worker started over ADB in 716 ms and attached as uid 2000. Patch `complete` at 14:58:20: 391 text tables, 398 images applied, 1 table skipped; normal APK restored and verified; a 14-file pristine delta kept. ③ read *Translation added*. The game started to an English login screen (`wireless-run1-game.png`) with no QtsVFS errors and QTS scan `errorCode=0`.
+- **Loss mid-write:** `adb_wifi_enabled 0` at 15:12:22, right after *Applying package file 15/15_0.db*. The connection log read `connection lost (null)`; `recovery_required` (`packages_dirty`) 22 s later. ③ showed *Wireless debugging disconnected. Keep the game closed. Turn Wi-Fi and Wireless debugging back on, then check recovery options below.* and the error details read *Worker disconnected; normal APK restore: Worker disconnected before normal APK restoration*, no longer `null`.
+- **Recovery:** Wireless debugging back on, *Restore interrupted patch* over a new uid 2000 worker → `recovered` (phase `CANCELLED`) at 15:18:24, *Normal game APK verified*. The game started English (`wireless-run2-recovered-game.png`), no QtsVFS errors, QTS scan `errorCode=0`; no worker process left.
+- Still open from the first test: the connection log reads `Wireless debugging port -1` and `connection lost (null)`; only the journal's line was fixed.
+- The *Start translation* confirmations and the *Recover interrupted patch* chooser were driven by this session through `uiautomator`. The provider was left on Wireless debugging.

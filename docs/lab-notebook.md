@@ -4332,3 +4332,25 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
 - **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/03-root-provider.md`, with the minor findings.
 - **Evidence:** `D:\hokace-work\redmi-ebad528e\t03\` (`run2-game-logcat.txt`, `run2-login.png`, `run3-loss-logcat.txt`,
   `run3-recovered-game-logcat.txt`, `run3-recovered-login.png`).
+
+## 2026-10-24 — Shell providers tickets 02 and 03, independent retest (`1f5301a`) — pass
+
+- **Phone:** Redmi Note 9 Pro (`ebad528e`), KernelSU, HOK ACE granted Superuser, Wi-Fi on, paired with Wireless debugging,
+  Shizuku not running. Debug app and `androidTest` APK built from `1f5301a` (unit tests pass) installed over `75a7f69`.
+  Run by a separate test session; UI driven through `uiautomator`.
+- **Fix under test:** a worker that dies mid-call (`DeadObjectException`, no message) is journalled as *Worker
+  disconnected*, so ③ reads the provider's lost-connection line.
+- **Root:** patch `complete` 14:27:43 (391 text tables, 398 textures applied, 1 table skipped; 11 rebuilt from the delta;
+  14-file delta; no APK installed); 1320 entries under `files/` all `u0_a246` with `app_data_file:s0:c246,c256,c512,c768`;
+  English login, QTS scan `errorCode=0`. `pkill -9 -f hokacepatcher:worker` at 14:38:15 after `15/15_0.db` → error
+  *Worker disconnected; recovery: Worker disconnected*, ③ *Root access stopped…*. *Restore interrupted patch* →
+  `recovered` 14:41:07; 1327 entries kept owner and label; English login, `errorCode=0`.
+- **Wireless debugging:** worker over ADB in 716 ms, uid 2000; patch `complete` 14:58:20 (same counts), normal APK restored
+  and verified; English login, `errorCode=0`. `adb_wifi_enabled 0` at 15:12:22 after `15/15_0.db` → `recovery_required`
+  22 s later, error *Worker disconnected; normal APK restore: Worker disconnected before normal APK restoration*, ③
+  *Wireless debugging disconnected…*. Back on, *Restore interrupted patch* → `recovered` 15:18:24, normal APK verified;
+  English login, `errorCode=0`.
+- **Verdict: pass** for both, recorded in `.scratch/shell-providers/issues/02-wireless-debugging-provider.md` and
+  `03-root-provider.md`. The connection log still reads `port -1` and `connection lost (null)`.
+- **Evidence:** `D:\hokace-work\redmi-ebad528e\retest\` (`root-run*`, `wireless-run*`: traces, logcats, screenshots,
+  `stat` listings).
