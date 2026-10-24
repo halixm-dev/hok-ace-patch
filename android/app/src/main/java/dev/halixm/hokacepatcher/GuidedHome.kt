@@ -382,7 +382,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             ui("4. Tap Pair here. In Wireless debugging, tap Pair device with pairing code, then type the six-digit code into the patcher's notification."),
             ui("5. Come back here and tap Start. Keep Wi-Fi and Wireless debugging on until the work is done."))
         provider == ShellProvider.ROOT -> listOf(ui("1. Root this phone with a root manager, such as KernelSU, Magisk or APatch."),
-            ui("2. Allow root for HOK ACE: in KernelSU, under Superuser; Magisk and APatch ask when you tap Start."),
+            ui("2. Allow root for HOK ACE: in KernelSU, under Superuser, then close and reopen HOK ACE; Magisk and APatch ask when you tap Start."),
             ui("3. Come back here and tap Start. The patcher writes the game files itself and never replaces the game app."),
             ui("4. Hiding root from the game is up to you; the patcher does not touch it."))
 

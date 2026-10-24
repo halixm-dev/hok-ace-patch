@@ -46,10 +46,15 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
 
     private fun requireInstalls() = check(access == WorkerAccess.SHELL) { ROOT_INSTALLS }
 
-    /** [script] in the game's data directory: as the game through `run-as`, or as root in that directory. */
+    /**
+     * [script] in the game's data directory: as the game through `run-as`, or as root in that directory.
+     * A root manager may start `su` in the patcher's own mount namespace, where app data isolation hides
+     * `/data/user/0/<game>`; `/data_mirror` still holds it there.
+     */
     private fun inGame(script: String): List<String> = when (access) {
         WorkerAccess.SHELL -> listOf("/system/bin/run-as", dataPackage, "/system/bin/sh", "-c", script)
-        WorkerAccess.ROOT -> listOf("/system/bin/sh", "-c", "cd '/data/user/0/$dataPackage' || exit 1; $script")
+        WorkerAccess.ROOT -> listOf("/system/bin/sh", "-c", "cd '/data/user/0/$dataPackage' 2>/dev/null || " +
+            "cd '/data_mirror/data_ce/null/0/$dataPackage' || exit 1; $script")
     }
 
     private fun requireShell() {

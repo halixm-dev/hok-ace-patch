@@ -2462,8 +2462,8 @@
       "platforms": [
         "android"
       ],
-      "en": "2. Allow root for HOK ACE: in KernelSU, under Superuser; Magisk and APatch ask when you tap Start.",
-      "id": "2. Izinkan root untuk HOK ACE: di KernelSU, pada Superuser; Magisk dan APatch bertanya saat Anda mengetuk Mulai.",
+      "en": "2. Allow root for HOK ACE: in KernelSU, under Superuser, then close and reopen HOK ACE; Magisk and APatch ask when you tap Start.",
+      "id": "2. Izinkan root untuk HOK ACE: di KernelSU, pada Superuser, lalu tutup dan buka lagi HOK ACE; Magisk dan APatch bertanya saat Anda mengetuk Mulai.",
       "draft": true
     },
     "root_guide_start": {
@@ -2486,8 +2486,8 @@
       "platforms": [
         "android"
       ],
-      "en": "Root access is not available to HOK ACE. Allow HOK ACE in your root manager, such as KernelSU, Magisk or APatch, then tap Start again.",
-      "id": "Akses root tidak tersedia untuk HOK ACE. Izinkan HOK ACE di pengelola root Anda, seperti KernelSU, Magisk, atau APatch, lalu ketuk Mulai lagi.",
+      "en": "Root access is not available to HOK ACE. Allow HOK ACE in your root manager, such as KernelSU, Magisk or APatch, then close and reopen HOK ACE and tap Start.",
+      "id": "Akses root tidak tersedia untuk HOK ACE. Izinkan HOK ACE di pengelola root Anda, seperti KernelSU, Magisk, atau APatch, lalu tutup dan buka lagi HOK ACE dan ketuk Mulai.",
       "draft": true
     },
     "root_not_root": {

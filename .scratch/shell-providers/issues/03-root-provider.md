@@ -12,7 +12,7 @@
 
 **Status:** ready-for-agent
 
-**Device test:** fail eb1943d
+**Device test:** requested
 
 - [x] uid-0 dispatch in the worker, with unit tests
 - [x] Direct write path, sharing the pristine delta and audits

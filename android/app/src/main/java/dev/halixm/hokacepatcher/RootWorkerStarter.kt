@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 class RootWorkerStarter : WorkerStarter {
     companion object {
         const val NO_ROOT = "Root access is not available to HOK ACE. Allow HOK ACE in your root manager, " +
-            "such as KernelSU, Magisk or APatch, then tap Start again."
+            "such as KernelSU, Magisk or APatch, then close and reopen HOK ACE and tap Start."
         const val NOT_ROOT = "Root access did not give HOK ACE root. Check HOK ACE in your root manager, then tap Start again."
         /** The starter's refusals, each already the line the player reads. */
         val REFUSALS = listOf(NO_ROOT, NOT_ROOT)
