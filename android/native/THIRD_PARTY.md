@@ -177,6 +177,29 @@ packaging. Chaquopy plugin-injected runtime, Python native dependencies, notice 
 application/runtime/catalog distribution and combined redistribution review remain open.
 `release_ready` stays false.
 
+### Wireless debugging client
+
+The wireless debugging shell provider (2026-10-24) adds three components. Notices:
+`licenses/Wireless-debugging-NOTICES.txt`, recorded in `licenses/sources.json`.
+
+| Component | Version | License | Where |
+|---|---|---|---|
+| [Shizuku](https://github.com/RikkaApps/Shizuku) manager ADB client, ported | `master`, read 2026-10-24 | Apache-2.0 | `AdbClient.kt`, `AdbKey.kt`, `AdbMdns.kt`, `AdbPairing.kt`, `AdbProtocol.kt`, `android/app/src/main/cpp/adb_pairing.cpp` |
+| [Conscrypt](https://github.com/google/conscrypt) `org.conscrypt:conscrypt-android` | 2.7.0 | Apache-2.0 (POM) | `libconscrypt_jni.so` and classes: TLS 1.3 and the keying-material export pairing needs |
+| [BoringSSL](https://boringssl.googlesource.com/boringssl) prefab `io.github.vvb2060.ndk:boringssl` | 20250114 | BoringSSL `LICENSE` (OpenSSL/SSLeay/ISC/Apache-2.0) | `libcrypto` static, linked into `libhokace_adb.so` for SPAKE2 only |
+
+`libhokace_adb.so` is built by the app's CMake (3.22.1) with NDK 28.2.13676358 for arm64-v8a, the
+only shipped ABI, with 16 KiB load alignment (checked with `llvm-readelf -l`). Conscrypt 2.7.0 was
+chosen over 2.8.0, published three days before, and is the newest older release.
+
+Size, measured on the debug APK's entries on 2026-10-24: `libconscrypt_jni.so` 2,754,312 bytes,
+`libhokace_adb.so` 268,672 bytes and dex +693,988 bytes, about 3.7 MB in all. The debug APK file
+grew from 60.9 MB to 67.2 MB; the rest is holes left by incremental packaging, not content.
+
+Neither AAR carries a license file. BoringSSL's exact license text for the prefab's source commit,
+and Conscrypt's bundled BoringSSL notice, remain to be retained before release; `release_ready`
+stays false.
+
 ### Interface fonts
 
 Both patchers bundle Barlow from `resources/fonts/`, downloaded on 2026-10-17 from the

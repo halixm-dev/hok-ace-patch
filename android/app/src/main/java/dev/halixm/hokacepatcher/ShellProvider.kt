@@ -9,7 +9,7 @@ import android.content.Context
  */
 enum class ShellProvider(val key: String, val label: String, val beta: Boolean, val available: Boolean) {
     SHIZUKU("shizuku", "Shizuku", false, true),
-    WIRELESS("wireless", "Wireless debugging", true, false),
+    WIRELESS("wireless", "Wireless debugging", true, true),
     ROOT("root", "Root", true, false);
 
     companion object {

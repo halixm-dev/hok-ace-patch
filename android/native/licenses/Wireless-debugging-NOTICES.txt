@@ -1,0 +1,18 @@
+HOK ACE Language Patcher: wireless debugging provider notices
+
+1. Shizuku (RikkaApps/Shizuku), Apache License 2.0 (text: Apache-2.0.txt).
+   The patcher's ADB client is ported from Shizuku's manager module:
+   manager/src/main/java/moe/shizuku/manager/adb/ (AdbClient.kt, AdbKey.kt, AdbMdns.kt,
+   AdbMessage.kt, AdbPairingClient.kt, AdbProtocol.kt) and manager/src/main/jni/adb_pairing.cpp.
+   Modified: renamed into dev.halixm.hokacepatcher (AdbClient.kt, AdbKey.kt, AdbMdns.kt,
+   AdbPairing.kt, AdbProtocol.kt, cpp/adb_pairing.cpp); the key is kept as a private file instead
+   of a keystore-wrapped preference; the certificate is written as DER instead of through
+   BouncyCastle; HKDF and AES-128-GCM moved from native code to Kotlin; the shell stream stays open.
+   Shizuku follows AOSP's adb pairing and protocol sources (Apache License 2.0).
+
+2. Conscrypt (google/conscrypt) 2.7.0, org.conscrypt:conscrypt-android, Apache License 2.0
+   (text: Apache-2.0.txt). Ships libconscrypt_jni.so, which statically links BoringSSL.
+
+3. BoringSSL, via the prefab package io.github.vvb2060.ndk:boringssl:20250114, statically linked
+   into libhokace_adb.so (crypto only: SPAKE2). BoringSSL's own LICENSE file (OpenSSL, SSLeay,
+   ISC and Apache-2.0 terms) applies; its exact text for this build is not yet retained here.

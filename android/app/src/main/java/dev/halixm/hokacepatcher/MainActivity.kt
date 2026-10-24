@@ -33,6 +33,7 @@ import java.util.Date
 private const val SHORTCUT_TRIES = 15
 private const val SHORTCUT_WAIT_MS = 200L
 private const val EXPORT_BIND_MS = 5000L
+private const val PAIRING_NOTIFICATIONS = 1405
 
 /** Feasibility UI: independent engine checks and explicit, fixed device probes. */
 class MainActivity : Activity() {
@@ -154,6 +155,7 @@ class MainActivity : Activity() {
                     } else actions["Authorize Shizuku"]?.let { runTask(it) }
                 }
                 "recovery_options" -> home.showRecovery()
+                "pair" -> pairWireless()
                 "provider:shizuku", "provider:wireless", "provider:root" -> {
                     val chosen = ShellProvider.of(key.removePrefix("provider:"))
                     if (busy || automatic || PatchWorkerService.isWorking) home.provider(provider())
@@ -348,6 +350,9 @@ class MainActivity : Activity() {
         if (!provider.available) {
             stopAutomatic(); home.message(notReady(provider), failure = true); return
         }
+        if (provider == ShellProvider.WIRELESS) wirelessRefusal()?.let {
+            stopAutomatic(); home.message(it, failure = true); return
+        }
         if (provider != ShellProvider.SHIZUKU) { routeAutomatic(); return }
         if (!Shizuku.pingBinder()) {
             waitingForShizuku = true
@@ -356,6 +361,33 @@ class MainActivity : Activity() {
         }
         if (shizukuAsRoot()) { stopAutomatic(); home.message(ShellProvider.SHIZUKU_AS_ROOT, failure = true); return }
         if (ensurePermission()) routeAutomatic()
+    }
+
+    /** Why wireless debugging cannot start a run now, or null; the starter checks the same again. */
+    private fun wirelessRefusal(): String? = when {
+        !WirelessDebugging.onWifi(this) -> WirelessDebugging.NO_WIFI
+        !WirelessDebugging.paired(this) -> WirelessDebugging.NOT_PAIRED
+        !WirelessDebugging.switchedOn(this) -> WirelessDebugging.SWITCHED_OFF
+        else -> null
+    }
+
+    /** Post the notification that takes the pairing code, then open Wireless debugging for its code. */
+    private fun pairWireless() {
+        if (busy || automatic || PatchWorkerService.isWorking) return
+        if (!WirelessDebugging.onWifi(this)) { home.message(WirelessDebugging.NO_WIFI, failure = true); return }
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), PAIRING_NOTIFICATIONS)
+            home.message("Allow notifications: you type the pairing code into one. Then tap Pair again.")
+            return
+        }
+        if (!WirelessDebugging.askForCode(this)) {
+            home.message("Notifications are off for HOK ACE. Turn them on in Android Settings: you type the pairing code into one.", failure = true)
+            return
+        }
+        DiagnosticTrace.event("ui", "Pairing notification posted; opening Wireless debugging")
+        if (!WirelessDebugging.openSettings(this))
+            home.message("Open Settings, then Developer options, then Wireless debugging.", failure = true)
     }
 
     /** The guide's line for a provider this build cannot start yet. */
@@ -513,6 +545,11 @@ class MainActivity : Activity() {
             pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Save a log for help.", "Save log for help", "export", true, GuidedHome.Stage.ATTENTION)
             !provider.available -> home.show("Choose a shell provider", notReady(provider), "Start", "start",
                 pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
+            provider == ShellProvider.WIRELESS && !WirelessDebugging.onWifi(this) -> home.show("Connect to Wi-Fi",
+                WirelessDebugging.NO_WIFI, "Start", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
+            provider == ShellProvider.WIRELESS && !WirelessDebugging.paired(this) -> home.show("Pair wireless debugging",
+                "Turn on Wireless debugging, tap Pair, then type the pairing code into the patcher's notification.",
+                "Pair", "pair", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && shizukuAsRoot() -> home.show("Choose a shell provider", ShellProvider.SHIZUKU_AS_ROOT, "Start", "start",
@@ -569,6 +606,11 @@ class MainActivity : Activity() {
                 ui("Free now:") + " ${StorageBudget.freeSpaceLabel(filesDir.usableSpace)}.\n" +
                     ui("The phone did not report how much more space is needed. Free space elsewhere and retry. Keep saved recovery files.")
             message.contains(ShellProvider.SHIZUKU_AS_ROOT) -> ShellProvider.SHIZUKU_AS_ROOT
+            WirelessDebugging.REFUSALS.any { message.contains(it) } -> WirelessDebugging.REFUSALS.first { message.contains(it) }
+            // A run's lost connection: Wi-Fi or wireless debugging went off under it.
+            provider() == ShellProvider.WIRELESS && message.contains("disconnected", true) -> if (recoverable)
+                "Wireless debugging disconnected. Keep the game closed. Turn Wi-Fi and Wireless debugging back on, then check recovery options below."
+                else "Wireless debugging disconnected. Keep the game closed. Turn Wi-Fi and Wireless debugging back on, then tap Try again."
             message.contains("Worker connection timed out") -> if (usesShizuku())
                 "Shizuku is running, but the patcher's helper did not start. Open Shizuku, stop it and start it again, then return here and tap Try again. If it happens again, save a log for help. Keep the game closed."
                 else "The patcher's helper did not start. Tap Try again. If it happens again, save a log for help. Keep the game closed."

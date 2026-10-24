@@ -628,6 +628,254 @@
       "id": "Layanan pendukung patcher tidak mulai. Ketuk Coba lagi. Jika terulang, simpan log untuk bantuan. Jangan buka game.",
       "draft": true
     },
+    "wireless_guide_wifi": {
+      "platforms": [
+        "android"
+      ],
+      "en": "1. Connect this phone to Wi-Fi.",
+      "id": "1. Hubungkan ponsel ini ke Wi-Fi.",
+      "draft": true
+    },
+    "wireless_guide_developer": {
+      "platforms": [
+        "android"
+      ],
+      "en": "2. Turn on Developer options: in About phone, tap Build number seven times.",
+      "id": "2. Aktifkan Opsi pengembang: di Tentang ponsel, ketuk Nomor build tujuh kali.",
+      "draft": true
+    },
+    "wireless_guide_switch": {
+      "platforms": [
+        "android"
+      ],
+      "en": "3. In Developer options, turn on Wireless debugging.",
+      "id": "3. Di Opsi pengembang, aktifkan Debugging nirkabel.",
+      "draft": true
+    },
+    "wireless_guide_pair": {
+      "platforms": [
+        "android"
+      ],
+      "en": "4. Tap Pair here. In Wireless debugging, tap Pair device with pairing code, then type the six-digit code into the patcher's notification.",
+      "id": "4. Ketuk Sambungkan di sini. Di Debugging nirkabel, ketuk Sambungkan perangkat dengan kode penyambungan, lalu ketik kode enam digit di notifikasi patcher.",
+      "draft": true
+    },
+    "wireless_guide_start": {
+      "platforms": [
+        "android"
+      ],
+      "en": "5. Come back here and tap Start. Keep Wi-Fi and Wireless debugging on until the work is done.",
+      "id": "5. Kembali ke sini dan ketuk Mulai. Biarkan Wi-Fi dan Debugging nirkabel tetap aktif sampai proses selesai.",
+      "draft": true
+    },
+    "wireless_no_wifi": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging needs Wi-Fi. Connect this phone to a Wi-Fi network, then tap Start again.",
+      "id": "Debugging nirkabel memerlukan Wi-Fi. Hubungkan ponsel ini ke jaringan Wi-Fi, lalu ketuk Mulai lagi.",
+      "draft": true
+    },
+    "wireless_not_paired": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Pair the patcher with wireless debugging first. Tap Pair, then follow the steps above.",
+      "id": "Sambungkan patcher dengan debugging nirkabel terlebih dahulu. Ketuk Sambungkan, lalu ikuti langkah di atas.",
+      "draft": true
+    },
+    "wireless_switched_off": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging is off. Turn it on in Developer options, then tap Start again.",
+      "id": "Debugging nirkabel nonaktif. Aktifkan di Opsi pengembang, lalu ketuk Mulai lagi.",
+      "draft": true
+    },
+    "wireless_refused": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging no longer trusts the patcher. Tap Pair to pair it again.",
+      "id": "Debugging nirkabel tidak lagi memercayai patcher. Ketuk Sambungkan untuk menyambungkannya lagi.",
+      "draft": true
+    },
+    "wireless_disconnected_check_recovery": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging disconnected. Keep the game closed. Turn Wi-Fi and Wireless debugging back on, then check recovery options below.",
+      "id": "Debugging nirkabel terputus. Jangan buka game. Aktifkan lagi Wi-Fi dan Debugging nirkabel, lalu periksa pilihan pemulihan di bawah.",
+      "draft": true
+    },
+    "wireless_disconnected_try_again": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging disconnected. Keep the game closed. Turn Wi-Fi and Wireless debugging back on, then tap Try again.",
+      "id": "Debugging nirkabel terputus. Jangan buka game. Aktifkan lagi Wi-Fi dan Debugging nirkabel, lalu ketuk Coba lagi.",
+      "draft": true
+    },
+    "connect_to_wifi": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Connect to Wi-Fi",
+      "id": "Hubungkan ke Wi-Fi",
+      "draft": true
+    },
+    "pair_wireless_debugging": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Pair wireless debugging",
+      "id": "Sambungkan debugging nirkabel",
+      "draft": true
+    },
+    "pair_wireless_instruction": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Turn on Wireless debugging, tap Pair, then type the pairing code into the patcher's notification.",
+      "id": "Aktifkan Debugging nirkabel, ketuk Sambungkan, lalu ketik kode penyambungan di notifikasi patcher.",
+      "draft": true
+    },
+    "pair": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Pair",
+      "id": "Sambungkan",
+      "draft": true
+    },
+    "pair_allow_notifications": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Allow notifications: you type the pairing code into one. Then tap Pair again.",
+      "id": "Izinkan notifikasi: kode penyambungan diketik di notifikasi. Lalu ketuk Sambungkan lagi.",
+      "draft": true
+    },
+    "pair_notifications_off": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Notifications are off for HOK ACE. Turn them on in Android Settings: you type the pairing code into one.",
+      "id": "Notifikasi HOK ACE nonaktif. Aktifkan di Setelan Android: kode penyambungan diketik di notifikasi.",
+      "draft": true
+    },
+    "open_wireless_debugging": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open Settings, then Developer options, then Wireless debugging.",
+      "id": "Buka Setelan, lalu Opsi pengembang, lalu Debugging nirkabel.",
+      "draft": true
+    },
+    "pairing_channel": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging pairing",
+      "id": "Penyambungan debugging nirkabel",
+      "draft": true
+    },
+    "pairing_notification_title": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Pair HOK ACE with wireless debugging",
+      "id": "Sambungkan HOK ACE dengan debugging nirkabel",
+      "draft": true
+    },
+    "pairing_notification_text": {
+      "platforms": [
+        "android"
+      ],
+      "en": "In Wireless debugging, tap Pair device with pairing code. Then type the six-digit code here.",
+      "id": "Di Debugging nirkabel, ketuk Sambungkan perangkat dengan kode penyambungan. Lalu ketik kode enam digit di sini.",
+      "draft": true
+    },
+    "pairing_code": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Pairing code",
+      "id": "Kode penyambungan",
+      "draft": true
+    },
+    "enter_pairing_code": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Enter pairing code",
+      "id": "Masukkan kode penyambungan",
+      "draft": true
+    },
+    "pairing_in_progress": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Pairing…",
+      "id": "Menyambungkan…",
+      "draft": true
+    },
+    "pairing_checking_code": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Checking the code with wireless debugging.",
+      "id": "Memeriksa kode dengan debugging nirkabel.",
+      "draft": true
+    },
+    "pairing_done": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Paired with wireless debugging",
+      "id": "Tersambung dengan debugging nirkabel",
+      "draft": true
+    },
+    "pairing_done_text": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Return to the patcher and tap Start.",
+      "id": "Kembali ke patcher dan ketuk Mulai.",
+      "draft": true
+    },
+    "pairing_not_six_digits": {
+      "platforms": [
+        "android"
+      ],
+      "en": "That was not a six-digit code. Type the code Wireless debugging shows.",
+      "id": "Itu bukan kode enam digit. Ketik kode yang ditampilkan Debugging nirkabel.",
+      "draft": true
+    },
+    "pairing_wrong_code": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The code did not match. Check the code Wireless debugging shows, and type it again.",
+      "id": "Kode tidak cocok. Periksa kode yang ditampilkan Debugging nirkabel, lalu ketik lagi.",
+      "draft": true
+    },
+    "pairing_screen_not_found": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The pairing screen was not found. Keep Pair device with pairing code open, then type the code again.",
+      "id": "Layar penyambungan tidak ditemukan. Biarkan Sambungkan perangkat dengan kode penyambungan tetap terbuka, lalu ketik kode lagi.",
+      "draft": true
+    },
+    "pairing_did_not_finish": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Pairing did not finish. Keep Pair device with pairing code open, then type the code again.",
+      "id": "Penyambungan tidak selesai. Biarkan Sambungkan perangkat dengan kode penyambungan tetap terbuka, lalu ketik kode lagi.",
+      "draft": true
+    },
     "02_working": {
       "platforms": [
         "android",

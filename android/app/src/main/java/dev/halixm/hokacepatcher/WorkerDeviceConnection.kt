@@ -30,7 +30,8 @@ class WorkerDeviceConnection(context: Context, private val starter: WorkerStarte
             check(provider.available) { "${provider.label} is not available in this build" }
             val starter = when (provider) {
                 ShellProvider.SHIZUKU -> ShizukuWorkerStarter(context)
-                ShellProvider.WIRELESS, ShellProvider.ROOT -> error("${provider.label} has no worker starter")
+                ShellProvider.WIRELESS -> WirelessWorkerStarter(context)
+                ShellProvider.ROOT -> error("${provider.label} has no worker starter")
             }
             return WorkerDeviceConnection(context, starter, lost)
         }

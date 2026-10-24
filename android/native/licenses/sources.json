@@ -39,5 +39,11 @@
     "scope": "MIT text at the upstream URL referenced by 13.1.5 Maven POM; version-specific source match remains open",
     "sha256": "64870037f294b6f2b75c8ebe77cc0702acb3b64f86b4b0e58bf8558525303686",
     "url": "https://raw.githubusercontent.com/RikkaApps/Shizuku-API/a27f6e4151ba7b39965ca47edb2bf0aeed7102e5/LICENSE"
+  },
+  "Wireless-debugging-NOTICES.txt": {
+    "bytes": 1318,
+    "origin": "Written for this repo: Shizuku manager ADB client (ported), Conscrypt 2.7.0, BoringSSL prefab 20250114",
+    "scope": "Attribution and modification notice; Apache-2.0 text is Apache-2.0.txt; BoringSSL's own LICENSE text remains open",
+    "sha256": "2fe0dbdd5bb557cea9fc8705443a8342bd7e8e9e6ec2f48b421d8b0eb9196ec5"
   }
 }

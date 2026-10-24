@@ -376,6 +376,11 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     /** Each provider's numbered steps; one this build cannot start says so instead. */
     private fun guideLines(provider: ShellProvider): List<String> = when {
         !provider.available -> listOf(UiText.string(activity, "provider_not_ready", "provider" to ui(provider.label)))
+        provider == ShellProvider.WIRELESS -> listOf(ui("1. Connect this phone to Wi-Fi."),
+            ui("2. Turn on Developer options: in About phone, tap Build number seven times."),
+            ui("3. In Developer options, turn on Wireless debugging."),
+            ui("4. Tap Pair here. In Wireless debugging, tap Pair device with pairing code, then type the six-digit code into the patcher's notification."),
+            ui("5. Come back here and tap Start. Keep Wi-Fi and Wireless debugging on until the work is done."))
         else -> listOf(ui("1. Install Shizuku from Google Play."), ui("2. Start Shizuku, following the steps it shows."),
             ui("3. Come back here and tap Start. Allow HOK ACE when Shizuku asks."))
     }

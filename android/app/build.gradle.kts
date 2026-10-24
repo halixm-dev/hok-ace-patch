@@ -126,6 +126,8 @@ val stageUiResources by tasks.registering {
 android {
     namespace = "dev.halixm.hokacepatcher"
     compileSdk = 35
+    // The NDK the codec wheels are built with (android/native/THIRD_PARTY.md).
+    ndkVersion = "28.2.13676358"
     defaultConfig {
         applicationId = "dev.halixm.hokacepatcher"
         minSdk = 30
@@ -149,7 +151,9 @@ android {
         buildTypes.getByName("release") { signingConfig = signingConfigs.getByName("privateRelease") }
     }
     // Without the variables, debug builds use this PC's SDK debug key and release builds stay unsigned.
-    buildFeatures { aidl = true; buildConfig = true }
+    buildFeatures { aidl = true; buildConfig = true; prefab = true }
+    // The wireless debugging provider's SPAKE2 step, against the BoringSSL prefab below.
+    externalNativeBuild { cmake { path = file("src/main/cpp/CMakeLists.txt"); version = "3.22.1" } }
     // The runtime contains Python packages such as _backends; AAPT's default skips these directories.
     androidResources { ignoreAssetsPattern = "" }
     sourceSets.getByName("main").assets.srcDir(engineAssets)
@@ -197,6 +201,9 @@ dependencies {
     testImplementation("org.json:json:20180813")
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
+    // Wireless debugging: TLS with the key export ADB pairing binds to, and BoringSSL's SPAKE2.
+    implementation("org.conscrypt:conscrypt-android:2.7.0")
+    implementation("io.github.vvb2060.ndk:boringssl:20250114")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }

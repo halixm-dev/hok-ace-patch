@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Wireless debugging works only on Wi-Fi; the provider checks for it before pairing or a run. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
@@ -24,6 +26,8 @@
             android:exported="false" />
         <service android:name=".PatchWorkerService" android:exported="false"
             android:foregroundServiceType="dataSync" />
+        <!-- The wireless debugging pairing code, from the pairing notification's inline reply. -->
+        <receiver android:name=".WirelessDebugging$PairingReceiver" android:exported="false" />
         <provider android:name=".RecoveryApkProvider" android:authorities="${applicationId}.recovery"
             android:exported="false" android:grantUriPermissions="true" />
         <!-- Shell-only handoff for the worker binder when Shizuku's user-service starter cannot run. -->

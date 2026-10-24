@@ -10,6 +10,7 @@ artifacts/
 android/.gradle/
 android/.kotlin/
 android/**/build/
+android/app/.cxx/
 android/local.properties
 android/wheels/
 *.keystore
