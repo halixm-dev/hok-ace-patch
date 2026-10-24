@@ -12,7 +12,7 @@
 
 **Status:** ready-for-agent
 
-**Device test:** requested
+**Device test:** pass 9aa1b4e
 
 - [x] Client ported, builds at `minSdk 30` for every shipped ABI; APK size change recorded
 - [x] Pairing by notification reply works on an emulator
@@ -28,3 +28,29 @@ Size: `libconscrypt_jni.so` 2,754,312 bytes and `libhokace_adb.so` 268,672 bytes
 Emulator (API 36, x86_64 with arm64 translation): pairing by notification reply works (*Paired with wireless debugging*, flag set); `WirelessProviderProbeTest` passes: the worker reports uid 2000 and closes without a loss, and closing the ADB connection under it is a worker loss within 15 s. No game on the emulator, so the run past the worker start is untested there.
 
 What to check on the phone: pair through the notification with Settings' code; a full patch run with Wireless debugging; switching Wireless debugging off mid-run shows the disconnected lines and recovery; Wi-Fi off refuses with *Wireless debugging needs Wi-Fi*; removing the pairing in Settings gives the *no longer trusts* line and asks to pair again. Pairing probe: `am instrument -e class dev.halixm.hokacepatcher.WirelessProviderProbeTest -e pairingCode <code> …` while the code is shown.
+
+## Device findings
+
+**2026-10-24, `9aa1b4e`, Redmi Note 9 Pro (`ebad528e`, Android 15, PixelAge, KernelSU): pass.** Run by the implementing session at the user's request. Evidence in `docs/lab-notebook.md` (2026-10-24, ticket 02) and `D:\hokace-work\redmi-ebad528e\t02\`.
+
+- Unit tests pass. `check_ui_strings.py`: OK (324 strings).
+- Probes: `WirelessProviderProbeTest` 3 of 3 (paired, worker uid 2000 with a clean close, a dropped connection reported as a worker loss), before and after re-pairing; `GuidedHomeProbeTest`, `InterfaceProbeTest`, `DiagnosticLogExportProbeTest` 12 of 12.
+- Shizuku's server was stopped for the whole test, so every worker came from Wireless debugging.
+- Pairing by notification reply: Pair posts the notification and opens Developer options; the code typed into the inline reply paired in 350 ms (*Paired with wireless debugging*); the paired device shows in Settings as `hokace-patcher`.
+- End to end: the worker started over ADB in 112–284 ms and attached as uid 2000. Patch `complete` (391 text tables, 398 textures applied): 11 files rebuilt from the pristine delta, normal APK restored and verified, a 14-file pristine delta kept. The game started (no `errorCode:361`, no QtsVFS errors in logcat) to an English login screen.
+- Wireless debugging switched off during prepare: the loss is caught, the run is cancelled, *No game files changed*.
+- Switched off during the patch's write step (package 10): worker loss at once, `recovery_required` 22 s later, and ③ shows *Wireless debugging disconnected. Keep the game closed. Turn Wi-Fi and Wireless debugging back on, then check recovery options below.* Back on, *Restore interrupted patch* over Wireless debugging: `recovered`, normal APK verified.
+- Wi-Fi off: ③ reads *Connect to Wi-Fi*; Start refuses with *Wireless debugging needs Wi-Fi…*, no worker.
+- Wireless debugging off: Start refuses with *Wireless debugging is off…*, no worker.
+- Pairing forgotten in Settings: Start refuses in 400 ms with *Wireless debugging no longer trusts the patcher. Tap Pair to pair it again.*, the paired flag clears, ③ returns to *Pair wireless debugging*; pairing again through the notification works.
+
+Not failures of this ticket, for whoever touches them next:
+
+- The connection log reads `Wireless debugging port -1`: `environment()` is logged before `start` finds the port.
+- A dropped connection is logged as `connection lost (null)`, and the run's raw error starts `null; normal APK restore: …`: the exceptions carry no message.
+- A loss during prepare shows the generic *Work stopped…* notice, not the wireless line: that run ends `cancelled`, not with a *disconnected* error.
+- This ROM ignores the Wireless debugging highlight: Pair opened Developer options at the top the first time.
+- ③ reads *Ready when you are* while Wireless debugging is off; the switch is checked only on Start.
+- The *Start translation* confirmation of the first run was confirmed on the phone by hand, not by this session.
+- The game came up logged out, so the lobby was not checked; the login screen is English.
+- `WorkerProbeTest`'s leftover error state from ticket 01 (`worker-state.json`) was removed before the run.

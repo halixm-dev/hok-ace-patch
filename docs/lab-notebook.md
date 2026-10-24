@@ -4275,3 +4275,25 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   session was still logged in, and the lobby reads in English (`D:\hokace-work\redmi-ebad528e\t01\lobby2.png`).
 - **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/01-provider-picker.md`.
 - **Not checked:** the launcher name, and a Shizuku authorization prompt (Shizuku already allowed HOK ACE).
+
+## 2026-10-24 — Shell providers ticket 02 on a phone (`9aa1b4e`) — pass
+
+- **Phone:** Redmi Note 9 Pro (`ebad528e`), as in the 2026-10-23 entry, on Wi-Fi (`192.168.0.249`). Debug app and
+  `androidTest` APK built from `9aa1b4e` installed over the ticket 01 build. Shizuku's server stopped for the test.
+  `worker-state.json` (the `WorkerProbeTest` error left at 01:10) removed first.
+- **Probes:** `WirelessProviderProbeTest` 3/3; `GuidedHomeProbeTest`, `InterfaceProbeTest`,
+  `DiagnosticLogExportProbeTest` 12/12.
+- **Pairing:** notification inline reply with Settings' code, paired in 350 ms (`adb: Paired with wireless debugging`).
+  Settings lists `hokace-patcher`. The Developer options highlight extra is ignored on this ROM.
+- **End to end:** worker over ADB in 112–284 ms, attached as uid 2000. Patch `complete` at 12:05:02: 391 text tables,
+  398 textures applied, 1 table skipped; 11 files rebuilt from the delta; normal APK restored and verified; 14-file
+  delta kept. Game started without `errorCode:361` or QtsVFS errors, to an English login screen (logged out;
+  `t02\game1.png`).
+- **Loss:** `adb_wifi_enabled 0` during prepare → `cancelled`, no game files changed. During the write step (12:22:24,
+  package 10) → loss logged at once, `recovery_required` at 12:22:46, ③ shows the wireless disconnected line; with it on
+  again, *Restore interrupted patch* → `recovered` at 12:28:39, normal APK verified.
+- **Refusals:** Wi-Fi off, Wireless debugging off, pairing forgotten in Settings: each refuses with its own line and
+  starts no worker; a forgotten pairing clears the paired flag (refused in 400 ms). Re-paired afterwards.
+- **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/02-wireless-debugging-provider.md`, with the minor
+  findings (port `-1` in the log, `null` loss reasons, the generic line for a loss during prepare).
+- **Evidence:** `D:\hokace-work\redmi-ebad528e\t02\` (`trace.log`, `logcat-run.txt`, `game1.png`).
