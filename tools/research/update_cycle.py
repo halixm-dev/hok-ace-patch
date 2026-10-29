@@ -3,6 +3,7 @@
     .venv\\Scripts\\python.exe tools\\research\\update_cycle.py push --cycle <dir> --snapshot <snapshot dir>
     .venv\\Scripts\\python.exe tools\\research\\update_cycle.py capture <label> --cycle <dir>
     .venv\\Scripts\\python.exe tools\\research\\update_cycle.py compare <label-a> <label-b> --cycle <dir>
+    .venv\\Scripts\\python.exe tools\\research\\update_cycle.py shell "<command>"
 
 For language-switch tickets 01 and 07 (`docs/features/language-switch.md`). <cycle> holds one folder per capture and an `objects/`
 store of package bytes by SHA-256. A capture installs the access APK, hashes every file under
@@ -10,9 +11,13 @@ store of package bytes by SHA-256. A capture installs the access APK, hashes eve
 files whose bytes no snapshot or earlier capture holds. The normal APK goes back in a `finally`, and its
 SHA-256 on the phone is checked. `push` captures the phone first (`before-push`), then replaces
 `packages` and `Watchdog` with the snapshot's `device-backup.tar` and checks every file against its
-`snapshot.json`.
+`snapshot.json`. A capture also lists the package folders that hold no `<package>.db` yet: the game creates
+the folder first and the index once the package is downloaded, and a hash of files alone cannot show them.
 
-`compare` names each package file that changed between two captures, whether it was rewritten in place or
+`shell` runs one `sh` command as the game inside an access window, from `files/` of the game's data, and
+prints its output; the command may not contain a single quote.
+
+`compare` names the unfinished package folders, then each package file that changed between two captures, whether it was rewritten in place or
 grew, which known snapshot it now equals, what `BrokenList.db` names and which `History.db` records are new.
 Run from the project root with the phone on USB and nothing else using adb.
 """
@@ -146,6 +151,13 @@ def phone_hashes() -> dict[str, str]:
     return hashes
 
 
+def unfinished_packages() -> list[str]:
+    """The package folders on the phone without their `<package>.db`: a download the game has not finished."""
+    output = run_as(f"cd {CACHE}/packages && for d in */; do n=${{d%/}}; case $n in *[!0-9]*) continue;; esac; "
+                    "[ -f $n/$n.db ] || echo $n; done")
+    return sorted((line.strip() for line in output.splitlines() if line.strip().isdecimal()), key=int)
+
+
 def capture(cycle: Path, label: str, note: str = "") -> Path:
     folder = cycle / label
     if folder.exists():
@@ -162,6 +174,9 @@ def capture(cycle: Path, label: str, note: str = "") -> Path:
         record["listing"] = run_as(f"cd {CACHE} && ls -la . Watchdog packages/builtin 2>&1", check=False)
         print("hashing the layer on the phone")
         record["files"] = hashes = phone_hashes()
+        record["unfinished_packages"] = unfinished = unfinished_packages()
+        if unfinished:
+            print(f"  unfinished package folders (no index yet): {', '.join(unfinished)}")
         (folder / "Watchdog.tar").write_bytes(run_as(f"cd {CACHE} && tar -cf - Watchdog", binary=True))
         (folder / "QtsVFS.log").write_bytes(run_as(f"cat {CACHE}/QtsVFS.log", binary=True, check=False))
         pulled = 0
@@ -230,6 +245,10 @@ def compare(cycle: Path, first: str, second: str) -> None:
     print(f"{first} -> {second}: 1.info {a['info_1']!r} -> {b['info_1']!r}")
     packages_a = {p: d for p, d in a["files"].items() if p.startswith("packages/")}
     packages_b = {p: d for p, d in b["files"].items() if p.startswith("packages/")}
+    for label, record in ((first, a), (second, b)):
+        unfinished = record.get("unfinished_packages")
+        listed = "not recorded" if unfinished is None else ", ".join(unfinished) or "none"
+        print(f"{label}: unfinished package folders: {listed}")
     changed = sorted(p for p in set(packages_a) | set(packages_b) if packages_a.get(p) != packages_b.get(p))
     print(f"{len(changed)} package files changed of {len(packages_b)}")
     for path in changed:
@@ -259,6 +278,14 @@ def compare(cycle: Path, first: str, second: str) -> None:
         print(f"{name}: {(cycle / second / name).read_text(encoding='utf-8', errors='replace')[:400]}")
 
 
+def shell(command: str) -> None:
+    if "'" in command:
+        raise SystemExit("the command runs inside single quotes; write it without one")
+    with AccessWindow():
+        output = run_as(f"cd files && {command}", check=False)
+        print(output, end="" if output.endswith("\n") else "\n")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="action", required=True)
@@ -270,11 +297,15 @@ def main() -> None:
     compare_parser = sub.add_parser("compare")
     compare_parser.add_argument("first")
     compare_parser.add_argument("second")
+    shell_parser = sub.add_parser("shell")
+    shell_parser.add_argument("command")
     for each in (push_parser, capture_parser, compare_parser):
         each.add_argument("--cycle", type=Path, required=True)
     args = parser.parse_args()
     if args.action == "push":
         push(args.cycle, args.snapshot)
+    elif args.action == "shell":
+        shell(args.command)
     elif args.action == "capture":
         capture(args.cycle, args.label, args.note)
     else:

@@ -62,6 +62,18 @@ measurements behind these steps are in [`docs/lab-notebook.md`](../lab-notebook.
     raw evidence as a dated entry in the lab notebook. To roll back, push `backup.tar` back with the access
     APK and reinstall the normal APK.
 
+## The Android patcher's cycle
+
+- **Install a debug build**: `tools\ci\install_debug.ps1 -VersionCode <N> [-Serial <serial>]` runs the unit
+  tests, builds with the patcher key and lineage, checks the version code and certificate, and installs. It
+  refuses while the patcher's worker runs. `<N>` is above the phone's current code.
+- **Capture each step of an update cycle** with `tools\research\update_cycle.py` (`push`, `capture`,
+  `compare`). A capture names the package folders the game is still downloading (no `<package>.db`).
+- **Read the game's data** with `update_cycle.py shell "<command>"`, which installs the access APK for one
+  command and puts the normal APK back.
+- **Run these from PowerShell.** Git Bash rewrites `D:\...` arguments; with `MSYS_NO_PATHCONV=1` a path
+  written `/d/...` lands in a new `D:\d\...` folder instead.
+
 ## Done when
 
 The user has seen the changed screen after logging in, the launcher reads `Honor of Kings: ACE`, the
