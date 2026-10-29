@@ -39,6 +39,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Python build dependencies failed' }
           & "$env:ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager.bat" 'platforms;android-35' 'build-tools;35.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1'
           if ($LASTEXITCODE -ne 0) { throw 'Android SDK installation failed' }
+      - name: Check UI strings and the stop card's refusals
+        run: |
+          .venv/Scripts/python.exe tools/research/check_ui_strings.py
+          if ($LASTEXITCODE -ne 0) { throw 'UI string check failed' }
       - name: Build and check development APK
         if: ${{ !startsWith(github.ref, 'refs/tags/android-v') }}
         run: ./tools/ci/build_android.ps1 -VersionCode $([int]$env:GITHUB_RUN_NUMBER + 1)

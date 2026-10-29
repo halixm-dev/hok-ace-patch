@@ -14,11 +14,13 @@ reads the file and the patchers' sources as text (nothing is imported or built) 
   on Android, ``ui_text("key", name=value)`` on Windows (the GUI and ``patcher_core``);
 - a Windows ``PatchError(...)`` is raised with anything but keys: ``PatchError("key", "key", name=value)``
   joins its keys, so together they must have exactly the placeholders it fills.
+- one of ``StopCard``'s refusal starts is not the start of the ``android_bridge.py`` constant of the same
+  name: ③ matches the engine's refusal by that start, so a reworded copy silently drops its card.
 
 Text that reaches the screen through a variable (worker progress lines, update-check results, installer
 errors) is not seen here; ``AppUpdateCheckerTest`` and ``InterfaceProbeTest`` cover the ones that matter.
 
-Run by hand from the project root:
+Run from the project root (the Android CI job runs it too):
 
     .venv\\Scripts\\python.exe tools\\research\\check_ui_strings.py
 
@@ -35,6 +37,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 STRINGS = ROOT / "resources" / "ui" / "strings.json"
 ANDROID = ROOT / "android" / "app" / "src" / "main" / "java"
+STOP_CARD = ANDROID / "dev" / "halixm" / "hokacepatcher" / "StopCard.kt"
+BRIDGE = ROOT / "android" / "app" / "src" / "main" / "python" / "android_bridge.py"
 # The GUI and the device workflow, whose dialogs and device hints reach the screen through the GUI.
 WINDOWS = (ROOT / "app" / "hok_patcher.py", ROOT / "app" / "patcher_core.py")
 
@@ -171,17 +175,37 @@ def _check_error(strings: dict, where: str, call: str) -> list[str]:
     return failures
 
 
+def _check_refusals() -> list[str]:
+    """Each ``const val`` in ``StopCard`` starts the bridge constant of the same name."""
+    literal = r'"((?:[^"\\]|\\.)*)"'
+    kotlin = dict(re.findall(r"const val (\w+) = " + literal, STOP_CARD.read_text(encoding="utf-8")))
+    bridge = BRIDGE.read_text(encoding="utf-8")
+    failures = []
+    for name, text in kotlin.items():
+        # A bridge constant is one literal, or adjacent literals in parentheses.
+        match = re.search(rf"^{name} = (\(.*?\)$|{literal}$)", bridge, re.M | re.S)
+        if match is None:
+            failures.append(f"StopCard.{name}: android_bridge.py has no {name}")
+            continue
+        value = "".join(re.findall(literal, match.group(1)))
+        if not value.startswith(_unescape(text)):
+            failures.append(f"StopCard.{name}: {text!r} does not start android_bridge.{name} {value!r}")
+    if not kotlin:
+        failures.append("StopCard.kt: no refusal constants found")
+    return failures
+
+
 def main() -> int:
     data = json.loads(STRINGS.read_text(encoding="utf-8"))
     if list(data.get("languages", [])) != list(LANGUAGES):
         print(f"strings.json: languages are {data.get('languages')}, expected {list(LANGUAGES)}")
         return 1
     strings = data["strings"]
-    failures = _check_file(strings) + _check_android(strings) + _check_windows(strings)
+    failures = _check_file(strings) + _check_android(strings) + _check_windows(strings) + _check_refusals()
     for failure in failures:
         print(failure)
     if not failures:
-        print(f"OK: {len(strings)} strings, each in {' and '.join(LANGUAGES)}; both patchers resolve to them.")
+        print(f"OK: {len(strings)} strings, each in {' and '.join(LANGUAGES)}; both patchers resolve to them; the stop card's refusal starts match the bridge.")
     return 1 if failures else 0
 
 
