@@ -68,11 +68,11 @@ stall loading and cause the game to repair away the translation.
 
 ## Patch versions
 
-The root `VERSION` file sets the Windows and Android patcher version: **1.7.2.3**.
+The root `VERSION` file sets the Windows and Android patcher version: **1.8.1.1**.
 Use three numbers from the game's **data version**, omitting its extra middle zero,
 then append the patch release number, starting at `1`. For example, game data
-`1.0.6.1` becomes patch `1.6.1.X`; the currently measured data `1.7.0.2` becomes
-`1.7.2.X`. Increase `X` for each patch release; reset it to `1` when the data version changes.
+`1.0.6.1` becomes patch `1.6.1.X`; the currently measured data `1.8.0.1` becomes
+`1.8.1.X`. Increase `X` for each patch release; reset it to `1` when the data version changes.
 
 | Change | Example version |
 |---|---|
