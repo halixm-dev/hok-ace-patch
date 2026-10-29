@@ -35,5 +35,5 @@ ${changes}
 
 ## Install
 
-ARM64 Android 11 or newer, with Shizuku running. Install over ${version:-the previous version}; your translation and saved files are kept. Download the APK only from this repository, and check it against \`SHA256SUMS\`.
+ARM64 Android 11 or newer, with Shizuku running, Wireless debugging available, or root. Install over ${version:-the previous version}; your translation and saved files are kept. Download the APK only from this repository, and check it against \`SHA256SUMS\`.
 EOF
