@@ -169,7 +169,10 @@ class WirelessWorkerStarter(context: Context) : WorkerStarter {
         check(WirelessDebugging.onWifi(appContext)) { WirelessDebugging.NO_WIFI }
         check(WirelessDebugging.paired(appContext)) { WirelessDebugging.NOT_PAIRED }
         check(WirelessDebugging.switchedOn(appContext)) { WirelessDebugging.SWITCHED_OFF }
-        port = AdbMdns.find(appContext, AdbMdns.CONNECT, CONNECT_SEARCH_MS) ?: error(WirelessDebugging.SWITCHED_OFF)
+        // Discovery can miss this phone's own record; then the port is found by its answer.
+        port = AdbMdns.find(appContext, AdbMdns.CONNECT, CONNECT_SEARCH_MS)
+            ?: AdbMdns.scan()?.also { DiagnosticTrace.event("adb", "mDNS found no live port on this phone; found wireless debugging on port $it by scan") }
+            ?: error(WirelessDebugging.SWITCHED_OFF)
         DiagnosticTrace.event("adb", "Connecting to wireless debugging on port $port")
         val connection = AdbClient(LOCALHOST, port, AdbKey.load(WirelessDebugging.keyDirectory(appContext)))
         client = connection

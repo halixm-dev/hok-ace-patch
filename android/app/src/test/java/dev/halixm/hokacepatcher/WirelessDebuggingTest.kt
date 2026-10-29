@@ -118,4 +118,31 @@ class WirelessDebuggingTest {
             "Pairing did not finish. Keep Pair device with pairing code open, then type the code again.",
         )).forEach { assertNotEquals(it, it, UiText.translate("id", it)) }
     }
+
+    /** A local server that answers each connection's first message with <reply>. */
+    private fun answering(reply: Int): java.net.ServerSocket {
+        val server = java.net.ServerSocket(0, 4, java.net.InetAddress.getByName("127.0.0.1"))
+        Thread {
+            runCatching {
+                while (true) server.accept().use { client ->
+                    AdbMessage.read(DataInputStream(client.getInputStream()))
+                    client.getOutputStream().write(AdbMessage(reply, AdbProtocol.A_VERSION, AdbProtocol.A_MAXDATA, "device::").toByteArray())
+                    client.getInputStream().read()
+                }
+            }
+        }.apply { isDaemon = true }.start()
+        return server
+    }
+
+    @Test fun theScanFindsThePortThatAnswersStlsAndSkipsTheRest() {
+        val closed = java.net.ServerSocket(0).use { it.localPort }
+        answering(AdbProtocol.A_CNXN).use { legacy ->
+            answering(AdbProtocol.A_STLS).use { wireless ->
+                assertTrue(AdbMdns.answersStls(wireless.localPort))
+                assertTrue(!AdbMdns.answersStls(legacy.localPort))
+                assertEquals(wireless.localPort, AdbMdns.scan(listOf(closed, legacy.localPort, wireless.localPort)))
+                assertNull(AdbMdns.scan(listOf(closed, legacy.localPort)))
+            }
+        }
+    }
 }
