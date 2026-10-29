@@ -6,7 +6,8 @@ Game data 1.5.0.1 and 1.6.0.1 added about 1200 such strings to package `1`: an a
 whose titles come in numbered tiers (`完美橱窗(二)`), four weekly leaderboards ranked 1 to 100, the King of
 Kings sub-account, the Line Puppy event, and card texts whose numbers changed. Game data 1.7.0.1 added 335
 more: the Super Hero mode, room settings, the reworked Lineup Recommendation, strategy tags, and talent texts
-split from their series header. Game data 1.7.0.2 added six Lineup Recommendation hints and errors.
+split from their series header. Game data 1.7.0.2 added six Lineup Recommendation hints and errors, and
+1.8.0.1 added 108: Wu Feng's event, team and Invisible-mode prompts, and reworded card texts.
 `apply` fills them in.
 The official lineups' strategy text is here too: it lives in config bins the catalog does not cover, inside
 their share codes, for the share-code pass to write.
@@ -3773,6 +3774,338 @@ TEXTS: dict[str, tuple[str, str]] = {
     "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>欢迎来到英雄连连看~\n1、活动开启规则：活动持续期间内，可以随时、多次参与连连看玩法。每期活动结算时间为周日的23点59，请确保在结算时间前完成所有关卡哦（否则可能不会分到奖励喔）。\n2、奖励结算规则：完整通关（完成所有关卡）即拥有赢取钻石奖池资格。钻石奖池根据排名分取，答题总耗时越短，排名越高，分得的钻石便越多。\n3、总耗时计算规则：关卡开始到关卡结束的总耗时时长，错误1题增加15秒罚时。</color>\n<color=#98cbff>二、题库</color>\n<color=#FFFFFF>1、题库主题：基于英雄们本身的特性展开，每期不同，欢迎体验~！\n2、题库设计：根据每期主题变更题库，会从中随取，本期9个关卡。</color>": (
         "<color=#98cbff>1. Event Rules</color>\n<color=#FFFFFF>Welcome to Hero Match-Up~\n1. Event Rules: You can Participate in Match-Up at any Time during the Event. Each round ends on Sunday at 23:59. Please ensure all levels are completed before the deadline (otherwise you may not receive Rewards).\n2. Reward Rules: Complete all levels to qualify for the Diamond Prize pool. Diamonds are distributed based on Ranking; the shorter the total Time, the higher the rank and the more Diamonds you receive.\n3. Time Calculation: Total Time from Start to Finish. Each incorrect answer adds a 15-second penalty.</color>\n<color=#98cbff>2. Question Bank</color>\n<color=#FFFFFF>1. Themes: Based on Hero characteristics, changing each round.\n2. Design: 9 levels this round, randomly selected based on the Theme.</color>",
         "<color=#98cbff>1. Aturan Event</color>\n<color=#FFFFFF>Selamat datang di Hero Match-Up~\n1. Aturan Event: Kamu bisa ikut Match-Up kapan saja selama Event. Tiap ronde berakhir hari Minggu pukul 23:59. Pastikan semua level selesai sebelum batas waktu (jika tidak, kamu mungkin tidak menerima Hadiah).\n2. Aturan Hadiah: Selesaikan semua level untuk lolos ke Prize pool Diamond. Diamonds dibagikan berdasarkan Peringkat; makin singkat total Waktu, makin tinggi peringkat dan makin banyak Diamonds yang kamu terima.\n3. Perhitungan Waktu: Total Waktu dari Mulai sampai Selesai. Tiap jawaban salah menambah penalti 15 detik.</color>\n<color=#98cbff>2. Bank Soal</color>\n<color=#FFFFFF>1. Tema: Berdasarkan karakteristik Hero, berganti setiap ronde.\n2. Desain: 9 level di ronde ini, dipilih secara acak berdasarkan Tema.</color>"),
+    # Card, talent and skill texts 1.8.0.1 added or reworded: the catalog's own text for the old row, with
+    # only the changed numbers or clauses rewritten.
+    "<color=#ffffff><color=#ffffff><b>唯一</b></color></color>\n攻击速度+30%。攻速上限改为5.0。战斗期间，每获得2点法力值，提升1%攻击速度。": (
+        "<color=#ffffff><color=#ffffff><b>Unique</b></color></color>\nAttack Speed +30%. The Attack Speed cap becomes"
+        " 5.0. During Battle, gain 1% Attack Speed for every 2 Mana gained.",
+        "<color=#ffffff><color=#ffffff><b>Unique</b></color></color>\nAttack Speed +30%. Attack Speed Cap menjadi 5,0."
+        " Selama Pertempuran, dapatkan 1% Attack Speed untuk setiap 2 Mana yang diperoleh."),
+    "<color=#ffffffbf>被动：</color>圣殿骑士冲锋时，对路径敌人造成<color=#dfa15e>[0]点物理伤害</color><color=#dfa15e>（[1]+[2]%自身最大生命值）</color>，随后戳刺敌人，造成<color=#dfa15e>[3]点物理伤害</color><color=#dfa15e>（[4]+[5]%自身最大生命值）</color>。\n<color=#ffffffbf>主动：</color>获得15%伤害加成，持续5秒。": (
+        "<color=#ffffffbf>Passive:</color> When the Templar charges, it deals <color=#dfa15e>[0] Physical Damage</color>"
+        "<color=#dfa15e> ([1]+[2]% of its own Max HP)</color> to enemies in its path, then thrusts, dealing"
+        " <color=#dfa15e>[3] Physical Damage</color><color=#dfa15e> ([4]+[5]% of its own Max HP)</color>.\n"
+        "<color=#ffffffbf>Active:</color> Gains a 15% Damage bonus for 5 seconds.",
+        "<color=#ffffffbf>Pasif:</color> Saat Templar melakukan Charge, ia memberikan <color=#dfa15e>[0] Physical"
+        " Damage</color><color=#dfa15e> ([1]+[2]% Max HP-nya sendiri)</color> ke musuh di jalurnya, lalu menusuk,"
+        " memberikan <color=#dfa15e>[3] Physical Damage</color><color=#dfa15e> ([4]+[5]% Max HP-nya sendiri)</color>.\n"
+        "<color=#ffffffbf>Aktif:</color> Mendapatkan bonus Damage 15% selama 5 detik."),
+    "仅三分英雄穿戴。将受到伤害的40%转化为治疗量，平摊给所有场上【三分】英雄。": (
+        "Equippable by Three Kingdoms heroes only. Converts 40% of Damage received into Healing, distributed equally"
+        " among all [Three Kingdoms] heroes on the board.",
+        "Hanya bisa dipakai Hero Three Kingdoms. Ubah 40% damage yang diterima menjadi Healing, yang dibagi rata ke"
+        " semua Hero [Three Kingdoms] di papan."),
+    "仅三分英雄穿戴。将造成伤害的40%转化为治疗量，平摊给所有【三分】英雄。": (
+        "Equippable by Three Kingdoms heroes only. Converts 40% of Damage dealt into Healing, distributed equally among"
+        " all [Three Kingdoms] heroes.",
+        "Hanya bisa dipasang oleh Hero Three Kingdoms. Mengubah 40% damage yang diberikan menjadi Healing, dibagi rata"
+        " ke semua Hero [Three Kingdoms]."),
+    "将造成伤害的40%转化为治疗量，平摊给所有【三分】英雄。": (
+        "Converts 40% of Damage dealt into Healing, distributed among all [Three Kingdoms] heroes.",
+        "Mengubah 40% Damage yang diberikan menjadi Healing, dibagikan ke semua Hero [Three Kingdoms]."),
+    "获得1张装备牌<color=#FFE897>三分旗帜</color>：造成伤害的40%平摊治疗所有【三分】英雄（仅【三分】英雄可穿戴）。": (
+        "Gain 1 <color=#FFE897>Three Kingdoms Flag</color> Equipment Card: 40% of Damage dealt heals all [Three"
+        " Kingdoms] Heroes (Equippable only by [Three Kingdoms] Heroes).",
+        "Dapatkan 1 Equipment Card <color=#FFE897>Three Kingdoms Flag</color>: 40% Damage yang diberikan dibagi rata"
+        " untuk menyembuhkan semua Hero [Three Kingdoms] (hanya bisa dipakai Hero [Three Kingdoms])."),
+    "仆从伤害提升至100%法术攻击力，生命值恢复提升至100%法术攻击力": (
+        "Minion Damage is increased to 100% Magic Attack, and Health Restore is increased to 100% Magic Attack.",
+        "Damage Minion meningkat ke 100% Magic Attack, dan Health Restore meningkat ke 100% Magic Attack."),
+    "芈月为等级最高的近战友军召唤1只暗影仆从协助战斗，持续10秒。仆从每次攻击造成<color=#d487e4>80%芈月法术攻击力的法术伤害</color>并为友军恢复<color=#d487e4>80%芈月法术攻击力</color><color=#9ff5d0>的生命值</color>，同时窃取目标1点<color=#dfa15e>物理防御</color>和<color=#d487e4>法术防御</color>转移给友军（最多30层，持续至回合结束）。": (
+        "Mi Yue summons 1 shadow minion for the highest-Level Melee ally to Assist in Battle for 10s. Each minion"
+        " Attack deals <color=#d487e4>80% of Mi Yue's Magic Attack in Magic Damage</color> and restores Health to the"
+        " ally equal to <color=#d487e4>80% of Mi Yue's Magic Attack</color><color=#9ff5d0></color>, while stealing 1"
+        " point of the target's <color=#dfa15e>Physical Defense</color> and <color=#d487e4>Magic Defense</color> to"
+        " transfer to the ally (up to 30 stacks, lasting until the end of the Round).",
+        "Mi Yue memanggil 1 Shadow Minion untuk mendampingi rekan Melee ber-Level tertinggi dalam Pertempuran selama"
+        " 10 detik. Setiap serangan minion memberikan Magic Damage sebesar <color=#d487e4>80% Magic Attack Mi"
+        " Yue</color> dan memulihkan HP rekan sebesar <color=#d487e4>80% Magic Attack Mi Yue</color><color=#9ff5d0>"
+        "</color>, sekaligus mencuri 1 poin <color=#dfa15e>Physical Defense</color> dan <color=#d487e4>Magic"
+        " Defense</color> target untuk diberikan kepada rekan tersebut (maksimal 30 stack, bertahan hingga akhir"
+        " Ronde)."),
+    "场上随机英雄等级+5，触发{DaQiao_TideTimes:3}次，若对象为<b>温柔呼唤</b>的英雄则额外等级+5，每次使用后，触发次数+2。": (
+        "A random Hero on the board gains +5 Levels, triggering {DaQiao_TideTimes:3} times; a <b>Gentle Call</b> Hero"
+        " gains an extra +5 Levels. After each use, the number of triggers +2.",
+        "Hero acak di papan mendapat +5 Level, terpicu {DaQiao_TideTimes:3} kali; Hero <b>Gentle Call</b> mendapat"
+        " tambahan +5 Level. Setiap kali digunakan, jumlah pemicu +2."),
+    "每4个回合，乔汐获得1张<color=#FFE897>潮汐的交响</color>。\n<color=#FFE897>潮汐的交响</color>：场上随机5个英雄等级+4。": (
+        "Every 4 rounds, Qiao Xi gets 1 <color=#FFE897>Symphony of the Tides</color>.\n<color=#FFE897>Symphony of the"
+        " Tides</color>: The Level of 5 Random heroes on the field +4.",
+        "Setiap 4 ronde, Qiao Xi mendapatkan 1 <color=#FFE897>Symphony of the Tides</color>.\n<color=#FFE897>Symphony"
+        " of the Tides</color>: Level 5 hero acak di arena +4."),
+    "每4个回合，获得1张秘技牌<b>潮汐的交响</b>。": (
+        "Every 4 rounds, gain 1 <b>Symphony of Tides</b> skill card.",
+        "Setiap 4 ronde, dapatkan 1 kartu skill <b>Symphony of Tides</b>."),
+    "枫叶舞指定的英雄击败3/5/9/15名敌方英雄，获得1张秘技牌<b>翩跹舞步</b>并为枫叶舞解锁1项特性（共4项）。": (
+        "When the Hero Targeted by Maple Leaf Dance defeats 3/5/9/15 Enemy Heroes, gain 1 Secret Technique card"
+        " <b>Dancing Steps</b> and Unlock 1 trait for Maple Leaf Dance (4 total).",
+        "Saat Hero yang ditarget Maple Leaf Dance mengalahkan 3/5/9/15 Hero musuh, dapatkan 1 kartu Secret Technique"
+        " <b>Dancing Steps</b> dan buka 1 sifat untuk Maple Leaf Dance (total 4)."),
+    "枫叶舞指定的英雄累积击败3/5/9/15名敌方英雄后，阿离获得1张<color=#FFE897>翩跹舞步</color>，累计完成4次后任务需求固定为15。\n<color=#FFE897>翩跹舞步</color>：为<color=#FFE897>枫叶舞</color>挑选1张强化牌。": (
+        "After the Hero Targeted by Maple Leaf Dance has defeated 3/5/9/15 Enemy Heroes in total, Arli gains 1"
+        " <color=#FFE897>Graceful Dance Step</color>. After completing this 4 times, the requirement remains fixed at"
+        " 15.\n<color=#FFE897>Graceful Dance Step</color>: Choose 1 Enhancement Card for <color=#FFE897>Maple Leaf"
+        " Dance</color>.",
+        "Setelah Hero yang ditarget Maple Leaf Dance mengalahkan total 3/5/9/15 Hero musuh, Arli mendapatkan 1"
+        " <color=#FFE897>Graceful Dance Step</color>. Setelah selesai 4 kali, syaratnya tetap di 15.\n"
+        "<color=#FFE897>Graceful Dance Step</color>: Pilih 1 Enhancement Card untuk <color=#FFE897>Maple Leaf"
+        " Dance</color>."),
+    "若<color=#FFE897>枫叶舞</color>英雄被移除，其真实等级的25%会保留给下一个<color=#FFE897>枫叶舞</color>英雄，若为被出售，则保留75%真实等级，限一次。": (
+        "If a <color=#FFE897>Maple Leaf Dance</color> Hero is removed, 25% of its true Level is retained for the next"
+        " <color=#FFE897>Maple Leaf Dance</color> Hero; if it was sold, 75% is retained instead. Once only.",
+        "Jika Hero <color=#FFE897>Maple Leaf Dance</color> dihapus, 25% Level aslinya dipertahankan untuk Hero"
+        " <color=#FFE897>Maple Leaf Dance</color> berikutnya; jika dijual, 75% yang dipertahankan. Hanya sekali."),
+    "若<color=#ffffff><b>枫叶舞</b></color>英雄被移除，其真实等级的25%会保留给下一个<color=#ffffff><b>枫叶舞</b></color>英雄，若为被出售，则保留75%真实等级，限一次。": (
+        "If a <color=#ffffff><b>Maple Dance</b></color> Hero is removed, 25% of their true Level is retained for the"
+        " next <color=#ffffff><b>Maple Dance</b></color> Hero; if it was sold, 75% is retained instead. Once only.",
+        "Jika Hero <color=#ffffff><b>Maple Dance</b></color> dihapus, 25% Level aslinya dipertahankan untuk Hero"
+        " <color=#ffffff><b>Maple Dance</b></color> berikutnya; jika dijual, 75% yang dipertahankan. Hanya sekali."),
+    "立刻在<color=#FFE897>嬴政和武则天中随机一人</color>，下场战斗开始时使其吸收<color=#FFE897>其他友军</color>的等级和初始法力值。（使用后强化吸收能力）": (
+        "Immediately choose <color=#FFE897>randomly between Wu Zetian and Ying Zheng</color>. At the start of the next"
+        " Battle, they absorb the Level and Initial Mana of <color=#FFE897>Other allies</color>. (Absorbing grows"
+        " stronger after each use)",
+        "Langsung pilih <color=#FFE897>secara acak antara Wu Zetian dan Ying Zheng</color>. Di awal Battle"
+        " berikutnya, mereka menyerap Level dan Initial Mana dari <color=#FFE897>ally lain</color>. (Kemampuan"
+        " menyerap meningkat setelah digunakan)"),
+    "战斗开始时，随机传送1个4-5阶临时等级为回合数×12的英雄进入战场（不含卡牌效果），并携带3件适配装备。": (
+        "At the start of battle, randomly teleports 1 Tier 4-5 Hero with a temporary Level of Round number ×12 into"
+        " the Battlefield (excluding card effects), carrying 3 suitable Equipment.",
+        "Di awal pertempuran, teleportasi secara acak 1 Hero Tier 4-5 dengan Level sementara sebesar nomor Ronde ×12"
+        " ke Medan Pertempuran (tidak termasuk efek kartu), membawa 3 Equipment yang sesuai."),
+    "传送{0}级": ("Teleport Lv. {0}", "Teleportasi Lv. {0}"),
+    "转移后清除自身负面状态，并在5秒内免疫受到的控制。": (
+        "After teleporting, cleanse all negative Status effects and become immune to crowd control for 5 seconds.",
+        "Setelah teleport, bersihkan semua Status negatif dari diri sendiri dan kebal crowd control selama 5 detik."),
+    "转移后获得20%伤害加成。": ("Gain a 20% Damage bonus after transferring.", "Dapatkan bonus Damage 20% setelah berpindah."),
+    "孙尚香·强化": ("Lady Sun: Enhanced", "Lady Sun: Diperkuat"),
+    "每回合开始时，自动触发1次孙尚香【登场】词条效果。": (
+        "At the start of each Round, automatically trigger Lady Sun's 【Deploy】 Trait effect once.",
+        "Di awal setiap Ronde, otomatis memicu efek Trait 【Deploy】 Lady Sun 1 kali."),
+    "每回合开始时，触发1次<color=#FFE897>孙尚香</color>卡牌效果。": (
+        "At the start of each Round, trigger the <color=#FFE897>Lady Sun</color> Card Effect once.",
+        "Di awal setiap Ronde, picu Efek Kartu <color=#FFE897>Lady Sun</color> 1 kali."),
+
+    # Wu Feng's event and tasks (1.8.0.1), worded like the catalog's Angela event.
+    "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成任务可领取武凤信物，足够的信物可兑换奖励。</color>\n<color=#FFFFFF>2、每日任务将于每天0点刷新，棋手任务仅可完成1次。</color>\n<color=#FFFFFF>3、若进行消极对局如挂机等行为，则无法完成对局任务哦。</color>": (
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete missions to claim Wufeng Tokens. Collect"
+        " enough tokens to redeem rewards.</color>\n<color=#FFFFFF>2. Daily missions refresh at 00:00 every day."
+        " Chessplayer missions can only be completed once.</color>\n<color=#FFFFFF>3. Passive gameplay, such as"
+        " idling, will prevent you from completing match missions.</color>",
+        "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi untuk klaim Wufeng Token."
+        " Kumpulkan token yang cukup untuk menukar hadiah.</color>\n<color=#FFFFFF>2. Misi harian di-refresh pukul"
+        " 00:00 setiap hari. Misi Chessplayer hanya bisa diselesaikan sekali.</color>\n<color=#FFFFFF>3. Bermain"
+        " pasif, seperti AFK, akan membuatmu tidak bisa menyelesaikan misi pertandingan.</color>"),
+    "万象大赛将棋手武凤升至6级": (
+        "Upgrade Chessplayer Wu Feng to Level 6 in the ACE Tournament",
+        "Upgrade Chessplayer Wu Feng ke Level 6 di ACE Tournament"),
+    "万象大赛用棋手武凤获得前三名": (
+        "Earn a top-3 finish with Chessplayer Wu Feng in the ACE Tournament.",
+        "Raih top-3 dengan Chessplayer Wu Feng di ACE Tournament."),
+    "万象大赛用棋手武凤获得第一名": (
+        "Earn a first-place finish with Chessplayer Wu Feng in the ACE Tournament.",
+        "Raih juara pertama dengan Chessplayer Wu Feng di ACE Tournament."),
+    "万象大赛每个英雄首次达100级可领取奖励": (
+        "Claim a reward the first time each Hero reaches Level 100 in the ACE Tournament",
+        "Klaim hadiah saat pertama kali setiap Hero mencapai Level 100 di ACE Tournament"),
+    "通关棋手武凤训练关卡": ("Clear Chessplayer Wu Feng's Training level", "Selesaikan Level latihan Chessplayer Wu Feng"),
+    "完成任务获取棋手武凤奖励": (
+        "Complete tasks to claim Chessplayer Wu Feng rewards",
+        "Selesaikan tugas untuk klaim hadiah Chessplayer Wu Feng"),
+    "棋手武凤攻略": ("Chessplayer Wu Feng Guide", "Panduan Chessplayer Wu Feng"),
+    "武凤攻略": ("Wu Feng Guide", "Panduan Wu Feng"),
+    "选择棋手武凤，一起化万法为己用！通过棋手技能随机获得一张他人的秘技牌，每局都能打出意料之外的组合。": (
+        "Choose Chessplayer Wu Feng and make every technique your own! His Chessplayer Skill grants a random Secret"
+        " Technique card from another Chessplayer, so every match brings unexpected combos.",
+        "Pilih Chessplayer Wu Feng dan jadikan semua teknik milikmu! Skill Chessplayer-nya memberi 1 kartu Secret"
+        " Technique acak milik Chessplayer lain, jadi setiap pertandingan menghadirkan kombo tak terduga."),
+    "使用棋手【乔汐】，在万象大赛中召唤1名临时等级为200级的英雄": (
+        "Use Chessplayer [Qiao Xi] to Summon 1 Hero at Temporary Level 200 in the ACE Tournament",
+        "Gunakan Chessplayer [Qiao Xi] untuk Summon 1 Hero dengan Temporary Level 200 di ACE Tournament"),
+
+    # Team reservation after a match, chat channels and the Invisible-mode reminders (1.8.0.1).
+    "下局是否继续和当前队友一起玩？": (
+        "Keep playing with your current teammates next match?",
+        "Lanjut main bersama rekan tim saat ini di pertandingan berikutnya?"),
+    "朋友们，下局我们继续排啊~": (
+        "Friends, let's queue together again next match~",
+        "Teman-teman, ayo main bareng lagi di pertandingan berikutnya~"),
+    "朋友们，打完这局我有点事儿，下局不一起排了~": (
+        "Friends, I have something to do after this one, so I won't queue with you next match~",
+        "Teman-teman, setelah ini aku ada urusan, jadi pertandingan berikutnya tidak ikut main bareng~"),
+    "由于您在刚刚的对局中选择了不继续游戏，返回时是否要退出队伍？": (
+        "You chose not to keep playing after the last match. Leave the team when you return?",
+        "Kamu memilih tidak lanjut main setelah pertandingan tadi. Keluar dari tim saat kembali?"),
+    "退出队伍": ("Leave Team", "Keluar Tim"),
+    "留在队内": ("Stay in Team", "Tetap di Tim"),
+    "[系统]组队邀约": ("[System] Team Invite", "[Sistem] Undangan Tim"),
+    "【有分同享】组队邀请：万象大赛-排位": (
+        "[Share] Team Invitation: ACE Tournament-Ranked",
+        "[Share] Undangan Tim: ACE Tournament-Ranked"),
+    "<color=#FFFFFFFF>[组队]{0}:</color>": ("<color=#FFFFFFFF>[Team]{0}:</color>", "<color=#FFFFFFFF>[Tim]{0}:</color>"),
+    "公共": ("Public", "Publik"),
+    "您正处于隐身状态哦，需要解除吗?": ("You are in Invisible mode. Turn it off?", "Kamu sedang dalam mode Invisible. Matikan?"),
+    "您已经隐身2天啦，需要解除吗?": (
+        "You've been Invisible for 2 days. Turn it off?",
+        "Kamu sudah Invisible selama 2 hari. Matikan?"),
+    "您已经隐身3天啦，好友都看不到你哦~需要解除吗?": (
+        "You've been Invisible for 3 days, and your friends can't see you~ Turn it off?",
+        "Kamu sudah Invisible selama 3 hari, teman-temanmu tidak bisa melihatmu~ Matikan?"),
+    "您已隐身{0}天啦，好友都很想念你哦，需要解除吗?": (
+        "You've been Invisible for {0} days. Your friends miss you! Turn it off?",
+        "Kamu sudah Invisible selama {0} hari. Teman-temanmu merindukanmu! Matikan?"),
+    "您已隐身{0}天啦，好友们都在等你上线呢，需要解除吗?": (
+        "You've been Invisible for {0} days. Your friends are waiting for you to come online! Turn it off?",
+        "Kamu sudah Invisible selama {0} hari. Teman-temanmu menunggumu online! Matikan?"),
+
+    # Shared Score, ranks and recruitment (1.8.0.1). 巅峰王者 has no catalog name; "Peak" is the catalog's
+    # word for 巅峰 (Peak Coins).
+    "该亲密度下的选手可在王者{0}分以内有分同享": (
+        "Players at this Intimacy get Shared Score within Honor {0} pts",
+        "Pemain dengan Intimacy ini mendapat Shared Score dalam Honor {0} poin"),
+    "玩家间亲密度值需高于{0}": ("Intimacy between players must be above {0}", "Intimacy antar pemain harus di atas {0}"),
+    "超级周末：有分同享不限亲密度": (
+        "Super Weekend: Shared Score with no Intimacy limit",
+        "Super Weekend: Shared Score tanpa batas Intimacy"),
+    "最强王者{0}": ("Strongest King {0}", "Strongest King {0}"),
+    "巅峰王者{0}": ("Peak King {0}", "Peak King {0}"),
+    "万象王者{0}": ("Vientiane King {0}", "Vientiane King {0}"),
+    "段位需达到倔强青铜方可发布招募！": (
+        "Reach Stubborn Bronze rank to post recruitment!",
+        "Capai rank Stubborn Bronze untuk memasang rekrutmen!"),
+    "再上<color=#ffffff>{0}</color>分可获得<color=#ffffff>{1}</color>": (
+        "<color=#ffffff>{0}</color> more points to get <color=#ffffff>{1}</color>",
+        "<color=#ffffff>{0}</color> poin lagi untuk mendapat <color=#ffffff>{1}</color>"),
+    "再上<color=#ffffff>{0}</color>分超过": (
+        "<color=#ffffff>{0}</color> more points to pass",
+        "<color=#ffffff>{0}</color> poin lagi untuk melampaui"),
+    "再盈利<color=#ffffff>{0}</color>可获得<color=#ffffff>{1}</color>": (
+        "<color=#ffffff>{0}</color> more profit to get <color=#ffffff>{1}</color>",
+        "Profit <color=#ffffff>{0}</color> lagi untuk mendapat <color=#ffffff>{1}</color>"),
+    "再盈利<color=#ffffff>{0}</color>超过": (
+        "<color=#ffffff>{0}</color> more profit to pass",
+        "Profit <color=#ffffff>{0}</color> lagi untuk melampaui"),
+    "是否授权《王者万象棋》绑定您同平台的《王者荣耀》账号，获取账号信息以提供更好的游戏体验。\n授权内容：将《王者荣耀》好友关系与好友亲密度继承至《王者万象棋》。\n<color=#98CBFFFF>特别声明：亲密度仅首次授权时进行同步，后续不会再同步；继承的数值以本周一王者荣耀内亲密度数值为准（不同账号同步时间存在延迟）。</color>": (
+        "Authorize Honor of Kings: Ace to link your Honor of Kings account on the same platform and obtain account"
+        " info for a better game experience?\nAuthorization content: inherit your Honor of Kings friend list and"
+        " Friend Intimacy into Honor of Kings: Ace.\n<color=#98CBFFFF>Special note: Intimacy is synced only on the"
+        " first authorization and will not be synced again; the value inherited is your Honor of Kings Intimacy as"
+        " of this Monday (sync times may lag between accounts).</color>",
+        "Izinkan Honor of Kings: Ace menautkan akun Honor of Kings kamu di platform yang sama untuk mendapatkan info"
+        " akun demi pengalaman bermain yang lebih baik?\nKonten otorisasi: mewarisi daftar teman dan Intimacy teman"
+        " Honor of Kings ke Honor of Kings: Ace.\n<color=#98CBFFFF>Catatan khusus: Intimacy hanya disinkronkan saat"
+        " otorisasi pertama dan tidak akan disinkronkan lagi; nilai yang diwarisi mengikuti Intimacy di Honor of"
+        " Kings per Senin minggu ini (waktu sinkronisasi antar akun bisa tertunda).</color>"),
+
+    # Chessplayer Guess coupons, trade prices, settlement and shop (1.8.0.1).
+    "在钻石狂潮、王牌对决和棋手竞猜玩法中，可使用本抵扣券减免500钻石。（钻石狂潮每次限用1张）": (
+        "Use this coupon in Diamond Frenzy, Ace Duel and Chessplayer Guess to reduce the cost by 500 Diamonds."
+        " (Diamond Frenzy: 1 coupon per entry)",
+        "Gunakan kupon ini di Diamond Frenzy, Ace Duel, dan Tebak Chessplayer untuk memotong 500 Diamond. (Diamond"
+        " Frenzy: 1 kupon per masuk)"),
+    "在钻石狂潮、王牌对决和棋手竞猜玩法中，可使用本抵扣券减免1000钻石。（钻石狂潮每次限用1张）": (
+        "Use this coupon in Diamond Frenzy, Ace Duel and Chessplayer Guess to reduce the cost by 1000 Diamonds."
+        " (Diamond Frenzy: 1 coupon per entry)",
+        "Gunakan kupon ini di Diamond Frenzy, Ace Duel, dan Tebak Chessplayer untuk memotong 1000 Diamond. (Diamond"
+        " Frenzy: 1 kupon per masuk)"),
+    "在钻石狂潮、王牌对决和棋手竞猜玩法中，可使用本抵扣券减免5000钻石。（钻石狂潮每次限用1张）": (
+        "Use this coupon in Diamond Frenzy, Ace Duel and Chessplayer Guess to reduce the cost by 5000 Diamonds."
+        " (Diamond Frenzy: 1 coupon per entry)",
+        "Gunakan kupon ini di Diamond Frenzy, Ace Duel, dan Tebak Chessplayer untuk memotong 5000 Diamond. (Diamond"
+        " Frenzy: 1 kupon per masuk)"),
+    "钻石抵扣券": ("Diamonds Discount Voucher", "Voucher Diskon Diamonds"),
+    "已使用抵扣券": ("Discount Coupon used", "Kupon Diskon dipakai"),
+    "抵扣钻石": ("Diamond Discount", "Potongan Diamond"),
+    "系统会按照最优方案自动扣除抵扣券": (
+        "The system applies Discount Coupons automatically in the best combination",
+        "Sistem otomatis memakai Kupon Diskon dengan kombinasi terbaik"),
+    "钻石消耗": ("Diamond Cost", "Biaya Diamond"),
+    "竞猜总数": ("Total Predictions", "Total Prediksi"),
+    "应援失败，请重新尝试": ("Prediction failed. Please try again.", "Prediksi gagal. Silakan coba lagi."),
+    "今日可上架价格范围：{0}-{1}": ("Today's listing price range: {0}-{1}", "Rentang harga jual hari ini: {0}-{1}"),
+    "近期成交均价{0}，今日可上架价格范围：{1}-{2}": (
+        "Recent average sale price {0}. Today's listing price range: {1}-{2}",
+        "Harga rata-rata terkini {0}. Rentang harga jual hari ini: {1}-{2}"),
+    "可上架价格范围已更新，请稍后再试": (
+        "The listing price range has been updated. Please try again later.",
+        "Rentang harga jual telah diperbarui. Coba lagi nanti."),
+    "已放弃常规奖励": ("Regular reward given up", "Hadiah reguler dilepas"),
+    "已放弃常规奖励，获得特邀额外奖励": (
+        "Regular reward given up; Special invitation bonus received",
+        "Hadiah reguler dilepas; Bonus undangan spesial diterima"),
+    "放弃翻牌将不会消耗每月翻牌次数，但也无法获得常规翻牌奖励（特邀额外奖励可正常获得）。确定放弃？": (
+        "Giving up won't use a monthly card flip, but you won't get the regular flip reward (the Special invitation"
+        " bonus is still granted). Give up?",
+        "Menyerah tidak memakai jatah balik kartu bulanan, tapi kamu tidak mendapat hadiah balik kartu reguler (Bonus"
+        " undangan spesial tetap didapat). Menyerah?"),
+    "当前无法购买积分保护卡": (
+        "Rank protection cards can't be purchased right now",
+        "Rank protection card tidak bisa dibeli saat ini"),
+    "道具数量不足，是否使用快捷购买？": ("Not enough items. Use Quick Buy?", "Item tidak cukup. Gunakan Beli Cepat?"),
+    "部分购买成功": ("Partially purchased", "Sebagian berhasil dibeli"),
+    "战力前列的棋手": ("Top-tier Chessplayers by Power", "Chessplayer top berdasarkan Power"),
+    "该阵容已收藏至我的阵容": ("Lineup saved to My Lineup", "Lineup disimpan ke My Lineup"),
+    "栏位扩充卡物品获取配置失败，请稍后再试": (
+        "Failed to load the Slot Expansion Card item settings. Please try again later.",
+        "Gagal memuat pengaturan item Slot Expansion Card. Coba lagi nanti."),
+    "请拖放下方已获取碎片到格内": (
+        "Drag the collected fragments below into the grid",
+        "Seret fragmen yang sudah dikumpulkan di bawah ke dalam grid"),
+
+    # Trial cards and the Dream Crossing pack (1.8.0.1).
+    "今日宜摸鱼7天限时卡": ("Good Day for Slacking 7-Day Trial Card", "Kartu Trial 7 Hari Good Day for Slacking"),
+    "渡梦传送特效7天限时卡": (
+        "Dream Crossing Teleport Effect 7-Day Trial Card",
+        "Kartu Trial 7 Hari Efek Teleportasi Dream Crossing"),
+    "玉环幻彩音阶7天限时卡": ("Yuhuan Prismatic Scale 7-Day Trial Card", "Kartu Trial 7 Hari Yuhuan Prismatic Scale"),
+    "获得棋盘【今日宜摸鱼】7天限时体验。": (
+        "Get the board [Good Day for Slacking] for a 7-day limited time experience.",
+        "Dapatkan papan [Good Day for Slacking] untuk pengalaman 7 hari yang terbatas."),
+    "获得特效【渡梦传送特效】7天限时体验。": (
+        "Get the special effect [Dream Crossing Teleport Effect] for a 7-day limited time experience.",
+        "Dapatkan efek khusus [Efek Teleportasi Dream Crossing] untuk pengalaman 7 hari yang terbatas."),
+    "获得皮肤【玉环幻彩音阶】7天限时体验。": (
+        "Get the skin [Yuhuan Prismatic Scale] for a 7-day limited time experience.",
+        "Dapatkan skin [Yuhuan Prismatic Scale] untuk pengalaman 7 hari yang terbatas."),
+    "渡梦传送特效礼包": ("Dream Crossing Teleport Effect Pack", "Paket Efek Teleportasi Dream Crossing"),
+    "打开礼包，必定获得爱心投放1天限时卡，并且随机获得以下奖励：\n夺宝币*2、香香·热情轰炸(30天)*1、常小娥·月之祈福(30天)*1、白歌·剑意纵横(30天)*1、趣味桌游*1、100%黑巧克力*1、小鹿玩偶*1、小动物捏捏*1、赢律（棋手）、渡梦传送特效。\n打开第50个礼包必定获得：渡梦传送特效！": (
+        "Opening the pack always grants a Love Delivery 1-Day Trial Card, plus a random reward from:\nTreasure Coin"
+        " x2, Xiangxiang · Passionate Bombardment (30 Days) x1, Chang Xiao'e·Moonlight Blessing (30 Days) x1, Bai Ge"
+        " · Unbound Sword Intent (30 Days) x1, Fun Board Game x1, 100% Dark Chocolate x1, Deer Doll x1, Animal Squeeze"
+        " x1, Ying Lu (Chessplayer), Dream Crossing Teleport Effect.\nThe 50th pack opened always grants: Dream"
+        " Crossing Teleport Effect!",
+        "Membuka paket pasti memberikan Kartu Trial 1 Hari Love Delivery, ditambah satu hadiah acak dari:\nTreasure"
+        " Coin x2, Xiangxiang · Passionate Bombardment (30 Hari) x1, Chang Xiao'e·Moonlight Blessing (30 Hari) x1, Bai"
+        " Ge · Unbound Sword Intent (30 Hari) x1, Board Game Seru x1, 100% Dark Chocolate x1, Deer Doll x1, Animal"
+        " Squeeze x1, Ying Lu (Chessplayer), Efek Teleportasi Dream Crossing.\nPaket ke-50 yang dibuka pasti"
+        " memberikan: Efek Teleportasi Dream Crossing!"),
+
+    # Quick chat lines 1.8.0.1 added (6BF1BDFB7C267E09).
+    "你去争第一吧，算我让你的。": ("Go take first place, I'll let you have it.", "Kejar juara satu saja, anggap aku mengalah."),
+    "咱们同心协力，先把其他人送走。": ("Let's team up and send the others home first.", "Ayo kompak, singkirkan yang lain dulu."),
+    "士别三日，技术暴涨这么多？": (
+        "A few days apart and your skills skyrocketed?",
+        "Baru beberapa hari, skill-mu naik sejauh ini?"),
+    "感觉这把有高手啊？": ("Feels like there's a pro in this match?", "Kayaknya ada jagoan di match ini?"),
+    "我要开始表演了，好好看，好好学。": (
+        "Showtime. Watch closely and learn.",
+        "Saatnya aku beraksi, lihat baik-baik dan belajar."),
+    "自己人，下手轻点。": ("Easy, we're on the same side.", "Sesama teman, pelan-pelan dong."),
+    "这把我躺了，等你带飞。": ("I'm sitting back this round, carry me!", "Kali ini aku santai, tunggu kamu carry."),
+    "这能输？我不服！": ("How did we lose that? I don't accept it!", "Kok bisa kalah? Aku tidak terima!"),
+
+    # Settings, lobby tabs and errors (1.8.0.1).
+    "下载管理": ("Download Manager", "Manajemen Download"),
+    "图片缓存目录": ("Image Cache Folder", "Folder Cache Gambar"),
+    "更改目录": ("Change Folder", "Ubah Folder"),
+    "打开文件夹": ("Open Folder", "Buka Folder"),
+    "图片已保存至<color=#98CBFF>{0}</color>": (
+        "Image saved to <color=#98CBFF>{0}</color>",
+        "Gambar disimpan ke <color=#98CBFF>{0}</color>"),
+    "数据资源损坏！您需要重启游戏客户端进行资源修复。": (
+        "Game data is corrupted! Restart the game client to run Resource Repair.",
+        "Data game rusak! Restart game client untuk menjalankan Perbaikan Resource."),
+    "新闻": ("News", "Berita"),
+    "赛事": ("Tournaments", "Turnamen"),
 }
 
 # The weekly leaderboards, ranked 第一 .. 第一百. `%s%s` is the season and the Chessplayer.

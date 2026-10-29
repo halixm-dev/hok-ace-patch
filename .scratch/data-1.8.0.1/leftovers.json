@@ -1,0 +1,1236 @@
+{
+ "source": "pristine/20261029-1.8.0.1 + installed.apk prime layer, 2026-10-29: each catalog table read through translate_table with the supplement and glossary loaded; a string whose lookup returns None, CJK inside a {token} not counted. The same set for English and Indonesian.",
+ "census": {
+  "distinct": 108,
+  "rows": 409,
+  "catalog_tables_read": {
+   "override": 100,
+   "prime_only": 398
+  }
+ },
+ "strings": {
+  "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成任务可领取武凤信物，足够的信物可兑换奖励。</color>\n<color=#FFFFFF>2、每日任务将于每天0点刷新，棋手任务仅可完成1次。</color>\n<color=#FFFFFF>3、若进行消极对局如挂机等行为，则无法完成对局任务哦。</color>": {
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "<color=#FFFFFFFF>[组队]{0}:</color>": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "<color=#ffffff><color=#ffffff><b>唯一</b></color></color>\n攻击速度+30%。攻速上限改为5.0。战斗期间，每获得2点法力值，提升1%攻击速度。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "<color=#ffffffbf>被动：</color>圣殿骑士冲锋时，对路径敌人造成<color=#dfa15e>[0]点物理伤害</color><color=#dfa15e>（[1]+[2]%自身最大生命值）</color>，随后戳刺敌人，造成<color=#dfa15e>[3]点物理伤害</color><color=#dfa15e>（[4]+[5]%自身最大生命值）</color>。\n<color=#ffffffbf>主动：</color>获得15%伤害加成，持续5秒。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4
+  },
+  "[系统]组队邀约": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "【有分同享】组队邀请：万象大赛-排位": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "万象大赛将棋手武凤升至6级": {
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "万象大赛每个英雄首次达100级可领取奖励": {
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 2
+  },
+  "万象大赛用棋手武凤获得前三名": {
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "万象大赛用棋手武凤获得第一名": {
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "万象王者{0}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "下局是否继续和当前队友一起玩？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "下载管理": {
+   "tables": [
+    "A2C58867ECA77D95"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "仅三分英雄穿戴。将受到伤害的40%转化为治疗量，平摊给所有场上【三分】英雄。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "仅三分英雄穿戴。将造成伤害的40%转化为治疗量，平摊给所有【三分】英雄。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "仆从伤害提升至100%法术攻击力，生命值恢复提升至100%法术攻击力": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "今日可上架价格范围：{0}-{1}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "今日宜摸鱼7天限时卡": {
+   "tables": [
+    "12EBE81B167C5D69"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "传送{0}级": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "你去争第一吧，算我让你的。": {
+   "tables": [
+    "6BF1BDFB7C267E09"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "使用棋手【乔汐】，在万象大赛中召唤1名临时等级为200级的英雄": {
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "公共": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "再上<color=#ffffff>{0}</color>分可获得<color=#ffffff>{1}</color>": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "再上<color=#ffffff>{0}</color>分超过": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "再盈利<color=#ffffff>{0}</color>可获得<color=#ffffff>{1}</color>": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "再盈利<color=#ffffff>{0}</color>超过": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "可上架价格范围已更新，请稍后再试": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "咱们同心协力，先把其他人送走。": {
+   "tables": [
+    "6BF1BDFB7C267E09"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "图片已保存至<color=#98CBFF>{0}</color>": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "图片缓存目录": {
+   "tables": [
+    "A2C58867ECA77D95",
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 2
+  },
+  "在钻石狂潮、王牌对决和棋手竞猜玩法中，可使用本抵扣券减免1000钻石。（钻石狂潮每次限用1张）": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "在钻石狂潮、王牌对决和棋手竞猜玩法中，可使用本抵扣券减免5000钻石。（钻石狂潮每次限用1张）": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "在钻石狂潮、王牌对决和棋手竞猜玩法中，可使用本抵扣券减免500钻石。（钻石狂潮每次限用1张）": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "场上随机英雄等级+5，触发{DaQiao_TideTimes:3}次，若对象为<b>温柔呼唤</b>的英雄则额外等级+5，每次使用后，触发次数+2。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "士别三日，技术暴涨这么多？": {
+   "tables": [
+    "6BF1BDFB7C267E09"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "孙尚香·强化": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 33
+  },
+  "完成任务获取棋手武凤奖励": {
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 2
+  },
+  "将造成伤害的40%转化为治疗量，平摊给所有【三分】英雄。": {
+   "tables": [
+    "3FF82F7E6C74870C",
+    "69512BBC6B8D18CE",
+    "8D167C92A38E79A0"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 3
+  },
+  "巅峰王者{0}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "已使用抵扣券": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "已放弃常规奖励": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "已放弃常规奖励，获得特邀额外奖励": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "应援失败，请重新尝试": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 2
+  },
+  "当前无法购买积分保护卡": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "您已经隐身2天啦，需要解除吗?": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 2
+  },
+  "您已经隐身3天啦，好友都看不到你哦~需要解除吗?": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "您已隐身{0}天啦，好友们都在等你上线呢，需要解除吗?": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "您已隐身{0}天啦，好友都很想念你哦，需要解除吗?": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "您正处于隐身状态哦，需要解除吗?": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "感觉这把有高手啊？": {
+   "tables": [
+    "6BF1BDFB7C267E09"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "我要开始表演了，好好看，好好学。": {
+   "tables": [
+    "6BF1BDFB7C267E09"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "战力前列的棋手": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "战斗开始时，随机传送1个4-5阶临时等级为回合数×12的英雄进入战场（不含卡牌效果），并携带3件适配装备。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 22
+  },
+  "打开文件夹": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "打开礼包，必定获得爱心投放1天限时卡，并且随机获得以下奖励：\n夺宝币*2、香香·热情轰炸(30天)*1、常小娥·月之祈福(30天)*1、白歌·剑意纵横(30天)*1、趣味桌游*1、100%黑巧克力*1、小鹿玩偶*1、小动物捏捏*1、赢律（棋手）、渡梦传送特效。\n打开第50个礼包必定获得：渡梦传送特效！": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "抵扣钻石": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "放弃翻牌将不会消耗每月翻牌次数，但也无法获得常规翻牌奖励（特邀额外奖励可正常获得）。确定放弃？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "数据资源损坏！您需要重启游戏客户端进行资源修复。": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "新闻": {
+   "tables": [
+    "4C8CDABFC4BE8C4D"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "是否授权《王者万象棋》绑定您同平台的《王者荣耀》账号，获取账号信息以提供更好的游戏体验。\n授权内容：将《王者荣耀》好友关系与好友亲密度继承至《王者万象棋》。\n<color=#98CBFFFF>特别声明：亲密度仅首次授权时进行同步，后续不会再同步；继承的数值以本周一王者荣耀内亲密度数值为准（不同账号同步时间存在延迟）。</color>": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "更改目录": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "最强王者{0}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "朋友们，下局我们继续排啊~": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "朋友们，打完这局我有点事儿，下局不一起排了~": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "枫叶舞指定的英雄击败3/5/9/15名敌方英雄，获得1张秘技牌<b>翩跹舞步</b>并为枫叶舞解锁1项特性（共4项）。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "枫叶舞指定的英雄累积击败3/5/9/15名敌方英雄后，阿离获得1张<color=#FFE897>翩跹舞步</color>，累计完成4次后任务需求固定为15。\n<color=#FFE897>翩跹舞步</color>：为<color=#FFE897>枫叶舞</color>挑选1张强化牌。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "栏位扩充卡物品获取配置失败，请稍后再试": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "棋手武凤攻略": {
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "武凤攻略": {
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "段位需达到倔强青铜方可发布招募！": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "每4个回合，乔汐获得1张<color=#FFE897>潮汐的交响</color>。\n<color=#FFE897>潮汐的交响</color>：场上随机5个英雄等级+4。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "每4个回合，获得1张秘技牌<b>潮汐的交响</b>。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "每回合开始时，自动触发1次孙尚香【登场】词条效果。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "每回合开始时，触发1次<color=#FFE897>孙尚香</color>卡牌效果。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "渡梦传送特效7天限时卡": {
+   "tables": [
+    "12EBE81B167C5D69"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "渡梦传送特效礼包": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "玉环幻彩音阶7天限时卡": {
+   "tables": [
+    "12EBE81B167C5D69"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "玩家间亲密度值需高于{0}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "由于您在刚刚的对局中选择了不继续游戏，返回时是否要退出队伍？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "留在队内": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "立刻在<color=#FFE897>嬴政和武则天中随机一人</color>，下场战斗开始时使其吸收<color=#FFE897>其他友军</color>的等级和初始法力值。（使用后强化吸收能力）": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "竞猜总数": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 2
+  },
+  "系统会按照最优方案自动扣除抵扣券": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "自己人，下手轻点。": {
+   "tables": [
+    "6BF1BDFB7C267E09"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "芈月为等级最高的近战友军召唤1只暗影仆从协助战斗，持续10秒。仆从每次攻击造成<color=#d487e4>80%芈月法术攻击力的法术伤害</color>并为友军恢复<color=#d487e4>80%芈月法术攻击力</color><color=#9ff5d0>的生命值</color>，同时窃取目标1点<color=#dfa15e>物理防御</color>和<color=#d487e4>法术防御</color>转移给友军（最多30层，持续至回合结束）。": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "若<color=#FFE897>枫叶舞</color>英雄被移除，其真实等级的25%会保留给下一个<color=#FFE897>枫叶舞</color>英雄，若为被出售，则保留75%真实等级，限一次。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11
+  },
+  "若<color=#ffffff><b>枫叶舞</b></color>英雄被移除，其真实等级的25%会保留给下一个<color=#ffffff><b>枫叶舞</b></color>英雄，若为被出售，则保留75%真实等级，限一次。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 22
+  },
+  "获得1张装备牌<color=#FFE897>三分旗帜</color>：造成伤害的40%平摊治疗所有【三分】英雄（仅【三分】英雄可穿戴）。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 22
+  },
+  "获得棋盘【今日宜摸鱼】7天限时体验。": {
+   "tables": [
+    "12EBE81B167C5D69"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "获得特效【渡梦传送特效】7天限时体验。": {
+   "tables": [
+    "12EBE81B167C5D69"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "获得皮肤【玉环幻彩音阶】7天限时体验。": {
+   "tables": [
+    "12EBE81B167C5D69"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "该亲密度下的选手可在王者{0}分以内有分同享": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "该阵容已收藏至我的阵容": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "请拖放下方已获取碎片到格内": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "赛事": {
+   "tables": [
+    "4C8CDABFC4BE8C4D"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "超级周末：有分同享不限亲密度": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "转移后清除自身负面状态，并在5秒内免疫受到的控制。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 33
+  },
+  "转移后获得20%伤害加成。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 33
+  },
+  "近期成交均价{0}，今日可上架价格范围：{1}-{2}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "这把我躺了，等你带飞。": {
+   "tables": [
+    "6BF1BDFB7C267E09"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "这能输？我不服！": {
+   "tables": [
+    "6BF1BDFB7C267E09"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "退出队伍": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "选择棋手武凤，一起化万法为己用！通过棋手技能随机获得一张他人的秘技牌，每局都能打出意料之外的组合。": {
+   "tables": [
+    "4E0F1B7C13F264AE"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "通关棋手武凤训练关卡": {
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "道具数量不足，是否使用快捷购买？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "部分购买成功": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "钻石抵扣券": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1
+  },
+  "钻石消耗": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 2
+  }
+ }
+}
