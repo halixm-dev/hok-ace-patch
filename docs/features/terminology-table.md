@@ -111,6 +111,10 @@ next. On the English catalog the `夺取` link label is "Steal" 7 times, "Plunde
   asset hash and row key: 22 measured rows across 11 catalog tables in package 1. The runtime's
   existing update path writes the current catalog target. Upstream update rows take precedence;
   unknown tables, different keys and edited sentences do not match. Indonesian already says Combine.
+- **Format rows.** The same module puts a space into the Card Stats line format (`DD5B5EDFBB69FEED`,
+  `Dps_CardOperate`), which joins the operation and the card name ("BuyBiron") in every language. The
+  row holds no Chinese, so no catalog string reaches it; its update row carries no source field, which
+  the runtime would refuse empty.
 
 ### Consequences to expect
 

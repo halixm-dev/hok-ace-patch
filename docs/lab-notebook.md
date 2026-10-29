@@ -4487,3 +4487,20 @@ Captures and compares in `D:\d\scratch\hok-update-cycle-3` (`update_cycle.py`).
 ③'s *Finish the game update* card. Debug 88: an `error` with nothing pending (no unfinished session, setup or emergency
 restore) gives ③ *Try again* and the matching line; the recovery options stay below. Debug 85 carries the 108
 1.8.0.1 strings. **Verdict: pass.** Not checked: the new strings on the game's screens.
+
+## 2026-10-30 — Card Stats lines join the operation and the card name ("BuyBiron")
+
+**Symptom (user screenshot):** a match's Card Stats panel reads "BuyBiron", "UseBiron", "UseLittle Rabbit Assist".
+**Source:** package 1 table `DD5B5EDFBB69FEED` (prime-only, catalogued), row `Dps_CardOperate`:
+`<color=#ffffff>{0}</color><color=#FFFFFFB2>{1}</color>`, {0} the operation (`CardStaticsOperate_Buy` 购买,
+`_Use` 使用), {1} the card name. No Chinese in the row, so no catalog string reaches it.
+**Change:** `catalog_updates` adds an exact `english_updates` row (asset, key, that format) whose target has a space
+between the two colour spans, for both languages. A five-field row with an empty source is refused as
+`invalid_translation`; the four-field row is taken.
+
+| Check | Evidence and verdict |
+|---|---|
+| Offline table | `translate_table` on the APK's `DD5B5EDFBB69FEED` through `load_catalog`: English and Indonesian translated 13 770 → 13 771, the staged row reads the spaced format, the old one is gone; a second translation is byte-identical. |
+| Merge | `apply` adds 23 rows (English: 22 Yao + 1) and 1 (Indonesian), then 0 on a second call. |
+| Not changed | Six other rows of the table join placeholders with no Chinese (`SubTitleLimitBuff`, `SubTitleLimitBuff_Skin`, `FlowBottomTitle`, `LordCheerBannerNames`, `OverviewPanel_6`, `EmbattleTip16`); what fills them is not measured, so they are left. |
+| Device | Not run. The screenshot's lowercase "auction" header looks like the round label 1.8.1.2 capitalises (not measured on this panel). |

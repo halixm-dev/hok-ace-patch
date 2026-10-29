@@ -209,6 +209,8 @@ pass rewrites.
 Yao's old English description can now be corrected by rerunning with the updated patcher.
 `catalog_updates` adds exact old-to-current mappings for 22 measured rows in 11 existing catalog
 tables. This changes installed wording without clearing game data or adding asset coverage.
+It also spaces the match's Card Stats lines ("Buy Biron", not "BuyBiron") in both languages: one row
+of an already staged table, so no count moves.
 
 `.blocks` and `.assets` are the two porting *kinds*, not text versus texture: every payload file in the
 catalog directory is a texture, and all 398 of them are in `catalog.graphics`.
