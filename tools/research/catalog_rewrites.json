@@ -3526,5 +3526,38 @@
  "公告": {
   "en": "Announcement",
   "id": "Pengumuman"
+ },
+ "回合10": {
+  "id": "Lelang"
+ },
+ "拍卖效果牌养王牌": {
+  "id": "Lelang"
+ },
+ "最后一轮拍卖": {
+  "id": "Lelang"
+ },
+ "第10回合": {
+  "id": "Lelang"
+ },
+ "第13回合": {
+  "id": "Lelang"
+ },
+ "第13回合-炽热": {
+  "id": "Lelang"
+ },
+ "第2回合": {
+  "id": "Lelang"
+ },
+ "第5回合": {
+  "id": "Lelang"
+ },
+ "第7回合": {
+  "id": "Lelang"
+ },
+ "第8回合": {
+  "id": "Lelang"
+ },
+ "首轮拍卖": {
+  "id": "Lelang"
  }
 }
