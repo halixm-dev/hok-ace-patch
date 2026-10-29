@@ -4411,3 +4411,79 @@ Read from the 1.7.0.2 cached APK (`libunity.so`, `libil2cpp.so`, `global-metadat
   2400) were mid-scroll: opening recovery scrolls to its top. No code change.
 - **Verdict: pass.** Recorded in `.scratch/shell-providers/issues/01-provider-picker.md`.
 - **Evidence:** `D:\hokace-work\redmi-ebad528e\` (`t01-footer-before.png`, `t01-footer-tools.png`).
+
+## 2026-10-29 — 1.8.0.1: pristine snapshot, 108 untranslated strings
+
+- **Snapshot:** Xiaomi M2007J3SG, data `1.8.0.1` revision `0` (`packages/1/1.info`), APK still 1.1.1 / 774472
+  (SHA-256 `29b3ee7e…`, equal to the cached `installed.apk`). The game downloaded the 1.8.0.1 update itself. A
+  streamed `run-as` tar of the layer stopped at 350 MB when USB dropped (the access APK stayed installed until
+  the phone was authorized again); the second pull read file by file through the access APK, each file's
+  SHA-256 checked against the phone's own and retried on a mismatch, then reinstalled the normal APK and checked
+  its hash. Saved as `dist/HOK ACE Patcher Data/pristine/20261029-1.8.0.1`: 618 package files (622 with
+  `Watchdog/`), all equal to the phone's, none missing or extra; the layer did not change during the pull.
+- **Offline builds, pristine 1.8.0.1 + cached APK** (`build_device_patch.py --apk`, `D:\scratch\hok-1.8.0.1\out1-*`):
+  both succeed. Census 100 tables, 187 892 records, 184 195 translated, **409 unknown**; `already_english` 2307
+  (EN) / 2274 (ID), equal to 1.7.0.2's, so the layer reads as pristine. `text_skipped` and `graphics_skipped`
+  empty; `append_skipped` only the known encoder refusal (`3A70308AAF6F18F8` EN / `0196F0E230EC1C70` ID).
+  Package `1` `added-from-apk` 287 of 288, `10` **2** (1.7.0.2: 1), `1050016095` 71, `21` 1.
+- **Leftover census** (every catalog table of the override layer, then of the APK's prime layer where the
+  override lacks it, read through `translate_table` with the supplement and glossary loaded; a lookup that
+  returns nothing, CJK inside a `{token}` not counted): **108 distinct strings, 409 rows**, all package `1`,
+  all in the override layer, the same set for English and Indonesian; the rows equal the build's `unknown`.
+  The census reads 0 on pristine 1.7.0.2. What they are:
+  - the new chessplayer Wufeng (`武凤`): quests `049FDCA512DC8897`, promos `79E3F2A531266997`, intro
+    `4E0F1B7C13F264AE`, event rules `1586D98CC6E0B77E`;
+  - card and talent rewordings in all 12 card dictionaries (`23C9A9DEBB3BF40C` and siblings,
+    `04F21C6735D0D555` and siblings): Sun Shangxiang, Fengyewu (`枫叶舞`), Qiaoxi's `潮汐的交响`, the `三分` banner;
+  - 52 in `DD5B5EDFBB69FEED`: diamond vouchers (`钻石抵扣券`), stealth reminders (`隐身`), shared-score invites
+    (`有分同享`), market price ranges, the image cache folder, team requeue prompts, ranks with a number
+    (`最强王者{0}`);
+  - chat quick lines (`6BF1BDFB7C267E09`), 7-day trial cards (`12EBE81B167C5D69`, `1FFFD61DB73C942F`), the News and
+    Events tabs (`4C8CDABFC4BE8C4D`), Mi Yue's servant (`8B5FA32BAA3913D9`).
+  List with tables: `.scratch/data-1.8.0.1/leftovers.json`. All 108 are now supplied in English and Indonesian by
+  `tools/catalog_supplement.py` (2202 -> 2310 entries); offline rebuilds of the same snapshot then left 0 unknown and no
+  skipped text table in both languages.
+
+## 2026-10-29 — Wireless debugging: discovery missed this phone's own service; ③ offered no Start after a refusal
+
+Xiaomi M2007J3SG (`f15a72e`, Android 12 API 31), Android patcher 1.7.2.3 (code 82), Wireless debugging provider,
+during the update cycle in `D:\d\scratch\hok-update-cycle-3`.
+
+| Finding | Evidence | Grade |
+|---|---|---|
+| Start refused at Unlock access with *Wireless debugging is off…* although the switch was on (`adb_wifi_enabled` 1) | patcher log 13:41:07, `WirelessWorkerStarter.start` | measured |
+| `adbd` served wireless debugging on **41031**: `adb connect 192.168.0.118:41031` from the PC connected; the only TCP listener on the phone besides Shizuku's | `/proc/net/tcp6` `A047` | measured |
+| Discovery of `_adb-tls-connect._tcp` found **only the Redmi Note 9 Pro's** service (`adb-ebad528e-3DLiDu`, `Android.local.`, 38621) at 13:40:57, 13:55:42 and 13:56:47; this phone's own (`adb-f15a72e-m6pQX5`, `Android-2.local.`, 41031) only at 13:39:57, the one run that connected. `AdbMdns.find` rejects another device's record, silently, and then had nothing | `NsdService` lines in logcat | measured |
+| After the refusal ③ read *Work stopped* with **Open recovery options**, no Start: the branch chose its button from `RecoveryMaterial.read().any`, which earlier installs' records make true, though the refusal's own line says *tap Start again* and comes before the worker starts | screenshot 13:38, `MainActivity` | measured |
+
+**Change (debug code 84, signed with the patcher key and lineage, installed in place):** when discovery names no
+live port on this phone, `AdbMdns.scan` finds the ports something listens on in the kernel's ephemeral range (bind
+test) and takes the first that answers CNXN with STLS; `find` now traces each record it rejects. A shell provider's
+refusal (`WirelessDebugging.REFUSALS`, `RootWorkerStarter.REFUSALS`) leads ③ to Start. Unit test: the scan takes the
+STLS port and skips a closed port and a CNXN (`adb tcpip`) port; 86 unit tests pass.
+
+**On the phone:** ③ showed Start under the saved refusal. Start then connected both times by scan (trace 13:55:53 and
+13:56:58, *found wireless debugging on port 41031 by scan*), about 11.8 s each (the 10 s discovery wait, then about
+1.8 s of scan), and patched English over pristine 1.7.0.2: 391 text tables, 398 textures, 1 table skipped, a pristine
+delta of 14 files. **Verdict: pass.**
+
+## 2026-10-29 — Update cycle 1.7.0.2 -> 1.8.0.1 over an English install; Start during a background download — pass
+
+Xiaomi M2007J3SG (`f15a72e`, Android 12), Wireless debugging provider, game 1.1.1 / 774472, normal APK `29b3ee7e…`.
+Captures and compares in `D:\d\scratch\hok-update-cycle-3` (`update_cycle.py`).
+
+| Step | Evidence | Grade |
+|---|---|---|
+| English over pristine 1.7.0.2 (debug 84): 11 files in packages 1, 10, 1050016095, 15, 19, 20, 21; 391 tables, 398 textures, 1 table skipped | `after-patch` | measured |
+| The in-game update to 1.8.0.1 failed its merge on 46 assets of packages 1 and 10 (*PatchFileUpdate failed … record to broken*); FixFileJob ran (result 1) yet `BrokenList.db` still named 46; 217 files equal pristine 1.8.0.1; 15, 19, 20 mixed | `after-update`, `compare-patch-update.txt` | measured |
+| Start refused before any write: *update stopped on translated files: package 1 (45 assets), 10 (1 assets)*; 0 files changed | `after-refusal` | measured |
+| Re-download deleted 3 packages (9 files); the game downloaded them back to the login screen: `1/1.db` equals pristine 1.8.0.1, `BrokenList.db` empty, 26 new History records | `after-finish` | measured |
+| Start (debug 85) stopped in `estimate_snapshot_build` with `FileNotFoundError` for `packages/1060101007/1060101007.db`: the game was still downloading new 1.8.0.1 content, and the snapshot held the folder before its index. The worker recovered by itself (normal APK verified); ③ then offered only *Open recovery options*, no Start, because the retained normal APK makes `RecoveryMaterial.any` true for good | trace 15:07:26-15:08:11; folder whole at 15:14 | measured |
+| Start (debug 88): *Rebuilt 2 files from the pristine delta*; 6 replaced files carried none of the translation; asset restore wrote the original bytes back into packages 15, 19, 20; applied packages 1, 10, 1050016095, 15, 19, 20, 21. 391 tables, 398 textures, 1 table skipped, 0 textures skipped; a pristine delta of 14 files | trace 15:33:47-15:35:24 | measured |
+| After the run: 9 package files rewritten (1, 10, 15, 19, 20, 21), 102 files of 34 packages the game had downloaded meanwhile (`10601*`, `10602*`), `BrokenList.db` empty, `needDownloadSize` 0 | `compare-error-repatch.txt` | measured |
+
+**Changes:** debug 86 refuses a snapshot with a package folder missing its `<package>.db`
+(`android_bridge.DOWNLOAD_UNFINISHED`, checked in `estimate_snapshot_build` and with the stuck-update check) and shows
+③'s *Finish the game update* card. Debug 88: an `error` with nothing pending (no unfinished session, setup or emergency
+restore) gives ③ *Try again* and the matching line; the recovery options stay below. Debug 85 carries the 108
+1.8.0.1 strings. **Verdict: pass.** Not checked: the new strings on the game's screens.
