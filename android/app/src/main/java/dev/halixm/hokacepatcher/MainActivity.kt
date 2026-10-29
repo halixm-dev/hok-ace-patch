@@ -559,6 +559,9 @@ class MainActivity : Activity() {
         val result = state?.let { UiText.result(PatchLanguage.current(this), it) }
         // An older record without a step still shows its line.
         val step = state?.takeIf { live }?.let { UiText.step(PatchLanguage.current(this), it) }
+        val error = state?.optString("error").orEmpty()
+        val stop = StopCard.decide(state?.optString("status"), error, pending.getOrNull(), recoverable)
+        val stopLine = stop?.let { friendlyFailure(error, StopCard.pointsAtRecovery(it, recoverable)) }.orEmpty()
         when {
             // The step names where the run is; its free-text line is in the log.
             live -> home.show("Working on your game", step?.line ?: UiText.progress(this, state?.optString("progress",
@@ -582,35 +585,24 @@ class MainActivity : Activity() {
             // Space freed hands back plain Start; the other results offer another patch.
             result != null && !pending.getOrThrow() -> home.result(result,
                 if (state.optString("status") == "space_freed") "Start" else "Start another patch")
-            // The engine's refusal for an update stuck on translated files: ③ offers Re-download instead of a retry.
-            state?.optString("status") == "error" && state.optString("error").contains(UPDATE_STUCK) ->
+            stop == StopCard.Exit.REDOWNLOAD_STUCK ->
                 home.show("The game update is stuck", "The game could not update the files this patcher translated. " +
                     "Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
                     "Re-download damaged files", "redownload", false, GuidedHome.Stage.ATTENTION)
-            // Packages an update rewrote around the translation: the same way out as a stuck update.
-            state?.optString("status") == "error" && state.optString("error").contains(UPDATE_MIXED) ->
+            stop == StopCard.Exit.REDOWNLOAD_MIXED ->
                 home.show("Some game files are still translated", "A game update kept part of the earlier translation in some game files, so the patcher cannot restore them. " +
                     "Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
                     "Re-download damaged files", "redownload", false, GuidedHome.Stage.ATTENTION)
-            // After Re-download, or a package the game was still downloading: the same wait for the game.
-            state?.optString("status") == "error" && listOf(UPDATE_WAITING, DOWNLOAD_UNFINISHED).any { state.optString("error").contains(it) } ->
+            stop == StopCard.Exit.WAIT_FOR_GAME ->
                 home.show("Finish the game update", "Open the game and let it finish the update to the login screen. Close it, then tap Start to patch again.",
                     "Open game", "game", false, GuidedHome.Stage.ATTENTION)
-            // A shell provider's refusal comes before the worker starts, so no game file changed: ③ offers
-            // Start, as the refusal's own line says, whatever recovery records earlier installs left.
-            state?.optString("status") == "error" && providerRefusal(state.optString("error")) -> home.show("Work stopped",
-                friendlyFailure(state.optString("error"), recoverable), "Start", "start",
+            stop == StopCard.Exit.START -> home.show("Work stopped", stopLine, "Start", "start",
                 pending.getOrDefault(false), GuidedHome.Stage.ATTENTION)
-            // The run stopped and recovered itself, leaving no unfinished work: ③ offers a retry. The retained
-            // normal APK alone keeps recovery on offer below, so it must not take Start away (2026-10-29).
-            state?.optString("status") == "error" && pending.getOrNull() == false -> home.show("Work stopped",
-                friendlyFailure(state.optString("error"), recoverable = false), "Try again", "start",
+            stop == StopCard.Exit.TRY_AGAIN -> home.show("Work stopped", stopLine, "Try again", "start",
                 false, GuidedHome.Stage.ATTENTION)
             // With recovery on offer, ③ opens it rather than asking to try again against the recovery card.
-            state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped",
-                friendlyFailure(state?.optString("error").orEmpty(), recoverable),
-                if (recoverable) "Open recovery options" else "Try again", if (recoverable) "recovery_options" else "start",
-                recoverable, GuidedHome.Stage.ATTENTION)
+            stop == StopCard.Exit.RECOVERY -> home.show("Work stopped", stopLine, "Open recovery options",
+                "recovery_options", true, GuidedHome.Stage.ATTENTION)
             pending.getOrThrow() -> home.show("Finish your game safely", "We will check unfinished work and recover it before patching.", "Continue", "start", true, GuidedHome.Stage.ATTENTION)
             else -> home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
         }
@@ -619,11 +611,7 @@ class MainActivity : Activity() {
         home.providerEnabled(!busy && !live && !automatic)
         home.progress(live || (busy && automatic), step)
         buttons.forEach { it.isEnabled = !busy && !live && !automatic }
-        home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required") &&
-            listOf(UPDATE_STUCK, UPDATE_MIXED, UPDATE_WAITING, DOWNLOAD_UNFINISHED).none { state?.optString("error").orEmpty().contains(it) })
-            // A stop that recovered itself reads as ③ does: Try again, not recovery options.
-            friendlyFailure(state?.optString("error").orEmpty(), recoverable &&
-                !(state?.optString("status") == "error" && pending.getOrNull() == false)) else "")
+        home.resultMessage(if (!automatic && stop != null && !StopCard.ownCard(stop)) stopLine else "")
         home.errorDetails(when {
             live -> ""
             // The worker's own raw error first: the automatic flow also logs it, already explained, as an ERROR.
@@ -632,17 +620,13 @@ class MainActivity : Activity() {
         })
     }
 
-    /** True when <message> is a shell provider's refusal to start the worker, which comes before any game file is touched. */
-    private fun providerRefusal(message: String) =
-        (WirelessDebugging.REFUSALS + RootWorkerStarter.REFUSALS).any { message.contains(it) }
-
     private fun friendlyFailure(message: String,
                                 recoverable: Boolean = runCatching { RecoveryMaterial.read(this).any }.getOrDefault(true)): String {
         StorageBudget.explainFailure(message, filesDir.usableSpace)?.let { return UiText.storage(this, it) }
         if (message.contains("GB free for this step")) return UiText.storage(this, message.removePrefix("ERROR: "))
         return when {
             // The engine's way out it cannot avoid; its path names Android's Storage page, not a lack of space.
-            message.contains(CLEAR_DATA) ->
+            message.contains(StopCard.CLEAR_DATA) ->
                 "The patcher cannot restore the untranslated game files. Clear the game's data in Android Settings, open the game and let it download again to the login screen, close it, then tap Start. Open Technical tools for the reason."
             message.contains("space", true) || message.contains("storage", true) ->
                 ui("Free now:") + " ${StorageBudget.freeSpaceLabel(filesDir.usableSpace)}.\n" +
@@ -907,16 +891,6 @@ class MainActivity : Activity() {
     companion object {
         /** True while the patcher is on screen; a finished run then posts no notification. */
         @Volatile var shown = false
-        /**
-         * The engine's refusals that open Re-download and the update wait (`android_bridge.UPDATE_STUCK`,
-         * `UPDATE_MIXED`, `UPDATE_WAITING`, `DOWNLOAD_UNFINISHED`), and the start of its clear-data advice
-         * (`CLEAR_DATA`).
-         */
-        const val UPDATE_STUCK = "The game's update stopped on translated files"
-        const val UPDATE_MIXED = "A game update kept part of this patcher's translation"
-        const val CLEAR_DATA = "Clear the game's data (Android Settings"
-        const val UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
-        const val DOWNLOAD_UNFINISHED = "The game was still downloading game files"
     }
 
     private fun recoveryId(): String {
