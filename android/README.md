@@ -107,6 +107,8 @@ path), `ANDROID_RELEASE_STORE_PASSWORD`, `ANDROID_RELEASE_KEY_ALIAS` and `ANDROI
 and both debug and release builds sign with it. Gradle does not add the rotation lineage; before
 installing over a phone still on the previous key, run `tools/ci/sign_android.ps1 -Apk <apk>`.
 Without the variables, debug builds use this PC's SDK debug key and release builds stay unsigned.
+To build, sign and install a debug build on a phone over USB in one step, run
+`tools\ci\install_debug.ps1 -VersionCode <N>`; it reads the key from `~\.hok-ace-signing` by default.
 Keep the key stable; see [security/signing](../SECURITY.md). The checked-in Gradle 8.9 wrapper
 pins AGP 8.7.3, Kotlin 2.0.0, Chaquopy 17.0.0 and Shizuku API/provider 13.1.5.
 The Chaquopy build interpreter is the repository's `.venv/Scripts/python.exe`.
