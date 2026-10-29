@@ -36,6 +36,9 @@ RESTORE_TRIAL = "restore-trial"
 SLOT_OVERHEAD = 64
 SHARD_GROWTH = 0x4000
 UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
+# The start of the refusal for a package the game was still downloading when the snapshot was taken;
+# the UI shows the update wait on it too.
+DOWNLOAD_UNFINISHED = "The game was still downloading game files"
 
 
 class PatchError(Exception):
@@ -330,12 +333,27 @@ def _stuck_packages(session: Path, keep: Path, manifest: dict) -> dict[str, int]
             if package in ours}
 
 
+def _refuse_unfinished_download(packages: Path) -> None:
+    """Refuse a snapshot that holds a package folder without its index `<package>.db`.
+
+    The game creates the folder first and writes the index once the package is downloaded: Xiaomi
+    M2007J3SG, 2026-10-29, package 1060101007 had no index at the snapshot and a whole one minutes later.
+    """
+    unfinished = sorted((directory.name for directory in packages.iterdir() if directory.is_dir()
+                         and directory.name.isdecimal() and not (directory / f"{directory.name}.db").is_file()),
+                        key=int)
+    if unfinished:
+        raise PatchError(f"{DOWNLOAD_UNFINISHED}: package {', '.join(unfinished)}. Open the game, let it finish "
+                         "downloading to the login screen, close it, then patch again.")
+
+
 def _refuse_stuck_update(session: Path, keep: Path, manifest: dict) -> None:
     """Refuse, before any game file is written, a phone whose in-game update stopped on our files.
 
     Patching or removing over it leaves the update stuck; the game's own repair cannot converge on a
     translated package (lab notebook, 2026-10-22). `plan_redownload` is the way out.
     """
+    _refuse_unfinished_download(session / "snapshot" / "packages")
     marker = keep / REDOWNLOAD_NAME
     if marker.is_file():
         waiting = [package for package in json.loads(marker.read_text(encoding="utf-8"))["packages"]
@@ -522,6 +540,7 @@ def estimate_snapshot_build(engine_root: str, session_root: str, normal_apk: str
     catalog = _catalog(root, language)
     # Sizes only: `build_snapshot`, which runs next, verifies every file before the build reads it.
     manifest = read_manifest(session / "snapshot")
+    _refuse_unfinished_download(session / "snapshot" / "packages")
     delta = _read_delta(Path(keep_root)) if keep_root else None
     copy_bytes = _copy_bytes(delta, manifest)
     return json.dumps(estimate(session / "snapshot/packages", catalog, Path(normal_apk), manifest,

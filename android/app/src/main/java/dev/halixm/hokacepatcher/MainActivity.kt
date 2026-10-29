@@ -592,9 +592,20 @@ class MainActivity : Activity() {
                 home.show("Some game files are still translated", "A game update kept part of the earlier translation in some game files, so the patcher cannot restore them. " +
                     "Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
                     "Re-download damaged files", "redownload", false, GuidedHome.Stage.ATTENTION)
-            state?.optString("status") == "error" && state.optString("error").contains(UPDATE_WAITING) ->
+            // After Re-download, or a package the game was still downloading: the same wait for the game.
+            state?.optString("status") == "error" && listOf(UPDATE_WAITING, DOWNLOAD_UNFINISHED).any { state.optString("error").contains(it) } ->
                 home.show("Finish the game update", "Open the game and let it finish the update to the login screen. Close it, then tap Start to patch again.",
                     "Open game", "game", false, GuidedHome.Stage.ATTENTION)
+            // A shell provider's refusal comes before the worker starts, so no game file changed: ③ offers
+            // Start, as the refusal's own line says, whatever recovery records earlier installs left.
+            state?.optString("status") == "error" && providerRefusal(state.optString("error")) -> home.show("Work stopped",
+                friendlyFailure(state.optString("error"), recoverable), "Start", "start",
+                pending.getOrDefault(false), GuidedHome.Stage.ATTENTION)
+            // The run stopped and recovered itself, leaving no unfinished work: ③ offers a retry. The retained
+            // normal APK alone keeps recovery on offer below, so it must not take Start away (2026-10-29).
+            state?.optString("status") == "error" && pending.getOrNull() == false -> home.show("Work stopped",
+                friendlyFailure(state.optString("error"), recoverable = false), "Try again", "start",
+                false, GuidedHome.Stage.ATTENTION)
             // With recovery on offer, ③ opens it rather than asking to try again against the recovery card.
             state?.optString("status") in setOf("error", "recovery_required") -> home.show("Work stopped",
                 friendlyFailure(state?.optString("error").orEmpty(), recoverable),
@@ -609,8 +620,10 @@ class MainActivity : Activity() {
         home.progress(live || (busy && automatic), step)
         buttons.forEach { it.isEnabled = !busy && !live && !automatic }
         home.resultMessage(if (!automatic && state?.optString("status") in setOf("error", "recovery_required") &&
-            listOf(UPDATE_STUCK, UPDATE_MIXED, UPDATE_WAITING).none { state?.optString("error").orEmpty().contains(it) })
-            friendlyFailure(state?.optString("error").orEmpty(), recoverable) else "")
+            listOf(UPDATE_STUCK, UPDATE_MIXED, UPDATE_WAITING, DOWNLOAD_UNFINISHED).none { state?.optString("error").orEmpty().contains(it) })
+            // A stop that recovered itself reads as ③ does: Try again, not recovery options.
+            friendlyFailure(state?.optString("error").orEmpty(), recoverable &&
+                !(state?.optString("status") == "error" && pending.getOrNull() == false)) else "")
         home.errorDetails(when {
             live -> ""
             // The worker's own raw error first: the automatic flow also logs it, already explained, as an ERROR.
@@ -618,6 +631,10 @@ class MainActivity : Activity() {
             else -> lastTaskError
         })
     }
+
+    /** True when <message> is a shell provider's refusal to start the worker, which comes before any game file is touched. */
+    private fun providerRefusal(message: String) =
+        (WirelessDebugging.REFUSALS + RootWorkerStarter.REFUSALS).any { message.contains(it) }
 
     private fun friendlyFailure(message: String,
                                 recoverable: Boolean = runCatching { RecoveryMaterial.read(this).any }.getOrDefault(true)): String {
@@ -892,12 +909,14 @@ class MainActivity : Activity() {
         @Volatile var shown = false
         /**
          * The engine's refusals that open Re-download and the update wait (`android_bridge.UPDATE_STUCK`,
-         * `UPDATE_MIXED`, `UPDATE_WAITING`), and the start of its clear-data advice (`CLEAR_DATA`).
+         * `UPDATE_MIXED`, `UPDATE_WAITING`, `DOWNLOAD_UNFINISHED`), and the start of its clear-data advice
+         * (`CLEAR_DATA`).
          */
         const val UPDATE_STUCK = "The game's update stopped on translated files"
         const val UPDATE_MIXED = "A game update kept part of this patcher's translation"
         const val CLEAR_DATA = "Clear the game's data (Android Settings"
         const val UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
+        const val DOWNLOAD_UNFINISHED = "The game was still downloading game files"
     }
 
     private fun recoveryId(): String {

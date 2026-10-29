@@ -1,7 +1,7 @@
 ---
 feature: android-shell-providers
 status: building; ticket 03 device test requested
-updated: 2026-10-24
+updated: 2026-10-29
 ---
 
 # Android patcher shell providers
@@ -32,6 +32,7 @@ tickets 02 and 03 passed on the same phone, and passed again in an independent r
 - The tests' minor findings fixed: the wireless connection log names no port before it finds one and gives a lost connection's exception type instead of `null`; a root run's result says *The game app was not replaced* instead of naming the normal app; under Root a retained normal APK alone no longer offers *Reinstall saved game app* (a pending emergency restore still does). Tickets 01–03 resolved (2026-10-24).
 - Ticket 04 on the KernelSU phone: Shizuku then Root and Root then Shizuku share one pristine delta (identical but for its time), and a Wireless debugging run completes under deep Doze with the screen off (2026-10-24).
 - A provider lost during prepare now reports itself: the cancelled prepare carries *<provider> disconnected*, and ③ shows *Wireless debugging disconnected. No game files changed…* or *Root access stopped. No game files changed…*, leading back to Start. ③ also reads *Turn on wireless debugging* while the switch is off, not *Ready when you are* (2026-10-24).
+- On an Android 12 Xiaomi, discovery kept finding only another phone's wireless debugging service on the same Wi-Fi, so Start refused with *Wireless debugging is off* while it was on; the port is now found by scan when discovery names none on this phone (`AdbMdns.scan`: a listener in the ephemeral range that answers CNXN with STLS). A provider's refusal now leads ③ to Start instead of recovery options. Passed on that phone (2026-10-29).
 
 ## [S1] Problem
 
