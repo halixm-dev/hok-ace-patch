@@ -21,9 +21,11 @@ Three kinds of change, all keyed by the Chinese source string in a catalog's `un
   Card or a count of cards is played ("play a Hero Card", "Play 8 different Cards"), every other card and
   everything else is used ("use a Tactics Card", "Use on a friendly Hero", "use Ancient Coins"), as the
   catalog's own reviewed strings read, and the noun uses ("Usage Rules", "upon Usage") stay. It also
-  capitalises the auction-round label, which upstream writes "auction" (第2回合, 首轮拍卖, … in the
-  match HUD's round line); `catalog_rewrites.json` carries the Indonesian "lelang" the same way, as
-  "Lelang". It applies to the English catalog's `unique` values and
+  capitalises the leftover lowercase "auction" (拍卖效果牌养王牌). The match HUD's round line names
+  battle rounds 第N回合 and auctions 首轮拍卖 / 第N轮拍卖 / 最后一轮拍卖 apart, but upstream numbers 第N回合
+  as if auctions were not rounds (第2回合 "auction", 第3回合 "Round 2"); `catalog_rewrites.json` carries
+  each literally in both catalogs ("Round N", "Round N - Blazing", "Auction N", "Final Auction"), short
+  enough for the HUD's round columns. It applies to the English catalog's `unique` values and
   to each `english_updates` row's new text, never to the row's previous text, which identifies the row.
 
 Edits only the named `unique` entries, byte-for-byte in the decompressed JSON, and checks that nothing

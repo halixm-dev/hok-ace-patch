@@ -3528,36 +3528,774 @@
   "id": "Pengumuman"
  },
  "回合10": {
-  "id": "Lelang"
+  "en": "Round 10",
+  "id": "Ronde 10"
  },
  "拍卖效果牌养王牌": {
   "id": "Lelang"
  },
  "最后一轮拍卖": {
-  "id": "Lelang"
+  "en": "Final Auction",
+  "id": "Lelang Terakhir"
  },
  "第10回合": {
-  "id": "Lelang"
+  "en": "Round 10",
+  "id": "Ronde 10"
  },
  "第13回合": {
-  "id": "Lelang"
+  "en": "Round 13",
+  "id": "Ronde 13"
  },
  "第13回合-炽热": {
-  "id": "Lelang"
+  "en": "Round 13 - Blazing",
+  "id": "Ronde 13 - Blazing"
  },
  "第2回合": {
-  "id": "Lelang"
+  "en": "Round 2",
+  "id": "Ronde 2"
  },
  "第5回合": {
-  "id": "Lelang"
+  "en": "Round 5",
+  "id": "Ronde 5"
  },
  "第7回合": {
-  "id": "Lelang"
+  "en": "Round 7",
+  "id": "Ronde 7"
  },
  "第8回合": {
-  "id": "Lelang"
+  "en": "Round 8",
+  "id": "Ronde 8"
  },
  "首轮拍卖": {
-  "id": "Lelang"
+  "en": "Auction 1",
+  "id": "Lelang 1"
+ },
+ "回合11": {
+  "en": "Round 11",
+  "id": "Ronde 11"
+ },
+ "回合42-炽热": {
+  "en": "Round 42 - Blazing",
+  "id": "Ronde 42 - Blazing"
+ },
+ "回合44-炽热": {
+  "en": "Round 44 - Blazing",
+  "id": "Ronde 44 - Blazing"
+ },
+ "回合46-炽热": {
+  "en": "Round 46 - Blazing",
+  "id": "Ronde 46 - Blazing"
+ },
+ "回合47-炽热": {
+  "en": "Round 47 - Blazing",
+  "id": "Ronde 47 - Blazing"
+ },
+ "回合48-炽热": {
+  "en": "Round 48 - Blazing",
+  "id": "Ronde 48 - Blazing"
+ },
+ "回合49-炽热": {
+  "en": "Round 49 - Blazing",
+  "id": "Ronde 49 - Blazing"
+ },
+ "回合51-炽热": {
+  "en": "Round 51 - Blazing",
+  "id": "Ronde 51 - Blazing"
+ },
+ "回合59-炽热": {
+  "en": "Round 59 - Blazing",
+  "id": "Ronde 59 - Blazing"
+ },
+ "回合61-炽热": {
+  "en": "Round 61 - Blazing",
+  "id": "Ronde 61 - Blazing"
+ },
+ "回合62-炽热": {
+  "en": "Round 62 - Blazing",
+  "id": "Ronde 62 - Blazing"
+ },
+ "回合64-炽热": {
+  "en": "Round 64 - Blazing",
+  "id": "Ronde 64 - Blazing"
+ },
+ "回合66-炽热": {
+  "en": "Round 66 - Blazing",
+  "id": "Ronde 66 - Blazing"
+ },
+ "回合67-炽热": {
+  "en": "Round 67 - Blazing",
+  "id": "Ronde 67 - Blazing"
+ },
+ "回合68-炽热": {
+  "en": "Round 68 - Blazing",
+  "id": "Ronde 68 - Blazing"
+ },
+ "回合9": {
+  "en": "Round 9",
+  "id": "Ronde 9"
+ },
+ "第11回合": {
+  "en": "Round 11",
+  "id": "Ronde 11"
+ },
+ "第12回合": {
+  "en": "Round 12",
+  "id": "Ronde 12"
+ },
+ "第12回合-炽热": {
+  "en": "Round 12 - Blazing",
+  "id": "Ronde 12 - Blazing"
+ },
+ "第14回合": {
+  "en": "Round 14",
+  "id": "Ronde 14"
+ },
+ "第14回合-炽热": {
+  "en": "Round 14 - Blazing",
+  "id": "Ronde 14 - Blazing"
+ },
+ "第15回合": {
+  "en": "Round 15",
+  "id": "Ronde 15"
+ },
+ "第15回合-炽热": {
+  "en": "Round 15 - Blazing",
+  "id": "Ronde 15 - Blazing"
+ },
+ "第16回合": {
+  "en": "Round 16",
+  "id": "Ronde 16"
+ },
+ "第16回合-炽热": {
+  "en": "Round 16 - Blazing",
+  "id": "Ronde 16 - Blazing"
+ },
+ "第17回合": {
+  "en": "Round 17",
+  "id": "Ronde 17"
+ },
+ "第17回合-炽热": {
+  "en": "Round 17 - Blazing",
+  "id": "Ronde 17 - Blazing"
+ },
+ "第18回合": {
+  "en": "Round 18",
+  "id": "Ronde 18"
+ },
+ "第18回合-炽热": {
+  "en": "Round 18 - Blazing",
+  "id": "Ronde 18 - Blazing"
+ },
+ "第19回合": {
+  "en": "Round 19",
+  "id": "Ronde 19"
+ },
+ "第19回合-炽热": {
+  "en": "Round 19 - Blazing",
+  "id": "Ronde 19 - Blazing"
+ },
+ "第20回合": {
+  "en": "Round 20",
+  "id": "Ronde 20"
+ },
+ "第20回合-炽热": {
+  "en": "Round 20 - Blazing",
+  "id": "Ronde 20 - Blazing"
+ },
+ "第21回合": {
+  "en": "Round 21",
+  "id": "Ronde 21"
+ },
+ "第21回合-炽热": {
+  "en": "Round 21 - Blazing",
+  "id": "Ronde 21 - Blazing"
+ },
+ "第22回合": {
+  "en": "Round 22",
+  "id": "Ronde 22"
+ },
+ "第22回合-炽热": {
+  "en": "Round 22 - Blazing",
+  "id": "Ronde 22 - Blazing"
+ },
+ "第23回合": {
+  "en": "Round 23",
+  "id": "Ronde 23"
+ },
+ "第23回合-炽热": {
+  "en": "Round 23 - Blazing",
+  "id": "Ronde 23 - Blazing"
+ },
+ "第24回合": {
+  "en": "Round 24",
+  "id": "Ronde 24"
+ },
+ "第24回合-炽热": {
+  "en": "Round 24 - Blazing",
+  "id": "Ronde 24 - Blazing"
+ },
+ "第25回合": {
+  "en": "Round 25",
+  "id": "Ronde 25"
+ },
+ "第25回合-炽热": {
+  "en": "Round 25 - Blazing",
+  "id": "Ronde 25 - Blazing"
+ },
+ "第26回合": {
+  "en": "Round 26",
+  "id": "Ronde 26"
+ },
+ "第26回合-炽热": {
+  "en": "Round 26 - Blazing",
+  "id": "Ronde 26 - Blazing"
+ },
+ "第27回合": {
+  "en": "Round 27",
+  "id": "Ronde 27"
+ },
+ "第27回合-炽热": {
+  "en": "Round 27 - Blazing",
+  "id": "Ronde 27 - Blazing"
+ },
+ "第28回合": {
+  "en": "Round 28",
+  "id": "Ronde 28"
+ },
+ "第28回合-炽热": {
+  "en": "Round 28 - Blazing",
+  "id": "Ronde 28 - Blazing"
+ },
+ "第29回合": {
+  "en": "Round 29",
+  "id": "Ronde 29"
+ },
+ "第29回合-炽热": {
+  "en": "Round 29 - Blazing",
+  "id": "Ronde 29 - Blazing"
+ },
+ "第30回合": {
+  "en": "Round 30",
+  "id": "Ronde 30"
+ },
+ "第30回合-炽热": {
+  "en": "Round 30 - Blazing",
+  "id": "Ronde 30 - Blazing"
+ },
+ "第31回合": {
+  "en": "Round 31",
+  "id": "Ronde 31"
+ },
+ "第31回合-炽热": {
+  "en": "Round 31 - Blazing",
+  "id": "Ronde 31 - Blazing"
+ },
+ "第32回合": {
+  "en": "Round 32",
+  "id": "Ronde 32"
+ },
+ "第32回合-炽热": {
+  "en": "Round 32 - Blazing",
+  "id": "Ronde 32 - Blazing"
+ },
+ "第33回合": {
+  "en": "Round 33",
+  "id": "Ronde 33"
+ },
+ "第33回合-炽热": {
+  "en": "Round 33 - Blazing",
+  "id": "Ronde 33 - Blazing"
+ },
+ "第34回合": {
+  "en": "Round 34",
+  "id": "Ronde 34"
+ },
+ "第34回合-炽热": {
+  "en": "Round 34 - Blazing",
+  "id": "Ronde 34 - Blazing"
+ },
+ "第35回合": {
+  "en": "Round 35",
+  "id": "Ronde 35"
+ },
+ "第35回合-炽热": {
+  "en": "Round 35 - Blazing",
+  "id": "Ronde 35 - Blazing"
+ },
+ "第36回合": {
+  "en": "Round 36",
+  "id": "Ronde 36"
+ },
+ "第36回合-炽热": {
+  "en": "Round 36 - Blazing",
+  "id": "Ronde 36 - Blazing"
+ },
+ "第37回合": {
+  "en": "Round 37",
+  "id": "Ronde 37"
+ },
+ "第37回合-炽热": {
+  "en": "Round 37 - Blazing",
+  "id": "Ronde 37 - Blazing"
+ },
+ "第38回合": {
+  "en": "Round 38",
+  "id": "Ronde 38"
+ },
+ "第38回合-炽热": {
+  "en": "Round 38 - Blazing",
+  "id": "Ronde 38 - Blazing"
+ },
+ "第39回合": {
+  "en": "Round 39",
+  "id": "Ronde 39"
+ },
+ "第39回合-炽热": {
+  "en": "Round 39 - Blazing",
+  "id": "Ronde 39 - Blazing"
+ },
+ "第3回合": {
+  "en": "Round 3",
+  "id": "Ronde 3"
+ },
+ "第40回合": {
+  "en": "Round 40",
+  "id": "Ronde 40"
+ },
+ "第40回合-炽热": {
+  "en": "Round 40 - Blazing",
+  "id": "Ronde 40 - Blazing"
+ },
+ "第41回合": {
+  "en": "Round 41",
+  "id": "Ronde 41"
+ },
+ "第41回合-炽热": {
+  "en": "Round 41 - Blazing",
+  "id": "Ronde 41 - Blazing"
+ },
+ "第42回合": {
+  "en": "Round 42",
+  "id": "Ronde 42"
+ },
+ "第42回合-炽热": {
+  "en": "Round 42 - Blazing",
+  "id": "Ronde 42 - Blazing"
+ },
+ "第43回合": {
+  "en": "Round 43",
+  "id": "Ronde 43"
+ },
+ "第43回合-炽热": {
+  "en": "Round 43 - Blazing",
+  "id": "Ronde 43 - Blazing"
+ },
+ "第44回合": {
+  "en": "Round 44",
+  "id": "Ronde 44"
+ },
+ "第44回合-炽热": {
+  "en": "Round 44 - Blazing",
+  "id": "Ronde 44 - Blazing"
+ },
+ "第45回合": {
+  "en": "Round 45",
+  "id": "Ronde 45"
+ },
+ "第45回合-炽热": {
+  "en": "Round 45 - Blazing",
+  "id": "Ronde 45 - Blazing"
+ },
+ "第46回合": {
+  "en": "Round 46",
+  "id": "Ronde 46"
+ },
+ "第46回合-炽热": {
+  "en": "Round 46 - Blazing",
+  "id": "Ronde 46 - Blazing"
+ },
+ "第47回合": {
+  "en": "Round 47",
+  "id": "Ronde 47"
+ },
+ "第47回合-炽热": {
+  "en": "Round 47 - Blazing",
+  "id": "Ronde 47 - Blazing"
+ },
+ "第48回合": {
+  "en": "Round 48",
+  "id": "Ronde 48"
+ },
+ "第48回合-炽热": {
+  "en": "Round 48 - Blazing",
+  "id": "Ronde 48 - Blazing"
+ },
+ "第49回合": {
+  "en": "Round 49",
+  "id": "Ronde 49"
+ },
+ "第49回合-炽热": {
+  "en": "Round 49 - Blazing",
+  "id": "Ronde 49 - Blazing"
+ },
+ "第4回合": {
+  "en": "Round 4",
+  "id": "Ronde 4"
+ },
+ "第50回合": {
+  "en": "Round 50",
+  "id": "Ronde 50"
+ },
+ "第50回合-炽热": {
+  "en": "Round 50 - Blazing",
+  "id": "Ronde 50 - Blazing"
+ },
+ "第51回合": {
+  "en": "Round 51",
+  "id": "Ronde 51"
+ },
+ "第51回合-炽热": {
+  "en": "Round 51 - Blazing",
+  "id": "Ronde 51 - Blazing"
+ },
+ "第52回合": {
+  "en": "Round 52",
+  "id": "Ronde 52"
+ },
+ "第52回合-炽热": {
+  "en": "Round 52 - Blazing",
+  "id": "Ronde 52 - Blazing"
+ },
+ "第53回合": {
+  "en": "Round 53",
+  "id": "Ronde 53"
+ },
+ "第53回合-炽热": {
+  "en": "Round 53 - Blazing",
+  "id": "Ronde 53 - Blazing"
+ },
+ "第54回合": {
+  "en": "Round 54",
+  "id": "Ronde 54"
+ },
+ "第54回合-炽热": {
+  "en": "Round 54 - Blazing",
+  "id": "Ronde 54 - Blazing"
+ },
+ "第55回合": {
+  "en": "Round 55",
+  "id": "Ronde 55"
+ },
+ "第55回合-炽热": {
+  "en": "Round 55 - Blazing",
+  "id": "Ronde 55 - Blazing"
+ },
+ "第56回合": {
+  "en": "Round 56",
+  "id": "Ronde 56"
+ },
+ "第56回合-炽热": {
+  "en": "Round 56 - Blazing",
+  "id": "Ronde 56 - Blazing"
+ },
+ "第57回合": {
+  "en": "Round 57",
+  "id": "Ronde 57"
+ },
+ "第57回合-炽热": {
+  "en": "Round 57 - Blazing",
+  "id": "Ronde 57 - Blazing"
+ },
+ "第58回合": {
+  "en": "Round 58",
+  "id": "Ronde 58"
+ },
+ "第58回合-炽热": {
+  "en": "Round 58 - Blazing",
+  "id": "Ronde 58 - Blazing"
+ },
+ "第59回合": {
+  "en": "Round 59",
+  "id": "Ronde 59"
+ },
+ "第59回合-炽热": {
+  "en": "Round 59 - Blazing",
+  "id": "Ronde 59 - Blazing"
+ },
+ "第60回合": {
+  "en": "Round 60",
+  "id": "Ronde 60"
+ },
+ "第60回合-炽热": {
+  "en": "Round 60 - Blazing",
+  "id": "Ronde 60 - Blazing"
+ },
+ "第61回合": {
+  "en": "Round 61",
+  "id": "Ronde 61"
+ },
+ "第61回合-炽热": {
+  "en": "Round 61 - Blazing",
+  "id": "Ronde 61 - Blazing"
+ },
+ "第62回合": {
+  "en": "Round 62",
+  "id": "Ronde 62"
+ },
+ "第62回合-炽热": {
+  "en": "Round 62 - Blazing",
+  "id": "Ronde 62 - Blazing"
+ },
+ "第63回合": {
+  "en": "Round 63",
+  "id": "Ronde 63"
+ },
+ "第63回合-炽热": {
+  "en": "Round 63 - Blazing",
+  "id": "Ronde 63 - Blazing"
+ },
+ "第64回合": {
+  "en": "Round 64",
+  "id": "Ronde 64"
+ },
+ "第64回合-炽热": {
+  "en": "Round 64 - Blazing",
+  "id": "Ronde 64 - Blazing"
+ },
+ "第65回合": {
+  "en": "Round 65",
+  "id": "Ronde 65"
+ },
+ "第65回合-炽热": {
+  "en": "Round 65 - Blazing",
+  "id": "Ronde 65 - Blazing"
+ },
+ "第6回合": {
+  "en": "Round 6",
+  "id": "Ronde 6"
+ },
+ "第9回合": {
+  "en": "Round 9",
+  "id": "Ronde 9"
+ },
+ "第一轮拍卖": {
+  "en": "Auction 1",
+  "id": "Lelang 1"
+ },
+ "第七轮拍卖": {
+  "en": "Auction 7",
+  "id": "Lelang 7"
+ },
+ "第三轮拍卖": {
+  "en": "Auction 3",
+  "id": "Lelang 3"
+ },
+ "第九轮拍卖": {
+  "en": "Auction 9",
+  "id": "Lelang 9"
+ },
+ "第二轮拍卖": {
+  "en": "Auction 2",
+  "id": "Lelang 2"
+ },
+ "第五轮拍卖": {
+  "en": "Auction 5",
+  "id": "Lelang 5"
+ },
+ "第八轮拍卖": {
+  "en": "Auction 8",
+  "id": "Lelang 8"
+ },
+ "第六轮拍卖": {
+  "en": "Auction 6",
+  "id": "Lelang 6"
+ },
+ "第四轮拍卖": {
+  "en": "Auction 4",
+  "id": "Lelang 4"
+ },
+ "回合10-炽热": {
+  "en": "Round 10 - Blazing",
+  "id": "Ronde 10 - Blazing"
+ },
+ "回合11-炽热": {
+  "en": "Round 11 - Blazing",
+  "id": "Ronde 11 - Blazing"
+ },
+ "回合12-炽热": {
+  "en": "Round 12 - Blazing",
+  "id": "Ronde 12 - Blazing"
+ },
+ "回合13-炽热": {
+  "en": "Round 13 - Blazing",
+  "id": "Ronde 13 - Blazing"
+ },
+ "回合14-炽热": {
+  "en": "Round 14 - Blazing",
+  "id": "Ronde 14 - Blazing"
+ },
+ "回合15-炽热": {
+  "en": "Round 15 - Blazing",
+  "id": "Ronde 15 - Blazing"
+ },
+ "回合16-炽热": {
+  "en": "Round 16 - Blazing",
+  "id": "Ronde 16 - Blazing"
+ },
+ "回合17-炽热": {
+  "en": "Round 17 - Blazing",
+  "id": "Ronde 17 - Blazing"
+ },
+ "回合18-炽热": {
+  "en": "Round 18 - Blazing",
+  "id": "Ronde 18 - Blazing"
+ },
+ "回合19-炽热": {
+  "en": "Round 19 - Blazing",
+  "id": "Ronde 19 - Blazing"
+ },
+ "回合20-炽热": {
+  "en": "Round 20 - Blazing",
+  "id": "Ronde 20 - Blazing"
+ },
+ "回合21-炽热": {
+  "en": "Round 21 - Blazing",
+  "id": "Ronde 21 - Blazing"
+ },
+ "回合22-炽热": {
+  "en": "Round 22 - Blazing",
+  "id": "Ronde 22 - Blazing"
+ },
+ "回合23-炽热": {
+  "en": "Round 23 - Blazing",
+  "id": "Ronde 23 - Blazing"
+ },
+ "回合24-炽热": {
+  "en": "Round 24 - Blazing",
+  "id": "Ronde 24 - Blazing"
+ },
+ "回合25-炽热": {
+  "en": "Round 25 - Blazing",
+  "id": "Ronde 25 - Blazing"
+ },
+ "回合26-炽热": {
+  "en": "Round 26 - Blazing",
+  "id": "Ronde 26 - Blazing"
+ },
+ "回合27-炽热": {
+  "en": "Round 27 - Blazing",
+  "id": "Ronde 27 - Blazing"
+ },
+ "回合28-炽热": {
+  "en": "Round 28 - Blazing",
+  "id": "Ronde 28 - Blazing"
+ },
+ "回合29-炽热": {
+  "en": "Round 29 - Blazing",
+  "id": "Ronde 29 - Blazing"
+ },
+ "回合30-炽热": {
+  "en": "Round 30 - Blazing",
+  "id": "Ronde 30 - Blazing"
+ },
+ "回合31-炽热": {
+  "en": "Round 31 - Blazing",
+  "id": "Ronde 31 - Blazing"
+ },
+ "回合32-炽热": {
+  "en": "Round 32 - Blazing",
+  "id": "Ronde 32 - Blazing"
+ },
+ "回合33-炽热": {
+  "en": "Round 33 - Blazing",
+  "id": "Ronde 33 - Blazing"
+ },
+ "回合34-炽热": {
+  "en": "Round 34 - Blazing",
+  "id": "Ronde 34 - Blazing"
+ },
+ "回合35-炽热": {
+  "en": "Round 35 - Blazing",
+  "id": "Ronde 35 - Blazing"
+ },
+ "回合36-炽热": {
+  "en": "Round 36 - Blazing",
+  "id": "Ronde 36 - Blazing"
+ },
+ "回合37-炽热": {
+  "en": "Round 37 - Blazing",
+  "id": "Ronde 37 - Blazing"
+ },
+ "回合38-炽热": {
+  "en": "Round 38 - Blazing",
+  "id": "Ronde 38 - Blazing"
+ },
+ "回合39-炽热": {
+  "en": "Round 39 - Blazing",
+  "id": "Ronde 39 - Blazing"
+ },
+ "回合40-炽热": {
+  "en": "Round 40 - Blazing",
+  "id": "Ronde 40 - Blazing"
+ },
+ "回合41-炽热": {
+  "en": "Round 41 - Blazing",
+  "id": "Ronde 41 - Blazing"
+ },
+ "回合43-炽热": {
+  "en": "Round 43 - Blazing",
+  "id": "Ronde 43 - Blazing"
+ },
+ "回合45-炽热": {
+  "en": "Round 45 - Blazing",
+  "id": "Ronde 45 - Blazing"
+ },
+ "回合50-炽热": {
+  "en": "Round 50 - Blazing",
+  "id": "Ronde 50 - Blazing"
+ },
+ "回合52-炽热": {
+  "en": "Round 52 - Blazing",
+  "id": "Ronde 52 - Blazing"
+ },
+ "回合53-炽热": {
+  "en": "Round 53 - Blazing",
+  "id": "Ronde 53 - Blazing"
+ },
+ "回合54-炽热": {
+  "en": "Round 54 - Blazing",
+  "id": "Ronde 54 - Blazing"
+ },
+ "回合55-炽热": {
+  "en": "Round 55 - Blazing",
+  "id": "Ronde 55 - Blazing"
+ },
+ "回合56-炽热": {
+  "en": "Round 56 - Blazing",
+  "id": "Ronde 56 - Blazing"
+ },
+ "回合57-炽热": {
+  "en": "Round 57 - Blazing",
+  "id": "Ronde 57 - Blazing"
+ },
+ "回合58-炽热": {
+  "en": "Round 58 - Blazing",
+  "id": "Ronde 58 - Blazing"
+ },
+ "回合60-炽热": {
+  "en": "Round 60 - Blazing",
+  "id": "Ronde 60 - Blazing"
+ },
+ "回合63-炽热": {
+  "en": "Round 63 - Blazing",
+  "id": "Ronde 63 - Blazing"
+ },
+ "回合65-炽热": {
+  "en": "Round 65 - Blazing",
+  "id": "Ronde 65 - Blazing"
+ },
+ "回合9-炽热": {
+  "en": "Round 9 - Blazing",
+  "id": "Ronde 9 - Blazing"
  }
 }
