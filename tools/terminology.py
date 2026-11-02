@@ -83,6 +83,14 @@ class Term:
         return replacement[:1].lower() + replacement[1:]
 
 
+_CHESSPLAYER = (
+    (r"(?i:\bchess[ -]*players\b)", "Chessplayers"),
+    (r"(?i:\bchess[ -]*player\b)", "Chessplayer"),
+)
+# "hess player"/"hess Player" are the English sources of two update rows; 参赛选手 (a line of dialogue)
+# and 角色语音 (the voice setting) read "chess player" too.
+_CHESSPLAYER_SOURCES = ("棋手", "骑手", "棋友", "hess player", "hess Player", "参赛选手", "角色语音")
+
 ENGLISH_TERMS: tuple[Term, ...] = (
     # 合成: the href=13 keyword on Yao reads "upgraded" once in English and
     # "Combine" in Indonesian. Match the label itself; prose upgrades still mean levels.
@@ -126,6 +134,11 @@ ENGLISH_TERMS: tuple[Term, ...] = (
         (r"(?P<w>\b(?i:praying)\b)", "Wishing"),
         (r"(?P<w>\b(?i:pray)\b)", "Wish"),
     )),
+    # 棋手: the player's avatar, the catalog's own label "Chessplayer" (Indonesian kept it in English at
+    # the user's choice). Card texts also write "chess player", "Chess Player" or "chessplayers", the
+    # Soaring High card among them. 骑手 (国服骑手, the national-server Chessplayer frame) and 棋友 are the
+    # same word to a reader, as are the few other sources whose English says "chess player".
+    *(Term(source, "Chessplayer", _CHESSPLAYER, proper=True) for source in _CHESSPLAYER_SOURCES),
 )
 
 def _indonesian_series(match: re.Match) -> str:
@@ -147,6 +160,12 @@ INDONESIAN_TERMS: tuple[Term, ...] = ENGLISH_TERMS + (
     Term("整备", "Prepare", (
         (r"(?<=╬)Siap\b", "Prepare"),
     )),
+    # 棋手 also reads "pemain catur" (chess player in Indonesian), Soaring High's card among them; the
+    # name takes no English plural here ("Chessplayer lain").
+    *(Term(source, "Chessplayer", (
+        (r"(?i:\bpemain catur\b)", "Chessplayer"),
+        (r"\bChessplayers\b", "Chessplayer"),
+    ), proper=True) for source in _CHESSPLAYER_SOURCES),
     # 系列 (a keyword's series): the catalog writes "Seri General" 55 times and "Seri Summon" 8, but
     # "Prepare Series", "Initiate Series", "Deploy Series" and a dozen more in the English order. The
     # name is the run of capitalised words before "Series" ("Temporary Level Series"), or one

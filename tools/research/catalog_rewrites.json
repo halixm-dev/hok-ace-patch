@@ -4297,5 +4297,28 @@
  "回合9-炽热": {
   "en": "Round 9 - Blazing",
   "id": "Ronde 9 - Blazing"
+ },
+ "获得2张<color=#ffffff><b>名刀·司命</b></color>。你的{LordHp}本局第一次降至0时，不会被淘汰，并保留{1|1}{LordHp}。": {
+  "en": "Gain 2 <color=#ffffff><b>Destiny</b></color>. The first time your {LordHp} falls to 0 this match, you are not Eliminated and retain {1|1}{LordHp}.",
+  "id": "Dapatkan 2 <color=#ffffff><b>Destiny</b></color>. Saat {LordHp} kamu pertama kali turun ke 0 di pertandingan ini, kamu tidak tereliminasi dan tetap memiliki {1|1}{LordHp}."
+ },
+ "获得2张<color=#ffffff><b>名刀·司命</b></color>。你的{LordHp}第一次降至0时，不会被淘汰，并保留{1|1}{LordHp}。": {
+  "en": "Gain 2 <color=#ffffff><b>Destiny</b></color>. The first time your {LordHp} falls to 0, you are not Eliminated and retain {1|1}{LordHp}.",
+  "id": "Dapatkan 2 <color=#ffffff><b>Destiny</b></color>. Saat {LordHp} kamu pertama kali turun ke 0, kamu tidak tereliminasi dan tetap memiliki {1|1}{LordHp}."
+ },
+ "获得3张名刀·司命。下一场对战你的棋手不会被淘汰。": {
+  "en": "Gain 3 Destiny. Your Chessplayer is not Eliminated in the next battle.",
+  "id": "Dapatkan 3 Destiny. Chessplayer kamu tidak tereliminasi di pertarungan berikutnya."
+ },
+ "指定英雄穿戴，可从征服之剑、冥王、名刀·司命、红魔中选择1件。": {
+  "en": "Equip to a chosen Hero to choose 1 item from: Sword of Conquest, Underworld King, Destiny, or Red Demon.",
+  "id": "Pasang pada Hero pilihan untuk memilih 1 item dari: Sword of Conquest, Underworld King, Destiny, atau Red Demon."
+ },
+ "他出了一个名刀司命": {
+  "en": "He Played a Destiny",
+  "id": "Dia Memainkan Destiny"
+ },
+ "棋手等级提升1。如果已满级，改为获得10能量。": {
+  "id": "Level Chessplayer +1. Jika sudah Level maksimal, dapatkan 10 Energy sebagai gantinya."
  }
 }

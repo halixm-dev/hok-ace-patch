@@ -1,7 +1,7 @@
 ---
 feature: terminology-table
 status: delivered
-updated: 2026-10-17
+updated: 2026-11-02
 branch: master
 ---
 
@@ -22,6 +22,14 @@ built from them. `build_patch` installs it next to `install_btree_slot_map()` an
 | `登场` | `href=1`, icon `╨` | one series label, "Showtime series" | **Deploy** |
 | `合成` | `href=13`, icon `╦` | Yao's English description says "upgraded" | **Combine** |
 | `祈愿` | the gacha draw (lobby button), no link | Pray (button), Prayer(s) | **Wish** (and wishes) |
+| `棋手` | the player's avatar, no link | chess player(s), Chess Player, chessplayer; Indonesian *pemain catur* | **Chessplayer** (English plural Chessplayers) |
+
+`棋手` was the catalog's own label, "Chessplayer", but card texts said "chess player" in five spellings, the
+Soaring High card among them (2026-11-02 screenshot). Measured on both catalogs plus the supplement: 1,419
+English and 1,032 Indonesian targets change, every one passes `adaptive.validate_translation` with its
+markup unchanged, a second `apply` changes nothing, and no other spelling is left in either catalog. The
+rule is also keyed on the few other sources whose English says "chess player": `骑手` (the national-server
+frame), `棋友`, `参赛选手`, `角色语音` and two update rows whose source is English.
 
 `祈愿` is not a keyword but a lobby feature. Its button read "Pray" and the 21 strings around it (pools,
 coins, rules) "Prayer"; on 2026-10-18 the user chose **Wish**. Measured on both catalogs plus the
