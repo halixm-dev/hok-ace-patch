@@ -340,9 +340,10 @@ holds exact literal edits to a script's own formatting or behaviour, today two. 
 Device-verified on 1.6.0.1 on 2026-10-18: the lobby reads "Supreme Star III" and its tabs "Ranking  Match".
 The second is `UIPrefabClass` (`3482BF89614B5ABB`, package `10`, prime-only, so it is appended). The
 engine's `TextRendering` line-break flag treats every letter as a break point, so wrapped English split
-inside words ("Ancient Coi n"). The edit turns the flag off at the top of every UI prefab's `Create`, so a prefab that turns the
-flag on is answered at the next `Create`, not before its own text is laid out.
-Device-verified on 1.7.0.2 on 2026-10-23: Card, Encyclopedia and a match wrap between words
+inside words ("Ancient Coi n"). The edit turns the flag off at the top of every UI prefab's `Create`, and
+every frame in LateUpdate, before Unity rebuilds the canvases, so a flag turned on mid-frame is off again
+before that frame's text is laid out. Device-verified on 1.7.0.2 on 2026-10-23 (the `Create` reset) and on
+1.8.0.1 on 2026-11-02 (both): Card, Encyclopedia, lists and a match wrap between words
 ([latin-line-breaks](features/latin-line-breaks.md)).
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:

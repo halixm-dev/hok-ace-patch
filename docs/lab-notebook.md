@@ -4504,3 +4504,96 @@ between the two colour spans, for both languages. A five-field row with an empty
 | Merge | `apply` adds 23 rows (English: 22 Yao + 1) and 1 (Indonesian), then 0 on a second call. |
 | Not changed | Six other rows of the table join placeholders with no Chinese (`SubTitleLimitBuff`, `SubTitleLimitBuff_Skin`, `FlowBottomTitle`, `LordCheerBannerNames`, `OverviewPanel_6`, `EmbattleTip16`); what fills them is not measured, so they are left. |
 | Device | Not run. The screenshot's lowercase "auction" header looks like the round label 1.8.1.2 capitalises (not measured on this panel). |
+
+## 2026-11-02 — Latin letters in `Font/NumberCharacters` (lever 2), offline
+
+- **Why:** on 1.8.0.1 wrapped English still splits inside words "sometimes" (user report). The
+  `UIPrefabClass` reset only runs at `Create`, so text laid out after something turns the flag on and before
+  the next `Create` (pooled rows, labels changed on an open screen, the prefab that turned it on) still wraps
+  the flag-on way. Record: `docs/features/latin-line-breaks.md`.
+- **The asset:** `Font/NumberCharacters` is `494CB30B4C009479`, package `1`, prime-only in the 1.8.0.1 APK
+  (compression 4, 268 bytes): a one-object Unity 2022.3.5f1 SerializedFile, class 49, `m_Script` 99 bytes
+  (BOM, 19 block glyphs one per line, `.`). Its siblings are `9C52088BFB999C79` (Leading) and
+  `1A0BDD5539B4D8E7` (Following), also prime-only.
+- **Change:** a `line_break_rules` module (withdrawn, never committed) adds one line of A–Z, a–z, the
+  Latin-1 letters (no `×` `÷`) and `'` `’`: 268 → 452 bytes, object 124 → 308. A second pass returns None; a different hash returns None.
+- **Build** (pristine 1.8.0.1 + cached APK, English, `D:\scratch\hok-1.8.0.1\out3-catalog`): exit 0, package
+  `1` added from the APK 288 (control `out2-catalog`: 287), the known encoder refusal unchanged. Read back
+  through `QtsPackage`, the staged asset is the 452-byte file. Only `1/1.db`, `1/1_0.db` and the two summaries
+  differ from the control.
+
+**No device verdict yet.** To check: Card, Encyclopedia, an open screen whose labels change, a match; and
+whether the game reads the rules from the override layer at all.
+
+## 2026-11-02 — Device cycle: `Font/NumberCharacters` with Latin letters (lever 2) — fail; probe v3 built
+
+- **Setup:** Xiaomi M2007J3SG (`f15a72e`), data `1.8.0.1` r0 (`1.info` `31a114d0…`, equal to the snapshot's),
+  normal APK `29b3ee7e…`. The phone carried the English `out2-catalog` patch: package `1` index equal, and
+  every asset of package `1` decodes equal to `out2-catalog`'s (its shard differs only in bytes no asset
+  reads). Backup of `packages` + `Watchdog`: `D:\scratch\latin-line-breaks\backup-before-rules.tar`
+  (3 289 302 016 bytes, 1172 entries). The test package was the phone's own package `1` with only
+  `494CB30B4C009479` appended (`D:\scratch\hok-1.8.0.1\out4-rules\1`, `1.db` `cee3805b…`, `1_0.db` `3e214c6d…`,
+  read back on the phone). Watchdog cleared, normal APK reinstalled. `update_cycle.py shell` failed to put
+  the normal APK back twice at the start of the cycle; a plain `adb install -r` did.
+- **Result** (user, same day): wrapped English **still splits** inside words. No repair (`errorCode:361`
+  absent from `normal1.log`); logcat names neither the asset nor the rules.
+- **Verdict: fail.** The game either never reads the appended copy (the rules are loaded from somewhere the
+  override layer does not reach, or before it mounts) or the number set does not act as the static reading
+  says. One cycle cannot tell which.
+- **Probe v3, built, not run** (`build_probe.py --v3`, `probe_v3.lua`): once, at the first `UIPrefabClass:Create`
+  with `AssetService` and a live `UI.Text`, it reads `Font/NumberCharacters` through
+  `AssetService:LoadPrimitiveAsset` (the route `TalkHelper` uses for its sibling), logs whether it holds the
+  letters, lays out the probe sentence with the flag on, calls `TextRendering.LoadLinebreakingRules(nil, nil,
+  asset)`, lays it out again with the flag on, then leaves the flag off. Compiles under Lua 5.3 (lupa) inside
+  the edited script; against a mocked engine it runs once, and with every call throwing it logs and returns.
+  Build `D:\scratch\latin-line-breaks\v3\out` (exit 0); its package `10` (`10.db` `e8ab79c6…`, `10_0.db`
+  `98d12a39…`) differs from the phone's own package `10` only in `3482BF89614B5ABB` (41 304 → 47 139 bytes,
+  the reset kept). To run: push that package `10` over the current phone state (package `1` with the letters),
+  launch, open any screen, pull `files/latin_line_break_probe_v3.txt`.
+
+## 2026-11-02 — Device cycle: probe v3 — the game serves the APK's `Font/NumberCharacters`
+
+- **Setup:** the same phone and data, over the lever-2 state above (package `1` with `494CB30B4C009479`
+  appended). Pushed `D:\scratch\latin-line-breaks\v3\out\10` (`10.db` `e8ab79c6…`, `10_0.db` `98d12a39…`, read
+  back on the phone with package `1` unchanged). Watchdog cleared, normal APK reinstalled (`29b3ee7e…`). The
+  game was closed (launcher in front) before the access APK went on.
+- **Log** (`files/latin_line_break_probe_v3.txt`, first `Create` at clock 35.6 s, in the lobby):
+  - `SetFlag` and `LoadLinebreakingRules` both resolve from xLua.
+  - `AssetService:LoadPrimitiveAsset("Font/NumberCharacters")` returns **96 characters with no `A`, `z` or
+    apostrophe**: the APK's 99-byte script less its BOM, not the appended copy.
+  - Flag on: midword 2 / 0 / 2 ("Chang | 'an", "a | re", "pla | yed", "permanentl | y"). After
+    `LoadLinebreakingRules(nil, nil, served asset)` the same lines, character for character (the served
+    asset has no letters). Flag off: midword 0 at every width.
+  - No repair (`errorCode:361` absent).
+- **Scan:** every built-in package of the APK, assets up to 4 KB: the three rule TextAssets exist only in
+  package `1` (`494CB30B4C009479`, `9C52088BFB999C79`, `1A0BDD5539B4D8E7`). Seven packages did not read
+  (`21`, `1010000000`, `1010010320`, `1020000000`, `1020002501`, `1020003401`, `1020003501`, `1020003801`) and
+  are unscanned. Not in the APK's loose Unity files either.
+- **Verdict:** lever 2 as an appended override asset **does not reach the game**: the copy `AssetService`
+  hands out is the APK's, although the appended record is on the phone and appended tables and scripts in
+  packages `1` and `10` are read. Most likely the rule assets are loaded at startup, before the override
+  layer is read, and kept resident; not proven. The probe also confirms the symptom: flag on breaks inside
+  words, flag off does not.
+
+
+## 2026-11-02 — Device cycle: probe v4 — reset the line-break flag every frame (lever 3)
+
+- **Setup:** the same phone and data, over the probe-v3 state (package `1` still with the unused letters
+  asset). Pushed `D:\scratch\latin-line-breaks\v4\out\10`, whose package `10` differs from the phone's own
+  only in `3482BF89614B5ABB` (41 029 → 48 492 bytes, the shipped `Create` reset kept). Watchdog cleared,
+  normal APK reinstalled (`29b3ee7e…`); the game was closed (launcher in front) before the access APK went on.
+- **Log** (`latin_line_break_probe_v4.txt` in the external files dir, 180 lines, about 140 000 frames over
+  lobby, Card, Encyclopedia, lists and a match):
+  - `CoroutineService:AddLateUpdate` registers at frame 460; the runner was never replaced in the session.
+  - `CS.UnityEngine.Canvas.preWillRenderCanvases` is **nil from xLua** (not in the generated wrappers), so
+    that hook is out; every check ran in LateUpdate, before the reset.
+  - The flag was **on at the LateUpdate check in 100 of about 139 400 checked frames**, in bursts of 1–16
+    within a few hundred frames (for example 10257/10258/10268/10303, 46046–46448), with long runs of none.
+    So something turns it on mid-frame, often repeatedly, and the old `Create`-only reset left it on until
+    the next `Create`.
+- **Verdict (log only):** the per-frame reset catches each turn-on within the frame. Unity rebuilds canvases
+  after LateUpdate, so text laid out that frame sees the flag off, unless the turn-on comes later in the same
+  LateUpdate than this handler. Whether words still split on screen is the user's report, recorded below.
+- **User report:** no word split on screen in the session. **Verdict: pass.** Shipped as the LateUpdate
+  handler in `extra_text.SCRIPT_EDITS[0x3482BF89614B5ABB]` beside the `Create` reset, without the logging
+  (offline: 41 029 → 41 658 bytes, compiles, mock passes; the shipped build has not run on a phone).

@@ -179,16 +179,21 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     ),
     # UIPrefabClass (package 10, prime-only, so it is appended): the engine's `TextRendering` flag makes
     # every character a line-break point, the Chinese way, so a wrapped English line splits inside a word
-    # ("Ancient Coi n"). Something outside Lua turns it on at startup and as some Encyclopedia list items
-    # are instantiated, so every UI prefab's Create turns it off before the prefab fills its text.
-    # Device-verified 2026-10-23 on 1.7.0.2: Card, Encyclopedia and a match wrap between words.
+    # ("Ancient Coi n"). Something outside Lua turns it on at startup and, mid-frame, as some screens and
+    # list items open, so every UI prefab's Create turns it off before the prefab fills its text, and a
+    # LateUpdate handler (registered from Create on the current Lua runner, again when the runner is
+    # replaced) turns it off every frame, before Unity rebuilds the canvases. Device-verified 2026-10-23
+    # on 1.7.0.2 (the Create reset) and 2026-11-02 on 1.8.0.1 (both; about 140 000 frames, the flag
+    # caught on in 100): Card, Encyclopedia, lists and a match wrap between words.
     # `docs/features/latin-line-breaks.md`.
     0x3482BF89614B5ABB: (
         ("apply_decoration()\n---@param parentPrefabClass UIPrefabClass | "
          "Assets.Scripts.Framework.UI.UIPrefabBaseClass\n---@param parentTf UnityEngine.Transform\n"
          "function UIPrefabClass:Create(mediator, parentPrefabClass, parentTf, argument, customID, addCanvas, "
          "localScale, lifeType)\n    local resourcePath = self:vGetPath()\n",
-         "local _setLineBreakFlag = nil\n\n"
+         "local _setLineBreakFlag = nil\nlocal _lineBreakRunner = nil\n\n"
+         "local function _resetLineBreakFlag()\n"
+         "    if _setLineBreakFlag then\n        pcall(_setLineBreakFlag, false)\n    end\nend\n\n"
          "apply_decoration()\n---@param parentPrefabClass UIPrefabClass | "
          "Assets.Scripts.Framework.UI.UIPrefabBaseClass\n---@param parentTf UnityEngine.Transform\n"
          "function UIPrefabClass:Create(mediator, parentPrefabClass, parentTf, argument, customID, addCanvas, "
@@ -197,7 +202,14 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
          "        _setLineBreakFlag = false\n"
          "        pcall(function() _setLineBreakFlag = CS.UnityEngine.TextRendering.SetFlag end)\n"
          "    end\n"
-         "    if _setLineBreakFlag then\n        pcall(_setLineBreakFlag, false)\n    end\n"
+         "    _resetLineBreakFlag()\n"
+         "    pcall(function()\n"
+         "        local runner = CoroutineService:GetRunner()\n"
+         "        if runner ~= nil and runner ~= _lineBreakRunner then\n"
+         "            _lineBreakRunner = runner\n"
+         "            CoroutineService:AddLateUpdate(_resetLineBreakFlag)\n"
+         "        end\n"
+         "    end)\n"
          "    local resourcePath = self:vGetPath()\n"),
     ),
 }
