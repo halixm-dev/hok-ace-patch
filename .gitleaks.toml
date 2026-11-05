@@ -7,3 +7,10 @@ useDefault = true
 description = "Historical prose about adopting verified recovery material, not a credential"
 regexTarget = "match"
 regexes = ['''^stable-key access APK, adopts/verifies $''']
+
+[[allowlists]]
+description = "Game text-table row keys (16 hex digits) recorded as example_key in .scratch research JSON, not credentials"
+condition = "AND"
+paths = ['''^\.scratch/.+\.json$''']
+regexTarget = "match"
+regexes = ['''^example_key": "[0-9A-F]{16}"$''']
