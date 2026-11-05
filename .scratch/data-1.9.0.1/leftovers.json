@@ -1,0 +1,2486 @@
+{
+ "source": "1.9.0.1 pristine snapshot D:/scratch/hok-1.0.9.1 + unchanged installed.apk, 2026-11-05; both data layers, catalogued tables only. Before the 213 new supplement pairs; same misses for English and Indonesian.",
+ "census": {
+  "distinct": 213,
+  "rows": 640,
+  "catalog_tables_read": {
+   "override": 101,
+   "prime_only": 397
+  },
+  "refused": [
+   {
+    "package": "1",
+    "asset": "4B15FC0D7596513F",
+    "layer": "override",
+    "reason": "Not an unambiguous localization table"
+   }
+  ]
+ },
+ "strings": {
+  "3-5阶英雄牌5选1，并将选中的卡牌一分为四。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#FCC702C1FFF83F59#"
+  },
+  "<a href=1><color=#ffffff>╨<b>登场</b></color></a>：自身及<a href=3140012><color=#ffffff>╥<b>阿科米亚核心</b></color></a>等级+3。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 22,
+   "example_key": "#FCC79B4BC8CA7728#"
+  },
+  "<a href=1><color=#ffffff>╨<b>登场</b></color></a>：自身及<a href=3140012><color=#ffffff>╥<b>阿科米亚核心</b></color></a>等级+6。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 33,
+   "example_key": "#FCC7DF4D405CAEF4#"
+  },
+  "<color=#98cbff> 三、阵营高光</color>\n<color=#FFFFFF>阵营高光是按主题收集一定数量英雄高光表情后自动解锁的特殊展示效果，游戏中棋子连续击败敌方时将触发改变场景表现。</color>": {
+   "tables": [
+    "CEB1AA41B4D8A0F3"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5718E789F3ABBAD0#"
+  },
+  "<color=#98cbff>一、基础说明</color>\n<color=#FFFFFF>您拥有的棋盘、特效、天幕、高光表情、阵营高光、互动表情、互动道具、个性戳戳、快捷语音、聊天气泡等资产将显示在此处，供您查看及装配后带入对局内。</color>": {
+   "tables": [
+    "CEB1AA41B4D8A0F3"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5718A2E23DACDF41#"
+  },
+  "<color=#98cbff>一、活动时间</color>\n<color=#FFFFFF>1、抽盒时间：2026年11月6日 00:00:00-2026年12月2日 23:59:59。\n2、兑换时间：2026年11月6日 00:00:00-2026年12月5日 23:59:59。\n注：12月2日抽盒时间结束后，河洛令将不可使用，请及时使用；12月2日后仅保留兑换商店，请拥有河洛碎片的玩家们及时兑换，兑换时间结束后活动道具（河洛令、河洛碎片、盲盒机道具卡）将被清空。</color>": {
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#DFB939BFA5493EC6#"
+  },
+  "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成双倍储能对局任务即可领取钻石奖励。</color>": {
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#DFB9FDFE1A50607B#"
+  },
+  "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成登录和对局任务即可领取高光盲盒道具奖励。</color>\n<color=#FFFFFF>2、若进行消极对局如挂机等行为，则无法完成对局任务哦。</color>": {
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#DFB92BCC9E292A8A#"
+  },
+  "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、每个英雄首次达到100级及以上可领取奖励。</color>\n<color=#FFFFFF>2、85个英雄均达到100级及以上后可领取称号。</color>\n<color=#FFFFFF>3、等级以对局结算时等级为准包含临时等级，仅限万象大赛。</color>\n<color=#FFFFFF>4、活动将持续至本赛季结束。</color>": {
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#DFB9F2989240BD0A#"
+  },
+  "<color=#98cbff>三、道具规则</color>\n<color=#FFFFFF>1、抽盒中可使用道具卡辅助帮忙选盒，一共有三种道具卡：</color>\n<color=#FFFFFF>排除卡：帮助排除一个错误信息。</color>\n<color=#FFFFFF>提示卡：可提示一条当盒表情的英雄信息，包括职业、品阶、词条等。</color>\n<color=#FFFFFF>显示卡：直接揭示本盒内是什么具体的英雄表情。</color>\n<color=#FFFFFF>2、单个盲盒道具卡使用上限为10次。</color>\n<color=#FFFFFF>3、参与活动和多开盲盒可获赠更多道具卡。首次端盒赠送显示卡*1，每次端盒赠送排除卡*3、提示卡*3。</color>\n<color=#FFFFFF>4、道具卡仅限本次盲盒机使用，活动结束后，道具过期不可使用。</color>": {
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#DFB93E536CDBA908#"
+  },
+  "<color=#98cbff>二、抽盒规则</color>\n<color=#FFFFFF>1、本期主题：黑白河洛高光表情系列。本系列包含河洛阵营英雄的16个常规款和6个隐藏款。每一端中必为不重复的16款盲盒，常规款概率约 1:16，隐藏款概率 1:40。\n2、 集齐本系列16个英雄的高光表情，可激活黑白河洛阵营高光。\n3、单次抽盒需消耗30点券购买3个爱心投放1天限时卡，赠送3个河洛令。同时，另有活动可免费获取河洛令。活动期间，每人抽盒限160次。\n4、抽到重复款会自动兑换为河洛碎片，可用于在兑换商店中兑换指定奖励，详细兑换内容可前往兑换商店查看。\n5、具体重复转化数量如下：\n普通款：河洛碎片×5 \n隐藏款：河洛碎片×25\n6、黑白河洛高光表情盲盒机限时开启，抽奖进度不会被其他祈愿活动继承。</color>": {
+   "tables": [
+    "1586D98CC6E0B77E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#DFB908C1242D3E77#"
+  },
+  "<color=#FFE897>你的英雄施加控制效果</color>时，你的【三分】英雄获得20点法术攻击力且临时等级+1。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 21,
+   "example_key": "#BCDEA3C72F1E870E#"
+  },
+  "{0}/{1}激活阵营高光": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "InteractButtonText5"
+  },
+  "{0}利息": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#BCDE4CFC8CBDF2EA#"
+  },
+  "{Energy}可用至-15。回合结束时若{Energy}为负，则下回合获得的{Energy}-2。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#BCDEEAB235DC59A0#"
+  },
+  "{Energy}可用至-15。回合结束时若{Energy}为负，则下回合获得的{Energy}-2。决策颁布者额外特权：不受到惩罚，回合结束时每有1名其他玩家{Energy}为负，则下回合获得2{Energy}。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#FCC79A2FA1458992#"
+  },
+  "{Energy}可用至-15，回合结束时每有1名其他玩家{Energy}为负，则下回合获得2{Energy}。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#BCDE2B5D11858B5B#"
+  },
+  "一发出货": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A6603BC1071A3F6#"
+  },
+  "一抽入魂": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A669927979F72D9#"
+  },
+  "一整端包含16个不重复的盲盒，常规款概率1:16，隐藏款概率1:40。": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_BoxDes"
+  },
+  "不可使用单抽": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_DRAW_ONEFAIL"
+  },
+  "不可使用端抽": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_DRAW_CASEFAIL"
+  },
+  "为范围内的友军增加6点物理防御力和法术防御力": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#23942318F92E48ED#"
+  },
+  "亚瑟召唤圣盾围绕自身旋转，持续5秒。每秒对1格内敌人造成<color=#dfa15e>50%物理攻击力的物理伤害</color>并获得15%伤害减免，亚瑟每次参与击杀获得50点最大生命值。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#48530346099CE04C#"
+  },
+  "亚瑟召唤圣盾围绕自身旋转，持续5秒。每秒对1格内敌人造成<color=#dfa15e>[0]点物理伤害</color><color=#dfa15e>（[1]%物理攻击力）</color>并获得<color=#ffffffbf>[2]%伤害减免</color>，亚瑟每次参与击杀获得50点最大生命值。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#4853B835B0218197#"
+  },
+  "使用技能，随机获得1张3-5阶的<a href=3130012><color=#ffffff>╆<b>转瞬</b></color></a>英雄牌。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#FCC7531E481CAEE0#"
+  },
+  "全服 {0}/{1}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ShopBuyLimitTypeShort_6"
+  },
+  "分解可得": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_DecomposeValueNotice"
+  },
+  "分解后将获得": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_DecomposeGainConfirm"
+  },
+  "分解物品中包含还未拥有的和隐藏款，是否仍要分解？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_DecomposeUnownedAndHiddenConfirm"
+  },
+  "分解物品中包含还未拥有的，是否仍要分解？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_DecomposeUnownedConfirm"
+  },
+  "分解物品中包含隐藏款，是否仍要分解？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_DecomposeHiddenConfirm"
+  },
+  "前往装配": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "30E51F96BF913AD5"
+  },
+  "单抽出奇迹": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A6629E044613C47#"
+  },
+  "卖掉不亏，等级回归": {
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#2B9205FAF1CA782D#"
+  },
+  "参与活动免费抽河洛表情": {
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#2B924C6B1A334188#"
+  },
+  "参与活动，获取更多免费抽盒道具": {
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#D262B344DADFB7E6#"
+  },
+  "双倍储能活动奖励": {
+   "tables": [
+    "5E72CA8CAF015FDE"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 3,
+   "example_key": "#8C7FF21D5EDBCF5F#"
+  },
+  "双倍储能进入前3名": {
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A0A6080B538505B#"
+  },
+  "发牌员本员": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66BF5F2C495D80#"
+  },
+  "合成英雄时，获得1{Energy}，每回合限3次。达到上限时随机获得1张场上英雄的复制。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 33,
+   "example_key": "#BCDEA3A29C3E0064#"
+  },
+  "吟唱结束时还会生成1个额外巨型法阵对所有敌人造成100+125%法术攻击力的法术伤害": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#23944E108F55840D#"
+  },
+  "周限 {0}/{1}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ShopBuyLimitTypeShort_3"
+  },
+  "回合开始时，获得1张<color=#FFE897>推演战术</color>。战斗胜利时，改为获得1张<color=#FFE897>高阶推演战术</color>。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 22,
+   "example_key": "#BCDEB8AC48CE0759#"
+  },
+  "圣盾伤害提升至80%物理攻击力，伤害减免提高至25%": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#239448F333AA87C4#"
+  },
+  "在【超级英雄】中，最终夺冠时，队伍中仅有1~3阶英雄": {
+   "tables": [
+    "EE5CF72D67A94C1F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#637E18292574BB76#"
+  },
+  "场上随机英雄等级+5，触发4次，若对象为<b>温柔呼唤</b>的英雄则额外等级+5，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#BCDE0ECA9D08EDEC#"
+  },
+  "场上随机英雄等级+5，触发{DaQiao_TideTimes:4}次，若对象为<b>温柔呼唤</b>的英雄则额外等级+5，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）。": {
+   "tables": [
+    "23C9A9DEBB3BF40C",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "9799DF91AB4F4FA3",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C13DF45E3492CA0C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#FCC73D71222F7022#"
+  },
+  "复制对手秘技": {
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#46159CE1FFD44394#"
+  },
+  "太酷啦！\n是{0}！": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_NoticeNormal"
+  },
+  "好牌送上门": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66F8E60DAA1B37#"
+  },
+  "子弹伤害提升至40+30%物理攻击力": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#23942EED4B4F16D4#"
+  },
+  "子弹数量提升至16发，每颗子弹减少敌人2点物理防御，持续5秒（可叠加）": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 8,
+   "example_key": "#4853DCFE28ABC246#"
+  },
+  "子弹数量提升，子弹减少敌人物理防御": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#48530D36999FC5CF#"
+  },
+  "季限 {0}/{1}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ShopBuyLimitTypeShort_2"
+  },
+  "完成1局双倍储能": {
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A0A3EC3B43897A8#"
+  },
+  "完成3局双倍储能": {
+   "tables": [
+    "049FDCA512DC8897"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A0A310B49F1590B#"
+  },
+  "对自身和两侧友军施加驱散并获得<color=#ffffff>护盾</color>。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 8,
+   "example_key": "#4853F800C49EC240#"
+  },
+  "已使用显示卡，无需再使用其他道具卡": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_ITEMUSE_USESHOW"
+  },
+  "已初始化": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_INIT_ALREADY"
+  },
+  "已拥有×{0}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ToogleOwnedWithCnt"
+  },
+  "已收取": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#BCDE746A144F4619#"
+  },
+  "已收取{0}利息": {
+   "tables": [
+    "04F21C6735D0D555",
+    "27BBF8CDFFFA177F",
+    "42E8DB43608C2FF1",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9BE81CD52C660467",
+    "C059EA43719099F1",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 11,
+   "example_key": "#BCDE6A8BBC574F60#"
+  },
+  "庄周幻化梦域保护队友和自身，对自身和左右两边2格内友军施加驱散，并获得200点护盾，持续5秒。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#4853C35E971638AF#"
+  },
+  "庄周幻化梦域保护队友和自身，对自身和左右两边2格内友军施加驱散，并获得<color=#ffffff>[0]点护盾</color>，持续5秒。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#48532E8B7D3898F0#"
+  },
+  "开战后15秒内，飞行器继承连接英雄125%的法术攻击力。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 33,
+   "example_key": "#BCDEC0D276B5610B#"
+  },
+  "总限 {0}/{1}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ShopBuyLimitTypeShort_1"
+  },
+  "恢复生命值提升至[0]点": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#4853C2DA7D7A87A0#"
+  },
+  "恢复生命值提升至[184014p1q1]点": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#48532FF849E6E08E#"
+  },
+  "恭喜获得隐藏款表情！": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "AlreadyHaveHighlightCount"
+  },
+  "恭喜集齐16个英雄高光表情，激活阵营高光！": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_FullSetTip"
+  },
+  "战斗开始时，随机传送1个4-5阶临时等级为回合数×16的英雄进入战场（不含卡牌效果），并携带3件适配装备。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 22,
+   "example_key": "#BCDED66BDC980F91#"
+  },
+  "所选物品包含您已拥有的表情，不可再使用，可上架交易行或分解": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_UseOwnedTip"
+  },
+  "扁鹊朝场上生命值比例最低的3个单位扔出药瓶，药瓶触地后破碎留下药液，持续5秒。处于药液中的友军每秒恢复<color=#d487e4>20+60%法术攻击力</color><color=#9ff5d0>的生命值</color>，处于药液中的敌人每秒受到<color=#d487e4>20+60%法术攻击力的法术伤害</color>，效果可叠加。": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#2394106B8DD09689#"
+  },
+  "扁鹊朝场上生命值比例最低的3个单位扔出药瓶，药瓶触地后破碎留下药液，持续5秒。处于药液中的友军每秒恢复<color=#d487e4>20+[119190p1q3/100]%法术攻击力</color><color=#9ff5d0>的生命值</color>，处于药液中的敌人每秒受到<color=#d487e4>20+[119100p1q3/100]%法术攻击力的法术伤害</color>，效果可叠加。单位离开药液区域后，效果仍然会持续3秒。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#485333F12C6AB1F1#"
+  },
+  "扁鹊朝场上生命值比例最低的[0]个单位扔出药瓶，药瓶触地后破碎留下药液，持续5秒。处于药液中的友军每秒<color=#9ff5d0>恢复[1]点生命值</color><color=#9ff5d0>（[2]+[3]%法术攻击力）</color>，处于药液中的敌人每秒受到<color=#d487e4>[4]点法术伤害</color><color=#d487e4>（[5]+[6]%法术攻击力）</color>，效果可叠加。单位离开药液区域后，效果仍然会持续3秒。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#485394E0DAC234EE#"
+  },
+  "打开可获得英雄上官婉儿的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C813C411D5077#"
+  },
+  "打开可获得英雄司空震的黑白主题隐藏款高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2CBBA55217F82F#"
+  },
+  "打开可获得英雄司空震的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C81F3183D7C5A#"
+  },
+  "打开可获得英雄李信的黑白主题隐藏款高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C51589930224E#"
+  },
+  "打开可获得英雄李信的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C6DD0BA7E2544#"
+  },
+  "打开可获得英雄李元芳的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2CDA91DD56B0C5#"
+  },
+  "打开可获得英雄李白的黑白主题隐藏款高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2CB0F556FA92A5#"
+  },
+  "打开可获得英雄李白的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C71A514FEC48E#"
+  },
+  "打开可获得英雄武则天的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C1DD95BE758D2#"
+  },
+  "打开可获得英雄沈梦溪的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C89863C6A0C16#"
+  },
+  "打开可获得英雄狄仁杰的黑白主题隐藏款高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2CE66CED6A8073#"
+  },
+  "打开可获得英雄狄仁杰的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C93855A05F0B2#"
+  },
+  "打开可获得英雄百里守约的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C01A47466F322#"
+  },
+  "打开可获得英雄百里玄策的黑白主题隐藏款高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C6347ACD601A1#"
+  },
+  "打开可获得英雄百里玄策的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C780DFEB7971B#"
+  },
+  "打开可获得英雄盾山的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C14760E49C11B#"
+  },
+  "打开可获得英雄程咬金的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C4C13224A1BC2#"
+  },
+  "打开可获得英雄花木兰的黑白主题隐藏款高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C99DC7CF5943F#"
+  },
+  "打开可获得英雄花木兰的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C03B63A28E732#"
+  },
+  "打开可获得英雄苏烈的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C889D1F25F234#"
+  },
+  "打开可获得英雄钟馗的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C9B102136DAFF#"
+  },
+  "打开可获得英雄铠的黑白主题高光表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2CA8377BCFE734#"
+  },
+  "技能效果范围扩大至周围2格，恢复生命值提升至150点": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#239438DCB47A1A23#"
+  },
+  "技能效果范围扩大至周围2格，恢复生命值提升至[0]点，双防数值提升为[1]点": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#4853F852E7516F4F#"
+  },
+  "技能效果范围扩大至周围2格，恢复生命值提升至[184021p1q1]点，双防数值提升为[1840151p1q2]点": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#4853817883C34DF1#"
+  },
+  "技能范围扩大，恢复生命值提升，双防提升": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#4853DD99B66026F8#"
+  },
+  "护盾提升至300点": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#2394B8F6CFA8FF16#"
+  },
+  "拆开后不可上架交易行，是否拆开？\n拆开使用后可在定制系统查看和装配。": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_UseSplitConfirm"
+  },
+  "拥有{0}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ShopTipOwn"
+  },
+  "拥有额外能量": {
+   "tables": [
+    "5560E5A826433EFA"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#4615425182556FF1#"
+  },
+  "持续吟唱到回合结束，并且每造成5次伤害后生成巨型法阵，对所有敌人造成100+125%法术攻击力的法术伤害": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#239467DD674094CC#"
+  },
+  "排除卡": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C8DCF387FB362#"
+  },
+  "提前财富自由": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A6674B8E418919A#"
+  },
+  "提示卡": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2CB9768A568E0D#"
+  },
+  "摇一摇": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "A83AFD84ECF52982"
+  },
+  "日限 {0}/{1}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ShopBuyLimitTypeShort_4"
+  },
+  "暂存箱": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "15FF16D2C7720887"
+  },
+  "月限 {0}/{1}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ShopBuyLimitTypeShort_5"
+  },
+  "未拥有×{0}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ToogleUnownedWithCnt"
+  },
+  "本盒已售罄": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "DEAF456CB1E52C7D"
+  },
+  "本盒道具卡使用次数已达上限（10次）": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_ITEMUSE_CNTLIMIT"
+  },
+  "本端最后一盒": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_LastBoxInCase"
+  },
+  "根本花不完": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66BFC80A3695A4#"
+  },
+  "棋手升级时获得3{Energy}，满级后每回合获得2次临时刷新。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 33,
+   "example_key": "#BCDE93F5B8BA6E93#"
+  },
+  "欧皇本皇": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A664BFDA3E8636B#"
+  },
+  "欧皇附体": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66065CDD7B8FEF#"
+  },
+  "武凤来了活动获取": {
+   "tables": [
+    "4642660EF6DA287C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#50DB0FC85FC1F240#"
+  },
+  "武则天以女帝权威施行制裁，持续吟唱8秒，每隔0.75秒随机选择1名敌人，在其脚下召唤法阵并引爆，命中时造成<color=#d487e4>100+75%法术攻击力的法术伤害</color>，并使其生命恢复效果降低50%，持续6秒（不可叠加）。法阵在3秒内连续命中相同敌人时，伤害将衰减15%，最多45%。": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#2394BC9FA99903A4#"
+  },
+  "武则天以女帝权威施行制裁，持续吟唱8秒，每隔0.75秒随机选择1名敌人，在其脚下召唤法阵并引爆，命中时造成<color=#d487e4>100+[136301p1q3/100]%法术攻击力的法术伤害</color>，并使其生命恢复效果降低[136310p1q2/100]%，持续6秒（不可叠加）。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#4853C5785EAAC8D8#"
+  },
+  "武则天以女帝权威施行制裁，持续吟唱8秒，每隔0.75秒随机选择1名敌人，在其脚下召唤法阵并引爆，命中时造成<color=#d487e4>[0]点法术伤害</color><color=#d487e4>（[1]+[2]%法术攻击力）</color>，并使其生命恢复效果降低50%，持续6秒（不可叠加）。": {
+   "tables": [
+    "4332819ABE8E29C8",
+    "58B4B182D74B34B0",
+    "6B4BE06E1593DD1C",
+    "7F7F60ACED822B5E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 4,
+   "example_key": "#4853C39683A98A23#"
+  },
+  "每4个回合": {
+   "tables": [
+    "A4FDF25E51B190AC"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#ABAB320FEA2CABC8#"
+  },
+  "每个物品最多拆开1个": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_UseOnlyOneTip"
+  },
+  "每次开启可获得一款随机的高光表情": {
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#D2620E9235EF2ED0#"
+  },
+  "河洛碎片": {
+   "tables": [
+    "38A308C2EEFA40D0"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#596DA25CE3FB020E#"
+  },
+  "河洛碎片不足，是否继续抽盒获取碎片？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ExchangeCostNotEnough"
+  },
+  "河洛碎片，可用于黑白河洛高光表情盲盒兑换": {
+   "tables": [
+    "38A308C2EEFA40D0"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#596DD8875BB49D56#"
+  },
+  "法阵伤害提升至100+100%法术攻击力": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#2394363E41D6674E#"
+  },
+  "泼天富贵": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A660CEF429F45C2#"
+  },
+  "盆满钵满": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66F1294C1DF6F6#"
+  },
+  "盲盒已开启": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_OPENALREADY"
+  },
+  "盲盒抽奖": {
+   "tables": [
+    "5AD1394B5FDEC7F9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#9C0E5A5725D37046#"
+  },
+  "盲盒机刷新太频繁": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_REFRESH_TOOQUICK"
+  },
+  "盲盒机即将下线": {
+   "tables": [
+    "5E72CA8CAF015FDE"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 3,
+   "example_key": "#8C7F952A3A220A0F#"
+  },
+  "盲盒机奖池随机物品不足": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_AWARDPOOL_CNTLIMIT"
+  },
+  "盲盒机开启已达上限": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_OPENLIMIT"
+  },
+  "盲盒机操作数据无效": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_OPT_DATAINVALID"
+  },
+  "盲盒机数据插入失败": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_INSERTDATA_FAIL"
+  },
+  "盲盒机未初始化": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_UNINIT"
+  },
+  "盲盒机未开放": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_OPT_NOTOPEN"
+  },
+  "盲盒机消费不足": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_COSTLIMIT"
+  },
+  "盲盒机获取": {
+   "tables": [
+    "4642660EF6DA287C"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#50DB77D56856900D#"
+  },
+  "盲盒机道具，可用于拆盲盒使用，可提示一条当盒表情的英雄信息，包括职业、品阶、词条等。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C76EFCF4619EC#"
+  },
+  "盲盒机道具，可用于拆盲盒使用，帮助排除一个错误信息。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C5728B5B22189#"
+  },
+  "盲盒机道具，可用于拆盲盒使用，直接揭示本盒内是什么具体的英雄表情。": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C7E756D6DF508#"
+  },
+  "盲盒机需要重新刷新": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_REFRESHAGAIN"
+  },
+  "知识回顾": {
+   "tables": [
+    "805FE814788EA4C6"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#0BFF85D494CAD725#"
+  },
+  "祝_____天胡开局": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66ACD0735A065E#"
+  },
+  "祝_____手气爆棚": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66CFC1D9A43902#"
+  },
+  "祝_____牌运滚滚": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66090750AA0C14#"
+  },
+  "祝_____要啥来啥": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66B69888E3F253#"
+  },
+  "祝_____钻石自由": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A6613BEF8D0C643#"
+  },
+  "稍后兑换": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "19603910ABD95AB0"
+  },
+  "端盒一次性开启整端盲盒，获得不重复的16款表情": {
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#D262EBB9D5B2BD8E#"
+  },
+  "紫薇·璇玑7天限时卡": {
+   "tables": [
+    "12EBE81B167C5D69"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#3CAA97D8D5FDFFA9#"
+  },
+  "继续开盒": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "38BEFEB2A2D1159E"
+  },
+  "继续端盒": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_DrawBtn6"
+  },
+  "能量可用至-15，其他玩家受到惩罚时获得2能量。": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "LordYingzhengCardEX62"
+  },
+  "能量可用至-15，回合结束时能量为负会减少能量获取。": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "LordYingzhengCardEX72"
+  },
+  "药液伤害提升至20+90%法术攻击力，生命值恢复提升至20+90%法术攻击力": {
+   "tables": [
+    "8B5FA32BAA3913D9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#239431A5B11A0277#"
+  },
+  "获取更多河洛令": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "A1DB259770EC8E62"
+  },
+  "获得皮肤【紫薇·璇玑】7天限时体验。": {
+   "tables": [
+    "12EBE81B167C5D69"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#3CAA46BCA8E5F524#"
+  },
+  "获得重复款自动分解成碎片，可兑换其他英雄表情": {
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#D262763F1C4EF095#"
+  },
+  "获得阵营高光！": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "GetNewHighLight"
+  },
+  "装备主题高光表情自动使用": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "InteractButtonText9"
+  },
+  "请先选中物品": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_NoSelectTip"
+  },
+  "请选中需要拆开的表情": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_UseNoSelectTip"
+  },
+  "财路通了": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66EF1AB6A35C49#"
+  },
+  "购买之后自动赠送": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Charge_AutoPresent"
+  },
+  "这次音乐节阵容很强，有知名乐队也有独立音乐人，听说还有无人机表演和美食餐车": {
+   "tables": [
+    "DA235E4F728242BD"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#FAE6FD91A80B0A7B#"
+  },
+  "送盲盒道具": {
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#2B92C601779DA55A#"
+  },
+  "送盲盒道具活动奖励": {
+   "tables": [
+    "5E72CA8CAF015FDE"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 3,
+   "example_key": "#8C7FD6C660FD49E3#"
+  },
+  "送高光盲盒道具": {
+   "tables": [
+    "79E3F2A531266997"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#2B92A39233940FC7#"
+  },
+  "选中未拥有(15)": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "6B325AD2567C3556"
+  },
+  "道具卡不可用": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_ITEMUSE_TYPELIMIT"
+  },
+  "道具卡已用满": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_ITEMUSE_INFOFULL"
+  },
+  "道具卡操作接口错误": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_ITEMUSE_OPTFAIL"
+  },
+  "道具卡数量不足": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ERR_MYSTERYBOX_ITEMUSE_HAVELIMIT"
+  },
+  "重战本局": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "SlicedSettle_RestartLevel"
+  },
+  "钻石自由": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A66B21DFAC78CE2#"
+  },
+  "阵营高光": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "PersonalizationHighLight"
+  },
+  "阵营高光 <color=#FFE897>已激活</color>": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_SuitAll"
+  },
+  "限购 {0}/{1}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "ShopBuyLimitType_Default"
+  },
+  "随机开一盒": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_DrawBtn5"
+  },
+  "随机获得1张<color=#FFE897>基础装备牌</color>。接下来4个回合若你的<color=#FFE897>棋手等级没有变化</color>，再获得1个珍品宝箱。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 22,
+   "example_key": "#BCDEE9377B1238E8#"
+  },
+  "随机隐藏款": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_RandomHidden"
+  },
+  "集齐16个英雄的高光表情，可激活阵营高光": {
+   "tables": [
+    "C680921B0DEC5BE9"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#D2629B766160E5A2#"
+  },
+  "集齐激活阵营高光 {0}/{1}": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_Suit"
+  },
+  "非酋翻身": {
+   "tables": [
+    "8715C3217A340953"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#1A667B224AA17297#"
+  },
+  "飞行器继承连接英雄30%的攻击速度。": {
+   "tables": [
+    "04F21C6735D0D555",
+    "23C9A9DEBB3BF40C",
+    "27BBF8CDFFFA177F",
+    "28D9F8B02CAA94E2",
+    "3D889D9ABCEDE2A8",
+    "42E8DB43608C2FF1",
+    "4476EC307E0F2142",
+    "57C03656175B0904",
+    "5EB61A0269CD8550",
+    "666DC40230B31A30",
+    "9799DF91AB4F4FA3",
+    "9BE81CD52C660467",
+    "9C4EC654D5454B46",
+    "9CAA7228F782AB5A",
+    "A07B2B9F994FB0ED",
+    "A336359CD92A858E",
+    "C059EA43719099F1",
+    "C13DF45E3492CA0C",
+    "C4E32B49AE8B7FFB",
+    "C9BC3381603BDDB3",
+    "EABE356D0A0BB65F",
+    "F628F40CE23D983E"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 33,
+   "example_key": "#BCDEA1F2BE012344#"
+  },
+  "高光盲盒": {
+   "tables": [
+    "616B352C296F1FFE"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#6AD5F8DB559725F3#"
+  },
+  "高光表情上新": {
+   "tables": [
+    "5E72CA8CAF015FDE"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 2,
+   "example_key": "#8C7FAD5EE787EAF5#"
+  },
+  "高光表情商城": {
+   "tables": [
+    "C24B1E3D1E1B020F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#A3EA559A25AB0C8D#"
+  },
+  "高光表情盲盒机上线": {
+   "tables": [
+    "5E72CA8CAF015FDE"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#8C7F7847CE9CB969#"
+  },
+  "黑白河洛·司空震·隐藏": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C61C56981CC4C#"
+  },
+  "黑白河洛·李信·隐藏": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C6477CE9D218B#"
+  },
+  "黑白河洛·李白·隐藏": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2CC9423F4B3136#"
+  },
+  "黑白河洛·狄仁杰·隐藏": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2CD9FA225F0EE8#"
+  },
+  "黑白河洛·百里玄策·隐藏": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2C0AF54A44B27A#"
+  },
+  "黑白河洛·花木兰·隐藏": {
+   "tables": [
+    "1FFFD61DB73C942F"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "#5E2CEB23B3F84BDC#"
+  },
+  "（排除一个错误信息）": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ItemDesc_8401"
+  },
+  "（提示盒内信息）": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ItemDesc_8402"
+  },
+  "（直接显示盒内款式）": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ItemDesc_8403"
+  },
+  "，兑换隐藏款还需": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_HiddenExchangeNotice"
+  },
+  "，可兑隐藏款": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ShopTipCanExchange"
+  },
+  "，差{0}可兑隐藏款": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ShopTipNeed"
+  },
+  "，是否兑换隐藏款？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_ExchangeNoticeAsk"
+  },
+  "，是否确认分解？": {
+   "tables": [
+    "DD5B5EDFBB69FEED"
+   ],
+   "packages": [
+    "1"
+   ],
+   "rows": 1,
+   "example_key": "Draw_MysteryBox_DecomposeGainConfirmTail"
+  }
+ }
+}

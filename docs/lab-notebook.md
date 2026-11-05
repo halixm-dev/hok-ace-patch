@@ -4597,3 +4597,31 @@ whether the game reads the rules from the override layer at all.
 - **User report:** no word split on screen in the session. **Verdict: pass.** Shipped as the LateUpdate
   handler in `extra_text.SCRIPT_EDITS[0x3482BF89614B5ABB]` beside the `Create` reset, without the logging
   (offline: 41 029 → 41 658 bytes, compiles, mock passes; the shipped build has not run on a phone).
+
+## 2026-11-05 — 1.9.0.1 pristine snapshot and 213 missing strings
+
+- **Snapshot:** `D:/scratch/hok-1.0.9.1`, despite its folder spelling, reports `1.9.0.1` revision `0`.
+  The update reported `needDownloadSize == 0`; every numeric package folder had its index. The pull
+  began over wireless debugging and resumed over USB: 784 files, 3,135,635,739 bytes, all SHA-256
+  equal to the phone before and after the copy. Normal APK restored and verified as
+  `29b3ee7e5a0d21de7d1282d704416402d341b651da95af2eeb5b274c818defdc`.
+- **Before:** `census_catalog.py`, both languages, pristine override + unchanged APK: 101 override
+  tables and 397 prime-only tables, 351,420 rows. 213 distinct missing Chinese sources / 640 rows;
+  all in package `1`, same sources in English and Indonesian. `4B15FC0D7596513F` is refused as an
+  ambiguous localization table, separately from those 498. Sources retained in
+  `.scratch/data-1.9.0.1/leftovers.json`.
+- **Change:** 213 English/Indonesian pairs in `catalog_supplement.TEXTS`: blind boxes, Faction
+  Highlights, Double Energy Storage missions, card and skill rewordings. Supplement log 2310 → 2523.
+  All supplement entries pass `adaptive.validate_translation` and the markup check; each new pair
+  preserves numeric bracket expressions. Upstream catalogs are unchanged.
+- **Build/read-back:** both offline builds succeed with the cached APK. Override `unknown` is 0;
+  `count_translated`: English (389 tables, 327 textures applied), Indonesian (389, 326).
+  `text_skipped` and `graphics_skipped` are empty. Each `append_skipped` reports one encoder refusal:
+  English `3A70308AAF6F18F8`, Indonesian `0196F0E230EC1C70`. Each staged-output census reads 387
+  override + 111 prime-only tables and finds 0 Chinese strings outside resource tokens, including
+  those refused assets at their surviving prime bytes. This result concerns catalogued text only.
+  Reports: `census-before.json`, `census-after-en.json`, `census-after-id.json` and
+  `verified-en-summary.json` under the snapshot folder; final `out-en` holds the Indonesian build.
+- **Release scope:** checks use the committed `extra_text.py`, excluding earlier local match-end
+  button edits from this release. No phone game data was written; watched-screen acceptance for
+  1.9.0.1 remains pending. UI-string and staging-contract checks pass. Patch version `1.9.1.1`.

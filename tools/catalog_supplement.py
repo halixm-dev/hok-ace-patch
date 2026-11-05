@@ -8,6 +8,8 @@ Kings sub-account, the Line Puppy event, and card texts whose numbers changed. G
 more: the Super Hero mode, room settings, the reworked Lineup Recommendation, strategy tags, and talent texts
 split from their series header. Game data 1.7.0.2 added six Lineup Recommendation hints and errors, and
 1.8.0.1 added 108: Wu Feng's event, team and Invisible-mode prompts, and reworded card texts.
+Game data 1.9.0.1 added 213: the Black & White Central Plains blind boxes, Faction Highlights,
+Double Energy Storage missions, and reworded card and skill texts.
 `apply` fills them in.
 The official lineups' strategy text is here too: it lives in config bins the catalog does not cover, inside
 their share codes, for the share-code pass to write.
@@ -4106,6 +4108,647 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Data game rusak! Restart game client untuk menjalankan Perbaikan Resource."),
     "新闻": ("News", "Berita"),
     "赛事": ("Tournaments", "Turnamen"),
+    # Game data 1.9.0.1: blind boxes, Faction Highlights and reworded card skills.
+    '3-5阶英雄牌5选1，并将选中的卡牌一分为四。': (
+        'Choose 1 of 5 Tier 3-5 Hero Cards, then split the chosen Card into four.',
+        'Pilih 1 dari 5 Hero Card Tier 3-5, lalu pecah Card yang dipilih menjadi empat.'),
+    '<a href=1><color=#ffffff>╨<b>登场</b></color></a>：自身及<a href=3140012><color=#ffffff>╥<b>阿科米亚核心</b></color></a>等级+3。': (
+        '<a href=1><color=#ffffff>╨<b>Deploy</b></color></a>: Self and <a href=3140012><color=#ffffff>╥<b>Arcomia Core</b></color></a> Level +3.',
+        '<a href=1><color=#ffffff>╨<b>Deploy</b></color></a>: Level diri sendiri dan <a href=3140012><color=#ffffff>╥<b>Arcomia Core</b></color></a> +3.'),
+    '<a href=1><color=#ffffff>╨<b>登场</b></color></a>：自身及<a href=3140012><color=#ffffff>╥<b>阿科米亚核心</b></color></a>等级+6。': (
+        '<a href=1><color=#ffffff>╨<b>Deploy</b></color></a>: Self and <a href=3140012><color=#ffffff>╥<b>Arcomia Core</b></color></a> Level +6.',
+        '<a href=1><color=#ffffff>╨<b>Deploy</b></color></a>: Level diri sendiri dan <a href=3140012><color=#ffffff>╥<b>Arcomia Core</b></color></a> +6.'),
+    '<color=#98cbff> 三、阵营高光</color>\n<color=#FFFFFF>阵营高光是按主题收集一定数量英雄高光表情后自动解锁的特殊展示效果，游戏中棋子连续击败敌方时将触发改变场景表现。</color>': (
+        '<color=#98cbff> 3. Faction Highlights</color>\n<color=#FFFFFF>Faction Highlights are special visual effects unlocked automatically by collecting the required number of themed Hero Highlight Emotes. They change the scene when a piece defeats enemies consecutively in a match.</color>',
+        '<color=#98cbff> 3. Faction Highlight</color>\n<color=#FFFFFF>Faction Highlight adalah efek visual khusus yang terbuka otomatis setelah mengumpulkan jumlah Highlight Emote Hero bertema yang dibutuhkan. Efek ini mengubah tampilan arena saat bidak mengalahkan musuh berturut-turut dalam match.</color>'),
+    '<color=#98cbff>一、基础说明</color>\n<color=#FFFFFF>您拥有的棋盘、特效、天幕、高光表情、阵营高光、互动表情、互动道具、个性戳戳、快捷语音、聊天气泡等资产将显示在此处，供您查看及装配后带入对局内。</color>': (
+        '<color=#98cbff>1. Basics</color>\n<color=#FFFFFF>Your Boards, Effects, Skyscreens, Highlight Emotes, Faction Highlights, Interactive Emotes, Interactive Items, Personalized Pokes, Quick Voice Lines, Chat Bubbles and other items appear here. View and equip them to bring them into matches.</color>',
+        '<color=#98cbff>1. Dasar</color>\n<color=#FFFFFF>Board, Efek, Skyscreen, Highlight Emote, Faction Highlight, Interactive Emote, Interactive Item, Personalized Poke, Quick Voice Line, Chat Bubble dan item milikmu lainnya ditampilkan di sini. Lihat dan pasang untuk digunakan dalam match.</color>'),
+    '<color=#98cbff>一、活动时间</color>\n<color=#FFFFFF>1、抽盒时间：2026年11月6日 00:00:00-2026年12月2日 23:59:59。\n2、兑换时间：2026年11月6日 00:00:00-2026年12月5日 23:59:59。\n注：12月2日抽盒时间结束后，河洛令将不可使用，请及时使用；12月2日后仅保留兑换商店，请拥有河洛碎片的玩家们及时兑换，兑换时间结束后活动道具（河洛令、河洛碎片、盲盒机道具卡）将被清空。</color>': (
+        '<color=#98cbff>1. Event Period</color>\n<color=#FFFFFF>1. Box draws: November 6, 2026, 00:00:00 - December 2, 2026, 23:59:59.\n2. Exchanges: November 6, 2026, 00:00:00 - December 5, 2026, 23:59:59.\nNote: Central Plains Tokens cannot be used after box draws end on December 2, so use them in time. Only the Exchange Shop remains open after December 2. Exchange your Central Plains Fragments before it closes. All event items (Central Plains Tokens, Central Plains Fragments and Blind Box Item Cards) will be cleared when exchanges end.</color>',
+        '<color=#98cbff>1. Periode Event</color>\n<color=#FFFFFF>1. Draw kotak: 6 November 2026, 00:00:00 - 2 Desember 2026, 23:59:59.\n2. Penukaran: 6 November 2026, 00:00:00 - 5 Desember 2026, 23:59:59.\nCatatan: Central Plains Token tidak bisa digunakan setelah draw berakhir pada 2 Desember, jadi gunakan tepat waktu. Setelah 2 Desember, hanya Toko Penukaran yang tetap buka. Tukarkan Central Plains Fragment sebelum toko tutup. Semua item event (Central Plains Token, Central Plains Fragment dan Blind Box Item Card) akan dihapus saat penukaran berakhir.</color>'),
+    '<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成双倍储能对局任务即可领取钻石奖励。</color>': (
+        '<color=#98cbff>1. Event Rules</color>\n<color=#FFFFFF>1. Complete Double Energy Storage match missions to claim Diamond rewards.</color>',
+        '<color=#98cbff>1. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi match Double Energy Storage untuk mengambil hadiah Diamond.</color>'),
+    '<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成登录和对局任务即可领取高光盲盒道具奖励。</color>\n<color=#FFFFFF>2、若进行消极对局如挂机等行为，则无法完成对局任务哦。</color>': (
+        '<color=#98cbff>1. Event Rules</color>\n<color=#FFFFFF>1. Complete login and match missions to claim Highlight Blind Box item rewards.</color>\n<color=#FFFFFF>2. Unsporting behavior such as going AFK prevents you from completing match missions.</color>',
+        '<color=#98cbff>1. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi login dan match untuk mengambil hadiah item Highlight Blind Box.</color>\n<color=#FFFFFF>2. Perilaku tidak sportif seperti AFK membuat misi match tidak bisa diselesaikan.</color>'),
+    '<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、每个英雄首次达到100级及以上可领取奖励。</color>\n<color=#FFFFFF>2、85个英雄均达到100级及以上后可领取称号。</color>\n<color=#FFFFFF>3、等级以对局结算时等级为准包含临时等级，仅限万象大赛。</color>\n<color=#FFFFFF>4、活动将持续至本赛季结束。</color>': (
+        '<color=#98cbff>1. Event Rules</color>\n<color=#FFFFFF>1. Claim a reward the first time each Hero reaches Level 100 or higher.</color>\n<color=#FFFFFF>2. Claim a Title after all 85 Heroes reach Level 100 or higher.</color>\n<color=#FFFFFF>3. Levels are counted at match settlement, including temporary Levels. ACE Tournament only.</color>\n<color=#FFFFFF>4. This event lasts until the end of the season.</color>',
+        '<color=#98cbff>1. Aturan Event</color>\n<color=#FFFFFF>1. Ambil hadiah saat setiap Hero pertama kali mencapai Level 100 atau lebih.</color>\n<color=#FFFFFF>2. Ambil Title setelah semua 85 Hero mencapai Level 100 atau lebih.</color>\n<color=#FFFFFF>3. Level dihitung saat penyelesaian match, termasuk Level sementara. Khusus ACE Tournament.</color>\n<color=#FFFFFF>4. Event berlangsung hingga akhir season.</color>'),
+    '<color=#98cbff>三、道具规则</color>\n<color=#FFFFFF>1、抽盒中可使用道具卡辅助帮忙选盒，一共有三种道具卡：</color>\n<color=#FFFFFF>排除卡：帮助排除一个错误信息。</color>\n<color=#FFFFFF>提示卡：可提示一条当盒表情的英雄信息，包括职业、品阶、词条等。</color>\n<color=#FFFFFF>显示卡：直接揭示本盒内是什么具体的英雄表情。</color>\n<color=#FFFFFF>2、单个盲盒道具卡使用上限为10次。</color>\n<color=#FFFFFF>3、参与活动和多开盲盒可获赠更多道具卡。首次端盒赠送显示卡*1，每次端盒赠送排除卡*3、提示卡*3。</color>\n<color=#FFFFFF>4、道具卡仅限本次盲盒机使用，活动结束后，道具过期不可使用。</color>': (
+        '<color=#98cbff>3. Item Rules</color>\n<color=#FFFFFF>1. Three types of Item Cards can help you choose a box:</color>\n<color=#FFFFFF>Elimination Card: Rules out one incorrect clue.</color>\n<color=#FFFFFF>Hint Card: Reveals one clue about the Hero Emote in the box, such as Class, Tier or Trait.</color>\n<color=#FFFFFF>Reveal Card: Reveals the exact Hero Emote in the box.</color>\n<color=#FFFFFF>2. Up to 10 Item Cards may be used on each box.</color>\n<color=#FFFFFF>3. Join events and open more boxes to receive more Item Cards. Your first full-set opening gives 1 Reveal Card. Every full-set opening gives 3 Elimination Cards and 3 Hint Cards.</color>\n<color=#FFFFFF>4. These Item Cards work only in this Blind Box Machine and expire when the event ends.</color>',
+        '<color=#98cbff>3. Aturan Item</color>\n<color=#FFFFFF>1. Tiga jenis Item Card bisa membantumu memilih kotak:</color>\n<color=#FFFFFF>Elimination Card: Mengeliminasi satu petunjuk yang salah.</color>\n<color=#FFFFFF>Hint Card: Mengungkap satu petunjuk Hero Emote di dalam kotak, seperti Class, Tier atau Trait.</color>\n<color=#FFFFFF>Reveal Card: Mengungkap Hero Emote yang tepat di dalam kotak.</color>\n<color=#FFFFFF>2. Maksimal 10 Item Card bisa digunakan untuk setiap kotak.</color>\n<color=#FFFFFF>3. Ikuti event dan buka lebih banyak kotak untuk mendapat lebih banyak Item Card. Pembukaan set penuh pertama memberi 1 Reveal Card. Setiap pembukaan set penuh memberi 3 Elimination Card dan 3 Hint Card.</color>\n<color=#FFFFFF>4. Item Card ini hanya bisa digunakan di Blind Box Machine ini dan kedaluwarsa saat event berakhir.</color>'),
+    '<color=#98cbff>二、抽盒规则</color>\n<color=#FFFFFF>1、本期主题：黑白河洛高光表情系列。本系列包含河洛阵营英雄的16个常规款和6个隐藏款。每一端中必为不重复的16款盲盒，常规款概率约 1:16，隐藏款概率 1:40。\n2、 集齐本系列16个英雄的高光表情，可激活黑白河洛阵营高光。\n3、单次抽盒需消耗30点券购买3个爱心投放1天限时卡，赠送3个河洛令。同时，另有活动可免费获取河洛令。活动期间，每人抽盒限160次。\n4、抽到重复款会自动兑换为河洛碎片，可用于在兑换商店中兑换指定奖励，详细兑换内容可前往兑换商店查看。\n5、具体重复转化数量如下：\n普通款：河洛碎片×5 \n隐藏款：河洛碎片×25\n6、黑白河洛高光表情盲盒机限时开启，抽奖进度不会被其他祈愿活动继承。</color>': (
+        '<color=#98cbff>2. Box Draw Rules</color>\n<color=#FFFFFF>1. This theme: Black & White Central Plains Highlight Emotes. The series contains 16 standard variants and 6 secret variants featuring Central Plains Heroes. Each full set contains 16 boxes without duplicates. Standard variant odds are about 1:16; secret variant odds are 1:40.\n2. Collect Highlight Emotes for all 16 Heroes to activate the Black & White Central Plains Faction Highlight.\n3. Each draw costs 30 Vouchers to buy 3 one-day Heart Drop Trial Cards and grants 3 Central Plains Tokens as a bonus. Other events also offer free Central Plains Tokens. Each player may draw up to 160 times during the event.\n4. Duplicates automatically convert into Central Plains Fragments, which can be exchanged for selected rewards in the Exchange Shop. See the shop for details.\n5. Duplicate conversion amounts:\nStandard variant: Central Plains Fragments x5\nSecret variant: Central Plains Fragments x25\n6. This Blind Box Machine is available for a limited time. Draw progress does not carry over to other Wish events.</color>',
+        '<color=#98cbff>2. Aturan Draw Kotak</color>\n<color=#FFFFFF>1. Tema kali ini: Highlight Emote Black & White Central Plains. Seri ini berisi 16 varian standar dan 6 varian rahasia Hero Central Plains. Setiap set penuh berisi 16 kotak tanpa duplikat. Peluang varian standar sekitar 1:16; varian rahasia 1:40.\n2. Kumpulkan Highlight Emote untuk semua 16 Hero untuk mengaktifkan Faction Highlight Black & White Central Plains.\n3. Setiap draw membutuhkan 30 Voucher untuk membeli 3 Heart Drop Trial Card satu hari dan memberi bonus 3 Central Plains Token. Event lain juga menyediakan Central Plains Token gratis. Setiap pemain dapat melakukan maksimal 160 draw selama event.\n4. Duplikat otomatis berubah menjadi Central Plains Fragment untuk ditukar dengan hadiah tertentu di Toko Penukaran. Lihat toko untuk detailnya.\n5. Jumlah konversi duplikat:\nVarian standar: Central Plains Fragment x5\nVarian rahasia: Central Plains Fragment x25\n6. Blind Box Machine ini tersedia untuk waktu terbatas. Progres draw tidak diteruskan ke event Wish lain.</color>'),
+    '<color=#FFE897>你的英雄施加控制效果</color>时，你的【三分】英雄获得20点法术攻击力且临时等级+1。': (
+        'When <color=#FFE897>your Heroes apply CC Effects</color>, your Three Kingdoms Heroes gain 20 Ability Power and +1 temporary Level.',
+        'Saat <color=#FFE897>Hero-mu memberikan efek CC</color>, Hero Three Kingdoms-mu mendapat 20 Ability Power dan +1 Level sementara.'),
+    '{0}/{1}激活阵营高光': (
+        '{0}/{1} to activate Faction Highlight',
+        '{0}/{1} untuk mengaktifkan Faction Highlight'),
+    '{0}利息': (
+        '{0} Interest',
+        '{0} Bunga'),
+    '{Energy}可用至-15。回合结束时若{Energy}为负，则下回合获得的{Energy}-2。': (
+        '{Energy} can reach -15. If {Energy} is negative at the end of a Round, gain 2 less {Energy} next Round.',
+        '{Energy} bisa mencapai -15. Jika {Energy} negatif di akhir Ronde, perolehan {Energy} Ronde berikutnya berkurang 2.'),
+    '{Energy}可用至-15。回合结束时若{Energy}为负，则下回合获得的{Energy}-2。决策颁布者额外特权：不受到惩罚，回合结束时每有1名其他玩家{Energy}为负，则下回合获得2{Energy}。': (
+        '{Energy} can reach -15. If {Energy} is negative at the end of a Round, gain 2 less {Energy} next Round. Extra privilege for the policy issuer: You are exempt from the penalty. At the end of a Round, gain 2{Energy} next Round for each other player with negative {Energy}.',
+        '{Energy} bisa mencapai -15. Jika {Energy} negatif di akhir Ronde, perolehan {Energy} Ronde berikutnya berkurang 2. Hak tambahan penerbit kebijakan: Kamu bebas dari penalti. Di akhir Ronde, dapatkan 2{Energy} Ronde berikutnya untuk setiap pemain lain dengan {Energy} negatif.'),
+    '{Energy}可用至-15，回合结束时每有1名其他玩家{Energy}为负，则下回合获得2{Energy}。': (
+        '{Energy} can reach -15. At the end of a Round, gain 2{Energy} next Round for each other player with negative {Energy}.',
+        '{Energy} bisa mencapai -15. Di akhir Ronde, dapatkan 2{Energy} Ronde berikutnya untuk setiap pemain lain dengan {Energy} negatif.'),
+    '一发出货': (
+        'First-Try Jackpot',
+        'Jackpot Sekali Coba'),
+    '一抽入魂': (
+        'One Draw, One Hit',
+        'Sekali Draw Langsung Dapat'),
+    '一整端包含16个不重复的盲盒，常规款概率1:16，隐藏款概率1:40。': (
+        'A full set contains 16 boxes without duplicates. Standard variant odds: 1:16. Secret variant odds: 1:40.',
+        'Set penuh berisi 16 kotak tanpa duplikat. Peluang varian standar: 1:16. Peluang varian rahasia: 1:40.'),
+    '不可使用单抽': (
+        'Single draws unavailable',
+        'Draw satuan tidak tersedia'),
+    '不可使用端抽': (
+        'Full-set draws unavailable',
+        'Draw set penuh tidak tersedia'),
+    '为范围内的友军增加6点物理防御力和法术防御力': (
+        'Grants allies in range 6 Physical Defense and Magic Defense.',
+        'Memberi ally dalam jangkauan 6 Physical Defense dan Magic Defense.'),
+    '亚瑟召唤圣盾围绕自身旋转，持续5秒。每秒对1格内敌人造成<color=#dfa15e>50%物理攻击力的物理伤害</color>并获得15%伤害减免，亚瑟每次参与击杀获得50点最大生命值。': (
+        'Arthur summons holy shields to circle himself for 5 seconds, dealing <color=#dfa15e>50% Physical Attack as Physical Damage</color> each second to enemies within 1 grid and gaining 15% Damage Reduction. Arthur gains 50 Max HP whenever he participates in a kill.',
+        'Arthur memanggil holy shield yang berputar di sekelilingnya selama 5 detik, memberikan <color=#dfa15e>50% Physical Attack sebagai Physical Damage</color> setiap detik ke musuh dalam 1 petak dan mendapat 15% Damage Reduction. Arthur mendapat 50 Max HP setiap kali berpartisipasi dalam kill.'),
+    '亚瑟召唤圣盾围绕自身旋转，持续5秒。每秒对1格内敌人造成<color=#dfa15e>[0]点物理伤害</color><color=#dfa15e>（[1]%物理攻击力）</color>并获得<color=#ffffffbf>[2]%伤害减免</color>，亚瑟每次参与击杀获得50点最大生命值。': (
+        'Arthur summons holy shields to circle himself for 5 seconds, dealing <color=#dfa15e>[0] Physical Damage</color><color=#dfa15e> ([1]% Physical Attack)</color> each second to enemies within 1 grid and gaining <color=#ffffffbf>[2]% Damage Reduction</color>. Arthur gains 50 Max HP whenever he participates in a kill.',
+        'Arthur memanggil holy shield yang berputar di sekelilingnya selama 5 detik, memberikan <color=#dfa15e>[0] Physical Damage</color><color=#dfa15e> ([1]% Physical Attack)</color> setiap detik ke musuh dalam 1 petak dan mendapat <color=#ffffffbf>[2]% Damage Reduction</color>. Arthur mendapat 50 Max HP setiap kali berpartisipasi dalam kill.'),
+    '使用技能，随机获得1张3-5阶的<a href=3130012><color=#ffffff>╆<b>转瞬</b></color></a>英雄牌。': (
+        'Using a Skill randomly grants 1 Tier 3-5 <a href=3130012><color=#ffffff>╆<b>Fleeting</b></color></a> Hero Card.',
+        'Menggunakan Skill memberi 1 Hero Card <a href=3130012><color=#ffffff>╆<b>Fleeting</b></color></a> Tier 3-5 secara acak.'),
+    '全服 {0}/{1}': (
+        'Server {0}/{1}',
+        'Server {0}/{1}'),
+    '分解可得': (
+        'Dismantle to obtain',
+        'Bongkar untuk mendapat'),
+    '分解后将获得': (
+        'Dismantling grants',
+        'Membongkar memberi'),
+    '分解物品中包含还未拥有的和隐藏款，是否仍要分解？': (
+        'Your selection includes unowned and secret variants. Dismantle anyway?',
+        'Pilihanmu berisi varian yang belum dimiliki dan varian rahasia. Tetap bongkar?'),
+    '分解物品中包含还未拥有的，是否仍要分解？': (
+        'Your selection includes unowned items. Dismantle anyway?',
+        'Pilihanmu berisi item yang belum dimiliki. Tetap bongkar?'),
+    '分解物品中包含隐藏款，是否仍要分解？': (
+        'Your selection includes secret variants. Dismantle anyway?',
+        'Pilihanmu berisi varian rahasia. Tetap bongkar?'),
+    '前往装配': (
+        'Go to Equip',
+        'Ke Pemasangan'),
+    '单抽出奇迹': (
+        'Single-Draw Miracle',
+        'Keajaiban Sekali Draw'),
+    '卖掉不亏，等级回归': (
+        'Sell Without Loss, Get Your Levels Back',
+        'Jual Tanpa Rugi, Level Kembali'),
+    '参与活动免费抽河洛表情': (
+        'Join the event for free Central Plains Emote draws',
+        'Ikuti event untuk draw Central Plains Emote gratis'),
+    '参与活动，获取更多免费抽盒道具': (
+        'Join events for more free box-draw items',
+        'Ikuti event untuk mendapat lebih banyak item draw kotak gratis'),
+    '双倍储能活动奖励': (
+        'Double Energy Storage Event Rewards',
+        'Hadiah Event Double Energy Storage'),
+    '双倍储能进入前3名': (
+        'Finish in the Top 3 in Double Energy Storage',
+        'Raih Top 3 di Double Energy Storage'),
+    '发牌员本员': (
+        'The Dealer Himself',
+        'Sang Pembagi Kartu'),
+    '合成英雄时，获得1{Energy}，每回合限3次。达到上限时随机获得1张场上英雄的复制。': (
+        'When you Combine Heroes, gain 1{Energy}, up to 3 times per Round. At the limit, randomly gain 1 copy of a Hero on the board.',
+        'Saat melakukan Combine Hero, dapatkan 1{Energy}, maksimal 3 kali per Ronde. Saat batas tercapai, dapatkan 1 salinan Hero di board secara acak.'),
+    '吟唱结束时还会生成1个额外巨型法阵对所有敌人造成100+125%法术攻击力的法术伤害': (
+        'When channeling ends, create 1 additional giant magic circle that deals 100+125% Ability Power as Magic Damage to all enemies.',
+        'Saat channeling berakhir, buat 1 lingkaran sihir raksasa tambahan yang memberikan 100+125% Ability Power sebagai Magic Damage ke semua musuh.'),
+    '周限 {0}/{1}': (
+        'Weekly {0}/{1}',
+        'Mingguan {0}/{1}'),
+    '回合开始时，获得1张<color=#FFE897>推演战术</color>。战斗胜利时，改为获得1张<color=#FFE897>高阶推演战术</color>。': (
+        'At the start of each Round, gain 1 <color=#FFE897>Deduction Tactics</color>. After winning a battle, gain 1 <color=#FFE897>Advanced Deduction Tactics</color> instead.',
+        'Di awal setiap Ronde, dapatkan 1 <color=#FFE897>Deduction Tactics</color>. Jika memenangkan pertempuran, dapatkan 1 <color=#FFE897>Advanced Deduction Tactics</color> sebagai gantinya.'),
+    '圣盾伤害提升至80%物理攻击力，伤害减免提高至25%': (
+        'Holy Shield Damage increases to 80% Physical Attack, and Damage Reduction increases to 25%.',
+        'Damage Holy Shield meningkat menjadi 80% Physical Attack, dan Damage Reduction menjadi 25%.'),
+    '在【超级英雄】中，最终夺冠时，队伍中仅有1~3阶英雄': (
+        'Win the championship in [Super Hero] with only Tier 1~3 Heroes on your Team.',
+        'Menangkan kejuaraan di [Super Hero] dengan hanya Hero Tier 1~3 dalam tim.'),
+    '场上随机英雄等级+5，触发4次，若对象为<b>温柔呼唤</b>的英雄则额外等级+5，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）': (
+        'A random Hero on the board gains +5 Levels, triggering 4 times. A <b>Gentle Call</b> Hero gains an extra +5 Levels. Each use adds 2 triggers (prioritizes Gentle Call Heroes).',
+        'Hero acak di board mendapat +5 Level, terpicu 4 kali. Hero <b>Gentle Call</b> mendapat tambahan +5 Level. Setiap penggunaan menambah 2 pemicu (memprioritaskan Hero Gentle Call).'),
+    '场上随机英雄等级+5，触发{DaQiao_TideTimes:4}次，若对象为<b>温柔呼唤</b>的英雄则额外等级+5，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）。': (
+        'A random Hero on the board gains +5 Levels, triggering {DaQiao_TideTimes:4} times. A <b>Gentle Call</b> Hero gains an extra +5 Levels. Each use adds 2 triggers (prioritizes Gentle Call Heroes).',
+        'Hero acak di board mendapat +5 Level, terpicu {DaQiao_TideTimes:4} kali. Hero <b>Gentle Call</b> mendapat tambahan +5 Level. Setiap penggunaan menambah 2 pemicu (memprioritaskan Hero Gentle Call).'),
+    '复制对手秘技': (
+        "Copy Opponent's Secret Skill",
+        'Salin Secret Skill Lawan'),
+    '太酷啦！\n是{0}！': (
+        "So cool!\nIt's {0}!",
+        'Keren banget!\nTernyata {0}!'),
+    '好牌送上门': (
+        'Good Cards Delivered',
+        'Kartu Bagus Datang Sendiri'),
+    '子弹伤害提升至40+30%物理攻击力': (
+        'Bullet Damage increases to 40+30% Physical Attack.',
+        'Damage peluru meningkat menjadi 40+30% Physical Attack.'),
+    '子弹数量提升至16发，每颗子弹减少敌人2点物理防御，持续5秒（可叠加）': (
+        "Bullet count increases to 16. Each bullet reduces the enemy's Physical Defense by 2 for 5 seconds (stacks).",
+        'Jumlah peluru meningkat menjadi 16. Setiap peluru mengurangi Physical Defense musuh sebesar 2 selama 5 detik (bisa ditumpuk).'),
+    '子弹数量提升，子弹减少敌人物理防御': (
+        'More bullets; bullets reduce enemy Physical Defense',
+        'Lebih banyak peluru; peluru mengurangi Physical Defense musuh'),
+    '季限 {0}/{1}': (
+        'Season {0}/{1}',
+        'Season {0}/{1}'),
+    '完成1局双倍储能': (
+        'Complete 1 Double Energy Storage match',
+        'Selesaikan 1 match Double Energy Storage'),
+    '完成3局双倍储能': (
+        'Complete 3 Double Energy Storage matches',
+        'Selesaikan 3 match Double Energy Storage'),
+    '对自身和两侧友军施加驱散并获得<color=#ffffff>护盾</color>。': (
+        'Apply Dispel to self and allies on both sides and gain a <color=#ffffff>Shield</color>.',
+        'Berikan Dispel pada diri sendiri dan ally di kedua sisi, lalu dapatkan <color=#ffffff>Shield</color>.'),
+    '已使用显示卡，无需再使用其他道具卡': (
+        'Reveal Card already used. No other Item Cards are needed.',
+        'Reveal Card sudah digunakan. Tidak perlu Item Card lain.'),
+    '已初始化': (
+        'Initialized',
+        'Sudah diinisialisasi'),
+    '已拥有×{0}': (
+        'Owned x{0}',
+        'Dimiliki x{0}'),
+    '已收取': (
+        'Collected',
+        'Sudah diambil'),
+    '已收取{0}利息': (
+        'Collected {0} Interest',
+        'Bunga {0} sudah diambil'),
+    '庄周幻化梦域保护队友和自身，对自身和左右两边2格内友军施加驱散，并获得200点护盾，持续5秒。': (
+        'Zhuangzi creates a dream realm to protect himself and allies, applying Dispel to self and allies within 2 grids to the left and right and granting a 200 Shield for 5 seconds.',
+        'Zhuangzi menciptakan alam mimpi untuk melindungi diri dan ally, memberikan Dispel pada diri sendiri dan ally dalam 2 petak ke kiri dan kanan serta Shield 200 selama 5 detik.'),
+    '庄周幻化梦域保护队友和自身，对自身和左右两边2格内友军施加驱散，并获得<color=#ffffff>[0]点护盾</color>，持续5秒。': (
+        'Zhuangzi creates a dream realm to protect himself and allies, applying Dispel to self and allies within 2 grids to the left and right and granting a <color=#ffffff>[0] Shield</color> for 5 seconds.',
+        'Zhuangzi menciptakan alam mimpi untuk melindungi diri dan ally, memberikan Dispel pada diri sendiri dan ally dalam 2 petak ke kiri dan kanan serta <color=#ffffff>Shield [0]</color> selama 5 detik.'),
+    '开战后15秒内，飞行器继承连接英雄125%的法术攻击力。': (
+        "For the first 15 seconds of battle, the Aircraft inherits 125% of the connected Hero's Ability Power.",
+        'Selama 15 detik pertama pertempuran, Aircraft mewarisi 125% Ability Power Hero yang terhubung.'),
+    '总限 {0}/{1}': (
+        'Total {0}/{1}',
+        'Total {0}/{1}'),
+    '恢复生命值提升至[0]点': (
+        'HP restored increases to [0].',
+        'Pemulihan HP meningkat menjadi [0].'),
+    '恢复生命值提升至[184014p1q1]点': (
+        'HP restored increases to [184014p1q1].',
+        'Pemulihan HP meningkat menjadi [184014p1q1].'),
+    '恭喜获得隐藏款表情！': (
+        'Congratulations on a secret Emote!',
+        'Selamat mendapat Emote rahasia!'),
+    '恭喜集齐16个英雄高光表情，激活阵营高光！': (
+        'Collected Highlight Emotes for all 16 Heroes! Faction Highlight activated!',
+        'Highlight Emote untuk semua 16 Hero terkumpul! Faction Highlight aktif!'),
+    '战斗开始时，随机传送1个4-5阶临时等级为回合数×16的英雄进入战场（不含卡牌效果），并携带3件适配装备。': (
+        'At the start of battle, randomly Teleport 1 Tier 4-5 Hero with a temporary Level of Round number x16 onto the Battlefield (excluding card effects), carrying 3 suitable Equipment items.',
+        'Di awal pertempuran, Teleport 1 Hero Tier 4-5 acak dengan Level sementara sebesar nomor Ronde x16 ke Battlefield (tidak termasuk efek kartu), membawa 3 Equipment yang sesuai.'),
+    '所选物品包含您已拥有的表情，不可再使用，可上架交易行或分解': (
+        'Your selection includes Emotes you already own. They cannot be used again; list them on the Trading House or dismantle them.',
+        'Pilihanmu berisi Emote yang sudah dimiliki. Emote tidak bisa digunakan lagi; jual di Trading House atau bongkar.'),
+    '扁鹊朝场上生命值比例最低的3个单位扔出药瓶，药瓶触地后破碎留下药液，持续5秒。处于药液中的友军每秒恢复<color=#d487e4>20+60%法术攻击力</color><color=#9ff5d0>的生命值</color>，处于药液中的敌人每秒受到<color=#d487e4>20+60%法术攻击力的法术伤害</color>，效果可叠加。': (
+        'Bian Que throws medicine bottles at the 3 units with the lowest HP percentage on the board. The bottles shatter on impact, leaving medicine for 5 seconds. Allies in it recover <color=#d487e4>20+60% Ability Power</color><color=#9ff5d0> as HP</color> each second. Enemies in it take <color=#d487e4>20+60% Ability Power as Magic Damage</color> each second. Effects stack.',
+        'Bian Que melempar botol obat ke 3 unit dengan persentase HP terendah di board. Botol pecah saat mendarat, meninggalkan obat selama 5 detik. Ally di dalamnya memulihkan <color=#d487e4>20+60% Ability Power</color><color=#9ff5d0> sebagai HP</color> setiap detik. Musuh di dalamnya menerima <color=#d487e4>20+60% Ability Power sebagai Magic Damage</color> setiap detik. Efek bisa ditumpuk.'),
+    '扁鹊朝场上生命值比例最低的3个单位扔出药瓶，药瓶触地后破碎留下药液，持续5秒。处于药液中的友军每秒恢复<color=#d487e4>20+[119190p1q3/100]%法术攻击力</color><color=#9ff5d0>的生命值</color>，处于药液中的敌人每秒受到<color=#d487e4>20+[119100p1q3/100]%法术攻击力的法术伤害</color>，效果可叠加。单位离开药液区域后，效果仍然会持续3秒。': (
+        'Bian Que throws medicine bottles at the 3 units with the lowest HP percentage on the board. The bottles shatter on impact, leaving medicine for 5 seconds. Allies in it recover <color=#d487e4>20+[119190p1q3/100]% Ability Power</color><color=#9ff5d0> as HP</color> each second. Enemies in it take <color=#d487e4>20+[119100p1q3/100]% Ability Power as Magic Damage</color> each second. Effects stack and last 3 seconds after a unit leaves the area.',
+        'Bian Que melempar botol obat ke 3 unit dengan persentase HP terendah di board. Botol pecah saat mendarat, meninggalkan obat selama 5 detik. Ally di dalamnya memulihkan <color=#d487e4>20+[119190p1q3/100]% Ability Power</color><color=#9ff5d0> sebagai HP</color> setiap detik. Musuh di dalamnya menerima <color=#d487e4>20+[119100p1q3/100]% Ability Power sebagai Magic Damage</color> setiap detik. Efek bisa ditumpuk dan bertahan 3 detik setelah unit keluar dari area.'),
+    '扁鹊朝场上生命值比例最低的[0]个单位扔出药瓶，药瓶触地后破碎留下药液，持续5秒。处于药液中的友军每秒<color=#9ff5d0>恢复[1]点生命值</color><color=#9ff5d0>（[2]+[3]%法术攻击力）</color>，处于药液中的敌人每秒受到<color=#d487e4>[4]点法术伤害</color><color=#d487e4>（[5]+[6]%法术攻击力）</color>，效果可叠加。单位离开药液区域后，效果仍然会持续3秒。': (
+        'Bian Que throws medicine bottles at the [0] units with the lowest HP percentage on the board. The bottles shatter on impact, leaving medicine for 5 seconds. Allies in it <color=#9ff5d0>recover [1] HP</color><color=#9ff5d0> ([2]+[3]% Ability Power)</color> each second. Enemies in it take <color=#d487e4>[4] Magic Damage</color><color=#d487e4> ([5]+[6]% Ability Power)</color> each second. Effects stack and last 3 seconds after a unit leaves the area.',
+        'Bian Que melempar botol obat ke [0] unit dengan persentase HP terendah di board. Botol pecah saat mendarat, meninggalkan obat selama 5 detik. Ally di dalamnya <color=#9ff5d0>memulihkan [1] HP</color><color=#9ff5d0> ([2]+[3]% Ability Power)</color> setiap detik. Musuh di dalamnya menerima <color=#d487e4>[4] Magic Damage</color><color=#d487e4> ([5]+[6]% Ability Power)</color> setiap detik. Efek bisa ditumpuk dan bertahan 3 detik setelah unit keluar dari area.'),
+    '打开可获得英雄上官婉儿的黑白主题高光表情。': (
+        "Open to obtain Shangguan's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Shangguan.'),
+    '打开可获得英雄司空震的黑白主题隐藏款高光表情。': (
+        "Open to obtain Sikong Zhen's Black & White Secret Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Rahasia Black & White Sikong Zhen.'),
+    '打开可获得英雄司空震的黑白主题高光表情。': (
+        "Open to obtain Sikong Zhen's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Sikong Zhen.'),
+    '打开可获得英雄李信的黑白主题隐藏款高光表情。': (
+        "Open to obtain Li Xin's Black & White Secret Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Rahasia Black & White Li Xin.'),
+    '打开可获得英雄李信的黑白主题高光表情。': (
+        "Open to obtain Li Xin's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Li Xin.'),
+    '打开可获得英雄李元芳的黑白主题高光表情。': (
+        "Open to obtain Fang's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Fang.'),
+    '打开可获得英雄李白的黑白主题隐藏款高光表情。': (
+        "Open to obtain Li Bai's Black & White Secret Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Rahasia Black & White Li Bai.'),
+    '打开可获得英雄李白的黑白主题高光表情。': (
+        "Open to obtain Li Bai's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Li Bai.'),
+    '打开可获得英雄武则天的黑白主题高光表情。': (
+        "Open to obtain Wu Zetian's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Wu Zetian.'),
+    '打开可获得英雄沈梦溪的黑白主题高光表情。': (
+        "Open to obtain Shen Mengxi's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Shen Mengxi.'),
+    '打开可获得英雄狄仁杰的黑白主题隐藏款高光表情。': (
+        "Open to obtain Di Renjie's Black & White Secret Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Rahasia Black & White Di Renjie.'),
+    '打开可获得英雄狄仁杰的黑白主题高光表情。': (
+        "Open to obtain Di Renjie's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Di Renjie.'),
+    '打开可获得英雄百里守约的黑白主题高光表情。': (
+        "Open to obtain Shouyue's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Shouyue.'),
+    '打开可获得英雄百里玄策的黑白主题隐藏款高光表情。': (
+        "Open to obtain Xuance's Black & White Secret Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Rahasia Black & White Xuance.'),
+    '打开可获得英雄百里玄策的黑白主题高光表情。': (
+        "Open to obtain Xuance's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Xuance.'),
+    '打开可获得英雄盾山的黑白主题高光表情。': (
+        "Open to obtain Dunshan's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Dunshan.'),
+    '打开可获得英雄程咬金的黑白主题高光表情。': (
+        "Open to obtain Cheng Yaojin's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Cheng Yaojin.'),
+    '打开可获得英雄花木兰的黑白主题隐藏款高光表情。': (
+        "Open to obtain Mulan's Black & White Secret Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Rahasia Black & White Mulan.'),
+    '打开可获得英雄花木兰的黑白主题高光表情。': (
+        "Open to obtain Mulan's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Mulan.'),
+    '打开可获得英雄苏烈的黑白主题高光表情。': (
+        "Open to obtain Su Lie's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Su Lie.'),
+    '打开可获得英雄钟馗的黑白主题高光表情。': (
+        "Open to obtain Kui's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Kui.'),
+    '打开可获得英雄铠的黑白主题高光表情。': (
+        "Open to obtain Kaizer's Black & White Highlight Emote.",
+        'Buka untuk mendapat Highlight Emote Black & White Kaizer.'),
+    '技能效果范围扩大至周围2格，恢复生命值提升至150点': (
+        'Skill radius increases to 2 surrounding grids, and HP restored increases to 150.',
+        'Radius Skill meluas menjadi 2 petak di sekitar, dan pemulihan HP meningkat menjadi 150.'),
+    '技能效果范围扩大至周围2格，恢复生命值提升至[0]点，双防数值提升为[1]点': (
+        'Skill radius increases to 2 surrounding grids, HP restored increases to [0], and both Defenses increase to [1].',
+        'Radius Skill meluas menjadi 2 petak di sekitar, pemulihan HP meningkat menjadi [0], dan kedua Defense menjadi [1].'),
+    '技能效果范围扩大至周围2格，恢复生命值提升至[184021p1q1]点，双防数值提升为[1840151p1q2]点': (
+        'Skill radius increases to 2 surrounding grids, HP restored increases to [184021p1q1], and both Defenses increase to [1840151p1q2].',
+        'Radius Skill meluas menjadi 2 petak di sekitar, pemulihan HP meningkat menjadi [184021p1q1], dan kedua Defense menjadi [1840151p1q2].'),
+    '技能范围扩大，恢复生命值提升，双防提升': (
+        'Larger Skill radius, more HP restored and higher Defenses',
+        'Radius Skill lebih luas, pemulihan HP dan kedua Defense meningkat'),
+    '护盾提升至300点': (
+        'Shield increases to 300.',
+        'Shield meningkat menjadi 300.'),
+    '拆开后不可上架交易行，是否拆开？\n拆开使用后可在定制系统查看和装配。': (
+        'Unpacked items cannot be listed on the Trading House. Unpack?\nAfter unpacking and using them, view and equip them in Customization.',
+        'Item yang dibuka tidak bisa dijual di Trading House. Buka?\nSetelah dibuka dan digunakan, lihat dan pasang di Kustomisasi.'),
+    '拥有{0}': (
+        'Owned: {0}',
+        'Dimiliki: {0}'),
+    '拥有额外能量': (
+        'Have Extra Energy',
+        'Memiliki Energy Tambahan'),
+    '持续吟唱到回合结束，并且每造成5次伤害后生成巨型法阵，对所有敌人造成100+125%法术攻击力的法术伤害': (
+        'Channel until the end of the Round. After every 5 instances of Damage dealt, create a giant magic circle that deals 100+125% Ability Power as Magic Damage to all enemies.',
+        'Channel hingga akhir Ronde. Setiap memberikan damage 5 kali, buat lingkaran sihir raksasa yang memberikan 100+125% Ability Power sebagai Magic Damage ke semua musuh.'),
+    '排除卡': (
+        'Elimination Card',
+        'Elimination Card'),
+    '提前财富自由': (
+        'Early Financial Freedom',
+        'Kebebasan Finansial Dini'),
+    '提示卡': (
+        'Hint Card',
+        'Hint Card'),
+    '摇一摇': (
+        'Shake',
+        'Goyang'),
+    '日限 {0}/{1}': (
+        'Daily {0}/{1}',
+        'Harian {0}/{1}'),
+    '暂存箱': (
+        'Storage Box',
+        'Kotak Penyimpanan'),
+    '月限 {0}/{1}': (
+        'Monthly {0}/{1}',
+        'Bulanan {0}/{1}'),
+    '未拥有×{0}': (
+        'Unowned x{0}',
+        'Belum dimiliki x{0}'),
+    '本盒已售罄': (
+        'This box is sold out',
+        'Kotak ini habis terjual'),
+    '本盒道具卡使用次数已达上限（10次）': (
+        'Item Card limit reached for this box (10 uses)',
+        'Batas Item Card untuk kotak ini tercapai (10 kali)'),
+    '本端最后一盒': (
+        'Last box in this set',
+        'Kotak terakhir di set ini'),
+    '根本花不完': (
+        'More Than You Can Spend',
+        'Tak Habis Dibelanjakan'),
+    '棋手升级时获得3{Energy}，满级后每回合获得2次临时刷新。': (
+        'Gain 3{Energy} when your Chessplayer levels up. At Max Level, gain 2 temporary Refreshes each Round.',
+        'Dapatkan 3{Energy} saat Chessplayer-mu naik Level. Pada Max Level, dapatkan 2 Refresh sementara setiap Ronde.'),
+    '欧皇本皇': (
+        'Luck Incarnate',
+        'Sang Pemilik Hoki'),
+    '欧皇附体': (
+        'Blessed by Luck',
+        'Diberkati Hoki'),
+    '武凤来了活动获取': (
+        'Obtained from the Wu Feng Arrives event',
+        'Didapat dari event Wu Feng Arrives'),
+    '武则天以女帝权威施行制裁，持续吟唱8秒，每隔0.75秒随机选择1名敌人，在其脚下召唤法阵并引爆，命中时造成<color=#d487e4>100+75%法术攻击力的法术伤害</color>，并使其生命恢复效果降低50%，持续6秒（不可叠加）。法阵在3秒内连续命中相同敌人时，伤害将衰减15%，最多45%。': (
+        'Wu Zetian channels her imperial judgment for 8 seconds. Every 0.75 seconds, she randomly selects 1 enemy and detonates a magic circle beneath them, dealing <color=#d487e4>100+75% Ability Power as Magic Damage</color> and reducing their healing received by 50% for 6 seconds (does not stack). Consecutive hits on the same enemy within 3 seconds deal 15% less Damage per hit, up to 45%.',
+        'Wu Zetian melakukan channeling penghakiman kekaisaran selama 8 detik. Setiap 0,75 detik, ia memilih 1 musuh acak dan meledakkan lingkaran sihir di bawahnya, memberikan <color=#d487e4>100+75% Ability Power sebagai Magic Damage</color> dan mengurangi pemulihan HP yang diterima sebesar 50% selama 6 detik (tidak bisa ditumpuk). Hit beruntun pada musuh yang sama dalam 3 detik memberikan damage 15% lebih kecil per hit, hingga 45%.'),
+    '武则天以女帝权威施行制裁，持续吟唱8秒，每隔0.75秒随机选择1名敌人，在其脚下召唤法阵并引爆，命中时造成<color=#d487e4>100+[136301p1q3/100]%法术攻击力的法术伤害</color>，并使其生命恢复效果降低[136310p1q2/100]%，持续6秒（不可叠加）。': (
+        'Wu Zetian channels her imperial judgment for 8 seconds. Every 0.75 seconds, she randomly selects 1 enemy and detonates a magic circle beneath them, dealing <color=#d487e4>100+[136301p1q3/100]% Ability Power as Magic Damage</color> and reducing their healing received by [136310p1q2/100]% for 6 seconds (does not stack).',
+        'Wu Zetian melakukan channeling penghakiman kekaisaran selama 8 detik. Setiap 0,75 detik, ia memilih 1 musuh acak dan meledakkan lingkaran sihir di bawahnya, memberikan <color=#d487e4>100+[136301p1q3/100]% Ability Power sebagai Magic Damage</color> dan mengurangi pemulihan HP yang diterima sebesar [136310p1q2/100]% selama 6 detik (tidak bisa ditumpuk).'),
+    '武则天以女帝权威施行制裁，持续吟唱8秒，每隔0.75秒随机选择1名敌人，在其脚下召唤法阵并引爆，命中时造成<color=#d487e4>[0]点法术伤害</color><color=#d487e4>（[1]+[2]%法术攻击力）</color>，并使其生命恢复效果降低50%，持续6秒（不可叠加）。': (
+        'Wu Zetian channels her imperial judgment for 8 seconds. Every 0.75 seconds, she randomly selects 1 enemy and detonates a magic circle beneath them, dealing <color=#d487e4>[0] Magic Damage</color><color=#d487e4> ([1]+[2]% Ability Power)</color> and reducing their healing received by 50% for 6 seconds (does not stack).',
+        'Wu Zetian melakukan channeling penghakiman kekaisaran selama 8 detik. Setiap 0,75 detik, ia memilih 1 musuh acak dan meledakkan lingkaran sihir di bawahnya, memberikan <color=#d487e4>[0] Magic Damage</color><color=#d487e4> ([1]+[2]% Ability Power)</color> dan mengurangi pemulihan HP yang diterima sebesar 50% selama 6 detik (tidak bisa ditumpuk).'),
+    '每4个回合': (
+        'Every 4 Rounds',
+        'Setiap 4 Ronde'),
+    '每个物品最多拆开1个': (
+        'Unpack at most 1 of each item',
+        'Maksimal buka 1 untuk setiap item'),
+    '每次开启可获得一款随机的高光表情': (
+        'Each opening grants a random Highlight Emote',
+        'Setiap pembukaan memberi Highlight Emote acak'),
+    '河洛碎片': (
+        'Central Plains Fragment',
+        'Central Plains Fragment'),
+    '河洛碎片不足，是否继续抽盒获取碎片？': (
+        'Not enough Central Plains Fragments. Keep drawing boxes to get more?',
+        'Central Plains Fragment tidak cukup. Lanjut draw kotak untuk mendapat lagi?'),
+    '河洛碎片，可用于黑白河洛高光表情盲盒兑换': (
+        'Central Plains Fragments can be exchanged for Black & White Central Plains Highlight Blind Box rewards.',
+        'Central Plains Fragment bisa ditukar dengan hadiah Highlight Blind Box Black & White Central Plains.'),
+    '法阵伤害提升至100+100%法术攻击力': (
+        'Magic circle Damage increases to 100+100% Ability Power.',
+        'Damage lingkaran sihir meningkat menjadi 100+100% Ability Power.'),
+    '泼天富贵': (
+        'Fabulous Fortune',
+        'Kekayaan Melimpah'),
+    '盆满钵满': (
+        'Brimming with Riches',
+        'Bergelimang Harta'),
+    '盲盒已开启': (
+        'Blind box already opened',
+        'Blind box sudah dibuka'),
+    '盲盒抽奖': (
+        'Blind Box Draw',
+        'Draw Blind Box'),
+    '盲盒机刷新太频繁': (
+        'Blind Box Machine refreshed too often',
+        'Blind Box Machine terlalu sering di-refresh'),
+    '盲盒机即将下线': (
+        'Blind Box Machine closing soon',
+        'Blind Box Machine segera tutup'),
+    '盲盒机奖池随机物品不足': (
+        'Not enough random items in the Blind Box Machine prize pool',
+        'Item acak di pool hadiah Blind Box Machine tidak cukup'),
+    '盲盒机开启已达上限': (
+        'Blind Box Machine opening limit reached',
+        'Batas pembukaan Blind Box Machine tercapai'),
+    '盲盒机操作数据无效': (
+        'Invalid Blind Box Machine operation data',
+        'Data operasi Blind Box Machine tidak valid'),
+    '盲盒机数据插入失败': (
+        'Failed to save Blind Box Machine data',
+        'Gagal menyimpan data Blind Box Machine'),
+    '盲盒机未初始化': (
+        'Blind Box Machine not initialized',
+        'Blind Box Machine belum diinisialisasi'),
+    '盲盒机未开放': (
+        'Blind Box Machine not open',
+        'Blind Box Machine belum dibuka'),
+    '盲盒机消费不足': (
+        'Blind Box Machine spending requirement not met',
+        'Syarat pengeluaran Blind Box Machine belum terpenuhi'),
+    '盲盒机获取': (
+        'Obtained from the Blind Box Machine',
+        'Didapat dari Blind Box Machine'),
+    '盲盒机道具，可用于拆盲盒使用，可提示一条当盒表情的英雄信息，包括职业、品阶、词条等。': (
+        'Blind Box Machine item. Reveals one clue about the Hero Emote in a box, such as Class, Tier or Trait.',
+        'Item Blind Box Machine. Mengungkap satu petunjuk Hero Emote di dalam kotak, seperti Class, Tier atau Trait.'),
+    '盲盒机道具，可用于拆盲盒使用，帮助排除一个错误信息。': (
+        'Blind Box Machine item. Rules out one incorrect clue about a box.',
+        'Item Blind Box Machine. Mengeliminasi satu petunjuk yang salah tentang kotak.'),
+    '盲盒机道具，可用于拆盲盒使用，直接揭示本盒内是什么具体的英雄表情。': (
+        'Blind Box Machine item. Reveals the exact Hero Emote inside a box.',
+        'Item Blind Box Machine. Mengungkap Hero Emote yang tepat di dalam kotak.'),
+    '盲盒机需要重新刷新': (
+        'Refresh the Blind Box Machine again',
+        'Refresh ulang Blind Box Machine'),
+    '知识回顾': (
+        'Knowledge Review',
+        'Tinjauan Pengetahuan'),
+    '祝_____天胡开局': (
+        'Wishing _____ a perfect opening hand',
+        'Semoga _____ mendapat kartu awal sempurna'),
+    '祝_____手气爆棚': (
+        'Wishing _____ incredible luck',
+        'Semoga _____ beruntung luar biasa'),
+    '祝_____牌运滚滚': (
+        'Wishing _____ endless lucky draws',
+        'Semoga _____ terus mendapat kartu bagus'),
+    '祝_____要啥来啥': (
+        'Wishing _____ every Card they need',
+        'Semoga _____ mendapat setiap kartu yang diinginkan'),
+    '祝_____钻石自由': (
+        'Wishing _____ Diamond freedom',
+        'Semoga _____ bebas belanja Diamond'),
+    '稍后兑换': (
+        'Exchange Later',
+        'Tukar Nanti'),
+    '端盒一次性开启整端盲盒，获得不重复的16款表情': (
+        'Open the full set at once to receive 16 different Emotes',
+        'Buka seluruh set sekaligus untuk mendapat 16 Emote berbeda'),
+    '紫薇·璇玑7天限时卡': (
+        'Ziwei Xuanji 7-Day Trial Card',
+        'Ziwei Xuanji Trial Card 7 Hari'),
+    '继续开盒': (
+        'Open More Boxes',
+        'Buka Kotak Lagi'),
+    '继续端盒': (
+        'Open Another Full Set',
+        'Buka Set Penuh Lagi'),
+    '能量可用至-15，其他玩家受到惩罚时获得2能量。': (
+        'Energy can reach -15. Gain 2 Energy when other players receive a penalty.',
+        'Energy bisa mencapai -15. Dapatkan 2 Energy saat pemain lain terkena penalti.'),
+    '能量可用至-15，回合结束时能量为负会减少能量获取。': (
+        'Energy can reach -15. Negative Energy at the end of a Round reduces Energy gained.',
+        'Energy bisa mencapai -15. Energy negatif di akhir Ronde mengurangi perolehan Energy.'),
+    '药液伤害提升至20+90%法术攻击力，生命值恢复提升至20+90%法术攻击力': (
+        'Medicine Damage increases to 20+90% Ability Power, and HP restored increases to 20+90% Ability Power.',
+        'Damage obat meningkat menjadi 20+90% Ability Power, dan pemulihan HP menjadi 20+90% Ability Power.'),
+    '获取更多河洛令': (
+        'Get More Central Plains Tokens',
+        'Dapatkan Central Plains Token Lagi'),
+    '获得皮肤【紫薇·璇玑】7天限时体验。': (
+        'Get a 7-day trial of the [Ziwei Xuanji] skin.',
+        'Dapatkan trial skin [Ziwei Xuanji] selama 7 hari.'),
+    '获得重复款自动分解成碎片，可兑换其他英雄表情': (
+        'Duplicates automatically turn into Fragments to exchange for other Hero Emotes',
+        'Duplikat otomatis menjadi Fragment untuk ditukar dengan Hero Emote lain'),
+    '获得阵营高光！': (
+        'Faction Highlight obtained!',
+        'Faction Highlight didapat!'),
+    '装备主题高光表情自动使用': (
+        'Used automatically when themed Highlight Emotes are equipped',
+        'Digunakan otomatis saat Highlight Emote bertema dipasang'),
+    '请先选中物品': (
+        'Select an item first',
+        'Pilih item dahulu'),
+    '请选中需要拆开的表情': (
+        'Select an Emote to unpack',
+        'Pilih Emote yang ingin dibuka'),
+    '财路通了': (
+        'Fortune Finds a Way',
+        'Jalan Rezeki Terbuka'),
+    '购买之后自动赠送': (
+        'Automatically granted as a purchase bonus',
+        'Otomatis diberikan sebagai bonus pembelian'),
+    '这次音乐节阵容很强，有知名乐队也有独立音乐人，听说还有无人机表演和美食餐车': (
+        'This music festival has a great lineup, with famous bands and indie musicians. I heard there will also be a drone show and food trucks.',
+        'Lineup festival musik kali ini keren, ada band terkenal dan musisi indie. Katanya juga ada pertunjukan drone dan food truck.'),
+    '送盲盒道具': (
+        'Free Blind Box Items',
+        'Item Blind Box Gratis'),
+    '送盲盒道具活动奖励': (
+        'Free Blind Box Items Event Rewards',
+        'Hadiah Event Item Blind Box Gratis'),
+    '送高光盲盒道具': (
+        'Free Highlight Blind Box Items',
+        'Item Highlight Blind Box Gratis'),
+    '选中未拥有(15)': (
+        'Select Unowned (15)',
+        'Pilih yang Belum Dimiliki (15)'),
+    '道具卡不可用': (
+        'Item Card unavailable',
+        'Item Card tidak tersedia'),
+    '道具卡已用满': (
+        'Item Card usage limit reached',
+        'Batas penggunaan Item Card tercapai'),
+    '道具卡操作接口错误': (
+        'Item Card operation interface error',
+        'Kesalahan antarmuka operasi Item Card'),
+    '道具卡数量不足': (
+        'Not enough Item Cards',
+        'Item Card tidak cukup'),
+    '重战本局': (
+        'Replay This Match',
+        'Ulangi Match Ini'),
+    '钻石自由': (
+        'Diamond Freedom',
+        'Bebas Belanja Diamond'),
+    '阵营高光': (
+        'Faction Highlight',
+        'Faction Highlight'),
+    '阵营高光 <color=#FFE897>已激活</color>': (
+        'Faction Highlight <color=#FFE897>Activated</color>',
+        'Faction Highlight <color=#FFE897>Aktif</color>'),
+    '限购 {0}/{1}': (
+        'Purchase Limit {0}/{1}',
+        'Batas Beli {0}/{1}'),
+    '随机开一盒': (
+        'Open a Random Box',
+        'Buka Kotak Acak'),
+    '随机获得1张<color=#FFE897>基础装备牌</color>。接下来4个回合若你的<color=#FFE897>棋手等级没有变化</color>，再获得1个珍品宝箱。': (
+        'Randomly gain 1 <color=#FFE897>Basic Equipment Card</color>. If your <color=#FFE897>Chessplayer Level stays the same</color> for the next 4 Rounds, also gain 1 Treasure Chest.',
+        'Dapatkan 1 <color=#FFE897>Basic Equipment Card</color> secara acak. Jika <color=#FFE897>Level Chessplayer-mu tidak berubah</color> selama 4 Ronde berikutnya, dapatkan juga 1 Treasure Chest.'),
+    '随机隐藏款': (
+        'Random Secret Variant',
+        'Varian Rahasia Acak'),
+    '集齐16个英雄的高光表情，可激活阵营高光': (
+        'Collect Highlight Emotes for all 16 Heroes to activate Faction Highlight',
+        'Kumpulkan Highlight Emote untuk semua 16 Hero untuk mengaktifkan Faction Highlight'),
+    '集齐激活阵营高光 {0}/{1}': (
+        'Collect to Activate Faction Highlight {0}/{1}',
+        'Kumpulkan untuk Mengaktifkan Faction Highlight {0}/{1}'),
+    '非酋翻身': (
+        'Luck Turns Around',
+        'Hoki Berbalik'),
+    '飞行器继承连接英雄30%的攻击速度。': (
+        "The Aircraft inherits 30% of the connected Hero's Attack Speed.",
+        'Aircraft mewarisi 30% Attack Speed Hero yang terhubung.'),
+    '高光盲盒': (
+        'Highlight Blind Box',
+        'Highlight Blind Box'),
+    '高光表情上新': (
+        'New Highlight Emotes',
+        'Highlight Emote Baru'),
+    '高光表情商城': (
+        'Highlight Emote Shop',
+        'Toko Highlight Emote'),
+    '高光表情盲盒机上线': (
+        'Highlight Emote Blind Box Machine Now Open',
+        'Highlight Emote Blind Box Machine Dibuka'),
+    '黑白河洛·司空震·隐藏': (
+        'Black & White Central Plains - Sikong Zhen - Secret',
+        'Black & White Central Plains - Sikong Zhen - Rahasia'),
+    '黑白河洛·李信·隐藏': (
+        'Black & White Central Plains - Li Xin - Secret',
+        'Black & White Central Plains - Li Xin - Rahasia'),
+    '黑白河洛·李白·隐藏': (
+        'Black & White Central Plains - Li Bai - Secret',
+        'Black & White Central Plains - Li Bai - Rahasia'),
+    '黑白河洛·狄仁杰·隐藏': (
+        'Black & White Central Plains - Di Renjie - Secret',
+        'Black & White Central Plains - Di Renjie - Rahasia'),
+    '黑白河洛·百里玄策·隐藏': (
+        'Black & White Central Plains - Xuance - Secret',
+        'Black & White Central Plains - Xuance - Rahasia'),
+    '黑白河洛·花木兰·隐藏': (
+        'Black & White Central Plains - Mulan - Secret',
+        'Black & White Central Plains - Mulan - Rahasia'),
+    '（排除一个错误信息）': (
+        '(Eliminate one incorrect clue)',
+        '(Eliminasi satu petunjuk salah)'),
+    '（提示盒内信息）': (
+        '(Get a clue about the contents)',
+        '(Dapatkan petunjuk isi kotak)'),
+    '（直接显示盒内款式）': (
+        '(Reveal the exact variant)',
+        '(Ungkap varian yang tepat)'),
+    '，兑换隐藏款还需': (
+        ', a secret variant also requires',
+        ', varian rahasia juga membutuhkan'),
+    '，可兑隐藏款': (
+        ', redeemable for a secret variant',
+        ', bisa ditukar dengan varian rahasia'),
+    '，差{0}可兑隐藏款': (
+        ', {0} more to redeem a secret variant',
+        ', kurang {0} untuk menukar varian rahasia'),
+    '，是否兑换隐藏款？': (
+        ', exchange for a secret variant?',
+        ', tukar dengan varian rahasia?'),
+    '，是否确认分解？': (
+        ', confirm dismantling?',
+        ', konfirmasi pembongkaran?'),
+
 }
 
 # The weekly leaderboards, ranked 第一 .. 第一百. `%s%s` is the season and the Chessplayer.
