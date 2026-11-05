@@ -4614,14 +4614,39 @@ whether the game reads the rules from the override layer at all.
   Highlights, Double Energy Storage missions, card and skill rewordings. Supplement log 2310 → 2523.
   All supplement entries pass `adaptive.validate_translation` and the markup check; each new pair
   preserves numeric bracket expressions. Upstream catalogs are unchanged.
-- **Build/read-back:** both offline builds succeed with the cached APK. Override `unknown` is 0;
-  `count_translated`: English (389 tables, 327 textures applied), Indonesian (389, 326).
-  `text_skipped` and `graphics_skipped` are empty. Each `append_skipped` reports one encoder refusal:
-  English `3A70308AAF6F18F8`, Indonesian `0196F0E230EC1C70`. Each staged-output census reads 387
-  override + 111 prime-only tables and finds 0 Chinese strings outside resource tokens, including
-  those refused assets at their surviving prime bytes. This result concerns catalogued text only.
-  Reports: `census-before.json`, `census-after-en.json`, `census-after-id.json` and
-  `verified-en-summary.json` under the snapshot folder; final `out-en` holds the Indonesian build.
+- **Initial build checks (superseded):** both builds succeeded, but the reused-output counts and
+  zero-Chinese read-back conclusion were incorrect. The fresh-build and actual-byte checks in the
+  following entry replace them. The original local reports are retained for comparison.
 - **Release scope:** checks use the committed `extra_text.py`, excluding earlier local match-end
   button edits from this release. No phone game data was written; watched-screen acceptance for
   1.9.0.1 remains pending. UI-string and staging-contract checks pass. Patch version `1.9.1.1`.
+
+## 2026-11-05 — 1.9.1.2: two lineup descriptions and corrected read-back
+
+- **Additional strings:** the allowed Official recommendation bin `F79FB1A213A9DA90` contains
+  `开局拥有额外能量，秘技能复制其他棋手的秘技。` and `阵容构筑简单，合成就能一直升级`, once each.
+  They now have English and Indonesian supplement entries. This makes 215 new sources in total:
+  213 catalog-table strings plus these two descriptions; supplement log 2523 → 2525.
+- **Lineup verification:** the override has 643 Chinese fields / 462 distinct sources. The only
+  retained Chinese after rewriting is 27 creators' nicknames in 53 fields. `check_lineup_cycle.check_bin`
+  passes for this allowed bin in both layers and both languages: override 58 codes, 645 text fields
+  reading back as their targets, 6959 other fields unchanged; prime 28 codes, 264 text fields,
+  3145 other fields unchanged. Seals verify, indexes and field order are kept, no other Chinese
+  remains, and a second rewrite changes nothing. Evidence: `.scratch/data-1.9.0.1/lineup-followup.json`.
+- **Census correction:** the first overlay check translated the bytes again before counting Chinese.
+  It measured resolvable translations rather than what the game would actually read, so its zero-Chinese
+  claim was wrong. `census_catalog.py --overlay` now reads the effective bytes directly and checks the
+  allowed lineup bin too. Actual read-back leaves one Chinese row per language: English
+  `“兴之所至，心之所安。”` (`3A70308AAF6F18F8`, `#8CDB6BD5FFC4F383#`); Indonesian
+  `通关{0}回合后返还` (`0196F0E230EC1C70`, `#77F586615325EAA7#`). Both already have catalog
+  translations; their prime-only payloads cannot be re-encoded. No encoder or package rule was changed.
+- **Fresh builds:** reused output directories also suppressed append counts and could retain an earlier
+  language's prime-only assets. Each final build therefore starts with an empty generated output folder.
+  Both succeed: 391 text tables and 398 textures applied; `unknown` 0; `text_skipped` and `graphics_skipped`
+  empty; one encoder refusal in `append_skipped`. Final actual-byte censuses read 387 override + 111
+  prime-only catalog tables, find only the one encoder-refused row, and no non-nickname Chinese in the
+  allowed lineup bin. These replace the earlier reused-output counts.
+- **Evidence:** `census-final-en.json`, `census-final-id.json`, `verified-final-en-summary.json` and
+  `verified-final-id-summary.json` under `D:/scratch/hok-1.0.9.1`. Final `out-en` holds Indonesian.
+  All supplement targets pass markup/runtime validation. UI-string, staging-contract and reference
+  checks pass. No phone game data was written. Screen acceptance remains pending. Version `1.9.1.2`.

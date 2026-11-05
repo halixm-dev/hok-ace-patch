@@ -1,0 +1,81 @@
+{
+ "asset": "F79FB1A213A9DA90",
+ "checks": {
+  "override": {
+   "occurrences": {
+    "开局拥有额外能量，秘技能复制其他棋手的秘技。": 1,
+    "阵容构筑简单，合成就能一直升级": 1
+   },
+   "languages": {
+    "en": {
+     "bytes": 86538,
+     "sealed": true,
+     "index kept": true,
+     "old checksum stale": true,
+     "text fields": 645,
+     "read back as target": 645,
+     "other fields identical": 6959,
+     "OTHER FIELDS DIFFER": 0,
+     "field order changed": 0,
+     "codes": 58,
+     "chinese left": 0,
+     "nicknames kept": 27,
+     "rerun is a no-op": true
+    },
+    "id": {
+     "bytes": 87576,
+     "sealed": true,
+     "index kept": true,
+     "old checksum stale": true,
+     "text fields": 645,
+     "read back as target": 645,
+     "other fields identical": 6959,
+     "OTHER FIELDS DIFFER": 0,
+     "field order changed": 0,
+     "codes": 58,
+     "chinese left": 0,
+     "nicknames kept": 27,
+     "rerun is a no-op": true
+    }
+   }
+  },
+  "prime": {
+   "occurrences": {
+    "开局拥有额外能量，秘技能复制其他棋手的秘技。": 0,
+    "阵容构筑简单，合成就能一直升级": 0
+   },
+   "languages": {
+    "en": {
+     "bytes": 39525,
+     "sealed": true,
+     "index kept": true,
+     "old checksum stale": true,
+     "text fields": 264,
+     "read back as target": 264,
+     "other fields identical": 3145,
+     "OTHER FIELDS DIFFER": 0,
+     "field order changed": 0,
+     "codes": 28,
+     "chinese left": 0,
+     "nicknames kept": 0,
+     "rerun is a no-op": true
+    },
+    "id": {
+     "bytes": 39988,
+     "sealed": true,
+     "index kept": true,
+     "old checksum stale": true,
+     "text fields": 264,
+     "read back as target": 264,
+     "other fields identical": 3145,
+     "OTHER FIELDS DIFFER": 0,
+     "field order changed": 0,
+     "codes": 28,
+     "chinese left": 0,
+     "nicknames kept": 0,
+     "rerun is a no-op": true
+    }
+   }
+  }
+ }
+}

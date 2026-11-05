@@ -51,6 +51,14 @@ declares.
   suffix and a lineup's detail read English, no popup, no repair. Indonesian was not walked. `小菟` reads
   *Little Rabbit* (Chang Xiao'e's rabbit), not the catalog's standalone *little dodder*.
 
+### Game data 1.9.0.1: two missing descriptions
+
+The allowed bin's 643 Chinese fields contain 462 distinct strings. After the catalog-table update,
+two descriptions still had no translation: `开局拥有额外能量，秘技能复制其他棋手的秘技。` and
+`阵容构筑简单，合成就能一直升级`. Both now have English and Indonesian supplement entries.
+Creators' 27 distinct nicknames stay as written. The bin keeps the same allowlist gate and rewrite;
+this adds no asset or text field. Verification and occurrence counts are in the 2026-11-05 lab entry.
+
 ### Verification
 
 - **Device cycle** (`docs/runbooks/device-cycle.md`), Xiaomi M2007J3SG, Android 12, data 1.6.0.1 r0,

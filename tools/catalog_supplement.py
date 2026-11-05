@@ -8,8 +8,9 @@ Kings sub-account, the Line Puppy event, and card texts whose numbers changed. G
 more: the Super Hero mode, room settings, the reworked Lineup Recommendation, strategy tags, and talent texts
 split from their series header. Game data 1.7.0.2 added six Lineup Recommendation hints and errors, and
 1.8.0.1 added 108: Wu Feng's event, team and Invisible-mode prompts, and reworded card texts.
-Game data 1.9.0.1 added 213: the Black & White Central Plains blind boxes, Faction Highlights,
-Double Energy Storage missions, and reworded card and skill texts.
+Game data 1.9.0.1 added 213 catalog-table strings: the Black & White Central Plains blind boxes,
+Faction Highlights, Double Energy Storage missions, and reworded card and skill texts, plus two
+missing descriptions in the allowed Official recommendation lineup bin.
 `apply` fills them in.
 The official lineups' strategy text is here too: it lives in config bins the catalog does not cover, inside
 their share codes, for the share-code pass to write.
@@ -4108,6 +4109,13 @@ TEXTS: dict[str, tuple[str, str]] = {
         "Data game rusak! Restart game client untuk menjalankan Perbaikan Resource."),
     "新闻": ("News", "Berita"),
     "赛事": ("Tournaments", "Turnamen"),
+    # Official recommendation lineup descriptions measured in the 1.9.0.1 override layer.
+    "开局拥有额外能量，秘技能复制其他棋手的秘技。": (
+        "Start with extra Energy. Your Secret Skill can copy other Chessplayers' Secret Skills.",
+        "Mulai dengan Energy tambahan. Secret Skill-mu bisa menyalin Secret Skill Chessplayer lain."),
+    "阵容构筑简单，合成就能一直升级": (
+        "Easy lineup to build; keep leveling up by Combining.",
+        "Lineup mudah dibangun; terus naik Level dengan Combine."),
     # Game data 1.9.0.1: blind boxes, Faction Highlights and reworded card skills.
     '3-5阶英雄牌5选1，并将选中的卡牌一分为四。': (
         'Choose 1 of 5 Tier 3-5 Hero Cards, then split the chosen Card into four.',

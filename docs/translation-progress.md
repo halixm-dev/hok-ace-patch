@@ -500,22 +500,29 @@ memory. Where a number here disagrees with a run, the run is right and this file
 ## 2026-11-05: game data 1.9.0.1
 
 The pristine `1.9.0.1` revision `0` layer and unchanged APK have **213 distinct missing strings in
-640 rows**, identical in English and Indonesian. Both languages now receive these measured supplement
-entries: Black & White Central Plains blind boxes, Faction Highlights, Double Energy Storage missions,
-and reworded card and skill effects. The supplement log rises from 2310 to 2523 strings.
+640 catalog-table rows**, identical in English and Indonesian. Both languages now receive these
+supplement entries: Black & White Central Plains blind boxes, Faction Highlights, Double Energy Storage
+missions, and reworded card and skill effects. Two more missing descriptions in the allowed Official
+recommendation lineup bin are supplied in `1.9.1.2`, for **215 new sources** total. The supplement log
+rises from 2310 to 2525 strings. Creators' 27 nicknames stay as written.
 
-Offline builds succeed in both languages. Read-back over the staged override and untouched prime
-layer finds **0 Chinese strings outside resource tokens in 498 readable catalogued tables**. One
-ambiguous catalogued asset is reported separately; uncatalogued tables, prefabs and server text are
-outside this result. No new table is added to the catalog or config-bin allowlist.
+Fresh offline builds succeed in both languages. Corrected read-back checks the actual effective bytes
+of **498 readable catalogued tables** and the allowed lineup bin. The 213 newly missing catalog-table
+strings and two lineup descriptions are translated. **One existing encoder-refused Chinese row remains
+per language**; both rows already have catalog translations. One ambiguous catalogued asset is reported
+separately. Uncatalogued tables, prefabs and server text are outside this result.
 
-| Offline result | English | Indonesian |
+| Fresh offline result | English | Indonesian |
 |---|---:|---:|
-| Text tables applied (`count_translated`) | 389 | 389 |
-| Textures applied | 327 | 326 |
+| Text tables applied (`count_translated`) | 391 | 391 |
+| Textures applied | 398 | 398 |
 | `text_skipped` / `graphics_skipped` | 0 / 0 | 0 / 0 |
 | Prime-only encoder refusals (`append_skipped`) | 1 | 1 |
+| Chinese rows remaining in readable catalog tables | 1 | 1 |
+| Chinese descriptions remaining in the allowed lineup bin (excluding nicknames) | 0 | 0 |
 
-These are this dump's build counts, not new texture coverage or a complete translation. The surviving
-prime bytes of each encoder-refused asset add no Chinese rows to the census. Screen acceptance on
-1.9.0.1 remains pending. See [the feature record](features/data-1.9.0.1.md) and the dated lab evidence.
+The earlier zero-Chinese result re-translated the staged bytes; the first build counts also reused an
+output folder. These corrected results use empty generated output folders and inspect saved bytes
+directly. They do not claim a complete translation. No catalog table or config-bin permission was added.
+Screen acceptance on 1.9.0.1 remains pending. See [the feature record](features/data-1.9.0.1.md) and the
+dated lab evidence.
