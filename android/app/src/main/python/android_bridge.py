@@ -508,6 +508,19 @@ def plan_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
     return json.dumps(summary)
 
 
+def clear_build(session_root: str) -> str:
+    """Remove what a refused build left in <session_root>, so `plan_redownload` finds a fresh layout.
+
+    The snapshot stays: it is what the plan reads, and what rollback writes back.
+    """
+    session = Path(session_root).resolve()
+    for name in ("game", "out", "work", PRISTINE_COPY):
+        shutil.rmtree(session / name, ignore_errors=True)
+    for name in ("normal.apk", "control.json", "staged-hashes.json", SESSION_DELTA):
+        (session / name).unlink(missing_ok=True)
+    return "{}"
+
+
 def keep_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
     """Once a Re-download run completes, remember its packages until the game downloads them again.
 

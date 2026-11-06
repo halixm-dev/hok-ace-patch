@@ -1,7 +1,7 @@
 ---
 feature: update-stuck-redownload
 status: built, device-tested (one-run plan on a phone 2026-10-23)
-updated: 2026-10-23
+updated: 2026-11-06
 branch: master
 ---
 
@@ -40,6 +40,11 @@ together"). The Windows patcher does not detect a stuck update.
 | the device step | `IPrivilegedDeviceService.deleteGameFile` (protocol 12) |
 | the screen | `MainActivity`: "The game update is stuck" → Re-download damaged files; "Finish the game update" |
 
+Since 2026-11-06 Start does this without a second approval: when the build refuses over a stuck or mixed
+package, the same run deletes those packages from the snapshot it already holds, and the result card's next
+step is the game's download. The confirmation Start shows says so. **Re-download damaged files** remains for
+a refusal under Remove translation. Asset restore was already automatic.
+
 ## [S1] Problem
 
 Tencent's updater checks each asset against the check values its package stores. A translated asset
@@ -60,7 +65,8 @@ refuses. Until now the only way out was clearing the game's data, about 2.8 GB t
 | Waiting for the download | `keep_redownload` writes `redownload.json` before the first deletion. While a package it names has no `.db` in the snapshot, Start and Remove refuse with `UPDATE_WAITING` ("Finish the game update"); once the files are back the record is dropped |
 | After the download | The delta's files in a re-downloaded package no longer match; `pristine_delta.accept_replaced` takes them as the new pristine when none of the translation is left, as after any update |
 | Clear data | Every other refusal that ends in `CLEAR_DATA` gets its own home message; it no longer reads as a lack of space (its "Storage" made `friendlyFailure` show the free-space notice) |
-| Consent | The confirmation asks only that the game is closed: the update has not finished. It reuses the patch request store's consent field |
+| Consent | Start's confirmation covers the deletion in a patch run (`PatchCoordinator.runLocked` catches `StopCard.damagedFiles`, `android_bridge.clear_build` clears the refused build, `redownloadLocked` runs). The Re-download button after a refused Remove asks only that the game is closed: the update has not finished. It reuses the patch request store's consent field |
+| A blocked install during the refusal | The normal restore after a refusal can fail on the phone's installer (`INSTALL_FAILED_USER_RESTRICTED`). Once the emergency restore verifies the normal APK and no game file is mid-change or written, `PatchCoordinator.closeIfNothingToRecover` closes the run, so its status stays `error` with the refusal's own text and the screen offers Re-download. A run the emergency restore could not finish stays `recovery_required` |
 
 ## [S3] Out of Scope
 
@@ -89,6 +95,10 @@ withdrew it: nothing on the phone precedes an update).
   downloaded them too; Start then patched. That build planned the two runs apart.
 - `tools/research/check_update_redownload.py` on that phone's captured layers: over the stuck layer the plan
   names `1`, `10`, `21` in one run; over the finished layer, `10`, `21`, as the phone did.
+- Blocked install during the refusal, and the deletion inside a patch run: compiled and unit-tested, and an
+  offline run over the phone's stuck 1.9.1.3 layer refused, cleared and planned package `1`'s 3 files (lab notebook,
+  2026-11-06). Not yet exercised on a phone. `check_update_redownload.py` could not run: its 2026-10-23 captures are
+  no longer on this PC.
 - Device run of the one-run plan (2026-10-23, same phone, debug build of `48f10fa`, update 1.6.0.1 → 1.7.0.2
   over an English install): Start refused the stuck package `1` (50 assets); one Re-download deleted `1`, `10`
   and `21` (9 files); the game downloaded them and reached the login screen; Start patched English with asset

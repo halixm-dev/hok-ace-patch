@@ -36,6 +36,9 @@ object WorkerStep {
         "Restoring normal game APK" to "restore_game_app",
     )
 
+    /** A patch run's line when its build refused over damaged files: from here the run is a Re-download. */
+    const val DAMAGED_FILES_FOUND = "Damaged game files found; deleting them so the game downloads them again"
+
     /** The first and last step of <action>, or null for an action that reports none; <root> skips 3 and 6. */
     private fun range(action: String, root: Boolean = false): IntRange? = when (action) {
         "prepare" -> 0..1

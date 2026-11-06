@@ -121,6 +121,11 @@ def main() -> None:
     failures = []
     for label, expected in (("after-update", ["1", "10", "21"]), ("after-finish", ["10", "21"])):
         root = session(args.cycle, label, source, args.work / label)
+        # What a patch run's refused build leaves behind, before the same run plans the deletion.
+        (root / "out").mkdir()
+        (root / "game" / "WXQ_Data").mkdir(parents=True)
+        (root / "staged-hashes.json").write_text("{}", encoding="utf-8")
+        bridge.clear_build(str(root))
         plan = json.loads(bridge.plan_redownload(str(engine), str(root), str(keep)))
         planned = sorted(plan["packages"], key=int)
         files = sorted({name.split("/")[0] for name in plan["redownload"]}, key=int)

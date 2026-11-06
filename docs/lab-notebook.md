@@ -4650,3 +4650,30 @@ whether the game reads the rules from the override layer at all.
   `verified-final-id-summary.json` under `D:/scratch/hok-1.0.9.1`. Final `out-en` holds Indonesian.
   All supplement targets pass markup/runtime validation. UI-string, staging-contract and reference
   checks pass. No phone game data was written. Screen acceptance remains pending. Version `1.9.1.2`.
+
+## 2026-11-06 — Update 1.9.0.2 → 1.9.1.3 over an English install: placeholders, and no Re-download offered
+
+- **Screen:** the game offers `检查到有资源损坏，是否下载修复？`, then reads `/未翻译UI/<key>` (`RankLevel8`,
+  `GameCenterTip15`, hash keys) across the lobby. Phone capture on the Xiaomi M2007J3SG: `1/1.info` `1.9.1.3`.
+- **Damage:** at 09:02 `MergeDiffToPackageJob` for `1_1_9_0_2_to_1_9_1_3_diff` ended `errorCode=124`, with
+  `PatchModifiedBlocks different src size` per asset (`482008, 521229`: the translated size against the size the diff
+  expects) and `PatchFileUpdate failed … record to broken`. `BrokenList.db` named package `1` only: 332 assets at 09:43,
+  327 after the game's own repair. Package `1` then mounts `state:64`, and reads fail with `QtsfFile.cpp` `errorCode:20`.
+  The game's fix job does not converge (`FixFileJob` `errorCode=361`, 9 files left at each launch). Unlike 2026-10-22, the
+  game opens instead of stopping on `资源修复失败`.
+- **Why nothing was deleted:** the 09:31 patcher run (1.9.1.2) refused correctly with `UPDATE_STUCK: package 1
+  (332 assets)`, writing nothing. Recovery's normal restore at 09:40 then failed with `INSTALL_FAILED_USER_RESTRICTED`;
+  the emergency restore verified the normal APK at 09:43, but the journal stayed `RECOVERY_REQUIRED`. `StopCard` reads
+  `UPDATE_STUCK` only under status `error`, so the screen said the phone blocked installation and offered no Re-download.
+- **Change:** `PatchCoordinator.closeIfNothingToRecover` closes such a run once the normal APK is verified and no game
+  file is mid-change or written. Compiled and unit-tested; not yet run on a phone.
+- **Then automatic:** at the user's request, a patch run whose build refuses with `UPDATE_STUCK` or `UPDATE_MIXED` now
+  deletes those packages in the same run, with no second approval and no second snapshot.
+- **Offline check of that path:** on the captured layer, with a staged hash standing in for the private delta,
+  `build_snapshot` refused `UPDATE_STUCK` (package `1`, 327 assets), `clear_build` cleared it, and `plan_redownload`
+  named `1/1.db`, `1/1.info`, `1/1_0.db`. No phone run yet.
+- **Catalog census of the captured layer (partial):** 378 override and 111 prime-only tables read. One distinct string
+  (11 rows, none in a broken asset) has no entry in either language: the `{DaQiao_TideTimes:3}` variant of a
+  line the supplement holds at `:3` without its last clause and at `:4` with it. 326 of the 327 broken assets are
+  catalogued, and they did not take the update, so their new text is unmeasured; 9 of them do not read as a table at all.
+- **Not measured:** the patcher's private delta (release build), and the census over a clean package `1`.

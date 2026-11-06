@@ -402,8 +402,19 @@ class PatchCoordinator @JvmOverloads constructor(
                     .put("build_storage_check", buildSpace).put("language", language))
                 report("Building text and graphics from the verified private snapshot")
                 // Refuses, before any game file is written, a layer it can neither rebuild nor read as pristine.
-                JSONObject(bridge("build_snapshot", engine.path, journal.directory.path,
-                    apks.buildApk.path, apks.recoveryId, language, pristine.path))
+                try {
+                    JSONObject(bridge("build_snapshot", engine.path, journal.directory.path,
+                        apks.buildApk.path, apks.recoveryId, language, pristine.path))
+                } catch (refusal: Exception) {
+                    if (!StopCard.damagedFiles(refusal.message.orEmpty())) throw refusal
+                    // The same run goes on: the snapshot it holds is what Re-download would read, and Start
+                    // was the approval. The user's next step is the game's download.
+                    report(WorkerStep.DAMAGED_FILES_FOUND)
+                    bridge("clear_build", journal.directory.path)
+                    val result = redownloadLocked(journal, transaction, engine.path, apks)
+                    metricStatus = "complete"
+                    return result
+                }
             }
             summary.optJSONObject("pristine")?.let { PristineDelta.describe(it).forEach(report) }
             journal.outcome(PatchPhase.STAGED, JSONObject().put("counts", JSONObject(
@@ -445,7 +456,7 @@ class PatchCoordinator @JvmOverloads constructor(
             journal.recoveryRequired(reason(error))
             try { recoverLocked(journal) } catch (recovery: Throwable) {
                 journal.recoveryRequired("${reason(error)}; recovery: ${reason(recovery)}")
-                restoreNormalAfterFailure(journal, recovery)
+                if (restoreNormalAfterFailure(journal, recovery)) closeIfNothingToRecover(journal)
                 error.addSuppressed(recovery)
             }
             if (journal.phase == PatchPhase.COMPLETE) {
@@ -567,9 +578,25 @@ class PatchCoordinator @JvmOverloads constructor(
             .put("removed_saved_apks", removed)
     }
 
-    private fun restoreNormalAfterFailure(journal: SessionJournal, cause: Throwable) {
+    /**
+     * A blocked install failed recovery's normal restore, the emergency restore then verified the normal APK,
+     * and no game file is mid-change or written: the run is over, and it stopped for the reason it raised.
+     * Left open, its refusal (a stuck update, say) reads as recovery and never offers Re-download
+     * (lab notebook, 2026-11-06). A run with a verified payload stays open for recovery's audit.
+     */
+    private fun closeIfNothingToRecover(journal: SessionJournal) {
+        if (journal.dirtyPackages || journal.payloadVerified) return
+        val blocked = journal.snapshot().optString("last_error")
+        runCatching {
+            journal.closeUnconfirmed("Normal APK verified after a blocked install")
+            report("No game file is mid-change; the run is closed")
+        }.onFailure { journal.recoveryRequired(blocked) }
+    }
+
+    /** Whether the normal APK is now verified installed. Root never replaced it, so it restores nothing. */
+    private fun restoreNormalAfterFailure(journal: SessionJournal, cause: Throwable): Boolean {
         // Root never replaced the game app, so there is nothing to restore before package recovery.
-        if (journal.root) return
+        if (journal.root) return false
         try {
             val normal = store.verify(journal.recoveryId)
             check(device.asBinder().isBinderAlive) { "Worker disconnected before normal APK restoration" }
@@ -584,9 +611,11 @@ class PatchCoordinator @JvmOverloads constructor(
             }
             journal.recoveryNormalVerified()
             report("Normal APK verified; do not launch until package recovery is resolved")
+            return true
         } catch (restore: Throwable) {
             cause.addSuppressed(restore)
             journal.recoveryRequired("${reason(cause)}; normal APK restore: ${reason(restore)}")
+            return false
         }
     }
 

@@ -54,6 +54,9 @@ object StopCard {
     /** Whether the stop's own line points at the recovery options rather than at a retry. */
     fun pointsAtRecovery(exit: Exit, recoverable: Boolean) = recoverable && exit != Exit.TRY_AGAIN
 
+    /** True when a patch run's build refused over files only the game's own download can replace. */
+    fun damagedFiles(message: String) = message.contains(UPDATE_STUCK) || message.contains(UPDATE_MIXED)
+
     /** Whether ③'s line stands in for the stop's own explanation, so the result message stays empty. */
     fun ownCard(exit: Exit) = exit in setOf(Exit.REDOWNLOAD_STUCK, Exit.REDOWNLOAD_MIXED, Exit.WAIT_FOR_GAME)
 

@@ -114,7 +114,8 @@ class SessionJournal private constructor(val directory: File, private val value:
             PatchPhase.SNAPSHOT_READY -> setOf(PatchPhase.BUILDING, PatchPhase.NORMAL_RESTORED_FOR_BUILD,
                 PatchPhase.RESTORING)
             PatchPhase.NORMAL_RESTORED_FOR_BUILD -> setOf(PatchPhase.BUILDING, PatchPhase.RESTORING, PatchPhase.CANCELLED)
-            PatchPhase.BUILDING -> setOf(PatchPhase.STAGED, PatchPhase.RESTORING, PatchPhase.CANCELLED)
+            // A build refused over damaged files stays BUILDING as the same run plans their deletion.
+            PatchPhase.BUILDING -> setOf(PatchPhase.BUILDING, PatchPhase.STAGED, PatchPhase.RESTORING, PatchPhase.CANCELLED)
             PatchPhase.STAGED -> setOf(PatchPhase.APPLYING, PatchPhase.APPLY_ACCESS_INSTALLED, PatchPhase.RESTORING,
                 PatchPhase.CANCELLED)
             PatchPhase.APPLY_ACCESS_INSTALLED -> setOf(PatchPhase.APPLYING, PatchPhase.RESTORING)

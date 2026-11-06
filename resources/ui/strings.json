@@ -1807,8 +1807,8 @@
       "platforms": [
         "android"
       ],
-      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files and briefly replace the game app.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
-      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dan mengganti aplikasi game untuk sementara.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel."
+      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files and briefly replace the game app. If an update damaged translated files, we delete them and the game downloads them again.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
+      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dan mengganti aplikasi game untuk sementara. Jika pembaruan merusak file terjemahan, kami menghapusnya dan game mengunduhnya lagi.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel."
     },
     "restore_apk_only": {
       "platforms": [
@@ -2646,8 +2646,8 @@
       "platforms": [
         "android"
       ],
-      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files with root. The game app is not replaced.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
-      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dengan root. Aplikasi game tidak diganti.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel.",
+      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files with root. The game app is not replaced. If an update damaged translated files, we delete them and the game downloads them again.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
+      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dengan root. Aplikasi game tidak diganti. Jika pembaruan merusak file terjemahan, kami menghapusnya dan game mengunduhnya lagi.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel.",
       "draft": true
     },
     "remove_confirmation_root": {

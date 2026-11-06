@@ -19,7 +19,7 @@ on a first install. Both patchers also gained **Remove translation**, which writ
 back with no new patch.
 
 After an in-game update, the Android patcher recovers without a clear: a package the update left stuck
-or mixed is deleted and downloaded again by the game (**Re-download damaged files**,
+or mixed is deleted in the Start run and downloaded again by the game (**Re-download damaged files**,
 [update-stuck-redownload](update-stuck-redownload.md)), one it left partly translated is written back
 from the delta's kept asset bodies ([asset-restore](asset-restore.md)), and the next Start patches.
 

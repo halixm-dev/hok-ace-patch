@@ -81,6 +81,7 @@ class PatchWorkerService : Service() {
 
     private fun show(message: String) {
         if (retiring.get()) return
+        if (message == WorkerStep.DAMAGED_FILES_FOUND) activeAction = "redownload"
         activeStep = WorkerStep.next(activeAction, activeStep, message, rootRun)
         state(JSONObject().put("status", "running").put("action", activeAction).put("progress", message).also { running ->
             activeStep?.let { running.put("step", it).put("steps", WorkerStep.KEYS.size) }
@@ -186,19 +187,20 @@ class PatchWorkerService : Service() {
                     "redownload" -> {
                         val summary = claimAndRun(worker, checkNotNull(intent.getStringExtra("request")),
                             "Re-download cancelled before access", redownload = true)
-                        state(JSONObject().put("status", "complete").put("action", "redownload")
-                            .put("redownloaded", summary.getJSONArray("redownload").length())
-                            .put("packages", summary.getJSONObject("packages").length()).put("root", rootRun))
+                        state(redownloadResult(summary))
                     }
                     "patch", "remove" -> {
                         val summary = claimAndRun(worker, checkNotNull(intent.getStringExtra("request")),
                             "Patch cancelled before access", remove = intent.action == "remove")
-                        val root = EngineAssets.prepare(this)
-                        val result = JSONObject().put("status", "complete").put("counts", JSONObject(
-                            com.chaquo.python.Python.getInstance().getModule("android_bridge").callAttr(
-                                "result_counts", root.path, summary.toString()).toString())).put("root", rootRun)
-                        summary.optJSONArray("removed")?.let { result.put("removed", it.length()) }
-                        state(result)
+                        // The build found damaged files, and the run deleted them instead of patching.
+                        if (summary.has("redownload")) state(redownloadResult(summary)) else {
+                            val root = EngineAssets.prepare(this)
+                            val result = JSONObject().put("status", "complete").put("counts", JSONObject(
+                                com.chaquo.python.Python.getInstance().getModule("android_bridge").callAttr(
+                                    "result_counts", root.path, summary.toString()).toString())).put("root", rootRun)
+                            summary.optJSONArray("removed")?.let { result.put("removed", it.length()) }
+                            state(result)
+                        }
                     }
                     else -> error("Unsupported worker request")
                 }
@@ -224,6 +226,10 @@ class PatchWorkerService : Service() {
         }
         return START_NOT_STICKY
     }
+
+    private fun redownloadResult(summary: JSONObject) = JSONObject().put("status", "complete").put("action", "redownload")
+        .put("redownloaded", summary.getJSONArray("redownload").length())
+        .put("packages", summary.getJSONObject("packages").length()).put("root", rootRun)
 
     /** Claim confirmation <request> and run it on the path it was confirmed for: root's, or the shell path's. */
     private fun claimAndRun(worker: PatchCoordinator, request: String, cancelled: String,
