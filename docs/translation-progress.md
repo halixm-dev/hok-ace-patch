@@ -25,7 +25,7 @@ A run reports four numbers through the app's `translate` step, all read from
 | reported | accessor | holds |
 |---|---|---|
 | text tables | `count_translated` | catalog tables the run applied |
-| images | `count_translated` | catalog textures the run applied |
+| images | `count_translated` | catalog textures the run applied, plus each repo-labelled atlas the catalog lacks (`LABEL_ATLASES`) |
 | text tables left in Chinese | `count_untranslated_text` | translated, then not applied — `text_skipped`, `append_skipped` |
 | images left in Chinese | `count_untranslated_graphics` | found, then not translated or not added — `graphics_skipped`, `append_skipped` |
 
@@ -359,11 +359,27 @@ Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
   `EXCLUDED_PACKAGES` is `{"10", "14"}`, the skill editor's labels and the gameplay scripts, where the
   Chinese is logic rather than display text.
 
-Two images are this repo's own, not the catalog's: on the Career atlas `13C19E4E4486B31C`,
+34 images are this repo's own, not the catalog's. Two are on the Career atlas `13C19E4E4486B31C`,
 `Image_410780920` `我的皮肤` → **MY SKINS** (no catalog entry) and `Image_920603129` `总盈利` → **TOTAL
 PROFIT** (the text table's "Total profit"), in `resources/sprites/` (`mobile_graphics.ATLAS_LABELS`). They
 are drawn into a texture the catalog already edits, so they add no texture to the count. Every language
 uses them. Device-verified on the Career screen, 2026-10-10 (English).
+
+The other 32 are drawn into a texture the catalog has no edit for at all, the Secret Technique title atlas
+`0B4DA7A85D27E87A` (`mobile_graphics.LABEL_ATLASES`), where every card title now reads in English, such as
+`潮汐的交响` → **SYMPHONY OF TIDES** (Qiao Xi's card) and `永恒时之回环` → **ETERNAL TIME LOOP**. The
+titles stay English in Indonesian too. The atlas **adds one texture** to the images count: offline English
+and Indonesian runs over the 1.9.x dump each report 399 textures applied, 398 catalog edits plus this atlas.
+The 棋手·秘技 strip and the card art in the same atlas stay Chinese. Device-verified 2026-11-11 (English) on
+six of the 32 cards: SYMPHONY OF TIDES, four MAGIC DEER titles and MYRIAD MIRRORS. The titles were then
+re-set at one size for all 32 (22 pt), and eleven cards renamed to the user's own wording (MAGIC DEER → **MAGICAL
+DEERIE**, `朋友多多` → **FRIENDS GALORE**, and nine more); English card text carries the same names
+(`terminology.CARD_NAMES`). The titles are now set at 36 pt, never squeezed, MAGICAL DEERIE and GRACEFUL
+STEPS on two lines, in boxes of their own: the run re-lays the atlas's title sprites and also rewrites
+package `19`'s Sprite table, TimiAtlas and 33 card prefabs (ADR 0009). Those three kinds add nothing to the
+images count, which stays one texture for the atlas. Device-tested 2026-11-11 (English) from the pipeline's
+own output: SYMPHONY OF TIDES, with GRACEFUL STEPS and MAGICAL DEERIE two-line titles seen on the
+prototype of the same layout.
 
 Resource tokens `{Energy}`, `{LordExp}` and `{LordHp}` are expanded to `Energy`, `Chessplayer EXP` and
 `Chessplayer HP` in the staged replacements and in the assets the rebuild and extra-text passes

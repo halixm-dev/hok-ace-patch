@@ -11,7 +11,7 @@ on an Android phone, without root.
 | Android app, using Shizuku on the phone | [Android setup and build guide](android/README.md); development build with device acceptance still pending |
 
 The translation includes catalog text tables, catalog edits, two Career-atlas labels
-(MY SKINS and TOTAL PROFIT), and one Lua label. Some content stays Chinese. See the
+(MY SKINS and TOTAL PROFIT), the 32 Secret Technique card titles, and one Lua label. Some content stays Chinese. See the
 [coverage ledger](docs/translation-progress.md) for measured counts and known gaps;
 each run reports what it actually applied and skipped.
 

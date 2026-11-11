@@ -252,7 +252,13 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     - After text relocation it calls
       `device_extensions.extend_graphics(game, catalog, output, log, skip=rebuilt)`, which discovers
       the game packages afresh (a texture-heavy package usually stages no text), ports every catalog
-      edit present in them onto the device ASTC textures, and runs the extra-text pass. `skip` keeps
+      edit present in them onto the device ASTC textures, draws this repo's labels into each atlas the
+      catalog has no edit for (`mobile_graphics.LABEL_ATLASES`, counted as a texture like an edit, and
+      skipped the same way), and runs the extra-text pass. Drawing the Secret Technique title atlas
+      also re-lays its title sprites (`card_titles.relayout`, ADR 0009): package `19`'s Sprite table,
+      its TimiAtlas and 33 card prefabs are rewritten in place beside the atlas. They are not counted as
+      textures and add no field; a layout that does not match refuses the atlas, which is then skipped
+      like any texture, and none of them is written. `skip` keeps
       it off a package the rebuild already replaced whole, which no longer matches the device's
       container. ASTC encoding reuses at most 512 exact pixel/geometry results whose input is at most
       4096 bytes; larger images keep the native path. Codec settings and texture gates are unchanged.

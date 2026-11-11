@@ -47,6 +47,9 @@ NATIVE_CHUNK_KEYS = {
 }
 
 
+WRITABLE_COMPRESSION = (1, 4)  # LZ4 and Oodle: the containers write_assets can re-cut an asset into
+
+
 def _native_slots(file_hash: int, entry, chunks: dict, raw_size: int) -> dict | None:
     """Verified slot templates for a dictionary in NATIVE_CHUNK_KEYS, or None for an unmeasured layout."""
     keys = NATIVE_CHUNK_KEYS[file_hash]
@@ -108,7 +111,7 @@ def write_assets(package_dir: Path, jobs: dict[int, bytes]) -> tuple[list[str], 
         if file_hash in NATIVE_CHUNK_KEYS:
             templates = _native_slots(file_hash, entry, original_slots, len(raw))
             chunk_size = NATIVE_CHUNK_SIZE if templates is not None else None
-        if entry.compression not in (1, 4) or chunk_size is None:
+        if entry.compression not in WRITABLE_COMPRESSION or chunk_size is None:
             refused.append(f"{file_hash:016X}")
             continue
         for chunk_id, start in enumerate(range(0, len(raw), chunk_size)):
@@ -238,7 +241,13 @@ def exclude_extra_chunks(package, replacements: Path, work: Path, log) -> tuple[
 
 
 def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dict:
-    """Apply every catalog texture edit that exists in <package>.
+    """Apply every catalog texture edit that exists in <package>, and this repo's labels to each atlas
+    the catalog has no edit for (``mobile_graphics.LABEL_ATLASES``).
+
+    The Secret Technique titles' atlas is re-laid out first (``card_titles.relayout``): its labels are
+    drawn at the new sprite rects, and the Sprite table, TimiAtlas and card prefabs that move with them
+    are written only when the atlas itself is drawn. A refused relayout leaves the old rects, which no
+    longer match the labels' sizes, so the atlas is skipped whole.
 
     Returns ``{"considered": n, "written": n, "skipped": [hash, ...]}``. A package whose every edit
     is skipped writes nothing and creates no output directory, but still reports what it skipped:
@@ -246,37 +255,67 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
     A newly copied package uses the source's chunk offsets with paths retargeted to the copy;
     an existing staged package gets a fresh slot scan because earlier passes may have relocated it.
     """
+    import card_titles
     import mobile_graphics as mg
     from qts_relocate import read_raw
     from sprite_table import REGION_SPRITE_ASSETS, sprite_rects
     from wxq_patch.qtsvfs import QtsPackage
 
     graphics = mg.catalog_graphics(catalog.graphics)
-    wanted = [file_hash for file_hash in package.entries if file_hash in graphics]
+    wanted = [file_hash for file_hash in package.entries
+              if file_hash in graphics or file_hash in mg.LABEL_ATLASES]
     if not wanted:
         return {"considered": 0, "written": 0, "skipped": []}
     source_slots = package.build_slot_map()
+
+    def read(asset: int) -> bytes | None:
+        return read_raw(package, source_slots, asset) if asset in package.entries else None
+
+    moved: dict[int, bytes] = {}  # assets a title relayout changes, written with its atlas
+
+    def device_sprites(texture: int, width: int, height: int) -> dict | None:
+        # A regioned atlas is placed at the device's own sprite rects, read from this package each run;
+        # without them it is refused rather than drawn at the PC offsets.
+        sprite_asset = REGION_SPRITE_ASSETS.get(texture)
+        if sprite_asset is None or sprite_asset not in package.entries:
+            return None
+        table = read(sprite_asset)
+        layout = card_titles.load_layout(catalog_dir) if texture == card_titles.TITLE_ATLAS else None
+        if layout is not None and table:
+            jobs = card_titles.relayout(read, layout)
+            if jobs is not None and any(package.entries[h].compression not in WRITABLE_COMPRESSION
+                                        for h in jobs):
+                jobs = None  # write_assets would refuse one after the atlas was drawn for it
+            if jobs is None:
+                log(f"package {package.package_id}: the Secret Technique title layout does not match this "
+                    "package; its titles stay as they are")
+            else:
+                moved.update(jobs)
+                table = jobs.get(sprite_asset, table)
+        return sprite_rects(table, width, height) if table else None
+
     pending: list[tuple[int, list, bytes]] = []
     skipped: list[str] = []
     for file_hash in wanted:
         chunks = _read_chunks(source_slots.get(file_hash, {}))
         raw = b"".join(mg.oodle_decompress(payload, slot.uncompressed_size) for slot, payload in chunks)
-        graphic = graphics[file_hash]
-        # A regioned atlas is ported at the device's own sprite rects, read from this package each run;
-        # without them english_raw refuses it rather than port at the PC offsets.
-        sprites = None
-        sprite_asset = REGION_SPRITE_ASSETS.get(int(graphic["hash"], 16))
-        if sprite_asset is not None and sprite_asset in package.entries:
-            table = read_raw(package, source_slots, sprite_asset)
-            if table:
-                sprites = sprite_rects(table, int(graphic["width"]), int(graphic["height"]))
-        new = mg.english_raw(raw, graphic, catalog_dir, sprites)
+        graphic = graphics.get(file_hash)
+        if graphic is None:
+            sprites = device_sprites(file_hash, *mg.LABEL_ATLASES[file_hash])
+            new = mg.label_atlas(raw, f"{file_hash:016X}", catalog_dir, sprites) if sprites else None
+        else:
+            texture = int(graphic["hash"], 16)
+            sprites = (device_sprites(texture, int(graphic["width"]), int(graphic["height"]))
+                       if texture in REGION_SPRITE_ASSETS else None)
+            new = mg.english_raw(raw, graphic, catalog_dir, sprites)
         if new is None or len(new) != len(raw):
             skipped.append(f"{file_hash:016X}")
+            if file_hash == card_titles.TITLE_ATLAS:
+                moved.clear()  # never move the titles' sprites without drawing their labels
         elif new != raw:  # equal means already English (patcher re-run)
             pending.append((file_hash, chunks, new))
     written = len(pending)
-    if pending:
+    if pending or moved:
         # Only copy the (large) package when something actually changes.
         fresh_copy = not (output / package.package_id).exists()
         target = QtsPackage(_package_output(package, output))
@@ -299,6 +338,11 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
                 cursor += slot.uncompressed_size
                 shard.relocate(target_slots[file_hash][slot.chunk_id], mg.oodle_stored(piece), len(piece))
         shard.save()
+    if moved:
+        done, refused = write_assets(_package_output(package, output), moved)
+        if refused:
+            raise RuntimeError(f"package {package.package_id}: title layout assets refused: {', '.join(refused)}")
+        log(f"package {package.package_id}: Secret Technique title layout, {len(done)} assets moved")
     log(f"package {package.package_id}: {written} textures translated"
         + (f", {len(skipped)} of {len(wanted)} skipped ({', '.join(skipped)})" if skipped else ""))
     return {"considered": len(wanted), "written": written, "skipped": skipped}

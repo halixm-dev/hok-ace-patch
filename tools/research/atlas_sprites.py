@@ -15,26 +15,36 @@ package at run time (``sprite_table.sprite_rects``). It also draws two kinds of 
   ``tools/research/career_atlas/edit/``), so the shipped PNGs are the source of truth: ``labels --out``
   drafts elsewhere and never writes over them. Check a changed label with
   ``tools/research/career_atlas/validate_assets.py --delivered <dir>``.
+  The Secret Technique card titles (``SECRET_TITLES``, an atlas the catalog has no edit for) are font
+  renders instead (``title_label``): the Chinese art is a black heavy sans with a grey semi-transparent
+  edge, tinted gold by the card's material, so the render keeps that greyscale and lets the material
+  colour it. They are set at one size, never squeezed, in boxes of their own, so the atlas's title
+  sprites are re-packed: ``layout`` writes ``resources/sprites/<HASH>/layout.json``, which
+  ``card_titles.relayout`` applies at run time (ADR 0009).
 
 Subcommands, run by hand from the project root (``<pkg19>`` is a dump's ``WXQ_Data/Package/builtin/19``):
 
     .venv\\Scripts\\python.exe tools\\research\\atlas_sprites.py table --package <pkg19> [--out <dir>]
     .venv\\Scripts\\python.exe tools\\research\\atlas_sprites.py restore --pristine <pkg19> ^
         --layout <pkg19> [--layout <pkg19> ...] [--check]
+    .venv\\Scripts\\python.exe tools\\research\\atlas_sprites.py layout --pristine <pkg19> [--check]
     .venv\\Scripts\\python.exe tools\\research\\atlas_sprites.py labels [--out <dir>] [--check]
 
 ``table`` prints every regioned atlas's catalog boxes beside the device rects and, with ``--out``,
 writes ``<HASH>_rects.json`` and a render with the device rects (red) and the catalog boxes (yellow).
 ``restore`` crops from the ``--pristine`` dump, which must be a copy the patch never wrote to.
-``restore --check`` rebuilds the crops in memory and fails if the shipped PNGs' pixels differ;
-``labels --check`` verifies each shipped label is in ``ATLAS_LABELS`` and in the labels' format (RGBA,
-white wherever it is visible, transparent outer ring).
+``layout`` packs the Secret Technique titles at their ``title_size`` around the art and records each card
+prefab's ``Title`` box; it reads only a pristine package, and ``--check`` fails if the shipped file
+differs. ``restore --check`` rebuilds the crops in memory and fails if the shipped PNGs' pixels differ;
+``labels --check`` verifies each shipped label is in ``ATLAS_LABELS`` and in its atlas's format (RGBA,
+transparent outer ring; Career labels white wherever visible, card titles grey wherever visible).
 """
 from __future__ import annotations
 
 import argparse
 import gzip
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -42,14 +52,47 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 sys.path.append(str(ROOT / "resources" / "runtime"))
 
+import card_titles  # noqa: E402
 import mobile_graphics as mg  # noqa: E402
 import qts_relocate  # noqa: E402
-from PIL import Image, ImageDraw  # noqa: E402
+from PIL import Image, ImageDraw, ImageFont  # noqa: E402
 from sprite_table import REGION_SPRITE_ASSETS, sprite_rects  # noqa: E402
 
 CATALOG = ROOT / "resources" / "catalog"
 ART = ROOT / "resources" / mg.SPRITE_ART
 CAREER = "13C19E4E4486B31C"
+SECRET_TITLES = "0B4DA7A85D27E87A"  # LordSkillCardAtlas, the Secret Technique cards' titles
+TITLE_FONT = ROOT / "resources" / "fonts" / "BarlowCondensed-ExtraBold.ttf"
+# Measured on the 32 Chinese titles: black fill and a ~2 px edge, grey near (102, 99, 89) at alpha ~165.
+# The edge is shaded, measured by distance from the ink (2026-11-11): a 1 px dark outline all round, a
+# darker shade above each stroke and a light band 2-3 px below it, which the card's gold tint turns bright
+# gold; the sides sit between. Layers, bottom up: ring, shade (shifted up), light (shifted down), outline.
+TITLE_EDGE = (100, 96, 86, 60)        # the ring (the layers stack: these alphas are tuned to the sums)
+TITLE_SHADE = (40, 38, 34, 100)       # above the ink, 2-3 px out (Chinese 37-65 at alpha 105-150)
+TITLE_LIGHT = (225, 214, 188, 120)    # below the ink, 2-3 px out (Chinese 145-185 at alpha 115-155)
+TITLE_OUTLINE = (82, 78, 72, 140)     # 1 px out on every side (Chinese 68-103 at alpha 180-234)
+TITLE_STROKE = 2       # px of edge the layout keeps inside the box (TITLE_CLEAR beyond it)
+TITLE_EDGE_REACH = 3   # px the drawn edge reaches: 1 px into TITLE_CLEAR, so the outer ring stays clear
+TITLE_SHADE_SHIFT = 1  # px the shade and light copies are moved up and down, to TITLE_EDGE_REACH
+TITLE_MARGIN = 4       # px of the box width the widest line leaves free (the Chinese leaves 2-3 a side)
+TITLE_SCALE = 4        # drawn at 4x, then reduced with premultiplied alpha
+TITLE_POINTS = 36      # one size for every title, never squeezed (the user's pick, 2026-11-11)
+# Titles set on two lines, broken after the colon (the user's pick): at 36 pt on one line they are wider
+# than the card (MAGICAL DEERIE: HEAVY ARMOR 424 px, the card about 400).
+TWO_LINE_TITLES = ("MAGICAL DEERIE:", "GRACEFUL STEPS:")
+TITLE_ART_GAP = 1      # px kept clear round the atlas's art sprites when the titles are packed
+TITLE_LINE_GAP = 1     # px between two lines' capitals
+TITLE_CLEAR = 2        # px left clear above and below the ink, so the outer ring stays transparent
+# The bevelled titles (神奇小鹿·… and 心之引力): their edge is warmer, near (110, 101, 74) at alpha ~190, and
+# each stroke's top carries a gold highlight (up to (183, 161, 91)) about 2 px deep.
+BEVELLED_TITLES = {"Image_1758425074", "Image_1771257742", "Image_292161172", "Image_51264393",
+                   "Image_640166584", "Image_13884294"}
+TITLE_BEVEL_EDGE = (110, 101, 74, 70)
+TITLE_BEVEL_SHADE = (50, 45, 30, 120)       # Chinese 44-53 at alpha 178-190
+TITLE_BEVEL_LIGHT = (200, 185, 140, 110)    # Chinese 126-143 at alpha 150-194
+TITLE_BEVEL_OUTLINE = (80, 71, 45, 150)     # Chinese 66-83 at alpha 228-243
+TITLE_BEVEL_GOLD = (183, 158, 88, 255)
+TITLE_BEVEL = 2.0
 
 
 def graphics() -> dict[str, dict]:
@@ -97,7 +140,7 @@ def overwritten(graphic: dict, rects: dict[str, tuple[int, ...]]) -> dict[str, i
 
 
 def cmd_table(args) -> int:
-    for texture in [f"{h:016X}" for h in REGION_SPRITE_ASSETS]:
+    for texture in [f"{h:016X}" for h in REGION_SPRITE_ASSETS if f"{h:016X}" in graphics()]:
         graphic = graphics()[texture]
         image, rects = read_atlas(args.package, texture)
         print(f"{texture}: {len(rects)} sprites")
@@ -177,12 +220,16 @@ def main() -> int:
     restore.add_argument("--pristine", type=Path, required=True)
     restore.add_argument("--layout", type=Path, action="append", default=[])
     restore.add_argument("--check", action="store_true")
+    layout = sub.add_parser("layout")
+    layout.add_argument("--pristine", type=Path, required=True)
+    layout.add_argument("--check", action="store_true")
     labels = sub.add_parser("labels")
     labels.add_argument("--check", action="store_true")
-    labels.add_argument("--out", type=Path, help="write glyph-assembled drafts here (never over the shipped art)")
+    labels.add_argument("--out", type=Path, help="write fresh drafts here (never over the shipped art)")
     args = parser.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")
-    return {"table": cmd_table, "restore": cmd_restore, "labels": cmd_labels}[args.command](args)
+    return {"table": cmd_table, "restore": cmd_restore, "layout": cmd_layout,
+            "labels": cmd_labels}[args.command](args)
 
 
 # ------------------------------------------------------------------------------------------------
@@ -330,15 +377,296 @@ def labels() -> dict[str, Image.Image]:
     }
 
 
-def _label_faults(image: Image.Image) -> list[str]:
-    """What keeps <image> from being a shippable label: the format the catalog's own labels share."""
+def _title_font() -> ImageFont.FreeTypeFont:
+    return ImageFont.truetype(str(TITLE_FONT), TITLE_POINTS * TITLE_SCALE)
+
+
+def _two_lines(text: str) -> list[str]:
+    """<text> broken after its colon, or else at the word break that best balances the two lines."""
+    if ": " in text:
+        head, tail = text.split(": ", 1)
+        return [head + ":", tail]
+    words = text.split()
+    cut = min(range(1, len(words)), key=lambda i: abs(len(" ".join(words[:i])) - len(" ".join(words[i:]))))
+    return [" ".join(words[:cut]), " ".join(words[cut:])]
+
+
+def title_lines(text: str) -> list[str]:
+    """The lines a title is set in: two for the hero-name titles (``TWO_LINE_TITLES``), else one."""
+    return _two_lines(text) if text.startswith(TWO_LINE_TITLES) else [text]
+
+
+def _up4(value: float) -> int:
+    return (math.ceil(value) + 3) // 4 * 4
+
+
+def title_size(text: str) -> tuple[int, int]:
+    """The box a title needs at TITLE_POINTS, unsqueezed: its widest line plus TITLE_MARGIN, by a height
+    every title of its line count shares (one line: the tallest title's ink; two: two capitals and the
+    gap), plus TITLE_CLEAR above and below; both rounded up to the 4x4 block grid."""
+    font, stroke = _title_font(), TITLE_STROKE * TITLE_SCALE
+
+    def ink(line: str) -> tuple[int, int, int, int]:
+        return font.getbbox(line, stroke_width=stroke)
+
+    lines = title_lines(text)
+    wide = max(ink(line)[2] - ink(line)[0] for line in lines) / TITLE_SCALE + TITLE_MARGIN
+    if len(lines) == 1:
+        tall = max(ink(t)[3] - ink(t)[1] for t in mg.ATLAS_LABELS[SECRET_TITLES].values()) // TITLE_SCALE
+    else:
+        cap = ink("H")
+        tall = math.ceil((2 * (cap[3] - cap[1]) + TITLE_LINE_GAP * TITLE_SCALE) / TITLE_SCALE)
+    return _up4(wide), _up4(tall + 2 * TITLE_CLEAR + 1)
+
+
+def title_label(text: str, size: tuple[int, int], bevelled: bool = False) -> Image.Image:
+    """A Secret Technique title in TITLE_FONT at TITLE_POINTS (``title_lines``), centred, black on a
+    shaded edge; a <bevelled> title also takes the gold highlight its Chinese art has along each stroke's
+    top. Never squeezed: a box narrower than the title raises."""
+    lines = title_lines(text)
+    width, height = size
+    canvas = (width * TITLE_SCALE, height * TITLE_SCALE)
+    stroke = TITLE_STROKE * TITLE_SCALE
+    font = _title_font()
+    wide = max(font.getbbox(line, stroke_width=stroke)[2] - font.getbbox(line, stroke_width=stroke)[0]
+               for line in lines)
+    if wide > (width - TITLE_MARGIN) * TITLE_SCALE:
+        raise ValueError(f"{text!r} does not fit {width}x{height} at {TITLE_POINTS} pt")
+    if len(lines) == 1:
+        box = font.getbbox(text, stroke_width=stroke)
+        places = [((canvas[0] - (box[2] - box[0])) // 2 - box[0], (canvas[1] - (box[3] - box[1])) // 2 - box[1])]
+    else:
+        cap = font.getbbox("H", stroke_width=stroke)
+        pitch = cap[3] - cap[1] + TITLE_LINE_GAP * TITLE_SCALE
+        top = (canvas[1] - (len(lines) * pitch - TITLE_LINE_GAP * TITLE_SCALE)) // 2 - cap[1]
+        places = []
+        for row, line in enumerate(lines):
+            box = font.getbbox(line, stroke_width=stroke)
+            places.append(((canvas[0] - (box[2] - box[0])) // 2 - box[0], top + row * pitch))
+    def mask(width: int, shift: int = 0) -> Image.Image:
+        """The lines stroked <width> px (at 1x) and moved <shift> px down."""
+        out = Image.new("L", canvas, 0)
+        for line, (x, y) in zip(lines, places):
+            ImageDraw.Draw(out).text((x, y + shift * TITLE_SCALE), line, font=font, fill=255,
+                                     stroke_width=width * TITLE_SCALE, stroke_fill=255)
+        return out
+    fill = mask(0)
+    tones = ((TITLE_BEVEL_EDGE, TITLE_BEVEL_SHADE, TITLE_BEVEL_LIGHT, TITLE_BEVEL_OUTLINE) if bevelled
+             else (TITLE_EDGE, TITLE_SHADE, TITLE_LIGHT, TITLE_OUTLINE))
+    reach = TITLE_EDGE_REACH - TITLE_SHADE_SHIFT
+    layers = (mask(TITLE_EDGE_REACH), mask(reach, -TITLE_SHADE_SHIFT), mask(reach, TITLE_SHADE_SHIFT), mask(1))
+    image = Image.new("RGBA", canvas, tones[0][:3] + (0,))
+    for tone, shape in zip(tones, layers):
+        layer = Image.new("RGBA", canvas, tone[:3] + (255,))
+        layer.putalpha(shape.point(lambda v, a=tone[3]: v * a // 255))
+        image.alpha_composite(layer)
+    black = Image.new("RGBA", canvas, (0, 0, 0, 255))
+    black.putalpha(fill)
+    image.alpha_composite(black)
+    if bevelled:
+        # The fill's top band: inside the glyph, but not inside it TITLE_BEVEL px further up.
+        above = Image.new("L", canvas, 0)
+        above.paste(fill, (0, round(TITLE_BEVEL * TITLE_SCALE)))
+        band = Image.new("L", canvas, 0)
+        band.paste(fill, (0, 0))
+        band = Image.composite(Image.new("L", canvas, 0), band, above.point(lambda v: 255 if v > 127 else 0))
+        gold = Image.new("RGBA", canvas, TITLE_BEVEL_GOLD)
+        gold.putalpha(band)
+        image.alpha_composite(gold)
+    # Reduce premultiplied, so the transparent surround does not darken or lighten the edge.
+    return image.convert("RGBa").resize(size, Image.LANCZOS).convert("RGBA")
+
+
+def title_layout_file() -> Path:
+    return ART / SECRET_TITLES / card_titles.LAYOUT_FILE
+
+
+def title_sizes() -> dict[str, tuple[int, int]]:
+    """Each title sprite's size in the shipped layout (``resources/sprites/<HASH>/layout.json``)."""
+    titles = json.loads(title_layout_file().read_text(encoding="utf-8"))["titles"]
+    return {name: (int(t["now"][2]), int(t["now"][3])) for name, t in titles.items()}
+
+
+def drafts() -> dict[str, dict[str, Image.Image]]:
+    """Fresh drafts of every label, by folder (``<atlas>/labels``) then sprite."""
+    sizes = title_sizes()
+    out = {f"{CAREER}/labels": labels(), f"{SECRET_TITLES}/labels": {}}
+    for name, text in mg.ATLAS_LABELS[SECRET_TITLES].items():
+        out[f"{SECRET_TITLES}/labels"][name] = title_label(text, sizes[name], name in BEVELLED_TITLES)
+    return out
+
+
+# Packing. Every title is one of two heights, so the titles are laid on shelves across the atlas, tall
+# shelves first, through the gaps the art leaves (each art sprite inflated by TITLE_ART_GAP and rounded out
+# to the block grid); on each shelf the widest title goes into the tightest gap that takes it. Titles sit
+# edge to edge: each keeps its own transparent TITLE_CLEAR rim. MaxRects did not fit at full size.
+TITLE_SPRITE_PATH = b"UIResources/CardComponent/LordSkillCard\x00"
+
+
+def pack_titles(sizes: dict[str, tuple[int, int]], art: dict[str, list[float]], side: int
+                ) -> dict[str, list[int]]:
+    """Bottom-up ``[x, y, w, h]`` for each title of <sizes>, around the <art> rects, or raise."""
+    def down4(v: float) -> int:
+        return int(v) // 4 * 4
+
+    obstacles = [(down4(x - TITLE_ART_GAP), down4(y - TITLE_ART_GAP),
+                  _up4(x + w + TITLE_ART_GAP), _up4(y + h + TITLE_ART_GAP)) for x, y, w, h in art.values()]
+
+    def gaps_at(y: int, h: int) -> list[list[int]]:
+        cuts = sorted((x0, x1) for x0, y0, x1, y1 in obstacles if y0 < y + h and y1 > y)
+        found, x = [], 0
+        for x0, x1 in cuts + [(side, side)]:
+            if x0 - x >= 40:
+                found.append([x, y, x0 - x])
+            x = max(x, x1)
+        return found
+
+    placed: dict[str, list[int]] = {}
+    y = 0
+    for h in sorted({h for _w, h in sizes.values()}, reverse=True):
+        todo = sorted((n for n, (_w, hh) in sizes.items() if hh == h), key=lambda n: (-sizes[n][0], n))
+        gaps: list[list[int]] = []
+        while todo:
+            if y + h > side:
+                raise ValueError(f"{len(todo)} titles left over: the atlas is full")
+            gaps += gaps_at(y, h)
+            y += h
+            left = []
+            for name in todo:
+                w = sizes[name][0]
+                fits = [g for g in gaps if g[2] >= w]
+                if not fits:
+                    left.append(name)
+                    continue
+                gap = min(fits, key=lambda g: (g[2] - w, g[1], g[0]))
+                placed[name] = [gap[0], gap[1], w, h]
+                gap[0] += w
+                gap[2] -= w
+            todo = left
+    return placed
+
+
+def title_boxes(package, slots, skip: set[int]) -> tuple[dict[str, dict], list[str]]:
+    """Each card prefab's ``Title`` RectTransform, by prefab hash: path id, sprite, pristine size. A
+    prefab naming more than one title (the shared template) is listed apart and left alone."""
+    import struct
+
+    from unity_text import SerializedFile, UnsupportedFile
+
+    titles = set(mg.ATLAS_LABELS[SECRET_TITLES])
+    boxes, shared = {}, []
+    for file_hash in sorted(package.entries):
+        if file_hash in skip:
+            continue
+        try:
+            raw = qts_relocate.read_raw(package, slots, file_hash)
+        except Exception:  # noqa: BLE001 -- an unreadable asset is not a card prefab
+            continue
+        if not raw or TITLE_SPRITE_PATH not in raw:
+            continue
+        try:
+            parsed = SerializedFile(raw)
+        except UnsupportedFile:
+            continue
+        frames, uses = {}, []
+        for _pos, path_id, start, size, type_index in parsed.objects:
+            obj = raw[parsed.data_offset + start:parsed.data_offset + start + size]
+            kind = parsed.class_ids[type_index]
+            if kind not in (card_titles.RECT_TRANSFORM_CLASS, 114):
+                continue
+            owner = struct.unpack_from("<iq", obj, 0)[1]
+            if kind == card_titles.RECT_TRANSFORM_CLASS:
+                at = card_titles._rect_size_at(obj)
+                frames[owner] = (path_id, list(struct.unpack_from("<2f", obj, at)))
+                continue
+            at = obj.find(TITLE_SPRITE_PATH)
+            while at >= 0:
+                name_at = (at + len(TITLE_SPRITE_PATH) + 3) & ~3
+                length = struct.unpack_from("<i", obj, name_at)[0]
+                sprite = obj[name_at + 4:name_at + 4 + length].decode(errors="replace")
+                if sprite in titles:
+                    uses.append((owner, sprite))
+                at = obj.find(TITLE_SPRITE_PATH, at + 1)
+        if len(uses) > 1:
+            shared.append(f"{file_hash:016X}")
+        elif uses:
+            owner, sprite = uses[0]
+            path_id, size = frames[owner]
+            boxes[f"{file_hash:016X}"] = {"path_id": path_id, "sprite": sprite, "was": size}
+    return boxes, shared
+
+
+def make_layout(package_dir: Path) -> dict:
+    """The title layout from a pristine package 19: art rects, each title's pristine and new rect, the
+    card prefabs' Title boxes."""
+    import struct
+
+    from wxq_patch.qtsvfs import QtsPackage
+
+    qts_relocate.install_btree_slot_map()
+    package = QtsPackage(package_dir)
+    slots = package.build_slot_map()
+    table_hash = REGION_SPRITE_ASSETS[int(SECRET_TITLES, 16)]
+    table = qts_relocate.read_raw(package, slots, table_hash)
+    titles = mg.ATLAS_LABELS[SECRET_TITLES]
+    key = struct.pack("<i", len(next(iter(titles)))) + next(iter(titles)).encode()
+    index_hash = next(h for h in sorted(package.entries) if h not in (table_hash, int(SECRET_TITLES, 16))
+                      and b"LordSkillCardAtlas" in (raw := qts_relocate.read_raw(package, slots, h) or b"")
+                      and key in raw)
+    rects = {}
+    for _path_id, start, size in card_titles._objects(table, card_titles.SPRITE_CLASS):
+        name, _at, rect = card_titles.sprite_fields(table[start:start + size])
+        rects[name] = [float(v) for v in rect]
+    art = {n: r for n, r in sorted(rects.items()) if n not in titles}
+    side = mg.LABEL_ATLASES[int(SECRET_TITLES, 16)][0]
+    now = pack_titles({n: title_size(t) for n, t in titles.items()}, art, side)
+    boxes, shared = title_boxes(package, slots, {int(SECRET_TITLES, 16), table_hash, index_hash})
+    return {
+        "atlas": SECRET_TITLES,
+        "sprite_table": f"{table_hash:016X}",
+        "timi_atlas": f"{index_hash:016X}",
+        "points": TITLE_POINTS,
+        "art": art,
+        "titles": {n: {"text": titles[n], "was": rects[n], "now": [float(v) for v in now[n]]}
+                   for n in sorted(titles)},
+        "boxes": boxes,
+        "shared_left_alone": shared,
+    }
+
+
+def cmd_layout(args) -> int:
+    """Write (or ``--check``) resources/sprites/<HASH>/layout.json from a pristine package 19."""
+    layout = make_layout(args.pristine)
+    text = json.dumps(layout, indent=1, ensure_ascii=False) + "\n"
+    path = title_layout_file()
+    print(f"  {len(layout['titles'])} titles, {len(layout['art'])} art sprites, {len(layout['boxes'])} card "
+          f"boxes, {len(layout['shared_left_alone'])} shared prefab(s) left alone")
+    if args.check:
+        current = path.is_file() and path.read_text(encoding="utf-8") == text
+        print("layout current" if current else f"FAILED: {path} differs from a fresh layout")
+        return 0 if current else 1
+    path.write_text(text, encoding="utf-8")
+    print(f"wrote {path}")
+    return 0
+
+
+def _label_faults(image: Image.Image, atlas: str) -> list[str]:
+    """What keeps <image> from being a shippable label: the format its atlas's labels share."""
     faults = []
     if image.mode != "RGBA":
         faults.append(f"mode {image.mode}, not RGBA")
         image = image.convert("RGBA")
-    tinted = sum(1 for r, g, b, a in image.get_flattened_data() if a >= 30 and min(r, g, b) < 245)
-    if tinted:
-        faults.append(f"{tinted} tinted pixels (labels are white, shaped by alpha)")
+    pixels = [p for p in image.get_flattened_data() if p[3] >= 30]
+    if atlas == CAREER:
+        tinted = sum(1 for r, g, b, _a in pixels if min(r, g, b) < 245)
+        if tinted:
+            faults.append(f"{tinted} tinted pixels (labels are white, shaped by alpha)")
+    else:
+        solid = [p for p in pixels if p[3] >= 240]
+        black = sum(1 for r, g, b, _a in solid if max(r, g, b) < 50) / max(1, len(solid))
+        if black < 0.6:
+            faults.append(f"{black:.0%} of the solid pixels black (a title is black with an edge; the Chinese "
+                          "art measures 66-95 %)")
     w, h = image.size
     edge = max(image.getpixel((x, y))[3] for x in range(w) for y in range(h) if x in (0, w - 1) or y in (0, h - 1))
     if edge > 16:
@@ -353,26 +681,31 @@ def cmd_labels(args) -> int:
     are the source of truth and are never regenerated over. ``--out`` writes fresh drafts to start a new
     label from; ``--check`` verifies every shipped label is in ATLAS_LABELS and in the labels' format.
     """
-    target = ART / CAREER / "labels"
     if args.out:
-        args.out.mkdir(parents=True, exist_ok=True)
-        for name, image in labels().items():
-            image.save(args.out / f"{name}.png")
-            print(f"  draft {name} {image.size[0]}x{image.size[1]}: {mg.ATLAS_LABELS[CAREER][name]}")
+        for folder, images in drafts().items():
+            (args.out / folder).mkdir(parents=True, exist_ok=True)
+            for name, image in images.items():
+                image.save(args.out / folder / f"{name}.png")
+                print(f"  draft {folder}/{name} {image.size[0]}x{image.size[1]}: {mg.ATLAS_LABELS[folder.split('/')[0]].get(name)}")
     if not args.check:
         return 0
     failed = False
-    shipped = {p.stem: p for p in target.glob("Image_*.png")}
-    for name in sorted(set(shipped) | set(mg.ATLAS_LABELS[CAREER])):
-        if name not in shipped or name not in mg.ATLAS_LABELS[CAREER]:
-            print(f"  FAIL {name}: {'no PNG' if name not in shipped else 'not in ATLAS_LABELS'}")
-            failed = True
-            continue
-        with Image.open(shipped[name]) as image:
-            faults = _label_faults(image)
-            print(f"  {'FAIL' if faults else 'ok  '} {name} {image.size[0]}x{image.size[1]}: "
-                  f"{mg.ATLAS_LABELS[CAREER][name]}" + (f" -- {'; '.join(faults)}" if faults else ""))
-        failed |= bool(faults)
+    folders = {f"{atlas}/labels" for atlas in mg.ATLAS_LABELS}
+    folders |= {f"{p.parent.parent.name}/{p.parent.name}" for p in ART.glob("*/labels*/Image_*.png")}
+    for folder in sorted(folders):
+        atlas, kind = folder.split("/")
+        wording = mg.ATLAS_LABELS.get(atlas, {}) if kind == "labels" else {}
+        shipped = {p.stem: p for p in (ART / folder).glob("Image_*.png")}
+        for name in sorted(set(shipped) | set(wording)):
+            if name not in shipped or name not in wording:
+                print(f"  FAIL {folder}/{name}: {'no PNG' if name not in shipped else 'no wording for it'}")
+                failed = True
+                continue
+            with Image.open(shipped[name]) as image:
+                faults = _label_faults(image, folder.split("/")[0])
+                print(f"  {'FAIL' if faults else 'ok  '} {folder}/{name} {image.size[0]}x{image.size[1]}: "
+                      f"{wording[name]}" + (f" -- {'; '.join(faults)}" if faults else ""))
+            failed |= bool(faults)
     return 1 if failed else 0
 
 

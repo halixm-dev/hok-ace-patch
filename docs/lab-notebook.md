@@ -4717,3 +4717,285 @@ whether the game reads the rules from the override layer at all.
   rows used (plain count with and without the final `。`, and `{DaQiao_TideTimes:2}`). All seven forms of the line
   resolve in English and Indonesian and pass `validate_translation`. The nerfed forms come from a screenshot, not a
   data capture. **Not measured:** the nerfed data itself, and a phone run.
+
+## 2026-11-11 — Symphony of Tides' title is a baked sprite
+
+- **Symptom (user):** with its description now English, Qiao Xi's Secret Technique card still shows `潮汐的交响`
+  as its title, gold on the card face. No text table holds it there: the card face is the package-`19` prefab
+  `UICardLordSkill_Secret_Daqiao92210` (`0DC65BAEC80F297C`), whose `Title` Image draws sprite `Image_608660137`.
+- **Atlas.** The sprite belongs to `UIResources/CardComponent/LordSkillCard/Atlas/LordSkillCardAtlas`. Its 38
+  Sprite objects plus the Texture2D header (`LordSkillCardAtlas`, 1024x1024, format 48 = ASTC 4x4, 1 048 576 B,
+  stream `assets/3a/3a215b08d2c6e31459c709fec16b4042.resS`) are `F86A7241DD039F73`; the SpriteAtlas is
+  `EFF7C954C6C31786`. Pixels: **`0B4DA7A85D27E87A`**, package `19`, override layer only (package `19` is not in
+  this APK's prime layer). Found by decoding every 1 MiB asset of every override package. Ranked by alpha
+  outside the sprite boxes alone, the best was 23 %, and the known Career atlas also scores 23 % by that
+  measure, so that score cannot find an atlas. Requiring art in all 38 boxes *and* little alpha outside them
+  ranks `0B4DA7A85D27E87A` alone: 0.15 % outside, next 14 %. The decoded texture is bottom-up; the title box is
+  top-down (778,48)-(978,96), 200x48.
+- **What the atlas holds:** about 33 Secret Technique titles (`永恒时之回环`, `超级扭蛋机`, `神奇小鹿·重装` …), the
+  `棋手·秘技` strip beside `SIGNATURE SKILL` / `HONOR OF KINGS: ACE`, the `灵感爆发` calligraphy art and two
+  chessplayer portraits. The catalog has no edit for it.
+- **Style:** the title is a black heavy sans with a semi-transparent grey edge (pixels at alpha ≥ 240 are black;
+  the edge is grey near 100 at alpha 150-200, about 2 px); ink rows 5-42 of 48. Greyscale throughout, so the
+  card's material supplies the gold.
+- **Change:** `mobile_graphics.LABEL_ATLASES` + `label_atlas` (an atlas carried by `ATLAS_LABELS` alone, drawn at
+  the device's sprite rects, refused whole if a label's sprite is missing or resized), the sprite table in
+  `REGION_SPRITE_ASSETS`, and the render `SYMPHONY OF TIDES` (Barlow Condensed ExtraBold 25 pt, 188 px wide, one
+  line, black with a 2 px grey edge at alpha 170) from `atlas_sprites.py labels --out`. `port_atlas` now shares
+  the label drawing and the block re-encode with it.
+- **Measured offline:** the three catalog atlases port byte-identical before and after the refactor;
+  `check_graphics.py` `[11]` passes (label mean 0.76 after ASTC, nothing outside its blocks changes, re-run
+  idempotent, refusals hold); on the dump's own atlas 459 blocks change and the neighbouring titles do not; a full
+  English `build_device_patch` run stages 23 textures in package `19` (22 before) and reports
+  `count_translated` (393, 399), with `graphics_skipped` empty.
+- **Not measured:** the card on a phone, and whether a 25 pt Latin line reads at the card's on-screen size.
+
+## 2026-11-11 — all 32 Secret Technique titles
+
+- **Request (user):** after SYMPHONY OF TIDES, draw the atlas's other card titles in the same style (one
+  line, caps, Barlow Condensed ExtraBold, kept over four other styles the user compared). Then: Indonesian
+  uses the English titles too.
+- **Titles.** `0B4DA7A85D27E87A` holds 32 title sprites (rects recorded then in a fixture
+  since replaced by the pristine Sprite table fixture `F86A7241DD039F73.bin`; 38 sprites in all). Each wording is the English
+  catalog's name for the card, in caps (`ATLAS_LABELS`, Chinese beside each). The Indonesian catalog names
+  five differently (e.g. `为我所用` *Pakai untuk diri sendiri*); those stay English, as the Career labels do.
+- **Style measured off the Chinese art:** most titles are black with the grey edge; six (the five `神奇小鹿`
+  cards and `心之引力`) are bevelled, with a warmer edge and a gold top highlight. Renders: edge
+  (110,101,74,190) and a 2 px gold (183,158,88) top highlight for those six; 1.5 px read too faint beside the
+  originals.
+- **Layout:** one line up to 30 pt; under 18 pt, two lines when they set larger (split after a colon or at
+  the most balanced break): MOMENTUM CONTROL, MYRIAD MIRRORS, PUFFERFISH BACKPACK, MOMENT OF APOTHEOSIS.
+  Smallest one-liners: WEAPON MODIFICATION 18 pt, JING HONG DIAO 19 pt. The first two-line renders touched
+  the box edge (`labels --check` failed the transparent ring on three), so every render now keeps 2 px
+  (`TITLE_CLEAR`) clear top and bottom.
+- **Idempotence on real bytes.** On the dump's atlas a second `label_atlas` pass changed one block (raw block
+  41783, top-down (220,368), in `Image_15320793`, half inside the box): mean 8.0 after the first encode,
+  0.0 after the second, because the half outside the box is then the encoder's own output. A third pass
+  changed nothing. Keeping the device block when a fresh encode is no closer, or also encoding the block
+  alone, did not settle it (the second pass's target differs). `label_atlas` now redraws until nothing
+  changes (`LABEL_PASSES` = 4); `port_atlas` and the shared `_reencode` are unchanged, so the three catalog
+  atlases' bytes do not move. The synthetic `[11]` fixture had not caught it.
+- **Measured offline:** `labels --check` 34 ok; `check_graphics.py` passes offline and with `--game` (`[11]`:
+  32 labels, worst 2.04, Indonesian equal to English, re-run unchanged; `[8]` unchanged: 318 ported, 3 by
+  sprite); on the dump's atlas 14 943 blocks change, none outside the title boxes, the six other sprites
+  untouched, 3.4 s; full `build_device_patch` runs in English and Indonesian: package `19` 23 textures,
+  `graphics_skipped` empty, `count_translated` (393, 399), each staged atlas equal to `label_atlas`'s output
+  and unchanged by a redraw. `validate_assets.py --delivered` passes for the Career labels.
+- **Not measured:** the cards on a phone, and how the 18-19 pt lines read at the card's on-screen size.
+
+## 2026-11-11 — device cycle: Secret Technique titles
+
+- **Phone:** Xiaomi M2007J3SG (`f15a72e`), Android 12. Game data `1.9.2.4` (`packages/1/1.info`), newer than
+  the `1.9.0.1` dump, and already translated by an earlier run today (layer written 11:41), so the dump's
+  staged packages could not be pushed. Normal APK on the phone = the cached `installed.apk` (2 026 564 305 B);
+  its launcher label needs no rewrite.
+- **Staged:** the phone's own package `19`, pulled with the access APK (backup of `packages/19` and
+  `Watchdog`: `D:\scratch\hok-1.9.2.4\backup-19-watchdog.tar`), through `port_graphics` with the catalog's
+  graphics emptied, so only `0B4DA7A85D27E87A` was written (`1 textures translated`, none skipped). The
+  phone's sprite table took all 32 labels. Read-back: the staged atlas equals `label_atlas`'s output; no
+  other asset of the package changed. Pushed by `push_translation`'s sequence; SHA-1 on the phone equals
+  the staged files; `Watchdog` cleared; normal APK reinstalled (`run-as` refused again).
+- **Launch:** `ScanJob done system=builtin ... errorCode=0`; the game resumed logged in.
+- **Seen (Chessplayer → Skill → Secret Skill):** Qiao Xi SYMPHONY OF TIDES; Yaria MAGIC DEER: HEAVY ARMOR,
+  TWIN, RESONANCE, DEVOTION (bevelled, gold highlight visible); Jing MYRIAD MIRRORS (two lines, small in its
+  narrow box). Each in the card's gold, in the Chinese title's place, nothing clipped. **Pass** for those six.
+- **Also seen:** the small description on Qiao Xi's card face still reads Chinese: a text table, from the
+  layer already on the phone, not this atlas.
+- **Not seen:** the other 26 titles; the 18-19 pt lines. The Android patcher's delta does not know this
+  package-`19` write: roll back from the backup before that patcher next runs.
+
+## 2026-11-11 — Secret Technique titles: fill the box, rename eleven cards
+
+- **Why:** on the phone the English titles read smaller than the Chinese. The first layout capped a line
+  at 30 pt and kept the full width as margin.
+- **Options shown** (sheet of all 32 at 1.0x / 1.3x / 1.6x sideways squeeze): the user took **1.3x**
+  (`TITLE_MAX_STRETCH`). Now: ink fills the box height less 2 px top and bottom (`TITLE_CLEAR`), width
+  less 4 px (`TITLE_MARGIN`), no point cap; two lines only when they set larger. Three titles split:
+  HARNESS / MOMENTUM, MYRIAD / MIRRORS, MOMENT OF / SANCTIFICATION. 29 squeeze between 1.17x and 1.3x.
+- **Renamed** (user's wording): Many Friends → Friends Galore, Use for My Own → Make It My Way, Little
+  Rabbit Gift → Bunny's Blessing, Dreamlike → Dream Illusion, Build Upgrade → Construct Upgrade, Momentum
+  Control → Harness Momentum, Moment of Apotheosis → Moment of Sanctification, Supreme Decisions →
+  Ultimate Decree, Supernatural Detector Overhaul → Paranormal Detection Mod, Magic Deer → Magical
+  Deerie, Little Rabbit Assist → Bunny's Aid. Atlas titles in `ATLAS_LABELS`; card text through
+  `terminology.CARD_NAMES`, English only.
+- **Text:** on the English catalog 110 unique strings and 108 update rows change; 0 fail
+  `validate_translation`; a second pass changes nothing; `INDONESIAN_TERMS` holds none of them.
+- **Checks:** `labels --check` 34 ok; `check_graphics.py --skip-slow` all pass (`[11]` worst mean 2.35);
+  `check_ui_strings.py` OK. Offline English build over the 1.9.0.1 dump with its APK: exit 0, package
+  `19` 23 textures, nothing skipped, `count_translated` (393, 399).
+- **Box size:** a render must equal the device sprite's size or `label_atlas` refuses the atlas (skip,
+  no error). The on-screen size is the prefab's `Title` RectTransform, so filling the box is the only
+  way to a larger title.
+- **Phone** (`f15a72e`, data 1.9.2.4): the new atlas staged from the backup's original package `19`,
+  read back equal to `label_atlas`, pushed (SHA-1 matches), normal APK reinstalled; lobby reached with
+  scan `errorCode=0`. The cards were **not seen**: `input tap/swipe` now fails with "Injecting to another
+  application requires INJECT_EVENTS permission" (Xiaomi's USB debugging (Security settings) toggle).
+  Text renames need a patcher run to reach the phone. Roll package `19` back from
+  `D:\scratch\hok-1.9.2.4\backup-19-watchdog.tar` before the Android patcher next runs.
+
+## 2026-11-11 — Secret Technique titles: one size for all
+
+- **Why:** filling each box set short titles far larger than long ones (TIME LOOP and FATE GIFT 50 pt,
+  HARNESS MOMENTUM 22 pt). Preview of fill vs one size shown; the user took **one size**.
+- **Now:** `TITLE_POINTS = 22`, the largest size every title reaches (`largest_shared_points`). One line
+  where it fits at 22 pt, else two; the same three titles split. Squeeze up to 1.3x kept.
+- **Also:** 朋友多多 is **Friends Galore** (the user's correction of Friend Galore), in the title and in
+  `CARD_NAMES`.
+- **Checks:** `labels --check` 34 ok; `check_graphics.py --skip-slow` all pass (`[11]` worst mean 1.83).
+
+## 2026-11-11 — larger uniform title preview
+
+Preview only: all 32 titles render at 32 pt when both sprite dimensions are multiplied by 1.5. Script and comparison: .scratch/title-size/preview_larger.py and larger-comparison.png. Resampling those drafts into the original display boxes leaves the apparent text size nearly unchanged; the larger display boxes are an illustration, not a phone measurement. No shipped label, sprite table, prefab or phone data changed. A real larger display requires investigating the prefab layout and atlas allocation; this experiment does not establish that such changes work in the game.
+
+## 2026-11-11 — phone experiment: enlarge Qiao title through RectTransform
+
+On Xiaomi f15a72e, backed up the current package 19 and Watchdog to files/title-test-backup.tar inside the game sandbox. Starting from the matching 22 pt package (shard SHA1 165d84e242a1c60032664a0080debdc5d1f324c9), changed only localScale.x/y from 1 to 1.5 in RectTransform path ID -1317143860891741464 of prefab 0DC65BAEC80F297C. Raw file length unchanged; staged readback matched. Test shard SHA1 c51ddb12b35faf690515b8df1dabab4cfca51b47 matched on phone. Normal APK restored before launch; QtsVFS ScanJob errorCode=0. Opened Qiao Xi Secret Skill preview and Encyclopedia: title rendered without clipping, but was not visibly larger (consistent with runtime resetting scale or another render path; cause not established). Screenshot .scratch/title-size/phone-qiao-full.png. Verdict: launch passes, enlargement unsuccessful; do not ship this prefab edit. Restoring pre-test package before ending the cycle.
+
+Rollback completed: package 19 restored from the phone backup; shard SHA1 again 165d84e242a1c60032664a0080debdc5d1f324c9. Normal APK installation succeeded, run-as refused as non-debuggable, and game relaunched. The experimental prefab edit is no longer on the phone. The earlier manual 22 pt atlas remains, so the existing pristine-delta caveat still applies before the Android patcher next runs.
+
+## 2026-11-11 — Secret Technique card prefabs: where the title box is set
+
+- **Read** from the phone's package `19` (data 1.9.2.4) with `unity_text.SerializedFile`: 35 card prefabs
+  `UICardLordSkill_Secret_<hero><id>`, plus `UICardLordSkill_Secret` and `UICardLordSkill_SecretShell`.
+  Each card root is 420x588 (BG 428x596, art `ImgMG` 380x356 at y 116, `BottomDec` 396x32 at y -266).
+- **`Title`**: a RectTransform centred on the card at y -45 (x 0, or -1 on two cards), scale 1. Its
+  size equals its sprite's size on every card checked: 84-312 wide, 44 high (48 on Qiao Xi and Zhuangzhou).
+  The art circle's bottom edge is about y -62, so the box already sits on it.
+- **The Image is Tencent's own component, not uGUI's sprite field.** It holds the sprite by name as
+  text (`UIResources/CardComponent/LordSkillCard` + `Image_608660137`), and native code loads it while
+  the game runs. No Lua in packages `1`, `2`, `3`, `10` names these prefabs. Whether that loader sizes the
+  box to the sprite is not established.
+- **Every card prefab carries an Animation component** (class 111, clip in another file). It is a
+  candidate for why the `localScale` 1.5 test above showed no change; not established.
+- **Untested:** a `sizeDelta` edit (e.g. Qiao Xi's 200x48 → 300x72, sprite unchanged). It would show
+  whether the box can grow at all: larger means the prefab route works; unchanged means the loader or the
+  animation overrides the layout, or the screen does not use this prefab.
+
+## 2026-11-11 — phone experiment: grow Qiao Xi's title box through `sizeDelta`
+
+- **Change:** on the 22 pt package `19` (shard SHA-1 `165d84e2…`), only Qiao Xi's prefab
+  `0DC65BAEC80F297C`: `Title` RectTransform (path ID -1317143860891741464) `sizeDelta` 200x48 → 300x72.
+  Sprite and atlas unchanged. Written with `device_extensions.write_assets`; read back equal; no other
+  asset changed. Test shard SHA-1 `af9f2db8…` matched on the phone.
+- **Launch:** normal APK reinstalled; QtsVFS `ScanJob done ... errorCode=0`; the game reached the
+  Encyclopedia.
+- **Seen:** Qiao Xi's card in the Encyclopedia preview draws SYMPHONY OF TIDES **1.5x larger** in both
+  directions, in the same place, nothing clipped; the edge is softer, as the 200x48 sprite is stretched.
+  Before/after: `.scratch/title-size/phone-sizedelta-compare.png`.
+- **Verdict:** the box can grow, through `sizeDelta`. The game does not reset it to the sprite's size, so
+  the earlier `localScale` result was not the loader. To ship it: each card prefab's `Title` box enlarged
+  (35 prefabs, a new asset kind), and the sprites redrawn at the new size so they stay sharp, which needs
+  the atlas re-packed or a larger atlas. Not on the shipping path yet.
+- **Restore:** reinstalling the access APK was refused on the phone (`INSTALL_FAILED_USER_RESTRICTED`),
+  so the test package is still on the phone at the time of writing.
+
+## 2026-11-11 — Secret Technique titles: shaded edge
+
+- **Why:** the user saw that the Chinese titles' edge is dark above each stroke and bright gold below.
+- **Measured** on the phone's pristine atlas (`D:\scratch\hok-1.9.2.4\phone\packages\19`), average colour
+  by distance from each black run, `时之回环` (plain): 1 px out all round dark (68-87 at alpha 180-234);
+  above, 2-4 px: 57 → 37 at alpha 135 → 82; below, 2-4 px: 159 → 184 → 169 at alpha 154 → 113 → 81;
+  sides mid grey (91-114). `潮汐的交响` and `朋友多多` read the same. Bevelled `神奇小鹿·重装`: warmer, below
+  126-143 at alpha 150-194, above 44-53 at alpha 178-190 past the gold highlight.
+- **Now:** four layers (ring, shade moved up 1 px, light moved down 1 px, 1 px outline), reaching 3 px.
+  Laid out with a 2 px edge as before, so the edge takes 1 px of `TITLE_CLEAR` and the size stays 22 pt;
+  a 3 px layout reach would have dropped the shared size to 19 pt. Alphas tuned so the stacked layers
+  land near the Chinese: TIME LOOP below 2-4 px reads 144 → 172 → 155.
+- **Checks:** `labels --check` 34 ok (the bevelled six first failed the black-share check at 51-53 %
+  with higher alphas; lowered); `check_graphics.py --skip-slow` all pass (`[11]` worst mean 2.18).
+- **Not on the phone yet.**
+
+## 2026-11-11 — phone experiment: one line at Symphony of Tides' size, atlas repacked
+
+- **Ask:** every title at the size SYMPHONY OF TIDES reached in the 300x72 test (about 33 pt), on one line,
+  drawn sharp at full size rather than stretched.
+- **Change** (prototype, scratch script only, not the pipeline), on the pristine package `19`:
+  - atlas `0B4DA7A85D27E87A` repacked at scale 1.0. The six art sprites are fixed obstacles (inflated
+    1 px, block-aligned); the 32 titles are placed MaxRects best-short-side-fit by area, 4-aligned, edge to
+    edge, kept apart by their own 2 px transparent rim. 4 px padding did not fit at full size;
+  - each title drawn one line at 33 pt, height 72, width its own one-line need;
+  - Sprite table `F86A7241DD039F73`: each title Sprite's `m_Rect`, vertices, `textureRect` and
+    `uvTransform`;
+  - TimiAtlas `EFF7C954C6C31786`: each title's rect and pivot;
+  - 33 card prefabs: `Title` `sizeDelta` set to the new sprite size (old size asserted first). The shared
+    template `UICardLordSkill_Secret` (`8A2936518633CA63`, one 196x44 box for all 32) left unchanged.
+  - 36 assets written, 0 refused, read back equal, no other asset changed. Shard SHA-1 `95f8282e…`
+    matched on the phone.
+- **Launch:** normal APK reinstalled; QtsVFS `ScanJob done ... errorCode=0`; the game reached the
+  Encyclopedia.
+- **Seen** in the Encyclopedia preview, each title on one line, sharp, in the card's place, nothing clipped,
+  no overlap with the art: GRACEFUL STEPS: FLOW, ULTIMATE TREASURE IS HERE, HARNESS MOMENTUM, MYRIAD
+  MIRRORS, SYMPHONY OF TIDES, and all five MAGICAL DEERIE cards (bevelled; HEAVY ARMOR, the longest, fits
+  the card width). The large spaced words behind the art (GRACEFUL STEPS, HARNESS MOMENTUM, MAGICAL
+  DEERIE) are the cards' own art, not this atlas. The Encyclopedia list's round thumbnails crop the atlas
+  and show title fragments, as before.
+  Screens: `.scratch/title-size/phone-repack-one-line.png`.
+- **Not seen:** the in-match hand card, and whatever screen uses the shared template prefab.
+- **Verdict:** the repack works on the device. Shipping it needs the Sprite table, TimiAtlas and prefab
+  writes as new asset kinds in the pipeline (an ADR), the staging contract, `check_graphics` coverage and
+  the labels re-shipped at the new sizes. Not on the shipping path yet.
+- **On the phone:** the prototype package. Backups: `D:\scratch\hok-1.9.2.4\backup-before-repack.tar`
+  (the 300x72 test), `backup-19-watchdog.tar` (before this session's tests). The Android patcher's
+  pristine delta does not know about these writes; restore before running it.
+
+## 2026-11-11 — phone experiment: titles as tall as the Chinese
+
+- **Ask:** the English letters as tall as the Chinese characters, still one line.
+- **Measured** (black fill rows, pristine atlas vs render): Chinese 34-36 px on every title; English at
+  33 pt 22-24 px. 50 pt gives a 35 px capital; the box is 44 px tall, as the Chinese.
+- **Width:** at 50 pt the long titles outgrow the card (about 400 px on screen; HEAVY ARMOR would be
+  586 px). Each title is capped at 352 px and squeezed sideways to fit: HEAVY ARMOR 1.66x, AFTERGLOW 1.6x,
+  PARANORMAL DETECTION MOD 1.57x, about 20 titles in all; short ones are not squeezed. Options compared in
+  `.scratch/title-size/chinese-height-options.png` (squeezed one line vs two lines).
+- **Packing:** MaxRects did not fit at full size; shelf packing (44 px shelves through the gaps the art
+  leaves, widest title into the tightest gap) fits with the 352 px cap (360 left 304 px gaps the two
+  312 px titles could not take).
+- **Change:** same asset set as the 33 pt repack (atlas, Sprite table, TimiAtlas, 33 card prefabs'
+  `sizeDelta`), from pristine. 36 written, 0 refused, read back equal, no other asset changed; shard
+  SHA-1 `f2666876…` matched on the phone. Measured English fill 34-36 px.
+- **Launch:** `ScanJob done ... errorCode=0`. **Seen:** MAKE IT MY WAY and GRACEFUL STEPS: CHARGE (1.35x
+  squeeze) at the Chinese height, inside the card, sharp: `.scratch/title-size/phone-chinese-height.png`.
+  `adb shell input` was refused again (`INJECT_EVENTS`), so the most-squeezed titles (HEAVY ARMOR,
+  AFTERGLOW) are not seen on the phone yet.
+
+## 2026-11-11 — phone experiment: 36 pt for every title, no squeeze
+
+- **Ask:** one size for all, 36 pt, no sideways squeeze.
+- **Sizes:** capital fill 25 px (Chinese 34-36); box 36 px tall; width each title's own one-line need,
+  from 140 (FATE GIFT) to 424 (MAGICAL DEERIE: HEAVY ARMOR). The prototype asserts one line and stretch
+  1.0 on all 32. Measured fill 24-26 px (the bevelled six 24, their top is gold). Shelf packing fits.
+- **Change:** same asset set as before, from pristine; 36 written, 0 refused, read back equal, no other
+  asset changed; shard SHA-1 `f1b23384…` matched on the phone. `ScanJob ... errorCode=0`.
+- **Seen:** MAGICAL DEERIE: TAUNT (328 px) sits well inside the card; MAGICAL DEERIE: RESONANCE (396 px)
+  reaches the card's gold edge on both sides: `.scratch/title-size/phone-36pt.png`. HEAVY ARMOR (424 px)
+  and AFTERGLOW (412 px) are wider than the card (about 400 px) and not seen; expected to run past the
+  edge. `adb shell input` refused again after one tap.
+
+## 2026-11-11 — phone experiment: 36 pt, MAGICAL DEERIE and GRACEFUL STEPS on two lines
+
+- **Ask:** keep 36 pt and no squeeze for all; the ten MAGICAL DEERIE / GRACEFUL STEPS titles on two lines
+  (broken after the colon), the rest one line.
+- **Sizes:** one-line boxes 36 px tall, widths 140-400; two-line boxes 68 px tall, 232 (DEERIE) and 244
+  (STEPS) wide. The prototype asserts the line count and stretch 1.0 on all 32. Two-height shelf packing
+  (68 px shelves first, then 36) fits.
+- **Change:** same asset set, from pristine; 36 written, 0 refused, read back equal, no other asset
+  changed; shard SHA-1 `0845bb53…` matched on the phone. `ScanJob ... errorCode=0`.
+- **Seen:** GRACEFUL STEPS: / REBIRTH and MAGICAL DEERIE: / HEAVY ARMOR on two lines, centred, clear of
+  the art and the description; SYMPHONY OF TIDES on one line, also in the Chessplayer screen's card pop-up
+  (a second screen drawing these titles): `.scratch/title-size/phone-two-line.png`.
+- **Not seen:** the in-match hand card. Still a scratch prototype; the phone holds it.
+
+## 2026-11-11 — the title relayout built into the pipeline, phone test of its output
+
+- **Change:** the two-line 36 pt prototype moved into shipping code: `tools/card_titles.py` (`relayout`),
+  `resources/sprites/0B4DA7A85D27E87A/layout.json` (from `atlas_sprites.py layout --pristine`), wired into
+  `device_extensions.port_graphics` beside the atlas (ADR 0009). The layout differs from the prototype only
+  by five swaps of equal-width titles; the 32 labels are pixel-identical to the prototype's renders.
+- **Offline:** texture pass over the phone's pristine package `19` (1.9.2.4): 14 textures translated, none
+  skipped, 35 layout assets moved; 49 assets changed, none outside the layout and the catalog textures;
+  `relayout` over the output returns nothing; a re-run writes nothing. `check_graphics --skip-slow`
+  `[11]` worst 2.80, 23 264 blocks allowed; `[12]` all pass.
+- **Phone:** that output pushed as package `19`; shard SHA-1 `d9f4a2a1…` matched; `ScanJob ...
+  errorCode=0`. **Seen:** SYMPHONY OF TIDES whole on Qiao Xi's card (Chessplayer screen). Two-line titles
+  not re-seen from this output (seen on the prototype). The phone holds this test package; restore a
+  backup before the next patcher run.

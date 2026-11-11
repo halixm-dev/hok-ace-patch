@@ -26,6 +26,9 @@ REGION_SPRITE_ASSETS: dict[int, int] = {
     0x13C19E4E4486B31C: 0x4AA2B26FF28CB65D,
     0xC9F49510F2F67402: 0x22BD565B3703EDA9,  # lobby START GAME / BATTLE TRAINING
     0xE86DF43167CA2143: 0x9F240FDA0FA58988,  # CANCEL READY / CONFIRM CHOICE / WAITING FOR PLAYERS
+    # LordSkillCardAtlas, the Secret Technique cards' titles: not a catalog texture, it carries only this
+    # repo's labels (mobile_graphics.LABEL_ATLASES). Measured 2026-11-11 on game data 1.9.x.
+    0x0B4DA7A85D27E87A: 0xF86A7241DD039F73,
 }
 
 

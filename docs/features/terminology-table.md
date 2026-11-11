@@ -114,6 +114,16 @@ next. On the English catalog the `夺取` link label is "Steal" 7 times, "Plunde
   with the corrected strings. Every pass reads the catalog through it: scan, `make_transform` and the
   append, `extend_graphics` and the extra-text pass.
 - **Per language.** `Language.terms`; Indonesian is `ENGLISH_TERMS` plus its own two fixes.
+- **Card names (English only, 2026-11-11).** `CARD_NAMES` gives eleven Secret Technique cards the
+  user's own names, the same wording their atlas titles draw (`mobile_graphics.ATLAS_LABELS`): Friend
+  Galore (`朋友多多`), Make It My Way (`为我所用`), Bunny's Blessing (`小菟送福`), Dream Illusion
+  (`如梦似幻`), Construct Upgrade (`构筑升级`), Harness Momentum (`驭势`), Moment of Sanctification
+  (`封神一瞬`), Ultimate Decree (`至高决策`), Paranormal Detection Mod (`灵异探测大改装`), Magical
+  Deerie (`神奇小鹿`) and Bunny's Aid (`小菟助力`). Each term lists the variants measured on the
+  English catalog and its update rows (110 strings and 108 update rows change; none fails
+  `validate_translation`; a second pass changes nothing). `战略决策` (Strategic Decision) is another
+  card and is left alone. Only `ENGLISH` carries them: Indonesian keeps its own card names in text,
+  while its atlas titles draw the English.
 - **Exact updates on rerun.** After terminology, `tools/catalog_updates.py` adds measured
   `english_updates` rows in memory. Yao's correction matches the full previous English sentence,
   asset hash and row key: 22 measured rows across 11 catalog tables in package 1. The runtime's

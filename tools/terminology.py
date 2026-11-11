@@ -141,6 +141,57 @@ ENGLISH_TERMS: tuple[Term, ...] = (
     *(Term(source, "Chessplayer", _CHESSPLAYER, proper=True) for source in _CHESSPLAYER_SOURCES),
 )
 
+# Secret Technique card names the user renamed (2026-11-11), so the text reads as the card's title art
+# does (mobile_graphics.ATLAS_LABELS). Each lists the spellings measured in the English catalog; a
+# string naming another card is not one of them (战略决策 "Strategic Decision" beside 至高决策).
+# English only: the Indonesian catalog names these cards in its own words.
+CARD_NAMES: tuple[Term, ...] = (
+    Term("朋友多多", "Friends Galore", (
+        (r"(?i:\b(?:many|plenty of|lots of) friends\b)", "Friends Galore"),
+    ), proper=True),
+    Term("为我所用", "Make It My Way", (
+        (r"(?i:\buse for (?:my own|myself)\b)", "Make It My Way"),
+    ), proper=True),
+    Term("小菟送福", "Bunny's Blessing", (
+        (r"(?i:\b(?:little )?rabbit's blessing\b)", "Bunny's Blessing"),
+        (r"(?i:\blittle rabbit gift\b)", "Bunny's Blessing"),
+        (r"(?i:\bxiaotu[’']s blessing\b)", "Bunny's Blessing"),
+    ), proper=True),
+    Term("如梦似幻", "Dream Illusion", (
+        (r"(?i:\bdreamlike(?: fantasy)?\b)", "Dream Illusion"),
+        (r"(?i:\blike a dream\b)", "Dream Illusion"),
+    ), proper=True),
+    Term("构筑升级", "Construct Upgrade", (
+        (r"(?i:\b(?:build|construction|construct) upgrades\b)", "Construct Upgrades"),
+        (r"(?i:\b(?:build|construction) upgrade\b)", "Construct Upgrade"),
+    ), proper=True),
+    Term("驭势", "Harness Momentum", (
+        (r"\bMomentum Controls\b", "Harness Momentum cards"),
+        (r"\bMomentum Control\b", "Harness Momentum"),
+        (r"(?<!Harness )\bMomentum\b(?= Secret Technique)", "Harness Momentum"),
+    ), proper=True),
+    Term("封神一瞬", "Moment of Sanctification", (
+        (r"(?i:\bmoment of apotheosis\b)", "Moment of Sanctification"),
+        (r"\bGod(?:-Making|-Sealing|'s) Moment\b", "Moment of Sanctification"),
+    ), proper=True),
+    Term("至高决策", "Ultimate Decree", (
+        (r"\bSupreme Decisions\b", "Ultimate Decrees"),
+        (r"\bSupreme Decision\b", "Ultimate Decree"),
+    ), proper=True),
+    Term("灵异探测大改装", "Paranormal Detection Mod", (
+        (r"(?i:\bsupernatural detector overhaul\b)", "Paranormal Detection Mod"),
+    ), proper=True),
+    Term("神奇小鹿", "Magical Deerie", (
+        (r"(?i:\bmagic(?:al)? deer\b)", "Magical Deerie"),
+    ), proper=True),
+    Term("小菟助力", "Bunny's Aid", (
+        (r"(?i:\blittle (?:rabbit|dodder) assist\b)", "Bunny's Aid"),
+        (r"\bLittle Tu's Assist\b", "Bunny's Aid"),
+        (r"\bXiaotu[’']s (?:Aid|assistance|boost)\b", "Bunny's Aid"),
+        (r"\b(?:The |the )?Rabbit Aid\b", "Bunny's Aid"),
+    ), proper=True),
+)
+
 def _indonesian_series(match: re.Match) -> str:
     """"Prepare Series" -> "Seri Prepare": the Indonesian order, which the catalog already uses for most."""
     name = match.group("name")

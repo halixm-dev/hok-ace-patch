@@ -18,6 +18,9 @@ Two payload families and five paths:
 * a ``.assets`` payload whose device revision moved geometry is spliced: the two images are aligned,
   only the label's pixels are copied across, and only the blocks those pixels touch are re-encoded.
 
+An atlas the catalog has no edit for at all (``LABEL_ATLASES``) carries only this repo's labels, drawn
+at the device's sprite rects by ``label_atlas``.
+
 Nothing here raises for a texture it cannot handle: ``english_raw`` returns ``None`` and the caller
 counts the texture as skipped. A silently skipped texture is far better than a failed patch run.
 """
@@ -84,16 +87,59 @@ DEVICE_REVISIONS: dict[int, int] = {
 # rects. This repo's art for it lives in resources/<SPRITE_ART>/<HASH>/, beside the catalogs: labels/
 # holds renders for sprites the catalog never translated, restore/ the pristine crops of the sprites the
 # old offset-for-offset port overwrote. Both are top-down RGBA PNGs at the sprite's own size, made by
-# tools/research/atlas_sprites.py. Every language uses them: the atlas's rank names are English in both.
+# tools/research/atlas_sprites.py. Every language draws the same labels/ renders: the Career atlas's rank
+# names and the Secret Technique card titles stay English in Indonesian too.
 SPRITE_ART = "sprites"
 # Wording of each label render, by atlas then sprite. Free translations where the catalog has none,
-# recorded here the way extra_text.OFFICIAL_FIXES records its own. Both renders are hand-polished, and
-# device-verified 2026-10-10 on the Career screen (Xiaomi M2007J3SG, Android 12, game data 1.5.0.1).
+# recorded here the way extra_text.OFFICIAL_FIXES records its own. The Career renders are hand-polished,
+# and device-verified 2026-10-10 on the Career screen (Xiaomi M2007J3SG, Android 12, game data 1.5.0.1).
 ATLAS_LABELS: dict[str, dict[str, str]] = {
     "13C19E4E4486B31C": {
         "Image_410780920": "MY SKINS",      # 我的皮肤, the Career switch's skin state; no catalog entry
         "Image_920603129": "TOTAL PROFIT",  # 总盈利; the catalog's text table says "Total profit"
     },
+    # LordSkillCardAtlas: the Secret Technique cards' baked titles, in capitals: the English catalog's
+    # name for the card, or the user's own name for it (2026-11-11), which terminology.CARD_NAMES also
+    # gives the card's text. Font renders (Barlow Condensed ExtraBold, black with a grey edge like the
+    # Chinese art; the six bevelled ones also carry its gold top highlight), sized to fill the box.
+    "0B4DA7A85D27E87A": {
+        "Image_608660137": "SYMPHONY OF TIDES",               # 潮汐的交响
+        "Image_1014755469": "ETERNAL TIME LOOP",              # 永恒时之回环
+        "Image_619949291": "SUPER GACHA MACHINE",             # 超级扭蛋机
+        "Image_336894947": "HARNESS MOMENTUM",                # 驭势
+        "Image_1654187633": "ULTIMATE TREASURE IS HERE",      # 终极宝藏正是在下
+        "Image_15320793": "PARANORMAL DETECTION MOD",         # 灵异探测大改装
+        "Image_1758425074": "MAGICAL DEERIE: RESONANCE",      # 神奇小鹿·共鸣
+        "Image_963511269": "MYRIAD MIRRORS",                  # 万镜
+        "Image_1771257742": "MAGICAL DEERIE: HEAVY ARMOR",    # 神奇小鹿·重装
+        "Image_292161172": "MAGICAL DEERIE: DEVOTION",        # 神奇小鹿·奉献
+        "Image_51264393": "MAGICAL DEERIE: TWIN",             # 神奇小鹿·双生
+        "Image_640166584": "MAGICAL DEERIE: TAUNT",           # 神奇小鹿·嘲讽
+        "Image_1172291315": "DEEP FREEZE",                    # 深度冻结
+        "Image_1145440144": "GRACEFUL STEPS: AFTERGLOW",      # 翩跹舞步·余韵
+        "Image_347002481": "GRACEFUL STEPS: CHARGE",          # 翩跹舞步·蓄势
+        "Image_35289587": "GRACEFUL STEPS: EVOLUTION",        # 翩跹舞步·进化
+        "Image_294352053": "WEAPON MODIFICATION",             # 武器改造
+        "Image_556948639": "GRACEFUL STEPS: REBIRTH",         # 翩跹舞步·新生
+        "Image_578928937": "GRACEFUL STEPS: FLOW",            # 翩跹舞步·流动
+        "Image_227256137": "BUNNY'S BLESSING",                # 小菟送福
+        "Image_1183072799": "PUFFERFISH BACKPACK",            # 河豚书包
+        "Image_123291907": "CONSTRUCT UPGRADE",               # 构筑升级
+        "Image_1895375504": "DREAM ILLUSION",                 # 如梦似幻
+        "Image_1416583751": "MAKE IT MY WAY",                 # 为我所用
+        "Image_1003624714": "MOMENT OF SANCTIFICATION",       # 封神一瞬
+        "Image_1621483037": "INSPIRATION BURST",              # 灵感爆发
+        "Image_1012260797": "FATE GIFT",                      # 命运馈赠
+        "Image_13884294": "HEART'S GRAVITY",                  # 心之引力
+        "Image_2140060307": "ULTIMATE DECREE",                # 至高决策
+        "Image_68423477": "FRIENDS GALORE",                   # 朋友多多
+        "Image_753932360": "TIME LOOP",                       # 时之回环
+        "Image_115131202": "JING HONG DIAO",                  # 惊鸿调
+    },
+}
+LABEL_PASSES = 4  # redraws label_atlas allows before it returns what it has
+LABEL_ATLASES: dict[int, tuple[int, int]] = {
+    0x0B4DA7A85D27E87A: (1024, 1024),  # UIResources/CardComponent/LordSkillCard/Atlas/LordSkillCardAtlas
 }
 # A block whose decoded pixels already show the target within this mean premultiplied difference is left
 # alone: that keeps an untouched pristine block's own bytes and spares a re-run re-encoding a lossy decode
@@ -377,13 +423,13 @@ def atlas_art(catalog: Path, texture: str, sprites: dict[str, tuple[int, int, in
     """
     from PIL import Image
 
-    art: tuple[dict[str, bytes], dict[str, bytes]] = ({}, {})
     root = Path(catalog).parent / SPRITE_ART / texture
-    for found, kind in zip(art, ("labels", "restore")):
-        names = ATLAS_LABELS.get(texture, {}) if kind == "labels" else None
-        for path in sorted((root / kind).glob("Image_*.png")):
+    labels = [root / "labels" / f"{name}.png" for name in sorted(ATLAS_LABELS.get(texture, {}))]
+    art: tuple[dict[str, bytes], dict[str, bytes]] = ({}, {})
+    for found, paths in zip(art, (labels, sorted((root / "restore").glob("Image_*.png")))):
+        for path in paths:
             box = sprites.get(path.stem)
-            if box is None or (names is not None and path.stem not in names):
+            if box is None or not path.is_file():
                 continue
             with Image.open(path) as image:
                 if image.size != (box[2] - box[0], box[3] - box[1]):
@@ -496,23 +542,74 @@ def port_atlas(mobile_raw: bytes, graphic: dict, catalog: Path,
             else:
                 put(x, y, crop, ((y - y0) * (x1 - x0) + x - x0) * 4)
     # 2. This repo's labels, then 3. the catalog's English, each over its whole device box.
-    for name, pixels in labels.items():
-        x0, y0, x1, y1 = sprites[name]
-        for y in range(y0, y1):
-            for x in range(x0, x1):
-                put(x, y, pixels, ((y - y0) * (x1 - x0) + x - x0) * 4)
+    _draw_labels(target, decided, labels, sprites, width, height)
     for pc, device in moves:
         for dy in range(pc[3] - pc[1]):
             for dx in range(pc[2] - pc[0]):
                 put(device[0] + dx, device[1] + dy, english, at(pc[0] + dx, pc[1] + dy))
 
-    # Re-encode only the decided blocks whose pixels do not already show the target.
-    touched = set(damaged)
-    for x0, y0, x1, y1 in [sprites[name] for name in labels] + [device for _pc, device in moves]:
-        touched.update(block_of(x, y) for y in range(y0, y1, 4) for x in range(x0, x1, 4))
-        touched.update(block_of(x1 - 1, y) for y in range(y0, y1, 4))
-        touched.update(block_of(x, y1 - 1) for x in range(x0, x1, 4))
-        touched.add(block_of(x1 - 1, y1 - 1))
+    touched = set(damaged) | _box_blocks([sprites[name] for name in labels] + [d for _pc, d in moves],
+                                         width, height)
+    return _reencode(mobile_raw, target, device_rgba, decided, touched, width)
+
+
+def label_atlas(mobile_raw: bytes, texture: str, catalog: Path,
+                sprites: dict[str, tuple[int, int, int, int]]) -> bytes | None:
+    """Draw this repo's labels into an atlas the catalog has no edit for (``LABEL_ATLASES``), or None.
+
+    Every label of ``ATLAS_LABELS[texture]`` must be in the device's sprite table at its art's own size;
+    a layout that drops or resizes one refuses the whole atlas, so it is reported as skipped instead of
+    drawn in part. Only the 4x4 blocks the labels touch are re-encoded, as in ``port_atlas``.
+    """
+    width, height = LABEL_ATLASES[int(texture, 16)]
+    if width % 4 or height % 4 or astc_layout(len(mobile_raw), width, height) != (4, 4):
+        return None
+    labels, _restorations = atlas_art(catalog, texture, sprites)
+    if not labels or set(labels) != set(ATLAS_LABELS.get(texture, {})):
+        return None
+    touched = _box_blocks([sprites[name] for name in labels], width, height)
+    # A block a box only half covers keeps the device's pixels outside the box, so after one re-encode it
+    # meets different neighbours and can encode closer; redraw until nothing changes, so a re-run over
+    # this output changes nothing. One extra pass settles it on the dump's atlas.
+    raw = mobile_raw
+    for _attempt in range(LABEL_PASSES):
+        device_rgba = decode_astc(raw, width, height, 4, 4)
+        target, decided = bytearray(device_rgba), bytearray(width * height)
+        _draw_labels(target, decided, labels, sprites, width, height)
+        drawn = _reencode(raw, target, device_rgba, decided, touched, width)
+        if drawn == raw:
+            break
+        raw = drawn
+    return raw
+
+
+def _draw_labels(target: bytearray, decided: bytearray, labels: dict[str, bytes],
+                 sprites: dict[str, tuple[int, int, int, int]], width: int, height: int) -> None:
+    """Write each top-down label over its whole device box of the bottom-up <target>."""
+    for name, pixels in labels.items():
+        x0, y0, x1, y1 = sprites[name]
+        for y in range(y0, y1):
+            row = (height - 1 - y) * width
+            source = (y - y0) * (x1 - x0) * 4
+            target[(row + x0) * 4:(row + x1) * 4] = pixels[source:source + (x1 - x0) * 4]
+            decided[row + x0:row + x1] = b"\1" * (x1 - x0)
+
+
+def _box_blocks(boxes: list[tuple[int, ...]], width: int, height: int) -> set[int]:
+    """Raw-order indices of the 4x4 blocks that top-down <boxes> touch (textures are stored bottom-up)."""
+    blocks_x = width // 4
+    touched: set[int] = set()
+    for x0, y0, x1, y1 in boxes:
+        for y in range(y0, y1):
+            row = ((height - 1 - y) // 4) * blocks_x
+            touched.update(row + x // 4 for x in range(x0 - x0 % 4, x1, 4))
+    return touched
+
+
+def _reencode(mobile_raw: bytes, target: bytearray, device_rgba: bytes, decided: bytearray,
+              touched: set[int], width: int) -> bytes:
+    """<mobile_raw> with each touched block re-encoded from <target> unless it already shows it."""
+    blocks_x, stride = width // 4, width * 4
     stale = [block for block in sorted(touched)
              if _block_mismatch(target, device_rgba, decided, block, blocks_x, width) > BLOCK_MATCH_MEAN]
     if not stale:

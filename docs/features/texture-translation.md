@@ -259,6 +259,113 @@ and the normal APK was restored. The user reports the Career screen looks right 
 Android 12, English). Other screens that may draw the moved sprites were not walked, so nothing is
 claimed about them.
 
+### Atlases the catalog lacks: labels alone (2026-11-11)
+
+The Secret Technique cards (棋手·秘技) draw their titles as baked sprites, not text: Qiao Xi's card
+read `潮汐的交响` on the Card Changes notice and in the Encyclopedia with every text table translated. The
+card face is the package-`19` prefab `UICardLordSkill_Secret_Daqiao92210` (`0DC65BAEC80F297C`), whose
+`Title` Image draws `Image_608660137` of `UIResources/CardComponent/LordSkillCard/Atlas/LordSkillCardAtlas`.
+That atlas is **`0B4DA7A85D27E87A`** (package `19`, override layer only, 1024x1024 ASTC 4x4); its 38 Sprite
+objects and Texture2D header are `F86A7241DD039F73`. It holds the 32 Secret Technique card titles, the
+棋手·秘技 strip and some card art. The catalog has no edit for it: its 398 textures include no Secret
+Technique card.
+
+- **Found the way the Career atlas was** (no path→hash scheme is known). Every 1 MiB asset of every
+  override package was decoded at 1024x1024 4x4 and scored on two counts: art in all 38 sprite boxes,
+  and alpha outside them. `0B4DA7A85D27E87A` is the only one with both: 38 of 38 boxes, 0.15 % of the
+  outside pixels visible; the next is 14 %. Package `19` has no prime copy in this APK.
+- **The art is greyscale.** A Chinese title is a black heavy sans with a semi-transparent edge about
+  3 px wide; the card's material tints it gold. The edge is shaded: a 1 px dark outline all round
+  (grey 68-103), darker above each stroke (37-65 at alpha 105-150) and light below it (145-185 at alpha
+  115-155, 2-3 px out), which the tint turns bright gold. Six titles (the five Magical Deerie cards and
+  `心之引力`) carry a bevel too: a warmer edge and a gold top highlight.
+- **The renders.** Each title's wording is the English catalog's name for the card, or the user's own
+  name for it (2026-11-11: eleven cards, such as FRIENDS GALORE for `朋友多多`), in caps, in `ATLAS_LABELS`
+  with its Chinese beside it. The card text carries the same names through `terminology.CARD_NAMES`
+  ([terminology-table](terminology-table.md)). `tools/research/atlas_sprites.py labels --out`
+  (`title_label`) draws it in the repo's own Barlow Condensed ExtraBold, at 4x and reduced
+  premultiplied. Over the black fill go four edge layers, bottom up: a 3 px ring (`TITLE_EDGE`), a dark
+  copy moved 1 px up (`TITLE_SHADE`), a light copy moved 1 px down (`TITLE_LIGHT`) and a 1 px outline
+  (`TITLE_OUTLINE`), so the edge reads dark above and gold below, as the Chinese does (the user's
+  request, 2026-11-11). The alphas are lower than the Chinese measurements because the layers stack.
+  The bevelled six use warmer tones (`TITLE_BEVEL_*`) and keep a 2 px gold (183,158,88) highlight along
+  the top. The edge reaches 3 px, 1 px into `TITLE_CLEAR`, so the outer ring stays transparent.
+- **One size for every title, never squeezed** (`TITLE_POINTS`, 36 pt, the user's pick). The Chinese
+  letters are 34-36 px tall on the card; English at 36 pt has capitals 25 px tall, and fits every title on
+  the card without a sideways squeeze (the user rejected squeezing). Every title sets on one line except
+  the five MAGICAL DEERIE and five GRACEFUL STEPS titles (`TWO_LINE_TITLES`), which break after the colon.
+  `title_size` gives each title its own box: 36 px tall for one line, 68 for two, and as wide as its
+  widest line plus `TITLE_MARGIN`, rounded up to the 4 px block grid (140-400 px). `title_label` raises
+  rather than squeeze a line that does not fit. Earlier sizes, all in the lab notebook: 22 pt in the
+  Chinese boxes (read small), filled boxes (sizes no longer matched), 50 pt squeezed up to 1.66x.
+- **The titles get new boxes** (`tools/card_titles.py`, [ADR 0009](../adr/0009-re-lay-the-secret-technique-title-sprites.md)).
+  The Chinese boxes (160-312 x 44) cannot hold these sizes, and the card draws each title at its prefab's
+  `Title` RectTransform size, so a bigger sprite alone would be scaled back into the old box. The atlas
+  is therefore re-packed: `atlas_sprites.py layout --pristine <pkg19>` shelf-packs the 32 boxes (two-line
+  shelves first) through the gaps the six art sprites leave, 1 px clear of the art, and writes
+  `resources/sprites/0B4DA7A85D27E87A/layout.json`: the art rects, each title's pristine (`was`) and new
+  (`now`) rect, and each card prefab's `Title` box. At run time `card_titles.relayout` moves, in place,
+  each title Sprite's `m_Rect`, quad vertices, `textureRect` and `uvTransform` in the Sprite table
+  (`F86A7241DD039F73`), each title's rect and pixel pivot in the TimiAtlas (`EFF7C954C6C31786`), and the
+  `Title` `sizeDelta` of 33 card prefabs. The shared template prefab `UICardLordSkill_Secret`
+  (`8A2936518633CA63`) sets one 196x44 box for all titles and is left alone. Every write is a float in
+  place; no asset changes length.
+- **It refuses rather than half-moves.** `relayout` returns None unless every art sprite sits at its
+  recorded rect, every title at its `was` or `now` rect and every `Title` box at its `was` or new size,
+  and the run then leaves the old rects. The labels are drawn at the sprites' sizes, so the old rects
+  refuse the atlas: it goes to `graphics_skipped`, the titles stay Chinese together, and none of the
+  layout's assets is written. A drawn atlas always carries its moved assets in the same package write;
+  a re-run over its own output finds them already at `now` and writes nothing.
+- **Shipped as files.** The renders are `resources/sprites/0B4DA7A85D27E87A/labels/`. They are font
+  renders, not hand-finished like the Career labels, but they are still the shipped source of truth, and
+  `--out` never writes over them; `labels --check` checks each against its wording and the title format.
+- **English in every language.** The Indonesian catalog names five of the cards differently; the titles
+  stay English there too (the user's choice, 2026-11-11), as the Career labels do.
+- **The pass.** `mobile_graphics.LABEL_ATLASES` names each atlas the catalog lacks, with its size, and
+  `port_graphics` takes it beside the catalog edits. `label_atlas` reads the device's sprite table
+  (`sprite_table.REGION_SPRITE_ASSETS`, as for a regioned atlas) and draws each `ATLAS_LABELS` render
+  over its whole device box. As in `port_atlas`, it re-encodes only the 4x4 blocks those boxes touch,
+  and only where they do not already show the target. A label absent from the table or of another size
+  refuses the whole atlas: it goes to `graphics_skipped` and is not drawn in part.
+- **Redrawn until stable.** A block a box only half covers keeps the device's pixels outside the box. After
+  one re-encode those pixels are the encoder's own, and the block can encode closer, so a single pass
+  was not idempotent on the dump's atlas: a second pass moved one block of `Image_15320793` (mean 8.0 →
+  0.0). `label_atlas` therefore redraws until nothing changes (at most `LABEL_PASSES`); on the dump it
+  settles after one extra pass. `port_atlas` is unchanged.
+- **It counts as a texture.** Unlike the Career labels, which sit in a texture the catalog already edits,
+  this atlas is a texture the run writes only for its labels, so `count_translated` reports one more
+  image than the catalog has edits.
+
+Measured (all with `.venv`, Python 3.12):
+
+| case | result |
+|---|---|
+| `check_graphics.py` `[11]`, synthetic texture at the shipped `layout.json` | every title on the block grid, none overlapping another or within 1 px of the art; all 32 labels at their boxes (worst mean 2.80 after ASTC at 36 pt; 2.18 at 22 pt in the Chinese boxes); only their 23 264 candidate blocks may change; the Indonesian catalog draws the same bytes; deterministic; a re-run changes nothing; a resized or missing sprite, a texture of another size, or the pristine (unmoved) sprite table is refused |
+| `check_graphics.py` `[12]`, `relayout` on pristine fixtures (`tools/research/fixtures/`: the Sprite table, the TimiAtlas and Qiao Xi's prefab, from the phone at 1.9.2.4) | all three move, none changes length; the table reads back at the layout's boxes and only the titles' four fields change; the TimiAtlas carries every new rect and pivot; Qiao Xi's `Title` takes its sprite's new size; a re-run returns nothing to write; an art sprite moved, a title at neither rect, a box at neither size, a missing asset or bytes that do not parse each refuse |
+| offline texture pass over the phone's pristine package `19` (1.9.2.4) | 14 textures translated, nothing skipped, 35 layout assets moved (Sprite table, TimiAtlas, 33 prefabs); 49 assets changed in all, none outside the layout and the catalog textures; `relayout` over the output returns nothing; a re-run writes nothing |
+| the 1.9.x dump's own atlas | 14 943 blocks change, none outside the title boxes; the six other sprites (strip, art, portraits) are untouched; a re-run changes nothing; English and Indonesian draw the same bytes; 3.4 s |
+| the three catalog atlases on the same dump, before and after the refactor that shares the label drawing and re-encode | byte-identical |
+| full offline `build_device_patch` runs (English and Indonesian) over the dump with its APK | exit 0; package `19` stages 23 textures (22 before), `graphics_skipped` empty, `count_translated` (393, 399) in both; each staged atlas read back is exactly `label_atlas`'s output, and re-drawing it changes nothing |
+
+Device-verified 2026-11-11 (Xiaomi M2007J3SG, Android 12, game data 1.9.2.4, English) on the Chessplayer
+page's Secret Skill cards: SYMPHONY OF TIDES (Qiao Xi), the four bevelled MAGIC DEER cards (Yaria) and the
+two-line MYRIAD MIRRORS (Jing) all read clearly in the card's gold, in place of the Chinese; the game
+loaded with QtsVFS scan `errorCode=0`. The titles read smaller than the Chinese, which led to the filled
+layout above. The cycle staged only this atlas into the phone's own package `19`, whose sprite table took
+the labels unchanged. The 棋手·秘技 strip and the card art stay Chinese.
+
+The renamed atlas, each title filling its box, was staged the same way the same day and the game loaded to the lobby (scan
+`errorCode=0`); the cards themselves were not yet seen, because the phone refused injected taps. The
+renamed card text (`CARD_NAMES`) reaches a phone only through a patcher run.
+
+The re-laid titles at 36 pt, two lines for MAGICAL DEERIE and GRACEFUL STEPS, were device-tested twice on
+2026-11-11 (same phone, 1.9.2.4, English). First as a scratch prototype: GRACEFUL STEPS: / REBIRTH,
+MAGICAL DEERIE: / HEAVY ARMOR and SYMPHONY OF TIDES read whole and centred on the card, also in the
+Chessplayer screen's card pop-up. Then as the pipeline's own package `19` output (the texture pass above,
+shard SHA-1 `d9f4a2a1…` matched on the phone): scan `errorCode=0`, SYMPHONY OF TIDES whole on Qiao Xi's
+card. That output's layout differs from the prototype's only by five swaps of equal-width titles. The
+in-match hand card was not seen.
+
 ### `english_raw` contract
 
 `english_raw(mobile_raw: bytes, graphic: dict, catalog: Path, sprites: dict | None = None) -> bytes | None`

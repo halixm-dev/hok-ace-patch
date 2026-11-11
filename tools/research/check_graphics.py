@@ -8,7 +8,9 @@ Two independent oracles, both in this repo:
 * every ``.blocks`` payload is a byte patch at known offsets, so porting it onto a device texture must
   leave every byte outside ``graphic["patch_ranges"]`` bit-identical -- except a regioned atlas whose
   device layout moved, which is ported sprite by sprite and may change only the blocks of the old
-  offsets and of its device sprite boxes (section 10, and ``atlas_blocks``).
+  offsets and of its device sprite boxes (section 10, and ``atlas_blocks``). An atlas the catalog has
+  no edit for (``mobile_graphics.LABEL_ATLASES``) may change only its labels' blocks (section 11), and
+  the Secret Technique title relayout may change only the moved sprites' fields (section 12).
 
 Run by hand from the project root:
 
@@ -33,6 +35,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 sys.path.append(str(ROOT / "resources" / "runtime"))
 
+import card_titles  # noqa: E402
 import mobile_graphics as mg  # noqa: E402
 from PIL import Image  # noqa: E402
 from sprite_table import REGION_SPRITE_ASSETS, sprite_rects  # noqa: E402
@@ -42,6 +45,11 @@ CATALOG = ROOT / "resources" / "catalog"
 # A device sprite table recorded from the phone's game data of 2026-10-10 (atlas_sprites.py table), so
 # the sprite-aware port is exercised on a real moved layout without a dump.
 LAYOUT_FIXTURE = ROOT / "tools" / "research" / "fixtures" / "13C19E4E4486B31C_rects.json"
+# Pristine copies (phone, game data 1.9.2.4) of the three kinds of asset a title relayout rewrites: the
+# LordSkillCardAtlas Sprite table, its TimiAtlas, and Qiao Xi's card prefab (Symphony of Tides).
+FIXTURES = ROOT / "tools" / "research" / "fixtures"
+TITLE_FIXTURES = {0xF86A7241DD039F73: "F86A7241DD039F73.bin", 0xEFF7C954C6C31786: "EFF7C954C6C31786.bin",
+                  0x0DC65BAEC80F297C: "0DC65BAEC80F297C.bin"}
 PREVIEWS = CATALOG / "previews"
 ASTC_QUANTISATION_MEAN = 2.0  # ASTC 4x4 is lossy; a correct round trip stays well inside this
 ASTC_QUANTISATION_MAX = 48
@@ -705,6 +713,134 @@ def check_atlas(catalog) -> None:
           mg.english_raw(raw, graphic, CATALOG, missing) is None)
 
 
+# --------------------------------------------------------------------------------------------
+# 11. an atlas the catalog has no edit for, carried by this repo's labels alone
+# --------------------------------------------------------------------------------------------
+def title_sprites(layout: dict, height: int) -> dict[str, tuple[int, int, int, int]]:
+    """Top-down boxes of the title layout: the art where it is, each title where the layout moves it."""
+    def box(rect: list[float]) -> tuple[int, int, int, int]:
+        x, y, w, h = (int(v) for v in rect)
+        return x, height - y - h, x + w, height - y
+
+    return {**{n: box(r) for n, r in layout["art"].items()},
+            **{n: box(t["now"]) for n, t in layout["titles"].items()}}
+
+
+def check_label_atlas() -> None:
+    print("\n[11] the Secret Technique titles, drawn at the shipped title layout")
+    texture = "0B4DA7A85D27E87A"
+    width, height = mg.LABEL_ATLASES[int(texture, 16)]
+    layout = card_titles.load_layout(CATALOG)
+    check("the title layout ships", layout is not None)
+    if layout is None:
+        return
+    sprites = title_sprites(layout, height)
+    titles = [sprites[n] for n in layout["titles"]]
+    check("every title is in the atlas, on the 4x4 block grid",
+          all(0 <= x0 < x1 <= width and 0 <= y0 < y1 <= height and not (x0 % 4 or y0 % 4 or x1 % 4 or y1 % 4)
+              for x0, y0, x1, y1 in titles))
+
+    def meet(a, b, gap=0):
+        return a[0] < b[2] + gap and b[0] < a[2] + gap and a[1] < b[3] + gap and b[1] < a[3] + gap
+
+    overlaps = sum(meet(a, b) for i, a in enumerate(titles) for b in titles[i + 1:])
+    art_hits = sum(meet(t, sprites[n], 1) for t in titles for n in layout["art"])
+    check("no title overlaps another or comes within 1 px of the art", not overlaps and not art_hits,
+          f"{overlaps} overlaps, {art_hits} art contacts")
+    check("the layout covers every title", set(layout["titles"]) == set(mg.ATLAS_LABELS[texture]))
+    raw = device_bytes(width, height, 4, 4)
+    new = mg.label_atlas(raw, texture, CATALOG, sprites)
+    check("the atlas takes its labels", new is not None and len(new) == len(raw))
+    if new is None:
+        return
+    labels, _restorations = mg.atlas_art(CATALOG, texture, sprites)
+    allowed = mg._box_blocks([sprites[name] for name in labels], width, height)
+    check("only the labels' blocks change", blocks_outside(raw, new, allowed) == 0,
+          f"{len(allowed)} blocks allowed")
+    decoded = mg.decode_astc(new, width, height, 4, 4)
+    drawn = max((sprite_diff(decoded, width, height, sprites[n], px) for n, px in labels.items()), default=99)
+    check("every label is drawn at its device box",
+          set(labels) == set(mg.ATLAS_LABELS[texture]) and drawn <= mg.BLOCK_MATCH_MEAN,
+          f"{len(labels)} labels, worst {drawn:.2f}")
+    indonesian = mg.label_atlas(raw, texture, CATALOG.parent / "catalog_id", sprites)
+    check("Indonesian draws the same English titles", indonesian == new)
+    check("the draw is deterministic", mg.label_atlas(raw, texture, CATALOG, sprites) == new)
+    check("a re-run over its own output changes nothing", mg.label_atlas(new, texture, CATALOG, sprites) == new)
+    name = next(iter(mg.ATLAS_LABELS[texture]))
+    shrunk = {**sprites, name: (*sprites[name][:3], sprites[name][3] - 1)}
+    check("a label whose device sprite changed size refuses the atlas",
+          mg.label_atlas(raw, texture, CATALOG, shrunk) is None)
+    check("a label absent from the device table refuses the atlas",
+          mg.label_atlas(raw, texture, CATALOG, {k: v for k, v in sprites.items() if k != name}) is None)
+    check("a texture of another size is refused",
+          mg.label_atlas(device_bytes(width, height, 6, 6), texture, CATALOG, sprites) is None)
+    unmoved = sprite_rects((FIXTURES / TITLE_FIXTURES[0xF86A7241DD039F73]).read_bytes(), width, height)
+    check("the pristine layout refuses the atlas (no label fits an unmoved sprite)",
+          mg.label_atlas(raw, texture, CATALOG, unmoved) is None)
+
+
+def check_relayout() -> None:
+    print("\n[12] the Secret Technique title relayout, on pristine fixtures")
+    import struct  # noqa: PLC0415
+
+    width, height = mg.LABEL_ATLASES[card_titles.TITLE_ATLAS]
+    shipped = card_titles.load_layout(CATALOG)
+    if shipped is None:
+        check("the title layout ships", False)
+        return
+    qiao = f"{0x0DC65BAEC80F297C:016X}"
+    layout = {**shipped, "boxes": {qiao: shipped["boxes"][qiao]}}  # the one prefab kept as a fixture
+    pristine = {h: (FIXTURES / name).read_bytes() for h, name in TITLE_FIXTURES.items()}
+    jobs = card_titles.relayout(pristine.get, layout)
+    check("all three assets move", jobs is not None and set(jobs) == set(pristine),
+          f"{len(jobs or {})} of {len(pristine)}")
+    if not jobs or set(jobs) != set(pristine):
+        return
+    check("no asset changes length", all(len(jobs[h]) == len(pristine[h]) for h in jobs))
+    table = jobs[0xF86A7241DD039F73]
+    check("the moved table reads back at the layout's boxes",
+          sprite_rects(table, width, height) == title_sprites(shipped, height))
+    changed = {i for i, (a, b) in enumerate(zip(pristine[0xF86A7241DD039F73], table)) if a != b}
+    allowed: set[int] = set()
+    for _pid, start, size in card_titles._objects(table, card_titles.SPRITE_CLASS):
+        name, at, _rect = card_titles.sprite_fields(table[start:start + size])
+        if name in shipped["titles"]:
+            for field, length in (("rect", 16), ("vertices", 48), ("texture_rect", 16), ("uv_transform", 16)):
+                allowed.update(range(start + at[field], start + at[field] + length))
+    check("only the titles' rect, vertices, textureRect and uvTransform change", changed <= allowed,
+          f"{len(changed)} bytes changed")
+    index = jobs[0xEFF7C954C6C31786]
+    found = []
+    for name, title in shipped["titles"].items():
+        key = struct.pack("<i", len(name)) + name.encode()
+        at = (index.index(key) + len(key) + 3) & ~3
+        values = struct.unpack_from("<10f", index, at)
+        found.append(list(values[:4]) == title["now"] and values[8:] == (title["now"][2] / 2, title["now"][3] / 2))
+    check("the TimiAtlas carries each title's new rect and pivot", all(found), f"{sum(found)} of {len(found)}")
+    box = layout["boxes"][qiao]
+    prefab = jobs[0x0DC65BAEC80F297C]
+    sizes = [list(struct.unpack_from("<2f", prefab, start + card_titles._rect_size_at(prefab[start:start + n])))
+             for pid, start, n in card_titles._objects(prefab, card_titles.RECT_TRANSFORM_CLASS)
+             if pid == box["path_id"]]
+    check("Qiao Xi's Title box takes its sprite's new size",
+          sizes == [shipped["titles"][box["sprite"]]["now"][2:]], f"{box['was']} -> {sizes}")
+    moved = {**pristine, **jobs}
+    check("a re-run over its own output changes nothing", card_titles.relayout(moved.get, layout) == {})
+    art = next(iter(shipped["art"]))
+    nudged = {**shipped, "art": {**shipped["art"], art: [v + 4 for v in shipped["art"][art]]}}
+    check("an art sprite away from its recorded rect refuses", card_titles.relayout(pristine.get, nudged) is None)
+    name = next(iter(shipped["titles"]))
+    odd = {**layout, "titles": {**shipped["titles"], name: {**shipped["titles"][name],
+                                                          "was": [0.0, 0.0, 4.0, 4.0]}}}
+    check("a title at neither its pristine nor its new rect refuses", card_titles.relayout(pristine.get, odd) is None)
+    other = {**layout, "boxes": {qiao: {**box, "was": [1.0, 1.0]}}}
+    check("a Title box at neither size refuses", card_titles.relayout(pristine.get, other) is None)
+    check("a missing asset refuses",
+          card_titles.relayout({h: b for h, b in pristine.items() if h != 0xEFF7C954C6C31786}.get, layout) is None)
+    check("bytes that do not parse refuse",
+          card_titles.relayout({**pristine, 0xF86A7241DD039F73: b"\0" * 64}.get, layout) is None)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--game", type=pathlib.Path,
@@ -728,6 +864,8 @@ def main() -> int:
     check_layout(catalog)
     check_splice(catalog)
     check_atlas(catalog)
+    check_label_atlas()
+    check_relayout()
     if args.skip_slow:
         print("\n[5][6][7] skipped (--skip-slow)")
     else:

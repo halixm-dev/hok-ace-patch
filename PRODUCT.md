@@ -50,7 +50,7 @@ affiliated with Tencent.
 
 ## Capabilities and Constraints
 
-- Coverage is partial: catalog text tables, catalog edits, two Career-atlas labels and one Lua label.
+- Coverage is partial: catalog text tables, catalog edits, two Career-atlas labels, 32 card titles and one Lua label.
   Some game text always stays Chinese. Never call it a complete translation.
 - Switching language, or applying a newer translation, needs no clear on a phone the same patcher
   translated: each keeps a pristine delta and rebuilds the untranslated files first. A phone the

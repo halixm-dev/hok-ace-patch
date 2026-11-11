@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from resource_tokens import RESOURCE_TOKENS
-from terminology import ENGLISH_TERMS, INDONESIAN_TERMS, Term
+from terminology import CARD_NAMES, ENGLISH_TERMS, INDONESIAN_TERMS, Term
 
 
 @dataclass(frozen=True)
@@ -29,7 +29,7 @@ class Language:
     terms: tuple[Term, ...] = ()
 
 
-ENGLISH = Language("en", "English", "catalog", dict(RESOURCE_TOKENS), ENGLISH_TERMS)
+ENGLISH = Language("en", "English", "catalog", dict(RESOURCE_TOKENS), ENGLISH_TERMS + CARD_NAMES)
 LANGUAGES: dict[str, Language] = {
     ENGLISH.code: ENGLISH,
     # The Indonesian catalog keeps the game's English terms but puts the head noun first: it writes
