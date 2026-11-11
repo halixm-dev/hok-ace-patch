@@ -5066,3 +5066,49 @@ Rollback completed: package 19 restored from the phone backup; shard SHA1 again 
   the names read at about 24; "Three Kingdoms" draws 191 px wide (162 at the 8-unit margin), and the
   Three Kingdoms to Zhulu Plateau gap is about 26 px, still clear. Near the limit: a larger allowance
   would close that gap.
+
+## 2026-11-11 — Lobby: top-bar icons clear of their names, one size for the bottom-right buttons
+
+- **Seen:** phone screenshot, data 1.9.2.4, English, 2400 x 1080 (one canvas unit is one pixel; the left
+  safe inset is 56). The Menu button's three-bar icon ran about 7 px into "Menu", Mall's yellow red-dot cart
+  touched "Mall" (Event's balloon sits 12 px from its name), and bottom right "Chessplayer" read far
+  smaller than "Card" and "Lineup".
+- **Cause** (Lua in package `10`; prefabs read from the phone's package `19` with `unity_text.SerializedFile`):
+  - Bottom right, `UILobbyBtnItemClass` (`EFB633FD63FC35CF`, prime-only): prefab `UILobbyBtnItem`'s
+    `Txt_Title` is a 111 x 42 box with best fit (max 33, min 10, centred); `List_LobbyBtn` spaces the
+    111-unit cells 57 apart (pitch 168). Only "Chessplayer" needs best fit.
+  - Top bar, `UILobbyMenuItemClass` (`2C5B589676763044`, in the 1.9.2.4 override): prefab
+    `UILobbyMenuItem`'s `Stack` is a horizontal layout group, padding 9/15, spacing -4.5; the 78-unit icon
+    sits in a 60-unit `IconAndRedDot` slot. While the red dot shows, `effectLoader` replaces the icon with a
+    larger effect.
+  - Menu, `UILobbyClass` (`FC07FFAAB85F0418`, in the 1.9.2.4 override): prefab `UILobby`'s `Btn_Storage`
+    (188 wide) places `Img_GoMenu` (35 x 22, carries an Animation) and `Txt_Name` (72 x 44, 36 pt,
+    overflowing) at fixed offsets; the divider `Split` is its sibling at x 160.
+- **Change:** three `SCRIPT_EDITS` entries. The bottom buttons turn best fit off, overflow their box, and
+  take one size: the largest at which any two neighbours' average name width fits one cell less 16. The
+  top items add 16 to the spacing while the red dot shows. The Menu name moves 18 right, and `Split` and
+  the rest of the row (`Left`) 36 right, to the Chinese gaps. Anchors occur once in both the 1.9.0.1 prime scripts and the phone's 1.9.2.4
+  override copies; the edited scripts compile (Lua 5.5, `lupa`).
+- **Phone cycles** (package `10` pulled from the phone through the access APK, the two override scripts
+  rewritten in place with `write_assets`, `EFB633FD63FC35CF` appended from the APK with `add_assets`, read
+  back equal, pushed, Watchdog cleared, normal APK reinstalled; backup of the original package `10` and
+  Watchdog kept):
+  1. Red-dot spacing +8; icon -8, name +10, `Split` +6; bottom fit measured every unlocked
+     `LobbyBottomRightFirstLayer` entry and took the spacing as 0 when no group was found. Menu improved
+     but still touched, the cart moved only about 3 px, and all three bottom names read at about 22
+     (the user: too small). Which of the two inputs shrank them was not isolated.
+  2. Red-dot spacing +16; icon -14, name +12, `Split` +8; the bottom fit measures only the bound buttons
+     (each registers and refits the others; the items are created asynchronously) and falls back to 57.
+     All three bottom names read at 33, "Chessplayer" about 23 px short of "Card"; the cart sits about
+     8 px from "Mall". The Menu icon did not move: its Animation holds `Img_GoMenu`'s position.
+  3. Superseded (`10.db` `da480734…`, `10_0.db` `b1238f3c…`): the whole `Btn_Storage` moves 12
+     left, `Txt_Name` 24 right within it, `Split` 8 right. The three-bar icon ends about 13 px before
+     "Menu", and the name stays clear of the divider. Top bar, bottom row and Mall as in cycle 2.
+  4. Bottom fit rule changed to one cell less 16 (cycle 2's size, the user: too large; they preferred
+     cycle 1). All three bottom names read at about 21 and equal.
+  5. Chinese reference: the user restored Chinese and the screenshot measured three-bar icon, 12 px,
+     name, 37 px, divider, 40 px, Event icon (columns above 200 in y 28-80; divider columns above 140).
+  6. **Kept** (`10.db` `de801de0…`, `10_0.db` `9179d478…`, SHA-256): `Btn_Storage` left in place,
+     `Txt_Name` 18 right, `Split` and `Left` 36 right. Measured: icon, 15 px, "Menu", 37 px, divider,
+     40 px, Event icon. Bottom names small and equal; Mall's cart clear of its name.
+- **Not seen:** a top-bar entry whose red-dot effect is wider than Mall's; Indonesian.

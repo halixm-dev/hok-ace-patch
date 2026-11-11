@@ -89,7 +89,9 @@ the top of `UIPrefabClass:Create` (`3482BF89614B5ABB`, [latin-line-breaks](latin
 the "Exit now" label on the two match-end ranking toasts (`08C73100FB914BF2`, `2D8E478FEE87C03D`), set from
 the already-translated `PVPSettleNowQuitBtnTxt` because the button otherwise shows its package-19 prefab
 default, and the Card screen's faction tab names (`A7D00B2D657BB71F`, the tab item, with the spacing `678810D31DBD5621`, the tab bar,
-records), which take one shared font size that fits every fixed 195-unit tab and the space beside it because "Three Kingdoms" overflowed onto the next tab. Symptoms and dates are beside the allowlist in
+records), which take one shared font size that fits every fixed 195-unit tab and the space beside it because "Three Kingdoms" overflowed onto the next tab. Three edits tidy the lobby: the bottom-right button names (`EFB633FD63FC35CF`) take one size their
+neighbours leave room for, and the top-bar entries (`2C5B589676763044`) and the Menu button
+(`FC07FFAAB85F0418`) keep their names clear of their icons. Symptoms and dates are beside the allowlist in
 `tools/extra_text.py`; the evidence is in `docs/lab-notebook.md`'s 2026-10-05 section.
 
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the

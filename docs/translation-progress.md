@@ -14,7 +14,7 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **six Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
+(`extra_text.SCRIPT_LABELS`), **nine Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
 (`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21) —
 nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
@@ -334,7 +334,7 @@ each withdrawn after a device cycle:
 What the pass still writes is `SCRIPT_LABELS`: exact literals in Lua UI scripts, today one, the Effect
 Card filter's hard-coded `通用` in `9BD30F0DF58B1FBF` (package `10`, prime-only, so it is appended). It
 reads **General** on the phone and survived a full match without the popup. Beside it, `SCRIPT_EDITS`
-holds exact literal edits to a script's own formatting or behaviour, today six. The first is `PVPRankDataClass`
+holds exact literal edits to a script's own formatting or behaviour, today nine. The first is `PVPRankDataClass`
 (`6CB505C6553141B4`, package `10`) joins a rank's tier and numeral with `"%s%s"`, which read
 "Supreme StarIII" in the lobby; the edit makes both rank-title formats `"%s %s"` ("Supreme Star III").
 Device-verified on 1.6.0.1 on 2026-10-18: the lobby reads "Supreme Star III" and its tabs "Ranking  Match".
@@ -357,6 +357,14 @@ between cells; as each tab gets its data, the item's edit measures every name th
 cell plus that space, less the icon, plus 16 units, and gives the tab the one font size the
 tightest name needs (never below 16), so all tabs read at the same size; when every name fits, none
 changes. Device-verified on 1.9.2.4 on 2026-11-11: one size, no overlap, a clear gap between tabs.
+The seventh to ninth tidy the lobby, all package `10`. `UILobbyBtnItemClass` (`EFB633FD63FC35CF`,
+prime-only, so appended) gives the bottom-right buttons one name size: best fit had shrunk "Chessplayer"
+while Card and Lineup stayed at 33, and now all three take the largest size at which two neighbours'
+average name width fits one cell less 16 units (about 21). `UILobbyMenuItemClass` (`2C5B589676763044`) widens a top-bar entry's icon gap by 16 units while
+its red-dot effect plays, which had put Mall's cart on its name. `UILobbyClass` (`FC07FFAAB85F0418`) moves
+the Menu name right, and the divider and the rest of the top bar with it, to the Chinese layout's gaps. The last two sit
+in the 1.9.2.4 override, so they are rewritten in place. Device-verified on 1.9.2.4 on 2026-11-11: all
+three bottom names at one size (about 21), both icons clear of their names, the Menu gaps as in Chinese.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 

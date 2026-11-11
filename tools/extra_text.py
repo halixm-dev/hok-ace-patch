@@ -264,6 +264,182 @@ def _camp_tab_names_fit() -> tuple[tuple[tuple[str, str], ...], tuple[tuple[str,
     return item, bar
 
 
+# The lobby's bottom-right buttons (`UILobbyBtnItemClass`): the head of CMLTSetData, and the line that
+# sets the name.
+_LOBBY_BTN_SET_DATA = ("---@param data LobbyMenuItemData\n"
+                       "function UILobbyBtnItemClass:CMLTSetData(data, index, selected)\n")
+_LOBBY_BTN_SET_NAME = "    self:SetIcon(cfg.IconEnum)\n    self:SetName(cfg.Name)\n"
+
+
+def _lobby_btn_names_fit() -> tuple[tuple[str, str], ...]:
+    """The edit that gives the lobby's bottom-right button names (Chessplayer, Card, Lineup) one shared
+    size.
+
+    Each name sits in a 111-unit `Txt_Title` box set to best fit (33 at most), so "Chessplayer" shrinks
+    to about 20 while "Card" and "Lineup" stay at 33. Each button turns best fit off, lets its name
+    overflow the box (still centred), and measures every name the row shows at the prefab's largest
+    size. The row is the buttons bound so far, in their `Sort` order: the list creates its items
+    asynchronously, so each new button records itself and refits every recorded one. Any two
+    neighbours, side by side, must fit within one cell (the button's own width) less a 16-unit gap, so
+    the names never reach into the 57 units between cells; the size shrinks only as far as the tightest
+    pair needs (never below 16), about 21 on a 2400 x 1080 phone. Letting the names use that spacing
+    too put all three at 33, with "Chessplayer" about 23 px short of "Card"; the user preferred the
+    smaller size (2026-11-11). The prefab's size is kept per label, because list items are reused, the
+    button's own name is put back, and a failure leaves the button as the game drew it, logged as a
+    Unity warning.
+    """
+    helper = ("local _lobbyBtnNameSize = setmetatable({}, { __mode = \"k\" })\n"
+              "local _lobbyBtnItems = setmetatable({}, { __mode = \"k\" })\n\n"
+              "local function _lobbyBtnNames()\n"
+              "    local entries = {}\n"
+              "    for item in pairs(_lobbyBtnItems) do\n"
+              "        local cfg = item.cfg\n"
+              "        if cfg and CommonUtility:NotNull(item.name) and not string.isNullOrEmpty(cfg.Name) then\n"
+              "            entries[#entries + 1] = cfg\n"
+              "        end\n"
+              "    end\n"
+              "    table.sort(entries, function(a, b) return a.Sort < b.Sort end)\n"
+              "    return entries\n"
+              "end\n\n"
+              "local function _fitLobbyBtnName(item)\n"
+              "    local label = item.name\n"
+              "    local own = label and label.text\n"
+              "    local ok, err = pcall(function()\n"
+              "        local size = _lobbyBtnNameSize[label]\n"
+              "        if size == nil then\n"
+              "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "            _lobbyBtnNameSize[label] = size\n"
+              "        end\n"
+              "        label.resizeTextForBestFit = false\n"
+              "        label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "        label.fontSize = size\n"
+              "        local widths = {}\n"
+              "        for _, cfg in ipairs(_lobbyBtnNames()) do\n"
+              "            label.text = cfg.Name\n"
+              "            widths[#widths + 1] = label.preferredWidth\n"
+              "        end\n"
+              "        local room = item._rootTf.rect.width - 16\n"
+              "        local scale = 1\n"
+              "        for i = 1, #widths - 1 do\n"
+              "            local need = (widths[i] + widths[i + 1]) / 2\n"
+              "            if room > 0 and need > room then\n"
+              "                scale = math.min(scale, room / need)\n"
+              "            end\n"
+              "        end\n"
+              "        label.fontSize = math.max(math.floor(size * scale), 16)\n"
+              "    end)\n"
+              "    if own ~= nil then\n"
+              "        pcall(function() label.text = own end)\n"
+              "    end\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE lobby button fit: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n")
+    return ((_LOBBY_BTN_SET_DATA, helper + _LOBBY_BTN_SET_DATA),
+            (_LOBBY_BTN_SET_NAME, _LOBBY_BTN_SET_NAME
+             + "    _lobbyBtnItems[self] = true\n"
+               "    for item in pairs(_lobbyBtnItems) do\n"
+               "        if item.cfg then\n"
+               "            _fitLobbyBtnName(item)\n"
+               "        end\n"
+               "    end\n"))
+
+
+# The lobby's top-bar entries (`UILobbyMenuItemClass`): the head of CMLTSetData, its layout lines, and
+# the end of RedDotCallBack.
+_LOBBY_MENU_SET_DATA = ("---@param argument LobbyMenuItemData\n"
+                        "function UILobbyMenuItemClass:CMLTSetData(argument, index, selected)\n")
+_LOBBY_MENU_LAYOUT = ("    ForceRebuildLayoutImmediate(self.stackRect)\n"
+                      "    self.itemLayoutElement.preferredWidth = self.stackRect.sizeDelta.x\n")
+_LOBBY_MENU_RED_END = ("    UIUtility:SetActive(self.effectLoader, show)\n"
+                       "    UIUtility:SetActive(self.dynamicIcon, not show)\nend\n")
+
+
+def _lobby_menu_icon_gap() -> tuple[tuple[str, str], ...]:
+    """The edit that keeps a lobby top-bar entry's name clear of its icon while the entry's red-dot
+    effect plays.
+
+    An entry is an icon and a name in a horizontal layout group (`Stack`) with -4.5 spacing: the 78-unit
+    icon sits in a 60-unit slot, and its plain art leaves about a 12-unit gap before the name. While the
+    red dot shows, the game swaps the icon for a larger effect (Mall's yellow cart), which touches the
+    name. That state now adds 16 units to the spacing, re-laid out at once, which leaves the cart about
+    8 px clear of "Mall" on a 2400 x 1080 phone (8 units only moved it 3 px, 2026-11-11). The prefab's
+    spacing is kept per group, because list items are reused.
+    """
+    helper = ("local _lobbyMenuSpacing = setmetatable({}, { __mode = \"k\" })\n\n"
+              "local function _tidyLobbyMenuItem(item)\n"
+              "    pcall(function()\n"
+              "        local group = item.name.transform.parent:GetComponent("
+              "typeof(CS.UnityEngine.UI.HorizontalLayoutGroup))\n"
+              "        if not CommonUtility:NotNull(group) then\n"
+              "            return\n"
+              "        end\n"
+              "        local spacing = _lobbyMenuSpacing[group]\n"
+              "        if spacing == nil then\n"
+              "            spacing = group.spacing\n"
+              "            _lobbyMenuSpacing[group] = spacing\n"
+              "        end\n"
+              "        group.spacing = spacing + (item._isShowRed and 16 or 0)\n"
+              "    end)\n"
+              "end\n\n")
+    relayout = ("    if self.cfg then\n"
+                "        pcall(function()\n"
+                "            _tidyLobbyMenuItem(self)\n"
+                "            ForceRebuildLayoutImmediate(self.stackRect)\n"
+                "            self.itemLayoutElement.preferredWidth = self.stackRect.sizeDelta.x\n"
+                "        end)\n"
+                "    end\n")
+    return ((_LOBBY_MENU_SET_DATA, helper + _LOBBY_MENU_SET_DATA),
+            (_LOBBY_MENU_LAYOUT, "    _tidyLobbyMenuItem(self)\n" + _LOBBY_MENU_LAYOUT),
+            (_LOBBY_MENU_RED_END, _LOBBY_MENU_RED_END[:-len("end\n")] + relayout + "end\n"))
+
+
+# The lobby (`UILobbyClass`): its vOnInitialize head, and the red-dot registration inside it.
+_LOBBY_INITIALIZE = "function UILobbyClass:vOnInitialize(argument)\n"
+_LOBBY_REGIST_RED = "    self:RegistRedPoint()\n    self:GetApplyList()"
+
+
+def _lobby_menu_button_gap() -> tuple[tuple[str, str], ...]:
+    """The edit that lays the lobby's Menu button (`Btn_Storage`), its divider and the entry row after
+    it out with the Chinese lobby's gaps.
+
+    The button places `Img_GoMenu` (35 units wide) and `Txt_Name` (a 72-unit box, centred) at fixed
+    offsets, sized for 菜单: on a 2400 x 1080 phone (one unit, one pixel) the Chinese reads icon, 11 px,
+    name, 36 px, divider (`Split`), 40 px, the Event icon (2026-11-11). "Menu" at 36 is about 35 px
+    wider, so it ran into the icon and up to the divider. The icon stays where the prefab puts it (it
+    carries an Animation that holds its position anyway), the name moves 18 units right, back to 11 px
+    after the icon, and the divider and the entry row (`Left`: the top-bar list, First Top-up and
+    Download) each move 36 units right, which restores 36 px before the divider and 40 px after it.
+    Each offset is taken from the prefab's own position, kept per transform, so a second initialize does
+    not add up.
+    """
+    helper = ("local _lobbyMenuButtonX = setmetatable({}, { __mode = \"k\" })\n\n"
+              "local function _shiftLobbyMenuPart(tf, dx)\n"
+              "    if tf == nil then\n"
+              "        return\n"
+              "    end\n"
+              "    local base = _lobbyMenuButtonX[tf]\n"
+              "    if base == nil then\n"
+              "        base = tf.anchoredPosition.x\n"
+              "        _lobbyMenuButtonX[tf] = base\n"
+              "    end\n"
+              "    tf.anchoredPosition = CSVector2(base + dx, tf.anchoredPosition.y)\n"
+              "end\n\n"
+              "local function _tidyLobbyMenuButton(lobby)\n"
+              "    local ok, err = pcall(function()\n"
+              "        local button = lobby.btn_Storage.transform\n"
+              "        _shiftLobbyMenuPart(button:Find(\"Txt_Name\"), 18)\n"
+              "        _shiftLobbyMenuPart(button.parent:Find(\"Split\"), 36)\n"
+              "        _shiftLobbyMenuPart(button.parent:Find(\"Left\"), 36)\n"
+              "    end)\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE lobby menu gap: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n")
+    return ((_LOBBY_INITIALIZE, helper + _LOBBY_INITIALIZE),
+            (_LOBBY_REGIST_RED, "    self:RegistRedPoint()\n    _tidyLobbyMenuButton(self)\n    self:GetApplyList()"))
+
+
 # Lua UI scripts whose own formatting or behaviour is wrong for a translation: each entry is an exact
 # source literal and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
@@ -273,6 +449,13 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     # beside it, which the bar (`UICollectionTopCampTabClass`) records.
     0xA7D00B2D657BB71F: _camp_tab_names_fit()[0],
     0x678810D31DBD5621: _camp_tab_names_fit()[1],
+    # The lobby (package 10; EFB6 is prime-only, so appended; the other two sit in the 1.9.2.4
+    # override), 1.9.2.4: "Chessplayer" shrank to fit its button
+    # while Card and Lineup did not (`UILobbyBtnItemClass`), and the Menu and Mall icons ran into their
+    # names (`UILobbyClass`'s Menu button, `UILobbyMenuItemClass` while the red dot plays).
+    0xEFB633FD63FC35CF: _lobby_btn_names_fit(),
+    0x2C5B589676763044: _lobby_menu_icon_gap(),
+    0xFC07FFAAB85F0418: _lobby_menu_button_gap(),
     # The match-end ranking toasts (package 10, prime-only, so they are appended): 1st to 3rd place
     # (`UIPvpSettlementRankingToastTopShowClass`, the button shows at 3rd) and 4th and lower
     # (`UIPvpSettlementRankingToastOtherShowClass`). Their "Exit now" button read 现在退出 on 1.8.0.1.
