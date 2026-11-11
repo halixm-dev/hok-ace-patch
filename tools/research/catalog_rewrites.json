@@ -4320,5 +4320,33 @@
  },
  "棋手等级提升1。如果已满级，改为获得10能量。": {
   "id": "Level Chessplayer +1. Jika sudah Level maksimal, dapatkan 10 Energy sebagai gantinya."
+ },
+ "有棋手被淘汰时，获得5{Energy}以及1张基础装备牌。": {
+  "en": "When a Chessplayer is Eliminated, gain 5 {Energy} and 1 Basic Equipment Card.",
+  "id": "Saat seorang Chessplayer tereliminasi, dapatkan 5 {Energy} dan 1 Basic Equipment Card."
+ },
+ "有棋手被淘汰时，获得5{Energy}以及1张基础装备牌。决策颁布者额外特权：恢复5棋手生命值。": {
+  "en": "When a Chessplayer is Eliminated, gain 5 {Energy} and 1 Basic Equipment Card. Decree Maker Extra Privilege: Restore 5 Chessplayer HP.",
+  "id": "Saat seorang Chessplayer tereliminasi, dapatkan 5 {Energy} dan 1 Basic Equipment Card. Hak istimewa tambahan Decree Maker: Pulihkan 5 HP Chessplayer."
+ },
+ "有棋手被淘汰时，获得5{Energy}以及1张基础装备牌。决策颁布者额外特权：改为获得特殊装备牌且额外恢复5{LordHp}。": {
+  "en": "When a Chessplayer is Eliminated, gain 5 {Energy} and 1 Basic Equipment Card. Decree Maker Extra Privilege: Gain a Special Equipment Card instead, and restore an extra 5 {LordHp}.",
+  "id": "Saat seorang Chessplayer tereliminasi, dapatkan 5 {Energy} dan 1 Basic Equipment Card. Hak istimewa tambahan Decree Maker: Dapatkan Special Equipment Card sebagai gantinya, dan pulihkan tambahan 5 {LordHp}."
+ },
+ "有棋手被淘汰时，获得5{Energy}，5{LordHp}以及1张基础装备牌。": {
+  "en": "When a Chessplayer is Eliminated, gain 5 {Energy}, 5 {LordHp} and 1 Basic Equipment Card.",
+  "id": "Saat seorang Chessplayer tereliminasi, dapatkan 5 {Energy}, 5 {LordHp} dan 1 Basic Equipment Card."
+ },
+ "有棋手被淘汰时，获得5{Energy}，5{LordHp}以及1张特殊装备牌。": {
+  "en": "When a Chessplayer is Eliminated, gain 5 {Energy}, 5 {LordHp} and 1 Special Equipment Card.",
+  "id": "Saat seorang Chessplayer tereliminasi, dapatkan 5 {Energy}, 5 {LordHp} dan 1 Special Equipment Card."
+ },
+ "选择1个特权决策颁布，对所有玩家生效，并且自己额外享受特权效果。": {
+  "en": "Choose 1 Privileged Decree to enact. It takes Effect for All Players, and you receive an additional bonus Effect.",
+  "id": "Pilih 1 Privileged Decree untuk diberlakukan. Effect-nya berlaku untuk semua pemain, dan kamu menerima bonus Effect tambahan."
+ },
+ "决策颁布": {
+  "en": "Decree Issued",
+  "id": "Decree Diberlakukan"
  }
 }

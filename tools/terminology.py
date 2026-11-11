@@ -139,11 +139,37 @@ ENGLISH_TERMS: tuple[Term, ...] = (
     # Soaring High card among them. 骑手 (国服骑手, the national-server Chessplayer frame) and 棋友 are the
     # same word to a reader, as are the few other sources whose English says "chess player".
     *(Term(source, "Chessplayer", _CHESSPLAYER, proper=True) for source in _CHESSPLAYER_SOURCES),
+    # Ying Lu's decree, named after its card, Ultimate Decree (至高决策, CARD_NAMES), at the user's request
+    # (2026-11-11). 最高决策者 is his skill, "Supreme Decision Maker" in both catalogs. 决策颁布者 is the
+    # player who enacted the decree, named in each decree's privilege line; the two catalogs give it six
+    # names between them.
+    Term("最高决策者", "Ultimate Decree Maker", (
+        (r"\bSupreme Decision Maker\b", "Ultimate Decree Maker"),
+    ), proper=True),
+    Term("决策颁布者", "Decree Maker", (
+        (r"(?i:\bfor decision-makers\b)", "for the Decree Maker"),
+        (r"(?i:\bfor the policy issuer\b)", "for the Decree Maker"),
+        (r"(?i:\bdecision[- ](?:maker|issuer)\b)", "Decree Maker"),
+        (r"(?i:\bedict (?:enactor|issuer)\b)", "Decree Maker"),
+    ), proper=True),
+    # 战略决策, his other card, the effect he picks at the start of a match: "Strategic Decision" in both
+    # catalogs, renamed to the decree theme at the user's request (2026-11-11). Text only: it has no
+    # title in the Secret Technique atlas.
+    Term("战略决策", "Strategic Decree", (
+        (r"\bStrategic Decisions\b", "Strategic Decrees"),
+        (r"\bStrategic Decision\b", "Strategic Decree"),
+    ), proper=True),
+    # 特权决策, one of the four decrees he enacts: its label read "Privileged Decision" in both catalogs.
+    Term("特权决策", "Privileged Decree", (
+        (r"\bPrivileged Decisions\b", "Privileged Decrees"),
+        (r"\bPrivileged Decision\b", "Privileged Decree"),
+    ), proper=True),
 )
 
 # Secret Technique card names the user renamed (2026-11-11), so the text reads as the card's title art
 # does (mobile_graphics.ATLAS_LABELS). Each lists the spellings measured in the English catalog; a
-# string naming another card is not one of them (战略决策 "Strategic Decision" beside 至高决策).
+# string naming another card is not one of them (战略决策, Strategic Decree, beside 至高决策, has its
+# own term in ENGLISH_TERMS).
 # English only: the Indonesian catalog names these cards in its own words.
 CARD_NAMES: tuple[Term, ...] = (
     Term("朋友多多", "Friends Galore", (
@@ -177,6 +203,7 @@ CARD_NAMES: tuple[Term, ...] = (
     Term("至高决策", "Ultimate Decree", (
         (r"\bSupreme Decisions\b", "Ultimate Decrees"),
         (r"\bSupreme Decision\b", "Ultimate Decree"),
+        (r"(?i:\bfinal decisions\b)", "Ultimate Decrees"),  # "1 of the 4 final decisions", the card text
     ), proper=True),
     Term("灵异探测大改装", "Paranormal Detection Mod", (
         (r"(?i:\bsupernatural detector overhaul\b)", "Paranormal Detection Mod"),
@@ -211,6 +238,19 @@ INDONESIAN_TERMS: tuple[Term, ...] = ENGLISH_TERMS + (
     Term("整备", "Prepare", (
         (r"(?<=╬)Siap\b", "Prepare"),
     )),
+    # 至高决策: the one card whose Indonesian name is already English ("Supreme Decision"), so it takes
+    # the English card name its title draws; the name takes no English plural here ("4 Ultimate Decree").
+    # The others in CARD_NAMES keep the Indonesian catalog's own words.
+    Term("至高决策", "Ultimate Decree", (
+        (r"\bSupreme Decisions?\b", "Ultimate Decree"),
+        (r"(?i:\bkeputusan final\b)", "Ultimate Decree"),
+    ), proper=True),
+    # 决策颁布者 in Indonesian words: "penerima keputusan" (decision receiver), "pengambil keputusan"
+    # (decision taker), "penerbit kebijakan" (policy issuer).
+    Term("决策颁布者", "Decree Maker", (
+        (r"(?i:\b(?:penerima|pengambil) keputusan\b)", "Decree Maker"),
+        (r"(?i:\bpenerbit kebijakan\b)", "Decree Maker"),
+    ), proper=True),
     # 棋手 also reads "pemain catur" (chess player in Indonesian), Soaring High's card among them; the
     # name takes no English plural here ("Chessplayer lain").
     *(Term(source, "Chessplayer", (

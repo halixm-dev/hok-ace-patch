@@ -4999,3 +4999,24 @@ Rollback completed: package 19 restored from the phone backup; shard SHA1 again 
   errorCode=0`. **Seen:** SYMPHONY OF TIDES whole on Qiao Xi's card (Chessplayer screen). Two-line titles
   not re-seen from this output (seen on the prototype). The phone holds this test package; restore a
   backup before the next patcher run.
+
+## 2026-11-11 — Ying Lu's decree names made consistent with Ultimate Decree
+
+- **Ask:** the Secret Technique card reads Ultimate Decree; "Supreme Decision Maker" and the card's
+  other names should match it.
+- **Found:** the English catalog already read Ultimate Decree for `至高决策`. Off were `最高决策者`
+  (Supreme Decision Maker, both catalogs), `决策颁布者` (six English names, three Indonesian), "4 final
+  decisions" in the card text, and Indonesian's Supreme Decision for the card itself.
+- **Change:** terms in `tools/terminology.py`: Ultimate Decree Maker, Decree Maker, and Ultimate Decree for
+  Indonesian. English 9 strings + 1 update row, Indonesian 19 + 3; all pass `validate_translation`; a
+  second pass changes 0; no old form left in any string whose source names the decree.
+- **Then:** `战略决策` Strategic Decision → **Strategic Decree**, to match (English 8 strings + 1 update row,
+  Indonesian 5; same checks pass; no Strategic Decision left).
+- **Then:** `特权决策` Privileged Decision → **Privileged Decree** (term). The phone's Resource
+  Redistribution card read "get5 Energy and1Basic Equipment plate.Additional Privileges for
+  decision-makers:For Special Equipment plate…", so its five texts, the untagged Privileged Decree line
+  and `决策颁布` (Decree Issued) were rewritten in `catalog_rewrites.json`, both languages, and applied
+  with `apply_catalog_fixes.py` (7 changed per catalog; a re-run changes 0; `make_language_payloads
+  --check` ok). Loaded with the terms, every decree string passes `validate_translation`.
+- **Not changed:** Ying Lu's own name still varies in these strings (Ying Lu, Ying Lü, Ying Law, Qin Lu).
+  Not seen on a phone.

@@ -123,7 +123,24 @@ next. On the English catalog the `夺取` link label is "Steal" 7 times, "Plunde
   English catalog and its update rows (110 strings and 108 update rows change; none fails
   `validate_translation`; a second pass changes nothing). `战略决策` (Strategic Decision) is another
   card and is left alone. Only `ENGLISH` carries them: Indonesian keeps its own card names in text,
-  while its atlas titles draw the English.
+  while its atlas titles draw the English. One exception: Indonesian's own name for `至高决策` was already
+  English ("Supreme Decision"), so `INDONESIAN_TERMS` gives it Ultimate Decree too.
+- **Ying Lu's decree (2026-11-11).** The user asked that the names around Ultimate Decree match it. His
+  skill `最高决策者` ("Supreme Decision Maker" in both catalogs) reads **Ultimate Decree Maker**, and
+  `决策颁布者`, the player who enacted the decree, named in each decree's privilege line, reads **Decree
+  Maker**. That replaces Decision Maker, Decision issuer, Edict Enactor, Edict Issuer, decision-makers and
+  policy issuer, and in Indonesian also penerima keputusan, pengambil keputusan and penerbit kebijakan.
+  The card text's "1 of the 4 final decisions" reads Ultimate Decrees. Measured: English 9 strings and 1
+  update row change, Indonesian 19 strings and 3 update rows (8 of the strings are its card name). None
+  fails `validate_translation`, and a second pass changes nothing. His other card, `战略决策`, reads
+  **Strategic Decree** (Strategic Decision in both catalogs), so it fits the same theme. It is text only:
+  the card has no title in the Secret Technique atlas. That adds English 8 strings and 1 update row, and
+  Indonesian 5 strings, with the same checks. One of the decrees, `特权决策`, reads **Privileged Decree**
+  (its label read Privileged Decision in both catalogs). Garbled strings a term cannot mend went to
+  `tools/research/catalog_rewrites.json`, in both languages: the five Resource Redistribution texts
+  (`有棋手被淘汰时…`, such as "get5{Energy}and1Basic Equipment plate.Additional Privileges for
+  decision-makers:For Special Equipment plate", seen on the phone), the untagged Privileged Decree line,
+  and the `决策颁布` label (Decree Issued).
 - **Exact updates on rerun.** After terminology, `tools/catalog_updates.py` adds measured
   `english_updates` rows in memory. Yao's correction matches the full previous English sentence,
   asset hash and row key: 22 measured rows across 11 catalog tables in package 1. The runtime's
