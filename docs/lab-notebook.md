@@ -4598,6 +4598,29 @@ whether the game reads the rules from the override layer at all.
   handler in `extra_text.SCRIPT_EDITS[0x3482BF89614B5ABB]` beside the `Create` reset, without the logging
   (offline: 41 029 → 41 658 bytes, compiles, mock passes; the shipped build has not run on a phone).
 
+
+## 2026-11-02 — The match-end "Exit now" button, offline
+
+- **Symptom (user, 1.8.0.1):** the 3rd-place ranking toast's button reads `现在退出` in English.
+- **Data** (`pristine/20261029-1.8.0.1` + `installed.apk`, every asset of both layers searched for the
+  UTF-8 and UTF-16 bytes):
+  - package `1`, `DD5B5EDFBB69FEED` (catalogued, both layers): row `PVPSettleNowQuitBtnTxt` = `现在退出`.
+    The shipped catalog translates it (`translate_table`: 14 179 of 14 973 rows, this row "Exit now"). No Lua
+    in package `10` reads that key; `F9F96D4591099EF7` maps it only to a sound.
+  - package `19`, five prefabs carry the text as their own default (`74572CDF38E25C2D`, `7B2D17B2B4573660`,
+    `ACD2F400B87B1552`; `8FA4B44623772B14` and `EFEFA2527D45FD00` as `现在退出 10秒`). Prefabs are not
+    rewritten (`prime-rebuild.md`, `[S3]`).
+  - package `10`, prime-only: the toasts `UIPvpSettlementRankingToastTopShowClass` (`08C73100FB914BF2`,
+    shows the button at rank 3) and `UIPvpSettlementRankingToastOtherShowClass` (`2D8E478FEE87C03D`). Their
+    AutoBind (`C64992B1AEE17D03` for the first) binds the watch button's text (`watchBtnStr`) and nothing for
+    the exit button, so the prefab default is what draws.
+- **Change:** `extra_text.SCRIPT_EDITS` entries for both toasts: at the top of `RefreshBtnText`, inside a
+  `pcall`, the first `Timi.TimiText` under `widgetCommonBtn_Style3_Big` (inactive included) gets
+  `Localize.GetString("PVPSettleNowQuitBtnTxt")`. The lookup idiom is the game's own (`86DC648C3D66DC7E`).
+  `rewrite_script` applies each once (2 867 → 3 133 and 4 412 → 4 678 bytes).
+- **Not yet run on a phone.** Untouched: the OSH mode's exit button (`9B634A19372BEBAB`, same unbound
+  button) and the two `现在退出 10秒` prefabs, whose screen is not identified.
+
 ## 2026-11-05 — 1.9.0.1 pristine snapshot and 213 missing strings
 
 - **Snapshot:** `D:/scratch/hok-1.0.9.1`, despite its folder spelling, reports `1.9.0.1` revision `0`.

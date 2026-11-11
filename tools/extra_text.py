@@ -162,9 +162,36 @@ SCRIPT_LABELS: dict[int, tuple[tuple[str, str], ...]] = {
     # in 1.4.0.2, so it reaches the phone through the append pass.
     0x9BD30F0DF58B1FBF: (('name = "{}"', "通用"),),
 }
+
+
+def _exit_button_label(class_name: str) -> tuple[str, str]:
+    """The edit that has a match-end ranking toast's RefreshBtnText set its "Exit now" button's label.
+
+    The prefab's own default (`现在退出`, package 19, which is never rewritten) is all the button shows:
+    the script binds no text for it, while `PVPSettleNowQuitBtnTxt` in `DD5B5EDFBB69FEED` holds the
+    catalog's "Exit now" and nothing reads it. So the label is looked up under the button and filled from
+    that key, guarded, before the function's own work.
+    """
+    head = f"function {class_name}:RefreshBtnText()\n"
+    return (head,
+            head
+            + "    pcall(function()\n"
+              "        local label = self.widgetCommonBtn_Style3_Big:GetComponentInChildren("
+              "typeof(CS.Timi.TimiText), true)\n"
+              "        if CommonUtility:NotNull(label) then\n"
+              '            label.text = Localize.GetString("PVPSettleNowQuitBtnTxt")\n'
+              "        end\n"
+              "    end)\n")
+
+
 # Lua UI scripts whose own formatting or behaviour is wrong for a translation: each entry is an exact
 # source literal and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
+    # The match-end ranking toasts (package 10, prime-only, so they are appended): 1st to 3rd place
+    # (`UIPvpSettlementRankingToastTopShowClass`, the button shows at 3rd) and 4th and lower
+    # (`UIPvpSettlementRankingToastOtherShowClass`). Their "Exit now" button read 现在退出 on 1.8.0.1.
+    0x08C73100FB914BF2: (_exit_button_label("UIPvpSettlementRankingToastTopShowClass"),),
+    0x2D8E478FEE87C03D: (_exit_button_label("UIPvpSettlementRankingToastOtherShowClass"),),
     # PVPRankDataClass (package 10): a rank title is the tier name and its sub-level numeral joined with
     # no space, which reads "至尊星耀III" in Chinese and "Supreme StarIII" translated (the lobby's rank
     # line, `vGetRankTitle`, and the simple form, `vGetTitleByRankOrLevel`). Device-verified 2026-10-18 on
