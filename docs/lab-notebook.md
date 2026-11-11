@@ -4700,3 +4700,20 @@ whether the game reads the rules from the override layer at all.
   line the supplement holds at `:3` without its last clause and at `:4` with it. 326 of the 327 broken assets are
   catalogued, and they did not take the update, so their new text is unmeasured; 9 of them do not read as a table at all.
 - **Not measured:** the patcher's private delta (release build), and the census over a clean package `1`.
+
+## 2026-11-11 — Symphony of Tides (`潮汐的交响`) description after its nerf
+
+- **Symptom (user):** in the Card Changes notice (`UICardUpdatePop`, ACE Tournament tab) Qiao Xi's Secret
+  Technique card shows its name and description in Chinese, the description shrunk to one unreadable line. The
+  Encyclopedia's Chessplayer tab shows the description as `场上随机英雄等级+5，触发2次，若对象为<b>温柔呼唤</b>的英雄则额外等级+3，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）。`
+  (screenshot): 2 triggers and an extra +3, where 1.9.0.1 had 4 and +5.
+- **Where it reads** (`hok-1.0.9.1` + `installed.apk`, every asset's effective bytes searched): card `92210`'s
+  config in `A8BDAC34F65B9406` (package `1`, uncatalogued) names `#BCDE583674AE0861#` and `#BCDE0ECA9D08EDEC#`,
+  rows of `04F21C6735D0D555` only. On 1.9.0.1 all 25 tables holding the name or description stage English. The
+  notice's title (`卡牌更新公告`) and its `削弱` headers are in no game data; they come from the server's news feed.
+- **Cause:** the nerf rewrote the line, so no catalog or supplement entry matches it. The `{DaQiao_TideTimes:3}` form
+  the 2026-11-06 census measured on 1.9.1.3 was also still unsupplied.
+- **Change:** `catalog_supplement.TEXTS` gains that measured form, plus the nerfed line in the three shapes its earlier
+  rows used (plain count with and without the final `。`, and `{DaQiao_TideTimes:2}`). All seven forms of the line
+  resolve in English and Indonesian and pass `validate_translation`. The nerfed forms come from a screenshot, not a
+  data capture. **Not measured:** the nerfed data itself, and a phone run.

@@ -4261,6 +4261,21 @@ TEXTS: dict[str, tuple[str, str]] = {
     '场上随机英雄等级+5，触发{DaQiao_TideTimes:4}次，若对象为<b>温柔呼唤</b>的英雄则额外等级+5，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）。': (
         'A random Hero on the board gains +5 Levels, triggering {DaQiao_TideTimes:4} times. A <b>Gentle Call</b> Hero gains an extra +5 Levels. Each use adds 2 triggers (prioritizes Gentle Call Heroes).',
         'Hero acak di board mendapat +5 Level, terpicu {DaQiao_TideTimes:4} kali. Hero <b>Gentle Call</b> mendapat tambahan +5 Level. Setiap penggunaan menambah 2 pemicu (memprioritaskan Hero Gentle Call).'),
+    # 1.9.1.3's form of the line above (11 rows, measured by the 2026-11-06 census).
+    '场上随机英雄等级+5，触发{DaQiao_TideTimes:3}次，若对象为<b>温柔呼唤</b>的英雄则额外等级+5，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）。': (
+        'A random Hero on the board gains +5 Levels, triggering {DaQiao_TideTimes:3} times. A <b>Gentle Call</b> Hero gains an extra +5 Levels. Each use adds 2 triggers (prioritizes Gentle Call Heroes).',
+        'Hero acak di board mendapat +5 Level, terpicu {DaQiao_TideTimes:3} kali. Hero <b>Gentle Call</b> mendapat tambahan +5 Level. Setiap penggunaan menambah 2 pemicu (memprioritaskan Hero Gentle Call).'),
+    # Symphony of Tides after its nerf (2 triggers, extra +3), read off the Encyclopedia's Chessplayer tab
+    # (screenshot, not a data capture); the line's earlier rows came in these three shapes, so each is supplied.
+    '场上随机英雄等级+5，触发2次，若对象为<b>温柔呼唤</b>的英雄则额外等级+3，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）。': (
+        'A random Hero on the board gains +5 Levels, triggering 2 times. A <b>Gentle Call</b> Hero gains an extra +3 Levels. Each use adds 2 triggers (prioritizes Gentle Call Heroes).',
+        'Hero acak di board mendapat +5 Level, terpicu 2 kali. Hero <b>Gentle Call</b> mendapat tambahan +3 Level. Setiap penggunaan menambah 2 pemicu (memprioritaskan Hero Gentle Call).'),
+    '场上随机英雄等级+5，触发2次，若对象为<b>温柔呼唤</b>的英雄则额外等级+3，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）': (
+        'A random Hero on the board gains +5 Levels, triggering 2 times. A <b>Gentle Call</b> Hero gains an extra +3 Levels. Each use adds 2 triggers (prioritizes Gentle Call Heroes).',
+        'Hero acak di board mendapat +5 Level, terpicu 2 kali. Hero <b>Gentle Call</b> mendapat tambahan +3 Level. Setiap penggunaan menambah 2 pemicu (memprioritaskan Hero Gentle Call).'),
+    '场上随机英雄等级+5，触发{DaQiao_TideTimes:2}次，若对象为<b>温柔呼唤</b>的英雄则额外等级+3，每次使用后，触发次数+2（优先随机温柔呼唤的英雄）。': (
+        'A random Hero on the board gains +5 Levels, triggering {DaQiao_TideTimes:2} times. A <b>Gentle Call</b> Hero gains an extra +3 Levels. Each use adds 2 triggers (prioritizes Gentle Call Heroes).',
+        'Hero acak di board mendapat +5 Level, terpicu {DaQiao_TideTimes:2} kali. Hero <b>Gentle Call</b> mendapat tambahan +3 Level. Setiap penggunaan menambah 2 pemicu (memprioritaskan Hero Gentle Call).'),
     '复制对手秘技': (
         "Copy Opponent's Secret Skill",
         'Salin Secret Skill Lawan'),
