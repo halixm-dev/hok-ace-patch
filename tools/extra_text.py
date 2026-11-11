@@ -184,9 +184,95 @@ def _exit_button_label(class_name: str) -> tuple[str, str]:
               "    end)\n")
 
 
+# The Card screen's faction tab item (`UICollectionCampTabItemClass`): the head of CMLTSetData, and its
+# last line, after the name is set.
+_CAMP_TAB_SET_DATA = ("---@param arg Data4UICollectionCampTabItemClass\n"
+                      "function UICollectionCampTabItemClass:CMLTSetData(arg)\n")
+_CAMP_TAB_SET_SELECT = "    self:SetSelect(self._relationId == arg.selectRelationId)\nend\n"
+# The Card screen's faction tab bar (`UICollectionTopCampTabClass`): the line that spreads the cells, and
+# the global it records that spacing in for the tabs.
+_CAMP_TAB_SPACE = ("            self.layout.space = CSVector2((self.list:GetWidth() - (#viewData) * 195)"
+                   " / (#viewData - 1), 0)\n")
+_CAMP_TAB_SPACE_GLOBAL = "HOKACE_CampTabSpace"
+
+
+def _camp_tab_names_fit() -> tuple[tuple[tuple[str, str], ...], tuple[tuple[str, str], ...]]:
+    """The edits, on the tab item and on the bar, that give every Card-screen faction tab name one
+    shared size that fits.
+
+    `UICollectionTopCampTabClass` gives every tab a 195-unit cell and spreads the cells across the bar,
+    so a cell never grows with its label, and the prefab's name keeps one size and overflows: no
+    two-character Chinese name does, but "Three Kingdoms" runs over the next tab's icon. A tab's icon and
+    name sit centred in the cell, so they may spill into the space between cells; the bar's edit records
+    that space in `HOKACE_CampTabSpace` as it spreads the cells. Each tab, once its name is set,
+    measures on its own label every name the bar shows (the season's factions, as the bar lists them,
+    and All) against its cell plus that space, less the icon, plus 16 units, and takes the size the
+    tightest one needs (never below 16); with no space recorded it fits the bare cell. The 16 units are
+    tuned on a 2400 x 1080 phone (2026-11-11): the label's preferred width runs wider than the drawn
+    text, so a clear gap to the next tab remains; a 40-unit margin left the names barely above 16, and
+    an 8-unit one at about 21. Every tab measures the same names, so all reach the same size
+    without waiting on each other: the tabs are list items created asynchronously, and a fit run from
+    the bar found none of them bound on the phone (2026-11-11). The prefab's size is kept per label,
+    because list items are reused; the tab's own name is put back whatever happens; a failure is logged
+    as a Unity warning and leaves the tab as the game drew it.
+    """
+    helper = ("local _campTabNameSize = setmetatable({}, { __mode = \"k\" })\n\n"
+              "local function _campTabNames()\n"
+              "    local names = { Localize.GetString(\"HeroCollect_Filter_RelationAll\") }\n"
+              "    local seasonId = HeroCollectData:GetSeasonId()\n"
+              "    for _, relationId in pairs(HeroCollectData:GetTgtSeasonRelationArray(seasonId)) do\n"
+              "        local relationCfg = PBDataManager.ResRelationConfDataBin.Get(relationId)\n"
+              "        if relationCfg then\n"
+              "            names[#names + 1] = relationCfg.RelationName\n"
+              "        end\n"
+              "    end\n"
+              "    return names\n"
+              "end\n\n"
+              "local function _fitCampTabName(item)\n"
+              "    local label = item.name\n"
+              "    local own = label and label.text\n"
+              "    local ok, err = pcall(function()\n"
+              "        local size = _campTabNameSize[label]\n"
+              "        if size == nil then\n"
+              "            size = label.fontSize\n"
+              "            _campTabNameSize[label] = size\n"
+              "        end\n"
+              "        label.fontSize = size\n"
+              f"        local space = math.max(tonumber(rawget(_G, \"{_CAMP_TAB_SPACE_GLOBAL}\")) or 0, 0)\n"
+              "        local room = 195 + space - item.teamImage.rectTransform.rect.width + 16\n"
+              "        local scale = 1\n"
+              "        for _, name in ipairs(_campTabNames()) do\n"
+              "            label.text = name\n"
+              "            local width = label.preferredWidth\n"
+              "            if room > 0 and width > room then\n"
+              "                scale = math.min(scale, room / width)\n"
+              "            end\n"
+              "        end\n"
+              "        label.fontSize = math.max(math.floor(size * scale), 16)\n"
+              "    end)\n"
+              "    if own ~= nil then\n"
+              "        pcall(function() label.text = own end)\n"
+              "    end\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE camp tab fit: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n")
+    item = ((_CAMP_TAB_SET_DATA, helper + _CAMP_TAB_SET_DATA),
+            (_CAMP_TAB_SET_SELECT, "    _fitCampTabName(self)\n" + _CAMP_TAB_SET_SELECT))
+    bar = ((_CAMP_TAB_SPACE, _CAMP_TAB_SPACE + "            pcall(function() rawset(_G, "
+            f"\"{_CAMP_TAB_SPACE_GLOBAL}\", self.layout.space.x) end)\n"),)
+    return item, bar
+
+
 # Lua UI scripts whose own formatting or behaviour is wrong for a translation: each entry is an exact
 # source literal and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
+    # The Card screen's faction tabs (`UICollectionCampTabItemClass`, package 10, prime-only, so it is
+    # appended): "Three Kingdoms" ran over the Zhulu Plateau icon on 1.9.2.4, and the other long names
+    # crowded their neighbours. Every name now takes one shared size that fits its cell and the space
+    # beside it, which the bar (`UICollectionTopCampTabClass`) records.
+    0xA7D00B2D657BB71F: _camp_tab_names_fit()[0],
+    0x678810D31DBD5621: _camp_tab_names_fit()[1],
     # The match-end ranking toasts (package 10, prime-only, so they are appended): 1st to 3rd place
     # (`UIPvpSettlementRankingToastTopShowClass`, the button shows at 3rd) and 4th and lower
     # (`UIPvpSettlementRankingToastOtherShowClass`). Their "Exit now" button read 现在退出 on 1.8.0.1.

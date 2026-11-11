@@ -5020,3 +5020,49 @@ Rollback completed: package 19 restored from the phone backup; shard SHA1 again 
   --check` ok). Loaded with the terms, every decree string passes `validate_translation`.
 - **Not changed:** Ying Lu's own name still varies in these strings (Ying Lu, Ying Lü, Ying Law, Qin Lu).
   Not seen on a phone.
+
+## 2026-11-11 — Card screen faction tabs overlap: one shared name size that fits every tab
+
+- **Seen:** phone screenshot, data 1.9.2.4, English. On Card the faction tab bar reads "All", "Three
+  Kingdoms", "Zhulu Plateau", "Riverlands", "Central Plains", "Sunset", "Factionless"; "Three Kingdoms"
+  runs under the Zhulu Plateau icon and the long names crowd their neighbours.
+- **Cause** (Lua, package `10`, prime-only, read from the 1.9.0.1 prime layer):
+  `UICollectionTopCampTabClass` (`678810D31DBD5621`) sets `layout.space = (list width - n * 195) / (n - 1)`,
+  so each tab is a fixed 195-unit cell. `UICollectionCampTabItemClass` (`A7D00B2D657BB71F`) sets the name
+  from `ResRelationConfDataBin.RelationName` and never sizes it. The expanded filter bar
+  (`UICollectionTopCampTab2Class`) uses a different item and was not seen overlapping.
+- **First try, replaced the same day:** an edit on the tab item (`A7D00B2D657BB71F`) shrank each name on
+  its own, so "Three Kingdoms" would read smaller than "Sunset". Asked for one size on every tab, the fit
+  moved to the bar. Its phone run was cut off when the patcher was swiped from Recents (`SwipeUpClean`,
+  16:13:36); the patcher recovered the normal APK.
+- **Second try, replaced the same day:** the fit on the bar, `678810D31DBD5621`: after `SetData`, every
+  tab's name (`GetItemByIndex(i).realItem.name`), re-run on the next two frames. Pushed from the PC as an
+  appended package `10`, it changed nothing on the phone: the list creates its items asynchronously, so
+  none was bound when the bar ran.
+- **Change:** a `SCRIPT_EDITS` entry back on the tab item, `A7D00B2D657BB71F`, at the end of
+  `CMLTSetData`. Each item measures on its own label every name the bar shows (`HeroCollect_Filter_RelationAll`
+  and the `RelationName` of each faction in `GetTgtSeasonRelationArray` for the current season) at the
+  prefab's size, against 195 less the icon width less 24, and takes `floor(size * tightest room / width)`
+  (floor 16). Every item reaches the same size from the same list without waiting for its neighbours. The
+  prefab's size is kept per label (list items are reused), the item's own name is put back, and a failure
+  is logged (`HOKACE camp tab fit`) and changes nothing.
+- **Offline:** both anchors occur once in the 1.9.0.1 script; the edited script compiles (Lua 5.5 via
+  `lupa`). The 1.9.2.4 script was not read (the installed game is not debuggable).
+- **Phone (2026-11-11, 1.9.2.4):** package `10` built on the PC (`extract_prime`, the edit, `add_assets`,
+  read back equal) and pushed through the access APK (`10.db` `86c90357…`, `10_0.db` `703f0db4…`), normal
+  APK reinstalled and its hash checked. On Card all seven tabs read at one size with clear space between
+  them; nothing overlaps. The names are visibly smaller than the other tab text.
+- **Measured** (a scratch build that wrote the numbers into the All tab): prefab size 33, icon 42,
+  preferred widths at 33: All 39, Three Kingdoms 263, Zhulu Plateau 224, Riverlands 167, Central Plains
+  223, Sunset 112, Factionless 185; scale 0.49, so every name sat at the floor, 16. Icon and name sit
+  centred in the cell, so a name may spill into the space between cells.
+- **Bigger:** the bar's edit (`678810D31DBD5621`, after the `layout.space` line) records the spacing in
+  the global `HOKACE_CampTabSpace`; the item's room is `195 + space - icon - margin`. With a 40-unit
+  margin the names reached only about 17 (spacing about 25 units, by that result). With an 8-unit margin
+  (`10.db` `3ef3443f…`, `10_0.db` `4231554e…`) the names read at about 21: "Three Kingdoms" is about a
+  quarter wider on screen than at 16, all seven at one size, and the tightest gap, Three Kingdoms to the
+  Zhulu Plateau icon, stays clear (about 50 px). The preferred width runs wider than the drawn text.
+- **Bigger again, kept:** room `195 + space - icon + 16` (`10.db` `6f08fcb1…`, `10_0.db` `3742f6f5…`):
+  the names read at about 24; "Three Kingdoms" draws 191 px wide (162 at the 8-unit margin), and the
+  Three Kingdoms to Zhulu Plateau gap is about 26 px, still clear. Near the limit: a larger allowance
+  would close that gap.

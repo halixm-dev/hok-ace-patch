@@ -14,7 +14,7 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **four Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
+(`extra_text.SCRIPT_LABELS`), **six Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
 (`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21) —
 nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
@@ -334,7 +334,7 @@ each withdrawn after a device cycle:
 What the pass still writes is `SCRIPT_LABELS`: exact literals in Lua UI scripts, today one, the Effect
 Card filter's hard-coded `通用` in `9BD30F0DF58B1FBF` (package `10`, prime-only, so it is appended). It
 reads **General** on the phone and survived a full match without the popup. Beside it, `SCRIPT_EDITS`
-holds exact literal edits to a script's own formatting or behaviour, today four. The first is `PVPRankDataClass`
+holds exact literal edits to a script's own formatting or behaviour, today six. The first is `PVPRankDataClass`
 (`6CB505C6553141B4`, package `10`) joins a rank's tier and numeral with `"%s%s"`, which read
 "Supreme StarIII" in the lobby; the edit makes both rank-title formats `"%s %s"` ("Supreme Star III").
 Device-verified on 1.6.0.1 on 2026-10-18: the lobby reads "Supreme Star III" and its tabs "Ranking  Match".
@@ -349,7 +349,14 @@ toasts, `UIPvpSettlementRankingToastTopShowClass` (`08C73100FB914BF2`, 1st to 3r
 `UIPvpSettlementRankingToastOtherShowClass` (`2D8E478FEE87C03D`, 4th and lower), both package `10` and
 prime-only. Their exit button showed the package-19 prefab's own `现在退出`, because no script sets it; the
 edit fills it from `PVPSettleNowQuitBtnTxt`, which the catalog already translates to "Exit now". Not yet
-device-verified.
+device-verified. The fifth and sixth are the Card screen's faction tabs: the tab item,
+`UICollectionCampTabItemClass` (`A7D00B2D657BB71F`), and the bar, `UICollectionTopCampTabClass`
+(`678810D31DBD5621`), both package `10` and prime-only. The bar gives every tab a 195-unit cell, so on
+1.9.2.4 "Three Kingdoms" ran over the Zhulu Plateau icon. The bar's edit records the space it puts
+between cells; as each tab gets its data, the item's edit measures every name the bar shows against the
+cell plus that space, less the icon, plus 16 units, and gives the tab the one font size the
+tightest name needs (never below 16), so all tabs read at the same size; when every name fits, none
+changes. Device-verified on 1.9.2.4 on 2026-11-11: one size, no overlap, a clear gap between tabs.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 
