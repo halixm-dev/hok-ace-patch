@@ -663,3 +663,11 @@ Ground truth moves to `tools/research/check_graphics.py`, which is off the runti
 - Rewriting the graphics pass to emit compressed Oodle blocks. No Python Oodle compressor exists.
 - **On-device confirmation.** No phone is available this session, so the rendered result is unproven
   and the Report says so.
+
+### Unreachable staged texture slots
+
+`qts_relocate.UnreachableSlot` reports a staged chunk whose exact key/offset is absent from its
+shard's B-tree. Android records only a verified snapshot package and offers the scoped
+[Re-download flow](update-stuck-redownload.md). Planning inspects the remaining texture targets
+read-only before review, so an earlier mixed-package refusal cannot hide this failure until a
+second download. It never guesses a replacement slot or changes healthy texture relocation.

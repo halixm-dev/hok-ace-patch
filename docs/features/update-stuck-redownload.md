@@ -1,7 +1,7 @@
 ---
 feature: update-stuck-redownload
-status: built, device-tested (one-run plan on a phone 2026-10-23)
-updated: 2026-11-06
+status: built; legacy one-run plan device-tested 2026-10-23; new review flow emulator-tested
+updated: 2026-11-12
 branch: master
 ---
 
@@ -10,9 +10,10 @@ branch: master
 ## Report
 
 When an in-game update stops on the files a translation changed, the Android patcher now says so and
-offers **Re-download damaged files** instead of "clear the game's data". It deletes every file of each
-translated package the game's broken list names, clears `Watchdog`, and restores the normal APK. The
-game then downloads those packages whole and finishes its update, and the next Start patches as usual.
+offers **Review Re-download** instead of "clear the game's data". The review combines stuck, mixed and
+measured missing-slot packages. After explicit approval it deletes their files, clears `Watchdog`, and
+restores the normal APK. **Open game** lets the game download those packages whole. After closing the
+game, **Downloads finished** continues the existing translation flow.
 
 The same offer now replaces "clear the game's data" when an update finished but rewrote a translated
 package around the translation (`UPDATE_MIXED`): the pristine delta cannot rebuild such a package, and
@@ -36,14 +37,16 @@ together"). The Windows patcher does not detect a stuck update.
 | the refusal on a mixed package, and its plan | `android_bridge._restore_pristine` (`UPDATE_MIXED`), `_mixed_packages` |
 | the deletion plan and the wait record | `android_bridge.plan_redownload`, `keep_redownload` (`redownload.json` beside the delta) |
 | the device cycle tooling and its check | `tools/research/update_cycle.py`, `watchdog_history.py`, `check_update_redownload.py` |
-| the run | `PatchCoordinator.redownloadLocked`, worker action `redownload` |
+| the run | `PatchCoordinator.reviewRedownloadLocked`, `deleteReviewedRedownload`; worker actions `redownload`, `redownload_delete` |
 | the device step | `IPrivilegedDeviceService.deleteGameFile` (protocol 12) |
-| the screen | `MainActivity`: "The game update is stuck" → Re-download damaged files; "Finish the game update" |
+| the screen | `MainActivity`: Review Re-download → Delete and re-download → Open game → Downloads finished |
 
-Since 2026-11-06 Start does this without a second approval: when the build refuses over a stuck or mixed
-package, the same run deletes those packages from the snapshot it already holds, and the result card's next
-step is the game's download. The confirmation Start shows says so. **Re-download damaged files** remains for
-a refusal under Remove translation. Asset restore was already automatic.
+Since 1.10.1.2, a refused Start keeps its verified snapshot and restores the normal game app before
+showing **Review Re-download**. The card lists package IDs, file count, size and consequences.
+**Delete and re-download** approves that exact scope and deletes directly; there is no second modal.
+Then **Open game** lets the player finish all downloads. Returning alone does nothing. After closing
+the game, **Downloads finished** continues translation through the existing preparation flow.
+The wider unfinished automatic-continuation system is excluded from this release.
 
 ## [S1] Problem
 
@@ -62,17 +65,16 @@ refuses. Until now the only way out was clearing the game's data, about 2.8 GB t
 | Not ours | Broken assets only in packages this patcher never touched do not refuse; the game repairs those itself |
 | Re-download | A patch run up to the snapshot, then `plan_redownload` stages every file of each stuck package, and of each package `_mixed_packages` refuses, in one run (`.db` and `.info`) for deletion, with its snapshot SHA-256 in `staged-hashes.json`. Each deletion is journaled (`delete_file`, packages dirty) and checks the file still holds that hash. Then `Watchdog` is cleared and the normal APK restored |
 | Rollback | As for a patch: an interrupted run writes every staged file back from the snapshot, then restores `Watchdog` |
-| Waiting for the download | `keep_redownload` writes `redownload.json` before the first deletion. While a package it names has no `.db` in the snapshot, Start and Remove refuse with `UPDATE_WAITING` ("Finish the game update"); once the files are back the record is dropped |
+| Waiting for the download | The completed session waits for an explicit **Downloads finished** answer; returning alone is insufficient.  `keep_redownload` writes `redownload.json` before the first deletion. While a package it names has no `.db` in the snapshot, Start and Remove refuse with `UPDATE_WAITING` ("Finish the game update"); once the files are back the record is dropped |
 | After the download | The delta's files in a re-downloaded package no longer match; `pristine_delta.accept_replaced` takes them as the new pristine when none of the translation is left, as after any update |
 | Clear data | Every other refusal that ends in `CLEAR_DATA` gets its own home message; it no longer reads as a lack of space (its "Storage" made `friendlyFailure` show the free-space notice) |
-| Consent | Start's confirmation covers the deletion in a patch run (`PatchCoordinator.runLocked` catches `StopCard.damagedFiles`, `android_bridge.clear_build` clears the refused build, `redownloadLocked` runs). The Re-download button after a refused Remove asks only that the game is closed: the update has not finished. It reuses the patch request store's consent field |
+| Consent | Start does not approve deletion. The inline review binds approval to its session and the SHA-256 digest of the package list, file hashes/sizes, complete snapshot including Watchdog, engine files and kept recovery records. Changes refuse before deletion. The device validates its live layer before the first deletion |
 | A blocked install during the refusal | The normal restore after a refusal can fail on the phone's installer (`INSTALL_FAILED_USER_RESTRICTED`). Once the emergency restore verifies the normal APK and no game file is mid-change or written, `PatchCoordinator.closeIfNothingToRecover` closes the run, so its status stays `error` with the refusal's own text and the screen offers Re-download. A run the emergency restore could not finish stays `recovery_required` |
 
 ## [S3] Out of Scope
 
 The Windows patcher; detecting a stuck update before the user runs the patcher (the broken list is
-readable only under the access APK); a stuck texture package, which follows the same path but is
-unmeasured; writing the pristine bytes back before an update so it never sticks ([language-switch](language-switch.md)
+readable only with the selected shell/root access); the affected Redmi's full download cycle; writing the pristine bytes back before an update so it never sticks ([language-switch](language-switch.md)
 withdrew it: nothing on the phone precedes an update).
 
 ## Verification
@@ -103,3 +105,22 @@ withdrew it: nothing on the phone precedes an update).
   over an English install): Start refused the stuck package `1` (50 assets); one Re-download deleted `1`, `10`
   and `21` (9 files); the game downloaded them and reached the login screen; Start patched English with asset
   restore for `15`, `19`, `20`, no refusal and no clear; the game reads English and the login survived.
+
+## Missing texture slots and one combined review (1.10.1.2)
+
+The supplied Redmi log stops at `15_0.db: slot 0x1dd2c4 (key DD242E3E) not in the B-tree`.
+`qts_relocate.UnreachableSlot` identifies this actual staged relocation failure. Its fallback marker
+names only an existing verified snapshot package, bound to the snapshot, engine and kept records;
+refused-build cleanup preserves it. Arbitrary log text cannot authorize deletion.
+
+Before review, planning checks stuck and mixed packages, then all remaining packages for missing slots
+among both catalogs' texture targets and repo atlas labels. It uses each chunk's own shard and live
+B-tree. A suspect package the delta knows is rebuilt/restored in a disposable copy and checked again;
+a successful repair excludes it. An incomplete mixed/texture inspection refuses the entire plan.
+This discovers mixed data and missing slots together even when mixed data stopped the build before
+graphics ran. Future game updates or unrelated failures can still require another repair.
+
+`tools/research/check_unreachable_redownload.py` exercises real relocation, verified snapshots,
+delta rebuilds, combined planning, cleanup, exact approval and stale-scope refusal offline. The
+original corruption cause remains unknown. The affected Redmi and its deletion/download/repatch
+cycle are unavailable for validation; see the lab notebook for measured release checks.

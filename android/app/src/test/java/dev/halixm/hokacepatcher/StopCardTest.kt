@@ -25,9 +25,12 @@ class StopCardTest {
         assertEquals(Exit.REDOWNLOAD_MIXED, error("PatchError: ${StopCard.UPDATE_MIXED}: package 15"))
     }
 
-    @Test fun aPatchRunDeletesStuckAndMixedFilesItself() {
+    @Test fun aPatchRunReviewsStuckMixedAndUnreachableFiles() {
         assertTrue(StopCard.damagedFiles("com.chaquo.python.PyException: PatchError: ${StopCard.UPDATE_STUCK}: package 1 (332 assets)"))
         assertTrue(StopCard.damagedFiles("PatchError: ${StopCard.UPDATE_MIXED}: package 15"))
+        assertTrue(StopCard.damagedFiles("PatchError: ${StopCard.PACKAGE_UNREACHABLE}: package 15"))
+        assertEquals(Exit.REDOWNLOAD_MIXED, error("PatchError: ${StopCard.PACKAGE_UNREACHABLE}: package 15"))
+        assertFalse(StopCard.damagedFiles("15_0.db: slot 0x1dd2c4 (key DD242E3E) not in the B-tree"))
         assertFalse(StopCard.damagedFiles("PatchError: ${StopCard.UPDATE_WAITING}: package 1"))
         assertFalse(StopCard.damagedFiles("PatchError: ${StopCard.DOWNLOAD_UNFINISHED}: package 1"))
         assertFalse(StopCard.damagedFiles("PatchError: ${StopCard.CLEAR_DATA}"))

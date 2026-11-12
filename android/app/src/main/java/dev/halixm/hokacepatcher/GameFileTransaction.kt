@@ -69,7 +69,7 @@ class GameFileTransaction(private val journal: SessionJournal, private val devic
         journal.intent("clear_watchdog")
         device.clearGameWatchdog()
         journal.outcome(PatchPhase.RESTORING, JSONObject().put("packages_dirty", false)
-            .put("patch_payload_verified", false))
+            .put("patch_payload_verified", false).put("redownload_deleted", true))
     }
 
     fun validate(manifest: File) {
@@ -186,6 +186,6 @@ class GameFileTransaction(private val journal: SessionJournal, private val devic
         }
         validate(File(snapshot, "manifest.json"))
         journal.outcome(PatchPhase.RESTORING, JSONObject().put("packages_dirty", false)
-            .put("patch_payload_verified", false))
+            .put("patch_payload_verified", false).put("redownload_deleted", false))
     }
 }

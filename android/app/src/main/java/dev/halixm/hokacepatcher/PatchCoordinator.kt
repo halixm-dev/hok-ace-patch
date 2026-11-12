@@ -218,37 +218,83 @@ class PatchCoordinator @JvmOverloads constructor(
     /**
      * Re-download damaged files, from the snapshot onwards: delete every file of each translated package
      * the game's update could not patch, clear Watchdog, and restore the normal APK. The game downloads
-     * those packages again on its next launch. The snapshot is the rollback, as for a patch: an
-     * interrupted run writes the deleted files back.
+     * those packages again on its next launch. Planning restores the normal app before an explicit review. The snapshot is retained for rollback
+     * after approved deletion; an interrupted deletion writes the deleted files back.
      */
-    private fun redownloadLocked(journal: SessionJournal, transaction: GameFileTransaction, enginePath: String,
-                                 apks: RunApks): JSONObject {
-        journal.outcome(PatchPhase.BUILDING, JSONObject().put("redownload", true))
+    private fun reviewRedownloadLocked(journal: SessionJournal, enginePath: String, apks: RunApks): JSONObject {
+        journal.outcome(PatchPhase.BUILDING, JSONObject().put("redownload", true)
+            .put("language", PatchLanguage.current(context)))
         report("Finding the package files the game update could not change")
-        // Refuses, before any game file is changed, a phone whose update is not stuck on translated files.
-        val summary = JSONObject(bridge("plan_redownload", enginePath, journal.directory.path, pristine.path))
-        journal.outcome(PatchPhase.STAGED)
-        val hashes = JSONObject(File(journal.directory, "staged-hashes.json").readText())
-        transaction.verifyOriginals()
-        hashes.keys().asSequence().forEach { GameFilePolicy.validate("packages/$it", writable = true) }
-        requireSpace("normal restore", apks.restoreBytes)
-        checkpoint()
-        device.forceStopGame()
-        validateLayer(File(journal.directory, "snapshot/manifest.json"))
-        // Kept before the first deletion: until the game downloads the packages again, a patch would read
-        // a layer without them. A rollback puts them back, and the next run then drops the record.
-        bridge("keep_redownload", enginePath, journal.directory.path, pristine.path)
-        journal.outcome(PatchPhase.APPLYING)
-        for (name in hashes.keys().asSequence().sorted()) {
-            checkpoint()
-            report("Deleting package file $name")
-            transaction.delete("packages/$name", hashes.getString(name))
-        }
-        checkpoint()
-        transaction.finishDeletion()
-        restoreGameApp(journal, apks, PatchPhase.COMPLETE)
-        return summary
+        val review = JSONObject(bridge("review_redownload", enginePath, journal.directory.path, pristine.path))
+        journal.outcome(PatchPhase.STAGED, JSONObject().put("redownload_review", review))
+        journal.outcome(PatchPhase.RESTORING)
+        restoreGameApp(journal, apks, PatchPhase.REDOWNLOAD_REVIEW)
+        return review.put("status", "redownload_review").put("session", journal.id)
     }
+
+    /** Review and deletion are separate user actions. Recheck exactly the displayed plan before access. */
+    fun deleteReviewedRedownload(id: String, approved: String): JSONObject = exclusive {
+        EmergencyRestoreStore(context).requireResolved()
+        check(FirstSetupJournal.pending(context).isEmpty()) { "Finish game setup first" }
+        val journal = SessionJournal.pending(sessions).single { it.id == id }
+        check(journal.phase == PatchPhase.REDOWNLOAD_REVIEW && !journal.dirtyPackages && !journal.hasMutationIntent)
+        val engine = EngineAssets.prepare(context)
+        check(engine.name == journal.snapshot().getString("engine_id")) { "Review Re-download again with this patcher version" }
+        check(approved == journal.snapshot().getJSONObject("redownload_review").getString("digest")) { "The Re-download plan changed" }
+        check(journal.root == (WorkerAccess.of(device) == WorkerAccess.ROOT)) { OTHER_PROVIDER }
+        val normal = journal.rootInstalled ?: store.verify(journal.recoveryId)
+        verifyInstalled(normal)
+        val summary = JSONObject(bridge("check_redownload_review", engine.path, journal.directory.path, pristine.path, approved))
+        val transaction = GameFileTransaction(journal, device)
+        transaction.verifyOriginals()
+        val hashes = JSONObject(File(journal.directory, "staged-hashes.json").readText())
+        hashes.keys().asSequence().forEach { GameFilePolicy.validate("packages/$it", writable = true) }
+        val accessFile = if (journal.root) null else File(journal.directory, "access.apk")
+        val access = accessFile?.let { ApkIdentity.read(context, it) }
+        access?.let {
+            check(it.debuggable && it.certificateSha256 == normal.certificateSha256 &&
+                it.versionCode == normal.versionCode && it.versionName == normal.versionName) {
+                "Retained access and recovery APK identities differ"
+            }
+        }
+        val apks = RunApks(journal.recoveryId, store.normal(journal.recoveryId),
+            access, accessFile, journal.rootInstalled, if (journal.root) 0L else normal.bytes)
+        requireSpace("normal restore", apks.restoreBytes)
+        activeJournal.set(journal)
+        try {
+            checkpoint()
+            device.forceStopGame()
+            if (accessFile != null && access != null)
+                install(journal, accessFile, true, PatchPhase.APPLY_ACCESS_INSTALLED, access)
+            validateLayer(File(journal.directory, "snapshot/manifest.json"))
+            checkpoint()
+            // Approval binds both package hashes and the update records; the device rechecks the live layer.
+            bridge("check_redownload_review", engine.path, journal.directory.path, pristine.path, approved)
+            bridge("keep_redownload", engine.path, journal.directory.path, pristine.path)
+            journal.outcome(PatchPhase.APPLYING)
+            for (name in hashes.keys().asSequence().sorted()) {
+                checkpoint()
+                report("Deleting package file $name")
+                transaction.delete("packages/$name", hashes.getString(name))
+            }
+            checkpoint()
+            transaction.finishDeletion()
+            restoreGameApp(journal, apks, PatchPhase.COMPLETE)
+            summary.put("session", journal.id)
+        } catch (error: Throwable) {
+            journal.recoveryRequired(reason(error))
+            try { recoverLocked(journal) } catch (recovery: Throwable) {
+                journal.recoveryRequired("${reason(error)}; recovery: ${reason(recovery)}")
+                if (restoreNormalAfterFailure(journal, recovery)) closeIfNothingToRecover(journal)
+                error.addSuppressed(recovery)
+            }
+            if (journal.phase == PatchPhase.COMPLETE) summary.put("session", journal.id) else throw error
+        } finally {
+            activeJournal.set(null)
+            releaseIfResolved(journal)
+        }
+    }
+
 
     /**
      * What a run reads and leaves installed. The shell path installs <access> for the run and the saved normal
@@ -273,7 +319,7 @@ class PatchCoordinator @JvmOverloads constructor(
      * Existing converted installs only. Official-signature conversion requires a separate consent flow.
      * <remove> is Remove translation: the build step stages the rebuilt pristine files instead of a
      * translation, and everything else, the write-back and its rollback included, is the patch run's.
-     * <redownload> is Re-download damaged files ([redownloadLocked]).
+     * <redownload> is Re-download damaged files ([reviewRedownloadLocked]).
      */
     @JvmOverloads fun run(normalId: String, accessApk: File, sourceIdentity: ApkIdentity? = null,
                           remove: Boolean = false, redownload: Boolean = false): JSONObject = exclusive {
@@ -377,7 +423,7 @@ class PatchCoordinator @JvmOverloads constructor(
             // must stay closed throughout, and one install pair less is minutes less on a slow phone.
             checkpoint()
             if (redownload) {
-                val result = redownloadLocked(journal, transaction, engine.path, apks)
+                val result = reviewRedownloadLocked(journal, engine.path, apks)
                 metricStatus = "complete"
                 return result
             }
@@ -407,11 +453,10 @@ class PatchCoordinator @JvmOverloads constructor(
                         apks.buildApk.path, apks.recoveryId, language, pristine.path))
                 } catch (refusal: Exception) {
                     if (!StopCard.damagedFiles(refusal.message.orEmpty())) throw refusal
-                    // The same run goes on: the snapshot it holds is what Re-download would read, and Start
-                    // was the approval. The user's next step is the game's download.
+                    // Keep the snapshot, restore the normal app and wait for explicit deletion approval.
                     report(WorkerStep.DAMAGED_FILES_FOUND)
                     bridge("clear_build", journal.directory.path)
-                    val result = redownloadLocked(journal, transaction, engine.path, apks)
+                    val result = reviewRedownloadLocked(journal, engine.path, apks)
                     metricStatus = "complete"
                     return result
                 }

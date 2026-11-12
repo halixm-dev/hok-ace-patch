@@ -65,6 +65,16 @@ class TreeFull(RuntimeError):
     """A B-tree leaf holds KEYS_PER_PAGE keys, and the tree is in a shape this code does not split."""
 
 
+class UnreachableSlot(RuntimeError):
+    """A relocation's old slot is not live; callers may offer package Re-download."""
+
+    def __init__(self, path: Path, key: int, slot_offset: int) -> None:
+        self.path = path
+        self.key = key
+        self.slot_offset = slot_offset
+        super().__init__(f"{path.name}: slot {slot_offset:#x} (key {key:08X}) not in the B-tree")
+
+
 def _red_black(count: int) -> tuple[int, list[tuple[int, int, int]]]:
     """(root, [(parent | black << 31, left, right)]) of a red-black tree of rows 0..count-1, inserted in order.
 
@@ -170,7 +180,7 @@ class Shard:
                     struct.pack_into("<I", self.data, value_at, new_offset)
                     hits += 1
         if hits == 0:
-            raise RuntimeError(f"{self.path.name}: slot {old_offset:#x} (key {key:08X}) not in the B-tree")
+            raise UnreachableSlot(self.path, key, old_offset)
 
     def _slot_bytes(self, offset: int, slot, payload: bytes, raw_size: int,
                     reserved: int | None = None) -> bytes:
@@ -499,6 +509,29 @@ def _read_btree_offsets(path: Path) -> dict[int, set[int]]:
     if not leaves:
         raise RuntimeError(f"{path.name}: no active B-tree leaf pages found")
     return offsets
+
+
+def unreachable_slots(package, wanted: set[int]) -> list[UnreachableSlot]:
+    """Read-only check of texture slots the writer would repoint; collect every absent key/offset.
+
+    Use the corrected QtsPackage slot map and each slot's own shard. Read only current B-tree
+    metadata, never construct a writable Shard or save a package. Superseded slots with a live
+    replacement are resolved by install_btree_slot_map before this comparison.
+    """
+    if not wanted.intersection(package.entries):
+        return []
+    slots = package.build_slot_map()
+    trees: dict[Path, dict[int, set[int]]] = {}
+    failures = []
+    for asset in sorted(wanted.intersection(package.entries)):
+        for slot in slots.get(asset, {}).values():
+            path = Path(slot.shard_path)
+            if path not in trees:
+                trees[path] = _read_btree_offsets(path)
+            key = slot.hash1 & 0xFFFFFFFF
+            if slot.slot_offset not in trees[path].get(key, ()):
+                failures.append(UnreachableSlot(path, key, slot.slot_offset))
+    return failures
 
 
 def read_raw(package, slots, file_hash: int) -> bytes | None:

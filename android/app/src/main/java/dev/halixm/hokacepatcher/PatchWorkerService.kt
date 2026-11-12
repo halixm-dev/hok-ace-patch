@@ -184,16 +184,18 @@ class PatchWorkerService : Service() {
                         else EmergencyRestoreStore(this).verify(emergency, normal, worker::verifyRecoveryInstalled)
                         state(JSONObject().put("status", "verified").put("action", "verify"))
                     }
+                    "redownload_delete" -> state(redownloadResult(worker.deleteReviewedRedownload(
+                        checkNotNull(intent.getStringExtra("session")), checkNotNull(intent.getStringExtra("digest")))))
                     "redownload" -> {
                         val summary = claimAndRun(worker, checkNotNull(intent.getStringExtra("request")),
                             "Re-download cancelled before access", redownload = true)
-                        state(redownloadResult(summary))
+                        state(summary)
                     }
                     "patch", "remove" -> {
                         val summary = claimAndRun(worker, checkNotNull(intent.getStringExtra("request")),
                             "Patch cancelled before access", remove = intent.action == "remove")
-                        // The build found damaged files, and the run deleted them instead of patching.
-                        if (summary.has("redownload")) state(redownloadResult(summary)) else {
+                        // A refused build waits for review before any package deletion.
+                        if (summary.optString("status") == "redownload_review") state(summary) else {
                             val root = EngineAssets.prepare(this)
                             val result = JSONObject().put("status", "complete").put("counts", JSONObject(
                                 com.chaquo.python.Python.getInstance().getModule("android_bridge").callAttr(
@@ -230,6 +232,7 @@ class PatchWorkerService : Service() {
     private fun redownloadResult(summary: JSONObject) = JSONObject().put("status", "complete").put("action", "redownload")
         .put("redownloaded", summary.getJSONArray("redownload").length())
         .put("packages", summary.getJSONObject("packages").length()).put("root", rootRun)
+        .put("session", summary.getString("session"))
 
     /** Claim confirmation <request> and run it on the path it was confirmed for: root's, or the shell path's. */
     private fun claimAndRun(worker: PatchCoordinator, request: String, cancelled: String,

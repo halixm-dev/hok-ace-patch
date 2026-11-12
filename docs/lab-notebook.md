@@ -5144,3 +5144,48 @@ Rollback completed: package 19 restored from the phone backup; shard SHA1 again 
   release, prime-only encoding re-test or watched screen acceptance was performed.
 - **Repository checks:** `check_ui_strings.py` (400 shared keys), `check_references.py`,
   `check_staging_contract.py` and scoped `git diff --check` all pass.
+
+
+## 2026-11-12 — Recovery-only release for missing texture slots
+
+The user supplied a Redmi recovery log ending at `15_0.db: slot 0x1dd2c4 (key DD242E3E)
+not in the B-tree`. The affected phone is unavailable. The reported older-patcher/update history
+is plausible but unverified; this change provides recovery and does not claim to fix the original
+corruption cause. The release is based on `bb7e4ea` (1.10.1.1), excluding the original checkout's
+unfinished automatic-continuation work at the user's explicit request.
+
+The double-download risk had a concrete cause: mixed-package refusal can stop staging before graphics,
+so the missing slot is not discovered until after the first download. Planning now reads the remaining
+texture targets before review and combines their measured missing slots with stuck/mixed packages.
+A suspect package the delta can repair is checked in a disposable rebuilt/restored copy and excluded
+if healthy. An incomplete inspection refuses a partial plan. A typed staged relocation failure also
+records its verified source package; arbitrary log text cannot create a deletion plan.
+
+The existing Android pipeline now waits at a durable inline review with the normal APK restored.
+Approval names the exact displayed session/scope digest. Snapshot, engine, kept records and live data
+are rechecked before deletion. After direct deletion, an explicit Downloads finished answer continues
+the existing translation flow. Completed deletion survives final-verification recovery; rollback must
+clear the deletion-complete marker so restored files never appear as successfully deleted.
+
+| Check | Result |
+|---|---|
+| Offline recovery regression | 18 pass; real relocation, snapshot hashes, delta rebuild, combined scope, stale approvals |
+| B-tree split regression | 3 pass |
+| Healthy dump, 1.0.9.1 | 290 packages, 402 texture targets, zero false deletion candidates; 25.75 s |
+| Android JVM unit tests | 99 pass |
+| Shared UI strings | 356 bilingual entries pass |
+| References and staging contract | Pass |
+| Emulator recovery coordinator | 4 pass: exact approval, changed live data, interrupted deletion rollback, completed deletion recovery |
+| Emulator UI | All home states and action dispatch pass; four recovery cards in en/id captured and visually checked, no clipped text |
+
+The emulator uses an isolated `.recoverypreview` app ID, fake root transport and private fixture files.
+Initial test-harness execution/global-scope and JSON-slash escaping mistakes were corrected; a later
+emulator GPS watchdog restart required a cold boot. The final targeted run passed all 5 tests in
+135.802 s (four coordinator checks plus bilingual screen captures).
+
+The synthetic slot fixture matches the logged key/offset failure through the actual Shard.relocate
+call. Index/candidate enumeration is replaced only for synthetic inspection cases; B-tree reads and
+file-delta reconstruction are real. Nothing was installed or deleted on the connected physical phone.
+Future updates or unrelated failures can still need another repair; one combined review is not a
+promise that all possible corruption is detectable. The reported Redmi's real deletion/download/
+repatch cycle remains unverified.

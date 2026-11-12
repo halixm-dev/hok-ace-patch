@@ -46,7 +46,8 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val detail = text("", Type.BODY)
     private val primary = button("Start", "next-step", true) { invoke(next) }
     /** Under Open game, on a result that leaves the game ready: the result's own label (Start another patch). */
-    private val again = button("Start another patch", "start-again") { invoke("start") }.apply { visibility = View.GONE }
+    private var secondaryAction = "start"
+    private val again = button("Start another patch", "start-again") { invoke(secondaryAction) }.apply { visibility = View.GONE }
     private val recovery = card(R.color.warning_surface, R.color.warning)
     private val recoveryToggle = button("Show recovery options", "show-recovery") {
         foldRecovery(recoveryOptions.visibility != View.VISIBLE)
@@ -243,18 +244,21 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     fun show(title: String, instruction: String, label: String, action: String, recoveryNeeded: Boolean,
-             stage: Stage = Stage.READY) {
+             stage: Stage = Stage.READY, secondaryLabel: String? = null, secondary: String = "start") {
         trace("$title | $instruction | $label -> $action, recovery $recoveryNeeded")
         heading.text = ui(title); detail.text = ui(instruction); primary.text = ui(label); next = action
         this.stage.text = ui(stage.eyebrow)
         recovery.visibility = if (recoveryNeeded) View.VISIBLE else View.GONE
-        again.visibility = View.GONE
+        secondaryAction = secondary
+        again.visibility = if (secondaryLabel == null) View.GONE else View.VISIBLE
+        if (secondaryLabel != null) again.text = ui(secondaryLabel)
         showItems(emptyList(), "")
         showRecoveryExport()
     }
 
     /** A result state: its heading and summary, the run's own counts as a list, the login note, then Open game or <label>. */
     fun result(result: UiText.Result, label: String) {
+        secondaryAction = "start"
         // A new result starts without the notice an earlier screen left.
         if (trace("${result.english} | $label")) { notice.text = ""; noticeMark.visibility = View.GONE }
         heading.text = result.heading; detail.text = result.summary

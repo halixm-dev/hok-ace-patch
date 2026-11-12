@@ -464,16 +464,179 @@ def _mixed_packages(session: Path, keep: Path, manifest: dict) -> dict[str, str]
         shutil.rmtree(trial, ignore_errors=True)
 
 
+PACKAGE_UNREACHABLE = "A game package could not be patched safely"
+PACKAGE_REFUSED_NAME = "package-refused.json"
+
+
+def _digest(value: dict) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _recovery_identity(root: Path, session: Path, keep: Path, manifest: dict) -> dict:
+    """Bind measurements to this verified snapshot, engine and this patcher's kept records."""
+    import pristine_delta
+    records = {}
+    for name in (pristine_delta.DELTA_NAME, pristine_delta.STAGED_HASHES_NAME,
+                 RESTORE_REFUSED_NAME, REDOWNLOAD_NAME):
+        path = keep / name
+        records[name] = pristine_delta.sha256_file(path) if path.exists() else None
+    engine = {str(path.relative_to(root)): pristine_delta.sha256_file(path)
+              for path in sorted(root.rglob("*")) if path.is_file() and "__pycache__" not in path.parts}
+    return {"snapshot": _digest(manifest), "engine": _digest(engine), "records": records}
+
+
+def _record_unreachable_slot(root: Path, session: Path, keep: Path, manifest: dict, error) -> bool:
+    """Only a typed, measured failure in a staged copy can nominate a snapshot package."""
+    from mobile_snapshot import verify_snapshot
+    from pristine_delta import write_atomic
+    path = error.path.absolute()
+    package = path.parent.name
+    shard = path.name.removeprefix(f"{package}_").removesuffix(".db")
+    if (not package.isascii() or not package.isdecimal() or str(int(package)) != package
+            or not shard.isascii() or not shard.isdecimal() or path.name != f"{package}_{shard}.db"
+            or path.parent != session / "out" / package
+            or not path.resolve().is_relative_to(session.resolve())
+            or f"packages/{package}/{path.name}" not in manifest["files"]
+            or verify_snapshot(session / "snapshot") != manifest):
+        return False
+    write_atomic(session / PACKAGE_REFUSED_NAME, json.dumps({"schema": 1,
+        "identity": _recovery_identity(root, session, keep, manifest),
+        "packages": {package: str(error)}}).encode())
+    return True
+
+
+def _unreachable_packages(root: Path, session: Path, keep: Path, manifest: dict) -> dict[str, str]:
+    marker = session / PACKAGE_REFUSED_NAME
+    if not marker.exists():
+        return {}
+    try:
+        value = json.loads(marker.read_text(encoding="utf-8"))
+        packages = value["packages"]
+        if (value["schema"] != 1 or not isinstance(packages, dict) or not packages
+                or any(not name.isascii() or not name.isdecimal() or str(int(name)) != name
+                       or not isinstance(reason, str) or not reason
+                       or not any(path.startswith(f"packages/{name}/") for path in manifest["files"])
+                       for name, reason in packages.items())
+                or value["identity"] != _recovery_identity(root, session, keep, manifest)):
+            return {}
+        return packages
+    except (OSError, ValueError, KeyError, TypeError):
+        return {}
+
+
+def _review_scope(root: Path, session: Path, keep: Path) -> dict:
+    from mobile_snapshot import verify_snapshot
+    manifest = verify_snapshot(session / "snapshot")
+    summary = json.loads((session / "out/device_patch_summary.json").read_text(encoding="utf-8"))
+    hashes = json.loads((session / "staged-hashes.json").read_text(encoding="utf-8"))
+    expected = {name.removeprefix("packages/"): entry["sha256"]
+                for name, entry in manifest["files"].items()
+                if name.startswith("packages/") and name.split("/")[1] in summary["packages"]}
+    if not expected or hashes != expected or set(summary["redownload"]) != set(expected):
+        raise PatchError("Re-download plan differs from its verified snapshot")
+    return {"identity": _recovery_identity(root, session, keep, manifest), "summary": summary,
+            "files": {name: manifest["files"][f"packages/{name}"] for name in sorted(expected)}}
+
+
+def review_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
+    """Save the exact combined deletion scope for an explicit inline review; no game changes."""
+    from pristine_delta import write_atomic
+    root, session, keep = Path(engine_root).resolve(), Path(session_root).resolve(), Path(keep_root).resolve()
+    plan_redownload(str(root), str(session), str(keep))
+    scope = _review_scope(root, session, keep)
+    digest = _digest(scope)
+    write_atomic(session / "redownload-review.json", json.dumps({"digest": digest, "scope": scope}).encode())
+    return json.dumps({"digest": digest, "packages": sorted(scope["summary"]["packages"], key=int),
+                       "files": len(scope["files"]), "bytes": sum(item["bytes"] for item in scope["files"].values())})
+
+
+def check_redownload_review(engine_root: str, session_root: str, keep_root: str, approved: str) -> str:
+    root, session, keep = Path(engine_root).resolve(), Path(session_root).resolve(), Path(keep_root).resolve()
+    _prepare(root)
+    record = json.loads((session / "redownload-review.json").read_text(encoding="utf-8"))
+    scope = _review_scope(root, session, keep)
+    if not approved or approved != record["digest"] or _digest(scope) != approved or scope != record["scope"]:
+        raise PatchError("The Re-download plan changed. Review it again before deleting anything.")
+    return json.dumps(scope["summary"])
+
+
+def _graphics_candidates(engine: Path) -> set[int]:
+    """Both catalogs' texture targets, with measured aliases and the repo's atlas labels."""
+    import mobile_graphics
+    from wxq_patch import adaptive
+
+    wanted = set(mobile_graphics.LABEL_ATLASES)
+    for language in ("en", "id"):
+        catalog = adaptive.load_catalog(_catalog(engine, language))
+        wanted.update(mobile_graphics.catalog_graphics(catalog.graphics))
+    return wanted
+
+
+def _inspect_graphics_packages(engine: Path, session: Path, keep: Path, manifest: dict,
+                               excluded: set[str]) -> dict[str, str]:
+    """Find unreachable texture slots before review, even when mixed data prevented staging.
+
+    The verified snapshot stays read-only. A suspect package the delta knows is rebuilt/restored
+    in a disposable copy and checked again, so a recoverable translated file is not deleted just
+    because its current slot map is damaged. Already selected packages need no further inspection.
+    No new failure record is kept: this measurement is part of the exact plan itself.
+    """
+    from dataclasses import replace
+    import tempfile
+    import pristine_delta
+    from qts_relocate import install_btree_slot_map, unreachable_slots
+    from wxq_patch.qtsvfs import QtsPackage
+
+    wanted = _graphics_candidates(engine)
+    if not wanted:
+        return {}
+    install_btree_slot_map()
+    packages = session / "snapshot" / "packages"
+    names = {name.split("/")[1] for name in manifest["files"] if name.startswith("packages/")}
+    delta = None
+    delta_loaded = False
+    refused = {}
+    for name in sorted(names - excluded, key=int):
+        source = packages / name
+        try:
+            failures = unreachable_slots(QtsPackage(source), wanted)
+            if not failures:
+                continue
+            if not delta_loaded:
+                delta = _read_delta(keep)
+                delta_loaded = True
+            entries = tuple(item for item in delta.files if item.path.split("/")[0] == name) if delta else ()
+            if entries:
+                local = replace(delta, files=entries)
+                with tempfile.TemporaryDirectory(prefix="redownload-inspection-", dir=session) as folder:
+                    target = Path(folder)
+                    shutil.copytree(source, target / name)
+                    report = pristine_delta.rebuild(packages, local, target)
+                    if not report.complete:
+                        _accepted, _taken, mixed = _decide_mixed(packages, local, report, keep, target)
+                        if mixed:
+                            refused[name] = mixed[name]
+                            continue
+                    failures = unreachable_slots(QtsPackage(target / name), wanted)
+            if failures:
+                refused[name] = f"{failures[0]}; {len(failures)} unreachable texture chunks"
+        except Exception as error:  # noqa: BLE001 - never turn an incomplete scan into a partial deletion plan
+            raise PatchError(f"Re-download inspection could not finish package {name}: {error}") from error
+    return refused
+
+
 def plan_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
     """Re-download damaged files: name the package files to delete so the game downloads them again.
 
     The packages are those `_stuck_packages` names ({package: broken assets}) and those `_mixed_packages`
-    names ({package: reason}), in one run: an update that sticks on package `1` has already merged
+    names ({package: reason}), plus measured unreachable texture slots, in one run: an update that sticks on package `1` has already merged
     around the translation in the others (lab notebook, 2026-10-23), and they would otherwise refuse the
     next Start for a second Re-download. Every file of each is staged for deletion; `staged-hashes.json`
     holds each one's snapshot SHA-256, which is what rollback writes back. Measured on 2026-10-22 and
     2026-10-23 (in two runs, before the plan took both in one): with the packages deleted and `Watchdog`
-    cleared, the game downloaded them and finished the update. Refuses, before any game file is changed, when no translated package is stuck or mixed.
+    cleared, the game downloaded them and finished the update. The remaining packages are inspected
+    read-only for missing texture slots, after trying the delta in disposable copies where needed.
+    Any incomplete inspection refuses a partial plan. Refuses before game writes when nothing qualifies.
     """
     root, session, keep = Path(engine_root).resolve(), Path(session_root).resolve(), Path(keep_root).resolve()
     _prepare(root)
@@ -485,13 +648,9 @@ def plan_redownload(engine_root: str, session_root: str, keep_root: str) -> str:
         raise PatchError("Re-download requires a fresh session layout")
     packages = {package: f"{count} assets the game could not patch"
                 for package, count in _stuck_packages(session, keep, manifest).items()}
-    try:
-        mixed = _mixed_packages(session, keep, manifest)
-    except Exception:  # noqa: BLE001 - a stuck layer may not read; its stuck packages still re-download
-        if not packages:
-            raise
-        mixed = {}
-    packages = {**mixed, **packages}
+    mixed = _mixed_packages(session, keep, manifest)
+    packages = {**mixed, **packages, **_unreachable_packages(root, session, keep, manifest)}
+    packages.update(_inspect_graphics_packages(root, session, keep, manifest, set(packages)))
     if not packages:
         raise PatchError("No game files hold a translation the patcher cannot rebuild, so there is nothing to "
                          "re-download. Open the game, let it finish its update, close it, then patch again.")
@@ -725,7 +884,14 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
     control = {"verified_source_files": sources, "apk": {"sha256": expected_apk_sha256}}
     (session / "control.json").write_text(json.dumps(control), encoding="utf-8")
     # The snapshot files and the APK were verified above; only the pristine copy is hashed again.
-    summary = json.loads(_build_scratch(root, session, language, trusted=session / "snapshot"))
+    from qts_relocate import UnreachableSlot
+    try:
+        summary = json.loads(_build_scratch(root, session, language, trusted=session / "snapshot"))
+    except UnreachableSlot as error:
+        if keep_root and _record_unreachable_slot(root, session, Path(keep_root), manifest, error):
+            raise PatchError(f"{PACKAGE_UNREACHABLE}: package {error.path.parent.name}. "
+                             "Review Re-download to replace the affected package files. " + str(error)) from error
+        raise
     if keep_root is None:
         return json.dumps(summary)
     import pristine_delta

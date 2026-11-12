@@ -14,6 +14,7 @@ object StopCard {
      * checks they match.
      */
     const val UPDATE_STUCK = "The game's update stopped on translated files"
+    const val PACKAGE_UNREACHABLE = "A game package could not be patched safely"
     const val UPDATE_MIXED = "A game update kept part of this patcher's translation"
     const val UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
     const val DOWNLOAD_UNFINISHED = "The game was still downloading game files"
@@ -43,7 +44,7 @@ object StopCard {
         if (status !in setOf("error", "recovery_required")) return null
         if (status == "error") when {
             error.contains(UPDATE_STUCK) -> return Exit.REDOWNLOAD_STUCK
-            error.contains(UPDATE_MIXED) -> return Exit.REDOWNLOAD_MIXED
+            error.contains(UPDATE_MIXED) || error.contains(PACKAGE_UNREACHABLE) -> return Exit.REDOWNLOAD_MIXED
             error.contains(UPDATE_WAITING) || error.contains(DOWNLOAD_UNFINISHED) -> return Exit.WAIT_FOR_GAME
             providerRefusal(error) -> return Exit.START
             pending == false -> return Exit.TRY_AGAIN
@@ -55,7 +56,7 @@ object StopCard {
     fun pointsAtRecovery(exit: Exit, recoverable: Boolean) = recoverable && exit != Exit.TRY_AGAIN
 
     /** True when a patch run's build refused over files only the game's own download can replace. */
-    fun damagedFiles(message: String) = message.contains(UPDATE_STUCK) || message.contains(UPDATE_MIXED)
+    fun damagedFiles(message: String) = message.contains(UPDATE_STUCK) || message.contains(UPDATE_MIXED) || message.contains(PACKAGE_UNREACHABLE)
 
     /** Whether ③'s line stands in for the stop's own explanation, so the result message stays empty. */
     fun ownCard(exit: Exit) = exit in setOf(Exit.REDOWNLOAD_STUCK, Exit.REDOWNLOAD_MIXED, Exit.WAIT_FOR_GAME)

@@ -39,7 +39,9 @@ affiliated with Tencent.
 - **Android patcher**: the player installs Shizuku, picks a language and taps Start. The patcher
   checks and recovers unfinished work before patching, asks for explicit consent before anything
   destructive, and keeps recovery tools for a game that won't open. It also offers *Remove
-  translation* and *Free up space*.
+  translation* and *Free up space*. Package recovery uses **Review Re-download → Delete and
+  re-download → Open game → Downloads finished**. Review lists the affected files before direct
+  deletion. The player finishes downloads and closes the game before continuing.
 - **Both patchers** offer *Remove translation* while they keep a pristine delta: it restores the
   original game files without clearing the game's data.
 - The translation is written only after the in-game update finishes. During a run the game must stay

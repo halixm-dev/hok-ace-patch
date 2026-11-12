@@ -10,7 +10,7 @@ import org.json.JSONObject
 enum class PatchPhase {
     PREPARED, WAITING_FOR_GAME_UPDATE, SNAPSHOT_ACCESS_INSTALLED, SNAPSHOT_READY,
     NORMAL_RESTORED_FOR_BUILD, BUILDING, STAGED, APPLY_ACCESS_INSTALLED, APPLYING,
-    RESTORING, COMPLETE, RECOVERY_REQUIRED, CANCELLED,
+    RESTORING, REDOWNLOAD_REVIEW, COMPLETE, RECOVERY_REQUIRED, CANCELLED,
 }
 
 /** Intent is durably committed before each mutation; incomplete work can never report completion. */
@@ -33,7 +33,7 @@ class SessionJournal private constructor(val directory: File, private val value:
     /** Closed with its payload written but the game files not checked again; see [closeUnconfirmed]. */
     val layerUnconfirmed: Boolean get() = phase == PatchPhase.CANCELLED && value.optString("layer_unconfirmed").isNotEmpty()
     val recoveryCompletionPhase: PatchPhase get() =
-        if (!dirtyPackages && payloadVerified) PatchPhase.COMPLETE
+        if (!dirtyPackages && (payloadVerified || (value.optBoolean("redownload") && value.optBoolean("redownload_deleted")))) PatchPhase.COMPLETE
         else PatchPhase.CANCELLED
 
     @Synchronized fun snapshot(): JSONObject = JSONObject(value.toString())
@@ -121,12 +121,14 @@ class SessionJournal private constructor(val directory: File, private val value:
             PatchPhase.APPLY_ACCESS_INSTALLED -> setOf(PatchPhase.APPLYING, PatchPhase.RESTORING)
             PatchPhase.APPLYING -> setOf(PatchPhase.APPLYING, PatchPhase.RESTORING)
             PatchPhase.RESTORING -> setOf(PatchPhase.RESTORING, PatchPhase.NORMAL_RESTORED_FOR_BUILD, PatchPhase.COMPLETE,
-                PatchPhase.CANCELLED, PatchPhase.WAITING_FOR_GAME_UPDATE)
+                PatchPhase.CANCELLED, PatchPhase.WAITING_FOR_GAME_UPDATE, PatchPhase.REDOWNLOAD_REVIEW)
+            PatchPhase.REDOWNLOAD_REVIEW -> setOf(PatchPhase.APPLY_ACCESS_INSTALLED, PatchPhase.APPLYING,
+                PatchPhase.RESTORING)
             PatchPhase.RECOVERY_REQUIRED -> setOf(PatchPhase.RESTORING)
             PatchPhase.COMPLETE, PatchPhase.CANCELLED -> emptySet()
         }
         check(next in allowed || next == PatchPhase.RECOVERY_REQUIRED) { "Invalid patch state transition" }
-        if (next == PatchPhase.COMPLETE || next == PatchPhase.CANCELLED) {
+        if (next in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED, PatchPhase.REDOWNLOAD_REVIEW)) {
             check(updates.optBoolean("normal_verified", false)) {
                 "The normal game APK has not been verified"
             }
@@ -168,6 +170,14 @@ class SessionJournal private constructor(val directory: File, private val value:
     @Synchronized fun recoveryRequired(message: String) {
         value.put("phase", PatchPhase.RECOVERY_REQUIRED.name).put("last_error", message.take(4096))
         persist() // Preserve pending intent and the dirty flag for rollback.
+    }
+
+    /** An explicit answer after the game finished downloading; returning to the app is insufficient. */
+    @Synchronized fun confirmRedownloadFinished() {
+        check(phase == PatchPhase.COMPLETE && value.optBoolean("redownload") &&
+            value.optBoolean("normal_verified") && !dirtyPackages && !hasMutationIntent)
+        value.put("redownload_downloads_finished", true)
+        persist()
     }
 
     @Synchronized fun fileCommitted(relative: String) {
@@ -235,9 +245,14 @@ class SessionJournal private constructor(val directory: File, private val value:
                     "first_install", "write_file", "delete_file", "clear_watchdog", "rollback_file", "restore_watchdog")) { "Unknown stored mutation" }
                 intent.getJSONObject("detail")
             }
-            if (result.phase in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED)) {
+            if (result.phase in setOf(PatchPhase.COMPLETE, PatchPhase.CANCELLED, PatchPhase.REDOWNLOAD_REVIEW)) {
                 check(value.getBoolean("normal_verified") && !result.dirtyPackages &&
                     !result.hasMutationIntent && !result.hasRecoveryNormalIntent) { "Terminal session recovery is unresolved" }
+            }
+            if (result.phase == PatchPhase.REDOWNLOAD_REVIEW) {
+                val scope = value.getJSONObject("redownload_review")
+                check(scope.getString("digest").matches(Regex("[0-9a-f]{64}")) && scope.getInt("files") > 0 &&
+                    scope.getLong("bytes") >= 0 && scope.getJSONArray("packages").length() > 0) { "Invalid Re-download review" }
             }
             return result
         }

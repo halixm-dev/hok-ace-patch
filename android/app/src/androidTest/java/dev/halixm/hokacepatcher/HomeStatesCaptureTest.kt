@@ -16,7 +16,7 @@ import java.io.File
 
 /**
  * The home screen's states (`DESIGN.md`, Layout; `docs/features/shared-design.md`), each
- * drawn as a full page in both languages at the phone's current font size, saved to `cache/home-states/<code>-<fontScale>-<state>.png`. Fails on any shown text that is
+ * drawn as a full page in both languages at the phone's current font size, saved to `files/home-states/<code>-<fontScale>-<state>.png`. Fails on any shown text that is
  * ellipsized, broken inside a word, taller than its view, or wider than the page. UI only: never
  * starts a worker. Run it once per font size (`settings put system font_scale`).
  */
@@ -69,6 +69,15 @@ class HomeStatesCaptureTest {
             home.result(UiText.result(PatchLanguage.current(activity), JSONObject().put("status", "space_freed")
                 .put("freed_bytes", 12_345_000_000L).put("free_bytes", 99_999_000_000L))!!, "Start")
         },
+        "redownload-review" to { home, activity ->
+            home.show("Review Re-download", UiText.string(activity, "recovery_review_scope", "files" to 15,
+                "size" to "2.4 GB", "packages" to "1, 15, 19") + "\n\n" + UiText.string(activity, "recovery_review_consequences"),
+                "Delete and re-download", "redownload_delete", false, GuidedHome.Stage.ATTENTION)
+        },
+        "redownload-downloads" to { home, activity ->
+            home.show("Finish game downloads", UiText.string(activity, "recovery_download_instructions"),
+                "Open game", "redownload_game", false, GuidedHome.Stage.ATTENTION, "Downloads finished", "redownload_finished")
+        },
         "notice" to { home, _ ->
             home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
             home.message("Access was not allowed. Tap Start to try again.", failure = true)
@@ -83,6 +92,24 @@ class HomeStatesCaptureTest {
             home.errorDetails("ERROR: Device command failed: cp exited with status 1"); home.logs(logLines)
         },
     )
+
+    @Test fun recoveryButtonsDispatchTheDirectActions() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val actions = mutableListOf<String>()
+                val home = GuidedHome(activity) { actions += it }
+                home.show("Review Re-download", "", "Delete and re-download", "redownload_delete", false)
+                activity.window.decorView.findViewWithTag<View>("next-step").performClick()
+                home.show("Finish game downloads", "", "Open game", "redownload_game", false,
+                    GuidedHome.Stage.ATTENTION, "Downloads finished", "redownload_finished")
+                activity.window.decorView.findViewWithTag<View>("next-step").performClick()
+                activity.window.decorView.findViewWithTag<View>("start-again").performClick()
+                home.result(UiText.result("en", JSONObject().put("status", "complete").put("counts", counts))!!, "Start another patch")
+                activity.window.decorView.findViewWithTag<View>("start-again").performClick()
+                org.junit.Assert.assertEquals(listOf("redownload_delete", "redownload_game", "redownload_finished", "start"), actions)
+            }
+        }
+    }
 
     private fun shown(view: View): Boolean =
         view.visibility == View.VISIBLE && (view.parent as? View)?.let(::shown) ?: true
@@ -113,7 +140,11 @@ class HomeStatesCaptureTest {
         }
     }
 
-    @Test fun everyBriefStateFitsAndIsSaved() {
+    @Test fun everyBriefStateFitsAndIsSaved() = captureStates(states)
+
+    @Test fun recoveryCardsFitAndAreSaved() = captureStates(states.filter { it.first.startsWith("redownload-") })
+
+    private fun captureStates(selected: List<Pair<String, (GuidedHome, Activity) -> Unit>>) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val original = PatchLanguage.current(context)
@@ -121,7 +152,7 @@ class HomeStatesCaptureTest {
         try {
             for (code in listOf("en", "id")) {
                 PatchLanguage.set(context, code)
-                for ((name, apply) in states) {
+                for ((name, apply) in selected) {
                     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                         scenario.onActivity { activity -> apply(GuidedHome(activity) { }, activity) }
                         instrumentation.waitForIdleSync()
@@ -131,7 +162,7 @@ class HomeStatesCaptureTest {
                             clipped(page).forEach { problems += "$code $scale $name: $it" }
                             val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
                             page.draw(Canvas(bitmap))
-                            val folder = File(activity.cacheDir, "home-states").apply { mkdirs() }
+                            val folder = File(activity.filesDir, "home-states").apply { mkdirs() }
                             File(folder, "$code-$scale-$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
                             bitmap.recycle()
                         }

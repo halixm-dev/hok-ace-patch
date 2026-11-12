@@ -1807,8 +1807,8 @@
       "platforms": [
         "android"
       ],
-      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files and briefly replace the game app. If an update damaged translated files, we delete them and the game downloads them again.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
-      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dan mengganti aplikasi game untuk sementara. Jika pembaruan merusak file terjemahan, kami menghapusnya dan game mengunduhnya lagi.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel."
+      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files and briefly replace the game app. If damaged files need Re-download, we show the affected packages for your review before deletion.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
+      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dan mengganti aplikasi game untuk sementara. Jika berkas rusak perlu diunduh ulang, kami menampilkan paket yang terdampak untuk Anda tinjau sebelum dihapus.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel."
     },
     "restore_apk_only": {
       "platforms": [
@@ -2646,8 +2646,8 @@
       "platforms": [
         "android"
       ],
-      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files with root. The game app is not replaced. If an update damaged translated files, we delete them and the game downloads them again.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
-      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dengan root. Aplikasi game tidak diganti. Jika pembaruan merusak file terjemahan, kami menghapusnya dan game mengunduhnya lagi.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel.",
+      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files with root. The game app is not replaced. If damaged files need Re-download, we show the affected packages for your review before deletion.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
+      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dengan root. Aplikasi game tidak diganti. Jika berkas rusak perlu diunduh ulang, kami menampilkan paket yang terdampak untuk Anda tinjau sebelum dihapus.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel.",
       "draft": true
     },
     "remove_confirmation_root": {
@@ -2656,6 +2656,54 @@
       ],
       "en": "This writes the game's original files back, so the game reads in Chinese again. No game data is deleted and no download is needed.\n\nThe game app is not changed.",
       "id": "Ini menulis kembali file game asli, sehingga game kembali berbahasa Tionghoa. Data game tidak dihapus dan tidak perlu mengunduh ulang.\n\nAplikasi game tidak diubah.",
+      "draft": true
+    },
+    "recovery_review_title": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Review Re-download",
+      "id": "Tinjau unduh ulang",
+      "draft": true
+    },
+    "recovery_review_scope": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Delete {files} package files ({size}): packages {packages}.",
+      "id": "Hapus {files} berkas paket ({size}): paket {packages}.",
+      "draft": true
+    },
+    "recovery_review_consequences": {
+      "platforms": [
+        "android"
+      ],
+      "en": "This deletes only the listed package files and resets the game's update records. Other game data stays. Keep the game closed. Tap Delete and re-download, then open the game to finish downloading. Close the game, return here and tap Downloads finished to continue the translation.",
+      "id": "Ini hanya menghapus berkas paket yang terdaftar dan mereset catatan pembaruan game. Data game lainnya tetap ada. Tutup game. Ketuk Hapus dan unduh ulang, lalu buka game sampai unduhan selesai. Tutup game, kembali ke sini dan ketuk Unduhan selesai untuk melanjutkan terjemahan.",
+      "draft": true
+    },
+    "recovery_download_title": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Finish game downloads",
+      "id": "Selesaikan unduhan game",
+      "draft": true
+    },
+    "recovery_download_instructions": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open the game and let every download finish to the login screen. Close the game, return here and tap Downloads finished to continue the translation.",
+      "id": "Buka game dan tunggu semua unduhan selesai hingga layar masuk. Tutup game, kembali ke sini dan ketuk Unduhan selesai untuk melanjutkan terjemahan.",
+      "draft": true
+    },
+    "recovery_download_finished": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Downloads finished",
+      "id": "Unduhan selesai",
       "draft": true
     }
   }

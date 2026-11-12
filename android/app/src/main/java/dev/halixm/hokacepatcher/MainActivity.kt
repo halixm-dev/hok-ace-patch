@@ -71,6 +71,8 @@ class MainActivity : Activity() {
     private var removing = false
     /** The automatic flow ends in Re-download damaged files rather than a patch. */
     private var redownloading = false
+    private var resumingRedownload = false
+    private var shownRedownload: Pair<String, String>? = null
     private var awaitingToken: String? = null
     private var awaitingAction: String? = null
     private var permissionRequested = false
@@ -126,6 +128,7 @@ class MainActivity : Activity() {
         automatic = (awaitingToken != null || waitingForShizuku || waitingForDownloads != null) && state?.getBoolean("automatic") == true
         removing = automatic && state?.getBoolean("removing") == true
         redownloading = automatic && state?.getBoolean("redownloading") == true
+        resumingRedownload = automatic && state?.getBoolean("resuming-redownload") == true
         home = GuidedHome(this) { key ->
             DiagnosticTrace.event("ui", "Tap $key; busy $busy automatic $automatic provider ${provider().key} " +
                 "shizuku ${Shizuku.pingBinder()}")
@@ -138,6 +141,14 @@ class MainActivity : Activity() {
                     removing = true
                     beginAutomatic()
                 }
+                "redownload_delete" -> if (!busy && !automatic && !PatchWorkerService.isWorking) {
+                    shownRedownload?.let { (id, digest) ->
+                        startWorker(Intent(this, PatchWorkerService::class.java).setAction("redownload_delete")
+                            .putExtra("session", id).putExtra("digest", digest))
+                    }
+                }
+                "redownload_game" -> openRedownloadGame()
+                "redownload_finished" -> finishRedownloadDownloads()
                 "redownload" -> if (!busy && !automatic && !PatchWorkerService.isWorking) {
                     redownloading = true
                     beginAutomatic()
@@ -393,7 +404,7 @@ class MainActivity : Activity() {
     /** The guide's line for a provider this build cannot start yet. */
     private fun notReady(provider: ShellProvider) = UiText.string(this, "provider_not_ready", "provider" to ui(provider.label))
 
-    private fun stopAutomatic() { automatic = false; removing = false; redownloading = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null }
+    private fun stopAutomatic() { resumingRedownload = false; automatic = false; removing = false; redownloading = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null }
 
     private fun openShizuku() {
         if (!ShizukuLauncher.open(this)) {
@@ -498,7 +509,8 @@ class MainActivity : Activity() {
                     val confirm = { checked: Boolean -> PatchRequestStore(this).confirmRoot(prepared, checked) }
                     runOnUiThread {
                         if (!automatic || destroyed) return@runOnUiThread
-                        if (redownloading) showRedownloadConfirmation(confirm)
+                        if (redownloading) afterCurrentTask { showRedownloadConfirmation(confirm) }
+                        else if (resumingRedownload) afterCurrentTask { continueRedownloadPatch(confirm) }
                         else showPatchConfirmation(confirm, removing, root = true)
                     }
                 }
@@ -512,7 +524,8 @@ class MainActivity : Activity() {
                             stopAutomatic()
                             home.message("The game on this phone is the official build, which this patcher never translated, so there is nothing to remove.")
                         } else if (prepared.requiresSignatureConversion) showFirstSetupConfirmation(prepared)
-                        else if (redownloading) showRedownloadConfirmation(confirm)
+                        else if (redownloading) afterCurrentTask { showRedownloadConfirmation(confirm) }
+                        else if (resumingRedownload) afterCurrentTask { continueRedownloadPatch(confirm) }
                         else showPatchConfirmation(confirm, removing)
                     }
                 }
@@ -520,7 +533,7 @@ class MainActivity : Activity() {
             "verified", "recovered", "setup_ready", "setup_waiting" -> routeAutomatic()
             // The translation is on the phone; patching again is the user's call, not automatic.
             "recovered_unconfirmed" -> stopAutomatic()
-            "complete" -> stopAutomatic()
+            "complete", "redownload_review" -> stopAutomatic()
             // The provider dropped the worker during prepare: nothing was written, so its own line says so and leads back to Start.
             "cancelled" -> if (result.optString("error").contains("disconnected", true)) {
                 stopAutomatic()
@@ -538,6 +551,10 @@ class MainActivity : Activity() {
     private fun refreshHome() {
         if (!::home.isInitialized) return
         val state = runCatching { savedWorker() }.getOrNull()
+        shownRedownload = null
+        val review = runCatching { SessionJournal.pending(File(filesDir, "sessions")).singleOrNull()
+            ?.takeIf { it.phase == PatchPhase.REDOWNLOAD_REVIEW } }.getOrNull()
+        val downloading = runCatching { redownloadDownloads() }.getOrNull()
         val pending = runCatching {
             SessionJournal.pending(File(filesDir, "sessions")).isNotEmpty() ||
                 FirstSetupJournal.pending(this).isNotEmpty() ||
@@ -582,17 +599,30 @@ class MainActivity : Activity() {
             shizuku && !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && shizukuAsRoot() -> home.show("Choose a shell provider", ShellProvider.SHIZUKU_AS_ROOT, "Start", "start",
                 pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
+            review != null -> {
+                val scope = review.snapshot().getJSONObject("redownload_review")
+                shownRedownload = review.id to scope.getString("digest")
+                val names = scope.getJSONArray("packages")
+                val packages = (0 until names.length()).joinToString(", ") { names.getString(it) }
+                home.show("Review Re-download", UiText.string(this, "recovery_review_scope",
+                    "files" to scope.getInt("files"), "size" to StorageBudget.freeSpaceLabel(scope.getLong("bytes")),
+                    "packages" to packages) + "\n\n" + UiText.string(this, "recovery_review_consequences"),
+                    "Delete and re-download", "redownload_delete", false, GuidedHome.Stage.ATTENTION)
+            }
+            downloading != null -> home.show("Finish game downloads", UiText.string(this, "recovery_download_instructions"),
+                "Open game", "redownload_game", false, GuidedHome.Stage.ATTENTION,
+                "Downloads finished", "redownload_finished")
             // Space freed hands back plain Start; the other results offer another patch.
             result != null && !pending.getOrThrow() -> home.result(result,
                 if (state.optString("status") == "space_freed") "Start" else "Start another patch")
             stop == StopCard.Exit.REDOWNLOAD_STUCK ->
                 home.show("The game update is stuck", "The game could not update the files this patcher translated. " +
                     "Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
-                    "Re-download damaged files", "redownload", false, GuidedHome.Stage.ATTENTION)
+                    "Review Re-download", "redownload", false, GuidedHome.Stage.ATTENTION)
             stop == StopCard.Exit.REDOWNLOAD_MIXED ->
                 home.show("Some game files are still translated", "A game update kept part of the earlier translation in some game files, so the patcher cannot restore them. " +
                     "Re-download them: only those game files are deleted, and the game downloads them again. The rest of the game data is kept.",
-                    "Re-download damaged files", "redownload", false, GuidedHome.Stage.ATTENTION)
+                    "Review Re-download", "redownload", false, GuidedHome.Stage.ATTENTION)
             stop == StopCard.Exit.WAIT_FOR_GAME ->
                 home.show("Finish the game update", "Open the game and let it finish the update to the login screen. Close it, then tap Start to patch again.",
                     "Open game", "game", false, GuidedHome.Stage.ATTENTION)
@@ -812,32 +842,65 @@ class MainActivity : Activity() {
             }.show().also(PanelDialog::style)
     }
 
-    /**
-     * Re-download damaged files deletes the translated packages a stuck game update names. The update has
-     * not finished, so its checkbox asks only that the game is closed; the request store records the
-     * same consent field a patch does.
-     */
-    private fun showRedownloadConfirmation(confirm: (Boolean) -> String): AlertDialog {
-        val confirmation = CheckBox(this).apply { tag = "redownload-confirmation"; text = ui("I closed the game") }
-        val dialog = AlertDialog.Builder(this).setTitle(ui("Re-download damaged files"))
-            .setMessage(UiText.redownloadConfirmation(this))
-            .setView(confirmation).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }
-            .setPositiveButton(ui("Delete and re-download"), null).create()
-        dialog.show()
-        PanelDialog.style(dialog)
-        val start = dialog.getButton(AlertDialog.BUTTON_POSITIVE); start.isEnabled = false
-        confirmation.setOnCheckedChangeListener { _, checked -> start.isEnabled = checked }
-        start.setOnClickListener {
-            if (!busy) {
-                dialog.dismiss()
-                runTask {
-                    val request = confirm(confirmation.isChecked)
-                    runOnUiThread { startWorker(Intent(this, PatchWorkerService::class.java)
-                        .setAction("redownload").putExtra("request", request)) }
-                }
+    /** Prepare a read-only deletion review; this action never approves deletion. */
+    private fun showRedownloadConfirmation(confirm: (Boolean) -> String) {
+        if (!automatic || destroyed) return
+        runTask {
+            val request = confirm(true)
+            runOnUiThread { startWorker(Intent(this, PatchWorkerService::class.java)
+                .setAction("redownload").putExtra("request", request)) }
+        }
+    }
+
+    private fun afterCurrentTask(action: () -> Unit) {
+        statusHandler.post(object : Runnable {
+            override fun run() {
+                if (destroyed) return
+                if (busy) { statusHandler.postDelayed(this, 25); return }
+                action()
+            }
+        })
+    }
+
+    private fun continueRedownloadPatch(confirm: (Boolean) -> String) {
+        if (!automatic || destroyed) return
+        resumingRedownload = false
+        runTask {
+            val request = confirm(true)
+            runOnUiThread { startWorker(Intent(this, PatchWorkerService::class.java)
+                .setAction("patch").putExtra("request", request)) }
+        }
+    }
+
+    private fun redownloadDownloads(): SessionJournal? = SessionJournal.history(File(filesDir, "sessions"))
+        .maxByOrNull { it.snapshot().getLong("created_ms") }?.takeIf {
+            it.phase == PatchPhase.COMPLETE && it.snapshot().optBoolean("redownload") &&
+                !it.snapshot().optBoolean("redownload_downloads_finished")
+        }
+
+    private fun openRedownloadGame() {
+        if (busy || automatic || PatchWorkerService.isWorking) return
+        runTask {
+            checkNotNull(redownloadDownloads())
+            check(SessionJournal.pending(File(filesDir, "sessions")).isEmpty())
+            check(FirstSetupJournal.pending(this).isEmpty())
+            EmergencyRestoreStore(this).requireResolved()
+            runOnUiThread {
+                val launch = packageManager.getLaunchIntentForPackage("com.tencent.tmgp.osgame")
+                if (launch != null) startActivity(launch) else home.message("The game cannot be opened. Use recovery.", failure = true)
             }
         }
-        return dialog
+    }
+
+    private fun finishRedownloadDownloads() {
+        if (busy || automatic || PatchWorkerService.isWorking) return
+        runTask {
+            check(SessionJournal.pending(File(filesDir, "sessions")).isEmpty())
+            check(FirstSetupJournal.pending(this).isEmpty())
+            EmergencyRestoreStore(this).requireResolved()
+            checkNotNull(redownloadDownloads()).confirmRedownloadFinished()
+            runOnUiThread { resumingRedownload = true; afterCurrentTask { beginAutomatic() } }
+        }
     }
 
     /**
@@ -1050,6 +1113,7 @@ class MainActivity : Activity() {
         state.putBoolean("automatic", automatic)
         state.putBoolean("removing", removing)
         state.putBoolean("redownloading", redownloading)
+        state.putBoolean("resuming-redownload", resumingRedownload)
         state.putString("automatic-token", awaitingToken)
         state.putString("automatic-action", awaitingAction)
         state.putLong("automatic-since", awaitingSince)

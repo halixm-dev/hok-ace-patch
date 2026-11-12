@@ -231,3 +231,10 @@ is meant.
 
 The values above are the source; `resources/ui/theme.json` carries them for both patchers and must
 match this file's front matter.
+
+### Android package recovery
+
+Use the existing Start card for **Review Re-download**, including package IDs, file count, size and
+consequences. **Delete and re-download** directly approves only the displayed scope; no extra modal.
+After deletion, show **Open game** as primary and **Downloads finished** as secondary. Returning
+from the game leaves this card waiting for an explicit answer. All copy is shared and bilingual.
