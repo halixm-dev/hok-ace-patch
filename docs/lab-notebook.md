@@ -5112,3 +5112,35 @@ Rollback completed: package 19 restored from the phone backup; shard SHA1 again 
      `Txt_Name` 18 right, `Split` and `Left` 36 right. Measured: icon, 15 px, "Menu", 37 px, divider,
      40 px, Event icon. Bottom names small and equal; Mall's cart clear of its name.
 - **Not seen:** a top-bar entry whose red-dot effect is wider than Mall's; Indonesian.
+
+## 2026-11-12 — Data 1.10.0.1: 158 missing sources translated offline
+
+- **Source:** read-only copy of package `1` from Android patcher session
+  `63ff0ad4-1b7e-44a8-9ed1-bbbe1dcb63fb` snapshot on `f15a72e`. `1.info` reports
+  `1.10.0.1`, revision `0`. Saved with SHA-256 provenance under
+  `D:/scratch/hok-data-1.10.0.1/game`. No live game files or patcher state changed.
+- **Before:** `census_catalog.py` with the cached `dist/HOK ACE Patcher Data/installed.apk`:
+  107 readable override tables + 391 prime-only tables, 352540 rows. Same 158 missing sources /
+  929 rows / 44 override tables for both languages. Asset `4B15FC0D7596513F` is refused separately
+  as ambiguous. The allowed Official recommendation lineups have zero missing translations.
+  This copies package `1` only; other override packages were not captured.
+- **Change:** 158 English/Indonesian pairs in `catalog_supplement.TEXTS`, for Duo Festival,
+  Super Weekend, Quick Match, Intimacy gifts and reworded card/talent effects. Supplement log
+  2529 -> 2687; upstream catalogs unchanged. All 1523 literal supplement pairs pass
+  `adaptive.validate_translation` and exact markup/placeholder comparison in both languages.
+- **Offline staging:** fresh `build_device_patch.py` runs, package `1` only and no APK, both
+  succeed: 96 tables in place + 11 relocated, `unknown` 0, empty `text_skipped`. Each scan reads
+  192510 override rows. These are scoped text checks, not full-install or texture measurements.
+- **Actual-byte verification:** `.scratch/data-1.10.0.1/verify.py` opens each staged package via
+  `QtsPackage` / `read_raw`, decodes the 44 affected tables, verifies unchanged row-key sets,
+  and compares all 929 new rows to the catalog's final targets, with resource tokens expanded.
+  Both languages: all 158 sources present, all 929 rows match, none remains Chinese. No second
+  translation pass is used to count saved output. Bracketed numeric formulas are preserved.
+- **Evidence:** `.scratch/data-1.10.0.1/{leftovers,translations,verification}.json`, `stage-en.log`,
+  `stage-id.log`; large work/output folders `D:/scratch/hok-data-1.10.0.1/{work-en,work-id,out-en,out-id}`.
+  Initial temporary staging outputs were superseded after aligning Treasure Chest and Coupon names
+  with the catalog. Final checks read the `D:/scratch` outputs.
+- **Verdict:** new measured text is staged correctly offline in both languages. No installation,
+  release, prime-only encoding re-test or watched screen acceptance was performed.
+- **Repository checks:** `check_ui_strings.py` (400 shared keys), `check_references.py`,
+  `check_staging_contract.py` and scoped `git diff --check` all pass.

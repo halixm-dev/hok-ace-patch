@@ -1,0 +1,29 @@
+language: English (catalog)
+catalog supplement: 2687 strings the game added after the catalog was built
+glossary: 47 catalog strings now read "Bunny's Aid", 23 catalog strings now read "Bunny's Blessing", 1417 catalog strings now read 'Chessplayer', 12 catalog strings now read 'Construct Upgrade', 6 catalog strings now read 'Decree Maker', 8 catalog strings now read 'Dream Illusion', 95 catalog strings now read 'Friends Galore', 6 catalog strings now read 'Harness Momentum', 10 catalog strings now read 'Magical Deerie', 6 catalog strings now read 'Make It My Way', 9 catalog strings now read 'Moment of Sanctification', 6 catalog strings now read 'Paranormal Detection Mod', 4 catalog strings now read 'Prepare', 1 catalog strings now read 'Privileged Decree', 37 catalog strings now read 'Steal', 9 catalog strings now read 'Strategic Decree', 13 catalog strings now read 'Ultimate Decree', 1 catalog strings now read 'Ultimate Decree Maker', 25 catalog strings now read 'Wish'
+no APK given: text and textures that exist only in the APK stay Chinese
+package 1: 3914DBBFECD1E54D is a table the catalog has no record for (1 of its strings it could translate); left Chinese, it needs an extra_text cycle
+package 1: 39E980368CABE4A4 is a table the catalog has no record for (8191 of its strings it could translate); left Chinese, it needs an extra_text cycle
+package 1: 3A691A7E8F36F50C is a table the catalog has no record for (259 of its strings it could translate); left Chinese, it needs an extra_text cycle
+package 1: 63922EF4D4C86526 is a table the catalog has no record for (3 of its strings it could translate); left Chinese, it needs an extra_text cycle
+package 1: 77A17DCDAE26967F is a table the catalog has no record for (3 of its strings it could translate); left Chinese, it needs an extra_text cycle
+package 1: C462C86332056611 is a table the catalog has no record for (20 of its strings it could translate); left Chinese, it needs an extra_text cycle
+package 1: E494C5FA3121EBE8 is a table the catalog has no record for (22 of its strings it could translate); left Chinese, it needs an extra_text cycle
+package 1: FABFEBEB801B5CD9 is a table the catalog has no record for (3896 of its strings it could translate); left Chinese, it needs an extra_text cycle
+8 tables outside the catalog left unstaged
+expanded resource tokens in 3382 replacement strings
+package 1: 11 tables outgrow their chunks; relocating them later
+package 1: dropped 0 assets in full mode
+package 1: full verified (96 assets)
+package 1: 11 text tables moved to new space at the end of the package
+package 1: 1 extra assets translated
+{
+  "unreadable_assets": 388,
+  "tables": 107,
+  "records": 192510,
+  "translated": 189212,
+  "graphics": 0,
+  "already_english": 2510,
+  "unknown": 0,
+  "unrecognized_tables": 1
+}

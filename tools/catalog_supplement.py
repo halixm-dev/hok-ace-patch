@@ -11,6 +11,8 @@ split from their series header. Game data 1.7.0.2 added six Lineup Recommendatio
 Game data 1.9.0.1 added 213 catalog-table strings: the Black & White Central Plains blind boxes,
 Faction Highlights, Double Energy Storage missions, and reworded card and skill texts, plus two
 missing descriptions in the allowed Official recommendation lineup bin.
+Game data 1.10.0.1 added 158 catalog-table strings: the Duo Festival, Super Weekend,
+Quick Match, Intimacy gifting, and reworded card and talent effects.
 `apply` fills them in.
 The official lineups' strategy text is here too: it lives in config bins the catalog does not cover, inside
 their share codes, for the share-code pass to write.
@@ -4771,6 +4773,482 @@ TEXTS: dict[str, tuple[str, str]] = {
     '，是否确认分解？': (
         ', confirm dismantling?',
         ', konfirmasi pembongkaran?'),
+
+    # Game data 1.10.0.1: Duo Festival, Super Weekend, Quick Match and card rewordings.
+    '11/12-11/18组排不掉分': (
+        '11/12-11/18: No rank point loss when teaming up',
+        '11/12-11/18: Poin rank tidak berkurang saat bermain tim'),
+    '<color=#98CBFF>乔汐</color>的技能非常简单，每回合使用一次技能便可以获得1张3-5阶的<color=#98CBFF>╆转瞬</color>英雄牌，所以在前期我们通过使用技能可以很快建立优势。': (
+        "<color=#98CBFF>Qiao Xi</color>'s Skill is simple: use it once each Round to gain 1 Tier 3-5 <color=#98CBFF>╆Fleeting</color> Hero Card. Using it helps you build an early advantage.",
+        'Skill <color=#98CBFF>Qiao Xi</color> sangat sederhana: gunakan sekali setiap Ronde untuk mendapat 1 Hero Card Tier 3-5 <color=#98CBFF>╆Fleeting</color>. Gunakan Skill ini untuk unggul sejak awal.'),
+    '<color=#98CBFF>超级周末</color>': (
+        '<color=#98CBFF>Super Weekend</color>',
+        '<color=#98CBFF>Super Weekend</color>'),
+    '<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、活动期间完成任务可领取对应奖励。</color>\n<color=#98cbff>二、组排不掉分说明</color>\n<color=#FFFFFF>1、在11月12日到11月18日期间，每日前3场对局组排不掉分（其中本次权益对于王者5000分以上玩家不生效）</color>\n<color=#FFFFFF>2、组排不掉分的特权生效需要在组排过程中和队友一起结算才生效。</color>\n<color=#FFFFFF>3、在组排情况下，当玩家结算时若有分数扣除，则会触发不掉分权益保护，本次结算不会扣分，且次数扣除1次。</color>': (
+        '<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete missions during the event to claim the corresponding rewards.</color>\n<color=#98cbff>II. Team Rank Point Protection</color>\n<color=#FFFFFF>1. From November 12 to November 18, your first 3 team matches each day have rank point protection (unavailable to players above 5000 Honor points).</color>\n<color=#FFFFFF>2. Protection applies only if you finish the match together with your teammates.</color>\n<color=#FFFFFF>3. If you would lose points at settlement in a team match, protection prevents the loss and consumes 1 use.</color>',
+        '<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi selama event untuk mengambil hadiah yang sesuai.</color>\n<color=#98cbff>II. Perlindungan Poin Rank Tim</color>\n<color=#FFFFFF>1. Dari 12 November hingga 18 November, 3 pertandingan tim pertama setiap hari mendapat perlindungan poin rank (tidak berlaku bagi pemain dengan poin Honor di atas 5000).</color>\n<color=#FFFFFF>2. Perlindungan hanya berlaku jika kamu menyelesaikan pertandingan bersama rekan satu tim.</color>\n<color=#FFFFFF>3. Jika poinmu akan berkurang saat hasil pertandingan tim dihitung, perlindungan mencegah pengurangan itu dan memakai 1 kesempatan.</color>'),
+    '<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、活动期间完成任务可领取对应奖励。</color>\n<color=#FFFFFF>2、每日任务将于每天0点刷新。</color>\n<color=#98cbff>二、超级周末特权开启</color>\n<color=#FFFFFF>1、活动期间内享受全部棋手限免，有分同享不限亲密度，每日前3局组队亲密度加成。</color>\n<color=#FFFFFF>2、其中有分同享不限亲密度，如果队伍中有王者段位5000分以上玩家则不能享受有分同享规则。</color>\n<color=#FFFFFF>3、每日前3局组队亲密度加成：权益生效内和好友组队获得亲密度翻倍，排位模式每局可额外增加6点，匹配或娱乐模式每局额外增加4点，如果达到本周亲密度上限则不会额外获得</color>': (
+        '<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete missions during the event to claim the corresponding rewards.</color>\n<color=#FFFFFF>2. Daily missions reset at 00:00.</color>\n<color=#98cbff>II. Super Weekend Perks</color>\n<color=#FFFFFF>1. During the event, all Chessplayers are free to use, Shared Score has no Intimacy requirement, and your first 3 team matches each day grant bonus Intimacy.</color>\n<color=#FFFFFF>2. Shared Score without an Intimacy requirement is unavailable if anyone on the team has more than 5000 Honor points.</color>\n<color=#FFFFFF>3. For your first 3 team matches each day, teaming up with friends grants double Intimacy: an extra 6 per Ranked match or 4 per Normal or Casual match. No extra Intimacy is granted after reaching the weekly limit.</color>',
+        '<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi selama event untuk mengambil hadiah yang sesuai.</color>\n<color=#FFFFFF>2. Misi harian direset pukul 00:00.</color>\n<color=#98cbff>II. Keuntungan Super Weekend</color>\n<color=#FFFFFF>1. Selama event, semua Chessplayer gratis digunakan, Shared Score tanpa syarat Intimacy, dan 3 pertandingan tim pertama setiap hari memberi bonus Intimacy.</color>\n<color=#FFFFFF>2. Shared Score tanpa syarat Intimacy tidak berlaku jika ada anggota tim dengan poin Honor di atas 5000.</color>\n<color=#FFFFFF>3. Untuk 3 pertandingan tim pertama setiap hari, bermain bersama teman memberi Intimacy ganda: tambahan 6 per pertandingan Ranked atau 4 per pertandingan Normal atau Casual. Tidak ada tambahan Intimacy setelah mencapai batas mingguan.</color>'),
+    '<color=#98cbff>一、超级周末专属特权</color>\n<color=#FFFFFF>超级周末开启！活动期间将开启以下特权：全棋手限时免费；有分同享不限亲密度；每日前3局组队亲密度加成。</color>\n\n<color=#98cbff>二、特权具体说明</color>\n<color=#FFFFFF>1. 全棋手限时免费\n活动期间，全棋手均可限免使用。玩家选择棋手时处于活动时间内，本局即可享受全棋手限免特权。\n\n2. 有分同享不限亲密度\n活动期间，最强王者0-5000分的玩家组队参与排位时，无需满足好友亲密度条件，即可开启有分同享。\n开启后，每位玩家本局获得的段位分，将与队伍中排名最高的玩家保持一致。玩家开始游戏时处于活动时间内，本局即可享受该特权。\n若队伍中有最强王者5000分以上的玩家，则无法享受该特权。\n\n3. 组队亲密度加成\n活动期间，所有段位的玩家与好友组队，每天与不同好友完成前3局对局（其中同一好友每日限制3次，不同好友的次数不会累计）可获得亲密度翻倍加成，排位模式每局额外增加6点，匹配或娱乐模式每局额外增加4点。\n玩家完成对局结算时处于活动时间内，本局即可享受该待权。若已达到本周亲密度获取上限，则无法获得额外亲密度。</color>': (
+        "<color=#98cbff>I. Super Weekend Perks</color>\n<color=#FFFFFF>Super Weekend is here! During the event: all Chessplayers are free to use, Shared Score has no Intimacy requirement, and the first 3 team matches each day grant bonus Intimacy.</color>\n\n<color=#98cbff>II. Perk Details</color>\n<color=#FFFFFF>1. All Chessplayers Free\nAll Chessplayers are free to use during the event. Select your Chessplayer during the event period to enjoy this perk for that match.\n\n2. Shared Score Without Intimacy Requirements\nDuring the event, players with 0-5000 Honor points can enable Shared Score in team Ranked matches without meeting friend Intimacy requirements.\nEach player's rank points gained in the match will match those of the highest-placing teammate. Start your match during the event period to enjoy this perk.\nThis perk is unavailable if anyone on the team has more than 5000 Honor points.\n\n3. Team Intimacy Bonus\nDuring the event, players of all ranks earn double Intimacy for their first 3 matches each day with each friend: an extra 6 per Ranked match or 4 per Normal or Casual match. Each friend has a separate daily limit of 3 matches; matches with different friends do not share the limit.\nFinish the match during the event period to enjoy this perk. No extra Intimacy is granted after reaching the weekly limit.</color>",
+        '<color=#98cbff>I. Keuntungan Super Weekend</color>\n<color=#FFFFFF>Super Weekend tiba! Selama event: semua Chessplayer gratis digunakan, Shared Score tanpa syarat Intimacy, dan 3 pertandingan tim pertama setiap hari memberi bonus Intimacy.</color>\n\n<color=#98cbff>II. Rincian Keuntungan</color>\n<color=#FFFFFF>1. Semua Chessplayer Gratis\nSemua Chessplayer gratis digunakan selama event. Pilih Chessplayer saat event berlangsung untuk menikmati keuntungan ini dalam pertandingan tersebut.\n\n2. Shared Score Tanpa Syarat Intimacy\nSelama event, pemain dengan 0-5000 poin Honor dapat mengaktifkan Shared Score dalam Ranked tim tanpa memenuhi syarat Intimacy pertemanan.\nPoin rank yang didapat setiap pemain akan sama dengan rekan satu tim yang menempati peringkat tertinggi. Mulai pertandingan saat event berlangsung untuk menikmati keuntungan ini.\nKeuntungan ini tidak berlaku jika ada anggota tim dengan poin Honor di atas 5000.\n\n3. Bonus Intimacy Tim\nSelama event, pemain di semua rank mendapat Intimacy ganda untuk 3 pertandingan pertama setiap hari bersama setiap teman: tambahan 6 per pertandingan Ranked atau 4 per pertandingan Normal atau Casual. Setiap teman memiliki batas harian 3 pertandingan tersendiri; pertandingan bersama teman berbeda tidak berbagi batas.\nSelesaikan pertandingan saat event berlangsung untuk menikmati keuntungan ini. Tidak ada tambahan Intimacy setelah mencapai batas mingguan.</color>'),
+    '<color=#98cbff>二、高光表情</color>\n<color=#FFFFFF>高光表情是英雄在对局中连续击败敌方目标时触发的专属表情展示。</color>': (
+        '<color=#98cbff>II. Highlight Emotes</color>\n<color=#FFFFFF>Highlight Emotes are special emotes triggered when a Hero defeats enemies in succession during a match.</color>',
+        '<color=#98cbff>II. Emote Highlight</color>\n<color=#FFFFFF>Emote Highlight adalah emote khusus yang muncul saat Hero mengalahkan musuh berturut-turut dalam pertandingan.</color>'),
+    '<color=#FFE897>孙膑</color>卡牌效果改为每释放2次技能，英雄等级提升。': (
+        "<color=#FFE897>Sun Bin</color>'s Card Effect changes to: gain Levels after every 2 Skill casts.",
+        'Card Effect <color=#FFE897>Sun Bin</color> berubah menjadi: mendapat Level setiap 2 kali menggunakan Skill.'),
+    '<color=#FFE897>孙膑</color>的词条效果改变为每释放2次技能，英雄等级提升。': (
+        "<color=#FFE897>Sun Bin</color>'s trait changes to: gain Levels after every 2 Skill casts.",
+        'Efek trait <color=#FFE897>Sun Bin</color> berubah menjadi: mendapat Level setiap 2 kali menggunakan Skill.'),
+    '<color=#FFE897>李元芳</color>的词条效果会对指定的【河洛】英雄额外使用1次古币。': (
+        "<color=#FFE897>Fang</color>'s trait uses an Ancient Coin on the targeted [Central Plains] Hero 1 extra time.",
+        'Efek trait <color=#FFE897>Fang</color> menggunakan Ancient Coin pada Hero [Central Plains] yang ditargetkan 1 kali lagi.'),
+    '<color=#FFE897>首次将英雄升至50级</color>时，使其直接升至100级。': (
+        'The <color=#FFE897>first time a Hero reaches Level 50</color>, raise them directly to Level 100.',
+        'Saat <color=#FFE897>Hero pertama kali mencapai Level 50</color>, langsung naikkan ke Level 100.'),
+    '<color=#FFFFFF>超级周末</color>': (
+        '<color=#FFFFFF>Super Weekend</color>',
+        '<color=#FFFFFF>Super Weekend</color>'),
+    'D一个搭子，双牌节组排不掉分': (
+        'Find a buddy: Duo Festival team rank point protection',
+        'Cari partner: perlindungan poin rank tim Duo Festival'),
+    'D一个牌搭子': (
+        'Looking for a card buddy',
+        'Cari partner main kartu'),
+    'd一个牌搭子': (
+        'Looking for a card buddy',
+        'Cari partner main kartu'),
+    '{0}获取概率已提升至{1}%': (
+        '{0} drop chance increased to {1}%',
+        'Peluang mendapat {0} naik menjadi {1}%'),
+    '【别抢我搭子的牌】语音包30天体验卡': (
+        "[Don't Take My Buddy's Cards] Voice Pack 30-Day Trial Card",
+        'Kartu Uji Coba 30 Hari Voice Pack [Jangan Ambil Kartu Partnerku]'),
+    '【嗷呜~】语音包30天体验卡': (
+        '[Awoo~] Voice Pack 30-Day Trial Card',
+        'Kartu Uji Coba 30 Hari Voice Pack [Awoo~]'),
+    '【搭子你这波稳了】语音包30天体验卡': (
+        "[You've Got This, Buddy] Voice Pack 30-Day Trial Card",
+        'Kartu Uji Coba 30 Hari Voice Pack [Kamu Pasti Bisa, Partner]'),
+    '【牌搭子强无敌】语音包30天体验卡': (
+        '[Unbeatable Card Buddy] Voice Pack 30-Day Trial Card',
+        'Kartu Uji Coba 30 Hari Voice Pack [Partner Kartu Tak Terkalahkan]'),
+    '【牌搭子，锁一个】语音包30天体验卡': (
+        '[Lock It In, Buddy] Voice Pack 30-Day Trial Card',
+        'Kartu Uji Coba 30 Hari Voice Pack [Kunci Pilihanmu, Partner]'),
+    '万象速决': (
+        'ACE Quick Match',
+        'ACE Quick Match'),
+    '下期主题：': (
+        'Next Theme:',
+        'Tema Berikutnya:'),
+    '你<color=#FFE897>至少穿戴2件装备的【大河】英雄</color>获得╫牺牲：召唤1只与该英雄等级相同的<color=#FFE897>熊灵</color>。': (
+        'Your <color=#FFE897>[Riverlands] Heroes with at least 2 Equipment</color> gain ╫Sacrifice: Summon a <color=#FFE897>Bear Spirit</color> of the same Level as that Hero.',
+        '<color=#FFE897>Hero [Riverlands] milikmu yang memakai minimal 2 Equipment</color> mendapat ╫Sacrifice: Summon <color=#FFE897>Bear Spirit</color> dengan Level yang sama dengan Hero tersebut.'),
+    '你的【日落海】英雄每提升<color=#99DEB0>10级</color>，<color=#99DEB0>╥阿科米亚核心</color>获得<color=#99DEB0>4等级</color>。\n【日落海】英雄首次≥<color=#99DEB0>6名</color>时：获得<color=#99DEB0>1张</color>【远洋宝藏】；保持≥<color=#99DEB0>6名</color>时，每穿戴<color=#99DEB0>1件</color>【日落海专属装备】，<color=#99DEB0>╬整备额外触发1次</color>。\n【日落海】英雄≥<color=#99DEB0>8名</color>时：每回合战斗开始，随机召唤<color=#99DEB0>1名</color>与<color=#99DEB0>╥阿科米亚核心</color>同等级的【日落海】英雄（等级上限999）。': (
+        'For every <color=#99DEB0>10 Levels</color> your [Sunset] Heroes gain, <color=#99DEB0>╥Arcomia Core</color> gains <color=#99DEB0>4 Levels</color>.\nWhen you first have ≥<color=#99DEB0>6</color> [Sunset] Heroes: gain <color=#99DEB0>1</color> [Ocean Treasure]; while you have ≥<color=#99DEB0>6</color>, <color=#99DEB0>╬Prepare triggers 1 extra time</color> for each <color=#99DEB0>1</color> [Sunset Exclusive Equipment] equipped.\nWith ≥<color=#99DEB0>8</color> [Sunset] Heroes: at the start of battle each Round, Summon <color=#99DEB0>1</color> random [Sunset] Hero of the same Level as <color=#99DEB0>╥Arcomia Core</color> (max Level 999).',
+        'Setiap Hero [Sunset] milikmu naik <color=#99DEB0>10 Level</color>, <color=#99DEB0>╥Arcomia Core</color> mendapat <color=#99DEB0>4 Level</color>.\nSaat pertama kali memiliki ≥<color=#99DEB0>6</color> Hero [Sunset]: dapatkan <color=#99DEB0>1</color> [Ocean Treasure]; selama memiliki ≥<color=#99DEB0>6</color>, <color=#99DEB0>╬Prepare terpicu 1 kali lagi</color> untuk setiap <color=#99DEB0>1</color> [Equipment Eksklusif Sunset] yang dipakai.\nDengan ≥<color=#99DEB0>8</color> Hero [Sunset]: di awal pertempuran setiap Ronde, Summon <color=#99DEB0>1</color> Hero [Sunset] acak dengan Level yang sama dengan <color=#99DEB0>╥Arcomia Core</color> (Level maksimal 999).'),
+    '使场上所有不满66级的英雄升至66级。': (
+        'Raise all Heroes on the board below Level 66 to Level 66.',
+        'Naikkan semua Hero di papan yang belum Level 66 ke Level 66.'),
+    '使用1能量可以获得一张随机的3-5阶<color=#98CBFF>╆转瞬</color>英雄牌': (
+        'Spend 1 Energy to gain a random Tier 3-5 <color=#98CBFF>╆Fleeting</color> Hero Card',
+        'Gunakan 1 Energy untuk mendapat Hero Card Tier 3-5 <color=#98CBFF>╆Fleeting</color> acak'),
+    '使用背包道具赠送': (
+        'Gift items from Backpack',
+        'Hadiahkan item dari Backpack'),
+    '倍速战斗，爽快对决': (
+        'Faster battles, thrilling duels',
+        'Pertempuran lebih cepat, duel lebih seru'),
+    '兔叽头像': (
+        'Bunny Avatar',
+        'Avatar Kelinci'),
+    '关闭白': (
+        'Turn Off White',
+        'Matikan Putih'),
+    '别抢我搭子的牌！': (
+        "Don't take my buddy's cards!",
+        'Jangan ambil kartu partnerku!'),
+    '助战王': (
+        'Support King',
+        'Raja Bantuan'),
+    '单人进行游戏可能会影响<color=#98cbff>群狼成就</color>的获得，确定开始游戏？': (
+        'Playing solo may affect your <color=#98cbff>Wolf Pack achievement</color>. Start anyway?',
+        'Bermain solo dapat memengaruhi perolehan <color=#98cbff>achievement Wolf Pack</color>. Tetap mulai?'),
+    '单人进行游戏可能会影响<color=#98cbff>群狼成就</color>的获得，确定开始游戏？（即便开启王中王组队，也有可能因为组队失败无法完成成就）': (
+        'Playing solo may affect your <color=#98cbff>Wolf Pack achievement</color>. Start anyway? (Even with King of Kings teaming enabled, a failed team formation may prevent you from completing the achievement.)',
+        'Bermain solo dapat memengaruhi perolehan <color=#98cbff>achievement Wolf Pack</color>. Tetap mulai? (Meski tim King of Kings diaktifkan, kegagalan membentuk tim bisa membuat achievement tidak tercapai.)'),
+    '卡牌<color=#99DEB0>5选2</color>（【逐鹿】英雄牌）。': (
+        'Choose <color=#99DEB0>2 of 5</color> cards ([Zhulu Plateau] Hero Cards).',
+        'Pilih <color=#99DEB0>2 dari 5</color> kartu (Hero Card [Zhulu Plateau]).'),
+    '卡牌指定英雄，最大生命值<color=#99DEB0>+40%</color>、物理攻击力<color=#99DEB0>+30%</color>、攻击速度<color=#99DEB0>+30%</color>；该英雄每回合等级<color=#99DEB0>+55</color>，等级上限突破至<color=#99DEB0>9999</color>。': (
+        'Target a Hero: <color=#99DEB0>+40%</color> Max HP, <color=#99DEB0>+30%</color> Physical Attack, and <color=#99DEB0>+30%</color> Attack Speed. This Hero gains <color=#99DEB0>+55</color> Levels each Round; their Level cap increases to <color=#99DEB0>9999</color>.',
+        'Pilih satu Hero: <color=#99DEB0>+40%</color> Max HP, <color=#99DEB0>+30%</color> Physical Attack, dan <color=#99DEB0>+30%</color> Attack Speed. Hero ini mendapat <color=#99DEB0>+55</color> Level setiap Ronde; batas Level naik menjadi <color=#99DEB0>9999</color>.'),
+    '卡牌指定英雄，最大生命值<color=#99DEB0>+50%</color>、法术攻击力<color=#99DEB0>+50%</color>、法力值上限<color=#99DEB0>-15</color>；该英雄每回合等级<color=#99DEB0>+65</color>，等级上限突破至<color=#99DEB0>9999</color>。': (
+        'Target a Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Magic Attack, and <color=#99DEB0>-15</color> Max Mana. This Hero gains <color=#99DEB0>+65</color> Levels each Round; their Level cap increases to <color=#99DEB0>9999</color>.',
+        'Pilih satu Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Magic Attack, dan <color=#99DEB0>-15</color> Max Mana. Hero ini mendapat <color=#99DEB0>+65</color> Level setiap Ronde; batas Level naik menjadi <color=#99DEB0>9999</color>.'),
+    '卡牌指定英雄，最大生命值<color=#99DEB0>+50%</color>、法术攻击力<color=#99DEB0>+50%</color>、法术吸血<color=#99DEB0>+20%</color>；该英雄每回合等级<color=#99DEB0>+70</color>，等级上限突破至<color=#99DEB0>9999</color>。': (
+        'Target a Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Magic Attack, and <color=#99DEB0>+20%</color> Magic Lifesteal. This Hero gains <color=#99DEB0>+70</color> Levels each Round; their Level cap increases to <color=#99DEB0>9999</color>.',
+        'Pilih satu Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Magic Attack, dan <color=#99DEB0>+20%</color> Magic Lifesteal. Hero ini mendapat <color=#99DEB0>+70</color> Level setiap Ronde; batas Level naik menjadi <color=#99DEB0>9999</color>.'),
+    '卡牌指定英雄，最大生命值<color=#99DEB0>+50%</color>、物理攻击力<color=#99DEB0>+40%</color>、法力值上限<color=#99DEB0>-10</color>；该英雄每回合等级<color=#99DEB0>+65</color>，等级上限突破至<color=#99DEB0>9999</color>。': (
+        'Target a Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+40%</color> Physical Attack, and <color=#99DEB0>-10</color> Max Mana. This Hero gains <color=#99DEB0>+65</color> Levels each Round; their Level cap increases to <color=#99DEB0>9999</color>.',
+        'Pilih satu Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+40%</color> Physical Attack, dan <color=#99DEB0>-10</color> Max Mana. Hero ini mendapat <color=#99DEB0>+65</color> Level setiap Ronde; batas Level naik menjadi <color=#99DEB0>9999</color>.'),
+    '卡牌指定英雄，最大生命值<color=#99DEB0>+50%</color>、物理攻击力<color=#99DEB0>+50%</color>、暴击率<color=#99DEB0>+60%</color>；该英雄每回合等级<color=#99DEB0>+58</color>，等级上限突破至<color=#99DEB0>9999</color>。': (
+        'Target a Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Physical Attack, and <color=#99DEB0>+60%</color> Crit Rate. This Hero gains <color=#99DEB0>+58</color> Levels each Round; their Level cap increases to <color=#99DEB0>9999</color>.',
+        'Pilih satu Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Physical Attack, dan <color=#99DEB0>+60%</color> Crit Rate. Hero ini mendapat <color=#99DEB0>+58</color> Level setiap Ronde; batas Level naik menjadi <color=#99DEB0>9999</color>.'),
+    '卡牌指定英雄，最大生命值<color=#99DEB0>+50%</color>、物理攻击力<color=#99DEB0>+50%</color>、暴击率<color=#99DEB0>+60%</color>；该英雄每回合等级<color=#99DEB0>+62</color>，等级上限突破至<color=#99DEB0>9999</color>。': (
+        'Target a Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Physical Attack, and <color=#99DEB0>+60%</color> Crit Rate. This Hero gains <color=#99DEB0>+62</color> Levels each Round; their Level cap increases to <color=#99DEB0>9999</color>.',
+        'Pilih satu Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Physical Attack, dan <color=#99DEB0>+60%</color> Crit Rate. Hero ini mendapat <color=#99DEB0>+62</color> Level setiap Ronde; batas Level naik menjadi <color=#99DEB0>9999</color>.'),
+    '卡牌指定英雄，最大生命值<color=#99DEB0>+50%</color>、物理攻击力<color=#99DEB0>+50%</color>、暴击率<color=#99DEB0>+60%</color>；该英雄每回合等级<color=#99DEB0>+65</color>，等级上限突破至<color=#99DEB0>9999</color>。': (
+        'Target a Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Physical Attack, and <color=#99DEB0>+60%</color> Crit Rate. This Hero gains <color=#99DEB0>+65</color> Levels each Round; their Level cap increases to <color=#99DEB0>9999</color>.',
+        'Pilih satu Hero: <color=#99DEB0>+50%</color> Max HP, <color=#99DEB0>+50%</color> Physical Attack, dan <color=#99DEB0>+60%</color> Crit Rate. Hero ini mendapat <color=#99DEB0>+65</color> Level setiap Ronde; batas Level naik menjadi <color=#99DEB0>9999</color>.'),
+    '卡牌指定英雄，最大生命值<color=#99DEB0>+55%</color>、法术攻击力<color=#99DEB0>+55%</color>、法术吸血<color=#99DEB0>+25%</color>；该英雄每回合等级<color=#99DEB0>+55</color>，等级上限突破至<color=#99DEB0>9999</color>。': (
+        'Target a Hero: <color=#99DEB0>+55%</color> Max HP, <color=#99DEB0>+55%</color> Magic Attack, and <color=#99DEB0>+25%</color> Magic Lifesteal. This Hero gains <color=#99DEB0>+55</color> Levels each Round; their Level cap increases to <color=#99DEB0>9999</color>.',
+        'Pilih satu Hero: <color=#99DEB0>+55%</color> Max HP, <color=#99DEB0>+55%</color> Magic Attack, dan <color=#99DEB0>+25%</color> Magic Lifesteal. Hero ini mendapat <color=#99DEB0>+55</color> Level setiap Ronde; batas Level naik menjadi <color=#99DEB0>9999</color>.'),
+    '参与玩法挑战': (
+        'Take part in mode challenges',
+        'Ikuti tantangan mode'),
+    '参加活动': (
+        'Join the event',
+        'Ikuti event'),
+    '双排节开启活动获取': (
+        'Obtained from the Duo Festival Opening event',
+        'Didapat dari event Pembukaan Duo Festival'),
+    '双牌别在等待，搭子DD就现在！': (
+        "Don't wait for a duo. Find your buddy now!",
+        'Jangan tunggu lagi. Cari partner main sekarang!'),
+    '双牌节': (
+        'Duo Festival',
+        'Duo Festival'),
+    '双牌节 组排不掉分': (
+        'Duo Festival: Team Rank Point Protection',
+        'Duo Festival: Perlindungan Poin Rank Tim'),
+    '双牌节-组队不掉分': (
+        'Duo Festival: Team Rank Point Protection',
+        'Duo Festival: Perlindungan Poin Rank Tim'),
+    '双牌节开启': (
+        'Duo Festival Begins',
+        'Duo Festival Dimulai'),
+    '双牌节开启活动奖励': (
+        'Duo Festival Opening Event Reward',
+        'Hadiah Event Pembukaan Duo Festival'),
+    '双牌节开启活动获取': (
+        'Obtained from the Duo Festival Opening event',
+        'Didapat dari event Pembukaan Duo Festival'),
+    '双牌节活动获取': (
+        'Obtained from the Duo Festival event',
+        'Didapat dari event Duo Festival'),
+    '双牌节语音礼包': (
+        'Duo Festival Voice Pack',
+        'Voice Pack Duo Festival'),
+    '取消加入': (
+        'Cancel Joining',
+        'Batalkan Bergabung'),
+    '只能获得<color=#99DEB0>1-3阶</color>英雄卡；该类英雄最大生命值<color=#99DEB0>+20%</color>、物理攻击力<color=#99DEB0>+30%</color>、法力值上限<color=#99DEB0>-5</color>。回合开始时，场上英雄等级<color=#99DEB0>+28</color>，等级上限突破至<color=#99DEB0>6666</color>。': (
+        'You can only gain <color=#99DEB0>Tier 1-3</color> Hero Cards. These Heroes gain <color=#99DEB0>+20%</color> Max HP, <color=#99DEB0>+30%</color> Physical Attack, and <color=#99DEB0>-5</color> Max Mana. At the start of each Round, Heroes on the board gain <color=#99DEB0>+28</color> Levels; their Level cap increases to <color=#99DEB0>6666</color>.',
+        'Kamu hanya bisa mendapat Hero Card <color=#99DEB0>Tier 1-3</color>. Hero ini mendapat <color=#99DEB0>+20%</color> Max HP, <color=#99DEB0>+30%</color> Physical Attack, dan <color=#99DEB0>-5</color> Max Mana. Di awal setiap Ronde, Hero di papan mendapat <color=#99DEB0>+28</color> Level; batas Level naik menjadi <color=#99DEB0>6666</color>.'),
+    '可以和你一起牌吗': (
+        'Can I play cards with you?',
+        'Boleh main kartu bersamamu?'),
+    '可获得【嗷呜~】、【别抢我搭子的牌】、【牌搭子，锁一个】、【搭子你这波稳了】4种语音包的30天体验卡。': (
+        "Grants 30-day trial cards for 4 Voice Packs: [Awoo~], [Don't Take My Buddy's Cards], [Lock It In, Buddy], and [You've Got This, Buddy].",
+        'Memberi kartu uji coba 30 hari untuk 4 Voice Pack: [Awoo~], [Jangan Ambil Kartu Partnerku], [Kunci Pilihanmu, Partner], dan [Kamu Pasti Bisa, Partner].'),
+    '启动资金': (
+        'Starting Funds',
+        'Modal Awal'),
+    '哪位姑娘公子愿意与我双牌？': (
+        'Who would like to be my card partner?',
+        'Siapa yang mau jadi partner main kartuku?'),
+    '喵呜头像': (
+        'Meow Avatar',
+        'Avatar Meong'),
+    '嗷呜~': (
+        'Awoo~',
+        'Awoo~'),
+    '嗷呜~嗷呜~': (
+        'Awoo~ Awoo~',
+        'Awoo~ Awoo~'),
+    '嗷呜头像': (
+        'Awoo Avatar',
+        'Avatar Awoo'),
+    '回合开始时，第一排每有<color=#99DEB0>1名</color>英雄，所有英雄等级<color=#99DEB0>+4</color>；最后一排每有<color=#99DEB0>1名</color>英雄，所有英雄等级<color=#99DEB0>+3</color>。': (
+        'At the start of each Round, all Heroes gain <color=#99DEB0>+4</color> Levels for every <color=#99DEB0>1 Hero</color> in the front row, and <color=#99DEB0>+3</color> Levels for every <color=#99DEB0>1 Hero</color> in the back row.',
+        'Di awal setiap Ronde, semua Hero mendapat <color=#99DEB0>+4</color> Level untuk setiap <color=#99DEB0>1 Hero</color> di baris depan, dan <color=#99DEB0>+3</color> Level untuk setiap <color=#99DEB0>1 Hero</color> di baris belakang.'),
+    '回合开始时，随机获得<color=#99DEB0>1张</color>高阶战术牌。\n你的【逐鹿】英雄最大生命值<color=#99DEB0>+5%</color>、物理及法术防御<color=#99DEB0>+5</color>。\n【逐鹿】英雄≥<color=#99DEB0>5名</color>时：【逐鹿】英雄释放技能时，己方所有英雄获得巨盾：物理及法术防御<color=#99DEB0>+1</color>，上限<color=#99DEB0>8层</color>。\n【逐鹿】英雄≥<color=#99DEB0>7名</color>时：获得<color=#99DEB0>1张</color>装备牌【机关匣】以及<color=#99DEB0>1张</color>【珍品宝箱】。': (
+        'At the start of each Round, gain <color=#99DEB0>1</color> random high-tier Tactic Card.\nYour [Zhulu Plateau] Heroes gain <color=#99DEB0>+5%</color> Max HP and <color=#99DEB0>+5</color> Physical and Magic Defense.\nWith ≥<color=#99DEB0>5</color> [Zhulu Plateau] Heroes: when a [Zhulu Plateau] Hero casts a Skill, all allied Heroes gain Great Shield: <color=#99DEB0>+1</color> Physical and Magic Defense, up to <color=#99DEB0>8 stacks</color>.\nWith ≥<color=#99DEB0>7</color> [Zhulu Plateau] Heroes: gain <color=#99DEB0>1</color> [Mechanism Box] Equipment Card and <color=#99DEB0>1</color> [Treasure Chest].',
+        'Di awal setiap Ronde, dapatkan <color=#99DEB0>1</color> Tactic Card tier tinggi secara acak.\nHero [Zhulu Plateau] milikmu mendapat <color=#99DEB0>+5%</color> Max HP serta <color=#99DEB0>+5</color> Physical dan Magic Defense.\nDengan ≥<color=#99DEB0>5</color> Hero [Zhulu Plateau]: saat Hero [Zhulu Plateau] menggunakan Skill, semua Hero ally mendapat Great Shield: <color=#99DEB0>+1</color> Physical dan Magic Defense, maksimal <color=#99DEB0>8 stack</color>.\nDengan ≥<color=#99DEB0>7</color> Hero [Zhulu Plateau]: dapatkan <color=#99DEB0>1</color> Equipment Card [Kotak Mekanisme] serta <color=#99DEB0>1</color> [Treasure Chest].'),
+    '在万象大赛排位赛中，在每场比赛都是组队行为的情况下登上最强王者段位': (
+        'Reach Honor rank in ACE Tournament Ranked while playing every match in a team',
+        'Capai rank Honor di ACE Tournament Ranked dengan bermain dalam tim di setiap pertandingan'),
+    '增加值': (
+        'Increase',
+        'Peningkatan'),
+    '备战阶段，<color=#FFE897>所有友方英雄</color>获得回合数*2的等级。': (
+        'During preparation, <color=#FFE897>all allied Heroes</color> gain Levels equal to the Round number * 2.',
+        'Saat persiapan, <color=#FFE897>semua Hero ally</color> mendapat Level sebesar nomor Ronde * 2.'),
+    '天赋异禀': (
+        'Natural Talent',
+        'Bakat Alami'),
+    '孙膑·强化': (
+        'Sun Bin: Enhanced',
+        'Sun Bin: Diperkuat'),
+    '对于小园丁来说，银杏是不会凋谢的。': (
+        'To the little gardener, ginkgo never withers.',
+        'Bagi si tukang kebun kecil, ginkgo tak pernah layu.'),
+    '巅峰竞技·登临绝顶': (
+        'Peak Competition: Reach the Summit',
+        'Kompetisi Puncak: Raih Puncaknya'),
+    '已满减50点券': (
+        '50-Coupon Discount Applied',
+        'Diskon 50 Kupon Diterapkan'),
+    '开战时，乔汐随机传送的英雄上场了。': (
+        "At the start of battle, Qiao Xi's randomly teleported Hero enters the field.",
+        'Di awal pertempuran, Hero yang diteleportasi secara acak oleh Qiao Xi masuk ke medan pertempuran.'),
+    '当前与<color=#98CBFF>{0}</color>的亲密度不足<color=#98CBFF>{1}</color>点(当前<color=#98CBFF>{2}</color>)，无法完成索要，是否快速提升亲密度？': (
+        'Your Intimacy with <color=#98CBFF>{0}</color> is below <color=#98CBFF>{1}</color> (currently <color=#98CBFF>{2}</color>), so you cannot request this gift. Quickly increase Intimacy?',
+        'Intimacy dengan <color=#98CBFF>{0}</color> kurang dari <color=#98CBFF>{1}</color> (saat ini <color=#98CBFF>{2}</color>), jadi kamu tidak bisa meminta hadiah ini. Tingkatkan Intimacy sekarang?'),
+    '当前与<color=#98CBFF>{0}</color>的亲密度不足<color=#98CBFF>{1}</color>点(当前<color=#98CBFF>{2}</color>)，无法完成赠送，是否快速提升亲密度？': (
+        'Your Intimacy with <color=#98CBFF>{0}</color> is below <color=#98CBFF>{1}</color> (currently <color=#98CBFF>{2}</color>), so you cannot send this gift. Quickly increase Intimacy?',
+        'Intimacy dengan <color=#98CBFF>{0}</color> kurang dari <color=#98CBFF>{1}</color> (saat ini <color=#98CBFF>{2}</color>), jadi kamu tidak bisa mengirim hadiah ini. Tingkatkan Intimacy sekarang?'),
+    '当前祈愿活动已暂时下架，将为您进入其他祈愿活动': (
+        'This Wish event is temporarily unavailable. Opening another Wish event.',
+        'Event Wish ini sementara tidak tersedia. Membuka event Wish lainnya.'),
+    '快速提升': (
+        'Quick Boost',
+        'Tingkatkan Sekarang'),
+    '战斗2倍速播放，速战速决！': (
+        'Battle at 2x speed for a quick showdown!',
+        'Bertempur dengan kecepatan 2x untuk duel singkat!'),
+    '战斗开始时，<color=#FFE897>觉醒英雄</color>随机获得1件适配的临时天赋装备。': (
+        'At the start of battle, <color=#FFE897>Awakened Heroes</color> each gain 1 random suitable temporary Talent Equipment.',
+        'Di awal pertempuran, <color=#FFE897>Hero yang sudah Awaken</color> masing-masing mendapat 1 Talent Equipment sementara yang cocok secara acak.'),
+    '战斗开始时，召唤1名<color=#FFE897>回合数*10等级</color>的满装备英雄助战。': (
+        'At the start of battle, Summon 1 fully equipped Hero with <color=#FFE897>Level equal to the Round number * 10</color> to assist.',
+        'Di awal pertempuran, Summon 1 Hero dengan Equipment lengkap dan <color=#FFE897>Level sebesar nomor Ronde * 10</color> untuk membantu.'),
+    '打出战术牌时，己方全体英雄等级 <color=#99DEB0>+7</color>。你获取的所有战术牌变为增强版。': (
+        'When you play a Tactic Card, all allied Heroes gain <color=#99DEB0>+7</color> Levels. All Tactic Cards you gain become Enhanced versions.',
+        'Saat memainkan Tactic Card, semua Hero ally mendapat <color=#99DEB0>+7</color> Level. Semua Tactic Card yang kamu dapat menjadi versi Enhanced.'),
+    '打出战术牌时，己方全体英雄等级 <color=#99DEB0>+7</color>。你获取的所有战术牌变为超·增强版。': (
+        'When you play a Tactic Card, all allied Heroes gain <color=#99DEB0>+7</color> Levels. All Tactic Cards you gain become Super Enhanced versions.',
+        'Saat memainkan Tactic Card, semua Hero ally mendapat <color=#99DEB0>+7</color> Level. Semua Tactic Card yang kamu dapat menjadi versi Super Enhanced.'),
+    '提升亲密度': (
+        'Increase Intimacy',
+        'Tingkatkan Intimacy'),
+    '搭子DD': (
+        'Buddy Wanted',
+        'Cari Partner'),
+    '搭子DD，双牌节组队不掉分': (
+        'Buddy wanted: Duo Festival team rank point protection',
+        'Cari partner: perlindungan poin rank tim Duo Festival'),
+    '搭子你这波稳了。': (
+        "You've got this, buddy.",
+        'Kamu pasti bisa, partner.'),
+    '效果锦囊及商店中，均有概率出现6阶效果牌！商店还可以刷新出特殊装备。': (
+        'Tier 6 Effect Cards can appear in both Effect Pouches and the Shop! Special Equipment can also appear when refreshing the Shop.',
+        'Effect Card Tier 6 bisa muncul di Effect Pouch maupun Shop! Special Equipment juga bisa muncul saat me-refresh Shop.'),
+    '星海奇遇7天限时卡': (
+        'Starry Sea Adventure 7-Day Trial Card',
+        'Kartu Uji Coba 7 Hari Starry Sea Adventure'),
+    '是否使用背包中的亲密度道具，向<color=#98CBFF>{0}</color>赠送并提升亲密度<color=#98CBFF>{1}</color>点？': (
+        'Use Intimacy items from your Backpack to send a gift to <color=#98CBFF>{0}</color> and increase Intimacy by <color=#98CBFF>{1}</color>?',
+        'Gunakan item Intimacy dari Backpack sebagai hadiah untuk <color=#98CBFF>{0}</color> dan tingkatkan Intimacy sebesar <color=#98CBFF>{1}</color>?'),
+    '是否授权《王者万象棋》绑定您同平台的《王者荣耀》账号，获取账号信息以提供更好的游戏体验。\n授权内容：将《王者荣耀》好友关系与好友亲密度继承至《王者万象棋》。\n<color=#98CBFFFF>特别声明：亲密度仅首次授权时进行同步，后续不会再同步；王者荣耀内的亲密度数值变化将在次日内同步（不同账号同步时间存在延迟）；当前QQ好友与微信好友之间的亲密度无法继承。</color>': (
+        'Authorize HOK ACE to link your Honor of Kings account on the same platform and access account information for a better game experience?\nAuthorization: transfer your Honor of Kings friendships and friend Intimacy to HOK ACE.\n<color=#98CBFFFF>Notice: Intimacy is synced only on first authorization and will not be synced again afterward; changes to Intimacy in Honor of Kings will sync by the following day (sync times vary by account). Intimacy between QQ and WeChat friends cannot currently be transferred.</color>',
+        'Izinkan HOK ACE menautkan akun Honor of Kings di platform yang sama dan mengakses informasi akun untuk pengalaman bermain yang lebih baik?\nCakupan izin: memindahkan hubungan pertemanan dan Intimacy teman dari Honor of Kings ke HOK ACE.\n<color=#98CBFFFF>Perhatian: Intimacy hanya disinkronkan saat pemberian izin pertama dan tidak disinkronkan lagi setelahnya; perubahan Intimacy di Honor of Kings akan disinkronkan paling lambat keesokan harinya (waktu sinkronisasi berbeda antar akun). Intimacy antara teman QQ dan WeChat saat ini tidak dapat dipindahkan.</color>'),
+    '是否申请加入{0}战队？': (
+        'Apply to join Team {0}?',
+        'Ajukan permohonan bergabung ke Tim {0}?'),
+    '是否花费<color=#98CBFF>{0}</color>购买亲密度道具，向<color=#98CBFF>{1}</color>赠送并提升亲密度<color=#98CBFF>{2}</color>点？': (
+        'Spend <color=#98CBFF>{0}</color> to buy Intimacy items as a gift for <color=#98CBFF>{1}</color> and increase Intimacy by <color=#98CBFF>{2}</color>?',
+        'Gunakan <color=#98CBFF>{0}</color> untuk membeli item Intimacy sebagai hadiah bagi <color=#98CBFF>{1}</color> dan tingkatkan Intimacy sebesar <color=#98CBFF>{2}</color>?'),
+    '暂无超级周末特权': (
+        'No Super Weekend Perks Available',
+        'Keuntungan Super Weekend Belum Tersedia'),
+    '暂未选中足够的亲密度道具': (
+        'Not enough Intimacy items selected',
+        'Item Intimacy yang dipilih belum cukup'),
+    '有人和我一起牌吗？': (
+        'Anyone want to play cards with me?',
+        'Ada yang mau main kartu bersamaku?'),
+    '期间超级周末系列特权开启': (
+        'Super Weekend perks are active during this period',
+        'Keuntungan Super Weekend aktif selama periode ini'),
+    '本局判定为消极比赛': (
+        'This match was flagged for passive play',
+        'Pertandingan ini ditandai karena bermain pasif'),
+    '本期主题：': (
+        'Current Theme:',
+        'Tema Saat Ini:'),
+    '李元芳·强化': (
+        'Fang: Enhanced',
+        'Fang: Diperkuat'),
+    '李元芳的词条效果会对距离最近的1名【河洛】英雄额外使用1次古币。': (
+        "Fang's trait uses an Ancient Coin on the nearest [Central Plains] Hero 1 extra time.",
+        'Efek trait Fang menggunakan Ancient Coin pada Hero [Central Plains] terdekat 1 kali lagi.'),
+    '杏翼乘风': (
+        'Ginkgo Wings on the Wind',
+        'Sayap Ginkgo Terbawa Angin'),
+    '杏翼乘风7天限时卡': (
+        'Ginkgo Wings on the Wind 7-Day Trial Card',
+        'Kartu Uji Coba 7 Hari Sayap Ginkgo Terbawa Angin'),
+    '杏翼乘风名片': (
+        'Ginkgo Wings on the Wind Profile Card',
+        'Kartu Profil Sayap Ginkgo Terbawa Angin'),
+    '检测到您本场对局存在消极行为，本场对局得分失效。': (
+        'Passive play was detected in this match. Your score for this match is invalid.',
+        'Permainan pasif terdeteksi dalam pertandingan ini. Skor pertandinganmu tidak berlaku.'),
+    '棋手升至5级时，获得1张天赋卡<color=#FFE897>黄金年代</color>：打出后，使场上所有不满66级的英雄升至66级。': (
+        'When your Chessplayer reaches Level 5, gain the Talent Card <color=#FFE897>Golden Age</color>: play it to raise all Heroes on the board below Level 66 to Level 66.',
+        'Saat Chessplayer mencapai Level 5, dapatkan Talent Card <color=#FFE897>Golden Age</color>: mainkan untuk menaikkan semua Hero di papan yang belum Level 66 ke Level 66.'),
+    '棋手竞猜奖励领取': (
+        'Claim Chessplayer Prediction Rewards',
+        'Ambil Hadiah Prediksi Chessplayer'),
+    '棋手竞猜指引奖励领取': (
+        'Claim Chessplayer Prediction Guide Rewards',
+        'Ambil Hadiah Panduan Prediksi Chessplayer'),
+    '棋手竞猜点赞': (
+        'Like a Chessplayer Prediction',
+        'Sukai Prediksi Chessplayer'),
+    '棋手竞猜购票': (
+        'Buy Chessplayer Prediction Tickets',
+        'Beli Tiket Prediksi Chessplayer'),
+    '正在获取数据': (
+        'Fetching data',
+        'Mengambil data'),
+    '每回合<color=#FFE897>随机1名场上英雄</color>觉醒进度+1。': (
+        'Each Round, <color=#FFE897>1 random Hero on the board</color> gains +1 Awaken Progress.',
+        'Setiap Ronde, <color=#FFE897>1 Hero acak di papan</color> mendapat +1 Awaken Progress.'),
+    '每回合自动获得6点棋手经验，但无法主动升级棋手。': (
+        'Automatically gain 6 Chessplayer EXP each Round, but you cannot manually level up your Chessplayer.',
+        'Otomatis mendapat 6 Chessplayer EXP setiap Ronde, tetapi kamu tidak bisa menaikkan Level Chessplayer secara manual.'),
+    '汪叽头像': (
+        'Puppy Avatar',
+        'Avatar Anak Anjing'),
+    '没有拍卖回合，备战时间加速，一局大概10分钟！': (
+        'No Auction rounds and faster preparation. Each match takes about 10 minutes!',
+        'Tanpa Ronde Lelang dan persiapan lebih cepat. Satu pertandingan sekitar 10 menit!'),
+    '消极对局提醒': (
+        'Passive Play Warning',
+        'Peringatan Bermain Pasif'),
+    '消极比赛': (
+        'Passive Play',
+        'Bermain Pasif'),
+    '游戏开始时随机获得1个<color=#FFE897>铜阶天赋</color>。': (
+        'At the start of the match, gain 1 random <color=#FFE897>Bronze Talent</color>.',
+        'Di awal pertandingan, dapatkan 1 <color=#FFE897>Bronze Talent</color> secara acak.'),
+    '游戏开始时随机获得1件<color=#FFE897>特殊装备</color>。': (
+        'At the start of the match, gain 1 random <color=#FFE897>Special Equipment</color>.',
+        'Di awal pertandingan, dapatkan 1 <color=#FFE897>Special Equipment</color> secara acak.'),
+    '游戏开始时随机获得3张<color=#FFE897>2-3阶英雄牌</color>。': (
+        'At the start of the match, gain 3 random <color=#FFE897>Tier 2-3 Hero Cards</color>.',
+        'Di awal pertandingan, dapatkan 3 <color=#FFE897>Hero Card Tier 2-3</color> secara acak.'),
+    '游戏开始时，额外获得<color=#FFE897>10点能量</color>。': (
+        'At the start of the match, gain an extra <color=#FFE897>10 Energy</color>.',
+        'Di awal pertandingan, dapatkan tambahan <color=#FFE897>10 Energy</color>.'),
+    '牌搭子强无敌！': (
+        'My card buddy is unbeatable!',
+        'Partner kartuku tak terkalahkan!'),
+    '牌搭子，锁一个！': (
+        'Lock it in, buddy!',
+        'Kunci pilihanmu, partner!'),
+    '特权)': (
+        'Perk)',
+        'Keuntungan)'),
+    '确定加入': (
+        'Confirm Joining',
+        'Konfirmasi Bergabung'),
+    '神装开局': (
+        'Fully Equipped Start',
+        'Mulai dengan Equipment Lengkap'),
+    '立刻在<color=#FFE897>嬴政和武则天中随机一人</color>，下场战斗开始时使其吸收<color=#FFE897>其他友军</color>的等级、初始法力值、双攻和双抗（双抗最多吸收100点）。': (
+        'Immediately pick <color=#FFE897>Ying Zheng or Wu Zetian at random</color>. At the start of the next battle, they absorb the Levels, starting Mana, Physical and Magic Attack, and Physical and Magic Defense of <color=#FFE897>other allies</color> (up to 100 of each Defense).',
+        'Segera pilih <color=#FFE897>Ying Zheng atau Wu Zetian secara acak</color>. Di awal pertempuran berikutnya, Hero itu menyerap Level, Mana awal, Physical dan Magic Attack, serta Physical dan Magic Defense dari <color=#FFE897>ally lainnya</color> (maksimal 100 untuk setiap Defense).'),
+    '立即获得<color=#99DEB0>1张强·逐鹿援兵</color>。回合开始时，获得<color=#99DEB0>2张强·逐鹿援兵</color>：卡牌<color=#99DEB0>5选2</color>（【逐鹿】英雄牌）。': (
+        'Immediately gain <color=#99DEB0>1 Strong: Zhulu Plateau Reinforcements</color>. At the start of each Round, gain <color=#99DEB0>2 Strong: Zhulu Plateau Reinforcements</color>: choose <color=#99DEB0>2 of 5</color> cards ([Zhulu Plateau] Hero Cards).',
+        'Langsung dapatkan <color=#99DEB0>1 Strong: Zhulu Plateau Reinforcements</color>. Di awal setiap Ronde, dapatkan <color=#99DEB0>2 Strong: Zhulu Plateau Reinforcements</color>: pilih <color=#99DEB0>2 dari 5</color> kartu (Hero Card [Zhulu Plateau]).'),
+    '立即获得<color=#99DEB0>2张强·逐鹿援兵</color>。回合开始时，获得<color=#99DEB0>1张强·逐鹿援兵</color>：卡牌<color=#99DEB0>5选2</color>（【逐鹿】英雄牌）。': (
+        'Immediately gain <color=#99DEB0>2 Strong: Zhulu Plateau Reinforcements</color>. At the start of each Round, gain <color=#99DEB0>1 Strong: Zhulu Plateau Reinforcements</color>: choose <color=#99DEB0>2 of 5</color> cards ([Zhulu Plateau] Hero Cards).',
+        'Langsung dapatkan <color=#99DEB0>2 Strong: Zhulu Plateau Reinforcements</color>. Di awal setiap Ronde, dapatkan <color=#99DEB0>1 Strong: Zhulu Plateau Reinforcements</color>: pilih <color=#99DEB0>2 dari 5</color> kartu (Hero Card [Zhulu Plateau]).'),
+    '立即获得<color=#99DEB0>2张照影</color>，回合开始时，每有<color=#99DEB0>1个</color>阵营，获得<color=#99DEB0>1张照影</color>。': (
+        'Immediately gain <color=#99DEB0>2 Shadow Projections</color>. At the start of each Round, gain <color=#99DEB0>1 Shadow Projection</color> for each <color=#99DEB0>1</color> Faction you have.',
+        'Langsung dapatkan <color=#99DEB0>2 Shadow Projection</color>. Di awal setiap Ronde, dapatkan <color=#99DEB0>1 Shadow Projection</color> untuk setiap <color=#99DEB0>1</color> Faction yang kamu miliki.'),
+    '等级浪潮': (
+        'Level Surge',
+        'Gelombang Level'),
+    '系统监测到您在{0}开启的对局中存在异常行为，本场对局得分失效。': (
+        'Abnormal behavior was detected in the match you started at {0}. Your score for this match is invalid.',
+        'Perilaku tidak wajar terdeteksi dalam pertandingan yang kamu mulai pada {0}. Skor pertandinganmu tidak berlaku.'),
+    '组队完成1局万象大赛': (
+        'Complete 1 ACE Tournament match in a team',
+        'Selesaikan 1 pertandingan ACE Tournament dalam tim'),
+    '组队完成3局万象大赛': (
+        'Complete 3 ACE Tournament matches in a team',
+        'Selesaikan 3 pertandingan ACE Tournament dalam tim'),
+    '组队完成5局万象大赛': (
+        'Complete 5 ACE Tournament matches in a team',
+        'Selesaikan 5 pertandingan ACE Tournament dalam tim'),
+    '群 狼': (
+        'Wolf Pack',
+        'Wolf Pack'),
+    '群狼': (
+        'Wolf Pack',
+        'Wolf Pack'),
+    '获得1张嬴政和1张武则天。备战开始时，若<color=#FFE897>嬴政和武则天同时在场</color>，二选一<color=#FFE897>统治方案</color>，每种方案选择后会得到强化。': (
+        'Gain 1 Ying Zheng and 1 Wu Zetian. At the start of preparation, if <color=#FFE897>both Ying Zheng and Wu Zetian are on the board</color>, choose 1 of 2 <color=#FFE897>Rule Plans</color>. Each plan is strengthened after being chosen.',
+        'Dapatkan 1 Ying Zheng dan 1 Wu Zetian. Di awal persiapan, jika <color=#FFE897>Ying Zheng dan Wu Zetian sama-sama di papan</color>, pilih 1 dari 2 <color=#FFE897>Rencana Kekuasaan</color>. Setiap rencana diperkuat setelah dipilih.'),
+    '获得【别抢我搭子的牌！】30天限时体验。': (
+        "Grants a 30-day trial of [Don't Take My Buddy's Cards!].",
+        'Memberi uji coba 30 hari [Jangan Ambil Kartu Partnerku!].'),
+    '获得【嗷呜~】30天限时体验。': (
+        'Grants a 30-day trial of [Awoo~].',
+        'Memberi uji coba 30 hari [Awoo~].'),
+    '获得【搭子你这波稳了。】30天限时体验。': (
+        "Grants a 30-day trial of [You've Got This, Buddy.].",
+        'Memberi uji coba 30 hari [Kamu Pasti Bisa, Partner.].'),
+    '获得【牌搭子强无敌！】30天限时体验。': (
+        'Grants a 30-day trial of [Unbeatable Card Buddy!].',
+        'Memberi uji coba 30 hari [Partner Kartu Tak Terkalahkan!].'),
+    '获得【牌搭子，锁一个！】30天限时体验。': (
+        'Grants a 30-day trial of [Lock It In, Buddy!].',
+        'Memberi uji coba 30 hari [Kunci Pilihanmu, Partner!].'),
+    '获得皮肤【星海奇遇】7天限时体验。': (
+        'Grants a 7-day trial of the [Starry Sea Adventure] Skin.',
+        'Memberi uji coba 7 hari Skin [Starry Sea Adventure].'),
+    '获得皮肤【杏翼乘风】7天限时体验。': (
+        'Grants a 7-day trial of the [Ginkgo Wings on the Wind] Skin.',
+        'Memberi uji coba 7 hari Skin [Sayap Ginkgo Terbawa Angin].'),
+    '觉醒大军': (
+        'Awakened Army',
+        'Pasukan Awaken'),
+    '觉醒馈赠': (
+        'Awakening Gift',
+        'Hadiah Awaken'),
+    '购买并赠送': (
+        'Buy and Gift',
+        'Beli dan Hadiahkan'),
+    '超级周末开启！活动期间参与排位，专属特权助你上分！': (
+        'Super Weekend is here! Play Ranked during the event and climb with exclusive perks!',
+        'Super Weekend tiba! Main Ranked selama event dan naikkan rank dengan keuntungan eksklusif!'),
+    '超级周末活动开启': (
+        'Super Weekend Event Begins',
+        'Event Super Weekend Dimulai'),
+    '超级周末，特权开启！': (
+        'Super Weekend Perks Are Here!',
+        'Keuntungan Super Weekend Tiba!'),
+    '邀请你的专属好搭子组队解锁:': (
+        'Invite your special buddy to team up and unlock:',
+        'Ajak partner andalanmu bermain tim untuk membuka:'),
+    '领航员': (
+        'Navigator',
+        'Navigator'),
+    '风一来，满树的叶子就都成了翅膀——\n秋天不是结束，是它们一年一次的远行。': (
+        'When the wind comes, every leaf on the tree becomes a wing—\nAutumn is no ending, but their yearly journey afar.',
+        'Saat angin datang, setiap daun di pohon menjelma sayap—\nMusim gugur bukan akhir, melainkan perjalanan jauh tahunan mereka.'),
+    '黄金年代': (
+        'Golden Age',
+        'Golden Age'),
 
 }
 

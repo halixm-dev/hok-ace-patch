@@ -562,3 +562,23 @@ output folder. These corrected results use empty generated output folders and in
 directly. They do not claim a complete translation. No catalog table or config-bin permission was added.
 Screen acceptance on 1.9.0.1 remains pending. See [the feature record](features/data-1.9.0.1.md) and the
 dated lab evidence.
+
+## 2026-11-12: game data 1.10.0.1
+
+The saved phone snapshot and cached APK census find 158 missing sources in 929 rows across 44
+catalogued override tables, identical in English and Indonesian. Both languages now receive those
+supplement entries. The supplement log rises from 2529 to 2687 strings.
+
+| Package-1 offline result | English | Indonesian |
+|---|---:|---:|
+| Newly translated sources | 158 | 158 |
+| New rows verified in actual staged bytes | 929 | 929 |
+| New rows remaining Chinese | 0 | 0 |
+| Override text tables staged (96 in place + 11 relocated) | 107 | 107 |
+| Unknown rows in the override staging scan | 0 | 0 |
+
+Initial census: 107 override + 391 prime-only readable catalogued tables. The allowed Official
+recommendation lineups have no missing translations; the existing ambiguous table stays refused.
+Staging checks use package `1` only, without the APK, and do not change the full-install or texture
+counts above. No phone files were written; screen acceptance remains pending.
+See [the feature record](features/data-1.10.0.1.md) and the dated lab evidence.
