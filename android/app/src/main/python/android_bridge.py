@@ -592,7 +592,9 @@ def _inspect_graphics_packages(engine: Path, session: Path, keep: Path, manifest
         return {}
     install_btree_slot_map()
     packages = session / "snapshot" / "packages"
-    names = {name.split("/")[1] for name in manifest["files"] if name.startswith("packages/")}
+    # `packages/builtin/Globalindex/` is the game's global index, not a package (Redmi 2312DRA50G, 2026-11-13).
+    names = {part for name in manifest["files"] if name.startswith("packages/")
+             and (part := name.split("/")[1]).isascii() and part.isdecimal()}
     delta = None
     delta_loaded = False
     refused = {}
