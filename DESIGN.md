@@ -146,6 +146,8 @@ Top to bottom:
      patcher or an older version translated. It never opens with the data-clearing instruction.
    - Remove translation shows only while a pristine delta is kept (Windows: in its working folder).
    - The choices and Remove translation lock together while work runs, in the disabled colours.
+     While unfinished work waits for recovery they stay locked, with one note saying the
+     recovery action on Start comes first.
 3. **② Shell provider** (Android only) — a card with, in order: the eyebrow `02  /  SHELL PROVIDER`,
    the title, one supporting line, the three choices (Shizuku, then Wireless debugging and Root,
    each with a `·  Beta` tag while in early testing), then the chosen provider's numbered guide, one
@@ -154,16 +156,27 @@ Top to bottom:
    so its Start card stays ②.
 4. **③ Start** (② on Windows) — a card with the single Start button. It rewrites itself in place for each state:
    - **Idle** and **not ready**: the Start button, with the blocker as the next step when there is one.
+     The idle instruction says, before Start, to finish every in-game download and close the game;
+     no checkbox or dialog follows Start.
+   - **Recovery needs attention**: unfinished work is saved, so the button becomes that work's
+     specific recovery action (*Continue saved work*, *Finish stopping safely*, *Restore interrupted
+     patch*, *Restore the game app*, *Check saved work* …) and never starts a fresh patch. Where
+     the action cannot be named the button opens the recovery options. *Save log for help* stays a
+     separate, secondary action.
    - **Work stopped**: while the warning card offers recovery, the button opens it (*Open recovery
      options*) instead of offering *Try again* against the card's "Use recovery first". With no
      recovery to offer it reads *Try again*.
-   - **Running**: a bar and one line, `Step N of M · <step>`, in place of the button.
+   - **Running**: a bar and one line, `Step N of M · <step>`, in place of the button. The heading
+     names the continuation state: *Working*, *Continuing*, *Stopping safely*, *Restoring* or
+     *Waiting for you* (a game download or a consent the run needs).
    - **Result**: a heading, one summary line, the run's own counts as a short list and, where the
      translation was added or removed, the Scan to login note. The result states are
      *Translation added*, *Translation removed*, *Translation written* (Android: recovery closed a
-     run whose translation is on the phone, unconfirmed) and *Space freed* (Android). **Android**:
-     a result that leaves the game ready to play (all but *Space freed*) leads with *Open game* as
-     the primary button, with *Start another patch* under it as a secondary button.
+     run whose translation is on the phone, unconfirmed) and *Space freed* (Android). Only a
+     verified result is *Verified complete*; *Translation written* is not. **Android**:
+     a verified result that leaves the game ready to play (*Translation added*, *Translation
+     removed*, *Damaged files deleted*) leads with *Open game* as the primary button, with *Start
+     another patch* under it as a secondary button. *Translation written* and *Space freed* offer Start.
    - **Notice**: one `ink` line under the card's instruction, such as "Access was not allowed. Tap
      Start to try again." A notice that reports a failure leads with a warning disc (`warning` fill,
      `ink` mark, as tall as the text); an informational one has none. It is not a card, and the
@@ -173,8 +186,9 @@ Top to bottom:
    above a shell provider that is not ready (*Install Shizuku*, *Start Shizuku*, *Choose a shell
    provider*), `IN PROGRESS` while running, `DONE` on a result and `NEEDS ATTENTION` on a failure or
    unfinished work. A failure or a provider that is not ready never sits under READY TO PLAY.
-   **Windows** has no shell provider and no recovery, so it uses `02  /` with READY TO PLAY, IN
-   PROGRESS, DONE and NEEDS ATTENTION.
+   **Windows** has no shell provider, so it uses `02  /` with READY TO PLAY, IN PROGRESS, DONE and
+   NEEDS ATTENTION; saved work it finds at launch puts the card under NEEDS ATTENTION with the
+   recovery action, as on Android.
 
    **Windows**: the card opens with the short *Before you start* checklist (idle and failed only),
    then device status and the working folder (with its free space and Change…), above the state and
@@ -209,9 +223,21 @@ button on the right and a secondary Cancel on the left. A danger confirmation (d
 `error` confirm button instead of ice-blue. Consent checkboxes start unchecked.
 
 Remove translation and Free up space confirm with a plain dialog, not a danger one: neither
-deletes the game's data. The Android Remove translation dialog keeps its consent checkbox.
+deletes the game's data. On both patchers Remove translation asks once, at the tap, with no
+checkbox; the run that follows asks nothing more. Patching asks no routine confirmation after
+Start. Consent the run cannot do without (first setup's data loss, the setup downloads checkpoint)
+keeps its dialog and unchecked checkbox.
 Free up space's optional "also remove the saved game apps" checkbox starts unchecked and states the
 space the next patch will need.
+
+Re-download needs no card of its own: the run deletes the damaged files by itself (2026-11-13), and the
+progress line says so. The next card offers **Open game** and **Downloads finished**; the latter
+continues the saved action directly after the user returns. Returning alone never resumes
+translation. Only a package still damaged after its own download in the same run (or a deletion
+interrupted twice) shows **Review Re-download**: for the former, a line saying the game already
+downloaded these files again; then the measured
+file count, size, packages and deletion consequences above **Delete and re-download**. That tap
+approves the displayed scope and starts deletion directly, without a dialog.
 
 **Progress.** The bar's track is `disabled-fill`, its fill `ink`.
 

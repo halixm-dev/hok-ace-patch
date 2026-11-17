@@ -48,7 +48,7 @@ After a game update, run the patcher again. When the update rewrote a translated
 checks that package asset by asset: if none of its translation is left in it, it builds from the
 update's files and keeps a new delta against them. When some of the translation is still in it, the
 Android patcher writes the original bytes of those assets back (asset restore), or, when it cannot,
-offers **Re-download damaged files** for that package (below). A run that cannot rebuild the
+deletes that package so the game downloads it again (Re-download, below). A run that cannot rebuild the
 untranslated files otherwise stops before it writes anything and tells you to clear the game's data:
 when the Windows patcher finds part of the translation left in a file an update changed, when the delta was made by patcher 1.6.1.5 or older (it has
 no asset record), or on a phone another patcher (or a patcher version from before deltas) translated. Then clear the game's data,
@@ -57,10 +57,13 @@ and requires another login.
 
 If the game's own update stops on the translated files ("资源修复失败，请清理资源后重新下载资源"), the
 Android patcher sees it on the next Start or Remove translation: the game lists those files as broken.
-It then offers **Re-download damaged files**, which deletes only the translated packages the game
-listed, the mixed packages it cannot restore (an update rewrote them while some of the translation is
-still in them), and the game's update records. Open the game, let it download them and finish the update to the
-login screen, close it, then tap Start to patch again. No other game data is deleted. The Windows
+Start then deletes, without a review, only the translated packages the game listed, the mixed
+packages it cannot restore (an update rewrote them while some of the translation is still in them),
+any package with a texture slot it can no longer reach, and the game's update records (Re-download).
+Open the game, let it download them and finish the update to the login screen, close it, then return
+and tap **Downloads finished**: the translation continues in the same run. A package still damaged
+after its own download is not deleted again by itself; the patcher shows it for review above
+**Delete and re-download**. No other game data is deleted. The Windows
 patcher does not detect this yet; clear the game's data instead.
 
 Use the APK and game data from the phone's current version. An older staged package can
@@ -161,6 +164,8 @@ There is no general test suite. Choose the check that matches your change:
 | Pristine delta | `.venv\Scripts\python.exe tools\research\check_pristine_delta.py` | Repository only; add `--game <pristine game-dir> --apk <apk> --work <dir>` for the round trip and language switches |
 | Shard B-tree splits | `.venv\Scripts\python.exe tools\research\check_btree_split.py` | Repository only; add `--game <game-dir>` to check every shard of a layer |
 | Repatch without a clear (Windows) | `.venv\Scripts\python.exe tools\research\check_windows_repatch.py` | Repository only |
+| Windows interruption fixtures | `.venv\Scripts\python.exe tools\research\check_windows_recovery.py` | Synthetic private files only; expected failures track known recovery gaps |
+| Baseline/change output controls | `.venv\Scripts\python.exe tools\research\compare_continuation_controls.py --help` | Capture external staging hashes, normalized summary and pristine delta; compare reports made with matching inputs |
 | A change requiring screen verification | [Device cycle](docs/runbooks/device-cycle.md) | Phone and matching game data |
 
 Run both documentation checks after moving or renaming a doc. Offline checks verify file

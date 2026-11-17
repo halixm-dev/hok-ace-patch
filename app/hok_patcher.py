@@ -19,6 +19,7 @@ from patcher_core import (BUNDLE, MIN_FREE_BYTES, STEPS, Adb, PatchError, Patche
                           count_untranslated_graphics, count_untranslated_text, free_space, holds_delta,
                           languages, load_language, load_work_dir, save_language, save_work_dir,
                           set_interface_language, ui_text)
+from patcher_core import NOTHING_TO_RECOVER, discover_pending_runs
 
 APP_TITLE = "HOK ACE Language Patcher"
 VERSION_FILE = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1])) / "VERSION"
@@ -95,6 +96,13 @@ def load_fonts() -> None:
             ctypes.windll.gdi32.AddFontResourceExW(str(path), FR_PRIVATE, 0)
         except (AttributeError, OSError):
             pass  # Tk falls back to the system font
+
+
+def _size(count: int) -> str:
+    """A measured byte count as the player reads it: MB below 1 GB, then GB with one decimal."""
+    if count < 1024**3:
+        return f"{count / 1024**2:.0f} MB"
+    return f"{count / 1024**3:.1f} GB"
 
 
 def _rgb(color: str) -> tuple[int, int, int]:
@@ -274,6 +282,19 @@ class App(ctk.CTk):
             self.iconbitmap(str(icon))
         self.messages: queue.Queue = queue.Queue()
         self.busy = False
+        self.worker_thread: threading.Thread | None = None
+        self.control_threads: list[threading.Thread] = []
+        self.patcher: Patcher | None = None
+        self.closing = False
+        self.stopping = False
+        self.stop_saved = False
+        self.pending_stop = False
+        self.pending_work = False
+        # The durable runs discovery found (`discover_pending_runs`): the attention state's one action reads them.
+        self.pending_runs: list[dict] = []
+        self.run_state: dict = {}
+        self.step_detail = ""
+        self.ui_cancel = threading.Event()
         self.removing = False
         self.work_dir = load_work_dir()
         self.language = load_language()
@@ -309,6 +330,7 @@ class App(ctk.CTk):
         self.show_start()
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.after(100, self.pump)
+        self.after(150, self.discover_saved_work)
 
     # ---------- layout ----------
     def bind_text(self, widget: ctk.CTkBaseClass, text: Callable[[], str]) -> ctk.CTkBaseClass:
@@ -398,7 +420,8 @@ class App(ctk.CTk):
         self.result_note = self.label(card, "body")
         self.place(self.result_note, 7, top=SPACE["xs"])
 
-        self.button = _make_button(card, "primary", self.start)
+        # One primary button: Start, or the one recovery action while saved work is unresolved.
+        self.button = _make_button(card, "primary", self.main_action)
         self.place(self.button, 8, top=SPACE["md"], bottom=CARD_PAD)
         # Running: the bar and "Step N of M · <step>" take the button's place.
         self.progress_view = ctk.CTkFrame(card, fg_color="transparent")
@@ -408,6 +431,11 @@ class App(ctk.CTk):
         self.progress.grid(row=0, column=0, sticky="ew")
         self.step_line = self.label(self.progress_view, "button")
         self.step_line.grid(row=1, column=0, sticky="ew", pady=(SPACE["xs"], 0))
+        self.operation_line = self.label(self.progress_view, "body", color=MUTED, wraplength=COLUMN - 80)
+        self.operation_line.grid(row=2, column=0, sticky="ew", pady=(SPACE["xs"], 0))
+        self.stop_button = _make_button(self.progress_view, "secondary", self.stop_safely,
+                                       text=ui_text("stop_safely"))
+        self.stop_button.grid(row=3, column=0, sticky="ew", pady=(SPACE["md"], 0))
         self.place(self.progress_view, 9, top=SPACE["md"], bottom=CARD_PAD)
 
     def _build_error(self) -> None:
@@ -440,7 +468,10 @@ class App(ctk.CTk):
     def show_language_card(self) -> None:
         """The note and Remove translation, from whether this folder keeps the phone's pristine delta."""
         held = holds_delta(self.work_dir)
-        self.language_note.configure(text=ui_text("language_note_no_clear" if held else "language_note_clear_first"))
+        note = "language_note_no_clear" if held else "language_note_clear_first"
+        # Saved unfinished work keeps its language until it finishes or Stop safely resolves it.
+        self.language_note.configure(text=ui_text("choices_locked") if self.pending_work and not self.busy
+                                     else ui_text(note))
         if held:
             self.remove_button.grid()
         else:
@@ -448,13 +479,15 @@ class App(ctk.CTk):
         # A run reads the language once at its start, so the choices and Remove translation lock while it runs.
         for code, button in self.choices.items():
             chosen = code == self.language
-            _style_button(button, "primary" if chosen else "secondary", not self.busy)
-            if self.busy and chosen:
+            _style_button(button, "primary" if chosen else "secondary", not self.busy and not self.pending_work)
+            if (self.busy or self.pending_work) and chosen:
                 button.configure(border_color=DISABLED_TEXT)
-        _style_button(self.remove_button, "secondary", not self.busy)
+        _style_button(self.remove_button, "secondary", not self.busy and not self.pending_work)
 
     def choose_language(self, code: str) -> None:
         if self.busy or code == self.language:
+            return
+        if self.busy or not self.settings_available():
             return
         self.language = code
         save_language(code)
@@ -488,13 +521,40 @@ class App(ctk.CTk):
                                    text_color=ERROR if self.blocker else MUTED)
 
     def show_start(self) -> None:
-        """Rewrite ② in place for the current state: idle, running, a result or failed."""
+        """Rewrite ② in place from the run state (spec, User-visible states): Working, Continuing, Stopping
+        safely, Restoring, Waiting for you, Verified complete or Recovery needs attention."""
         kind, value = self.result or ("idle", None)
         items: list[str] = []
         note = ""
+        action = ""
         self.error_card.grid_remove()
         if self.busy:
-            stage, heading, detail = ui_text("02_working"), ui_text("working_on_your_game"), ""
+            stage = ui_text("02_working")
+            state = self.run_state.get("state")
+            if self.closing:
+                heading = ui_text("closing_safely")
+            elif self.stopping:
+                heading = ui_text("stopping_safely") if self.stop_saved else ui_text("saving_stop_request")
+            elif state == "restoring":
+                heading = ui_text("restoring_your_game")
+            elif state == "waiting":
+                heading = ui_text("waiting_for_you")
+            elif state == "continuing":
+                heading = ui_text("continuing_saved_work")
+            else:
+                heading = ui_text("working_on_your_game")
+            detail = ui_text("close_continuation_note") if self.closing else ""
+        elif self.pending_work and kind not in ("added", "removed"):
+            # Recovery needs attention: the main button becomes the one required recovery action, never a fresh
+            # patch; Save log for help stays on the error card as the secondary action.
+            stage, heading = ui_text("02_needs_attention"), ui_text("recovery_needs_attention")
+            action, detail = self.recovery_action()
+            if kind == "failed":
+                self.error_text.configure(text=value.shown() if value else ui_text("unexpected_error"))
+                self.error_card.grid()
+        elif kind == "cancelled":
+            # A resolved Stop returns to safe idle; it never claims the requested translation completed.
+            stage, heading, detail = ui_text("02_ready_to_play"), ui_text("work_stopped"), ui_text("stopped_safely_note")
         elif kind == "added":
             stage, heading, detail = ui_text("02_done"), ui_text("translation_added"), ""
             text, images, dropped, skipped = value
@@ -530,7 +590,20 @@ class App(ctk.CTk):
             self.show_step()
         else:
             again = {"added": ui_text("run_again"), "removed": ui_text("run_again"), "failed": ui_text("try_again")}
-            self.button.configure(text=again.get(kind) or ui_text("start"))
+            self.button.configure(text=action or again.get(kind) or ui_text("start"))
+
+    def recovery_action(self) -> tuple[str, str]:
+        """The attention state's (button label, instruction), from the saved run and the core's next action."""
+        record = (self.pending_runs[0].get("record") or {}) if len(self.pending_runs) == 1 else {}
+        authorized = len(self.pending_runs) == 1 and self.pending_runs[0].get("kind") == "authorized"
+        next_action = self.patcher.outcome.get("next_action") if self.patcher is not None else None
+        if not authorized:
+            return ui_text("check_saved_work"), ui_text("attention_check_saved_work")
+        if self.pending_stop or record.get("stop_requested"):
+            return ui_text("finish_stopping_safely"), ui_text("attention_stop_saved")
+        if next_action == "restore_normal":
+            return ui_text("restore_game_app"), ui_text("attention_restore_normal")
+        return ui_text("continue_saved_work"), ui_text("attention_saved_action")
 
     def _count_row(self, row: int, item: str) -> None:
         """'Label: value' with the value at the end, so five-digit counts line up."""
@@ -561,7 +634,20 @@ class App(ctk.CTk):
                                               step=names[STEPS[index][0]]))
 
     # ---------- working folder ----------
+    def settings_available(self) -> bool:
+        """Use the durable registry, even when another working folder was selected."""
+        try:
+            pending = discover_pending_runs(self.work_dir)
+            if pending:
+                raise PatchError("error_run_pending", detail=pending[0]["root"])
+        except PatchError as error:
+            self.finish("failed", error)
+            return False
+        return True
+
     def choose_folder(self) -> None:
+        if self.busy or not self.settings_available():
+            return
         chosen = filedialog.askdirectory(parent=self, title=ui_text("choose_folder_title"),
                                          initialdir=str(self.work_dir if self.work_dir.exists() else self.work_dir.parent))
         if not chosen:
@@ -599,23 +685,56 @@ class App(ctk.CTk):
     def set_device(self, text: str, connected: bool) -> None:
         self.messages.put(("device", (text, connected)))
 
+    def run_event(self, event: dict) -> None:
+        self.messages.put(("event", dict(event)))
+
+    def _cancel_dialogs(self) -> None:
+        self.ui_cancel.set()
+        for child in self.winfo_children():
+            if isinstance(child, Dialog):
+                child.destroy()
+
+    def _wait_ended(self) -> PatchError:
+        """Why a UI wait ended early: Stop safely, or Close keeping the action for the next open."""
+        if self.stopping:
+            return PatchError("error_cancelled")
+        return PatchError("error_close_preserved")
+
     def _on_ui(self, func):
         done = threading.Event()
         box = {}
 
         def call():
-            box["value"] = func()
-            done.set()
+            try:
+                if not self.ui_cancel.is_set():
+                    box["value"] = func()
+            except Exception as error:
+                box["error"] = error
+            finally:
+                done.set()
 
         self.messages.put(("call", call))
-        done.wait()
-        return box["value"]
+        while not done.wait(0.1):
+            if self.ui_cancel.is_set():
+                self.patcher.control_boundary()
+                raise self._wait_ended()
+        if self.ui_cancel.is_set():
+            self.patcher.control_boundary()
+            raise self._wait_ended()
+        if "error" in box:
+            raise box["error"]
+        return box.get("value", False)
 
     def ask(self, title: str, message: str, danger: bool = True) -> bool:
+        # Only first setup's data-loss consent asks; it is never a routine patch confirmation.
+        self.run_event({"state": "waiting", "next_action": "setup_consent", "detail": ui_text("waiting_setup_consent")})
         return self._on_ui(lambda: Dialog.show(self, title, message, confirm=True, danger=danger))
 
     def wait_user(self, title: str, message: str) -> None:
-        self._on_ui(lambda: Dialog.show(self, title, message))
+        # An actual download wait: its one action names what it confirms.
+        self.run_event({"state": "waiting", "next_action": "downloads_finished",
+                        "detail": ui_text("waiting_downloads_detail")})
+        self._on_ui(lambda: Dialog.show(self, title, message, confirm_label=ui_text("downloads_finished")))
 
     # ---------- event loop ----------
     def pump(self) -> None:
@@ -628,25 +747,68 @@ class App(ctk.CTk):
                     self.log_view.see("end")
                     self.log_view.configure(state="disabled")
                 elif kind == "step":
-                    key, state, _ = value
+                    key, state, self.step_detail = value
+                    self.operation_line.configure(text=self.step_detail)
                     index = [step for step, _ in STEPS].index(key)
                     if state == "active":
                         self.step_index = index
-                        self.progress.set(index / len(STEPS))
+                        self.progress.configure(mode="indeterminate")
+                        self.progress.start()
                         self.show_step()
                     elif state in ("done", "skipped"):
+                        self.progress.stop()
+                        self.progress.configure(mode="determinate")
                         self.progress.set((index + 1) / len(STEPS))
                 elif kind == "device":
                     text, connected = value
                     self.connected = connected
                     self.device_label.configure(text=text)
                     self.device_dot.configure(text_color=INK if connected else WARNING)
+                elif kind == "event":
+                    self.run_state = value
+                    done, total = value.get("bytes_done"), value.get("bytes_total")
+                    detail = value.get("detail") or self.step_detail
+                    if isinstance(done, int) and isinstance(total, int) and total > 0:
+                        self.progress.stop()
+                        self.progress.configure(mode="determinate")
+                        self.progress.set(min(1, done / total))
+                        detail = ui_text("progress_bytes", done=_size(done), total=_size(total))
+                    elif isinstance(value.get("items_done"), int) and value.get("items_total", 0) > 0:
+                        self.progress.stop()
+                        self.progress.configure(mode="determinate")
+                        self.progress.set(value["items_done"] / value["items_total"])
+                        detail = ui_text("progress_items", done=value["items_done"], total=value["items_total"])
+                    elif self.busy:
+                        if isinstance(done, int):
+                            detail = ui_text("progress_bytes_read", done=_size(done))
+                        self.progress.configure(mode="indeterminate")
+                        self.progress.start()
+                    if value.get("next_action") == "connect_saved_phone":
+                        detail = ui_text("connect_saved_phone")
+                    elif value.get("reason") == "transient_retry":
+                        detail = ui_text("retrying_saved_action")
+                    self.operation_line.configure(text=detail)
+                    self.show_start()
+                elif kind == "control":
+                    if isinstance(value, Exception):
+                        self.closing = False
+                        self.log(str(value))
+                        self.operation_line.configure(text=ui_text("control_save_failed"))
+                    elif value:
+                        self.stop_saved = self.stopping
+                        self.stop_button.configure(text=ui_text("stopping_safely") if self.stopping else ui_text("closing_safely"))
+                        self.operation_line.configure(text=ui_text("waiting_operation_boundary"))
+                    self.show_start()
                 elif kind == "call":
                     value()
                 elif kind == "done":
                     self.finish(*value)
         except queue.Empty:
             pass
+        if self.closing and not self.busy and not any(t.is_alive() for t in self.control_threads):
+            if self.worker_thread is None or not self.worker_thread.is_alive():
+                self.destroy()
+                return
         self.after(100, self.pump)
 
     def confirm_remove(self) -> None:
@@ -655,53 +817,168 @@ class App(ctk.CTk):
                        confirm=True, confirm_label=ui_text("remove_the_translation")):
             self.start(remove=True)
 
-    def start(self, remove: bool = False) -> None:
+    def discover_saved_work(self) -> None:
+        """Startup dispatch requires a durable intent; no pending run means idle."""
+        if self.busy or self.closing:
+            return
+        try:
+            pending = discover_pending_runs(self.work_dir)
+            self.pending_runs = pending
+            self.pending_work = bool(pending)
+            if len(pending) == 1 and pending[0]["kind"] == "authorized":
+                saved = pending[0]["record"]
+                self.work_dir = Path(pending[0]["root"])
+                self.language = saved["language"]
+                set_interface_language(self.language)
+                self.retext()
+                self.start(remove=saved["action"] == "remove", automatic=True)
+            elif pending:
+                self.finish("failed", PatchError("error_run_pending", detail=pending[0]["root"]))
+        except PatchError as error:
+            self.pending_work = True
+            self.finish("failed", error)
+
+    def main_action(self) -> None:
+        """② Start's primary button: the recovery action while saved work is unresolved, otherwise Start."""
+        if self.pending_work:
+            self.recover()
+        else:
+            self.start()
+
+    def recover(self) -> None:
+        """Dispatch the saved action's recovery or continuation; never a fresh patch while recovery is unresolved."""
+        if self.busy or self.closing:
+            return
+        try:
+            pending = discover_pending_runs(self.work_dir)
+        except PatchError as error:
+            self.finish("failed", error)
+            return
+        self.pending_runs, self.pending_work = pending, bool(pending)
+        if not pending:
+            # Resolved since the screen was drawn: back to safe idle; Start stays the player's own choice.
+            self.result = None
+            _style_button(self.folder_button, "secondary", True)
+            self.show_language_card()
+            self.show_start()
+            return
+        record = pending[0].get("record") or {}
+        # Core re-reads the record under its locks and never falls through to a fresh patch.
+        self.start(remove=record.get("action") == "remove", recovery_only=True)
+
+    def start(self, remove: bool = False, *, automatic: bool = False, recovery_only: bool = False) -> None:
+        if self.busy or self.closing or self.worker_thread is not None and self.worker_thread.is_alive():
+            return
         self.removing = remove
         self.busy = True
+        self.stopping = self.pending_stop
+        self.stop_saved = False
+        self.ui_cancel.clear()
+        self.run_state = {}
         self.result = None
         self.step_index = 0
         self.progress.set(0)
+        self.patcher = Patcher(self, self.work_dir, self.language, remove=remove,
+                               retry=self.pending_work and not automatic, recovery_only=recovery_only)
+        if self.pending_stop:
+            self.patcher.queue_control(stop=True)
         _style_button(self.folder_button, "secondary", False)
+        _style_button(self.stop_button, "secondary", not self.pending_stop)
+        self.stop_button.configure(text=ui_text("saving_stop_request") if self.pending_stop else ui_text("stop_safely"))
         self.show_language_card()
         self.show_start()
-        threading.Thread(target=self.worker, daemon=True).start()
+        self.worker_thread = threading.Thread(target=self.worker, name="patch-worker", daemon=False)
+        self.worker_thread.start()
 
     def worker(self) -> None:
+        patcher = self.patcher
         try:
-            summary = Patcher(self, self.work_dir, self.language, remove=self.removing).run()
-            if self.removing:
+            summary = patcher.run()
+            if summary.get(NOTHING_TO_RECOVER):
+                self.messages.put(("done", (NOTHING_TO_RECOVER, None)))
+                return
+            if patcher.outcome.get("state") != "verified_complete":
+                raise PatchError("error_run_state", detail="Missing verified completion")
+            if patcher.remove:
                 self.messages.put(("done", ("removed", len(summary.get("removed", [])))))
                 return
             text, images = count_translated(summary)
             counts = (text, images, count_untranslated_text(summary), count_untranslated_graphics(summary))
             self.messages.put(("done", ("added", counts)))
         except PatchError as error:
-            self.messages.put(("done", ("failed", error)))
+            kind = "cancelled" if error.keys == ("error_cancelled",) and patcher.outcome.get("state") == "cancelled" else "failed"
+            self.messages.put(("done", (kind, error)))
         except Exception:
             self.messages.put(("log", traceback.format_exc()))
             self.messages.put(("done", ("failed", None)))
 
     def finish(self, kind: str, value: object) -> None:
         self.busy = False
+        self.progress.stop()
         self.result = (kind, value)
-        if kind == "failed":
+        if kind in {"cancelled", "added", "removed"}:
+            self.pending_stop = False
+        if kind == NOTHING_TO_RECOVER:
+            # Resolved before the claim: no game file was touched; back to idle with one line saying so.
+            self.result = None
+            self.log(ui_text("nothing_left_to_recover_click"))
+        elif kind == "failed":
             self.log(f"\nFAILED: {value or 'unexpected error'}")
+        elif kind == "cancelled":
+            self.log("\nSTOPPED: consistency verified")
         elif kind == "added":
             self.log("\nSUCCESS: {} text tables and {} images applied, {} text tables and {} images skipped"
                      .format(*value))
         else:
             self.log(f"\nSUCCESS: translation removed, {value} original game files restored")
-        _style_button(self.folder_button, "secondary", True)
+        try:
+            self.pending_runs = discover_pending_runs(self.work_dir)
+            self.pending_work = bool(self.pending_runs)
+        except PatchError:
+            self.pending_runs = []
+            self.pending_work = True
+        if not self.pending_work and self.patcher is not None and self.patcher.run_owner is None:
+            # Stop before selecting/authorizing a phone dispatched no game mutation.
+            self.pending_stop = False
+        _style_button(self.folder_button, "secondary", not self.pending_work)
         self.show_work_dir()
         self.show_language_card()
         self.show_start()
 
-    def close(self) -> None:
-        if self.busy and not Dialog.show(self, ui_text("close_while_busy_title"), ui_text("close_while_busy"),
-                                         confirm=True, danger=True):
+    def _request_control(self, *, stop: bool = False, close: bool = False) -> None:
+        patcher = self.patcher
+        patcher.queue_control(stop=stop, close=close)
+        def save():
+            try:
+                durable = patcher.request_control(stop=stop, close=close)
+                self.messages.put(("control", durable))
+            except Exception as error:
+                self.messages.put(("control", error))
+        thread = threading.Thread(target=save, name="patch-control", daemon=False)
+        self.control_threads.append(thread)
+        thread.start()
+
+    def stop_safely(self) -> None:
+        if not self.busy or self.stopping or self.closing:
             return
-        Adb.kill_server(self.work_dir)
-        self.destroy()
+        self.stopping = True
+        self.pending_stop = True
+        _style_button(self.stop_button, "secondary", False)
+        self.stop_button.configure(text=ui_text("saving_stop_request"))
+        self._request_control(stop=True)
+        self._cancel_dialogs()
+
+    def close(self) -> None:
+        if self.closing:
+            return
+        self.closing = True
+        if self.busy:
+            _style_button(self.stop_button, "secondary", False)
+            self._request_control(close=True)
+            self._cancel_dialogs()
+            self.show_start()
+        elif not any(t.is_alive() for t in self.control_threads):
+            self.destroy()
 
 
 class LogStream:

@@ -8,6 +8,11 @@ updated: 2026-10-19
 
 ## Report
 
+### Durable Start integration (2026-11-12, unverified)
+
+`RunStore` now saves ordinary authorization before APK preparation, with fixed action/language/provider/device/user/package and bounded persisted attempts. `PatchRequestStore` binds exact prepared identities; coordinator dispatch links one stable session id instead of consuming a request before journal creation. Schema-1 journals retain safety recovery only. Stop is durably recorded through a short separate store lock; reopening/routing, setup linkage and final UI remain tickets 10–13. New probe source is authored; pass-2 behavior and real interruption checks remain open.
+
+
 **Versioning (2026-10-17):** local and CI builds default to the root `VERSION` file,
 currently `1.8.1.2` (three game version numbers plus patch revision). Release tags must
 match that file. Android's install `versionCode` remains separate and increasing;
@@ -145,9 +150,26 @@ Fresh `ApkPreparation.load` still fully verifies the receipt and APK identities 
 choosing first-setup consent or the patch update checkpoint. Old preparation receipts are not reused
 for a new Start. Successful verification/recovery/setup checkpoints continue into the next operation.
 Failure or cancellation disarms continuation; no automatic retry loop clears damaged records.
+Since automatic continuation (2026-11-12, pass 1, unverified), each logical operation of a saved action gets
+one stored automatic retry; a second failure of the same operation pauses it. Stop safely is one tap: it is saved before it is shown, and afterwards only safety
+recovery runs. A first setup keeps its parent translation for after the downloads answer. See
+[android-shell-providers](android-shell-providers.md).
+An idle saved Stop closes its record in the original routing background task, before its UI result is
+posted. Routing is re-read under the coordinator lock, and pending safety recovery still prevents
+resolution. The action remains stopped; a later translation needs a new explicit Start. The isolated
+`IdleStopRoutingTest` covers task ordering and failure cleanup; installed behavior still needs its device cycle.
 
 Only unavoidable actions are shown: Shizuku startup/authorization, data-loss and Scan-to-login
-consent, finishing actual in-game downloads and the final finished-update acknowledgment.
+consent, and finishing actual in-game downloads. Since ticket 13 (2026-11-12, pass 1, unverified) the
+finished-update instruction is on ③ before Start (`ready_before_start`) and the post-Start patch
+confirmation (`showPatchConfirmation`) is gone: a prepared run is authorized and dispatched at once.
+While saved work is unresolved, Start becomes that work's recovery action (`recover_attention`;
+`attentionAction` picks *Continue saved work*, *Finish stopping safely*, *Restore interrupted patch*,
+*Finish or repair first setup* or *Check restored game app*), the language choices lock
+(`choices_locked`), and a recovery-only flow never falls through to a fresh preparation
+(`nothing_left_to_recover`). The running heading reads *Restoring your game* for a recovery or
+verification step and *Continuing saved work* for a continued run. *Translation written* is not
+game-ready.
 The setup checkpoint offers **Open game** only after validated normal installation and clear other
 recovery. Returning restores the confirmation. All consent checkboxes start clear; backend request
 claim and identity gates remain intact. Voice/checklist/tutorial buttons are removed. Recovery and
@@ -369,8 +391,11 @@ app carries its own; it is device-verified on the Infinix X6853.
   and staged output, and each entry applies only while its file holds the staged bytes it records.
   Recovery that resolves a run now promotes its delta at once (`keepResolvedDelta`).
 - *Free up space* (`PatchCoordinator.freeSpace`, worker action `free_space`), on the main screen under
-  *Check for updates* and in the recovery options. It refuses while an emergency restore or first setup
-  is pending, or when a run has a package mid-change. Each other unfinished run closes by
+  *Check for updates* and in the recovery options. It refuses while a saved action, emergency restore or first setup
+  is pending, or when a run has a package mid-change. A paused saved action offers secondary *Stop safely*;
+  resolve that Stop before freeing space. Automatic cleanup keeps the newest resolved reusable session;
+  explicit *Free up space* evicts it too, invalidating its receipts durably before deleting optional bytes.
+  The active pristine delta is outside that cache and stays. Each other unfinished run closes by
   `SessionJournal.closeUnconfirmed` once its normal APK is verified installed. Then it promotes the
   newest delta and frees resolved sessions, replaced game APKs and `releaseUnneeded`'s APKs. It keeps
   the pristine delta, the saved normal APKs and this game version's preparation.
@@ -419,8 +444,9 @@ Kotlin only names the files (`PristineDelta.kt`).
   rolled back to `snapshot/`, which the old delta still describes.
 - **Remove translation** (ticket 06): a Language-card button below the two choices, shown while a
   delta is kept and locked with them while work runs, runs the
-  automatic flow with `removing` set; after preparation it shows the patch confirmation in its remove
-  form (a plain panel dialog, `PanelDialog`, with its consent checkbox) and sends the worker `remove`. `PatchCoordinator.run(remove = true)` swaps the estimate and
+  automatic flow with `removing` set. Since ticket 13 the one question is asked at the tap
+  (`showRemoveConfirmation`, a plain panel dialog, `PanelDialog`, with no checkbox); after preparation
+  the run is authorized without a second dialog and sends the worker `remove`. `PatchCoordinator.run(remove = true)` swaps the estimate and
   build for `removal_bytes` (reserved) and `build_removal`, which moves the rebuilt pristine files into
   `out/` with an empty session delta; the write-back, its `snapshot/` rollback and the delta promotion
   are the patch run's. Promoting an empty delta deletes the kept one (`keep_delta`), so the next patch
@@ -467,3 +493,22 @@ for that cycle; and claim no PC-free or full-pipeline support before the release
 - Removing signature conversion, fixing direct WeChat/QQ authentication, changing Tencent's updater or expanding translation coverage.
 - Assuming Shizuku makes the game data publicly readable, or treating `/sdcard/Android/data` logs as the private Qts package store.
 - Windows builder emulation, generic package-key derivation, or enabling previously withdrawn extra-text assets.
+
+### Bridge checkpoint API boundary (2026-11-12, pass 1)
+
+Ticket 09 adds explicit snapshot publication, fresh owned build, completed-build inspection and
+incomplete-attempt reset APIs. Snapshot publication follows independently measured exact source
+set/hash and transport verification; a tar fragment or summary cannot become a checkpoint.
+Build attempts live at `build-attempts/<UUID>/`, with mutable `scratch/` and a separately published
+`result/`; output receipts contain regular files only. The existing fresh-only bridge APIs still
+refuse preexisting products, and legacy cleanup now requires a durable build-owner marker.
+
+The bridge persists build ownership before bytes. Kotlin must persist transport ownership and the
+selected result before apply, pin its result and pass its
+returned output/hash-list/delta paths to the existing transaction/finalization machinery. Rollback
+continues reading the independent session snapshot. It must remeasure installed producer/APK/game/
+readiness evidence after restart and bind measured inputs to the saved run without altering its
+authorization. Recovery of originals/normal APK remains independent of loading a new Python engine.
+These bridge APIs are implemented, but coordinator integration (10), retention (10/11) and behavior/
+interruption/device verification remain pending. Exact API and snapshot-rename instructions are in
+[ticket 09](../../.scratch/automatic-continuation/issues/09-bridge-checkpoints.md).

@@ -1,13 +1,24 @@
 ---
 feature: asset-restore
-status: built, not device-tested
-updated: 2026-10-22
+status: built, ran once on a phone (2026-11-13)
+updated: 2026-11-13
 branch: master
 ---
 
 # Restore carried-over translated assets
 
 ## Report
+
+### First phone run (2026-11-13, Wireless debugging, `f15a72e`)
+
+Run `99584a53` (Android patcher `38c31162`) over 1.8.0.1 data patched by release 1.8.1.2 and then
+updated to 1.10.1.2: after the automatic Re-download of 1, 10, 15 and 21, the build logged *Wrote the
+original bytes back into package 19, 20, which a game update kept partly translated*, rebuilt 2 files
+from the pristine delta, took 8 replaced files as the update left them, applied 19 and 20 among nine
+files, and completed 398/318 with 1 table and 0 textures skipped. That is the first time asset restore
+ran on a phone. Checked from the run's trace and result only: no byte comparison of the restored
+packages against an independent source, and no in-game screen check of those two packages is recorded.
+Details: the [lab notebook](../lab-notebook.md)'s 2026-11-13 automatic Re-download entry.
 
 When a game update rewrites a translated package but carries over assets this patcher modified (a mixed
 package), the Android patcher now writes their original bytes back into a copy of the updated package and
@@ -70,3 +81,52 @@ bytes; restoring before an update instead of after ([language-switch](language-s
   `check_pristine_delta.py`, `check_references.py`, `check_staging_contract.py` and `check_ui_strings.py`.
 - Not run: device cycles 1–3 of the spec (patch and Remove over a restored layer on a phone, and the next
   real update over it). Cycle 3 decides the ADR.
+
+### Checkpoint publication after asset restore (2026-11-12, pass 1)
+
+The explicit bridge checkpoint wrapper publishes only after the existing asset restore/pristine
+text checks, every original pipeline pass, restored-but-unstaged output copies and session-delta
+creation. Full output hashes and the delta's file mapping are checked before receipt publication,
+including when complete producer evidence is unavailable and reuse is disabled. The immutable
+actual snapshot remains outside the mutable pristine copy; no writable hard link aliases it.
+Complete-build reuse skips the entire build; it does not introduce partial asset-restore decision
+reuse. Ticket 17 owns that separate snapshot/delta/engine-scoped optimization. These boundaries
+are implemented in pass 1; synthetic, real mixed-package, EN/ID parity and device checks remain
+unrun pending pass 2.
+
+Final validation also binds the bridge summary's declared restored files to the complete output
+map. A file cannot disappear from output, hashes and delta together while remaining declared as
+restored. Remove's declared removed-file list must exactly match its final output. These gates are
+authored and syntax-checked; the new contradiction probes remain unrun in pass 1.
+
+### Mixed-package decision reuse (ticket 17, 2026-11-12, pass 1)
+
+A refused Start used to decide the mixed packages twice on one snapshot: the build's `_restore_pristine`
+restored every restorable package into its pristine copy before refusing, then `redownload_plan`'s
+`_mixed_packages` copied and restored the same packages again on a trial copy. The bridge now keeps the
+decision `_decide_mixed` made in the worker process's memory, keyed by the session's resolved snapshot
+folder, and reuses it only under the same proof (`_mixed_evidence` + `_mixed_proof`):
+
+| Input | Measured at record and at every reuse |
+|---|---|
+| Snapshot | the resolved session snapshot folder and its complete manifest, verified by the caller just before |
+| Kept records | bytes of the delta (with its kept bodies), its staged hashes, `restore-refused.json` and `redownload.json` |
+| Engine | every engine file but `__pycache__`; a link anywhere declines reuse |
+| Report | the complete rebuild report (rebuilt, pristine, unmatched) |
+
+- Nothing is written to disk: a restarted worker always decides afresh. Another session, a changed input or
+  a damaged delta (it refuses before any decision) never reuses one; a stale entry is dropped.
+- A decision is kept only when its inputs measured the same before and after it was made, and no restore
+  in it failed: a failed restore may be transient, so reusing it could widen a Re-download plan.
+- The plan reuses a kept refusal without any trial copy. The build reuses one only when it refuses; a
+  decision that took every package is made afresh, since the build needs the restored copies themselves.
+- Re-download scope and consent are unchanged: the plan names exactly the packages a fresh decision names,
+  and Kotlin still binds the approval to the plan's digest and re-measures it before deleting
+  ([update-stuck-redownload](update-stuck-redownload.md)).
+- `MIXED_DECISION_STATS` counts decisions computed, reused, recorded, invalidated and unproven, the
+  restores run and bytes copied, the bytes the proofs hashed and the time deciding took.
+
+Authored, not run: `check_asset_restore.py`'s `check_decision_reuse` (control against reuse, restart,
+another session, changed snapshot/delta/`restore-refused.json`/engine, corrupt kept body, failed restore,
+changed check token, appended survivors) and the second plan in `check_update_redownload.py`. No gain is
+measured yet; the proof itself hashes the engine and the kept delta twice when recording and once per reuse.

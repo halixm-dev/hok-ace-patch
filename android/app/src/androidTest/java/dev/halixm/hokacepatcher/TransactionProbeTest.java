@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +43,7 @@ public final class TransactionProbeTest {
     }
     private static final class Device extends IPrivilegedDeviceService.Stub {
         final Map<String, byte[]> files = new HashMap<>();
+        final java.util.List<String> written = new java.util.ArrayList<>();
         int writes;
         int failAt;
         @Override public String writeGameFile(String session, String relative, ParcelFileDescriptor source,
@@ -52,10 +54,15 @@ public final class TransactionProbeTest {
                 byte[] value = read(input);
                 assertEquals(length, value.length); assertEquals(sha256, hash(value));
                 files.put(relative, value); // Injection occurs after rename, before its acknowledgment.
+                written.add(relative);
                 if (++writes == failAt) throw new IllegalStateException("Injected post-commit interruption");
                 return "verified";
             } catch (RuntimeException error) { throw error; }
             catch (Exception error) { throw new RuntimeException(error); }
+        }
+        @Override public String reconcileGameFiles(String session, String operation, String relative,
+                ParcelFileDescriptor policy, ParcelFileDescriptor source, long length, String sha256) {
+            return PrivateRecoveryPolicy.apply(this, files, session, operation, relative, policy, source, length, sha256);
         }
         @Override public String validateGameSnapshot(ParcelFileDescriptor descriptor) {
             try (ParcelFileDescriptor.AutoCloseInputStream input = new ParcelFileDescriptor.AutoCloseInputStream(
@@ -182,4 +189,155 @@ public final class TransactionProbeTest {
         empty.outcome(PatchPhase.RESTORING, new JSONObject());
         empty.outcome(PatchPhase.COMPLETE, new JSONObject().put("normal_verified", true));
     }
+    /** Small independent control; no engine, APK fixture, Python or real provider required. */
+    private static final class Control {
+        final SessionJournal journal;
+        final Device device = new Device();
+        final JSONObject hashes = new JSONObject();
+        final GameFileTransaction transaction;
+        Control(boolean changed) throws Exception {
+            File root = new File(InstrumentationRegistry.getInstrumentation().getTargetContext().getFilesDir(),
+                "transaction-controls/" + UUID.randomUUID());
+            journal = applying(root);
+            device.files.put("packages/1/1.info", bytes("metadata"));
+            device.files.put("packages/1/1.db", bytes("original-index"));
+            device.files.put("packages/1/1_0.db", bytes("original-shard"));
+            device.files.put("Watchdog/list.db", bytes("watchdog"));
+            JSONObject originals = new JSONObject();
+            for (String name : device.files.keySet()) {
+                byte[] data = device.files.get(name);
+                put(new File(journal.getDirectory(), "snapshot/" + name), data);
+                originals.put(name, new JSONObject().put("sha256", hash(data)).put("bytes", data.length));
+            }
+            put(new File(journal.getDirectory(), "snapshot/manifest.json"), bytes(new JSONObject().put("schema", 1)
+                .put("files", originals).put("directories", new JSONArray()).toString()));
+            for (String name : new String[]{"1/1.db", "1/1_0.db"}) {
+                byte[] data = changed && name.equals("1/1.db") ? bytes("translated-index") : device.files.get("packages/" + name);
+                put(new File(journal.getDirectory(), "out/" + name), data); hashes.put(name, hash(data));
+            }
+            put(new File(journal.getDirectory(), "staged-hashes.json"), bytes(hashes.toString()));
+            transaction = new GameFileTransaction(journal, device);
+        }
+        void applyOne() {
+            transaction.write("packages/1/1.db", new File(journal.getDirectory(), "out/1/1.db"),
+                hashes.optString("1/1.db"), false);
+        }
+        void restoring() { journal.recoveryRequired("private cut"); journal.outcome(PatchPhase.RESTORING, new JSONObject()); }
+    }
+
+    @Test public void testIdenticalAndChangedSubsetsKeepCompleteAppliedManifest() throws Exception {
+        for (boolean changed : new boolean[]{false, true}) {
+            Control c = new Control(changed);
+            GameFileTransaction.VerifiedOriginals proof = c.transaction.verifyOriginals();
+            java.util.List<String> writes = c.transaction.changedWrites(c.hashes, proof);
+            assertEquals(changed ? java.util.Collections.singletonList("1/1.db") : java.util.Collections.emptyList(), writes);
+            for (String name : writes) c.transaction.write("packages/" + name,
+                new File(c.journal.getDirectory(), "out/" + name), c.hashes.getString(name), false);
+            c.transaction.finishApply(c.hashes, proof);
+            assertEquals(changed ? 1 : 0, c.device.writes);
+            assertEquals(1, c.transaction.getOriginalHashPasses());
+            JSONObject applied = new JSONObject(new String(Files.readAllBytes(
+                new File(c.journal.getDirectory(), "applied-manifest.json").toPath()), StandardCharsets.UTF_8)).getJSONObject("files");
+            assertEquals(3, applied.length()); // Full packages, including skipped shard and metadata.
+            for (String name : new String[]{"1/1.db", "1/1_0.db"})
+                assertEquals(c.hashes.getString(name), applied.getJSONObject("packages/" + name).getString("sha256"));
+            assertTrue(c.journal.getPayloadVerified());
+            try { c.journal.outcome(PatchPhase.COMPLETE, new JSONObject()); fail("APK audit omitted"); }
+            catch (IllegalStateException expected) { }
+        }
+    }
+
+    @Test public void testCorruptCurrentAndRetainedFilesNeverQualifyForSkip() throws Exception {
+        Control c = new Control(false);
+        GameFileTransaction.VerifiedOriginals proof = c.transaction.verifyOriginals();
+        c.device.files.put("packages/1/1.db", bytes("external update"));
+        try { c.transaction.changedWrites(c.hashes, proof); fail("Corrupt live source skipped"); }
+        catch (IllegalStateException | AssertionError expected) { }
+        c = new Control(false); proof = c.transaction.verifyOriginals();
+        put(new File(c.journal.getDirectory(), "snapshot/packages/1/1.db"), bytes("damaged retained source"));
+        try { c.transaction.changedWrites(c.hashes, proof); fail("Changed retained proof accepted"); }
+        catch (IllegalStateException expected) { }
+        assertEquals(0, c.device.writes);
+    }
+
+    @Test public void testProofIsTransactionScopedAndRecoveryHashesOnce() throws Exception {
+        Control c = new Control(true); c.applyOne(); c.restoring();
+        GameFileTransaction.VerifiedOriginals proof = c.transaction.verifyOriginals();
+        GameFileTransaction other = new GameFileTransaction(c.journal, c.device);
+        try { other.prepareRollback(proof); fail("Foreign transaction proof accepted"); }
+        catch (IllegalStateException expected) { }
+        c.transaction.prepareRollback(proof);
+        c.transaction.rollback(proof, file -> kotlin.Unit.INSTANCE);
+        assertEquals(1, c.transaction.getOriginalHashPasses());
+        // One apply and one rollback of the touched index; unchanged shard/info never written. Rollback
+        // always ends by restoring Watchdog from the snapshot, which the audit proved still original.
+        assertEquals(java.util.Arrays.asList("packages/1/1.db", "packages/1/1.db", "Watchdog/list.db"), c.device.written);
+        assertEquals(3, c.device.writes);
+        try { c.transaction.prepareRollback(proof); fail("Consumed proof accepted"); }
+        catch (IllegalStateException expected) { }
+        // A fresh invocation must rehash; there is no durable verified-originals token.
+        other = new GameFileTransaction(SessionJournal.Companion.load(c.journal.getDirectory()), c.device);
+        other.verifyOriginals(); assertEquals(1, other.getOriginalHashPasses());
+    }
+
+    @Test public void testNewerMissingAndExtraLiveBytesPauseBeforeRollbackWrites() throws Exception {
+        for (String fault : new String[]{"changed", "missing", "extra"}) {
+            Control c = new Control(true); c.applyOne(); c.restoring();
+            if (fault.equals("changed")) c.device.files.put("packages/1/1.db", bytes("new game update"));
+            if (fault.equals("missing")) c.device.files.remove("packages/1/1_0.db");
+            if (fault.equals("extra")) c.device.files.put("packages/1/1_2.db", bytes("new shard"));
+            int before = c.device.writes;
+            try { c.transaction.rollback(); fail("External change overwritten: " + fault); }
+            catch (IllegalStateException expected) { }
+            assertEquals(before, c.device.writes);
+            assertTrue(c.journal.getDirtyPackages());
+            assertTrue(new File(c.journal.getDirectory(), "snapshot/Watchdog/list.db").isFile());
+        }
+    }
+
+    @Test public void testMutationAfterWholeAuditIsRefusedAtRollbackRenameBoundary() throws Exception {
+        Control c = new Control(true); c.applyOne(); c.restoring();
+        GameFileTransaction.VerifiedOriginals proof = c.transaction.verifyOriginals();
+        c.transaction.prepareRollback(proof);
+        try {
+            c.transaction.rollback(proof, file -> {
+                c.device.files.put("packages/1/1.db", bytes("update between audit and rename"));
+                return kotlin.Unit.INSTANCE;
+            });
+            fail("Race at rename was overwritten");
+        } catch (IllegalStateException expected) { }
+        assertEquals(1, c.device.writes);
+        assertArrayEquals(bytes("update between audit and rename"), c.device.files.get("packages/1/1.db"));
+        assertTrue(c.journal.getHasMutationIntent());
+    }
+
+    @Test public void testFileMetricsCountTheFullPlanAndOnlyAcknowledgedWrites() throws Exception {
+        Control c = new Control(true); GameFileTransaction.VerifiedOriginals proof = c.transaction.verifyOriginals();
+        java.util.List<String> changed = c.transaction.changedWrites(c.hashes, proof);
+        RunMetrics metrics = new RunMetrics(InstrumentationRegistry.getInstrumentation().getTargetContext(),
+            new File(c.journal.getDirectory(), "resource-metrics.json"));
+        metrics.filePlan(proof.files(), c.hashes, c.journal.getResultRoot(), changed);
+        metrics.fileWritten(new File(c.journal.getDirectory(), "out/1/1.db").length());
+        metrics.originalHashPasses(c.transaction.getOriginalHashPasses());
+        JSONObject io = metrics.finish("control").getJSONObject("file_io");
+        assertEquals(4, io.getInt("original_files")); assertEquals(2, io.getInt("planned_files"));
+        assertEquals(1, io.getInt("written_files")); assertEquals(1, io.getInt("skipped_files"));
+        assertEquals(io.getLong("planned_bytes"), io.getLong("written_bytes") + io.getLong("skipped_bytes"));
+        assertEquals(1, io.getInt("original_hash_passes"));
+    }
+
+    @Test public void testExplicitlyCreatedStagedFileIsDeletedByRollback() throws Exception {
+        Control c = new Control(false); String name = "1/1_2.db"; byte[] added = bytes("appended prime file");
+        put(new File(c.journal.getDirectory(), "out/" + name), added); c.hashes.put(name, hash(added));
+        put(new File(c.journal.getDirectory(), "staged-hashes.json"), bytes(c.hashes.toString()));
+        c.transaction.write("packages/" + name, new File(c.journal.getDirectory(), "out/" + name), hash(added), false);
+        c.restoring(); c.transaction.rollback();
+        assertFalse(c.device.files.containsKey("packages/" + name));
+        assertEquals(4, c.device.files.size());
+        // The created file's apply, then rollback's Watchdog restoration; no untouched package is written.
+        assertEquals(java.util.Arrays.asList("packages/" + name, "Watchdog/list.db"), c.device.written);
+        assertEquals(2, c.device.writes);
+        assertFalse(c.journal.getDirtyPackages());
+    }
+
 }

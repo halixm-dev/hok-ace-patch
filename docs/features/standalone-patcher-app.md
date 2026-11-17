@@ -10,6 +10,27 @@ commits: 7b9769b..9f151a8
 
 ## Report
 
+### Windows signed preparation receipts (2026-11-12, unverified)
+
+| Rule | Current source behavior |
+|---|---|
+| Phone versus local APK | Installed source signer determines whether first setup needs conversion. A signed local normal APK grants no conversion or data-loss permission. Normal is pinned before the exact one-use consent and uninstall intent. |
+| Normal preparation | The existing official-source path already signed normal once. Complete normal preparation can now survive interruption before consent without another normal signing call. Already signed, correctly named sources retain their bytes without signing or installing again. |
+| Reuse proof | A committed per-role receipt binds the complete observed source APK, requested manifest, signing key/certificate bytes, complete producer and exact output identity/content. Publication checks every unsigned entry: only the manifest may change. Access remains separate from normal. |
+| Interrupted preparation | Only the explicitly retired pre-mutation generation can seed a new owned generation. Source is reconciled with the phone; copied source/normal are reverified. Old APKs and receipts are retained without replacement. Torn, missing, changed-producer or tampered proofs cannot authorize reuse. |
+| Missing producer | Fresh verified preparation remains possible without a reuse receipt. Pinned normal recovery and installed-identity audits do not need producer discovery. Access may use the existing fresh-generation/equality check when reuse proof is unavailable. |
+| Validation | Ticket 15 Pass 1 authored generated signed-APK call/byte/time, consent, no-op, cache, publication-cut and tamper probes. Only Python 3.12 syntax/import checks ran. Behavioral, actual-APK and device/frozen gates remain open; no new speed result is claimed. |
+
+### Android authorization linkage (2026-11-12, unverified)
+
+| Rule | Current source behavior |
+|---|---|
+| Ordinary Start | The Android app writes a durable exact-target intent before preparation. Schema-2 patch sessions link its UUID and authorization digest; legacy sessions are safety-only history. |
+| APK safety | Source/normal/access full identities and the preparation receipt digest are independently checked. Root binds only its installed-source copy and installs no APK. A receipt grants no mutation permission. |
+| First setup | An ordinary translation intent does not grant signature conversion or data deletion. The one-use data-loss and Scan-to-login consent stays. Its request and the setup journal record the parent translate Start (`parent_run`), and the setup runs on that Start's provider. A Stop saved before the uninstall intent removes nothing. Recovery only installs the pinned normal APK and never uninstalls again. If the original app is still installed after an uncertain uninstall, setup is cancelled and needs fresh consent on the same preparation. After the *Downloads finished* answer, the same language and provider translation continues with no routine patch dialog (`FirstSetupJournal.readyFor`). |
+| Validation | Pass-1 source and probes are authored; behavioral/device verification remains pending. Ticket 13 (pass 1) removed the routine patch dialog and the Remove checkbox and shared the continuation copy; its visual review is pending. |
+
+
 **Versioning (2026-10-17):** the root `VERSION` file sets the Windows header version,
 currently `1.8.1.2` (three game version numbers plus patch revision). PyInstaller bundles
 the file so source and frozen builds read the same version. See
@@ -289,3 +310,54 @@ path needs a dumped game directory and is therefore reported as unverified rathe
   part of this change.
 - Deleting the reverse-engineering tools; they are relocated, not removed.
 - Changing the game package (`com.tencent.tmgp.osgame`) or adding split-APK support.
+
+
+## Windows APK identity and first-setup recovery (implementation; verification pending)
+
+The Windows patcher now keeps source, normal and access APKs in a run-owned
+`sessions/<UUID>/` directory. A strict `apk-journal.json` binds them to the durable
+run, phone serial and owner profile. Preparation copies and hashes actual installed
+bytes; size, timestamp and a loose cached APK grant no reuse or recovery authority.
+Normal APK preparation still changes only the manifest and signature; launcher-name
+failure remains non-fatal. A debuggable source is refused until its saved normal APK
+is restored. No signing key changes.
+
+| Boundary | Required proof |
+|---|---|
+| Install | Persist role and exact expected APK identity before dispatch. Pull the installed single APK, check stable remote path/SHA-256 across the pull, and read package/version/signer/debug state from those bytes. An installer reply alone cannot complete the operation. |
+| Lost reply | Audit the installed bytes before another dispatch; a matching result acknowledges the existing attempt without resetting its budget. |
+| Final normal restoration | A mismatch, unreadable identity or install failure raises a keyed blocking error and retains the recovery APK. The patch operation cannot return success with the access APK left installed. |
+| First setup | Pin and verify an independently installable normal APK before approval. Record exact source/normal content, consequence digest, approval UUID/time and consumed uninstall scope. Persist uninstall intent before dispatch. Never repeat that uninstall during recovery. |
+| Setup recovery | Before fresh-run 8 GiB or installed-game checks, claim the saved run and reconcile its journal. Missing game plus uninstall/install intent installs only the saved normal APK. A matching normal APK is acknowledged; the original needs fresh consent; unrelated bytes refuse. Recovery budgets one observed APK copy plus 64 MiB on the host, while installer errors remain blocking. |
+| Download readiness | Normal installation leaves setup waiting for all in-game downloads and game closure. No translation is written by setup recovery. The explicit readiness boundary verifies the normal APK again and force-stops the game before translation preparation continues. |
+
+Unresolved records pin all their material. General automatic patch routing, verified
+file transactions, terminal receipts and Stop/Close orchestration are separate work
+in tickets 05–07; these APK changes do not claim those guarantees. Offline signed-APK
+fixtures and strict fake-device probes are authored, with execution deferred to the
+second verification pass. No live first-setup cycle has been performed for this change.
+
+
+## Windows control lifecycle (Pass 1; verification pending)
+
+The existing light Windows screen now offers Stop safely during work and projects
+saved-work, waiting, operation detail and honest indeterminate progress in its Start
+card. Stop persistence and Close are separate controls: Stop revokes continuation;
+Close preserves it and waits responsively for feasible safety cleanup. Pending dialogs
+are cancelled rather than treated as consent or Downloads finished. Workers are
+non-daemon, children are bounded, and closing never stops the shared ADB server.
+
+Startup only dispatches a discovered saved authorization; target/language/action/work
+choices stay locked while unfinished work exists. Core verified completion is the only
+added/removed-result authority. `check_windows_controls.py` authors private headless
+and synthetic coordinator probes; they are unrun under the two-pass instruction.
+Ticket 13 (pass 1, unverified) shares the state copy with Android: the running heading names
+the state (*Stopping safely*, *Restoring your game*, *Waiting for you*, *Continuing saved work*,
+*Working*), and saved work puts the card under *Recovery needs attention* with Start turned
+into its recovery action (`recovery_action`: *Check saved work*, *Finish stopping safely*,
+*Restore the game app* or *Continue saved work*). That button calls `recover`, which starts
+`Patcher(recovery_only=True)`: core resumes only the saved record, re-read under its owner and
+device locks, and returns `NOTHING_TO_RECOVER` before any preparation, ADB or game write when none
+remains, so a recovery click never starts a fresh patch; a cancelled run no longer
+shows Open game; the language choices show `choices_locked`. Its EN/ID/scaling review and
+Windows source/frozen/device interruption verification remain required.

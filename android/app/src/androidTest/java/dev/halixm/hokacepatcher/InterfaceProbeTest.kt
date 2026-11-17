@@ -58,7 +58,8 @@ class InterfaceProbeTest {
                     assertEquals("id", PatchLanguage.current(activity))
                     assertEquals("Alat teknis", activity.window.decorView.findViewWithTag<TextView>("show-technical").text.toString())
                     assertTrue(UiText.firstSetup(activity).contains("akan dihapus"))
-                    assertTrue(UiText.patchConfirmation(activity).contains("Bahasa: Bahasa Indonesia"))
+                    // The finish-updates instruction sits on ③ before Start, in the interface language (ticket 13).
+                    assertTrue(UiText.string(activity, "ready_before_start").startsWith("Selesaikan semua unduhan"))
                     assertTrue(UiText.storage(activity, StorageBudget.explainFailure("2000000000 bytes required, 1000000000 available")!!).contains("1.0 GB lagi"))
                     // The hero names a community patcher, not the game's publisher, and has no tagline.
                     assertEquals("PATCHER KOMUNITAS  /  HOK ACE", activity.window.decorView.findViewWithTag<TextView>("hero-eyebrow").text.toString())

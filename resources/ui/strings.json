@@ -187,7 +187,8 @@
     },
     "stop_safely": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "Stop safely",
       "id": "Hentikan dengan aman"
@@ -1010,33 +1011,12 @@
       "en": "Some game text will stay Chinese.\nUse Scan to login after setup.",
       "id": "Sebagian teks game tetap berbahasa Mandarin.\nGunakan Scan to login setelah penyiapan."
     },
-    "stop_safely_question": {
-      "platforms": [
-        "android"
-      ],
-      "en": "Stop safely?",
-      "id": "Hentikan dengan aman?"
-    },
     "keep_the_game_closed_any_unfinished": {
       "platforms": [
         "android"
       ],
       "en": "Keep the game closed. Any unfinished changes must be restored before you open it.",
       "id": "Jangan buka game. Semua perubahan yang belum selesai harus dipulihkan sebelum game dibuka."
-    },
-    "keep_going": {
-      "platforms": [
-        "android"
-      ],
-      "en": "Keep going",
-      "id": "Lanjutkan"
-    },
-    "stop_and_recover": {
-      "platforms": [
-        "android"
-      ],
-      "en": "Stop and recover",
-      "id": "Hentikan dan pulihkan"
     },
     "access_was_not_allowed_tap_start_to_try": {
       "platforms": [
@@ -1133,7 +1113,8 @@
     },
     "recovery_needs_attention": {
       "platforms": [
-        "android"
+        "android",
+        "windows"
       ],
       "en": "Recovery needs attention",
       "id": "Pemulihan perlu ditangani"
@@ -1279,13 +1260,6 @@
       ],
       "en": "Ready when you are",
       "id": "Siap dimulai"
-    },
-    "tap_start_we_will_check_your_game_and": {
-      "platforms": [
-        "android"
-      ],
-      "en": "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.",
-      "id": "Ketuk Mulai. Game akan diperiksa dan semua file disiapkan. Jangan buka game selama proses."
     },
     "shizuku_is_running_but_the_patchers": {
       "platforms": [
@@ -1476,20 +1450,6 @@
       ],
       "en": "Confirm updates",
       "id": "Konfirmasi pembaruan"
-    },
-    "all_in_game_updates_finished_and_i": {
-      "platforms": [
-        "android"
-      ],
-      "en": "All in-game updates finished, and I closed the game",
-      "id": "Semua pembaruan dalam game sudah selesai dan game sudah saya tutup"
-    },
-    "start_translation": {
-      "platforms": [
-        "android"
-      ],
-      "en": "Start translation",
-      "id": "Mulai penerjemahan"
     },
     "start_patch": {
       "platforms": [
@@ -1800,15 +1760,9 @@
       "platforms": [
         "android"
       ],
-      "en": "Open the game, complete all downloads, then close it. We will then prepare the new files automatically. Translation starts after the final update confirmation.",
-      "id": "Buka game, selesaikan semua unduhan, lalu tutup game. File baru akan disiapkan otomatis. Terjemahan dimulai setelah konfirmasi pembaruan terakhir."
-    },
-    "patch_confirmation": {
-      "platforms": [
-        "android"
-      ],
-      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files and briefly replace the game app. If an update damaged translated files, we delete them and the game downloads them again.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
-      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dan mengganti aplikasi game untuk sementara. Jika pembaruan merusak file terjemahan, kami menghapusnya dan game mengunduhnya lagi.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel."
+      "en": "Open the game, complete all downloads, then close it. Confirm here, and the patcher prepares the new files and continues the translation by itself.",
+      "id": "Buka game, selesaikan semua unduhan, lalu tutup game. Konfirmasikan di sini, dan patcher menyiapkan file baru serta melanjutkan terjemahan dengan sendirinya.",
+      "draft": true
     },
     "restore_apk_only": {
       "platforms": [
@@ -2015,8 +1969,8 @@
       "platforms": [
         "windows"
       ],
-      "en": "Connect your phone and click Start. Keep the game closed while we work.",
-      "id": "Hubungkan ponsel dan klik Mulai. Jangan buka game selama proses.",
+      "en": "Finish every in-game download and close the game, connect your phone, then click Start. Keep the game closed while we work.",
+      "id": "Selesaikan semua unduhan dalam game dan tutup game, hubungkan ponsel, lalu klik Mulai. Jangan buka game selama proses.",
       "draft": true
     },
     "run_again": {
@@ -2111,8 +2065,8 @@
       "platforms": [
         "windows"
       ],
-      "en": "Open the game on the phone, accept the policies and wait until the data download finishes and the login screen appears.\n\nThen CLOSE the game and click OK here.",
-      "id": "Buka game di ponsel, setujui kebijakannya, dan tunggu sampai unduhan data selesai dan layar login muncul.\n\nLalu TUTUP game dan klik OK di sini.",
+      "en": "Open the game on the phone, accept the policies and wait until the data download finishes and the login screen appears.\n\nThen CLOSE the game and click Downloads finished. The translation continues after that.",
+      "id": "Buka game di ponsel, setujui kebijakannya, dan tunggu sampai unduhan data selesai dan layar login muncul.\n\nLalu TUTUP game dan klik Unduhan selesai. Terjemahan berlanjut setelah itu.",
       "draft": true
     },
     "retry_install_title": {
@@ -2219,14 +2173,6 @@
       "id": "Hapus dan unduh ulang",
       "draft": true
     },
-    "redownload_confirmation": {
-      "platforms": [
-        "android"
-      ],
-      "en": "The game's update stopped on the files this patcher translated. This deletes only those game files and clears the game's update records, so the game downloads them again on its next start. Nothing else is deleted.\n\nThen open the game, let it finish the update to the login screen, close it, and tap Start to patch again.",
-      "id": "Pembaruan game berhenti pada file yang diterjemahkan patcher ini. Ini hanya menghapus file game tersebut dan catatan pembaruan game, sehingga game mengunduhnya lagi saat dibuka berikutnya. Tidak ada yang lain yang dihapus.\n\nLalu buka game, biarkan pembaruan selesai sampai layar login, tutup game, dan ketuk Mulai untuk menambal lagi.",
-      "draft": true
-    },
     "damaged_files_deleted": {
       "platforms": [
         "android"
@@ -2265,6 +2211,87 @@
       ],
       "en": "Open the game, let it finish the update to the login screen, close it, then tap Start to patch again.",
       "id": "Buka game, biarkan pembaruan selesai sampai layar login, tutup game, lalu ketuk Mulai untuk menambal lagi.",
+      "draft": true
+    },
+    "redownload_review_title": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Review Re-download",
+      "id": "Tinjau unduh ulang",
+      "draft": true
+    },
+    "redownload_review_scope": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Files: {files} ({size})\nGame packages: {packages}",
+      "id": "File: {files} ({size})\nPaket game: {packages}",
+      "draft": true
+    },
+    "redownload_review_consequences": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Delete and re-download removes these package files and resets the game's update records. Other game data stays.\n\nThen open the game and finish its downloads to the login screen. Close it, return here and tap Downloads finished to continue translating.\n\nNothing is deleted until you tap Delete and re-download. Changed files need another review.",
+      "id": "Hapus dan unduh ulang menghapus file paket ini dan mereset catatan pembaruan game. Data game lainnya tetap ada.\n\nLalu buka game dan selesaikan unduhannya sampai layar login. Tutup game, kembali ke sini, lalu ketuk Unduhan selesai untuk melanjutkan terjemahan.\n\nTidak ada yang dihapus sebelum Anda mengetuk Hapus dan unduh ulang. File yang berubah perlu ditinjau lagi.",
+      "draft": true
+    },
+    "not_now": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Not now",
+      "id": "Nanti saja",
+      "draft": true
+    },
+    "redownload_repeat_review": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The game downloaded these files again, but its update still stops on them. The patcher does not delete the same files twice by itself.",
+      "id": "Game sudah mengunduh ulang file ini, tetapi pembaruannya masih berhenti di file tersebut. Patcher tidak menghapus file yang sama dua kali dengan sendirinya.",
+      "draft": true
+    },
+    "redownload_download_title": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Let the game download the files",
+      "id": "Biarkan game mengunduh file",
+      "draft": true
+    },
+    "redownload_download_body": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The damaged files are deleted. Open the game, let it download them and finish the update to the login screen, close it, then tap Downloads finished. The translation continues after that.",
+      "id": "File rusak sudah dihapus. Buka game, biarkan game mengunduhnya dan menyelesaikan pembaruan sampai layar login, tutup game, lalu ketuk Unduhan selesai. Terjemahan berlanjut setelah itu.",
+      "draft": true
+    },
+    "downloads_finished": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Downloads finished",
+      "id": "Unduhan selesai",
+      "draft": true
+    },
+    "not_yet": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Not yet",
+      "id": "Belum",
+      "draft": true
+    },
+    "redownload_plan_changed": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The files changed since you reviewed them. Nothing was deleted. Review the Re-download again.",
+      "id": "File berubah sejak Anda meninjaunya. Tidak ada yang dihapus. Tinjau unduh ulang lagi.",
       "draft": true
     },
     "android_step_find_damaged": {
@@ -2642,12 +2669,20 @@
       "id": "Aplikasi game terverifikasi; sesi yang terhenti dipulihkan",
       "draft": true
     },
-    "patch_confirmation_root": {
+    "progress_check_originals": {
       "platforms": [
         "android"
       ],
-      "en": "1. Finish ALL downloads in the game.\n2. Close the game.\n\n3. We change game files with root. The game app is not replaced. If an update damaged translated files, we delete them and the game downloads them again.\n\n4. Keep the game CLOSED until work or recovery finishes.\n\nLanguage: {language}\n\nAdding the translation has not passed all phone tests.",
-      "id": "1. Selesaikan SEMUA unduhan dalam game.\n2. Tutup game.\n\n3. Kami akan mengubah file game dengan root. Aplikasi game tidak diganti. Jika pembaruan merusak file terjemahan, kami menghapusnya dan game mengunduhnya lagi.\n\n4. JANGAN BUKA game sampai proses atau pemulihan selesai.\n\nBahasa: {language}\n\nPenerapan terjemahan belum lulus semua pengujian ponsel.",
+      "en": "Checking the original game files",
+      "id": "Memeriksa file game asli",
+      "draft": true
+    },
+    "progress_restore_originals": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Restoring the original game files",
+      "id": "Memulihkan file game asli",
       "draft": true
     },
     "remove_confirmation_root": {
@@ -2656,6 +2691,374 @@
       ],
       "en": "This writes the game's original files back, so the game reads in Chinese again. No game data is deleted and no download is needed.\n\nThe game app is not changed.",
       "id": "Ini menulis kembali file game asli, sehingga game kembali berbahasa Tionghoa. Data game tidak dihapus dan tidak perlu mengunduh ulang.\n\nAplikasi game tidak diubah.",
+      "draft": true
+    },
+    "error_run_state": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Saved recovery information cannot be read or saved. Keep the working folder and save the log for help. {detail}",
+      "id": "Informasi pemulihan tidak dapat dibaca atau disimpan. Simpan folder kerja dan log untuk meminta bantuan. {detail}"
+    },
+    "error_run_busy": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Another patcher owns this phone or folder. Close it safely, then try again. {detail}",
+      "id": "Patcher lain sedang memakai ponsel atau folder ini. Tutup dengan aman, lalu coba lagi. {detail}"
+    },
+    "error_run_missing": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Reconnect the drive containing your saved working folder, then try again. {detail}",
+      "id": "Sambungkan kembali drive yang berisi folder kerja tersimpan, lalu coba lagi. {detail}"
+    },
+    "error_run_ambiguous": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "More than one saved action needs recovery. Keep every working folder and save the log for help. {detail}",
+      "id": "Lebih dari satu tindakan tersimpan perlu dipulihkan. Simpan semua folder kerja dan log untuk meminta bantuan. {detail}"
+    },
+    "error_run_target": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Reconnect the same phone and owner profile used for this action. {detail}",
+      "id": "Sambungkan kembali ponsel dan profil pemilik yang dipakai untuk tindakan ini. {detail}"
+    },
+    "error_run_pending": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "An unfinished action must be recovered before changing settings or starting again. Keep this working folder: {detail}",
+      "id": "Tindakan yang belum selesai harus dipulihkan sebelum mengubah pengaturan atau memulai lagi. Simpan folder kerja ini: {detail}"
+    },
+    "error_run_retry": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Automatic retry has stopped. Fix the cause, then choose Retry for this action. {detail}",
+      "id": "Percobaan ulang otomatis telah berhenti. Atasi penyebabnya, lalu pilih Coba lagi untuk tindakan ini. {detail}"
+    },
+    "error_apk_identity": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The game app could not be verified. Keep the working folder and reconnect the same phone. {detail}",
+      "id": "Aplikasi game tidak dapat diverifikasi. Simpan folder kerja dan sambungkan kembali ponsel yang sama. {detail}"
+    },
+    "error_normal_recovery": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The normal game app is not verified. Translation is not finished. Keep this recovery APK and reconnect the phone: {detail}",
+      "id": "Aplikasi game normal belum terverifikasi. Penerjemahan belum selesai. Simpan APK pemulihan ini dan sambungkan kembali ponsel: {detail}"
+    },
+    "error_setup_consent": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The original game is still installed. Setup recovery will not delete it again. A new first setup needs fresh approval.",
+      "id": "Game asli masih terpasang. Pemulihan penyiapan tidak akan menghapusnya lagi. Penyiapan awal baru memerlukan persetujuan baru."
+    },
+    "error_setup_update": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The normal game app is installed. Open it, finish every download, then close it before continuing translation.",
+      "id": "Aplikasi game normal telah terpasang. Buka game, selesaikan semua unduhan, lalu tutup sebelum melanjutkan penerjemahan."
+    },
+    "error_setup_space": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Free space for one saved APK plus 64 MB in this folder, then retry setup recovery: {path}",
+      "id": "Kosongkan ruang sebesar satu APK tersimpan ditambah 64 MB di folder ini, lalu coba pemulihan penyiapan lagi: {path}"
+    },
+    "stopping_safely": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Stopping safely",
+      "id": "Menghentikan dengan aman",
+      "draft": true
+    },
+    "saving_stop_request": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Saving Stop request…",
+      "id": "Menyimpan permintaan berhenti…",
+      "draft": true
+    },
+    "closing_safely": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Closing safely",
+      "id": "Menutup dengan aman",
+      "draft": true
+    },
+    "close_continuation_note": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Finishing safe cleanup. Reopen the patcher to continue.",
+      "id": "Menyelesaikan pemulihan aman. Buka kembali patcher untuk melanjutkan.",
+      "draft": true
+    },
+    "continuing_saved_work": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Continuing saved work",
+      "id": "Melanjutkan proses tersimpan",
+      "draft": true
+    },
+    "waiting_for_you": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Waiting for you",
+      "id": "Menunggu Anda",
+      "draft": true
+    },
+    "stopped_safely_note": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Stopped safely. Start when you want to patch again.",
+      "id": "Berhenti dengan aman. Mulai saat Anda ingin memasang terjemahan lagi.",
+      "draft": true
+    },
+    "progress_bytes": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{done} of {total}",
+      "id": "{done} dari {total}",
+      "draft": true
+    },
+    "connect_saved_phone": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Reconnect the same phone and allow USB debugging.",
+      "id": "Hubungkan kembali ponsel yang sama dan izinkan debugging USB.",
+      "draft": true
+    },
+    "control_save_failed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Could not save the request. Keep this window open and save the log for help.",
+      "id": "Permintaan tidak dapat disimpan. Biarkan jendela ini terbuka dan simpan log untuk bantuan.",
+      "draft": true
+    },
+    "waiting_operation_boundary": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Waiting for the current operation, then restoring the game safely.",
+      "id": "Menunggu operasi saat ini, lalu memulihkan game dengan aman.",
+      "draft": true
+    },
+    "error_close_preserved": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Work saved. Reopen the patcher to continue.",
+      "id": "Proses tersimpan. Buka kembali patcher untuk melanjutkan.",
+      "draft": true
+    },
+    "progress_items": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{done} of {total} APK files prepared",
+      "id": "{done} dari {total} file APK disiapkan",
+      "draft": true
+    },
+    "progress_bytes_read": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{done} received",
+      "id": "{done} diterima",
+      "draft": true
+    },
+    "normal_install_progress": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Restoring the game app. Allow installation on the phone if asked.",
+      "id": "Memulihkan aplikasi game. Izinkan pemasangan di ponsel jika diminta.",
+      "draft": true
+    },
+    "access_install_progress": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Installing temporary access. Allow installation on the phone if asked.",
+      "id": "Memasang akses sementara. Izinkan pemasangan di ponsel jika diminta.",
+      "draft": true
+    },
+    "stop_not_saved": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Stop safely could not be saved. The work still stops safely now; if it continues after you reopen the patcher, tap Stop safely again. Keep the game closed.",
+      "id": "Hentikan dengan aman tidak dapat disimpan. Proses tetap berhenti dengan aman sekarang; jika berlanjut setelah patcher dibuka kembali, ketuk Hentikan dengan aman lagi. Biarkan game tertutup.",
+      "draft": true
+    },
+    "retrying_saved_action": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Trying the saved action once more.",
+      "id": "Mencoba tindakan tersimpan sekali lagi.",
+      "draft": true
+    },
+    "restoring_your_game": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Restoring your game",
+      "id": "Memulihkan game Anda",
+      "draft": true
+    },
+    "continue_saved_work": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Continue saved work",
+      "id": "Lanjutkan proses tersimpan",
+      "draft": true
+    },
+    "finish_stopping_safely": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Finish stopping safely",
+      "id": "Selesaikan penghentian dengan aman",
+      "draft": true
+    },
+    "restore_game_app": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Restore the game app",
+      "id": "Pulihkan aplikasi game",
+      "draft": true
+    },
+    "check_saved_work": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Check saved work",
+      "id": "Periksa proses tersimpan",
+      "draft": true
+    },
+    "attention_saved_action": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Saved work is unfinished. Keep the game closed. The button below finishes it safely before anything new starts.",
+      "id": "Proses tersimpan belum selesai. Biarkan game tertutup. Tombol di bawah menyelesaikannya dengan aman sebelum proses baru dimulai.",
+      "draft": true
+    },
+    "attention_stop_saved": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Stop safely is saved, but the game is not restored yet. Keep the game closed. The button below finishes restoring it; the action stays stopped.",
+      "id": "Hentikan dengan aman sudah tersimpan, tetapi game belum dipulihkan. Biarkan game tertutup. Tombol di bawah menyelesaikan pemulihannya; tindakan tetap berhenti.",
+      "draft": true
+    },
+    "attention_restore_normal": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The normal game app is not verified yet. Keep the game closed, reconnect the same phone, then click Restore the game app.",
+      "id": "Aplikasi game normal belum terverifikasi. Biarkan game tertutup, sambungkan kembali ponsel yang sama, lalu klik Pulihkan aplikasi game.",
+      "draft": true
+    },
+    "attention_check_saved_work": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The patcher found unfinished work it cannot continue by itself. Keep the game closed and keep this working folder. Click Check saved work, or save the log for help.",
+      "id": "Patcher menemukan proses belum selesai yang tidak dapat dilanjutkannya sendiri. Biarkan game tertutup dan simpan folder kerja ini. Klik Periksa proses tersimpan, atau simpan log untuk bantuan.",
+      "draft": true
+    },
+    "choices_locked": {
+      "platforms": [
+        "android",
+        "windows"
+      ],
+      "en": "Locked while saved work is unfinished. Finish it, or stop it safely, to change these choices.",
+      "id": "Terkunci selama proses tersimpan belum selesai. Selesaikan, atau hentikan dengan aman, untuk mengubah pilihan ini.",
+      "draft": true
+    },
+    "waiting_downloads_detail": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Finish the game's downloads on the phone, close the game, then click Downloads finished.",
+      "id": "Selesaikan unduhan game di ponsel, tutup game, lalu klik Unduhan selesai.",
+      "draft": true
+    },
+    "waiting_setup_consent": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Answer the first setup question. Nothing is deleted until you approve.",
+      "id": "Jawab pertanyaan penyiapan awal. Tidak ada yang dihapus sebelum Anda menyetujui.",
+      "draft": true
+    },
+    "nothing_left_to_recover": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Nothing is left to recover. Tap Start when you want to patch.",
+      "id": "Tidak ada lagi yang perlu dipulihkan. Ketuk Mulai saat Anda ingin memasang terjemahan.",
+      "draft": true
+    },
+    "nothing_left_to_recover_click": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Nothing is left to recover. Click Start when you want to patch.",
+      "id": "Tidak ada lagi yang perlu dipulihkan. Klik Mulai saat Anda ingin memasang terjemahan.",
+      "draft": true
+    },
+    "ready_before_start": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Finish every in-game download to the login screen and close the game, then tap Start. We change game files and briefly replace the game app. Keep the game closed until the work finishes. Adding the translation has not passed all phone tests.",
+      "id": "Selesaikan semua unduhan dalam game sampai layar login dan tutup game, lalu ketuk Mulai. Kami mengubah file game dan mengganti aplikasi game untuk sementara. Jangan buka game sampai proses selesai. Penerapan terjemahan belum lulus semua pengujian ponsel.",
+      "draft": true
+    },
+    "ready_before_start_root": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Finish every in-game download to the login screen and close the game, then tap Start. We change game files with root; the game app is not replaced. Keep the game closed until the work finishes. Adding the translation has not passed all phone tests.",
+      "id": "Selesaikan semua unduhan dalam game sampai layar login dan tutup game, lalu ketuk Mulai. Kami mengubah file game dengan root; aplikasi game tidak diganti. Jangan buka game sampai proses selesai. Penerapan terjemahan belum lulus semua pengujian ponsel.",
       "draft": true
     }
   }

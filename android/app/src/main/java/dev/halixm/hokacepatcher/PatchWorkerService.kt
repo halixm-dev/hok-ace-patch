@@ -21,6 +21,45 @@ class PatchWorkerService : Service() {
         /** Process-local service lifetime, never inferred from a saved running result. */
         @Volatile var isWorking = false
             private set
+
+        /** Validate before claiming process-local lifetime; malformed input never falls back to a picker. */
+        fun dispatchRun(context: android.content.Context, intent: Intent?): RunStore.Run? {
+            val action = intent?.action
+            if (action == "recover") {
+                val session = checkNotNull(intent.getStringExtra("session"))
+                GameFilePolicy.session(session)
+                val journal = SessionJournal.load(File(context.filesDir, "sessions/$session"))
+                val runId = journal.runId ?: return null // Legacy authority permits safety recovery only.
+                val store = RunStore(context); val run = store.load(runId); store.requireTarget(run)
+                check(run.sessionId == session && journal.authorizationKey == run.authorizationKey) { "Recovery journal has no correlated Start" }
+                return run // Stop revokes continuation, never justified safety recovery.
+            }
+            if (action == "first_setup") {
+                // Destructive setup runs only under its own one-use consent, bound to a Start that may still continue.
+                val parent = FirstSetupRequestStore(context).parent(checkNotNull(intent.getStringExtra("request"))) ?: return null
+                val store = RunStore(context); val run = store.load(parent); store.requireTarget(run)
+                check(run.action == "translate" && run.mayContinue && run.provider != ShellProvider.ROOT) {
+                    "Setup consent differs from the saved Start"
+                }
+                return run
+            }
+            if (action == "setup_recover" || action == "setup_update") {
+                // Install-only recovery and the downloads answer use the provider the setup's Start recorded, even after Stop.
+                val setup = checkNotNull(intent.getStringExtra("setup")); GameFilePolicy.session(setup)
+                val parent = FirstSetupJournal.load(File(context.filesDir, "first-setups/$setup")).parentRun ?: return null
+                val store = RunStore(context); val run = store.load(parent); store.requireTarget(run)
+                return run
+            }
+            if (action !in setOf("prepare", "patch", "remove", "redownload")) return null
+            val id = if (action == "prepare") intent?.getStringExtra("run") else intent?.getStringExtra("request")
+            val store = RunStore(context)
+            val run = store.load(checkNotNull(id) { "Durable Start required" })
+            store.requireTarget(run)
+            val expected = when (action) { "patch" -> "translate"; "prepare" -> run.action; else -> action }
+            check(run.action == expected && run.mayContinue) { "Dispatch differs from saved Start" }
+            intent?.getStringExtra("run")?.let { check(it == run.id) { "Conflicting run references" } }
+            return run
+        }
     }
     private val recentMessages = ArrayDeque<String>()
     private var activeFlow: String? = null
@@ -39,6 +78,9 @@ class PatchWorkerService : Service() {
     @Volatile private var activeStep: String? = null
     /** The run's provider is Root, whose runs skip two of the steps. */
     @Volatile private var rootRun = false
+    @Volatile private var activeRunId: String? = null
+    /** Stop safely was received: it is saved first, shown at once, and a repeated Stop does nothing. */
+    @Volatile private var stopping = false
 
     @Synchronized private fun state(value: JSONObject) {
         if (retiring.get() && value.optString("status") !in setOf("recovery_required", "cancelled")) return
@@ -53,6 +95,7 @@ class PatchWorkerService : Service() {
             recentMessages.addLast("$time  ${ErrorSummary.cause(message).take(2000)}")
             while (recentMessages.size > 40) recentMessages.removeFirst()
         }
+        activeRunId?.let { value.put("run", it) }
         value.put("messages", JSONArray(recentMessages.toList()))
         value.put("updated_ms", System.currentTimeMillis())
         activeFlow?.let { value.put("flow", it) }
@@ -85,6 +128,7 @@ class PatchWorkerService : Service() {
         activeStep = WorkerStep.next(activeAction, activeStep, message, rootRun)
         state(JSONObject().put("status", "running").put("action", activeAction).put("progress", message).also { running ->
             activeStep?.let { running.put("step", it).put("steps", WorkerStep.KEYS.size) }
+            if (stopping) running.put("stopping", true)
         })
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel("patch", UiText.text(this, "Game patch progress"),
@@ -93,13 +137,16 @@ class PatchWorkerService : Service() {
             .setAction("cancel"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val open = PendingIntent.getActivity(this, 2, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        val notification = Notification.Builder(this, "patch")
+        val builder = Notification.Builder(this, "patch")
             .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentTitle(getString(R.string.app_name)).setContentText(UiText.progress(this, message).take(160))
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText((if (stopping) UiText.text(this, "Stopping safely") else UiText.progress(this, message)).take(160))
             .setContentIntent(open).setOngoing(true)
-            .addAction(Notification.Action.Builder(null,
+        // Once Stop is saved the action is gone: a second Stop cannot be sent.
+        if (!stopping) builder.addAction(Notification.Action.Builder(null,
                 UiText.text(this, when (activeAction) { "prepare" -> "Cancel preparation"; "first_setup" -> "Stop after safe installation";
-                    else -> "Cancel and recover" }), cancel).build()).build()
+                    else -> "Cancel and recover" }), cancel).build())
+        val notification = builder.build()
         startForeground(notificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
     }
 
@@ -107,19 +154,41 @@ class PatchWorkerService : Service() {
         DiagnosticTrace.event("worker", "Start command ${intent?.action} start $startId flags $flags busy ${busy.get()} " +
             "extras ${intent?.extras?.keySet()?.associateWith { intent.extras?.get(it) }}")
         if (intent?.action == "cancel") {
+            if (!busy.get()) { stopSelf(startId); return START_NOT_STICKY }
+            if (stopping) return START_NOT_STICKY // Already saved and acting on it.
+            stopping = true
+            // Saved before it is acknowledged; a failed save still stops this attempt at its next safe boundary.
+            val saved = activeRunId?.let { id -> runCatching { RunStore(this).stop(id) }
+                .onFailure { DiagnosticTrace.error("worker", "Stop could not be saved", it) }.isSuccess } ?: true
             cancelRequested.set(true)
             coordinator?.cancel()
             setup?.cancel()
-            if (!busy.get()) stopSelf(startId)
+            DiagnosticTrace.event("worker", "Stop safely received during $activeAction; saved $saved")
+            runCatching { show(if (saved) "Stopping safely" else UiText.english("stop_not_saved")) }
+            return START_NOT_STICKY
+        }
+        if (busy.get()) return START_NOT_STICKY
+        val savedRun = try { dispatchRun(this, intent) } catch (error: Throwable) {
+            // A Stop saved before this request arrived: nothing started, so it is a cancellation, not a damaged record.
+            val stopped = stoppedBeforeWork(intent)
+            // Not busy here: this refused request owns the record, so its flow answers the screen waiting for it.
+            activeRunId = null; activeFlow = intent?.getStringExtra("flow")
+            state(if (stopped != null) JSONObject().put("status", "cancelled").put("action", intent?.action).put("run", stopped)
+                    .put("error", "Stopped before work started")
+                else JSONObject().put("status", "recovery_required").put("launch_allowed", false)
+                    .put("error", error.message ?: "Saved Start cannot be read").put("error_type", error.javaClass.name))
+            stopSelf(startId)
             return START_NOT_STICKY
         }
         if (!busy.compareAndSet(false, true)) return START_NOT_STICKY
         isWorking = true
+        stopping = false
         activeFlow = intent?.getStringExtra("flow")
         activeAction = intent?.action ?: ""
         activeStep = null
         // Read once: changing the provider while a run is in progress is refused, and this run keeps its own.
-        val provider = ShellProvider.current(this)
+        activeRunId = savedRun?.id
+        val provider = savedRun?.provider ?: ShellProvider.current(this)
         rootRun = provider == ShellProvider.ROOT
         recentMessages.clear()
         recentMessages.addAll(WorkerStep.carriedMessages(activeAction, savedState()))
@@ -149,22 +218,32 @@ class PatchWorkerService : Service() {
                 when (intent?.action) {
                     "first_setup" -> {
                         val request = checkNotNull(intent.getStringExtra("request"))
+                        val parent = FirstSetupRequestStore(this).parent(request)
+                        check(parent == activeRunId) { "Setup consent differs from the saved Start" }
+                        // The setup is its parent Start's logical operation, persisted before dispatch; never re-armed.
+                        parent?.let { RunStore(this).beginAttempt(it, "first_setup") }
                         val prepared = FirstSetupRequestStore(this).claim(request)
                         check(!cancelRequested.get() && !retiring.get()) { "Setup cancelled before removal" }
-                        state(setupWorker.run(prepared, EngineAssets.prepare(this).name, true, request))
+                        state(setupWorker.run(prepared, EngineAssets.prepare(this).name, true, request, parent))
                     }
                     "setup_recover" -> state(setupWorker.recover(checkNotNull(intent.getStringExtra("setup"))))
                     "setup_update" -> state(setupWorker.finishUpdate(checkNotNull(intent.getStringExtra("setup")),
                         intent.getBooleanExtra("confirmed", false)))
-                    "prepare" -> {
-                        val checkpoint = { check(!cancelRequested.get() && !retiring.get()) { "Preparation cancelled" } }
+                    "prepare" -> RunStore.coordinator(this) {
+                        val run = checkNotNull(activeRunId) { "Durable Start required before preparation" }
+                        val authority = RunStore(this).load(run)
+                        check(authority.mayContinue && authority.provider == provider) { "Preparation authorization is stopped" }
+                        RunStore(this).beginAttempt(run, "preparation")
+                        val checkpoint = { check(!cancelRequested.get() && !retiring.get() && RunStore(this).load(run).mayContinue) { "Preparation cancelled" } }
                         // Root installs no APK, so it prepares only a copy of the installed game app (ADR 0007).
                         val result = if (WorkerAccess.of(device) == WorkerAccess.ROOT) {
                             val prepared = ApkPreparation(this).prepareRoot(device, { message -> show(message) }, checkpoint)
+                            PatchRequestStore(this).authorizeRoot(run, prepared)
                             JSONObject().put("preparation", prepared.directory.name).put("root", true)
                                 .put("normal", prepared.installed.sha256).put("requires_signature_conversion", false)
                         } else {
                             val prepared = ApkPreparation(this).prepare(device, { message -> show(message) }, checkpoint)
+                            if (!prepared.requiresSignatureConversion) PatchRequestStore(this).authorize(run, prepared)
                             JSONObject().put("preparation", prepared.directory.name).put("normal", prepared.normal.sha256)
                                 .put("requires_signature_conversion", prepared.requiresSignatureConversion)
                         }
@@ -193,7 +272,8 @@ class PatchWorkerService : Service() {
                         val summary = claimAndRun(worker, checkNotNull(intent.getStringExtra("request")),
                             "Patch cancelled before access", remove = intent.action == "remove")
                         // The build found damaged files, and the run deleted them instead of patching.
-                        if (summary.has("redownload")) state(redownloadResult(summary)) else {
+                        if (summary.has("status")) state(summary)
+                        else if (summary.has("redownload")) state(redownloadResult(summary)) else {
                             val root = EngineAssets.prepare(this)
                             val result = JSONObject().put("status", "complete").put("counts", JSONObject(
                                 com.chaquo.python.Python.getInstance().getModule("android_bridge").callAttr(
@@ -208,9 +288,27 @@ class PatchWorkerService : Service() {
                 val prepareCancelled = activeAction == "prepare" && cancelRequested.get()
                 val failureMessage = (if (prepareCancelled) lost else null) ?: error.message?.takeIf { it.isNotBlank() } ?:
                     "The operation stopped unexpectedly. Keep the game closed, check ${provider.label}, then retry verification or recovery."
-                if (!retiring.get()) runCatching { state(setup?.pendingRecoveryResult() ?: coordinator?.pendingRecoveryResult() ?:
-                    JSONObject().put("status", if (prepareCancelled) "cancelled" else "error")
-                        .put("action", activeAction).put("error", failureMessage).put("error_type", error.javaClass.name)) }
+                if (!retiring.get()) runCatching {
+                    val pending = setup?.pendingRecoveryResult() ?: coordinator?.pendingRecoveryResult()
+                    val result = pending ?: JSONObject().put("status", if (prepareCancelled) "cancelled" else "error")
+                        .put("action", activeAction).put("error", failureMessage).put("error_type", error.javaClass.name)
+                    val storageShortage = StorageBudget.shortage(error)
+                    if (storageShortage != null && activeRunId != null) {
+                        val run = RunStore(this).load(checkNotNull(activeRunId))
+                        if (run.mayContinue) {
+                            RunStore(this).waitFor(run.id, "storage")
+                            val unresolved = pending != null || runCatching {
+                                SessionJournal.pending(File(filesDir, "sessions")).isNotEmpty() ||
+                                    FirstSetupJournal.pending(this).isNotEmpty() ||
+                                    EmergencyRestoreStore(this).snapshot()?.optString("status") == "verification_pending"
+                            }.getOrDefault(true)
+                            val shortage = storageShortage.result(unresolved)
+                            shortage.keys().forEach { key -> result.put(key, shortage.get(key)) }
+                            if (prepareCancelled) result.put("status", "cancelled")
+                        }
+                    }
+                    state(result)
+                }
                 DiagnosticTrace.error("worker", "Patch/recovery stopped during $activeAction", error)
             } finally {
                 // A finished run tells a player who left the patcher; a stopped worker (retiring) has its own recovery path.
@@ -227,6 +325,16 @@ class PatchWorkerService : Service() {
         return START_NOT_STICKY
     }
 
+    /** The run id when <intent> names a readable saved Start (directly, or through its setup consent) that is stopped. */
+    private fun stoppedBeforeWork(intent: Intent?): String? = runCatching {
+        val id = when (intent?.action) {
+            "first_setup" -> FirstSetupRequestStore(this).parent(checkNotNull(intent.getStringExtra("request")))
+            "prepare" -> intent.getStringExtra("run")
+            else -> intent?.getStringExtra("request")
+        } ?: return null
+        id.takeIf { RunStore(this).load(it).stopRequested }
+    }.getOrNull()
+
     private fun redownloadResult(summary: JSONObject) = JSONObject().put("status", "complete").put("action", "redownload")
         .put("redownloaded", summary.getJSONArray("redownload").length())
         .put("packages", summary.getJSONObject("packages").length()).put("root", rootRun)
@@ -234,15 +342,13 @@ class PatchWorkerService : Service() {
     /** Claim confirmation <request> and run it on the path it was confirmed for: root's, or the shell path's. */
     private fun claimAndRun(worker: PatchCoordinator, request: String, cancelled: String,
                             remove: Boolean = false, redownload: Boolean = false): JSONObject {
-        val store = PatchRequestStore(this)
-        if (store.isRoot(request)) {
-            val prepared = store.claimRoot(request)
-            check(!cancelRequested.get() && !retiring.get()) { cancelled }
-            return worker.runRoot(prepared.apk, prepared.installed, remove, redownload)
-        }
-        val prepared = store.claim(request)
         check(!cancelRequested.get() && !retiring.get()) { cancelled }
-        return worker.run(prepared.normal.sha256, prepared.accessFile, prepared.source, remove, redownload)
+        val run = RunStore(this).load(request)
+        val action = when { redownload -> "redownload"; remove -> "remove"; else -> "translate" }
+        check(run.action == action) { "Dispatch action differs from saved Start" }
+        // The coordinator resolves the saved action from its verified journal (COMPLETE, or a Stop made
+        // consistent), never from this worker-state projection; an interruption leaves it to continue.
+        return worker.dispatch(request, action, run.provider)
     }
 
     override fun onTimeout(startId: Int, fgsType: Int) {

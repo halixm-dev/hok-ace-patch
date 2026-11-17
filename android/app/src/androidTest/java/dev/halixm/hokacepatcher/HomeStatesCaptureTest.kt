@@ -26,8 +26,19 @@ class HomeStatesCaptureTest {
     private val logLines = (1..40).map { "Log line $it: checking package files" }
 
     private val states: List<Pair<String, (GuidedHome, Activity) -> Unit>> = listOf(
-        "idle" to { home, _ ->
-            home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
+        "idle" to { home, activity ->
+            home.show("Ready when you are", UiText.string(activity, "ready_before_start"), "Start", "start", false)
+        },
+        "redownload-review" to { home, activity ->
+            home.show(UiText.string(activity, "redownload_review_title"),
+                UiText.string(activity, "redownload_review_scope", "files" to 12, "size" to "450 MB",
+                    "packages" to "1, 10, 15, 21") + "\n\n" + UiText.string(activity, "redownload_review_consequences"),
+                UiText.string(activity, "delete_and_redownload"), "redownload", false, GuidedHome.Stage.ATTENTION)
+        },
+        "redownload-download" to { home, activity ->
+            home.show(UiText.string(activity, "redownload_download_title"), UiText.string(activity, "redownload_download_body"),
+                "Open game", "redownload_game", false, GuidedHome.Stage.ATTENTION,
+                UiText.string(activity, "downloads_finished"), "redownload_finished")
         },
         "install-shizuku" to { home, _ ->
             home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", false, GuidedHome.Stage.ACCESS)
@@ -40,6 +51,24 @@ class HomeStatesCaptureTest {
                 .put("action", "patch").put("step", "unlock_access").put("steps", 6))!!
             home.show("Working on your game", step.line, "Please wait", "start", false, GuidedHome.Stage.WORKING)
             home.working(true); home.languageEnabled(false); home.progress(true, step); home.logs(logLines)
+        },
+        // Ticket 13: the states the run state names, and Recovery needs attention's own recovery action.
+        "continuing" to { home, activity ->
+            home.show(UiText.string(activity, "continuing_saved_work"), "Checking and preparing files…", "Please wait", "start", false,
+                GuidedHome.Stage.WORKING)
+            home.working(true); home.languageEnabled(false, locked = true); home.progress(true)
+        },
+        "restoring" to { home, activity ->
+            home.show(UiText.string(activity, "restoring_your_game"), "Checking and preparing files…", "Please wait", "start", false,
+                GuidedHome.Stage.WORKING)
+            home.working(true); home.languageEnabled(false, locked = true); home.progress(true)
+        },
+        "attention" to { home, activity ->
+            home.recoveryActions(null)
+            home.show("Recovery needs attention", UiText.string(activity, "attention_saved_action"),
+                UiText.string(activity, "continue_saved_work"), "recover_attention", true, GuidedHome.Stage.ATTENTION)
+            home.languageEnabled(false, locked = true)
+            home.errorDetails("ERROR: Worker lost")
         },
         "recovery" to { home, _ ->
             home.recoveryActions(null)
@@ -69,12 +98,12 @@ class HomeStatesCaptureTest {
             home.result(UiText.result(PatchLanguage.current(activity), JSONObject().put("status", "space_freed")
                 .put("freed_bytes", 12_345_000_000L).put("free_bytes", 99_999_000_000L))!!, "Start")
         },
-        "notice" to { home, _ ->
-            home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
+        "notice" to { home, activity ->
+            home.show("Ready when you are", UiText.string(activity, "ready_before_start"), "Start", "start", false)
             home.message("Access was not allowed. Tap Start to try again.", failure = true)
         },
-        "notice-info" to { home, _ ->
-            home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
+        "notice-info" to { home, activity ->
+            home.show("Ready when you are", UiText.string(activity, "ready_before_start"), "Start", "start", false)
             home.message("Finish the current work before freeing space.")
         },
         "failed" to { home, _ ->
@@ -86,6 +115,25 @@ class HomeStatesCaptureTest {
 
     private fun shown(view: View): Boolean =
         view.visibility == View.VISIBLE && (view.parent as? View)?.let(::shown) ?: true
+
+    /** These taps dispatch directly; the reused secondary button must revert after the download wait. */
+    @Test fun downloadButtonsDispatchDirectlyAndResultResetsTheSecondaryAction() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val actions = mutableListOf<String>()
+                val home = GuidedHome(activity) { actions += it }
+                states.first { it.first == "redownload-review" }.second(home, activity)
+                activity.window.decorView.findViewWithTag<View>("next-step").performClick()
+                states.first { it.first == "redownload-download" }.second(home, activity)
+                activity.window.decorView.findViewWithTag<View>("next-step").performClick()
+                activity.window.decorView.findViewWithTag<View>("start-again").performClick()
+                home.result(UiText.result(PatchLanguage.current(activity),
+                    JSONObject().put("status", "complete").put("counts", counts))!!, "Start another patch")
+                activity.window.decorView.findViewWithTag<View>("start-again").performClick()
+                org.junit.Assert.assertEquals(listOf("redownload", "redownload_game", "redownload_finished", "start"), actions)
+            }
+        }
+    }
 
     private fun textViews(view: View): List<TextView> = when (view) {
         is TextView -> listOf(view)

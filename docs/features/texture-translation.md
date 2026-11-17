@@ -10,6 +10,14 @@ commits: 290f5d8..46ed048
 
 ## Report
 
+**2026-11-12 recovery:** a relocation whose old slot is absent from the live B-tree now raises the
+structured `UnreachableSlot` (still a `RuntimeError`, with the same diagnostic text). The Android
+checkpoint build can offer the affected package through the existing approved
+[Re-download flow](update-stuck-redownload.md). It does not suppress the error or save the failed shard.
+That flow also checks texture-slot reachability before review when mixed data prevented staging:
+`unreachable_slots` uses the corrected reader and current B-tree metadata without a writable `Shard`.
+Suspect packages are checked after any available delta/asset restore in a disposable copy first.
+
 **What was built** — the patched game now renders the English textures. `tools/mobile_graphics.py`
 applies one catalog edit to one device texture: a `.blocks` BC7 payload is ported block for block when
 the device texture uses the 4x4 ASTC footprint, a `.blocks` RGBA32 payload is pasted onto the decoded

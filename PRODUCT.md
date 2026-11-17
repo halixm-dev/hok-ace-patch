@@ -38,12 +38,24 @@ affiliated with Tencent.
   translation, restore game.
 - **Android patcher**: the player installs Shizuku, picks a language and taps Start. The patcher
   checks and recovers unfinished work before patching, asks for explicit consent before anything
-  destructive, and keeps recovery tools for a game that won't open. It also offers *Remove
+  that deletes game data, and keeps recovery tools for a game that won't open. It also offers *Remove
   translation* and *Free up space*.
 - **Both patchers** offer *Remove translation* while they keep a pristine delta: it restores the
   original game files without clearing the game's data.
-- The translation is written only after the in-game update finishes. During a run the game must stay
-  closed. Afterwards the player logs in with *Scan to login*, because re-signing breaks direct
+- The translation is written only after the in-game update finishes. Both patchers say so on the
+  Start card, before Start: finish every in-game download and close the game. No routine checkbox
+  or dialog follows Start; *Remove translation* asks once, at the tap. During a run the game must
+  stay closed.
+- Re-download is automatic (the user's decision, 2026-11-13): when Start finds damaged game files,
+  the run deletes exactly those package files, without a review, so the game downloads them again.
+  Then **Open game**, finish the downloads, close the game, return and tap **Downloads finished** to
+  continue the saved translation. A package still damaged after its own download is not deleted a
+  second time by itself: the main card shows it for review above **Delete and re-download**.
+- A run can be stopped safely and continued. Saved work is continued or recovered before anything
+  new: while it waits, the Start button becomes its recovery action (*Continue saved work*, *Finish
+  stopping safely*, *Restore interrupted patch* …), and the screen names the state (*Working*,
+  *Continuing*, *Stopping safely*, *Restoring*, *Waiting for you*, *Recovery needs attention*).
+  Only a verified run reads as complete. Afterwards the player logs in with *Scan to login*, because re-signing breaks direct
   WeChat/QQ login.
 - Releases are published on GitHub (`halixm-dev/hok-ace-patch`). The Android patcher checks for
   updates only when the player asks.

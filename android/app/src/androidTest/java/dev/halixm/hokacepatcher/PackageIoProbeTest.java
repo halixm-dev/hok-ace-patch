@@ -43,9 +43,9 @@ public final class PackageIoProbeTest {
                 struct.pack_into('<II', data, 8, size, size)
                 struct.pack_into('<I', data, 0x10, 0x1000)
                 struct.pack_into('<I', data, 0x18, 0x3000)
-                struct.pack_into('<II', data, 0x30, 0x8000, 0x1000)
-                struct.pack_into('<6I', data, 0x8000, 0x20, 1, 1, 1, 0, 0x20)
-                struct.pack_into('<6I', data, 0x8018, 0x1000, 0x2000, 0x1000, 0, 0, 0)
+                struct.pack_into('<4I', data, 0x30, 0x10000, 0x1000, 0x10000, 0x1000)  # +0x38/+0x3c mirror the table; room for a root split
+                struct.pack_into('<6I', data, 0x10000, 0x20, 1, 1, 1, 0, 0x20)
+                struct.pack_into('<6I', data, 0x10018, 0x1000, 0x2000, 0x1000, 0, 0, 0)
                 struct.pack_into('<4I', data, 0x2ff0, 0x1000, 0, 0xffffffff, 3 << 16)
                 path.write_bytes(data)
                 shard = Shard(path)

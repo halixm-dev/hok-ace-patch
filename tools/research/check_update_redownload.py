@@ -10,7 +10,9 @@ is made as the Android patcher made it after `after-patch` (pristine 1.6.0.1 aga
 with asset fingerprints). Over the `after-update` layer, where the game's repair stuck on package `1` while
 `10` and `21` kept appended assets and `15`, `19`, `20` kept only modified ones:
 - Re-download plans `1`, `10` and `21` in one run, and nothing restore can take;
-- over the `after-finish` layer (package `1` downloaded again), it plans `10` and `21`, as the phone did.
+- over the `after-finish` layer (package `1` downloaded again), it plans `10` and `21`, as the phone did;
+- (ticket 17) a second plan of the same session, through an engine the bridge can identify, plans exactly
+  the same files and reuses the first one's mixed-package decision with no trial restore.
 """
 from __future__ import annotations
 
@@ -114,9 +116,19 @@ def main() -> None:
     pristine_delta.record_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME, delta.staged_hashes)
     engine = args.work / "engine"
     engine.mkdir()
-    for name, target in (("runtime", ROOT / "resources" / "runtime"), ("tools", ROOT / "tools")):
+    for name, target in (("runtime", ROOT / "resources" / "runtime"), ("tools", ROOT / "tools"),
+                         ("catalog", ROOT / "resources" / "catalog"),
+                         ("catalog_id", ROOT / "resources" / "catalog_id")):
         subprocess.run(["cmd", "/c", "mklink", "/J", str(engine / name), str(target)], check=True,
                        capture_output=True)
+
+    # Ticket 17: a real copy of the engine can be identified, so the bridge keeps its decision for the
+    # session; the junction engine above cannot, so the first plan of each session is the fresh control.
+    identified = args.work / "engine-copy"
+    shutil.copytree(ROOT / "tools", identified / "tools", ignore=shutil.ignore_patterns("__pycache__", "research"))
+    shutil.copytree(ROOT / "resources" / "runtime", identified / "runtime", ignore=shutil.ignore_patterns("__pycache__"))
+    for name in ("catalog", "catalog_id"):
+        shutil.copytree(ROOT / "resources" / name, identified / name)
 
     failures = []
     for label, expected in (("after-update", ["1", "10", "21"]), ("after-finish", ["10", "21"])):
@@ -134,6 +146,26 @@ def main() -> None:
               f"expected {expected}")
         if not ok:
             failures.append(label)
+        control = (plan, json.loads((root / "staged-hashes.json").read_text(encoding="utf-8")))
+        bridge._forget_mixed_decisions()
+        rounds = []
+        for round_name in ("first", "again"):
+            folder = root / "redownload-plans" / round_name
+            before = dict(bridge.MIXED_DECISION_STATS)
+            again = json.loads(bridge.plan_redownload(str(identified), str(root), str(keep), str(folder)))
+            moved = {name: bridge.MIXED_DECISION_STATS[name] - before[name] for name in before}
+            rounds.append(((again, json.loads((folder / "staged-hashes.json").read_text(encoding="utf-8"))), moved))
+        (first, first_moved), (second, second_moved) = rounds
+        mixed = bool(first_moved["computed"])  # a layer with no mixed package decides nothing
+        ok = (first == control and second == control
+              and (not mixed or (first_moved["recorded"] == 1 and second_moved["reused"] == 1
+                                 and second_moved["restores"] == 0 and second_moved["computed"] == 0)))
+        print(f"{'ok  ' if ok else 'FAIL'} {label}: the same session plans the same again, reusing its decision "
+              f"(first: computed {first_moved['computed']:.0f}, restores {first_moved['restores']:.0f}, "
+              f"copied {first_moved['copied_bytes']:,.0f} B; again: reused {second_moved['reused']:.0f}, "
+              f"restores {second_moved['restores']:.0f}, proof hashed {second_moved['proof_bytes']:,.0f} B)")
+        if not ok:
+            failures.append(f"{label} reuse")
     shutil.rmtree(args.work, ignore_errors=True)
     sys.exit(1 if failures else 0)
 

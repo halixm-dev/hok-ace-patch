@@ -16,6 +16,10 @@ of the delta while the translated assets survive. It then checks that
   chunks, leaves the update's own asset alone, and refuses a record whose check token changed;
 - the Android bridge restores what it can, refuses with `UPDATE_MIXED` naming only the rest, Re-download
   plans only those, and Remove translation writes the restored packages;
+- (ticket 17) a refused build's decision is reused by the plans and builds after it on the same session
+  snapshot, with no trial copy and the same refusal and plan as a fresh decision, while a restart, another
+  session, a changed snapshot, delta, `restore-refused.json` or engine, a corrupt kept body, a failed
+  restore or a changed check token never reuse one; the counters (`MIXED_DECISION_STATS`) print per step;
 - with --apk, `build_snapshot` over the whole layer restores, builds, passes the text signal, and its new
   delta points at the restored packages as pristine.
 """
@@ -298,6 +302,188 @@ class Checks:
                     f"{refused}")
         self.engine, self.keep, self.layer = engine, keep, layer
 
+    def check_decision_reuse(self) -> None:
+        """Ticket 17: the bridge reuses a mixed-package decision only for the same session snapshot with
+        every input it depended on unchanged, and the reuse gives exactly the fresh refusal and plan.
+
+        The junction engine of `check_android` cannot be identified, so every decision there is made
+        afresh (the control); this check runs on a real copy of the engine, whose files can.
+        """
+        import dataclasses
+
+        import android_bridge as bridge
+        from mobile_snapshot import verify_snapshot
+
+        engine = self.work / "engine-copy"
+        shutil.copytree(ROOT / "tools", engine / "tools", ignore=shutil.ignore_patterns("__pycache__", "research"))
+        shutil.copytree(ROOT / "resources" / "runtime", engine / "runtime",
+                        ignore=shutil.ignore_patterns("__pycache__"))
+        keep, stats, marker = self.keep, bridge.MIXED_DECISION_STATS, self.keep / bridge.RESTORE_REFUSED_NAME
+        bridge._forget_mixed_decisions()
+
+        def measured(call):
+            before = dict(stats)
+            start = time.perf_counter()
+            try:
+                result = call()
+            except bridge.PatchError as error:
+                result = error
+            moved = {name: stats[name] - before[name] for name in stats}
+            moved["seconds"] = time.perf_counter() - start
+            return result, moved
+
+        def plan(session: Path, label: str, *, through: Path = engine):
+            folder = session / "redownload-plans" / label
+
+            def run():
+                summary = json.loads(bridge.plan_redownload(str(through), str(session), str(keep), str(folder)))
+                hashes = json.loads((folder / "staged-hashes.json").read_text(encoding="utf-8"))
+                return summary, hashes
+            result, moved = measured(run)
+            if not isinstance(result, bridge.PatchError):
+                self.expect(f"{label}: no trial copy left", not (session / bridge.RESTORE_TRIAL).exists(), "")
+            return result, moved
+
+        def refusal(session: Path, *, through: Path | None = engine):
+            shutil.rmtree(session / bridge.PRISTINE_COPY, ignore_errors=True)
+            manifest = verify_snapshot((session / "snapshot").resolve())
+            return measured(lambda: bridge._restore_pristine(session, keep, manifest, engine=through))
+
+        def described(moved: dict) -> str:
+            return (f"computed {moved['computed']:.0f}, reused {moved['reused']:.0f}, recorded "
+                    f"{moved['recorded']:.0f}, invalidated {moved['invalidated']:.0f}, unproven "
+                    f"{moved['unproven']:.0f}, restores {moved['restores']:.0f}, copied "
+                    f"{moved['copied_bytes']:,.0f} B, proof hashed {moved['proof_bytes']:,.0f} B, "
+                    f"{moved['seconds']:.1f} s")
+
+        # Controls: every decision made afresh (no engine identity), on sessions of their own.
+        control, control_moved = plan(self.session("reuse-control", self.mixed), "control", through=self.engine)
+        build_control, build_moved = refusal(self.session("reuse-control-build", self.mixed), through=None)
+        self.expect("control: fresh plan and refusal", isinstance(build_control, bridge.PatchError)
+                    and not isinstance(control, bridge.PatchError)
+                    and sorted(control[0]["packages"], key=int) == REFUSED
+                    and control_moved["reused"] == 0 and control_moved["recorded"] == 0,
+                    f"plan: {described(control_moved)}; refusal: {described(build_moved)}")
+
+        # The path a refused Start takes: the build refuses, then the same session plans the deletion.
+        session = self.session("reuse", self.mixed)
+        refused, moved = refusal(session)
+        self.expect("the build records its decision", isinstance(refused, bridge.PatchError)
+                    and str(refused) == str(build_control) and moved["recorded"] == 1
+                    and moved["restores"] == len(RESTORABLE), described(moved))
+        result, moved = plan(session, "first")
+        self.expect("the plan after it reuses the decision", result == control and moved["reused"] == 1
+                    and moved["computed"] == 0 and moved["restores"] == 0 and moved["copied_bytes"] == 0,
+                    described(moved))
+        result, moved = plan(session, "second")
+        self.expect("a second plan reuses it too", result == control and moved["reused"] == 1
+                    and moved["restores"] == 0, described(moved))
+        refused, moved = refusal(session)
+        self.expect("a second build refuses the same, without restoring", isinstance(refused, bridge.PatchError)
+                    and str(refused) == str(build_control) and moved["reused"] == 1
+                    and moved["restores"] == 0, described(moved))
+
+        # A restart keeps nothing.
+        bridge._forget_mixed_decisions()
+        result, moved = plan(session, "after-restart")
+        self.expect("a restart decides afresh", result == control and moved["computed"] == 1
+                    and moved["reused"] == 0 and moved["restores"] == len(RESTORABLE), described(moved))
+
+        def changed(label: str, change, undo, expected=control) -> None:
+            change()
+            try:
+                fresh, _ = plan(self.session(f"reuse-{label}-control", self.mixed), "control", through=self.engine)
+                result, moved = plan(session, label)
+            finally:
+                undo()
+            self.expect(f"a changed {label} decides afresh", moved["reused"] == 0 and moved["computed"] == 1
+                        and moved["invalidated"] == 1 and result == fresh
+                        and (expected is None or result == expected), described(moved))
+            result, moved = plan(session, f"{label}-undone")
+            self.expect(f"{label} undone decides afresh", moved["reused"] == 0 and moved["computed"] == 1
+                        and result == control, described(moved))
+
+        changed("refusal-record", lambda: marker.write_text(json.dumps({"packages": ["19"]}), encoding="utf-8"),
+                lambda: marker.unlink(), expected=None)
+        delta_path = keep / pristine_delta.DELTA_NAME
+        other = pristine_delta.encode(dataclasses.replace(self.delta, info={**self.delta.info, "probe": "changed"}))
+        changed("delta", lambda: delta_path.write_bytes(other), lambda: delta_path.write_bytes(self.encoded))
+        extra = engine / "tools" / "probe-engine-change.txt"
+        changed("engine", lambda: extra.write_text("changed", encoding="utf-8"), lambda: extra.unlink())
+
+        # A corrupt kept body refuses before any decision is made or reused.
+        corrupt = bytearray(self.encoded)
+        corrupt[-1] ^= 1
+        delta_path.write_bytes(bytes(corrupt))
+        try:
+            result, moved = plan(session, "corrupt-body")
+        finally:
+            delta_path.write_bytes(self.encoded)
+        self.expect("a corrupt kept body reuses nothing", isinstance(result, bridge.PatchError)
+                    and moved["reused"] == 0 and moved["recorded"] == 0, f"{str(result)[:120]}; {described(moved)}")
+
+        # The same bytes in another session, and a changed snapshot manifest in the same session folder.
+        other_session = self.session("reuse-other", self.mixed)
+        result, moved = plan(other_session, "first")
+        self.expect("another session decides afresh", result == control and moved["reused"] == 0
+                    and moved["computed"] == 1, described(moved))
+        probe = other_session / "snapshot" / "Watchdog" / "probe.bin"
+        probe.write_bytes(b"probe")
+        manifest_path = other_session / "snapshot" / "manifest.json"
+        record = json.loads(manifest_path.read_text(encoding="utf-8"))
+        record["files"]["Watchdog/probe.bin"] = {"bytes": 5, "sha256": hashlib.sha256(b"probe").hexdigest()}
+        manifest_path.write_text(json.dumps(record), encoding="utf-8")
+        result, moved = plan(other_session, "changed-snapshot")
+        self.expect("a changed snapshot decides afresh", result == control and moved["reused"] == 0
+                    and moved["invalidated"] == 1, described(moved))
+
+        # A restore that fails (here a faked out-of-space) is never kept: the retry decides afresh and
+        # names only what a fresh decision names, so a reused decision never widens a plan.
+        failing = self.session("reuse-failing", self.mixed)
+        original = pristine_delta.restore_assets
+
+        def no_space(copy: Path, recorded: dict, bodies: dict):
+            if copy.name == "19":
+                raise OSError("probe: no space left")
+            return original(copy, recorded, bodies)
+        pristine_delta.restore_assets = no_space
+        try:
+            result, moved = plan(failing, "failed")
+        finally:
+            pristine_delta.restore_assets = original
+        self.expect("a failed restore is not kept", not isinstance(result, bridge.PatchError)
+                    and sorted(result[0]["packages"], key=int) == sorted([*REFUSED, "19"], key=int)
+                    and moved["recorded"] == 0 and moved["unproven"] == 1, described(moved))
+        result, moved = plan(failing, "retry")
+        self.expect("the retry decides afresh and plans no more than the control", result == control
+                    and moved["computed"] == 1 and moved["reused"] == 0, described(moved))
+
+        # A changed check token (restore's layout gate) refuses its package and is never kept either.
+        token_layer = self.work / "reuse-token-layer"
+        for name in pristine_delta.package_files(self.mixed):
+            (token_layer / name).parent.mkdir(parents=True, exist_ok=True)
+            if name.split("/")[0] == "20":
+                shutil.copyfile(self.mixed / name, token_layer / name)
+            else:
+                os.link(self.mixed / name, token_layer / name)
+        from wxq_patch.qtsvfs import QtsPackage
+
+        asset = next(iter(self.delta.assets["20"]))
+        entry = QtsPackage(token_layer / "20").entries[int(asset, 16)]
+        index = bytearray((token_layer / "20" / "20.db").read_bytes())
+        index[entry.entry_offset + pristine_delta.TOKEN_START] ^= 1
+        (token_layer / "20" / "20.db").write_bytes(bytes(index))
+        token = self.session("reuse-token", token_layer)
+        result, moved = plan(token, "token")
+        self.expect("a changed check token refuses its package and is not kept",
+                    not isinstance(result, bridge.PatchError) and "20" in result[0]["packages"]
+                    and "check token" in result[0]["packages"]["20"] and moved["recorded"] == 0, described(moved))
+
+        # The appended-survivor gate stands in every reused plan.
+        self.expect("appended survivors still refuse", all(
+            "added by the patcher" in control[0]["packages"][package] for package in REFUSED),
+            f"{control[0]['packages']}")
+
     def check_build(self, apk: Path) -> None:
         """The whole layer with the restorable packages mixed: build_snapshot restores, builds, and the
         text signal passes; the new delta points at the restored packages as pristine."""
@@ -350,6 +536,7 @@ def main() -> int:
     checks.check_accept()
     checks.check_restore()
     checks.check_android()
+    checks.check_decision_reuse()
     if args.apk:
         checks.check_build(args.apk)
     print(f"\n{'FAILED: ' + ', '.join(checks.failures) if checks.failures else 'all checks passed'}")

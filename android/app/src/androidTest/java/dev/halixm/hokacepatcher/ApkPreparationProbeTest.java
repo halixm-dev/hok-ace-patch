@@ -24,7 +24,6 @@ import static org.junit.Assert.*;
 /** Generate both full game APKs from approved private bytes without binding or installation. */
 @RunWith(AndroidJUnit4.class)
 public final class ApkPreparationProbeTest {
-    private static final String NORMAL = "b0b08f4a77244d990ea22e4fbde73542028b4b5785d88243b62ac907fbe3fc0a";
     private static JSONObject inventory(File apk) throws Exception {
         JSONObject result = new JSONObject();
         try (ZipFile zip = new ZipFile(apk)) {
@@ -72,6 +71,10 @@ public final class ApkPreparationProbeTest {
         @Override public String replaceGameApk(ParcelFileDescriptor source, long length) { throw unsupported(); }
         @Override public String probeGame(byte[] payload) { throw unsupported(); }
         @Override public String snapshotGame(ParcelFileDescriptor destination, long maximum) { throw unsupported(); }
+        @Override public String reconcileGameFiles(String session, String operation, String relative,
+                ParcelFileDescriptor policy, ParcelFileDescriptor source, long length, String sha256) {
+            throw new UnsupportedOperationException("No game files in APK preparation fixture");
+        }
         @Override public String validateGameSnapshot(ParcelFileDescriptor manifest) { throw unsupported(); }
         @Override public String writeGameFile(String session, String relative, ParcelFileDescriptor source, long length, String sha) { throw unsupported(); }
         @Override public void clearGameWatchdog() { throw unsupported(); }
@@ -90,9 +93,10 @@ public final class ApkPreparationProbeTest {
 
     @Test public void testFullPreparedPairAndDurableReload() throws Exception {
         Context actual = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        File input = new File(actual.getFilesDir(), "recovery/" + NORMAL + "/normal.apk");
-        ApkIdentity expectedNormal = ApkIdentity.Companion.read(actual, input); expectedNormal.requireRecovery();
-        assertEquals(NORMAL, expectedNormal.getSha256());
+        PrivateProbeFixtures fixture = PrivateProbeFixtures.load(actual);
+        String NORMAL = fixture.normal.getSha256();
+        File input = fixture.normalFile;
+        ApkIdentity expectedNormal = fixture.normal;
         File root = new File(actual.getFilesDir(), "apk-preparation-probes/" + UUID.randomUUID()); assertTrue(root.mkdirs());
         Context scoped = new ContextWrapper(actual) { @Override public File getFilesDir() { return root; } };
         RecoveryStore store = new RecoveryStore(scoped);
@@ -119,12 +123,12 @@ public final class ApkPreparationProbeTest {
             assertEquals(prepared.getAccess(), reload.getAccess());
             assertEquals(expectedNormal, store.verify(NORMAL));
             JSONObject originalEntries = inventory(input), accessEntries = inventory(prepared.getAccessFile());
-            assertEquals(1625, originalEntries.length()); assertEquals(originalEntries.length(), accessEntries.length());
+            assertEquals(fixture.descriptor.getJSONObject("normal").getJSONObject("entries").length(), originalEntries.length()); assertEquals(originalEntries.length(), accessEntries.length());
             for (Iterator<String> names = originalEntries.keys(); names.hasNext();) {
                 String name = names.next(); assertTrue(accessEntries.has(name));
                 if (!name.equals("AndroidManifest.xml")) assertEquals(originalEntries.getString(name), accessEntries.getString(name));
             }
-            try (ZipFile expectedAccess = new ZipFile(new File(actual.getFilesDir(), "scratch/game-access-1402/access.apk"));
+            try (ZipFile expectedAccess = new ZipFile(fixture.accessFile);
                  java.io.InputStream manifest = expectedAccess.getInputStream(expectedAccess.getEntry("AndroidManifest.xml"))) {
                 MessageDigest hash = MessageDigest.getInstance("SHA-256"); byte[] buffer = new byte[16384]; int count;
                 while ((count = manifest.read(buffer)) >= 0) hash.update(buffer, 0, count);

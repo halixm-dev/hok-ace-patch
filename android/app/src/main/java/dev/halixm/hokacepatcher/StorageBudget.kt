@@ -8,6 +8,10 @@ import java.math.RoundingMode
 /** Budget simultaneously live transient files, retaining room for normal-APK recovery. */
 object StorageBudget {
     private const val MINIMUM_MARGIN = 256L * 1024 * 1024
+    private const val GB = 1_000_000_000L
+    private const val MB = 1_000_000L
+    /** The smallest free-space change [replacedGameApksReport] counts as a released game APK. */
+    const val REPLACED_APK_MIN_BYTES = 100L * MB
 
     fun required(vararg allocations: Long): Long {
         require(allocations.isNotEmpty() && allocations.all { it >= 0 }) { "Invalid storage allocation" }
@@ -19,9 +23,17 @@ object StorageBudget {
     private fun gb(bytes: Long, rounding: RoundingMode): BigDecimal =
         BigDecimal.valueOf(bytes).divide(BigDecimal.valueOf(1_000_000_000L), 1, rounding)
 
+    /**
+     * A size for people, rounded down: decimal GB from 1 GB, whole decimal MB below it, so a 38 MB file never
+     * reads "0.0 GB"; a size under 1 MB that is not empty reads "<1 MB".
+     */
     fun freeSpaceLabel(bytes: Long): String {
         require(bytes >= 0)
-        return gb(bytes, RoundingMode.FLOOR).toPlainString() + " GB"
+        return when {
+            bytes >= GB -> gb(bytes, RoundingMode.FLOOR).toPlainString() + " GB"
+            bytes in 1 until MB -> "<1 MB"
+            else -> "${bytes / MB} MB"
+        }
     }
 
     @JvmOverloads fun explainFailure(message: String, currentAvailable: Long? = null): String? {
@@ -44,16 +56,50 @@ object StorageBudget {
      */
     fun releaseReplacedGameApks(device: IPrivilegedDeviceService, report: (String) -> Unit) {
         runCatching { JSONObject(device.releaseReplacedGameApks()).optLong("freed_bytes") }
-            .onSuccess { if (it > 0) report("Freed ${freeSpaceLabel(it)} of replaced game files the home screen app held") }
+            .onSuccess { freed -> replacedGameApksReport(freed)?.let(report) }
             .onFailure { android.util.Log.w("HokAceStorage", "Replaced game APKs were not released", it) }
     }
 
-    fun requireAvailable(directory: File, phase: String, vararg allocations: Long): JSONObject {
+    /**
+     * The progress line for a home app restart that freed <freed> bytes, or null when it released no replaced
+     * game APK. The device measures free space before and after the restart, so other apps' storage moves the
+     * figure too; a replaced game APK is about 2 GB, and a change under [REPLACED_APK_MIN_BYTES] is reported
+     * as nothing freed rather than as "Freed 0.0 GB".
+     */
+    fun replacedGameApksReport(freed: Long): String? =
+        if (freed < REPLACED_APK_MIN_BYTES) null
+        else "Freed ${freeSpaceLabel(freed)} of replaced game files the home screen app held"
+
+    class Shortage(val phase: String, val requiredBytes: Long, val availableBytes: Long) : IllegalStateException(
+        "Insufficient storage for $phase: $requiredBytes bytes required, $availableBytes available; keep recovery material") {
+        fun json() = JSONObject().put("phase", phase).put("required_bytes", requiredBytes)
+            .put("available_bytes", availableBytes)
+
+        /** A space shortage never proves file/APK consistency. */
+        fun result(recoveryRequired: Boolean) = JSONObject()
+            .put("status", if (recoveryRequired) "recovery_required" else "waiting")
+            .put("reason", "storage").put("storage_wait", json()).put("error", message)
+            .put("launch_allowed", false)
+    }
+
+    /** Recovery may attach its own newer shortage to the original stage error. Bound malformed chains. */
+    fun shortage(error: Throwable, depth: Int = 0): Shortage? {
+        if (depth >= 8) return null
+        for (suppressed in error.suppressed.reversed()) shortage(suppressed, depth + 1)?.let { return it }
+        error.cause?.takeIf { it !== error }?.let { shortage(it, depth + 1)?.let { found -> return found } }
+        return error as? Shortage
+    }
+
+    /** A caller-owned optional cache may be reclaimed once on shortage; the same budget is remeasured. */
+    @JvmOverloads fun requireAvailable(directory: File, phase: String, vararg allocations: Long,
+                                      reclaim: (() -> Unit)? = null): JSONObject {
         val bytes = required(*allocations)
-        val available = directory.usableSpace
-        check(available >= bytes) {
-            "Insufficient storage for $phase: $bytes bytes required, $available available; keep recovery material"
+        var available = directory.usableSpace
+        if (available < bytes && reclaim != null) {
+            reclaim()
+            available = directory.usableSpace
         }
+        if (available < bytes) throw Shortage(phase, bytes, available)
         return JSONObject().put("phase", phase).put("required_bytes", bytes).put("available_bytes", available)
     }
 }

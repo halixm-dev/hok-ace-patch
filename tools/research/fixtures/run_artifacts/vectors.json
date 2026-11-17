@@ -1,0 +1,186 @@
+{
+  "schema": 1,
+  "canonical": [
+    {
+      "value": {},
+      "canonical": "{}",
+      "key": "7c30de8a98501eb1248498bd993c4bfc10efdbd02f4641e3590d3b1f37aec2b5"
+    },
+    {
+      "value": {
+        "z": 2,
+        "a": 1
+      },
+      "canonical": "{\"a\":1,\"z\":2}",
+      "key": "70854a17ffe1fb9acb2c721bacc138a34053808f4727d07f362e649eef9b1045"
+    },
+    {
+      "value": {
+        "controls": "\b\f\n\r\t\u0000",
+        "unicode": "English / Indonesia / 中文 / U0001f600"
+      },
+      "canonical": "{\"controls\":\"\\b\\f\\n\\r\\t\\u0000\",\"unicode\":\"English / Indonesia / 中文 / U0001f600\"}",
+      "key": "7eb591286d9a04ab9425ce9482bb4bb8b292d57a0b411e6155f3971cbe322ae9"
+    },
+    {
+      "value": {
+        "list": [
+          true,
+          false,
+          null,
+          -9007199254740991,
+          9007199254740991
+        ]
+      },
+      "canonical": "{\"list\":[true,false,null,-9007199254740991,9007199254740991]}",
+      "key": "0949be99ef3b4dae939d26973d69ebb06c7c843782fab973e987dcd0ac308640"
+    },
+    {
+      "value": {
+        "nested": {
+          "b": 2,
+          "a": 1
+        }
+      },
+      "canonical": "{\"nested\":{\"a\":1,\"b\":2}}",
+      "key": "aa0a2326002f47b8fa5526337c63850acaf5d19796ceddc7d6c7630a30cc533d"
+    }
+  ],
+  "invalid_paths": [
+    "../x",
+    "/x",
+    "a//x",
+    "a/./x",
+    "a\\x",
+    "C:/x",
+    "a:x",
+    "a.",
+    "a ",
+    "CON",
+    "aux.txt",
+    "LPT1.db",
+    "x\u0000x",
+    "中文"
+  ],
+  "invalid_json": [
+    "{\"a\":1,\"a\":2}",
+    "{\"nested\":{\"a\":1,\"a\":2}}",
+    "{\"schema\":NaN}",
+    "{\"x\":1.1}",
+    "{\"x\":\"\\ud800\"}",
+    "{\"x\":1,}",
+    "{\"x\":1} trailing",
+    "[]"
+  ],
+  "receipt": {
+    "schema": 1,
+    "committed": true,
+    "run_id": "fixture-run",
+    "stage": "staged",
+    "input_key": "07053cc5879b38967348d535a8fff7827693018aa9d17fc07d163a940b887cfd",
+    "producer_key": "3354adde4c47aee04e1481bf112d16f52bc38303d377c95802dfd136ecb5f938",
+    "identity": {
+      "schema": 1,
+      "target": {
+        "package": "com.tencent.tmgp.osgame",
+        "android_user": 0,
+        "device": "fixture-device",
+        "provider": "root"
+      },
+      "request": {
+        "action": "translate",
+        "language": "en",
+        "options": {
+          "fit_only": false,
+          "cycle_assets": []
+        }
+      },
+      "game": {
+        "files": {
+          "1/1_0.db": {
+            "size": 21,
+            "sha256": "5531aa6a6d54b83e0e9e97f2925761c84383b68bcb36a52640a610f3a361e52e"
+          }
+        },
+        "readiness": {
+          "downloads_complete": true
+        }
+      },
+      "apks": null,
+      "delta": null,
+      "translation": {
+        "selected_catalog": {
+          "size": 7,
+          "sha256": "ba118bf7fc9c1aedc1edb28a0aa86e0b43b681f222af6616e13c43be87815b06"
+        },
+        "fallback_catalog": {
+          "size": 16,
+          "sha256": "c1fac1ad65bc30a1df3faaf48c19ed117fda6c6fb88f5f8303c6faaa227e40da"
+        },
+        "runtime": {
+          "size": 8,
+          "sha256": "8e896187127726aada2f6e407d70a39043554768dd4367f4d0dcf457920c0432"
+        },
+        "sprites": {
+          "size": 19,
+          "sha256": "399d24d39fe04db484775a908b469ba32c9c427fac84f39076b821b554c94cd4"
+        }
+      },
+      "producer": {
+        "schema": 1,
+        "kind": "android",
+        "complete": true,
+        "components": {
+          "installed_apks": {
+            "base.apk": {
+              "size": 44,
+              "sha256": "1ceb62f2458f847dcd914bd85a1b9bb5cbdaa7ee016385961809eca77b177e77"
+            }
+          },
+          "engine": {
+            "manifest_sha256": "75b57e34fd4f82ecba4dff75f68bcb19eb04b8b61674afb49d9646b6b84abe9b",
+            "files_key": "0e8ac6b24cc94bc9b471b2eda6494ddd53560de72d457cef797ecc123aab20ef"
+          },
+          "native": {
+            "libcodec.so": {
+              "size": 20,
+              "sha256": "3ec3339d72da0854a3bace075a39a27bd49e19b5278cdd20ca5e46a8b01b1597"
+            }
+          },
+          "abi": [
+            "arm64-v8a"
+          ]
+        }
+      }
+    },
+    "artifacts": {
+      "1/1_0.db": {
+        "size": 19,
+        "sha256": "0be87942b2e29f37e06db554e3fc64e073c4a75c7b1154cc9be56b922eb22b06"
+      },
+      "device_patch_summary.json": {
+        "size": 2,
+        "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "pristine-delta.bin": {
+        "size": 42,
+        "sha256": "dbc58a1719a7c2d1d49de0294ff5dd054b31e91789a70318e583a8255c40f25a"
+      },
+      "expected-output-manifest.json": {
+        "size": 121,
+        "sha256": "7b5ae3477830dd60b88beb99b56e133db615799e301791d9379fb22544ccf0f5"
+      }
+    },
+    "references": {
+      "summary": "device_patch_summary.json",
+      "delta": "pristine-delta.bin",
+      "manifest": "expected-output-manifest.json"
+    }
+  },
+  "payloads": {
+    "1/1_0.db": "tiny staged package",
+    "device_patch_summary.json": "{}",
+    "pristine-delta.bin": "fixture delta bytes; not a real game delta",
+    "expected-output-manifest.json": "{\"files\":{\"1/1_0.db\":{\"sha256\":\"0be87942b2e29f37e06db554e3fc64e073c4a75c7b1154cc9be56b922eb22b06\",\"size\":19}},\"schema\":1}"
+  }
+}

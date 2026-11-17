@@ -13,8 +13,24 @@ object WorkerStatus {
         else "Space freed. The record for switching languages and the saved game app were kept.") +
         "\nFreed: ${StorageBudget.freeSpaceLabel(bytes)}\nFree now: ${StorageBudget.freeSpaceLabel(free)}"
 
+    /**
+     * <result>, a resolved session's terminal result, as the player should read it given the session record <journal>.
+     * A Stop that took effect only after the payload was verified and the pristine delta finalized left the action
+     * done on the game, so it reports that outcome and its counts (or, with the layer unconfirmed, that state), never
+     * a plain stop. The run itself stays resolved as stopped. Any other result is returned unchanged.
+     */
+    fun afterStop(result: JSONObject, journal: JSONObject): JSONObject {
+        if (result.optString("status") != "stopped_consistent" || !journal.optBoolean("patch_payload_verified") ||
+            !journal.optBoolean("finalized")) return result
+        if (journal.optString("layer_unconfirmed").isNotEmpty()) return result.put("status", "recovered_unconfirmed")
+        result.put("status", "complete").put("stopped_after_finish", true).put("counts", journal.opt("counts") ?: JSONObject.NULL)
+        if (journal.has("removed_count")) result.put("removed", journal.getInt("removed_count"))
+        return result
+    }
+
     fun describe(value: JSONObject): String = when (value.optString("status")) {
-        "running" -> "Last saved progress: ${value.optString("progress", "Starting") }"
+        "running" -> (if (value.optBoolean("stopping")) "Stopping safely. The current step finishes or is restored first.\n" else "") +
+            "Last saved progress: ${value.optString("progress", "Starting") }"
         "prepared" -> "Game files prepared. Translation has not started." +
             if (value.optBoolean("requires_signature_conversion"))
                 "\nFirst setup needs separate consent to delete local game data and use Scan to login."
@@ -27,7 +43,19 @@ object WorkerStatus {
             if (value.optBoolean("automatic_recovery")) "\nThe normal app was restored after a setup error." else ""
         "setup_ready" -> "Game setup finished. Translation has not started. Prepare game files again, then confirm the update checkpoint to patch."
         "setup_cancelled" -> "Setup stopped. The original game app was verified. Translation has not started." +
-            if (value.optBoolean("data_loss_may_have_happened")) " Local data may need downloading again." else ""
+            (if (value.optBoolean("data_loss_may_have_happened")) " Local data may need downloading again." else "") +
+            // The uninstall is never repeated automatically; a new attempt needs its own data-loss approval.
+            (if (value.optBoolean("fresh_consent_required")) "\nSetting up again needs your approval to delete local game data." else "")
+        // The saved action waits for the user (ticket 12): the game files and app are consistent meanwhile.
+        "waiting" -> if (value.optString("reason") == "storage")
+            StorageBudget.explainFailure(value.optString("error")) ?: value.optString("error")
+            else if (value.optString("reason") == PatchCoordinator.REDOWNLOAD_DOWNLOAD)
+            "Damaged files deleted. The translation waits until the game downloads them again."
+            // The game changed its files mid-run: nothing is damaged, the action waits for its downloads (③'s own card).
+            else if (value.optString("reason") == PatchCoordinator.SOURCE_DOWNLOADS) UiText.english("setup_update")
+            // Only the loop guard's fallback waits here: Re-download is otherwise approved automatically (2026-11-13).
+            else "Damaged game files need your review before they are deleted again. Nothing was deleted."
+        "stopped_consistent" -> "Stopped safely. The game files and app are consistent. Start when you want to patch again."
         "complete" -> completed(value)
         "recovery_required" -> "Recovery required. Keep the game closed.\n" +
             InstallerFailure.explain(value.optString("error"), value.optString("action"), true)

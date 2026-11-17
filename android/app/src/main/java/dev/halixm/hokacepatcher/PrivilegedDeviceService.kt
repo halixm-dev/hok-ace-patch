@@ -512,6 +512,50 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
         return JSONObject().put("verified_files", files.length()).toString()
     }
 
+    /** Recovery audit and guarded mutations share the provider game lock with their actual rename/delete. */
+    @Synchronized override fun reconcileGameFiles(session: String, operation: String, relative: String,
+        policy: ParcelFileDescriptor, source: ParcelFileDescriptor?, length: Long, sha256: String): String {
+        requireShell()
+        GameFilePolicy.session(session)
+        require(operation in setOf("audit", "write", "delete", "clear_watchdog"))
+        val value = ArtifactReceipts.parse(boundedRead(policy, 2 * 1024 * 1024))
+        val files = RecoveryFilePolicy.parse(value)
+        if (operation == "audit" || operation == "clear_watchdog") {
+            require(relative.isEmpty() && source == null && length == 0L && sha256.isEmpty())
+            val audit = RecoveryFilePolicy.script(files, watchdog = operation == "clear_watchdog", watchdogAbsent = value.getBoolean("watchdog_absent"))
+            val change = if (operation == "clear_watchdog")
+                "rm -rf Watchdog && mkdir Watchdog && own Watchdog && sync Watchdog && sync . || exit 1; " else ""
+            check(command(inGame(lockedGameScript("cd files/QtsVFSCache || exit 1; $audit$change printf 'verified'")),
+                RecoveryFilePolicy.rows(files, operation == "clear_watchdog"), timeoutSeconds = 900) == "verified")
+            return "verified"
+        }
+        GameFilePolicy.validate(relative, writable = true)
+        val audit = RecoveryFilePolicy.script(files, only = relative)
+        val parent = relative.substringBeforeLast('/')
+        val temp = "$parent/.${relative.substringAfterLast('/')}.hok-$session.tmp"
+        val prefix = GameFilePolicy.parentChecks(relative) + " || exit 1; cd files/QtsVFSCache || exit 1; "
+        if (operation == "delete") {
+            require(source == null && length == 0L && sha256.isEmpty())
+            check(command(inGame(lockedGameScript(prefix + audit +
+                "rm -f '$relative' && sync '$parent' && [ ! -e '$relative' ] && printf 'verified'")),
+                timeoutSeconds = 900) == "verified")
+            return "verified"
+        }
+        require(source != null && length in 0..(3L * 1024 * 1024 * 1024) && source.statSize == length)
+        require(sha256.matches(Regex("[0-9a-f]{64}")))
+        val script = prefix + "[ ! -e '$temp' ] && [ ! -L '$temp' ] || exit 1; " +
+            "trap 'rm -f \"$temp\"' EXIT; cat > '$temp' && own '$temp' || exit 1; " +
+            "[ \"\$(stat -c %s '$temp')\" -eq $length ] || exit 1; " +
+            "h=\$(sha256sum '$temp') || exit 1; h=\${h%% *}; [ \"\$h\" = '$sha256' ] || exit 1; " +
+            audit + "sync '$temp' && mv -f '$temp' '$relative' && sync '$parent' || exit 1; " +
+            "[ \"\$(stat -c %s '$relative')\" -eq $length ] || exit 1; sha256sum '$relative'"
+        try {
+            val reply = String(binaryCommand(inGame(lockedGameScript(script)), descriptor = source, timeoutSeconds = 900), Charsets.UTF_8)
+            check(reply.substringBefore(' ') == sha256) { "Installed file read-back differs" }
+            return "verified"
+        } finally { source.close() }
+    }
+
     @Synchronized override fun writeGameFile(session: String, relative: String,
         source: ParcelFileDescriptor, length: Long, sha256: String): String {
         requireShell()

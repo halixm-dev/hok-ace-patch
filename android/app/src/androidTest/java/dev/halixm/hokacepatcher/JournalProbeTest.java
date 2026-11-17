@@ -31,7 +31,7 @@ public final class JournalProbeTest {
         journal.intent("install_access", new JSONObject());
         journal.outcome(PatchPhase.APPLY_ACCESS_INSTALLED, new JSONObject());
         journal.outcome(PatchPhase.APPLYING, new JSONObject());
-        journal.intent("write_file", new JSONObject().put("relative", "packages/1/1.db"));
+        journal.intent("write_file", new JSONObject().put("path", "packages/1/1.db"));
         // Simulate a process exiting before AtomicFile.finishWrite. The prior durable intent remains.
         AtomicFile storage = new AtomicFile(new File(journal.getDirectory(), "journal.json"));
         try (FileOutputStream unfinished = storage.startWrite()) {
@@ -91,12 +91,30 @@ public final class JournalProbeTest {
     @Test public void testFixedPathsRejectTraversalAndMetadataWrites() {
         GameFilePolicy.INSTANCE.validate("packages/1/1_0.db", true);
         GameFilePolicy.INSTANCE.validate("packages/builtin/Globalindex/GlobalIndexPrime.data", false);
-        String[] rejected = {"../files", "packages/1/../2.db", "packages/1/1.info",
+        // A package's own .info is writable only for Re-download's deletion and its rollback.
+        GameFilePolicy.INSTANCE.validate("packages/1/1.info", true);
+        String[] rejected = {"../files", "packages/1/../2.db", "packages/1/2.info", "packages/1/1.info.bak",
             "packages/builtin/Globalindex/GlobalIndexPrime.data", "packages/1/2.db",
             "packages/1/1.db;echo", "Watchdog/../outside"};
         for (String path : rejected) {
             try { GameFilePolicy.INSTANCE.validate(path, true); fail("Accepted " + path); }
             catch (IllegalArgumentException expected) { }
         }
+    }
+    @Test public void linkedSchemaTwoAndLegacySafetyHistoryStayDistinct() throws Exception {
+        File parent = new File(InstrumentationRegistry.getInstrumentation().getTargetContext().getFilesDir(),
+            "journal-link-probes/" + UUID.randomUUID());
+        String hash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        String run = UUID.randomUUID().toString();
+        SessionJournal legacy = SessionJournal.Companion.create(parent, hash, hash);
+        assertNull(legacy.getRunId()); assertEquals(1, legacy.snapshot().getInt("schema"));
+        SessionJournal linked = SessionJournal.Companion.create(parent, hash, hash, null, run, hash);
+        assertEquals(run, linked.getId()); assertEquals(run, linked.getRunId()); assertEquals(hash, linked.getAuthorizationKey());
+        linked = SessionJournal.Companion.load(linked.getDirectory());
+        assertEquals(2, linked.snapshot().getInt("schema"));
+        try { linked.outcome(PatchPhase.RESTORING, new JSONObject().put("run_id", UUID.randomUUID().toString())); fail("Journal retargeted"); }
+        catch (IllegalStateException expected) { }
+        try { SessionJournal.Companion.create(parent, hash, hash, null, run, hash); fail("Duplicate child published"); }
+        catch (IllegalStateException expected) { }
     }
 }

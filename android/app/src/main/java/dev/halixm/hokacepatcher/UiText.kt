@@ -39,6 +39,9 @@ object UiText {
         return values.fold(entry[code] ?: entry.getValue("en")) { text, (name, value) -> text.replace("{$name}", value.toString()) }
     }
 
+    /** The English of <key>, for a worker progress line, which is saved in English and translated by [progress]. */
+    fun english(key: String): String = template("en", key)
+
     fun progress(context: Context, source: String): String {
         val code = PatchLanguage.current(context)
         if (code == "en") return source
@@ -106,7 +109,8 @@ object UiText {
                 listOf(template(code, "original_files_restored", "count" to state.getInt("removed"))), template(code, "removed_login_note"), gameReady = true)
             else completed(code, state, suffix)
         }
-        "recovered_unconfirmed" -> Result("Translation written", translate(code, "Translation written"), translate(code, WorkerStatus.UNCONFIRMED), emptyList(), gameReady = true)
+        // Unconfirmed is not Verified complete: no counts and no ready-to-play Open game; Start patches again.
+        "recovered_unconfirmed" -> Result("Translation written", translate(code, "Translation written"), translate(code, WorkerStatus.UNCONFIRMED), emptyList())
         "space_freed" -> Result("Space freed", translate(code, "Space freed"),
             template(code, if (state.optBoolean("removed_saved_apks")) "freed_removed_apks" else "freed_kept"),
             template(code, "freed_amounts", "freed" to StorageBudget.freeSpaceLabel(state.optLong("freed_bytes")),
@@ -134,15 +138,9 @@ object UiText {
     fun removeConfirmation(context: Context, root: Boolean = false): String =
         string(context, if (root) "remove_confirmation_root" else "remove_confirmation")
 
-    fun redownloadConfirmation(context: Context): String = string(context, "redownload_confirmation")
-
     fun firstSetup(context: Context): String = string(context, "first_setup_consent")
 
     fun setupUpdate(context: Context): String = string(context, "setup_update")
-
-    fun patchConfirmation(context: Context, root: Boolean = false): String =
-        string(context, if (root) "patch_confirmation_root" else "patch_confirmation",
-            "language" to PatchLanguage.name(PatchLanguage.current(context)))
 
 
     fun restore(context: Context, version: String): String = string(context, "restore_apk_only", "version" to version)

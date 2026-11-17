@@ -18,7 +18,7 @@ public final class SessionPublicationProbeTest {
     private static final String HASH = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     private Context context() {
         Context actual = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        File root = new File(actual.getFilesDir(), "session-publication-probes/" + UUID.randomUUID());
+        File root = new File(RunStore.Companion.privateRoot(actual), "session-publication-probes/" + UUID.randomUUID());
         return new ContextWrapper(actual) { @Override public File getFilesDir() { return root; } };
     }
     private static void write(File path, String value) throws Exception {
@@ -146,5 +146,130 @@ public final class SessionPublicationProbeTest {
         java.nio.file.Files.createSymbolicLink(linked.toPath(), source.getDirectory().toPath());
         reject(() -> SessionJournal.Companion.load(linked));
         reject(() -> SessionJournal.Companion.pending(parent));
+    }
+    @Test public void stableClaimRestartsOnlyAnUnpublishedInitialJournal() throws Exception {
+        for (String partial : new String[]{"", "{partial"}) {
+            File parent = new File(context().getFilesDir(), "sessions");
+            String run = UUID.randomUUID().toString();
+            File draft = new File(parent, ".creating-" + run); assertTrue(draft.mkdirs());
+            if (!partial.isEmpty()) write(new File(draft, "journal.json"), partial);
+            SessionJournal child = SessionJournal.Companion.create(parent, HASH, HASH, null, run, HASH);
+            assertEquals(run, child.getRunId()); assertFalse(draft.exists());
+            assertEquals(1, SessionJournal.Companion.history(parent).size());
+        }
+        File parent = new File(context().getFilesDir(), "sessions");
+        String run = UUID.randomUUID().toString();
+        File draft = new File(parent, ".creating-" + run); assertTrue(draft.mkdirs());
+        write(new File(draft, "foreign-payload"), "preserve");
+        reject(() -> SessionJournal.Companion.create(parent, HASH, HASH, null, run, HASH));
+        assertTrue(new File(draft, "foreign-payload").isFile());
+    }
+    private SessionJournal linked(File parent) {
+        return SessionJournal.Companion.create(parent, HASH, HASH, null, UUID.randomUUID().toString(), HASH);
+    }
+
+    @Test public void checkpointRecordsNeedALinkedJournalAndKnownKeys() throws Exception {
+        File parent = new File(context().getFilesDir(), "sessions");
+        SessionJournal legacy = SessionJournal.Companion.create(parent, HASH, HASH);
+        reject(() -> legacy.record(new JSONObject().put("snapshot_ready", true)));
+        SessionJournal journal = linked(parent);
+        reject(() -> journal.record(new JSONObject().put("phase", "COMPLETE")));
+        reject(() -> journal.record(new JSONObject().put("patch_payload_verified", true)));
+        journal.record(new JSONObject().put("build_attempt", "a").put("waiting_reason", "redownload_consent_required"));
+        SessionJournal reloaded = SessionJournal.Companion.load(journal.getDirectory());
+        assertEquals("a", reloaded.snapshot().getString("build_attempt"));
+        assertEquals("redownload_consent_required", reloaded.getWaitingReason());
+        assertEquals(PatchPhase.PREPARED, reloaded.getPhase());
+    }
+
+    /** Ticket 12: a pinned Re-download plan is the deletions' and rollback's staged list until a build supersedes it. */
+    @Test public void pinnedRedownloadPlanIsTheResultRootOnlyWhileNoBuildIsPinned() throws Exception {
+        SessionJournal journal = linked(new File(context().getFilesDir(), "sessions"));
+        assertNull(journal.getRedownloadPlanRoot());
+        assertEquals(journal.getDirectory().getCanonicalPath(), journal.getResultRoot().getCanonicalPath());
+        String plan = UUID.randomUUID().toString();
+        DurableFiles.INSTANCE.createDirectories(new File(journal.getDirectory(), "redownload-plans/" + plan));
+        journal.record(new JSONObject().put("redownload_plan", plan).put("redownload_plan_sha256", HASH)
+            .put("redownload_kept", new JSONObject().put("plan_sha256", HASH)
+                .put("record", new JSONObject().put("size", 1).put("sha256", HASH)))
+            .put("waiting_reason", PatchCoordinator.REDOWNLOAD_CONSENT));
+        SessionJournal reloaded = SessionJournal.Companion.load(journal.getDirectory());
+        File expected = new File(journal.getDirectory(), "redownload-plans/" + plan);
+        assertEquals(expected.getCanonicalPath(), reloaded.getRedownloadPlanRoot().getCanonicalPath());
+        assertEquals(expected.getCanonicalPath(), reloaded.getResultRoot().getCanonicalPath());
+        String attempt = UUID.randomUUID().toString();
+        DurableFiles.INSTANCE.createDirectories(new File(journal.getDirectory(), "build-attempts/" + attempt + "/result"));
+        journal.record(new JSONObject().put("build_attempt", attempt));
+        assertEquals(new File(journal.getDirectory(), "build-attempts/" + attempt + "/result").getCanonicalPath(),
+            journal.getResultRoot().getCanonicalPath());
+        // Consumed: the download wait keeps no plan, and a plan id that is not a session UUID never resolves.
+        journal.record(new JSONObject().put("build_attempt", "").put("redownload_plan", "")
+            .put("waiting_reason", PatchCoordinator.REDOWNLOAD_DOWNLOAD));
+        assertNull(journal.getRedownloadPlanRoot());
+        assertEquals(PatchCoordinator.REDOWNLOAD_DOWNLOAD, journal.getWaitingReason());
+        journal.record(new JSONObject().put("redownload_plan", "../escape"));
+        reject(() -> journal.getRedownloadPlanRoot());
+        reject(() -> journal.getResultRoot());
+    }
+
+    @Test public void continuationKeepsUnconfirmedHistoryAndNeverReusesItsPayload() throws Exception {
+        SessionJournal journal = linked(new File(context().getFilesDir(), "sessions"));
+        journal.outcome(PatchPhase.SNAPSHOT_ACCESS_INSTALLED, new JSONObject());
+        journal.outcome(PatchPhase.RESTORING, new JSONObject().put("patch_payload_verified", true));
+        journal.outcome(PatchPhase.CANCELLED, new JSONObject().put("normal_verified", true)
+            .put("layer_unconfirmed", "Game file changed: packages/1"));
+        journal.record(new JSONObject().put("build_attempt", "old"));
+        journal.resumeConsistent();
+        JSONObject saved = SessionJournal.Companion.load(journal.getDirectory()).snapshot();
+        assertEquals(PatchPhase.PREPARED.name(), saved.getString("phase"));
+        assertFalse(saved.has("layer_unconfirmed"));
+        assertFalse(saved.getBoolean("patch_payload_verified"));
+        assertFalse(saved.getBoolean("finalized"));
+        assertEquals(1, saved.getJSONArray("unconfirmed_history").length());
+        assertEquals("old", saved.getJSONArray("unconfirmed_history").getJSONObject(0).getString("build_attempt"));
+        assertEquals(1, saved.getInt("continuations"));
+        // A stage checkpoint survives the re-entry; only revalidation decides whether it is reused.
+        assertEquals("old", saved.getString("build_attempt"));
+    }
+
+    @Test public void continuationRefusesUnsafeOrRevokedJournals() throws Exception {
+        File parent = new File(context().getFilesDir(), "sessions");
+        SessionJournal legacy = SessionJournal.Companion.create(parent, HASH, HASH);
+        reject(legacy::resumeConsistent);
+        SessionJournal dirty = linked(parent);
+        dirty.intent("write_file", new JSONObject().put("path", "packages/1/1.db"));
+        reject(dirty::resumeConsistent);
+        SessionJournal verified = linked(parent);
+        verified.outcome(PatchPhase.RESTORING, new JSONObject().put("patch_payload_verified", true));
+        reject(verified::resumeConsistent);
+        SessionJournal stopped = linked(parent);
+        stopped.record(new JSONObject().put("stopped", true));
+        reject(stopped::resumeConsistent);
+        SessionJournal finalizing = linked(parent);
+        finalizing.record(new JSONObject().put("finalization_pending", true));
+        reject(finalizing::resumeConsistent);
+        SessionJournal complete = linked(parent);
+        complete.outcome(PatchPhase.RESTORING, new JSONObject());
+        complete.outcome(PatchPhase.COMPLETE, new JSONObject().put("normal_verified", true));
+        reject(complete::resumeConsistent);
+    }
+
+    @Test public void lostInstallReplyIsAuditedNotAssumed() throws Exception {
+        File parent = new File(context().getFilesDir(), "sessions");
+        SessionJournal access = linked(parent);
+        access.intent("install_access", new JSONObject().put("sha256", HASH));
+        access.reconcileInstall(null);
+        JSONObject audit = access.snapshot().getJSONObject("install_audit");
+        assertTrue(audit.isNull("installed"));
+        assertFalse(access.getHasMutationIntent());
+        assertFalse(access.snapshot().getBoolean("normal_verified"));
+        SessionJournal normal = linked(parent);
+        normal.intent("install_normal", new JSONObject().put("sha256", HASH));
+        normal.reconcileInstall(HASH);
+        assertTrue(normal.snapshot().getBoolean("normal_verified"));
+        SessionJournal write = linked(parent);
+        write.intent("write_file", new JSONObject().put("path", "packages/1/1.db"));
+        reject(() -> write.reconcileInstall(HASH));
+        assertTrue(write.getHasMutationIntent());
     }
 }

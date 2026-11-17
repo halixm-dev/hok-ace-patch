@@ -15,6 +15,7 @@ object StopCard {
      */
     const val UPDATE_STUCK = "The game's update stopped on translated files"
     const val UPDATE_MIXED = "A game update kept part of this patcher's translation"
+    const val PACKAGE_UNREACHABLE = "A game package could not be patched safely"
     const val UPDATE_WAITING = "The game has not downloaded the re-downloaded files yet"
     const val DOWNLOAD_UNFINISHED = "The game was still downloading game files"
     const val CLEAR_DATA = "Clear the game's data (Android Settings"
@@ -42,20 +43,41 @@ object StopCard {
     fun decide(status: String?, error: String, pending: Boolean?, recoverable: Boolean): Exit? {
         if (status !in setOf("error", "recovery_required")) return null
         if (status == "error") when {
-            error.contains(UPDATE_STUCK) -> return Exit.REDOWNLOAD_STUCK
-            error.contains(UPDATE_MIXED) -> return Exit.REDOWNLOAD_MIXED
-            error.contains(UPDATE_WAITING) || error.contains(DOWNLOAD_UNFINISHED) -> return Exit.WAIT_FOR_GAME
+            // Re-download and Open game are offered only once nothing is left unresolved: unfinished work restores first.
+            error.contains(UPDATE_STUCK) && pending == false -> return Exit.REDOWNLOAD_STUCK
+            error.contains(UPDATE_MIXED) && pending == false -> return Exit.REDOWNLOAD_MIXED
+            (error.contains(UPDATE_WAITING) || error.contains(DOWNLOAD_UNFINISHED)) && pending == false -> return Exit.WAIT_FOR_GAME
             providerRefusal(error) -> return Exit.START
             pending == false -> return Exit.TRY_AGAIN
         }
         return if (recoverable) Exit.RECOVERY else Exit.TRY_AGAIN
     }
 
+    /** A saved action's wait for the player (ticket 12), in the order ③ offers them. */
+    enum class Wait { STORAGE, SOURCE_DOWNLOADS, REDOWNLOAD_ANSWER, REDOWNLOAD_DOWNLOAD }
+
+    /**
+     * The saved action's wait ③ shows, or null. Required recovery comes first: while the worker reports
+     * `recovery_required` or a patch session, first setup or emergency restore is unfinished (<pending>), no
+     * wait is offered, so ③'s one button is the recovery action. A Re-download question asked over an access APK
+     * still installed would hide the restore of the normal app (phone f15a72e, 2026-11-12).
+     */
+    fun savedWait(status: String?, pending: Boolean, mayContinue: Boolean, waiting: String?, sourceDownloads: String?,
+                  redownloadNeedsAnswer: Boolean, redownloadState: String?): Wait? = when {
+        pending || status == "recovery_required" || !mayContinue -> null
+        waiting == "storage" -> Wait.STORAGE
+        sourceDownloads == "required" -> Wait.SOURCE_DOWNLOADS
+        redownloadNeedsAnswer -> Wait.REDOWNLOAD_ANSWER
+        redownloadState == RunStore.REDOWNLOAD_DELETED -> Wait.REDOWNLOAD_DOWNLOAD
+        else -> null
+    }
+
     /** Whether the stop's own line points at the recovery options rather than at a retry. */
     fun pointsAtRecovery(exit: Exit, recoverable: Boolean) = recoverable && exit != Exit.TRY_AGAIN
 
     /** True when a patch run's build refused over files only the game's own download can replace. */
-    fun damagedFiles(message: String) = message.contains(UPDATE_STUCK) || message.contains(UPDATE_MIXED)
+    fun damagedFiles(message: String) = message.contains(UPDATE_STUCK) || message.contains(UPDATE_MIXED) ||
+        message.contains(PACKAGE_UNREACHABLE)
 
     /** Whether ③'s line stands in for the stop's own explanation, so the result message stays empty. */
     fun ownCard(exit: Exit) = exit in setOf(Exit.REDOWNLOAD_STUCK, Exit.REDOWNLOAD_MIXED, Exit.WAIT_FOR_GAME)

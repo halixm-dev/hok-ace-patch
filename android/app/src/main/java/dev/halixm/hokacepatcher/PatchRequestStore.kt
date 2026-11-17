@@ -1,110 +1,114 @@
 package dev.halixm.hokacepatcher
 
 import android.content.Context
-import android.util.AtomicFile
 import java.io.File
-import java.io.RandomAccessFile
-import java.util.UUID
 import org.json.JSONObject
 
-/** One-use update confirmation bound to a verified preparation, never caller-supplied APK paths. */
+/** Start-bound prepared input. No checkbox/status/receipt alone grants dispatch permission. */
 class PatchRequestStore(private val context: Context) {
-    private val root = File(context.filesDir, "patch-requests")
-    private fun file(id: String): File { GameFilePolicy.session(id); return File(root, "$id.json") }
-    private fun receipt(id: String) = File(context.filesDir, "preparations/$id/receipt.json")
-    private fun noPendingRecovery() {
-        check(FirstSetupJournal.pending(context).isEmpty()) { "Finish or recover first-time setup before starting a patch" }
-        check(SessionJournal.pending(File(context.filesDir, "sessions")).isEmpty()) {
-            "Recover the interrupted patch before starting another patch"
-        }
-    }
-    private fun write(id: String, value: JSONObject) {
-        DurableFiles.createDirectories(root)
-        val storage = AtomicFile(file(id)); val stream = storage.startWrite()
-        try {
-            stream.write(value.toString().toByteArray(Charsets.UTF_8)); stream.fd.sync(); storage.finishWrite(stream)
-            DurableFiles.syncDirectory(root)
-        } catch (error: Throwable) { storage.failWrite(stream); throw error }
-    }
+    private val runs = RunStore(context)
+    private val base = context.filesDir.canonicalFile
 
-    fun confirm(prepared: ApkPreparation.Prepared, updateFinishedAndGameClosed: Boolean): String {
-        check(updateFinishedAndGameClosed) { "Wait for the complete game update and close the game first" }
-        noPendingRecovery()
-        check(!prepared.requiresSignatureConversion) { "Initial game setup needs separate data-loss consent" }
-        val preparation = prepared.directory.name; GameFilePolicy.session(preparation)
-        check(prepared.directory.canonicalFile == File(context.filesDir, "preparations/$preparation").canonicalFile)
-        val metadata = JSONObject(String(DurableFiles.readCommitted(receipt(preparation)), Charsets.UTF_8))
-        check(ApkIdentity.fromJson(metadata.getJSONObject("normal")) == prepared.normal &&
-            ApkIdentity.fromJson(metadata.getJSONObject("access")) == prepared.access &&
-            ApkIdentity.fromJson(metadata.optJSONObject("installed_source") ?: metadata.getJSONObject("source")) == prepared.source) { "Prepared files changed before confirmation" }
-        val id = UUID.randomUUID().toString()
-        write(id, JSONObject().put("schema", 1).put("id", id).put("preparation", preparation)
-            .put("normal", prepared.normal.sha256).put("access", prepared.access.sha256)
-            .put("receipt_sha256", ApkIdentity.digest(receipt(preparation)))
-            .put("confirmed_ms", System.currentTimeMillis()).put("update_finished_and_game_closed", true)
-            .put("consumed", false))
-        return id
-    }
-
-    /** Root's confirmation: bound to the saved copy of the installed game app, the only APK a root run reads. */
-    fun confirmRoot(prepared: ApkPreparation.RootPrepared, updateFinishedAndGameClosed: Boolean): String {
-        check(updateFinishedAndGameClosed) { "Wait for the complete game update and close the game first" }
-        noPendingRecovery()
-        val preparation = prepared.directory.name; GameFilePolicy.session(preparation)
-        check(prepared.directory.canonicalFile == File(context.filesDir, "preparations/$preparation").canonicalFile)
-        val metadata = JSONObject(String(DurableFiles.readCommitted(receipt(preparation)), Charsets.UTF_8))
-        check(metadata.optBoolean("root") && ApkIdentity.fromJson(metadata.getJSONObject("source")) == prepared.installed) {
-            "Prepared files changed before confirmation"
-        }
-        val id = UUID.randomUUID().toString()
-        write(id, JSONObject().put("schema", 1).put("id", id).put("preparation", preparation).put("root", true)
-            .put("installed", prepared.installed.sha256)
-            .put("receipt_sha256", ApkIdentity.digest(receipt(preparation)))
-            .put("confirmed_ms", System.currentTimeMillis()).put("update_finished_and_game_closed", true)
-            .put("consumed", false))
-        return id
-    }
-
-    /** Whether request <id> was confirmed for a root run; [claimRoot] claims it, [claim] refuses it. */
-    fun isRoot(id: String): Boolean =
-        JSONObject(String(DurableFiles.readCommitted(file(id)), Charsets.UTF_8)).optBoolean("root")
-
-    fun claimRoot(id: String): ApkPreparation.RootPrepared = claimed(id, true) { saved, preparation ->
-        val prepared = ApkPreparation(context).loadRoot(preparation)
-        check(prepared.installed.sha256 == saved.getString("installed")) { "Prepared identities changed" }
-        prepared
-    }
-
-    fun claim(id: String): ApkPreparation.Prepared = claimed(id, false) { saved, preparation ->
-        val prepared = ApkPreparation(context).load(preparation)
-        check(!prepared.requiresSignatureConversion && prepared.normal.sha256 == saved.getString("normal") &&
-            prepared.access.sha256 == saved.getString("access")) { "Prepared identities changed" }
-        prepared
-    }
-
-    private fun <T> claimed(id: String, rootRun: Boolean, load: (JSONObject, String) -> T): T {
-        DurableFiles.createDirectories(root)
-        RandomAccessFile(File(root, "claim.lock"), "rw").use { handle -> handle.channel.use { channel ->
-            checkNotNull(channel.tryLock()) { "Another patch request is being checked" }.use {
-                val storage = AtomicFile(file(id)); val bytes = DurableFiles.readCommitted(storage.baseFile)
-                check(bytes.size <= 8192) { "Patch request is oversized" }
-                val saved = JSONObject(String(bytes, Charsets.UTF_8))
-                check(saved.getInt("schema") == 1 && saved.getString("id") == id &&
-                    saved.getBoolean("update_finished_and_game_closed")) { "Confirm the completed game update first" }
-                check(!saved.getBoolean("consumed")) { "This confirmation was already used; confirm again" }
-                check(saved.optBoolean("root") == rootRun) { "This confirmation was made for another shell provider; confirm again" }
-                val elapsed = System.currentTimeMillis() - saved.getLong("confirmed_ms")
-                check(elapsed in 0..(15 * 60 * 1000L)) { "Update confirmation expired; confirm again" }
-                noPendingRecovery()
-                val preparation = saved.getString("preparation"); GameFilePolicy.session(preparation)
-                check(ApkIdentity.digest(receipt(preparation)) == saved.getString("receipt_sha256")) {
-                    "Prepared files changed; prepare and confirm again"
-                }
-                val prepared = load(saved, preparation)
-                write(id, saved.put("consumed", true).put("claimed_ms", System.currentTimeMillis()))
-
-                return prepared
+    private fun receipt(id: String): File {
+        GameFilePolicy.session(id)
+        val folder = File(base, "preparations/$id")
+        RunStore.safe(base, folder, true)
+        return File(folder, "receipt.json").also {
+            listOf(it, File(it.path + ".bak")).filter { candidate -> candidate.exists() || java.nio.file.Files.isSymbolicLink(candidate.toPath()) }.forEach { candidate ->
+                RunStore.safe(base, candidate); check(candidate.length() in 1..65536) { "Preparation receipt oversized" }
             }
-        } }
+        }
     }
+    private fun binding(directory: File, source: ApkIdentity, normal: ApkIdentity?, access: ApkIdentity?): JSONObject {
+        val id = directory.name; GameFilePolicy.session(id)
+        check(directory.canonicalFile == File(base, "preparations/$id")) { "Wrong preparation root" }
+        val path = receipt(id); val bytes = DurableFiles.readCommitted(path); check(bytes.size in 1..65536)
+        val metadata = ArtifactReceipts.parse(bytes)
+        check(metadata.get("schema") is Int || metadata.get("schema") is Long)
+        check(metadata.getInt("schema") == 1)
+        val root = normal == null
+        check(metadata.keys().asSequence().toSet().let { keys ->
+            if (root) keys == setOf("schema", "root", "source") else
+                keys.containsAll(setOf("schema", "source", "normal", "access", "engine_id")) &&
+                    keys.all { it in setOf("schema", "source", "normal", "access", "engine_id", "label_warning", "installed_source") }
+        }) { "Unknown preparation fields" }
+        if (metadata.has("root")) check(metadata.get("root") is Boolean)
+        for (key in listOf("source", "installed_source", "normal", "access")) if (metadata.has(key)) {
+            val identity = metadata.getJSONObject(key)
+            check(ArtifactReceipts.canonical(ApkIdentity.fromJson(identity).json()) == ArtifactReceipts.canonical(identity)) { "Malformed APK identity" }
+        }
+        check(metadata.optBoolean("root", false) == root) { "Wrong preparation kind" }
+        val selected = if (root) metadata.getJSONObject("source") else
+            metadata.optJSONObject("installed_source") ?: metadata.getJSONObject("source")
+        check(ApkIdentity.fromJson(selected) == source) { "Prepared source identity changed" }
+        if (!root) check(ApkIdentity.fromJson(metadata.getJSONObject("normal")) == normal &&
+            ApkIdentity.fromJson(metadata.getJSONObject("access")) == access) { "Prepared APK identities changed" }
+        return JSONObject().put("id", id).put("receipt_sha256", ArtifactReceipts.digest(bytes)).put("root", root)
+            .put("source", source.json()).also {
+                normal?.let { identity -> it.put("normal", identity.json()) }
+                access?.let { identity -> it.put("access", identity.json()) }
+            }
+    }
+    fun authorize(runId: String, prepared: ApkPreparation.Prepared): String = RunStore.coordinator(context) {
+        val run = runs.load(runId); check(run.provider != ShellProvider.ROOT)
+        check(!prepared.requiresSignatureConversion) { "Initial game setup needs separate data-loss consent" }
+        val saved = binding(prepared.directory, prepared.source, prepared.normal, prepared.access)
+        // Independent loader rehashes exact APK bytes and validates installed/prepared semantic identities.
+        check(ApkPreparation(context).load(prepared.directory.name) == prepared) { "Prepared files changed" }
+        runs.bind(runId, saved); runId
+    }
+    fun authorizeRoot(runId: String, prepared: ApkPreparation.RootPrepared): String = RunStore.coordinator(context) {
+        check(runs.load(runId).provider == ShellProvider.ROOT)
+        val saved = binding(prepared.directory, prepared.installed, null, null)
+        check(ApkPreparation(context).loadRoot(prepared.directory.name) == prepared) { "Prepared files changed" }
+        runs.bind(runId, saved); runId
+    }
+    fun isRoot(id: String): Boolean = runs.load(id).provider == ShellProvider.ROOT
+
+    /** Must be called within coordinator ownership, then journal publication uses run.sessionId. */
+    fun claimRun(id: String, action: String, provider: ShellProvider): RunStore.Run {
+        RunStore.requireCoordinator(context)
+        val run = runs.load(id); val saved = checkNotNull(run.preparation)
+        val path = receipt(saved.getString("id"))
+        check(ApkIdentity.digest(path) == saved.getString("receipt_sha256")) { "Prepared receipt changed" }
+        if (provider == ShellProvider.ROOT) loadRoot(run) else load(run)
+        return runs.claim(id, action, provider)
+    }
+    fun load(run: RunStore.Run): ApkPreparation.Prepared {
+        check(run.provider != ShellProvider.ROOT)
+        val saved = checkNotNull(run.preparation)
+        check(ApkIdentity.digest(receipt(saved.getString("id"))) == saved.getString("receipt_sha256")) { "Prepared receipt changed" }
+        RunStore.safe(base, File(base, "preparations/${saved.getString("id")}/apks/access.apk"))
+        val normal = ApkIdentity.fromJson(saved.getJSONObject("normal"))
+        RunStore.safe(base, RecoveryStore(context).normal(normal.sha256))
+        RunStore.safe(base, File(RecoveryStore(context).normal(normal.sha256).parentFile, "identity.json"))
+        val prepared = ApkPreparation(context).load(saved.getString("id"))
+        check(!prepared.requiresSignatureConversion && ArtifactReceipts.canonical(binding(prepared.directory, prepared.source, prepared.normal, prepared.access)) == ArtifactReceipts.canonical(saved)) {
+            "Prepared identities changed"
+        }
+        return prepared
+    }
+    fun loadRoot(run: RunStore.Run): ApkPreparation.RootPrepared {
+        check(run.provider == ShellProvider.ROOT)
+        val saved = checkNotNull(run.preparation)
+        check(ApkIdentity.digest(receipt(saved.getString("id"))) == saved.getString("receipt_sha256")) { "Prepared receipt changed" }
+        RunStore.safe(base, File(base, "preparations/${saved.getString("id")}/original.apk"))
+        val prepared = ApkPreparation(context).loadRoot(saved.getString("id"))
+        check(ArtifactReceipts.canonical(binding(prepared.directory, prepared.installed, null, null)) == ArtifactReceipts.canonical(saved)) {
+            "Prepared identities changed"
+        }
+        return prepared
+    }
+
+    /** Schema-1 requests have no durable target/action. They cannot authorize a fresh mutation. */
+    @Deprecated("Use RunStore.start then authorize")
+    fun confirm(prepared: ApkPreparation.Prepared, updateFinishedAndGameClosed: Boolean): String =
+        error("Explicit durable Start authorization required")
+    @Deprecated("Use RunStore.start then authorizeRoot")
+    fun confirmRoot(prepared: ApkPreparation.RootPrepared, updateFinishedAndGameClosed: Boolean): String =
+        error("Explicit durable Start authorization required")
+    @Deprecated("Use coordinator-owned claimRun and load")
+    fun claim(id: String): ApkPreparation.Prepared = error("Explicit durable Start authorization required")
+    @Deprecated("Use coordinator-owned claimRun and loadRoot")
+    fun claimRoot(id: String): ApkPreparation.RootPrepared = error("Explicit durable Start authorization required")
 }
