@@ -101,7 +101,7 @@ def _pairs(items: list[tuple[str, object]]) -> dict:
 
 def read_record(path: Path) -> dict:
     """Bounded strict JSON reader (including duplicate keys and non-finite numbers)."""
-    _safe_file(path)
+    safe_file(path)
     if path.lstat().st_nlink != 1:
         raise ArtifactError("Hard-linked records are not immutable")
     with path.open("rb") as stream:
@@ -133,7 +133,7 @@ def relative_path(name: str) -> str:
     return name
 
 
-def _safe_file(path: Path, *, directory: bool = False) -> None:
+def safe_file(path: Path, *, directory: bool = False) -> None:
     # Inspect all ancestors too: resolving first would hide a junction escape.
     for parent in (*reversed(path.absolute().parents), path.absolute()):
         info = parent.lstat()
@@ -146,7 +146,7 @@ def _safe_file(path: Path, *, directory: bool = False) -> None:
 
 def file_identity(path: Path) -> dict:
     """Stream a regular file's actual bytes; callers must prevent concurrent mutation."""
-    _safe_file(path)
+    safe_file(path)
     digest = hashlib.sha256()
     size = 0
     with path.open("rb") as stream:
@@ -176,16 +176,16 @@ def validate_manifest(manifest: object) -> dict:
 
 def tree_manifest(root: Path, *, exclude: frozenset[str] = frozenset()) -> dict:
     """Exact bounded recursive file set. No links, special files or writable hard links."""
-    _safe_file(root, directory=True)
+    safe_file(root, directory=True)
     result = {}
     for directory, dirs, files in os.walk(root, followlinks=False):
         for name in dirs:
-            _safe_file(Path(directory) / name, directory=True)
+            safe_file(Path(directory) / name, directory=True)
         for name in files:
             path = Path(directory) / name
             relative = path.relative_to(root).as_posix()
             if relative in exclude:
-                _safe_file(path)
+                safe_file(path)
                 continue
             relative_path(relative)
             if path.lstat().st_nlink != 1:
@@ -432,7 +432,7 @@ def sync_file(path: Path) -> None:
         os.close(descriptor)
 
 
-def _sync_directory(root: Path) -> None:
+def sync_directory(root: Path) -> None:
     if os.name == "nt":
         # Windows publication uses MOVEFILE_WRITE_THROUGH below. Opening directories for
         # FlushFileBuffers is unsupported on some Windows filesystems; do not fake fsync.
@@ -444,7 +444,7 @@ def _sync_directory(root: Path) -> None:
         os.close(descriptor)
 
 
-def _replace(source: Path, target: Path) -> None:
+def replace_file(source: Path, target: Path) -> None:
     if os.name == "nt":
         import ctypes
         kernel = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -466,22 +466,22 @@ def _replace(source: Path, target: Path) -> None:
             delay = min(delay * 2, 0.25)
     else:
         os.replace(source, target)
-    _sync_directory(target.parent)
+    sync_directory(target.parent)
 
 
 def create_attempt(parent: Path, *, run_id: str, stage: str) -> Path:
     """Create a fresh owned directory; never reset/delete a previous attempt here."""
     if stage not in STAGES or not isinstance(run_id, str) or not 1 <= len(run_id) <= 128:
         raise ArtifactError("Invalid attempt owner")
-    _safe_file(parent, directory=True)
+    safe_file(parent, directory=True)
     path = parent / str(uuid.uuid4())
     path.mkdir()
     with (path / "attempt-owner.json").open("xb") as stream:
         stream.write(canonical_bytes({"schema": SCHEMA, "run_id": run_id, "stage": stage}))
         stream.flush()
         os.fsync(stream.fileno())
-    _sync_directory(path)
-    _sync_directory(parent)
+    sync_directory(path)
+    sync_directory(parent)
     return path
 
 
@@ -521,7 +521,7 @@ def publish_receipt(root: Path, *, identity: dict, run_id: str, stage: str,
     hit("receipt_synced")
     # Ensure no writer changed the artifact set between verification and publication.
     verify_manifest(root, artifacts, exclude=frozenset({RECEIPT_NAME, temp.name}))
-    _replace(temp, root / RECEIPT_NAME)
+    replace_file(temp, root / RECEIPT_NAME)
     hit("receipt_committed")
     verified = verify_receipt(root, identity=identity, stage=stage)
     hit("receipt_read_back")

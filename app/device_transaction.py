@@ -19,7 +19,7 @@ from typing import Callable, Protocol
 
 from patch_session import OwnedRun, SessionError
 from run_artifacts import (canonical_bytes, file_identity, read_record, relative_path,
-                           tree_manifest, validate_manifest, verify_manifest, _replace, _safe_file)
+                           tree_manifest, validate_manifest, verify_manifest, replace_file, safe_file)
 
 PACKAGE = "com.tencent.tmgp.osgame"
 ROOT = "files/QtsVFSCache"
@@ -40,13 +40,13 @@ def _publish(path: Path, value: dict) -> None:
     """Large manifests use bounded artifact JSON rather than the small run record."""
     path.parent.mkdir(parents=True, exist_ok=True)
     # Inspect ancestors before creating the exclusive temporary sibling.
-    _safe_file(path.parent, directory=True)
+    safe_file(path.parent, directory=True)
     if path.exists():
-        _safe_file(path)
+        safe_file(path)
     temp = path.with_name(path.name + "." + str(uuid.uuid4()) + ".tmp")
     with temp.open("xb") as stream:
         stream.write(canonical_bytes(value)); stream.flush(); os.fsync(stream.fileno())
-    _replace(temp, path)
+    replace_file(temp, path)
     if read_record(path) != value:
         raise SessionError("error_run_state", "Transaction journal read-back")
 
@@ -54,16 +54,16 @@ def _publish(path: Path, value: dict) -> None:
 def _durable_copy(source: Path, target: Path) -> None:
     expected = file_identity(source)
     target.parent.mkdir(parents=True, exist_ok=True)
-    _safe_file(target.parent, directory=True)
+    safe_file(target.parent, directory=True)
     if target.exists():
-        _safe_file(target)
+        safe_file(target)
     temporary = target.with_name(target.name + "." + str(uuid.uuid4()) + ".tmp")
     with source.open("rb") as incoming, temporary.open("xb") as outgoing:
         shutil.copyfileobj(incoming, outgoing, 1024 * 1024)
         outgoing.flush(); os.fsync(outgoing.fileno())
     if file_identity(temporary) != expected:
         raise SessionError("error_run_state", "Retained copy differs")
-    _replace(temporary, target)
+    replace_file(temporary, target)
 
 
 class FileTransport(Protocol):
@@ -433,8 +433,7 @@ class DeviceTransaction:
         The coordinator calls this once when it deliberately continues valid staged
         work. Ordinary apply/reconcile never increments the durable cycle or budget.
         """
-        if (self.record["phase"] != "rolled_back" or self.owner.record["stop_requested"]
-                or not self.owner.record["continuation"]):
+        if self.record["phase"] != "rolled_back" or self.owner.winding_down:
             raise SessionError("error_run_state", "Reapply requires verified rollback and continuation")
         self.reconcile()
         if self.transport.inventory(self.session)["files"] != self.record["original"]:
@@ -483,9 +482,9 @@ class DeviceTransaction:
         metadata = self.directory / "transaction-meta"
         if keep != self.owner.root / "pristine":
             raise SessionError("error_run_state", "Wrong delta destination")
-        _safe_file(keep.parent, directory=True)
+        safe_file(keep.parent, directory=True)
         if keep.exists():
-            _safe_file(keep, directory=True)
+            safe_file(keep, directory=True)
         else:
             keep.mkdir()
         # Do not overwrite a delta another action/external actor changed. After
@@ -511,14 +510,14 @@ class DeviceTransaction:
         # Pending stays retained in the session across deletion/promotion interruption.
         if self.record["remove_delta"]:
             if (keep / "delta.bin").exists():
-                _replace(keep / "delta.bin", self.directory / "removed-delta.bin")
+                replace_file(keep / "delta.bin", self.directory / "removed-delta.bin")
         else:
             _durable_copy(metadata / "pending-delta.bin", keep / "delta.bin")
         _durable_copy(metadata / "new-hashes.json", keep / "staged-hashes.json")
         if (keep / "delta.pending.bin").exists():
-            _replace(keep / "delta.pending.bin", self.directory / "retired-pending.bin")
-        from run_artifacts import _sync_directory
-        _sync_directory(keep)
+            replace_file(keep / "delta.pending.bin", self.directory / "retired-pending.bin")
+        from run_artifacts import sync_directory
+        sync_directory(keep)
         self._verify_final_metadata(keep)
         self._save(phase="finalized")
         self.owner.complete_attempt("files_apply", reconciled_success=True)

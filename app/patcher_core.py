@@ -478,14 +478,7 @@ class Patcher:
         owner = self.run_owner
         if owner is None:
             return False
-        with owner._mutex:
-            if not owner.locks or owner.record is None or owner.record["lifecycle"] in RESOLVED:
-                return False
-            if self._stop_requested and not owner.record["stop_requested"]:
-                owner.stop()
-            if self._close_requested and not owner.record["close_preserves_continuation"]:
-                owner.preserve_close()
-            return True
+        return owner.apply_control(stop=self._stop_requested, close=self._close_requested)
 
     def control_boundary(self) -> None:
         if self._recovering:
@@ -763,7 +756,7 @@ class Patcher:
                 and self.adb.installed_identity() == apks["source"]):
             # Death after pinning signed normal, before setup consent. The local
             # output proves no conversion; preserve source and ask scoped consent anew.
-            if owner.record["stop_requested"] or not owner.record["continuation"]:
+            if owner.winding_down:
                 self._cancel_consistent()
             try:
                 PreparedApks(owner, self.apk_journal, self.producer_identity()).verify(
@@ -797,7 +790,7 @@ class Patcher:
             self._ensure_access("recovery_access_" + str(tx.record["cycle"]), recovery=True)
             if phase != "rolled_back":
                 tx.rollback()
-            if owner.record["stop_requested"] or not owner.record["continuation"]:
+            if owner.winding_down:
                 self.install_prepared("normal", "cancel_normal_" + str(tx.record["cycle"]), safety_recovery=True)
                 self.debuggable_installed = False
                 self._cancel_consistent()
@@ -827,7 +820,7 @@ class Patcher:
             self.event("continuing", "apply_stage", reused="staged")
             tx.reapply()
             return self._finish_transaction(result)
-        if owner.record["stop_requested"] or not owner.record["continuation"]:
+        if owner.winding_down:
             observed = self.adb.installed_identity()
             if observed == self.apk_journal.record["apks"].get("access"):
                 self.install_prepared("normal", "cancel_before_apply", safety_recovery=True)
@@ -858,7 +851,7 @@ class Patcher:
 
     def _fork_snapshot(self, previous: Path) -> Path:
         """New owned mutable generation; actual saved originals are copied, not linked."""
-        from run_artifacts import _safe_file
+        from run_artifacts import safe_file
         source = Checkpoints(self.run_owner, previous).snapshot()
         needed = sum(item["size"] for item in source["files"].values()) * 3 + MIN_FREE_BYTES
         available = free_space(self.work)
@@ -868,7 +861,7 @@ class Patcher:
         token = str(uuid.uuid4())
         self.run_owner.update(children={**self.run_owner.record["children"], "data_session": token})
         target = self.work / "sessions" / token
-        _safe_file(target.parent, directory=True)
+        safe_file(target.parent, directory=True)
         target.mkdir()
         shutil.copytree(previous / "recovery", target / "recovery")
         _durable_copy(previous / "recovery-manifest.json", target / "recovery-manifest.json")
@@ -1451,11 +1444,11 @@ class Patcher:
         self.run_owner.update(lifecycle="preparing")
 
     def build_signed(self, source: Path, target: Path, replacements: dict[str, bytes]) -> None:
-        from run_artifacts import _safe_file
+        from run_artifacts import safe_file
         unsigned = target.with_suffix(".unsigned")
         try:
-            _safe_file(source)
-            _safe_file(target.parent, directory=True)
+            safe_file(source)
+            safe_file(target.parent, directory=True)
             for output in (target, unsigned):
                 try:
                     output.lstat()  # includes dangling symlinks and reparse points

@@ -23,7 +23,7 @@ from run_artifacts import (ArtifactError, RECEIPT_NAME, file_identity, identity_
 
 def active_delta_identity(keep: Path) -> dict:
     """Explicit absence and fresh full hashes, never a cached finalization flag."""
-    from run_artifacts import _safe_file
+    from run_artifacts import safe_file
     import pristine_delta
     # lstat-backed guards cover explicit absence as well as readable files.
     current = keep
@@ -35,7 +35,7 @@ def active_delta_identity(keep: Path) -> dict:
         if info is not None and (current.is_symlink() or getattr(info, "st_file_attributes", 0) & 0x400):
             raise ArtifactError("Linked absent delta path")
         current = current.parent
-    _safe_file(current, directory=True)
+    safe_file(current, directory=True)
     for name in ("delta.bin", "delta.pending.bin", "staged-hashes.json", "restore-refused.json", "redownload.json"):
         path = keep / name
         try:
@@ -256,10 +256,10 @@ class PreparedApks:
 
 def owned_attempt(owner: OwnedRun, session: Path, kind: str) -> Path:
     """Persist every attempt UUID before creating any attempt-local bytes."""
-    from run_artifacts import _safe_file
+    from run_artifacts import safe_file
     if kind not in {"prepared", "snapshot", "build"}:
         raise ArtifactError("Unknown attempt stage")
-    _safe_file(session, directory=True)
+    safe_file(session, directory=True)
     if not session.resolve(strict=True).is_relative_to((owner.root / "sessions").resolve(strict=True)):
         raise ArtifactError("Attempt escaped owned sessions")
     token = str(uuid.uuid4())

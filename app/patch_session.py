@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from run_artifacts import (ArtifactError, canonical_bytes, identity_key, read_record, sync_file,
-                           _replace, _sync_directory)
+                           replace_file, sync_directory)
 
 SCHEMA = 1
 PACKAGE = "com.tencent.tmgp.osgame"
@@ -227,7 +227,7 @@ def _write(path: Path, value: dict) -> None:
         temp = path.with_name(path.name + "." + str(uuid.uuid4()) + ".tmp")
         with temp.open("xb") as stream:
             stream.write(data); stream.flush(); os.fsync(stream.fileno())
-        _replace(temp, path)
+        replace_file(temp, path)
         if _read(path) != value:
             raise ValueError("journal read-back mismatch")
     except (OSError, ValueError) as error:
@@ -429,11 +429,16 @@ class RunStore:
         return OwnedRun(self, root, target, run_id=run_id)
 
 
+def winding_down(record: dict) -> bool:
+    """Stop was requested or continuation withdrawn: restore, then cancel; never patch on."""
+    return record["stop_requested"] or not record["continuation"]
+
+
 def next_action(record: dict) -> str:
     """A plan is a coordinator hint, never permission or proof for mutation."""
     if record["lifecycle"] in RESOLVED:
         return "resolved"
-    if record["stop_requested"] or not record["continuation"]:
+    if winding_down(record):
         return "restore_then_cancel"
     if record["lifecycle"] == "attention":
         return "attention"
@@ -524,7 +529,7 @@ class OwnedRun:
         self._index()
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            _sync_directory(self.root)
+            sync_directory(self.root)
         except OSError as error:
             raise SessionError("error_run_state", path.parent) from error
         _write(path, record)
@@ -561,6 +566,25 @@ class OwnedRun:
     @_serialized
     def preserve_close(self) -> dict:
         return self.update(close_preserves_continuation=True)
+
+    @_serialized
+    def apply_control(self, *, stop: bool, close: bool) -> bool:
+        """Persist a queued Stop and/or Close; False when no live unresolved run owns them.
+
+        Each request is written once; repeating it is a no-op. Stop stays irreversible.
+        """
+        if not self.locks or self.record is None or self.record["lifecycle"] in RESOLVED:
+            return False
+        if stop and not self.record["stop_requested"]:
+            self.stop()
+        if close and not self.record["close_preserves_continuation"]:
+            self.preserve_close()
+        return True
+
+    @property
+    def winding_down(self) -> bool:
+        """See `winding_down`; requires an authorized record."""
+        return winding_down(self.record)
 
     @_serialized
     def begin_attempt(self, key: str, *, destructive: bool = False, safety_recovery: bool = False) -> int:
