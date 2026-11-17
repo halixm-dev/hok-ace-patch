@@ -68,7 +68,7 @@ object StopCard {
         waiting == "storage" -> Wait.STORAGE
         sourceDownloads == "required" -> Wait.SOURCE_DOWNLOADS
         redownloadNeedsAnswer -> Wait.REDOWNLOAD_ANSWER
-        redownloadState == RunStore.REDOWNLOAD_DELETED -> Wait.REDOWNLOAD_DOWNLOAD
+        redownloadState == RedownloadConsent.DELETED -> Wait.REDOWNLOAD_DOWNLOAD
         else -> null
     }
 

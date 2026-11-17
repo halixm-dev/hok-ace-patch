@@ -334,7 +334,7 @@ class MainActivity : Activity() {
         // starts nothing at launch; its card asks (ticket 12). An approved plan, automatic since the user's
         // decision of 2026-11-13, resumes like any saved action.
         if (launch != AutomaticRoute.Launch.STOP && run?.mayContinue == true && run.redownload?.let {
-                it.needsAnswer || it.state == RunStore.REDOWNLOAD_DELETED } == true) return
+                it.needsAnswer || it.state == RedownloadConsent.DELETED } == true) return
         removing = run?.action == "remove"
         stopping = launch == AutomaticRoute.Launch.STOP
         continuing = launch == AutomaticRoute.Launch.CONTINUE
@@ -1237,7 +1237,7 @@ class MainActivity : Activity() {
                     }
                 }
             }
-            consent.state == RunStore.REDOWNLOAD_DELETED -> refreshHome()
+            consent.state == RedownloadConsent.DELETED -> refreshHome()
             else -> beginAutomatic(explicit = true)
         }
     }
@@ -1245,7 +1245,7 @@ class MainActivity : Activity() {
     /** Wait on the card; neither returning to the app nor Start answers a held-back review or the download. */
     private fun redownloadWaits(run: RunStore.Run): Boolean {
         if (run.sourceDownloads != "required" && run.redownload?.state !in setOf(
-                RunStore.REDOWNLOAD_AWAITING, RunStore.REDOWNLOAD_DECLINED, RunStore.REDOWNLOAD_DELETED)) return false
+                RedownloadConsent.AWAITING, RedownloadConsent.DECLINED, RedownloadConsent.DELETED)) return false
         stopAutomatic()
         refreshHome()
         return true
@@ -1255,7 +1255,7 @@ class MainActivity : Activity() {
     private fun openDownloadGame() {
         loadSavedRun()
         val run = savedRun?.takeIf { it.mayContinue } ?: return
-        if (run.sourceDownloads != "required" && run.redownload?.state != RunStore.REDOWNLOAD_DELETED) return
+        if (run.sourceDownloads != "required" && run.redownload?.state != RedownloadConsent.DELETED) return
         runTask {
             check(SessionJournal.pending(File(filesDir, "sessions")).isEmpty()) { "Finish recovery before opening the game" }
             EmergencyRestoreStore(this).requireResolved()
@@ -1271,7 +1271,7 @@ class MainActivity : Activity() {
     private fun confirmDownloads() {
         loadSavedRun()
         val run = savedRun?.takeIf { it.mayContinue } ?: return
-        if (run.sourceDownloads != "required" && run.redownload?.state != RunStore.REDOWNLOAD_DELETED) return
+        if (run.sourceDownloads != "required" && run.redownload?.state != RedownloadConsent.DELETED) return
         var saved: Result<RunStore.Run>? = null
         runTaskThen({
             saved = runCatching {

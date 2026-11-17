@@ -118,7 +118,7 @@ public final class AutomaticRouteProbeTest {
         assertEquals(AutomaticRoute.Launch.CONTINUE, route.onLaunch(saved("translate", "authorized", true, false, false, true), 1, none));
         // A legacy Re-download Start never resumes (ticket 12). A translate's own Re-download is approved
         // automatically (2026-11-13); one the loop guard held back for review, or waiting for the game's
-        // download, is held at launch by the screen itself (MainActivity reads RunStore.Redownload first).
+        // download, is held at launch by the screen itself (MainActivity reads Redownload first).
         assertEquals(AutomaticRoute.Launch.NONE, route.onLaunch(saved("redownload", "claimed", true, false, false, false), 1, none));
         // The spent retry budget survives reopen: one next action, no automatic dispatch.
         assertEquals(AutomaticRoute.Launch.NONE, route.onLaunch(saved("translate", "claimed", true, false, true, false), 1, none));

@@ -99,25 +99,25 @@ class StopCardTest {
     @Test fun aConsistentSavedActionShowsItsWait() {
         assertEquals(StopCard.Wait.STORAGE, wait(waiting = "storage"))
         assertEquals(StopCard.Wait.SOURCE_DOWNLOADS, wait(sourceDownloads = "required"))
-        assertEquals(StopCard.Wait.REDOWNLOAD_ANSWER, wait(needsAnswer = true, state = RunStore.REDOWNLOAD_AWAITING))
-        assertEquals(StopCard.Wait.REDOWNLOAD_DOWNLOAD, wait(state = RunStore.REDOWNLOAD_DELETED))
+        assertEquals(StopCard.Wait.REDOWNLOAD_ANSWER, wait(needsAnswer = true, state = RedownloadConsent.AWAITING))
+        assertEquals(StopCard.Wait.REDOWNLOAD_DOWNLOAD, wait(state = RedownloadConsent.DELETED))
         assertNull(wait())
     }
 
     // Phone f15a72e, 2026-11-12: recovery_required with the access APK installed showed "Review Re-download".
     @Test fun requiredRecoveryLeadsBeforeEveryWait() {
         val status = "recovery_required"
-        assertNull(wait(status = status, needsAnswer = true, state = RunStore.REDOWNLOAD_AWAITING))
+        assertNull(wait(status = status, needsAnswer = true, state = RedownloadConsent.AWAITING))
         assertNull(wait(status = status, sourceDownloads = "required"))
-        assertNull(wait(status = status, state = RunStore.REDOWNLOAD_DELETED))
+        assertNull(wait(status = status, state = RedownloadConsent.DELETED))
         assertNull(wait(status = status, waiting = "storage"))
-        assertNull(wait(pending = true, needsAnswer = true, state = RunStore.REDOWNLOAD_AWAITING))
+        assertNull(wait(pending = true, needsAnswer = true, state = RedownloadConsent.AWAITING))
         assertNull(wait(pending = true, sourceDownloads = "required"))
-        assertNull(wait(pending = true, state = RunStore.REDOWNLOAD_DELETED))
+        assertNull(wait(pending = true, state = RedownloadConsent.DELETED))
         assertNull(wait(pending = true, waiting = "storage"))
     }
 
     @Test fun aStoppedActionOffersNoWait() {
-        assertNull(wait(mayContinue = false, needsAnswer = true, state = RunStore.REDOWNLOAD_AWAITING))
+        assertNull(wait(mayContinue = false, needsAnswer = true, state = RedownloadConsent.AWAITING))
     }
 }

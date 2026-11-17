@@ -50,23 +50,6 @@ class RunStore(private val context: Context) {
         val retryExhausted: Boolean get() = failedOperation?.let { attempts.optInt(it, 0) >= 2 } ?: false
     }
 
-    /**
-     * The scoped Re-download of a saved action (ticket 12): one exact deletion plan, by the digest of its
-     * `plan.json` ([planSha256]) in the session's `redownload-plans/<planId>/`. Since the user's decision of
-     * 2026-11-13 the coordinator approves a measured plan itself ([approvalSource] `automatic`,
-     * [automaticRedownloadAllowed]) once per package per run; the user's own [approveRedownload] for that same
-     * digest ([approvalSource] `user`) remains for a plan the loop guard holds back. A changed plan needs a new
-     * approval. [state] is one of [REDOWNLOAD_STATES]; an approval ([approvalId]) exists exactly from `approved` on.
-     */
-    data class Redownload(val planId: String, val planSha256: String, val files: Int, val packages: List<String>,
-                          val bytes: Long, val state: String, val approvalId: String?, val approvedMs: Long?,
-                          val approvalSource: String? = null) {
-        /** Approved for deletion and not yet consumed by a completed deletion. */
-        val approved: Boolean get() = state in setOf(REDOWNLOAD_APPROVED, REDOWNLOAD_DELETING) && approvalId != null
-        /** The user has not answered, or declined: nothing may be deleted. */
-        val needsAnswer: Boolean get() = state in setOf(REDOWNLOAD_AWAITING, REDOWNLOAD_DECLINED)
-    }
-
     companion object {
         private const val MAX_BYTES = ArtifactReceipts.MAX_JSON
         private val HASH = Regex("[0-9a-f]{64}")
@@ -83,56 +66,14 @@ class RunStore(private val context: Context) {
         val WAITING = setOf("provider", "explicit_retry", "storage")
         private val OPERATION = Regex("[a-z][a-z0-9_]{0,63}")
         private val FAILURE_CLASS = Regex("[a-z][a-z0-9_]{0,31}")
+        /** A game package folder name, as in `redownloaded_packages`. */
+        private val PACKAGE = Regex("[0-9]{1,20}")
         private val OPTIONAL = setOf("last_operation", "failure", "waiting", "redownload", "source_download",
             "redownloaded_packages")
-        /** Waiting for the user to answer this exact plan; nothing is deleted. */
-        const val REDOWNLOAD_AWAITING = "awaiting_consent"
-        /** The user declined this exact plan: no deletion, and no automatic prompt for it again. */
-        const val REDOWNLOAD_DECLINED = "declined"
-        /** Approved for exactly this plan; no file deleted yet. */
-        const val REDOWNLOAD_APPROVED = "approved"
-        /** Saved before the first deletion of the approved plan; an interrupted run resumes it without asking. */
-        const val REDOWNLOAD_DELETING = "deleting"
-        /** The plan's files are deleted (the approval is consumed); the game must download them before translation. */
-        const val REDOWNLOAD_DELETED = "deleted"
-        /** The user said the game's download finished; the saved action continues and checks readiness itself. */
-        const val REDOWNLOAD_DOWNLOADS_CONFIRMED = "downloads_confirmed"
-        val REDOWNLOAD_STATES = setOf(REDOWNLOAD_AWAITING, REDOWNLOAD_DECLINED, REDOWNLOAD_APPROVED, REDOWNLOAD_DELETING,
-            REDOWNLOAD_DELETED, REDOWNLOAD_DOWNLOADS_CONFIRMED)
-        /** The logical operation of the deletions; a new approval, never an explicit Retry, re-arms it. */
-        const val REDOWNLOAD_DELETE = "redownload_delete"
-        private val PACKAGE = Regex("[0-9]{1,20}")
         /** Operations an explicit Retry never re-arms; destructive work needs its own fresh consent instead. */
         private val SAFETY_OPERATIONS = setOf("recovery_access_audit", "recovery_rollback_access",
             "recovery_normal_restore", "recovery_emergency_normal")
-        private val NEVER_REARMED = setOf("uninstall", "first_setup", REDOWNLOAD_DELETE)
-        /** Who approved a Re-download plan: the coordinator (user decision 2026-11-13) or the user's review. */
-        const val APPROVAL_AUTOMATIC = "automatic"
-        const val APPROVAL_USER = "user"
-
-        /**
-         * The loop guard of automatic Re-download (user decision 2026-11-13): the coordinator approves a freshly
-         * proposed plan ([state] `awaiting_consent`) only while its deletion budget is unspent ([deleteAttempts]
-         * under 2: two interrupted deletions wait for the user) and none of its [packages] was already deleted in
-         * this run ([redownloaded], [Run.redownloadedPackages]). A package the game still cannot update after its
-         * own download is never deleted again by itself; it waits for the user's review. A declined plan stays
-         * declined.
-         */
-        fun automaticRedownloadAllowed(state: String?, deleteAttempts: Int, redownloaded: Collection<String>,
-                                       packages: Collection<String>): Boolean =
-            state == REDOWNLOAD_AWAITING && deleteAttempts < 2 && packages.isNotEmpty() && packages.none { it in redownloaded }
-
-        /**
-         * A confirmed Re-download download counts as the user's source-download answer only for this run's own
-         * deletion: the run may continue, its plan is in [REDOWNLOAD_DOWNLOADS_CONFIRMED], and that plan is the
-         * last one the session journal records as deleted ([deletedPlanSha256]). Anything else (a declined,
-         * approved, still-deleting or unconfirmed plan, another plan's deletion, a stopped run) answers nothing.
-         */
-        fun redownloadAnswersSourceDownloads(mayContinue: Boolean, redownload: Redownload?,
-                                             deletedPlanSha256: String?): Boolean =
-            mayContinue && redownload != null && redownload.state == REDOWNLOAD_DOWNLOADS_CONFIRMED &&
-                deletedPlanSha256 != null && HASH.matches(deletedPlanSha256) && redownload.planSha256 == deletedPlanSha256
-
+        private val NEVER_REARMED = setOf("uninstall", "first_setup", RedownloadConsent.DELETE_OPERATION)
         /**
          * One shared kernel lock for preparation, claims, setup and recovery. Busy flags are projections.
          * It is held for a whole run, so a second holder, in this process or another, is refused at once
@@ -286,7 +227,7 @@ class RunStore(private val context: Context) {
         if (value.has("source_download")) check(value.get("source_download") is JSONObject)
         if (value.has("redownload")) {
             val redownload = value.get("redownload"); check(redownload is JSONObject)
-            validateRedownload(redownload)
+            RedownloadConsent.validate(redownload)
         }
         if (value.has("redownloaded_packages")) {
             val packages = value.get("redownloaded_packages"); check(packages is org.json.JSONArray && packages.length() in 1..1024)
@@ -316,34 +257,6 @@ class RunStore(private val context: Context) {
         val copy = JSONObject(value.toString()); val checksum = copy.getString("record_sha256"); copy.remove("record_sha256")
         check(checksum == ArtifactReceipts.identityKey(copy)) { "Run record changed" }
     }
-    private fun validateRedownload(value: JSONObject) {
-        fields(value, setOf("plan_id", "plan_sha256", "files", "packages", "bytes", "state", "approval"))
-        for (name in listOf("plan_id", "plan_sha256", "state")) check(value.get(name) is String)
-        GameFilePolicy.session(value.getString("plan_id"))
-        check(HASH.matches(value.getString("plan_sha256")) && value.getString("state") in REDOWNLOAD_STATES)
-        check(integer(value, "files") in 1L..8192L && integer(value, "bytes") in 0L..(64L * 1024 * 1024 * 1024))
-        val packages = value.get("packages"); check(packages is org.json.JSONArray && packages.length() in 1..1024)
-        val names = (0 until packages.length()).map { val name = packages.get(it); check(name is String && PACKAGE.matches(name)); name as String }
-        check(names.toSet().size == names.size) { "Duplicate Re-download package" }
-        val approved = value.getString("state") !in setOf(REDOWNLOAD_AWAITING, REDOWNLOAD_DECLINED)
-        if (value.isNull("approval")) check(!approved) { "An approved Re-download needs its approval" } else {
-            check(approved) { "An unanswered Re-download cannot carry an approval" }
-            val approval = value.get("approval"); check(approval is JSONObject)
-            // `source` is absent on approvals saved before automatic Re-download (2026-11-13): those were the user's.
-            fields(approval, setOf("id", "approved_ms") + approval.keys().asSequence().filter { it == "source" })
-            requireStrings(approval, "id")
-            GameFilePolicy.session(approval.getString("id")); check(integer(approval, "approved_ms") > 0)
-            if (approval.has("source")) check(approval.get("source") in setOf(APPROVAL_AUTOMATIC, APPROVAL_USER))
-        }
-    }
-    private fun redownloadModel(value: JSONObject): Redownload {
-        val packages = value.getJSONArray("packages")
-        val approval = value.optJSONObject("approval")
-        return Redownload(value.getString("plan_id"), value.getString("plan_sha256"), value.getInt("files"),
-            (0 until packages.length()).map { packages.getString(it) }, value.getLong("bytes"), value.getString("state"),
-            approval?.getString("id"), approval?.getLong("approved_ms"),
-            approval?.let { if (it.has("source")) it.getString("source") else APPROVAL_USER })
-    }
     private fun write(value: JSONObject) {
         value.remove("record_sha256")
         value.put("record_sha256", ArtifactReceipts.identityKey(value))
@@ -367,7 +280,7 @@ class RunStore(private val context: Context) {
             value.getString("session_id"), value.getBoolean("continuation"), value.getBoolean("stop_requested"),
             value.getString("lifecycle"), value.optJSONObject("preparation"), value.getJSONObject("attempts"), value.getString("authorization_key"), value.optJSONObject("input_identity"),
             value.optString("last_operation").ifEmpty { null }, value.optJSONObject("failure"), value.optString("waiting").ifEmpty { null },
-            value.optJSONObject("redownload")?.let { redownloadModel(it) }, value.optJSONObject("source_download")?.getString("state"),
+            value.optJSONObject("redownload")?.let { RedownloadConsent.decode(it) }, value.optJSONObject("source_download")?.getString("state"),
             value.optJSONArray("redownloaded_packages")?.let { list -> (0 until list.length()).map { list.getString(it) } }.orEmpty())
     }
     private fun records(): List<JSONObject> {
@@ -505,13 +418,13 @@ class RunStore(private val context: Context) {
      * deleted ([confirmRedownloadDownloads]) is also the source-download answer for the snapshot that deletion
      * made stale ([snapshotSha256], the snapshot saved before it). It binds that one snapshot digest, like
      * [confirmSourceDownloads]: the snapshot is still retired and retaken, the build still checks readiness,
-     * and [consumeSourceDownloads] spends it once. Only [redownloadAnswersSourceDownloads] grants it.
+     * and [consumeSourceDownloads] spends it once. Only [RedownloadConsent.answersSourceDownloads] grants it.
      */
     fun confirmSourceDownloadsAfterRedownload(id: String, snapshotSha256: String, deletedPlanSha256: String?): Run =
         update(id) { value, run ->
             requireCoordinator(context)
             check(HASH.matches(snapshotSha256))
-            check(redownloadAnswersSourceDownloads(run.mayContinue, run.redownload, deletedPlanSha256)) {
+            check(RedownloadConsent.answersSourceDownloads(run.mayContinue, run.redownload, deletedPlanSha256)) {
                 "No confirmed Re-download download answers this change"
             }
             value.put("source_download", JSONObject().put("snapshot_sha256", snapshotSha256).put("state", "confirmed"))
@@ -535,42 +448,28 @@ class RunStore(private val context: Context) {
         value.remove("last_operation"); value.remove("failure"); value.remove("waiting")
     }
     /**
-     * Coordinator only: the exact Re-download plan a damaged-file refusal produced for this claimed action. The
-     * same digest keeps its answer (an approval resumes without asking, a decline does not ask again), and only
-     * the plan's folder ([Redownload.planId]) follows the newest copy. A different digest, or any plan after a
-     * consumed approval, replaces it unanswered: a changed or larger scope always needs a new approval.
-     * <automatic> (the coordinator, user decision 2026-11-13) gives that approval in the same write when
-     * [automaticRedownloadAllowed] holds, so no cut can leave a plan proposed but not yet approved; otherwise
-     * the plan waits for the user's review.
+     * Coordinator only: the exact Re-download plan a damaged-file refusal produced for this claimed action
+     * ([RedownloadConsent.proposed]). <automatic> (the coordinator, user decision 2026-11-13) gives that approval
+     * in the same write when [RedownloadConsent.automaticAllowed] holds, so no cut can leave a plan proposed but
+     * not yet approved; otherwise the plan waits for the user's review.
      */
     fun proposeRedownload(id: String, planId: String, planSha256: String, files: Int, packages: List<String>,
                           bytes: Long, automatic: Boolean = false): Run = update(id) { value, run ->
         requireCoordinator(context)
         check(run.mayContinue && run.lifecycle == "claimed") { "Run is stopped or resolved" }
-        val current = run.redownload
-        if (current != null && current.planSha256 == planSha256 &&
-            current.state !in setOf(REDOWNLOAD_DELETED, REDOWNLOAD_DOWNLOADS_CONFIRMED)) {
-            value.getJSONObject("redownload").put("plan_id", planId)
-        } else {
-            value.put("redownload", JSONObject().put("plan_id", planId).put("plan_sha256", planSha256)
-                .put("files", files).put("packages", org.json.JSONArray(packages)).put("bytes", bytes)
-                .put("state", REDOWNLOAD_AWAITING).put("approval", JSONObject.NULL))
-        }
-        val proposed = value.getJSONObject("redownload")
-        val scope = proposed.getJSONArray("packages").let { list -> (0 until list.length()).map { list.getString(it) } }
-        if (automatic && automaticRedownloadAllowed(proposed.getString("state"),
-                value.getJSONObject("attempts").optInt(REDOWNLOAD_DELETE, 0), run.redownloadedPackages, scope)) {
-            approve(value, APPROVAL_AUTOMATIC)
-        }
+        val proposed = RedownloadConsent.proposed(run.redownload, planId, planSha256, files, packages, bytes)
+        val deleteAttempts = value.getJSONObject("attempts").optInt(RedownloadConsent.DELETE_OPERATION, 0)
+        if (automatic && RedownloadConsent.automaticAllowed(proposed.state, deleteAttempts, run.redownloadedPackages, proposed.packages)) {
+            approve(value, proposed, RedownloadConsent.APPROVAL_AUTOMATIC)
+        } else value.put("redownload", RedownloadConsent.encode(proposed))
     }
     /**
-     * Approve the saved plan as <source>. A new approval is a new destructive attempt scope, and it re-arms
-     * safe work too, exactly as the user's approval always did; the loop guard bounds how often that happens.
+     * Approve [plan] as <source>. A new approval is a new destructive attempt scope, and it re-arms safe work
+     * too, exactly as the user's approval always did; the loop guard bounds how often that happens.
      */
-    private fun approve(value: JSONObject, source: String) {
-        value.getJSONObject("redownload").put("state", REDOWNLOAD_APPROVED).put("approval",
-            JSONObject().put("id", UUID.randomUUID().toString()).put("approved_ms", System.currentTimeMillis())
-                .put("source", source))
+    private fun approve(value: JSONObject, plan: Redownload, source: String) {
+        value.put("redownload", RedownloadConsent.encode(RedownloadConsent.approved(plan, source,
+            UUID.randomUUID().toString(), System.currentTimeMillis())))
         val attempts = value.getJSONObject("attempts")
         for (operation in attempts.keys().asSequence().toList()) if (operation !in setOf("uninstall", "first_setup")) attempts.remove(operation)
         value.remove("last_operation"); value.remove("failure"); value.remove("waiting")
@@ -582,37 +481,20 @@ class RunStore(private val context: Context) {
      */
     fun approveRedownload(id: String, planSha256: String): Run = update(id) { value, run ->
         check(run.mayContinue && run.lifecycle == "claimed") { "Run is stopped or resolved" }
-        val current = checkNotNull(run.redownload) { "No Re-download plan waits for approval" }
-        check(current.planSha256 == planSha256) { "The Re-download plan changed; review it again" }
-        check(current.needsAnswer) { "This Re-download plan was already answered" }
-        approve(value, APPROVAL_USER)
+        approve(value, RedownloadConsent.answerable(run.redownload, planSha256), RedownloadConsent.APPROVAL_USER)
     }
     /** The user declined (or dismissed) the exact plan [planSha256]: nothing is deleted, and it is not asked again by itself. */
     fun declineRedownload(id: String, planSha256: String): Run = update(id) { value, run ->
-        val current = checkNotNull(run.redownload) { "No Re-download plan waits for approval" }
-        check(current.planSha256 == planSha256) { "The Re-download plan changed; review it again" }
-        check(current.needsAnswer) { "This Re-download plan was already answered" }
-        value.getJSONObject("redownload").put("state", REDOWNLOAD_DECLINED)
+        value.put("redownload", RedownloadConsent.encode(RedownloadConsent.declined(run.redownload, planSha256)))
     }
-    /**
-     * Coordinator only: progress of the approved plan [planSha256]. `deleting` is saved before the first deletion
-     * (approved or deleting runs only); `deleted` once its files and Watchdog are gone (it records what happened,
-     * even after a Stop); a readiness refusal after the downloads answer goes back to `deleted`.
-     */
+    /** Coordinator only: progress of the approved plan [planSha256] ([RedownloadConsent.progressed]). */
     fun redownloadProgress(id: String, planSha256: String, state: String): Run = update(id) { value, run ->
         requireCoordinator(context)
-        val current = checkNotNull(run.redownload) { "No Re-download plan" }
-        check(current.planSha256 == planSha256) { "Re-download plan differs" }
-        val allowed = when (state) {
-            REDOWNLOAD_DELETING -> run.mayContinue && current.approved
-            REDOWNLOAD_DELETED -> current.state in setOf(REDOWNLOAD_DELETING, REDOWNLOAD_DELETED, REDOWNLOAD_DOWNLOADS_CONFIRMED)
-            else -> false
-        }
-        check(allowed) { "Invalid Re-download progress" }
-        value.getJSONObject("redownload").put("state", state)
+        val plan = RedownloadConsent.progressed(run.redownload, planSha256, state, run.mayContinue)
+        value.put("redownload", RedownloadConsent.encode(plan))
         // The loop guard's memory: every package this run deleted, whoever approved it.
-        if (state == REDOWNLOAD_DELETED) {
-            val deleted = (run.redownloadedPackages + current.packages).distinct()
+        if (state == RedownloadConsent.DELETED) {
+            val deleted = (run.redownloadedPackages + plan.packages).distinct()
             check(deleted.size <= 1024) { "Too many re-downloaded packages" }
             value.put("redownloaded_packages", org.json.JSONArray(deleted))
         }
@@ -623,15 +505,12 @@ class RunStore(private val context: Context) {
      */
     fun requireFreshRedownloadConsent(id: String, planSha256: String): Run = update(id) { value, run ->
         requireCoordinator(context)
-        val current = checkNotNull(run.redownload) { "No Re-download plan" }
-        check(current.planSha256 == planSha256 && current.approved) { "Re-download plan differs" }
-        value.getJSONObject("redownload").put("state", REDOWNLOAD_AWAITING).put("approval", JSONObject.NULL)
+        value.put("redownload", RedownloadConsent.encode(RedownloadConsent.awaitingFreshConsent(run.redownload, planSha256)))
     }
     /** The user's answer that the game finished downloading the deleted files; the saved action then continues. */
     fun confirmRedownloadDownloads(id: String): Run = update(id) { value, run ->
         check(run.mayContinue) { "Run is stopped or resolved" }
-        check(run.redownload?.state == REDOWNLOAD_DELETED) { "No Re-download waits for the game's download" }
-        value.getJSONObject("redownload").put("state", REDOWNLOAD_DOWNLOADS_CONFIRMED)
+        value.put("redownload", RedownloadConsent.encode(RedownloadConsent.downloadsConfirmed(run.redownload)))
     }
     internal fun bind(id: String, binding: JSONObject): Run = update(id) { value, run ->
         check(run.mayContinue && run.lifecycle in setOf("authorized", "prepared", "claimed"))

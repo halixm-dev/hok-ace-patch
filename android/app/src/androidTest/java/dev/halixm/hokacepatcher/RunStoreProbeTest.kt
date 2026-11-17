@@ -279,18 +279,18 @@ class RunStoreProbeTest {
         reject { RunStore(context).proposeRedownload(run.id, UUID.randomUUID().toString(), a, 3, listOf("1"), 1) }
         offer(context, run, a)
         val offered = checkNotNull(RunStore(context).load(run.id).redownload)
-        assertEquals(RunStore.REDOWNLOAD_AWAITING, offered.state); assertFalse(offered.approved); assertTrue(offered.needsAnswer)
+        assertEquals(RedownloadConsent.AWAITING, offered.state); assertFalse(offered.approved); assertTrue(offered.needsAnswer)
         assertNull(offered.approvalId); assertEquals(listOf("1", "21"), offered.packages); assertEquals(3, offered.files)
         // The progress primitives never stand in for an approval.
-        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETING) } }
+        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETING) } }
         reject { RunStore(context).approveRedownload(run.id, b) }
         reject { RunStore(context).declineRedownload(run.id, b) }
         // A refusal is saved and deterministic: no deletion state, and the same digest keeps the answer.
         RunStore(context).declineRedownload(run.id, a)
-        assertEquals(RunStore.REDOWNLOAD_DECLINED, RunStore(context).load(run.id).redownload?.state)
+        assertEquals(RedownloadConsent.DECLINED, RunStore(context).load(run.id).redownload?.state)
         offer(context, run, a)
-        assertEquals(RunStore.REDOWNLOAD_DECLINED, RunStore(context).load(run.id).redownload?.state)
-        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETING) } }
+        assertEquals(RedownloadConsent.DECLINED, RunStore(context).load(run.id).redownload?.state)
+        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETING) } }
         // The user can still approve the same plan after a refusal.
         val approved = checkNotNull(RunStore(context).approveRedownload(run.id, a).redownload)
         assertTrue(approved.approved); assertNotNull(approved.approvalId); assertTrue(checkNotNull(approved.approvedMs) > 0)
@@ -300,38 +300,38 @@ class RunStoreProbeTest {
         assertEquals(approved.approvalId, RunStore(context).load(run.id).redownload?.approvalId)
         offer(context, run, b)
         val changed = checkNotNull(RunStore(context).load(run.id).redownload)
-        assertEquals(RunStore.REDOWNLOAD_AWAITING, changed.state); assertNull(changed.approvalId); assertEquals(b, changed.planSha256)
-        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETING) } }
+        assertEquals(RedownloadConsent.AWAITING, changed.state); assertNull(changed.approvalId); assertEquals(b, changed.planSha256)
+        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETING) } }
     }
     @Test fun anApprovedRedownloadIsConsumedOnceAndItsDeletionBudgetNeverRearms() {
         val context = context(); val run = claimed(context); val a = "a".repeat(64)
         offer(context, run, a)
-        RunStore(context).beginAttempt(run.id, RunStore.REDOWNLOAD_DELETE)
-        RunStore(context).beginAttempt(run.id, RunStore.REDOWNLOAD_DELETE)
+        RunStore(context).beginAttempt(run.id, RedownloadConsent.DELETE_OPERATION)
+        RunStore(context).beginAttempt(run.id, RedownloadConsent.DELETE_OPERATION)
         // A fresh approval is the only thing that resets the deletion budget.
         RunStore(context).approveRedownload(run.id, a)
-        assertFalse(RunStore(context).load(run.id).attempts.has(RunStore.REDOWNLOAD_DELETE))
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETING) }
-        RunStore(context).beginAttempt(run.id, RunStore.REDOWNLOAD_DELETE)
-        assertEquals(1, RunStore(context).rearm(run.id).attempts.getInt(RunStore.REDOWNLOAD_DELETE))
+        assertFalse(RunStore(context).load(run.id).attempts.has(RedownloadConsent.DELETE_OPERATION))
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETING) }
+        RunStore(context).beginAttempt(run.id, RedownloadConsent.DELETE_OPERATION)
+        assertEquals(1, RunStore(context).rearm(run.id).attempts.getInt(RedownloadConsent.DELETE_OPERATION))
         // Downloads cannot be confirmed before the deletion finished.
         reject { RunStore(context).confirmRedownloadDownloads(run.id) }
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETED) }
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETED) }
         val deleted = checkNotNull(RunStore(context).load(run.id).redownload)
         assertFalse("A consumed approval deletes nothing again", deleted.approved); assertFalse(deleted.needsAnswer)
-        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETING) } }
-        assertEquals(RunStore.REDOWNLOAD_DOWNLOADS_CONFIRMED, RunStore(context).confirmRedownloadDownloads(run.id).redownload?.state)
+        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETING) } }
+        assertEquals(RedownloadConsent.DOWNLOADS_CONFIRMED, RunStore(context).confirmRedownloadDownloads(run.id).redownload?.state)
         // The game still downloading sends it back to the download wait, never to deletion.
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETED) }
-        assertEquals(RunStore.REDOWNLOAD_DELETED, RunStore(context).load(run.id).redownload?.state)
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETED) }
+        assertEquals(RedownloadConsent.DELETED, RunStore(context).load(run.id).redownload?.state)
     }
     @Test fun aConfirmedRedownloadDownloadAnswersOnlyTheSnapshotItMadeStaleOnce() {
         val context = context(); val run = claimed(context); val runs = RunStore(context)
         val a = "a".repeat(64); val stale = "c".repeat(64); val later = "d".repeat(64)
         offer(context, run, a)
         runs.approveRedownload(run.id, a)
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETING) }
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETED) }
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETING) }
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETED) }
         // Before Downloads finished, the deletion answers nothing.
         reject { RunStore.coordinator(context) { RunStore(context).confirmSourceDownloadsAfterRedownload(run.id, stale, a) } }
         runs.confirmRedownloadDownloads(run.id)
@@ -346,7 +346,7 @@ class RunStoreProbeTest {
         runs.requireSourceDownloads(run.id, later)
         assertFalse(runs.sourceDownloadsConfirmed(run.id, later))
         // A readiness refusal sends the plan back to the download wait: nothing answers until Downloads finished.
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETED) }
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETED) }
         reject { RunStore.coordinator(context) { RunStore(context).confirmSourceDownloadsAfterRedownload(run.id, later, a) } }
         runs.stop(run.id)
         reject { RunStore.coordinator(context) { RunStore(context).confirmSourceDownloadsAfterRedownload(run.id, later, a) } }
@@ -362,24 +362,24 @@ class RunStoreProbeTest {
         // Only the coordinator approves automatically.
         reject { runs.proposeRedownload(run.id, UUID.randomUUID().toString(), a, 3, listOf("15"), 1, automatic = true) }
         val first = checkNotNull(offerAutomatically(context, run, a).redownload)
-        assertTrue(first.approved); assertEquals(RunStore.APPROVAL_AUTOMATIC, first.approvalSource)
+        assertTrue(first.approved); assertEquals(RedownloadConsent.APPROVAL_AUTOMATIC, first.approvalSource)
         // A changed plan before any deletion replaces the approval and is approved again automatically.
         val changed = checkNotNull(offerAutomatically(context, run, b).redownload)
         assertTrue(changed.approved); assertEquals(b, changed.planSha256); assertNotEquals(first.approvalId, changed.approvalId)
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, b, RunStore.REDOWNLOAD_DELETING) }
-        runs.beginAttempt(run.id, RunStore.REDOWNLOAD_DELETE)
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, b, RunStore.REDOWNLOAD_DELETED) }
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, b, RedownloadConsent.DELETING) }
+        runs.beginAttempt(run.id, RedownloadConsent.DELETE_OPERATION)
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, b, RedownloadConsent.DELETED) }
         assertEquals(listOf("15"), runs.load(run.id).redownloadedPackages)
         runs.confirmRedownloadDownloads(run.id)
         // The loop guard: the same package damaged again after its download waits for the user's review.
         val again = checkNotNull(offerAutomatically(context, run, c, listOf("1", "15")).redownload)
-        assertEquals(RunStore.REDOWNLOAD_AWAITING, again.state); assertFalse(again.approved); assertTrue(again.needsAnswer)
+        assertEquals(RedownloadConsent.AWAITING, again.state); assertFalse(again.approved); assertTrue(again.needsAnswer)
         // Re-offering it (a restart) still holds it back; the user's review can approve it.
         assertFalse(checkNotNull(offerAutomatically(context, run, c, listOf("1", "15")).redownload).approved)
         val reviewed = checkNotNull(runs.approveRedownload(run.id, c).redownload)
-        assertTrue(reviewed.approved); assertEquals(RunStore.APPROVAL_USER, reviewed.approvalSource)
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, c, RunStore.REDOWNLOAD_DELETING) }
-        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, c, RunStore.REDOWNLOAD_DELETED) }
+        assertTrue(reviewed.approved); assertEquals(RedownloadConsent.APPROVAL_USER, reviewed.approvalSource)
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, c, RedownloadConsent.DELETING) }
+        RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, c, RedownloadConsent.DELETED) }
         assertEquals(setOf("1", "15"), runs.load(run.id).redownloadedPackages.toSet())
         runs.confirmRedownloadDownloads(run.id)
         // Another package in the same run is still approved automatically.
@@ -388,8 +388,8 @@ class RunStoreProbeTest {
     @Test fun automaticRedownloadLeavesASpentDeletionBudgetToTheUser() {
         val context = context(); val run = claimed(context); val a = "a".repeat(64)
         offerAutomatically(context, run, a)
-        RunStore(context).beginAttempt(run.id, RunStore.REDOWNLOAD_DELETE)
-        RunStore(context).beginAttempt(run.id, RunStore.REDOWNLOAD_DELETE)
+        RunStore(context).beginAttempt(run.id, RedownloadConsent.DELETE_OPERATION)
+        RunStore(context).beginAttempt(run.id, RedownloadConsent.DELETE_OPERATION)
         RunStore.coordinator(context) { RunStore(context).requireFreshRedownloadConsent(run.id, a) }
         // Interrupted twice: neither the same plan nor a changed one is approved by itself.
         assertFalse(checkNotNull(offerAutomatically(context, run, a).redownload).approved)
@@ -402,12 +402,12 @@ class RunStoreProbeTest {
         reject { RunStore(context).requireFreshRedownloadConsent(run.id, a) }
         RunStore.coordinator(context) { RunStore(context).requireFreshRedownloadConsent(run.id, a) }
         val fresh = checkNotNull(RunStore(context).load(run.id).redownload)
-        assertEquals(RunStore.REDOWNLOAD_AWAITING, fresh.state); assertNull(fresh.approvalId)
+        assertEquals(RedownloadConsent.AWAITING, fresh.state); assertNull(fresh.approvalId)
         RunStore(context).stop(run.id)
         reject { RunStore(context).approveRedownload(run.id, a) }
         reject { RunStore(context).confirmRedownloadDownloads(run.id) }
         reject { offer(context, run, a) }
-        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RunStore.REDOWNLOAD_DELETING) } }
+        reject { RunStore.coordinator(context) { RunStore(context).redownloadProgress(run.id, a, RedownloadConsent.DELETING) } }
     }
     @Test fun malformedRedownloadRecordsRefuseEvenWithRecomputedDigest() {
         val a = "a".repeat(64)
@@ -458,7 +458,7 @@ class RunStoreProbeTest {
     @Test fun explicitStoppedRecoveryRetryRearmsOnlySafetyInstalls() {
         val context = context(); val run = claimed(context); val runs = RunStore(context)
         runs.beginAttempt(run.id, "uninstall")
-        runs.beginAttempt(run.id, RunStore.REDOWNLOAD_DELETE)
+        runs.beginAttempt(run.id, RedownloadConsent.DELETE_OPERATION)
         runs.stop(run.id)
         for (operation in listOf("recovery_access_audit", "recovery_rollback_access",
             "recovery_normal_restore", "recovery_emergency_normal")) {
@@ -469,7 +469,7 @@ class RunStoreProbeTest {
         val saved = RunStore(context).load(run.id)
         assertTrue(saved.stopRequested); assertFalse(saved.mayContinue)
         assertEquals(1, saved.attempts.getInt("uninstall"))
-        assertEquals(1, saved.attempts.getInt(RunStore.REDOWNLOAD_DELETE))
+        assertEquals(1, saved.attempts.getInt(RedownloadConsent.DELETE_OPERATION))
         runs.beginSafetyAttempt(run.id, "recovery_normal_restore")
         assertEquals(1, RunStore(context).load(run.id).attempts.getInt("recovery_normal_restore"))
     }

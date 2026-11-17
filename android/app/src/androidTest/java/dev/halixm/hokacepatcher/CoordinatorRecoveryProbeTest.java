@@ -515,9 +515,9 @@ public final class CoordinatorRecoveryProbeTest {
         // Approved automatically with the proposal (user decision 2026-11-13): no review, no dialog.
         RunStore.Companion.coordinator(context, () -> new RunStore(context).proposeRedownload(run.getId(), plan, digest, 3,
             java.util.Collections.singletonList("1"), 64, true));
-        assertEquals(RunStore.APPROVAL_AUTOMATIC, new RunStore(context).load(run.getId()).getRedownload().getApprovalSource());
+        assertEquals(RedownloadConsent.APPROVAL_AUTOMATIC, new RunStore(context).load(run.getId()).getRedownload().getApprovalSource());
         RunStore.Companion.coordinator(context, () -> new RunStore(context).redownloadProgress(run.getId(), digest,
-            RunStore.REDOWNLOAD_DELETING));
+            RedownloadConsent.DELETING));
         journal.outcome(PatchPhase.STAGED, new JSONObject());
         journal.outcome(PatchPhase.APPLYING, new JSONObject());
         new GameFileTransaction(journal, device).delete("packages/1/1.db", staged.getString("1/1.db"));
@@ -537,7 +537,7 @@ public final class CoordinatorRecoveryProbeTest {
         RunStore.Run saved = new RunStore(context).load(run.getId());
         assertTrue(saved.getMayContinue());
         assertTrue("The approval survives for the same plan", saved.getRedownload().getApproved());
-        assertEquals(RunStore.APPROVAL_AUTOMATIC, saved.getRedownload().getApprovalSource());
+        assertEquals(RedownloadConsent.APPROVAL_AUTOMATIC, saved.getRedownload().getApprovalSource());
         assertTrue("A rolled-back deletion re-downloaded nothing", saved.getRedownloadedPackages().isEmpty());
     }
 

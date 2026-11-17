@@ -54,7 +54,7 @@ class PatchCoordinator @JvmOverloads constructor(
      * A build refusal over damaged files whose measured plan the coordinator just approved itself (user decision
      * 2026-11-13): the same run goes straight on to [redownloadStage] on the snapshot it already verified.
      */
-    private class RedownloadApproved(val consent: RunStore.Redownload) :
+    private class RedownloadApproved(val consent: Redownload) :
         IllegalStateException("Damaged game files found; Re-download approved automatically")
 
     companion object {
@@ -69,7 +69,7 @@ class PatchCoordinator @JvmOverloads constructor(
         /**
          * A pinned Re-download plan (ticket 12). Normally approved automatically at once, so a run cut here
          * resumes it without asking; it waits for the user's review only when the loop guard
-         * ([RunStore.automaticRedownloadAllowed]) holds it back.
+         * ([RedownloadConsent.automaticAllowed]) holds it back.
          */
         const val REDOWNLOAD_CONSENT = "redownload_consent_required"
         /** The approved Re-download deleted its files; the saved action waits for the game to download them. */
@@ -562,7 +562,7 @@ class PatchCoordinator @JvmOverloads constructor(
     }
 
     /** The run record's approval of exactly <plan>, or null when the loop guard left it for the user's review. */
-    private fun approvedPlan(run: RunStore.Run, plan: JSONObject): RunStore.Redownload? =
+    private fun approvedPlan(run: RunStore.Run, plan: JSONObject): Redownload? =
         RunStore(context).load(run.id).redownload?.takeIf { it.approved && it.planSha256 == ArtifactReceipts.identityKey(plan) }
 
     /** Why the loop guard held <plan> back, reported before the action waits for the user's review. */
@@ -573,7 +573,7 @@ class PatchCoordinator @JvmOverloads constructor(
         val message = when {
             again.isNotEmpty() -> "Package ${again.joinToString(", ")} is still damaged after its Re-download in " +
                 "this run; it is not deleted again without your review"
-            saved.attempts.optInt(RunStore.REDOWNLOAD_DELETE, 0) >= 2 ->
+            saved.attempts.optInt(RedownloadConsent.DELETE_OPERATION, 0) >= 2 ->
                 "The Re-download was interrupted twice; it is not deleted again without your review"
             else -> "The Re-download waits for your review; nothing was deleted"
         }
@@ -625,13 +625,13 @@ class PatchCoordinator @JvmOverloads constructor(
      * for the game's download. Null when nothing is left to delete: the action goes on to its build.
      */
     private fun redownloadStage(journal: SessionJournal, apks: RunApks, enginePath: String, run: RunStore.Run,
-                                approved: RunStore.Redownload, manifest: File,
+                                approved: Redownload, manifest: File,
                                 transaction: GameFileTransaction): JSONObject? {
         report(WorkerStep.DAMAGED_FILES_FOUND)
         if (journal.phase == PatchPhase.SNAPSHOT_READY) journal.outcome(PatchPhase.BUILDING)
         val pinned = savedPlan(journal)?.takeIf { (_, plan) ->
             ArtifactReceipts.identityKey(plan) == approved.planSha256 && pinnedPlanHolds(journal, plan, apks,
-                enginePath, run, manifest, approved.state == RunStore.REDOWNLOAD_DELETING)
+                enginePath, run, manifest, approved.state == RedownloadConsent.DELETING)
         }
         val (id, plan) = pinned ?: kotlin.run {
             report("Finding the package files the game update could not change")
@@ -658,8 +658,8 @@ class PatchCoordinator @JvmOverloads constructor(
         transaction.verifyOriginals()
         requireSpace("normal restore", apks.restoreBytes)
         checkpoint()
-        RunStore(context).redownloadProgress(run.id, digest, RunStore.REDOWNLOAD_DELETING)
-        operation(journal, RunStore.REDOWNLOAD_DELETE)
+        RunStore(context).redownloadProgress(run.id, digest, RedownloadConsent.DELETING)
+        operation(journal, RedownloadConsent.DELETE_OPERATION)
         device.forceStopGame()
         validateLayer(manifest)
         // Kept before the first deletion: until the game downloads the packages again, a patch would read
@@ -681,7 +681,7 @@ class PatchCoordinator @JvmOverloads constructor(
         check(history.length() < 32) { "Too many Re-downloads in one action" }
         journal.record(JSONObject().put("redownloaded", history.put(JSONObject().put("plan_sha256", digest)
             .put("files", hashes.length()))).put("waiting_reason", REDOWNLOAD_DOWNLOAD))
-        RunStore(context).redownloadProgress(run.id, digest, RunStore.REDOWNLOAD_DELETED)
+        RunStore(context).redownloadProgress(run.id, digest, RedownloadConsent.DELETED)
         restoreGameApp(journal, apks, PatchPhase.RESTORING)
         journal.outcome(PatchPhase.CANCELLED, JSONObject().put("normal_verified", true))
         report("Damaged files deleted; the game downloads them again before the translation continues")
@@ -735,7 +735,7 @@ class PatchCoordinator @JvmOverloads constructor(
                     }
                     val consent = runs.load(run.id).redownload
                     if (saved.mayContinue && consent != null && consent.approved && consent.planSha256 == digest) {
-                        if (runs.load(run.id).attempts.optInt(RunStore.REDOWNLOAD_DELETE, 0) >= 2) {
+                        if (runs.load(run.id).attempts.optInt(RedownloadConsent.DELETE_OPERATION, 0) >= 2) {
                             // Two attempts already used this approval: ask again rather than delete a third time.
                             runs.requireFreshRedownloadConsent(run.id, digest)
                             report("The approved Re-download was interrupted twice; it needs a new approval")
@@ -752,12 +752,12 @@ class PatchCoordinator @JvmOverloads constructor(
                 val history = journal.snapshot().optJSONArray("redownloaded")
                 val last = history?.optJSONObject(history.length() - 1)
                 // A cut after the deletion but before the run record: the journal is the truth.
-                if (consent != null && consent.state == RunStore.REDOWNLOAD_DELETING &&
+                if (consent != null && consent.state == RedownloadConsent.DELETING &&
                     last?.optString("plan_sha256") == consent.planSha256) {
-                    runs.redownloadProgress(run.id, consent.planSha256, RunStore.REDOWNLOAD_DELETED)
+                    runs.redownloadProgress(run.id, consent.planSha256, RedownloadConsent.DELETED)
                 }
                 val answered = runs.load(run.id)
-                if (saved.mayContinue && answered.redownload?.state == RunStore.REDOWNLOAD_DOWNLOADS_CONFIRMED) {
+                if (saved.mayContinue && answered.redownload?.state == RedownloadConsent.DOWNLOADS_CONFIRMED) {
                     // The deletion made the saved snapshot stale on purpose, and the user just said the game's
                     // downloads finished: that answer covers that one snapshot's source-download gate, so the
                     // run does not open access only to wait for the same answer again. The snapshot is still
@@ -765,7 +765,7 @@ class PatchCoordinator @JvmOverloads constructor(
                     val deleted = last?.optString("plan_sha256")
                     val snapshot = File(journal.directory, "snapshot")
                     val manifest = File(snapshot, "manifest.json")
-                    if (RunStore.redownloadAnswersSourceDownloads(answered.mayContinue, answered.redownload, deleted) &&
+                    if (RedownloadConsent.answersSourceDownloads(answered.mayContinue, answered.redownload, deleted) &&
                         !Files.isSymbolicLink(snapshot.toPath()) && manifest.isFile && !Files.isSymbolicLink(manifest.toPath())) {
                         runs.confirmSourceDownloadsAfterRedownload(run.id, ApkIdentity.digest(manifest), deleted)
                     }
@@ -1010,7 +1010,7 @@ class PatchCoordinator @JvmOverloads constructor(
      * normal APK verified, and the waiting result returned.
      */
     private fun continueLocked(journal: SessionJournal, apks: RunApks, remove: Boolean,
-                               redownload: RunStore.Redownload? = null): JSONObject {
+                               redownload: Redownload? = null): JSONObject {
         val run = checkNotNull(authorizedRun)
         check(journal.runId == run.id && !journal.dirtyPackages && !journal.hasMutationIntent) { "Session is not consistent" }
         val engine = EngineAssets.prepare(context)
@@ -1380,7 +1380,7 @@ class PatchCoordinator @JvmOverloads constructor(
     /**
      * A build refusal that needs the game's own download rather than a retry. Damaged files: the exact plan is
      * measured and pinned and, by the user's decision of 2026-11-13, approved automatically, so the same run
-     * goes on to delete it ([RedownloadApproved]). The loop guard ([RunStore.automaticRedownloadAllowed]) holds
+     * goes on to delete it ([RedownloadApproved]). The loop guard ([RedownloadConsent.automaticAllowed]) holds
      * back a package already re-downloaded in this run: that plan waits for the user's review instead. A plan
      * that cannot be measured leaves the refusal as it is: nothing is deleted that is not bound to verified
      * inputs. The game still downloading after a Re-download the user said was finished: the action waits for
@@ -1403,8 +1403,8 @@ class PatchCoordinator @JvmOverloads constructor(
         }
         val consent = runs.load(run.id).redownload
         if ((message.contains(StopCard.UPDATE_WAITING) || message.contains(StopCard.DOWNLOAD_UNFINISHED)) &&
-            consent?.state == RunStore.REDOWNLOAD_DOWNLOADS_CONFIRMED) {
-            runs.redownloadProgress(run.id, consent.planSha256, RunStore.REDOWNLOAD_DELETED)
+            consent?.state == RedownloadConsent.DOWNLOADS_CONFIRMED) {
+            runs.redownloadProgress(run.id, consent.planSha256, RedownloadConsent.DELETED)
             journal.record(JSONObject().put("waiting_reason", REDOWNLOAD_DOWNLOAD))
             throw WaitingForUser("The game has not finished downloading the re-downloaded files yet")
         }

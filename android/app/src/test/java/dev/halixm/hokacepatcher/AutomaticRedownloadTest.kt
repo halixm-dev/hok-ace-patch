@@ -10,9 +10,9 @@ import org.junit.Test
  * with the proposal (`proposeRedownload(automatic = true)`) is covered on a device by RunStoreProbeTest.
  */
 class AutomaticRedownloadTest {
-    private fun allowed(state: String? = RunStore.REDOWNLOAD_AWAITING, attempts: Int = 0,
+    private fun allowed(state: String? = RedownloadConsent.AWAITING, attempts: Int = 0,
                         redownloaded: List<String> = emptyList(), packages: List<String> = listOf("15")) =
-        RunStore.automaticRedownloadAllowed(state, attempts, redownloaded, packages)
+        RedownloadConsent.automaticAllowed(state, attempts, redownloaded, packages)
 
     @Test fun aFreshPlanIsApprovedAutomatically() {
         assertTrue(allowed())
@@ -31,7 +31,7 @@ class AutomaticRedownloadTest {
 
     @Test fun aChangedPlanBeforeAnyDeletionIsApprovedAgain() {
         // The changed plan replaces the approved one unanswered; nothing of it was deleted yet.
-        assertTrue(allowed(state = RunStore.REDOWNLOAD_AWAITING, attempts = 1))
+        assertTrue(allowed(state = RedownloadConsent.AWAITING, attempts = 1))
     }
 
     @Test fun aSpentDeletionBudgetWaitsForTheUser() {
@@ -39,7 +39,7 @@ class AutomaticRedownloadTest {
     }
 
     @Test fun onlyAnUnansweredPlanIsApproved() {
-        for (state in RunStore.REDOWNLOAD_STATES - RunStore.REDOWNLOAD_AWAITING) assertFalse(state, allowed(state = state))
+        for (state in RedownloadConsent.STATES - RedownloadConsent.AWAITING) assertFalse(state, allowed(state = state))
         assertFalse(allowed(state = null))
         assertFalse(allowed(packages = emptyList()))
     }

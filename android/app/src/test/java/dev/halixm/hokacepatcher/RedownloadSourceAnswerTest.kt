@@ -12,26 +12,26 @@ import org.junit.Test
 class RedownloadSourceAnswerTest {
     private val plan = "a".repeat(64)
     private fun consent(state: String, sha: String = plan) =
-        RunStore.Redownload("plan", sha, 3, listOf("1"), 37_896_229L, state,
-            if (state in setOf(RunStore.REDOWNLOAD_APPROVED, RunStore.REDOWNLOAD_DELETING)) "approval" else null, null)
+        Redownload("plan", sha, 3, listOf("1"), 37_896_229L, state,
+            if (state in setOf(RedownloadConsent.APPROVED, RedownloadConsent.DELETING)) "approval" else null, null)
 
     @Test fun theConfirmedDownloadOfThisRunsOwnDeletionAnswers() {
-        assertTrue(RunStore.redownloadAnswersSourceDownloads(true, consent(RunStore.REDOWNLOAD_DOWNLOADS_CONFIRMED), plan))
+        assertTrue(RedownloadConsent.answersSourceDownloads(true, consent(RedownloadConsent.DOWNLOADS_CONFIRMED), plan))
     }
 
     @Test fun anUnconfirmedOrUnfinishedPlanAnswersNothing() {
-        for (state in RunStore.REDOWNLOAD_STATES - RunStore.REDOWNLOAD_DOWNLOADS_CONFIRMED) {
-            assertFalse(state, RunStore.redownloadAnswersSourceDownloads(true, consent(state), plan))
+        for (state in RedownloadConsent.STATES - RedownloadConsent.DOWNLOADS_CONFIRMED) {
+            assertFalse(state, RedownloadConsent.answersSourceDownloads(true, consent(state), plan))
         }
-        assertFalse(RunStore.redownloadAnswersSourceDownloads(true, null, plan))
+        assertFalse(RedownloadConsent.answersSourceDownloads(true, null, plan))
     }
 
     @Test fun aStoppedRunOrAnotherPlansDeletionAnswersNothing() {
-        val confirmed = consent(RunStore.REDOWNLOAD_DOWNLOADS_CONFIRMED)
-        assertFalse(RunStore.redownloadAnswersSourceDownloads(false, confirmed, plan))
-        assertFalse(RunStore.redownloadAnswersSourceDownloads(true, confirmed, "b".repeat(64)))
-        assertFalse(RunStore.redownloadAnswersSourceDownloads(true, confirmed, null))
-        assertFalse(RunStore.redownloadAnswersSourceDownloads(true, confirmed, ""))
-        assertFalse(RunStore.redownloadAnswersSourceDownloads(true, consent(RunStore.REDOWNLOAD_DOWNLOADS_CONFIRMED, "A".repeat(64)), "A".repeat(64)))
+        val confirmed = consent(RedownloadConsent.DOWNLOADS_CONFIRMED)
+        assertFalse(RedownloadConsent.answersSourceDownloads(false, confirmed, plan))
+        assertFalse(RedownloadConsent.answersSourceDownloads(true, confirmed, "b".repeat(64)))
+        assertFalse(RedownloadConsent.answersSourceDownloads(true, confirmed, null))
+        assertFalse(RedownloadConsent.answersSourceDownloads(true, confirmed, ""))
+        assertFalse(RedownloadConsent.answersSourceDownloads(true, consent(RedownloadConsent.DOWNLOADS_CONFIRMED, "A".repeat(64)), "A".repeat(64)))
     }
 }
