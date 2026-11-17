@@ -127,6 +127,11 @@ set PYTHON=C:\path\to\python3.12.exe
 setup.bat
 ```
 
+To check a built exe without a phone or a game dump, run
+`"dist\HOK ACE Language Patcher.exe" --smoketest <out-dir>`: it imports the pipeline and the
+runtime, reads both catalogs and runs each codec once, then writes `<out-dir>\smoketest.json`.
+The **Windows exe** workflow builds the exe and runs this on each push to `master` and pull request.
+
 `build/`, `dist/` and `.venv/` are generated. Recreate them with the commands above as needed.
 Keep any game data or recovery files stored beside the exe before deleting `dist/`.
 

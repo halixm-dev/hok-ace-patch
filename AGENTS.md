@@ -20,6 +20,8 @@ Headless runtime check (needs a dumped game directory):
 "dist\HOK ACE Language Patcher.exe" --selftest <game-dir> <out-dir>
 ```
 
+Without a dump, `--smoketest <out-dir>` checks that the freeze carries every module and codec (the Windows exe workflow runs it on each pull request).
+
 No test suite. Verify changes with `run.bat` or `--selftest`. The texture codec has its own offline check, which needs neither a device nor a game dump:
 
 ```bat

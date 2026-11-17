@@ -1009,9 +1009,64 @@ def selftest(game: Path, out: Path, language: str = languages.DEFAULT_LANGUAGE) 
             traceback.print_exc()
 
 
+# The runtime modules a run imports; the runtime ships as data, so PyInstaller never sees their imports.
+SMOKE_RUNTIME_MODULES = ("wxq_patch.adaptive", "wxq_patch.qtsvfs", "wxq_patch.unity_package_installer")
+
+
+def smoketest(out: Path) -> None:
+    """Headless check of the frozen exe that needs no game dump: <exe> --smoketest <out>.
+
+    It imports the pipeline and the runtime modules a run loads, reads every language's catalog, and runs
+    each codec once on a tiny input, so a module or data file the build left out (``HIDDEN_IMPORTS``, the
+    ``--collect-all`` codecs) fails here rather than on a user's first texture. It writes
+    ``<out>/smoketest.json`` with ``ok`` and one line per check; a failure's traceback goes to ``<out>.log``.
+    """
+    import gzip
+    import importlib
+    import io
+
+    out.mkdir(parents=True, exist_ok=True)
+    passed: list[str] = []
+    with (out.parent / (out.name + ".log")).open("w", encoding="utf-8") as log_file:
+        sys.stdout = sys.stderr = log_file
+        try:
+            for name in ("build_device_patch", *SMOKE_RUNTIME_MODULES):
+                importlib.import_module(name)
+                passed.append(f"import {name}")
+            for code in languages.LANGUAGES:
+                with gzip.open(languages.catalog_dir(BUNDLE, code) / "catalog.json.gz", "rt", encoding="utf-8") as handle:
+                    json.load(handle)
+                passed.append(f"catalog {code}")
+
+            import lz4.block
+            import ooz  # noqa: F401 - only decompress exists; the import loads the native module
+            import zstandard
+            from pypinyin import lazy_pinyin
+            import mobile_graphics
+
+            sample = bytes(range(256)) * 4
+            assert lz4.block.decompress(lz4.block.compress(sample)) == sample
+            assert zstandard.ZstdDecompressor().decompress(zstandard.ZstdCompressor().compress(sample)) == sample
+            assert lazy_pinyin("王者") == ["wang", "zhe"]
+            block = bytes((200, 100, 50, 255)) * 16
+            decoded = mobile_graphics.decode_astc(mobile_graphics.encode_astc(block, 4, 4, 4, 4), 4, 4, 4, 4)
+            assert max(abs(a - b) for a, b in zip(decoded, block)) <= 8
+            png = io.BytesIO()
+            Image.new("RGBA", (4, 4), (200, 100, 50, 255)).save(png, "PNG")
+            passed += ["lz4", "ooz", "zstandard", "pypinyin", "astc round trip", "png"]
+            ok = True
+        except Exception:  # noqa: BLE001 - the report records the failure; CI reads ``ok``
+            traceback.print_exc()
+            ok = False
+    (out / "smoketest.json").write_text(json.dumps({"ok": ok, "passed": passed}, indent=1), encoding="utf-8")
+
+
 def main() -> None:
     if len(sys.argv) in (4, 5) and sys.argv[1] == "--selftest":
         selftest(Path(sys.argv[2]), Path(sys.argv[3]), *sys.argv[4:])
+        return
+    if len(sys.argv) == 3 and sys.argv[1] == "--smoketest":
+        smoketest(Path(sys.argv[2]))
         return
     try:
         # Own taskbar identity so Windows shows our icon instead of the Python one.
