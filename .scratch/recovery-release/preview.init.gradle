@@ -1,0 +1,8 @@
+// UI-only emulator checks use a separate app id, never the user's installed patcher state.
+allprojects { project ->
+    project.afterEvaluate {
+        if (project.plugins.hasPlugin('com.android.application')) {
+            project.android.buildTypes.debug.applicationIdSuffix = '.recoverypreview'
+        }
+    }
+}
