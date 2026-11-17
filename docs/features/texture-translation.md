@@ -592,7 +592,9 @@ graphics pass now does, so **both** places come back:
   `--collect-data archspec`.
 
 Skipping the build-exe half is invisible at source-run time and fatal in the frozen exe, so the Report verifies it
-with a real build and a frozen `--selftest`, not `py_compile`.
+with a real build and a frozen `--selftest`, not `py_compile`. **Measured since (2026-11-17, PyInstaller 6.22):**
+a build without `--collect-all astc_encoder` still passes the frozen `--smoketest`, so that flag is margin, not
+load-bearing; `ooz` and `texture2ddecoder` were not built without theirs (lab notebook).
 
 ### `install_btree_slot_map` re-check
 

@@ -5489,3 +5489,23 @@ the one every local pristine snapshot was read with), English catalog, staged to
   `add_prime_only` (staged entries not subtracted, `TreeFull` not caught, the created copy left behind,
   an earlier copy removed).
 - **Not covered:** a real `TreeFull` (no local layer has a leaf at 510 keys) and a multi-shard device copy.
+
+## 2026-11-17 — What the frozen exe needs from `app/build_exe.py`: `HIDDEN_IMPORTS` yes, two codec collections no
+
+Four builds of `app/build_exe.py` (PyInstaller 6.22.3, `pyinstaller-hooks-contrib` 2026.7, Python 3.12,
+Windows 11), each followed by the frozen `--smoketest`, which imports the pipeline and the runtime's
+`adaptive`, `qtsvfs` and `unity_package_installer`, reads both catalogs and runs lz4, zstandard, pypinyin,
+an ASTC encode and decode and a PNG save once:
+
+| Build | `--smoketest` |
+|---|---|
+| unchanged | pass, about 10 s |
+| without `--collect-all pypinyin` | pass: pypinyin ships its own hook (`pypinyin/__pyinstaller/hook-pypinyin.py`) |
+| without `--collect-all astc_encoder` | pass: PyInstaller still bundles all four CPU variants (`_encoder_avx2/none/sse2/sse41.pyd`); the flag adds only their `.iobj`/`.ipdb` debug files |
+| `HIDDEN_IMPORTS` emptied | **fail**: `import wxq_patch.adaptive` → `gemini` → `asyncio`: `No module named '_overlapped'` |
+
+- **Verdict:** `HIDDEN_IMPORTS` is load-bearing; the `pypinyin` and `astc_encoder` collections are not,
+  on these versions. Both stay in as margin. `ooz` and `texture2ddecoder` were not built without their
+  flags, so their need is unmeasured.
+- **Limit:** the smoke test catches imports made when a module loads, not ones inside a function it never
+  calls; the frozen `--selftest` over a dump stays the release check.

@@ -105,7 +105,7 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 **Freezing**
 
 - **Runtime bytecode**: `resources/runtime/` is binary. A stdlib import it needs at freeze time goes in `HIDDEN_IMPORTS` in `app/build_exe.py`.
-- **Codec modules**: `app/build_exe.py` collects `astc_encoder`, `ooz` and `texture2ddecoder` explicitly and `pypinyin` with `--collect-all`; without them the exe builds but dies on the first texture. ([texture-translation](docs/features/texture-translation.md))
+- **Codec modules**: `app/build_exe.py` keeps `--collect-all` for `astc_encoder`, `ooz`, `texture2ddecoder` and `pypinyin` as margin. On PyInstaller 6.22 the `astc_encoder` and `pypinyin` flags are measured unneeded, the other two unmeasured; an emptied `HIDDEN_IMPORTS` is what fails. Check any freeze change with `--smoketest`. ([lab notebook](docs/lab-notebook.md), 2026-11-17)
 
 ## Boundaries
 
