@@ -13,6 +13,9 @@ import re
 import stat
 import uuid
 import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import wraps
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,6 +46,24 @@ TRANSITIONS["staged"].update({"preparing", "snapshot", "normal_verified"})
 TRANSITIONS["applying"].update({"preparing", "staged", "normal_verified"})
 TRANSITIONS["payload_verified"].update({"preparing", "staged"})
 TRANSITIONS["normal_verified"].update({"preparing", "staged"})
+
+
+# Logical operations an explicit Retry may re-arm: each is idempotent and
+# reconciles its own journal before sending. Uninstall and other destructive
+# scopes are absent on purpose; they need fresh consent, never a re-arm.
+REARMABLE_PREFIXES = ("prepare_", "snapshot_", "build_", "file_", "files_", "apk_", "control_reconcile_")
+
+
+@dataclass(frozen=True)
+class Operation:
+    """One logical operation's retry identity and budget class.
+
+    `safety`: repair justified by a verified mutation journal; it may run while
+    Stop winds the action down. `destructive`: one attempt, never re-armed.
+    """
+    key: str
+    safety: bool = False
+    destructive: bool = False
 
 
 class SessionError(ValueError):
@@ -444,6 +465,9 @@ class OwnedRun:
         if not root.is_dir():
             raise SessionError("error_run_missing", root)
         self.target, self.run_id = copy.deepcopy(target), run_id or str(uuid.uuid4())
+        # Set by the dispatcher once its reconciliation guard is spent: only
+        # safety repair and the guard itself may then begin an attempt.
+        self.dispatch_read_only = False
         # Validate target before it can name or acquire an ownership record.
         validate(self._new("translate", "en"), self.root)
         self.locks: list[FileLock] = []
@@ -540,7 +564,7 @@ class OwnedRun:
 
     @_serialized
     def begin_attempt(self, key: str, *, destructive: bool = False, safety_recovery: bool = False) -> int:
-        if (getattr(self, "dispatch_read_only", False) and not safety_recovery
+        if (self.dispatch_read_only and not safety_recovery
                 and not key.startswith("control_reconcile_")):
             raise SessionError("error_run_retry", "Reconciliation budget exhausted; Retry required")
         # Safety repair is explicit caller proof from a verified mutation journal,
@@ -557,6 +581,56 @@ class OwnedRun:
         item["exhausted"], item["waiting"] = item["attempts"] >= 2, None
         self.update(retry=retry)
         return item["attempts"]
+
+    @contextmanager
+    def attempt(self, operation: Operation, *, retained_invalid: bool = False,
+                failure: str | None = None) -> Iterator[int]:
+        """Spend one attempt on `operation` around its work; yields the attempt number.
+
+        The body must end with the operation's outcome verified: a normal exit
+        marks it complete, an exception records `failure` (default: the error's
+        class name) and propagates. `retained_invalid` first re-opens a completed
+        operation whose retained checkpoint failed verification, keeping every
+        used attempt. A failure on an already resolved run is not recorded.
+        """
+        key = operation.key
+        if retained_invalid:
+            self.invalidate_checkpoint(key, retained_proof_invalid=True)
+        number = self.begin_attempt(key, destructive=operation.destructive,
+                                    safety_recovery=operation.safety)
+        try:
+            yield number
+        except Exception as error:
+            with self._mutex:
+                if (self.record is not None and self.record["lifecycle"] not in RESOLVED
+                        and not self.record["retry"][key]["completed"]):
+                    self.record_failure(key, failure or type(error).__name__)
+            raise
+        self.complete_attempt(key, reconciled_success=True)
+
+    @_serialized
+    def complete_observed(self, key: str) -> None:
+        """Complete an operation already started, once its outcome is observed live.
+
+        A key that never spent an attempt has nothing to complete and is left alone.
+        """
+        item = self.record["retry"].get(key)
+        if item is not None and item["attempts"] and not item["completed"]:
+            self.complete_attempt(key, reconciled_success=True)
+
+    @_serialized
+    def rearm_idempotent(self) -> list[str]:
+        """Explicit Retry: clear exhausted budgets of idempotent operations only.
+
+        Never re-arms a destructive scope and never revokes Stop. Returns the keys
+        it re-armed.
+        """
+        keys = [key for key, item in self.record["retry"].items()
+                if item["exhausted"] and not item["completed"] and key.startswith(REARMABLE_PREFIXES)]
+        for key in keys:
+            self.rearm(key, safe_idempotent=True, explicit_retry=True,
+                       safety_recovery=self.record["stop_requested"])
+        return keys
 
     @_serialized
     def record_failure(self, key: str, failure: str) -> None:

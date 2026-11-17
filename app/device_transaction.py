@@ -380,8 +380,7 @@ class DeviceTransaction:
             intent = self.record["intents"].get(name)
             if intent is not None and intent["direction"] == direction and intent["after"] == desired and not intent["ack"]:
                 key = "files_" + str(self.record["cycle"]) + "_" + direction + "_" + hashlib.sha256(name.encode()).hexdigest()[:24]
-                if key in self.owner.record["retry"]:
-                    self.owner.complete_attempt(key, reconciled_success=True)
+                self.owner.complete_observed(key)
                 self._save(intents={**self.record["intents"], name: {**intent, "ack": True}})
             return
         key = "files_" + str(self.record["cycle"]) + "_" + direction + "_" + hashlib.sha256(name.encode()).hexdigest()[:24]

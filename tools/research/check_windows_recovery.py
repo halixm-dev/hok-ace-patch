@@ -21,7 +21,7 @@ from check_windows_repatch import ENGLISH, PRISTINE, PRISTINE_SUMMARY, Repatch, 
 import patcher_core
 from patcher_core import PatchError, Patcher
 from _windows_fake_device import FakeAdb, Faults
-from patch_session import RunStore, SessionError, ApkJournal
+from patch_session import RunStore, SessionError, ApkJournal, Operation
 
 
 class DurableRuns(unittest.TestCase):
@@ -90,6 +90,64 @@ class DurableRuns(unittest.TestCase):
             self.assertEqual(candidate["plan"], "prepare")
             with self.assertRaises(SessionError):
                 owner.begin_attempt("pull")
+
+    def test_attempt_records_failure_then_completes_within_budget(self) -> None:
+        with self.store.claim(self.work, self.target) as owner:
+            run = owner.authorize("translate", "en")
+            with self.assertRaises(OSError):
+                with owner.attempt(Operation("snapshot_a")) as number:
+                    self.assertEqual(number, 1)
+                    raise OSError("cut")
+            item = owner.record["retry"]["snapshot_a"]
+            self.assertEqual((item["attempts"], item["failures"], item["last_failure"], item["completed"]),
+                             (1, 1, "OSError", False))
+            with owner.attempt(Operation("snapshot_a"), failure="unused") as number:
+                self.assertEqual(number, 2)
+            self.assertTrue(owner.record["retry"]["snapshot_a"]["completed"])
+            # A retained checkpoint that fails verification re-opens the key, but
+            # its budget is already spent: no third attempt, and no work runs.
+            ran = []
+            with self.assertRaises(SessionError):
+                with owner.attempt(Operation("snapshot_a"), retained_invalid=True):
+                    ran.append(True)
+            self.assertEqual(ran, [])
+        with self.store.claim(self.work, self.target, run_id=run["run_id"]) as owner:
+            self.assertEqual(owner.record["retry"]["snapshot_a"]["last_failure"], "retained_checkpoint_invalid")
+
+    def test_attempt_named_failure_and_destructive_budget(self) -> None:
+        with self.store.claim(self.work, self.target) as owner:
+            owner.authorize("translate", "en")
+            with self.assertRaises(PatchError):
+                with owner.attempt(Operation("apk_x", safety=True), failure="install_unconfirmed"):
+                    raise PatchError("error_apk_identity")
+            self.assertEqual(owner.record["retry"]["apk_x"]["last_failure"], "install_unconfirmed")
+            with self.assertRaises(RuntimeError):
+                with owner.attempt(Operation("uninstall_c", destructive=True)):
+                    raise RuntimeError("ambiguous reply")
+            with self.assertRaises(SessionError):
+                with owner.attempt(Operation("uninstall_c", destructive=True)):
+                    pass
+
+    def test_rearm_idempotent_skips_destructive_and_keeps_stop(self) -> None:
+        with self.store.claim(self.work, self.target) as owner:
+            owner.authorize("translate", "en")
+            for key in ("build_a", "uninstall_c"):
+                owner.begin_attempt(key); owner.record_failure(key, "cut")
+                owner.begin_attempt(key); owner.record_failure(key, "cut")
+            owner.stop()
+            self.assertEqual(owner.rearm_idempotent(), ["build_a"])
+            self.assertNotIn("build_a", owner.record["retry"])
+            self.assertTrue(owner.record["retry"]["uninstall_c"]["exhausted"])
+            self.assertTrue(owner.record["stop_requested"])
+
+    def test_complete_observed_ignores_unstarted_keys(self) -> None:
+        with self.store.claim(self.work, self.target) as owner:
+            owner.authorize("translate", "en")
+            owner.complete_observed("prepare_never")
+            self.assertNotIn("prepare_never", owner.record["retry"])
+            owner.begin_attempt("prepare_lost_reply")
+            owner.complete_observed("prepare_lost_reply")
+            self.assertTrue(owner.record["retry"]["prepare_lost_reply"]["completed"])
 
     def test_owned_pending_correlates_but_foreign_pending_blocks(self) -> None:
         import uuid

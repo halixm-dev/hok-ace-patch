@@ -44,7 +44,7 @@ from axml_label import set_label  # noqa: E402
 from axml_set_debuggable import is_debuggable, patch as make_debuggable_manifest  # noqa: E402
 from qts_builder import find_builder_dir  # noqa: E402
 from patch_summary import count_translated, count_untranslated_graphics, count_untranslated_text  # noqa: E402
-from patch_session import RunStore, SessionError, OwnedRun, ApkJournal, RESOLVED  # noqa: E402
+from patch_session import RunStore, SessionError, OwnedRun, ApkJournal, Operation, RESOLVED  # noqa: E402
 from run_artifacts import (ArtifactError, identity_key, tree_manifest, file_identity, read_record,
                            verify_manifest, windows_producer_identity)  # noqa: E402
 from device_transaction import DeviceTransaction, ShellTransport, _publish, _durable_copy
@@ -455,7 +455,6 @@ class Patcher:
         self._producer_checked = False
         self._active_build: Path | None = None
         self._restored: list[str] | None = None
-        self._operation_key: str | None = None
 
     def queue_control(self, *, stop: bool = False, close: bool = False) -> None:
         # Monotonic flags: this UI-thread seam performs no disk IO or owner locking.
@@ -522,13 +521,7 @@ class Patcher:
         """Retry only eligible transport failures; journal reconciliation always runs first."""
         owner = self.run_owner
         if self.explicit_retry:
-            # Re-arm only known idempotent operations, never a destructive setup.
-            for key, item in list(owner.record["retry"].items()):
-                if item["exhausted"] and not item["completed"] and (
-                        key.startswith(("prepare_", "snapshot_", "build_", "file_", "files_", "apk_", "control_reconcile_"))
-                        or key == "files_apply"):
-                    owner.rearm(key, safe_idempotent=True, explicit_retry=True,
-                                safety_recovery=owner.record["stop_requested"])
+            owner.rearm_idempotent()  # Never a destructive setup.
             self.explicit_retry = False
         while True:
             guard = None
@@ -559,7 +552,7 @@ class Patcher:
                 self._recovering = True
                 recovery_error = None
                 try:
-                    self._recover_failed_dispatch(error)
+                    self._recover_failed_dispatch()
                 except Exception as cleanup_error:
                     recovery_error = cleanup_error
                 finally:
@@ -735,18 +728,14 @@ class Patcher:
         if expected is not None and not recovery and self._prepared_access is None:
             session = self._session() or journal.directory
             key = "regenerate_" + plan["scope"] + "_" + str(plan["cycle"])
-            owner.invalidate_checkpoint(key, retained_proof_invalid=True)
-            owner.begin_attempt(key)
-            self._operation_key = key
-            attempt = owned_attempt(owner, session, "prepared")
-            target = attempt / "access.apk"
-            self.build_signed(self.normal_apk, target,
-                              {"AndroidManifest.xml": make_debuggable_manifest(apk_manifest(self.normal_apk))})
-            if self.local_apk_identity(target) != expected:
-                raise PatchError("error_apk_identity", detail="Fresh preparation changed; saved APKs remain pinned")
-            self._prepared_access = self.verify_prepared("access")
-            owner.complete_attempt(key, reconciled_success=True)
-            self._operation_key = None
+            with owner.attempt(Operation(key), retained_invalid=True):
+                attempt = owned_attempt(owner, session, "prepared")
+                target = attempt / "access.apk"
+                self.build_signed(self.normal_apk, target,
+                                  {"AndroidManifest.xml": make_debuggable_manifest(apk_manifest(self.normal_apk))})
+                if self.local_apk_identity(target) != expected:
+                    raise PatchError("error_apk_identity", detail="Fresh preparation changed; saved APKs remain pinned")
+                self._prepared_access = self.verify_prepared("access")
         self.adb.shell(f"am force-stop {PACKAGE}")
         self.debuggable_installed = True
         self.install_prepared("access", plan["access"], safety_recovery=recovery)
@@ -795,7 +784,7 @@ class Patcher:
             return self._restart_preparation()
         if "access" in self.apk_journal.record["apks"]:
             self.verify_prepared("access")
-            self._complete_checkpoint_attempt("prepare_" + identity_key(self.apk_journal.record["apks"]["source"]))
+            owner.complete_observed("prepare_" + identity_key(self.apk_journal.record["apks"]["source"]))
         session = self._session()
         tx = self._transaction() if session and (session / "file-transaction.json").exists() else None
         if tx is not None:
@@ -862,13 +851,9 @@ class Patcher:
         source = self.adb.installed_identity()
         if source is None or source["debuggable"]:
             raise PatchError("error_apk_identity", detail="Fresh preparation requires the normal game")
-        key = "prepare_" + identity_key(source)
-        self.run_owner.begin_attempt(key)
-        self._operation_key = key
-        self.prepare_normal_apk(self.find_installed_apk())
-        self.prepare_debuggable_apk()
-        self.run_owner.complete_attempt(key, reconciled_success=True)
-        self._operation_key = None
+        with self.run_owner.attempt(Operation("prepare_" + identity_key(source))):
+            self.prepare_normal_apk(self.find_installed_apk())
+            self.prepare_debuggable_apk()
         return self._resume_stages(None)
 
     def _fork_snapshot(self, previous: Path) -> Path:
@@ -936,7 +921,7 @@ class Patcher:
                 live = ShellTransport(self.adb).inventory(session.name)
                 checkpoint.verify_snapshot(self.apk_journal.record["apks"], live)
                 snapshot_key = "snapshot_" + identity_key({"live": live, "apks": self.apk_journal.record["apks"]})
-                self._complete_checkpoint_attempt(snapshot_key)
+                self.run_owner.complete_observed(snapshot_key)
                 self.data_version = read_record(session / PULL_RECORD)["data_version"]
                 self.event("continuing", "verify_stage", reused="snapshot")
             except (ArtifactError, OSError, KeyError):
@@ -947,13 +932,8 @@ class Patcher:
             self._phase("preparing")
             scope = identity_key({"live": ShellTransport(self.adb).inventory(str(uuid.uuid4())),
                                   "apks": self.apk_journal.record["apks"]})
-            snapshot_key = "snapshot_" + scope
-            self.run_owner.invalidate_checkpoint(snapshot_key, retained_proof_invalid=True)
-            self.run_owner.begin_attempt(snapshot_key)
-            self._operation_key = snapshot_key
-            session = self.pull_game_data()
-            self.run_owner.complete_attempt(snapshot_key, reconciled_success=True)
-            self._operation_key = None
+            with self.run_owner.attempt(Operation("snapshot_" + scope), retained_invalid=True):
+                session = self.pull_game_data()
         checkpoint = Checkpoints(self.run_owner, session)
         self._phase("snapshot")
         producer = self.producer_identity()
@@ -974,7 +954,7 @@ class Patcher:
             if identity is None:
                 raise ArtifactError("Complete producer unavailable")
             result, root = checkpoint.verify_build(identity)
-            self._complete_checkpoint_attempt("build_" + identity_key(identity))
+            self.run_owner.complete_observed("build_" + identity_key(identity))
             self._active_build = root
             self.event("continuing", "apply_stage", reused="staged")
         except (ArtifactError, OSError):
@@ -994,29 +974,21 @@ class Patcher:
             build_key = "build_" + (identity_key(identity) if identity else identity_key({
                 "snapshot": checkpoint.snapshot(), "producer": None, "action": self.run_owner.record["action"],
                 "language": self.language.code}))
-            self.run_owner.invalidate_checkpoint(build_key, retained_proof_invalid=True)
-            self.run_owner.begin_attempt(build_key)
-            self._operation_key = build_key
-            if self.remove:
-                if restored is None:
-                    raise PatchError("error_no_record_to_remove", "use_other_patcher")
-                result, staged = {"packages": [], "removed": restored}, None
-                self._active_build = owned_attempt(self.run_owner, session, "build")
-            else:
-                result, staged = self.build_translation(session)
-                if restored is None or self.replaced:
-                    self.check_first_delta(result)
-            root = self._publish_payload(session, result, staged, restored or [], identity)
-            self.run_owner.complete_attempt(build_key, reconciled_success=True)
-            self._operation_key = None
+            with self.run_owner.attempt(Operation(build_key), retained_invalid=True):
+                if self.remove:
+                    if restored is None:
+                        raise PatchError("error_no_record_to_remove", "use_other_patcher")
+                    result, staged = {"packages": [], "removed": restored}, None
+                    self._active_build = owned_attempt(self.run_owner, session, "build")
+                else:
+                    result, staged = self.build_translation(session)
+                    if restored is None or self.replaced:
+                        self.check_first_delta(result)
+                root = self._publish_payload(session, result, staged, restored or [], identity)
         self._phase("staged")
         self._phase("applying")
         self._apply_checkpoint(session, root)
         return self._finish_transaction(result)
-
-    def _complete_checkpoint_attempt(self, key: str) -> None:
-        if self.run_owner.record["retry"].get(key, {}).get("attempts", 0):
-            self.run_owner.complete_attempt(key, reconciled_success=True)
 
     def _saved_result(self, session: Path) -> dict:
         root = Checkpoints(self.run_owner, session).build_root()
@@ -1037,15 +1009,12 @@ class Patcher:
                 raise PatchError("error_run_state", detail="Saved build receipt differs")
         return read_record(root / "device_patch_summary.json")
 
-    def _recover_failed_dispatch(self, error: BaseException | None = None) -> None:
+    def _recover_failed_dispatch(self) -> None:
         """Safety only; keep verified payload for final-install-only recovery."""
         owner, tx = self.run_owner, self.file_transaction
         if owner is None or owner.record is None or owner.record["lifecycle"] in RESOLVED:
             return
-        key = self._operation_key
-        if key is not None and not owner.record["retry"].get(key, {}).get("completed", False):
-            owner.record_failure(key, type(error).__name__ if error is not None else "interrupted")
-            self._operation_key = None
+        # The failed operation's attempt was already recorded by OwnedRun.attempt.
         if self.apk_journal is None and "apk_session" in owner.record["children"]:
             self.apk_journal = ApkJournal(owner)
             if "normal" in self.apk_journal.record["apks"]:
@@ -1406,8 +1375,7 @@ class Patcher:
         observed = self.adb.installed_identity()
         if observed == expected:
             journal.update(installs={**installs, key: {"role": role, "expected": expected, "outcome": "verified"}})
-            if owner.record["retry"].get(key, {}).get("attempts", 0):
-                owner.complete_attempt(key, reconciled_success=True)
+            owner.complete_observed(key)
             return
         allowed = list(journal.record["apks"].values())
         setup = journal.record["setup"]
@@ -1416,30 +1384,29 @@ class Patcher:
             raise PatchError("error_apk_identity", detail="Installed APK is outside the saved operation")
         if previous is not None and previous["outcome"] == "verified":
             raise PatchError("error_apk_identity", detail="A verified installation was externally replaced")
-        owner.begin_attempt(key, safety_recovery=role == "normal" or safety_recovery)
-        journal.update(installs={**installs, key: {"role": role, "expected": expected, "outcome": "intent"}})
-        self.event("restoring" if role == "normal" else "working", "install_game_app",
-                   detail=ui_text("normal_install_progress") if role == "normal" else ui_text("access_install_progress"))
-        try:
+        operation = Operation(key, safety=role == "normal" or safety_recovery)
+        with owner.attempt(operation, failure="install_unconfirmed"):
+            journal.update(installs={**installs, key: {"role": role, "expected": expected, "outcome": "intent"}})
+            self.event("restoring" if role == "normal" else "working", "install_game_app",
+                       detail=ui_text("normal_install_progress") if role == "normal" else ui_text("access_install_progress"))
             try:
-                self.adb.install(path)
-            except (PatchError, OSError):
-                # An installer reply can be lost after commit. Observe before retrying.
+                try:
+                    self.adb.install(path)
+                except (PatchError, OSError):
+                    # An installer reply can be lost after commit. Observe before retrying.
+                    if self.adb.installed_identity() != expected:
+                        raise
                 if self.adb.installed_identity() != expected:
-                    raise
-            if self.adb.installed_identity() != expected:
-                raise PatchError("error_apk_identity", detail="Installed APK differs from prepared bytes")
-            journal.update(installs={**journal.record["installs"], key: {
-                "role": role, "expected": expected, "outcome": "verified"}})
-            owner.complete_attempt(key, reconciled_success=True)
-        except (PatchError, OSError) as error:
-            owner.record_failure(key, "install_unconfirmed")
-            owner.update(lifecycle="attention")
-            journal.update(installs={**journal.record["installs"], key: {
-                "role": role, "expected": expected, "outcome": "attention"}})
-            if role == "normal":
-                raise PatchError("error_normal_recovery", detail=path) from error
-            raise PatchError("error_apk_identity", detail=path) from error
+                    raise PatchError("error_apk_identity", detail="Installed APK differs from prepared bytes")
+                journal.update(installs={**journal.record["installs"], key: {
+                    "role": role, "expected": expected, "outcome": "verified"}})
+            except (PatchError, OSError) as error:
+                owner.update(lifecycle="attention")
+                journal.update(installs={**journal.record["installs"], key: {
+                    "role": role, "expected": expected, "outcome": "attention"}})
+                if role == "normal":
+                    raise PatchError("error_normal_recovery", detail=path) from error
+                raise PatchError("error_apk_identity", detail=path) from error
 
     def recover_first_setup(self) -> None:
         """Safety repair only: no uninstall and no translation. Caller owns saved run."""
