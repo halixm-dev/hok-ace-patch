@@ -15,6 +15,7 @@ import zipfile
 import uuid
 import tempfile
 from datetime import datetime, timezone
+from functools import cached_property
 from pathlib import Path
 from typing import Protocol
 
@@ -44,7 +45,8 @@ from axml_label import set_label  # noqa: E402
 from axml_set_debuggable import is_debuggable, patch as make_debuggable_manifest  # noqa: E402
 from qts_builder import find_builder_dir  # noqa: E402
 from patch_summary import count_translated, count_untranslated_graphics, count_untranslated_text  # noqa: E402
-from patch_session import RunStore, SessionError, OwnedRun, ApkJournal, Operation, RESOLVED  # noqa: E402
+from patch_session import (RunStore, SessionError, OwnedRun, ApkJournal, Operation, RESOLVED,  # noqa: E402
+                           FALL_THROUGH, Resume, resume_point)
 from run_artifacts import (ArtifactError, identity_key, tree_manifest, file_identity, read_record,
                            verify_manifest, windows_producer_identity)  # noqa: E402
 from device_transaction import DeviceTransaction, ShellTransport, _publish, _durable_copy
@@ -416,6 +418,77 @@ class Adb:
             subprocess.run([str(adb), "kill-server"], creationflags=NO_WINDOW, capture_output=True)
 
 
+class _SavedRunReader:
+    """`patch_session.SavedRun` over a Patcher's saved records, read lazily in gate order.
+
+    A fact is read only when resume_point asks for it, so ADB calls and APK hashing
+    match what the gates before it needed. `verified` lives for one resume pass: a
+    fall-through step never re-hashes a prepared APK. `first` builds the APK journal;
+    a later read in the same pass reloads it.
+    """
+    def __init__(self, patcher: Patcher, verified: set[str], *, first: bool) -> None:
+        self._patcher, self._verified, self._first = patcher, verified, first
+
+    def _verify(self, role: str) -> Path:
+        path = self._patcher.verify_prepared(role)
+        self._verified.add(role)
+        return path
+
+    def _journal(self) -> dict:
+        patcher = self._patcher
+        if "normal" not in self._verified:
+            patcher.normal_apk = self._verify("normal")
+        return patcher.apk_journal.record
+
+    @property
+    def stop_requested(self) -> bool:
+        return self._patcher.run_owner.record["stop_requested"]
+
+    @cached_property
+    def apk_session(self) -> bool:
+        return "apk_session" in self._patcher.run_owner.record["children"]
+
+    @cached_property
+    def normal_recorded(self) -> bool:
+        patcher = self._patcher
+        if self._first:
+            patcher.apk_journal = ApkJournal(patcher.run_owner)
+        else:
+            patcher.apk_journal.record = patcher.apk_journal.load()
+        return "normal" in patcher.apk_journal.record["apks"]
+
+    @cached_property
+    def source_unconverted(self) -> bool:
+        record = self._journal()
+        apks = record["apks"]
+        return (record["setup"] is None and "source" in apks
+                and apks["source"]["signers"] != apks["normal"]["signers"]
+                and self._patcher.adb.installed_identity() == apks["source"])
+
+    @cached_property
+    def setup_phase(self) -> str | None:
+        setup = self._journal()["setup"]
+        return None if setup is None else setup["phase"]
+
+    @cached_property
+    def access_unrecorded(self) -> bool:
+        patcher = self._patcher
+        return "access" not in self._journal()["apks"] and patcher.apk_journal.apk("access").exists()
+
+    @cached_property
+    def tx_phase(self) -> str | None:
+        patcher = self._patcher
+        if "access" in self._journal()["apks"] and "access" not in self._verified:
+            self._verify("access")
+            patcher.run_owner.complete_observed(
+                "prepare_" + identity_key(patcher.apk_journal.record["apks"]["source"]))
+        session = patcher._session()
+        if not (session and (session / "file-transaction.json").exists()):
+            return None
+        patcher.file_transaction = patcher._transaction()
+        return patcher.file_transaction.record["phase"]
+
+
 class Patcher:
     def __init__(self, ui: Ui, work: Path, language: str = languages.DEFAULT_LANGUAGE, *, remove: bool = False, retry: bool = False,
                  recovery_only: bool = False):
@@ -734,92 +807,65 @@ class Patcher:
         self.install_prepared("access", plan["access"], safety_recovery=recovery)
 
     def _continue_authorized(self) -> dict:
-        """Reconcile journals before producer discovery, retries or expensive stages."""
+        """Reconcile journals before producer discovery, retries or expensive stages.
+
+        `resume_point` picks each step from the saved records; a fall-through step
+        does its work and lets the next gate decide. No step runs twice in one pass.
+        """
+        verified: set[str] = set()
+        taken: list[Resume] = []
+        while True:
+            step = resume_point(_SavedRunReader(self, verified, first=not taken))
+            if step in taken:
+                raise PatchError("error_run_state", detail=f"Resume step repeated: {step.value}")
+            taken.append(step)
+            result = getattr(self, "_resume_" + step.value)()
+            if result is not None or step not in FALL_THROUGH:
+                return result
+
+    def _resume_fresh_preparation(self) -> dict:
+        if self.run_owner.record["stop_requested"]:
+            observed = self.adb.installed_identity()
+            if observed is None or observed["debuggable"]:
+                raise PatchError("error_apk_identity", detail="Cannot verify the unchanged normal game")
+            self._cancel_consistent()
+        self._phase("preparing")
+        check_work_dir(self.work)
+        return self._run_authorized()
+
+    def _resume_restart_preparation(self) -> dict:
+        return self._restart_preparation()
+
+    def _resume_convert_source(self) -> dict | None:
+        # Death after pinning signed normal, before setup consent. The local
+        # output proves no conversion; preserve source and ask scoped consent anew.
+        owner, apks = self.run_owner, self.apk_journal.record["apks"]
+        if owner.winding_down:
+            self._cancel_consistent()
+        try:
+            PreparedApks(owner, self.apk_journal, self.producer_identity()).verify(
+                "normal", self.manifest_to_install(apk_manifest(self.apk_journal.apk("source"))))
+        except (ArtifactError, OSError, ValueError):
+            return self._restart_preparation()
+        self._convert_installed_source(apks["source"], apks["normal"])
+        return None
+
+    def _resume_finish_setup(self) -> None:
         owner = self.run_owner
-        if "apk_session" not in owner.record["children"]:
-            if owner.record["stop_requested"]:
-                observed = self.adb.installed_identity()
-                if observed is None or observed["debuggable"]:
-                    raise PatchError("error_apk_identity", detail="Cannot verify the unchanged normal game")
-                self._cancel_consistent()
-            self._phase("preparing")
-            check_work_dir(self.work)
-            return self._run_authorized()
-        self.apk_journal = ApkJournal(owner)
-        if "normal" not in self.apk_journal.record["apks"]:
-            return self._restart_preparation()
-        self.normal_apk = self.verify_prepared("normal")
-        setup = self.apk_journal.record["setup"]
-        apks = self.apk_journal.record["apks"]
-        if (setup is None and "source" in apks
-                and apks["source"]["signers"] != apks["normal"]["signers"]
-                and self.adb.installed_identity() == apks["source"]):
-            # Death after pinning signed normal, before setup consent. The local
-            # output proves no conversion; preserve source and ask scoped consent anew.
-            if owner.winding_down:
-                self._cancel_consistent()
-            try:
-                PreparedApks(owner, self.apk_journal, self.producer_identity()).verify(
-                    "normal", self.manifest_to_install(apk_manifest(self.apk_journal.apk("source"))))
-            except (ArtifactError, OSError, ValueError):
-                return self._restart_preparation()
-            self._convert_installed_source(apks["source"], apks["normal"])
-        if setup is not None and setup["phase"] != "ready":
-            if setup["phase"] == "prepared" and owner.record["stop_requested"]:
-                self._cancel_consistent()
-            self.recover_first_setup()
-            if owner.record["stop_requested"]:
-                self._cancel_consistent()
-            self.event("waiting", "downloads_finished")
-            self.finish_setup_update()
-        if ("access" not in self.apk_journal.record["apks"]
-                and self.apk_journal.apk("access").exists()):
-            return self._restart_preparation()
-        if "access" in self.apk_journal.record["apks"]:
-            self.verify_prepared("access")
-            owner.complete_observed("prepare_" + identity_key(self.apk_journal.record["apks"]["source"]))
-        session = self._session()
-        tx = self._transaction() if session and (session / "file-transaction.json").exists() else None
-        if tx is not None:
-            self.file_transaction = tx
-            phase = tx.record["phase"]
-            if phase in {"payload_verified", "finalizing", "finalized"} and not (
-                    owner.record["stop_requested"] and phase == "payload_verified"):
-                # No engine loading/build/snapshot/payload write on final-install-only recovery.
-                return self._finish_transaction(self._saved_result(session))
-            self._ensure_access("recovery_access_" + str(tx.record["cycle"]), recovery=True)
-            if phase != "rolled_back":
-                tx.rollback()
-            if owner.winding_down:
-                self.install_prepared("normal", "cancel_normal_" + str(tx.record["cycle"]), safety_recovery=True)
-                self.debuggable_installed = False
-                self._cancel_consistent()
-            checkpoint = Checkpoints(owner, session)
-            try:
-                producer = self.producer_identity()
-                if producer is None:
-                    raise ArtifactError("Complete producer unavailable")
-                result, _ = checkpoint.verify_build(checkpoint.identity(self.apk_journal.record["apks"], producer))
-            except (ArtifactError, OSError):
-                # Rollback is already complete. Retire the old transaction intact;
-                # the new child gets a fresh immutable snapshot, never old originals.
-                replacement = None
-                if producer is not None:
-                    # Engine-only invalidation retains the independently verified
-                    # source snapshot; a new child owns new staging/transaction ids.
-                    live = ShellTransport(self.adb).inventory(session.name)
-                    checkpoint.verify_snapshot(self.apk_journal.record["apks"], live)
-                    replacement = self._fork_snapshot(session)
-                self.install_prepared("normal", "restage_normal_" + str(tx.record["cycle"]), safety_recovery=True)
-                self.debuggable_installed = False
-                if replacement is None:
-                    self._retire_session(session)
-                return self._resume_stages(replacement)
-            self._phase("staged")
-            self._phase("applying")
-            self.event("continuing", "apply_stage", reused="staged")
-            tx.reapply()
-            return self._finish_transaction(result)
+        if self.apk_journal.record["setup"]["phase"] == "prepared" and owner.record["stop_requested"]:
+            self._cancel_consistent()
+        self.recover_first_setup()
+        if owner.record["stop_requested"]:
+            self._cancel_consistent()
+        self.event("waiting", "downloads_finished")
+        self.finish_setup_update()
+
+    def _resume_finish_install(self) -> dict:
+        # No engine loading/build/snapshot/payload write on final-install-only recovery.
+        return self._finish_transaction(self._saved_result(self._session()))
+
+    def _resume_resume_stages(self) -> dict:
+        owner = self.run_owner
         if owner.winding_down:
             observed = self.adb.installed_identity()
             if observed == self.apk_journal.record["apks"].get("access"):
@@ -827,7 +873,43 @@ class Patcher:
             else:
                 self.verify_normal_installed()
             self._cancel_consistent()
-        return self._resume_stages(session)
+        return self._resume_stages(self._session())
+
+    def _resume_rollback_then_continue(self) -> dict:
+        owner, tx, session = self.run_owner, self.file_transaction, self._session()
+        self._ensure_access("recovery_access_" + str(tx.record["cycle"]), recovery=True)
+        if tx.record["phase"] != "rolled_back":
+            tx.rollback()
+        if owner.winding_down:
+            self.install_prepared("normal", "cancel_normal_" + str(tx.record["cycle"]), safety_recovery=True)
+            self.debuggable_installed = False
+            self._cancel_consistent()
+        checkpoint = Checkpoints(owner, session)
+        try:
+            producer = self.producer_identity()
+            if producer is None:
+                raise ArtifactError("Complete producer unavailable")
+            result, _ = checkpoint.verify_build(checkpoint.identity(self.apk_journal.record["apks"], producer))
+        except (ArtifactError, OSError):
+            # Rollback is already complete. Retire the old transaction intact;
+            # the new child gets a fresh immutable snapshot, never old originals.
+            replacement = None
+            if producer is not None:
+                # Engine-only invalidation retains the independently verified
+                # source snapshot; a new child owns new staging/transaction ids.
+                live = ShellTransport(self.adb).inventory(session.name)
+                checkpoint.verify_snapshot(self.apk_journal.record["apks"], live)
+                replacement = self._fork_snapshot(session)
+            self.install_prepared("normal", "restage_normal_" + str(tx.record["cycle"]), safety_recovery=True)
+            self.debuggable_installed = False
+            if replacement is None:
+                self._retire_session(session)
+            return self._resume_stages(replacement)
+        self._phase("staged")
+        self._phase("applying")
+        self.event("continuing", "apply_stage", reused="staged")
+        tx.reapply()
+        return self._finish_transaction(result)
 
     def _retire_session(self, session: Path) -> None:
         owner = self.run_owner

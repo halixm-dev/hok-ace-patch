@@ -21,7 +21,8 @@ from check_windows_repatch import ENGLISH, PRISTINE, PRISTINE_SUMMARY, Repatch, 
 import patcher_core
 from patcher_core import PatchError, Patcher
 from _windows_fake_device import FakeAdb, Faults
-from patch_session import RunStore, SessionError, ApkJournal, Operation
+from patch_session import (RunStore, SessionError, ApkJournal, Operation, FALL_THROUGH, Resume,
+                           resume_point)
 
 
 class DurableRuns(unittest.TestCase):
@@ -148,6 +149,41 @@ class DurableRuns(unittest.TestCase):
             owner.begin_attempt("prepare_lost_reply")
             owner.complete_observed("prepare_lost_reply")
             self.assertTrue(owner.record["retry"]["prepare_lost_reply"]["completed"])
+
+    def test_resume_point_cases_read_only_what_each_gate_needs(self) -> None:
+        class Saved:
+            def __init__(self, **facts):
+                self.facts, self.read = facts, []
+
+            def __getattr__(self, name):
+                self.read.append(name)
+                return self.facts[name]
+
+        ready = {"apk_session": True, "normal_recorded": True, "source_unconverted": False,
+                 "setup_phase": None, "access_unrecorded": False, "tx_phase": None, "stop_requested": False}
+        cases = [
+            ({"apk_session": False}, Resume.FRESH_PREPARATION, ["apk_session"]),
+            ({"normal_recorded": False}, Resume.RESTART_PREPARATION, ["apk_session", "normal_recorded"]),
+            ({"source_unconverted": True}, Resume.CONVERT_SOURCE,
+             ["apk_session", "normal_recorded", "source_unconverted"]),
+            ({"setup_phase": "uninstall_intent"}, Resume.FINISH_SETUP,
+             ["apk_session", "normal_recorded", "source_unconverted", "setup_phase"]),
+            ({"setup_phase": "ready", "access_unrecorded": True}, Resume.RESTART_PREPARATION, None),
+            ({}, Resume.RESUME_STAGES, None),
+            ({"tx_phase": "applying"}, Resume.ROLLBACK_THEN_CONTINUE, None),
+            ({"tx_phase": "rolled_back"}, Resume.ROLLBACK_THEN_CONTINUE, None),
+            ({"tx_phase": "payload_verified"}, Resume.FINISH_INSTALL, None),
+            ({"tx_phase": "payload_verified", "stop_requested": True}, Resume.ROLLBACK_THEN_CONTINUE, None),
+            ({"tx_phase": "finalizing", "stop_requested": True}, Resume.FINISH_INSTALL, None),
+            ({"tx_phase": "finalized"}, Resume.FINISH_INSTALL, None),
+        ]
+        for change, expected, read in cases:
+            with self.subTest(change=change):
+                saved = Saved(**{**ready, **change})
+                self.assertIs(resume_point(saved), expected)
+                if read is not None:
+                    self.assertEqual(saved.read, read)
+        self.assertEqual(FALL_THROUGH, {Resume.CONVERT_SOURCE, Resume.FINISH_SETUP})
 
     def test_owned_pending_correlates_but_foreign_pending_blocks(self) -> None:
         import uuid

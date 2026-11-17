@@ -16,7 +16,9 @@ import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from enum import Enum
 from functools import wraps
+from typing import Protocol
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -451,6 +453,58 @@ def next_action(record: dict) -> str:
     return {"authorized": "prepare", "preparing": "reconcile_preparation", "snapshot": "verify_snapshot",
             "building": "restart_build", "staged": "verify_stage", "applying": "reconcile_files",
             "payload_verified": "restore_normal", "normal_verified": "finalize"}[record["lifecycle"]]
+
+
+class Resume(str, Enum):
+    """Where a reopened saved action resumes; each step has one executor in patcher_core."""
+    FRESH_PREPARATION = "fresh_preparation"      # No APK child yet: prepare from the installed game.
+    RESTART_PREPARATION = "restart_preparation"  # Preparation provably incomplete before any mutation.
+    CONVERT_SOURCE = "convert_source"            # Signed normal pinned; original still installed, no consent yet.
+    FINISH_SETUP = "finish_setup"                # First setup journal is past consent but not ready.
+    FINISH_INSTALL = "finish_install"            # Payload verified: normal APK and finalization only.
+    ROLLBACK_THEN_CONTINUE = "rollback_then_continue"  # Unfinished apply: restore originals, then reapply or restage.
+    RESUME_STAGES = "resume_stages"              # No file transaction: reuse or redo snapshot and build.
+
+
+# Steps that do their work and then let the next gate decide.
+FALL_THROUGH = frozenset({Resume.CONVERT_SOURCE, Resume.FINISH_SETUP})
+FINAL_INSTALL_PHASES = frozenset({"payload_verified", "finalizing", "finalized"})
+
+
+class SavedRun(Protocol):
+    """What resume_point reads about a saved action, in the order it reads it.
+
+    Production reads each fact lazily (a journal, an APK hash, one ADB call), so a
+    gate costs only what the gates before it did not already settle.
+    """
+    apk_session: bool          # The run has an APK child session.
+    normal_recorded: bool      # The APK journal pins a prepared normal APK.
+    source_unconverted: bool   # No setup yet, source signed differently, source still installed.
+    setup_phase: str | None    # First setup journal phase, None without one.
+    access_unrecorded: bool    # An access APK file exists that the journal never recorded.
+    tx_phase: str | None       # Saved file-transaction phase, None without one.
+    stop_requested: bool
+
+
+def resume_point(saved: SavedRun) -> Resume:
+    """Decide the next resume step. Pure: it only reads `saved`, never dispatches."""
+    if not saved.apk_session:
+        return Resume.FRESH_PREPARATION
+    if not saved.normal_recorded:
+        return Resume.RESTART_PREPARATION
+    if saved.source_unconverted:
+        return Resume.CONVERT_SOURCE
+    if saved.setup_phase not in (None, "ready"):
+        return Resume.FINISH_SETUP
+    if saved.access_unrecorded:
+        return Resume.RESTART_PREPARATION
+    phase = saved.tx_phase
+    if phase is None:
+        return Resume.RESUME_STAGES
+    # Stop on a verified payload rolls it back; later phases only finish forward.
+    if phase in FINAL_INSTALL_PHASES and not (saved.stop_requested and phase == "payload_verified"):
+        return Resume.FINISH_INSTALL
+    return Resume.ROLLBACK_THEN_CONTINUE
 
 
 def _serialized(method):
