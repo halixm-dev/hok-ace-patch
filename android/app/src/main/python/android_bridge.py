@@ -1348,7 +1348,7 @@ def prepare_game_apks(engine_root: str, source_path: str, destination_path: str,
     label_warning = None
     try:
         normal_manifest = set_label(manifest, "Honor of Kings: ACE")
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001 - the launcher rename must never fail a run (AGENTS.md)
         label_warning = str(error)
     destination.mkdir(parents=True)
     results = {}

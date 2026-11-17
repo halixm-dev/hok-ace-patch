@@ -1016,7 +1016,7 @@ def main() -> None:
     try:
         # Own taskbar identity so Windows shows our icon instead of the Python one.
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("HOKAce.EnglishPatcher")
-    except Exception:
+    except Exception:  # noqa: BLE001 - the taskbar icon is cosmetic and never stops the app
         pass
     load_fonts()
     ctk.set_appearance_mode("light")

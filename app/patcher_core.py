@@ -704,10 +704,8 @@ class Patcher:
                     self._bind_control()
                     self.event("continuing", "reconcile", run_id=saved["run_id"])
                     return self._dispatch()
-                except Exception as error:
-                    if isinstance(error, SessionError):
-                        raise _session_error(error) from error
-                    raise
+                except SessionError as error:
+                    raise _session_error(error) from error
         check_work_dir(self.work)
         self.log(f"Working folder: {self.work}")
         self.log("Removing the translation" if self.remove else f"Language: {self.language.name}")
@@ -721,10 +719,8 @@ class Patcher:
                 self._bind_control()
                 owner.update(lifecycle="preparing")
                 return self._dispatch(fresh=True)
-            except Exception as error:
-                if isinstance(error, SessionError):
-                    raise _session_error(error) from error
-                raise
+            except SessionError as error:
+                raise _session_error(error) from error
 
     def _phase(self, phase: str) -> None:
         """Lifecycle is a projection of independently verified checkpoint progress."""
