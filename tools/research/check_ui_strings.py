@@ -20,7 +20,7 @@ reads the file and the patchers' sources as text (nothing is imported or built) 
 Text that reaches the screen through a variable (worker progress lines, update-check results, installer
 errors) is not seen here; ``AppUpdateCheckerTest`` and ``InterfaceProbeTest`` cover the ones that matter.
 
-Run from the project root (the Android CI job runs it too):
+Run from the project root (the CI `checks` job runs it too):
 
     .venv\\Scripts\\python.exe tools\\research\\check_ui_strings.py
 

@@ -99,6 +99,8 @@ increasing workflow run number; local builds can set `-PpatchVersionCode=<number
 | Push a tag matching `VERSION`, such as `android-v1.6.1.1` | Release APK signed with the current patcher key and its rotation lineage, SHA-256, codec source companion and a draft GitHub release |
 
 CI runs Android unit tests, lint, native ELF alignment, APK ZIP alignment and signer verification.
+A separate `checks` job runs every repository-only check under [Verify changes](#verify-changes)
+on each push and pull request, and a release waits for it.
 The release attaches only the APK, `SHA256SUMS` and the codec source companion; the native
 alignment and runtime dependency reports stay in the run's artifacts.
 Artifacts expire after 14 days; draft release attachments remain. A draft's notes start from
