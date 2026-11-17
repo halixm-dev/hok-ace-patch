@@ -127,7 +127,8 @@ PASS means a run with recorded evidence; OPEN means not run or not passed; SKIPP
 | Real cycles, Android Root (zero installs, owner/SELinux) | OPEN (provider not selected) | C, 2026-11-12 provider answer |
 | Fixture-gated probes (`CoordinatorRecoveryProbeTest`, `FullCoordinatorProbeTest`, `ApkPreparationProbeTest`, `CoordinatorSourceGuardProbeTest`) | OPEN | Instrumentation table above |
 | Automatic Re-download loop-guard fallback and an interrupted automatic deletion | OPEN | N, automatic Re-download entry |
-| Frozen `build.bat` and `--selftest`; source `run.bat` | OPEN | Not run in Pass 2 |
+| Frozen `build.bat` and `--selftest` | PASS (2026-11-17, `96c4613`) | N, 2026-11-17 frozen-build entry: EN and ID staged bytes identical to the source run, 14/14 files each; `--smoketest` 12/12. Text and texture passes only (`--selftest` passes no APK) |
+| Source `run.bat` | OPEN | Needs a person at the GUI |
 | GUI/visual checks (both languages, enlarged fonts, progress/Close/Stop/permission states) on either patcher | OPEN | Not run on the phone builds; emulator captures exist only for the review card (N, 2026-11-12) |
 | Comparable performance measurements (fresh, repeat, resume, final-restore-only) | OPEN | Single phone observations only (N); no comparison |
 | Parity finding: `run_artifacts.windows_producer_identity` is None for every source checkout (non-ASCII names under `tools/research/career_atlas/originals/`) | OPEN | C, parity worker finding 1 |

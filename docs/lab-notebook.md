@@ -5509,3 +5509,23 @@ an ASTC encode and decode and a PNG save once:
   flags, so their need is unmeasured.
 - **Limit:** the smoke test catches imports made when a module loads, not ones inside a function it never
   calls; the frozen `--selftest` over a dump stays the release check.
+
+## 2026-11-17 — Frozen `build.bat` and `--selftest` on 1.8.0.1: identical to source — pass
+
+`build.bat` at `96c4613` (clean tree, PyInstaller 6.22.3, 354 s) built `dist\HOK ACE Language Patcher.exe`
+(SHA-256 `a3eefa572e25eb34…`). Its `--smoketest` passed 12/12. Then `--selftest` over the pristine
+1.8.0.1 layer (`pristine/20261029-1.8.0.1/game`), against `hok_patcher.py --selftest` from source on the
+same layer:
+
+| Run | Result | Time | Staged files |
+|---|---|---|---|
+| Source, English | `ok`, packages 1 (89, 11, 1), 1050016095 (1), 15 (302), 19 (23), 20 (1), 10 (3) | 182 s | 14 |
+| Frozen, English | same list | 164 s | 14, every SHA-256 equal to source |
+| Source, Indonesian | same list | 177 s | 14 |
+| Frozen, Indonesian | same list | 235 s | 14, every SHA-256 equal to source |
+
+- **Verdict:** pass. The two languages differ in 5 of the 14 files, so the equality covers both catalogs.
+  No traceback in either frozen log.
+- **Limits:** `--selftest` passes no APK, so the append pass (prime-only content) is not exercised frozen;
+  `check_append.py --game --apk` covers it from source (entry above). Timings are single runs, and the
+  frozen Indonesian run overlapped the source Indonesian run.
