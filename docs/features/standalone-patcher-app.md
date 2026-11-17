@@ -228,6 +228,8 @@ rather than retried in `fit-only` mode, so that narrow retry no longer happens.
 the runtime's `QtsPackage.build_slot_map` so it follows the shard's B-tree. Without it the stock
 scanner can return a superseded copy of a relocated chunk, which makes a **second** run over an
 already-patched install read the old Chinese data. `build_patch` calls it before scanning.
+A shard whose B-tree will not read keeps the stock map, which is right on a pristine shard; since
+2026-11-17 the run logs each such shard (`qts_relocate.BTREE_FALLBACKS`) instead of saying nothing.
 
 The rest of the reference's newer pipeline — `device_extensions`, `pb_text`, `mobile_graphics`,
 `extra_text`, `unity_text` — is deliberately **not** adopted. Coverage is exactly what android-en's

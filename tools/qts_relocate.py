@@ -576,11 +576,18 @@ def read_raw(package, slots, file_hash: int) -> bytes | None:
     return bytes(raw)
 
 
+# Shards whose B-tree would not read, by path, with the reason: their slot map came from the stock
+# scanner, which is right on a pristine shard but can be stale after a relocation. `build_patch`
+# clears this before a run and logs each entry after it.
+BTREE_FALLBACKS: dict[str, str] = {}
+
+
 def install_btree_slot_map() -> None:
     """Make QtsPackage.build_slot_map follow the shard B-tree, like the game does.
 
     The stock scanner walks slot headers and can return a superseded copy of a relocated chunk,
-    which would make a patcher re-run read the old Chinese data.
+    which would make a patcher re-run read the old Chinese data. A shard whose B-tree will not read
+    keeps the stock map and is recorded in ``BTREE_FALLBACKS``.
     """
     from wxq_patch import qtsvfs
 
@@ -594,7 +601,8 @@ def install_btree_slot_map() -> None:
             return slot_map
         try:
             live = _read_btree_offsets(self.shard_paths[0])
-        except Exception:
+        except Exception as error:  # noqa: BLE001 - keep the stock map, but say so (BTREE_FALLBACKS)
+            BTREE_FALLBACKS[str(self.shard_paths[0])] = str(error) or type(error).__name__
             return slot_map
         stale = [(fh, cid) for fh, chunks in slot_map.items() for cid, slot in chunks.items()
                  if slot.slot_offset not in live.get(slot.hash1 & 0xFFFFFFFF, ())]

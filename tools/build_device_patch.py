@@ -513,7 +513,9 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       `tools/build_device_patch.py --cycle-asset` is the only way to set it, and it accepts only a hash
       on `extra_text.CANDIDATE_ASSETS`.
     - It calls `qts_relocate.install_btree_slot_map()` before scanning, so a re-run reads live chunks
-      rather than superseded copies of relocated ones. Its live-offset check reads the current
+      rather than superseded copies of relocated ones. A shard whose B-tree will not read keeps the
+      stock scanner's map; the run logs each one (`qts_relocate.BTREE_FALLBACKS`) and goes on, since
+      that map is right on a pristine shard. Its live-offset check reads the current
       page table and tree pages without loading the shard payload; it caches no mutable tree state.
       Writable `Shard` loads fill one bytearray directly; saves compare 64 KiB regions against the
       current staged file and write only changed regions, restoring the same final file length.
@@ -628,12 +630,13 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     """
     from wxq_patch import adaptive
     from wxq_patch.unity_package_installer import capacity_report, stage_unity_package
-    from qts_relocate import install_btree_slot_map
+    from qts_relocate import BTREE_FALLBACKS, install_btree_slot_map
     from device_extensions import exclude_extra_chunks, extend_graphics, relocate_text, repair_card_dictionaries
     from languages import for_catalog
     from terminology import install as install_terminology
 
     install_btree_slot_map()
+    BTREE_FALLBACKS.clear()
     # Before the first load: the scanner and every pass after it load the catalog through this.
     install_terminology()
     language = for_catalog(catalog)
@@ -874,6 +877,10 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         appended, append_skipped = add_prime_only(game, apk, transform, work,
                                                   output, rebuilt, log)
         packages += appended
+
+    for shard, reason in sorted(BTREE_FALLBACKS.items()):
+        log(f"{pathlib.Path(shard).name}: B-tree did not read ({reason}); slots taken from the stock "
+            "scanner, which can be stale if this shard was relocated before")
 
     summary = {
         "language": language.code,

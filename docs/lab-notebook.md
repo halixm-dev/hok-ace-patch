@@ -5470,3 +5470,22 @@ Run `665f5998`, 16:44, `f15a72e`, Wireless debugging, patcher `38c31162…`: com
 delta cleared (only `staged-hashes.json` kept), normal `29b3ee7e…` verified. The phone now holds the
 pristine 1.10.1.2 layer and the Android patcher with no delta. No byte proof is recorded for this
 Remove; the C8 byte proof above is on the 1.10.2 data.
+
+## 2026-11-17 — Append pass checked offline on 1.8.0.1: re-run adds nothing, existing assets unchanged — pass
+
+`tools/research/check_append.py --game <pristine 1.8.0.1 game> --apk installed.apk` (APK `29b3ee7e…`,
+the one every local pristine snapshot was read with), English catalog, staged to a temporary folder.
+
+| Package | First run | Second run over the same output | Existing assets after |
+|---|---|---|---|
+| `1` | 287 of 288 appended; `3A70308AAF6F18F8` refused by the encoder (the known refusal) | 0 appended; the same 1 refusal reported again | 453 of 453 read back byte-identical |
+| `1050016095` | 71 of 71 textures appended | 0 appended, 0 skipped | 2 of 2 read back byte-identical |
+
+- **Verdict:** pass. A re-run re-offers what the encoder refused and reports it again, because that
+  asset still stays Chinese; it appends nothing twice.
+- **Synthetic cases** (7, run in CI): a `TreeFull` package lands in `append_skipped` and the run goes
+  on; the copy the pass created is removed and an earlier pass's copy kept; a re-run appends only what
+  the staged copy lacks; refused shares are reported. Each case was shown to fail on a mutated
+  `add_prime_only` (staged entries not subtracted, `TreeFull` not caught, the created copy left behind,
+  an earlier copy removed).
+- **Not covered:** a real `TreeFull` (no local layer has a leaf at 510 keys) and a multi-shard device copy.

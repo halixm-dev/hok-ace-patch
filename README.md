@@ -169,6 +169,7 @@ There is no general test suite. Choose the check that matches your change:
 | Texture processing | `.venv\Scripts\python.exe tools\research\check_graphics.py` | Shipped assets; add `--game <game-dir>` to check a dump |
 | Indonesian texture edits | `.venv\Scripts\python.exe tools\research\make_language_payloads.py --check` | Shipped assets |
 | Pristine delta | `.venv\Scripts\python.exe tools\research\check_pristine_delta.py` | Repository only; add `--game <pristine game-dir> --apk <apk> --work <dir>` for the round trip and language switches |
+| Append pass | `.venv\Scripts\python.exe tools\research\check_append.py` | Repository only; add `--game <game-dir> --apk <apk> [--package <id>]` to append to a real package twice |
 | Shard B-tree splits | `.venv\Scripts\python.exe tools\research\check_btree_split.py` | Repository only; add `--game <game-dir>` to check every shard of a layer |
 | Repatch without a clear (Windows) | `.venv\Scripts\python.exe tools\research\check_windows_repatch.py` | Repository only |
 | Windows interruption fixtures | `.venv\Scripts\python.exe tools\research\check_windows_recovery.py` | Synthetic private files only; expected failures track known recovery gaps |
