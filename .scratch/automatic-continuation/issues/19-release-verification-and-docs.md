@@ -1,0 +1,126 @@
+# 19: Verify the combined release and publish the feature record
+
+Status: ready-for-agent
+Blocked by: 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18
+
+## Scope and files
+
+Own final validation receipts, affected feature/product/design/runbook/README corrections, `docs/lab-notebook.md` new measured entries and completed-feature promotion. Read [validation](../validation.md), AGENTS, device-cycle runbook, ADRs 0001/0002/0007/0008/0010 and all ticket Comments. Preserve pre-existing unrelated edits. Publishing a binary/release remains a separate user action.
+
+## Steps
+
+1. Audit each dependency's actual checks/open gates. Resolve remaining fixture portability without changing production trust checks. Baseline failures remain explicit until understood; do not count historical checks as new acceptance.
+2. Run the full offline/unit/build validation commands. Compare EN/ID fresh/repatch/switch/Remove outputs, normalized summaries, hashes, deltas and skip counts on matching external real inputs.
+3. Execute the full fake interruption matrix, including second interruption during recovery, exhausted retry, wrong target, corrupt/missing records, low space and changed engine/game.
+4. Prepare concrete device-cycle cases and obtain separate informed consent for destructive first setup/deletion. Execute real cycles for Windows plus Shizuku, Wireless debugging and Root. Keep verified normal APK/logs/recovery available; never hide an unrun gate.
+5. Test source Windows via run.bat and frozen build via build.bat/--selftest; build Android with full codecs. Check new imports freeze, research stays unbundled, both languages, scaling and progress/Close/Stop/permission states.
+6. Measure comparable fresh/repeat/resume/final-restore-only paths and optimization call/byte counts. Record actual input/build/device identity, timings/resource observations and verdicts in lab notebook. Keep historical 616–621 s contextual.
+7. Reconcile feature records: language-switch, patch-speed, update-stuck-redownload, asset-restore, android-shell-providers and standalone-patcher-app as affected. PRODUCT/DESIGN must match implemented recovery/consent/verification. Update README if commands/layout changed. Coverage ledger changes only if counts actually move; any move needs investigation against the preserve-counts requirement.
+8. After all acceptance passes, promote this spec to `docs/features/automatic-continuation.md` using the issue-tracker Report/S1/S2/S3 shape. Retain actual verification/journey/open limitations, no task list. Update ADR 0010's link/status and all incoming links. Remove only this completed .scratch feature folder in the same final change, after verifying evidence is preserved and the resolved absolute deletion target is exactly this feature folder inside the workspace. Do not clean other work.
+
+## Acceptance
+
+- [ ] No false success/Open game, repeated uninstall, overlapping local workers, lost pristine knowledge or unverified missing write in the matrix.
+- [ ] Valid completed checkpoints really reused; changed inputs rebuild affected stages; Stop stays stopped and Close continues.
+- [ ] Required real interruption/provider cycles and full codec/frozen checks pass; unavailable gates block a release-ready claim.
+- [ ] Retained optimizations preserve outputs/coverage and have measured evidence; declined ones record their reason.
+- [ ] Product/design/feature/ADR docs reflect shipped behavior and actual evidence; references/staging/UI-string checks pass after promotion.
+
+## Checks and handoff
+
+Run every applicable command from validation and report exact outcomes. End with changed files, check results, remaining limitations and whether the combined release is ready for the user's publishing decision. No automatic commit, tag, upload, release or phone data deletion is authorized by this ticket alone.
+
+## Stop condition
+
+Any unresolved safety, output-parity or real-interruption gate keeps this ticket open. Deliver the concrete blocker/evidence; do not mark the combined release ready because source compiles or old device cycles passed.
+
+## Comments
+
+Root installed reviewed idle-Stop fix after RED reproduction/GREEN4 focused tests. Full-codec vc100 assembleDebugPASS17s; UIstrings400PASS; signed existing key/lineage. InstalledAPK SHA256c7f242499c6fa6b66fcbc33f40e5ef1b97abf8205e8a56e2108229abfface84a independently verified; active pristine delta/staged record unchanged. User asked reopen only; actual Stopresolution/idle UI still pending. Currentrun's durable Stop must remain respected; only newexplicitStart may patch. C3/realautocleanup/updated-output/release gates remain open.
+
+Root phone validation of user-requested automatic pressure cleanup: reviewed required-reference/adoption pins and exact-budget remeasure, full-codec app+androidTest build PASS55s. Installed signed vc100 app hash read-back798b04fe174ed35dd1ac61caec95150a381b0321ab782f5e868f4bacc228dfa2. StorageRetentionProbeTest6/6 + PausedStopProbeTest1/1 PASS on f15a72e; raw D:/scratch/hok-ac-pass2/logs/automatic-cache-pressure-probes.log. Active pristine delta/staged record unchanged. User asked Try again once; real cache reclamation/continuation and C3 remain pending. No ticket promotion or release claim.
+
+Not implemented. No results yet.
+
+
+Coordinator preparation during Pass 1 (no validation verdict):
+
+| Control | Prepared location / rule |
+|---|---|
+| Baseline commit | `f369e14c2d56e0caf3e1908d6736702d5cf8c2d9` |
+| Baseline source | `D:/scratch/hok-automatic-continuation-baseline-f369e14c/source` |
+| Baseline complete tracked-byte manifest/archive | `D:/scratch/hok-automatic-continuation-baseline-f369e14c/manifest.json`, `workspace-baseline.zip`; includes pre-existing GLOSSARY edit |
+| Matching pristine fixture game | `D:/scratch/hok-automatic-continuation-fixtures-1.8.0.1/game` |
+| Matching normal APK | `D:/scratch/hok-automatic-continuation-fixtures-1.8.0.1/normal.apk` |
+| Input hashes/provenance | External fixture `inputs.json`, plus `../baseline-input-candidates.json`; all 618 source files match recorded pristine snapshot hashes, APK matches snapshot's recorded SHA-256 |
+| Validation interpreter | Current checkout `.venv/Scripts/python.exe`, Python 3.12.10; use the identical interpreter/native dependency bytes for baseline and change |
+| Build scratch/output | New distinct external folders under `D:/scratch`, never fixture/source directories. Check free space before real pipeline runs; roughly 47.7 GB was free before copying 4.79 GB of fixtures. |
+| Scope | No real game operation or behavior test in Pass 1. No release, commit, promotion or scratch deletion. |
+
+Pass-2 control sequence: first run baseline synthetic delta/repatch/snapshot checks from the extracted baseline source using the current 3.12 interpreter (record pre-existing failures separately). Run current synthetic/fake checks in ticket dependency order. Use identical preserved game/APK fixture bytes for baseline/change real `check_pristine_delta.py --game ... --apk ... --work <separate-external-folder>` runs; collect complete staged sets/SHA-256, normalized summaries with only explicitly nondeterministic paths/timings removed, applied/skipped counts, and delta pristine/staged mappings plus kept asset bodies. Add focused resume/Remove/changed-engine/game cases from ticket Comments. Preserve raw outputs and receipts externally, small result tables in tickets.
+
+Consolidate Android unit/build checks after implementations. Android compile toolchain is SDK `C:/Users/M1n3r4I5/AppData/Local/Android/Sdk`, JDK `C:/Users/M1n3r4I5/AppData/Local/Programs/Java/jdk-21`. Existing Gradle cache requires approved access outside the sandbox; compile-only commands already passed for01/02, not unit/instrumentation verdicts. Check Kotlin receipt filesystem tests on Windows (`unix:nlink` portability concern recorded in02).
+
+Open gates remain: every required behavioral/integration/performance test; full new fake interruption matrix; source/frozen Windows packaging/selftest/visual states; validated Android app-private APK/source/output descriptors and instrumentation; comparable optimization measurements; real interruption cycles for Windows/Shizuku/Wireless/Root; separate informed consent before destructive setup/deletion phone cases. A copied historical pristine fixture is usable input evidence, not a new phone-cycle verdict. Do not promote the feature or resolve19 while any required gate remains open.
+
+Fixture preflight (source inspection only, no check execution): check_update_repatch.py requires --session with pristine game and staged outputs; construct an external control session after baseline EN build. check_asset_restore.py requires explicit --pristine/--staged/--work and optionally matching --apk; ignore its obsolete default path. check_update_redownload.py requires historical capture labels after-push/after-patch/after-update/after-finish, objects and Watchdog.tar under a cycle directory; D:/scratch/hok-update-cycle is absent. That historical real-update gate remains unavailable unless an equivalent validated capture is supplied; do not claim synthetic repatch closes it. Read --help in Pass 2 before executing fixture-dependent checks. Existing scripts recursively clean their --work path: use only freshly allocated exact external task-owned directories, never baseline or immutable fixtures.
+
+
+Prepared tools/research/compare_continuation_controls.py (coordinator-owned) and README command row. Python3.12 py_compile passed; no behavior execution. capture --staged OUT --pristine BUILTIN --report EXTERNAL_JSON hashes complete source/output file sets, normalizes only packages[*].source_package to builtin-relative, computes fingerprinted delta mappings/range hashes/asset body hashes plus encoded digest. compare BASELINE_JSON CHANGED_JSON refuses differences in any section. Capture real fresh controls before existing check_pristine_delta removes switch work; use fresh report paths outside immutable inputs. Tool behavior itself remains to verify in Pass 2. No output or parity claim yet.
+
+
+Control-tool capture also requires --apk APK and records its size/SHA-256, so compare checks both pristine package inputs and matching prime APK bytes. Updated tool passed Python3.12 py_compile only. Baseline/current must still use the same interpreter/dependencies as specified above; this tool does not independently attest dependency equality.
+
+
+Resumed coordinator audit after alternate coordinator10-13 handoff: those tickets are implemented/verification pending; check_references/check_ui_strings were run early as static checks by that coordinator, without unit/behavior tests. UI checker currently has 9 recorded open findings (RunStore field-name false positives and Windows keyed-error/placeholder issues); required checker exit status remains a Pass2 gate. Root found10 rollback live-state, changed-input readiness, cached finalization proof and Stop-before-complete source gaps; assigned shared-file corrections to fresh14 worker before optimization. Do not accept compile results as closing these gates. Ticket16 must additionally audit current active pristine delta/read-back/old-pending identity and finalized short-circuit semantics when publishing/reusing success receipts.
+
+14 final source-review handoff: linked runs use bounded recovery_access_audit / recovery_rollback_access / recovery_normal_restore plus independent recovery_emergency_normal scopes; explicit Retry only may rearm safe scopes without clearing Stop. Schema1 legacy safety-only sessions still use pre-existing retry policy because no RunStore link exists: audit/migrate bounded retry semantics in Pass2 before release acceptance; no automatic fresh patch authority is granted. All14 behavior, parity and provider gates remain pending.
+
+Additional fixture discovery (read-only, not validation): D:/scratch contains only hok-1.0.9.1, hok-1.8.0.1, hok-1.9.2.4, preserved baseline/fixture and latin-line-breaks. Historical paths D:/scratch/hok-update-cycle-2 and D:/d/scratch/hok-update-cycle-3 (lab notebook) are also absent. Asked user asynchronously for any alternate capture folder; implementation continues. No equivalent real-update capture has been established yet.
+
+User answered 2026-11-12: No saved real-update captures available. Historical check_update_redownload real-cycle fixture gate is genuinely missing, not a passing synthetic substitute. Continue implementation and all available offline validation; promotion/release acceptance remains blocked by this and other required unrun device gates.
+
+Runbook preflight: docs/runbooks/device-cycle.md still shows unbound adb manual cp/rm and historical access/normal cache paths. Before any new phone cycle, update/prepare concrete cases using the current coordinator's exact target binding, journaling, atomic temp/hash/rename/read-back and saved recovery APKs. Do not execute the old manual cp sequence as continuation validation or clear game data without informed destructive consent. Historical runbook commands do not override current safety architecture.
+
+Further source-audit gate for14/02 in Pass2: GameFileTransaction.verifyOriginals currently rejects symbolic links and checks full hashes/exact file set, but independently inspect hard-link/special-file handling for standalone/legacy recovery and opaque proof stamps. Align with immutable receipt trust rules without weakening Android hard-link checks for Windows test portability. Any gap needs a focused correction/probe before acceptance.
+
+Instrumentation preflight: do not run the entire androidTest suite blindly. It includes real service/provider, fixture-installer/process-death, emergency restore and UI probes alongside private fakes. Re-read class scope before selection. Private transaction/recovery/Remove/RunStore/RecoveryPolicy/first-setup fake candidates still need app/test APK installation and their declared fixtures; FullCoordinator requires complete app-private source/APK descriptor. CacheReuse migration belongs16. Live Worker*, Shizuku/Wireless, FixtureInstaller/ProcessDeath/EmergencyRestore and UI capture classes require individual target/mutation review; a test class name is not consent.
+
+Atomic-file edge to include in metadata probes: check dangling symlink/reparse aliases for base/.bak/.new paths, including explicit absence and read-only completed-state audits. Android AtomicFile legacy backup handling must not turn an unexpected alias into trusted absence; Windows explicit absence likewise must remain lstat-safe. No behavioral verdict from source inspection.
+
+2026-11-12 resumed phone-error check: user chose takeover of fixes here. Latest real-cycle error after earlier engine/lock fixes was `_final_build_manifest: Final staged hashes omit or differ from output`. All14 actual private staged package files rehashed on f15a72e matched recorded hashes; extra runtime package1_stage_manifest.json caused the false set mismatch. Focused worker added exact-shape RED regression, strict metadata/payload separation and corruption/unknown-entry cases;18 bridge checks PASS plus syntax/staging-contract/whitespace. Root reviewed source and preserved full payload/delta/receipt/read-back requirements. Ticket09 has exact commands and files. Existing original engine/store-lock/failure-attribution probes also passed in probe-full-after-fixes.log; this does not close the real cycle.
+
+Full-codec assembleDebug vc100 PASS (1m14s). Existing patcher key/lineage certificate555f2ff4 used; no key regenerated. Data-preserving update installed after checking no active worker. Installed full APK SHA-256 verified against signed local build:0d680ed2c8f4a3b763f3ad13a4809782a4abb0f574fd749835ede34935f7431a. Saved run63ff0ad4 remains claimed/waiting explicit_retry with normal APK verified and no payload applied; user asked to tap Try again once with game closed. Await real result; feature promotion, ticket resolution and release review remain gated.
+
+Corrected retry C2 completed16:30:07 on f15a72e/Wireless. Run63ff0ad4 and journal agree complete; verified_complete receipt, payload/normal/final_normal/finalized flags true, no pending finalization.398 text tables/318 applied textures/1 skipped table/0 skipped textures.14 planned files,11 actual writes943,570,944B,3 identical skips6,635,520B; expected full applied manifest790 files. Normal APK independently SHA256-verified29b3ee7e...; active delta55,029,830B SHA256b5eeb8214a6152d71e962ef944ae8049c0559dd7ba4191ca8b9394e55d80fb6c and staged record match receipt. External delta decoded14 entries and751 asset fingerprints; saved applied manifest equals receipt. Metrics647.399s, minimum sampled free4,115,369,984B; no comparative speed conclusion. Evidence D:/scratch/hok-ac-pass2/device-cycles/c2-fixed-20261112-1630. User confirms normal launch, some Chinese, game data updated to1.10.0.2. New update readiness and changed-input build/continuation must be validated separately. C3 described; waiting for update finished/game closed/new explicit Start. Other real interruption/provider/frozen/UI/fixture gates remain open; no promotion or release-ready claim.
+
+
+Pass 2 storage correction (2026-11-12): StorageWaitTest first failed both guard/type and measured-result assertions (2 tests, 2 failures), then passed with StorageMessageTest. Full Android unit tests and compileDebugAndroidTestKotlin passed. StorageRetentionProbeTest uses isolated private metadata and a fail-closed fake transport; execution pending. Final full Android unit rerun passed, including StorageWaitTest 4/4, StorageMessageTest 6/6 and StopCardTest 14/14; compileDebugAndroidTestKotlin passed before PausedStopProbeTest was added. PausedStopProbeTest is authored for the root build/instrumentation run. This worker performed no phone operations, cache deletion or persisted attempt reset; root owns C3 evidence and release verdict.
+
+Root validation: full Android unit109/109, full-codec app+androidTest build PASS. Installed signed vc100 app SHA2563c2594df94eca65450851e0f4c21cf15f1ce075c8b7204a88008c05b9e35ac0d read back exactly. Isolated StorageRetentionProbeTest(2) and PausedStopProbeTest(1) PASS on f15a72e; log D:/scratch/hok-ac-pass2/logs/storage-fix-probes-final.log. Earlier instrumentation failed in fixture setup and was corrected without weakening production guards. Real run/delta hashes/counters unchanged after probes. Live storage wait, explicit cleanup and C3 remain open; awaiting user Stop safely in updated app before cleanup. No release readiness or promotion.
+
+Player's follow-up preference (2026-11-12): automatically reclaim optional resolved patcher-session cache on a measured space shortage, then continue the same operation if the exact budget fits. Implemented in coordinator/storage guard; current/recovery/referenced work and saved APKs remain pinned. StorageWaitTest first ran six cases with two expected behavior failures, then StorageWaitTest and StorageMessageTest passed 12/12; compileDebugAndroidTestKotlin passed. Synthetic retention probes now include automatic pressure, fitting-budget retention, unresolved reference/corrupt-record preservation and source-adoption pins. Root owns instrumentation/build/install and current paused-run continuation; the focused worker performed no phone operations, real cache deletion or persisted retry resets. See ticket10 and architecture section7. Host checks do not establish a real C3 or release verdict.
+
+Pass 2 (2026-11-12, real-dump parity worker; offline only, no device, no commit). Inputs, interpreter, code identities and raw evidence as in ticket 18's Pass 2 note (`D:/scratch/hok-ac-pass2/parity/`). Fixture verified against `inputs.json` before and after (618 files + APK, 0 differences); the baseline source tree gained no files.
+
+| Control (same fixture, same interpreter) | Baseline f369e14 | Current snapshot | Parity |
+|---|---|---|---|
+| EN `build_device_patch.py` (+APK) | rc 0, 115 s | rc 0, 134 s | PASS: 15 output files, summary, delta (encoded `49569b52…`, ranges 6,211,328 B, kept bodies 64,351,178 B) identical; build logs identical |
+| ID (`--catalog resources/catalog_id`) | rc 0, 100 s | rc 0, 95 s | PASS: delta encoded `2f217400…`, ranges 6,641,280 B; build logs identical |
+| `check_pristine_delta.py --game/--apk/--work` | rc 0, 623 s | rc 0, 564 s | Identical output: 15 synthetic OK; EN/ID round trip 11 rebuilt + 3 unchanged of 14; en→id, id→en, en→en byte-identical; refusals as expected; both languages over an English layer fail the text signal. Its from-pristine EN/ID outputs (both trees) also PASS capture-compare against the baseline builds |
+| Ticket 18 measure runs en0–en5, id1 | n/a | rc 0 | PASS vs baseline EN/ID |
+
+Counts (EN and ID, both trees): 12 packages, 366 assets, 72 textures, `text_skipped` 0, `graphics_skipped` 0, `append_skipped` 1, `skipped_count` 670, translated 184,605 of 187,892 records; already_english EN 2,307 / ID 2,274.
+
+Findings for the coordinator (not fixed):
+1. `run_artifacts.windows_producer_identity` returns None for every Windows source checkout: 8 tracked files under `tools/research/career_atlas/originals/` have non-ASCII names, which `relative_path` rejects. Effect: Windows source runs never get a complete producer, so snapshot/build/signing reuse (06/15/16) always falls back to fresh work from source. Frozen builds take the bundle path instead. Keyed `measure_staging_retries.py` refuses for the same reason.
+2. `compare_continuation_controls.py capture` refuses real APK builds (prime `source_package` under `<work>/prime/<id>`); Pass 2 used an external wrapper adding only that normalization.
+
+Not covered here: Remove output parity (only `check_asset_restore`'s Remove case, ticket 17), changed engine/game real controls, frozen build, device cycles.
+
+
+Pass 2 idle-Stop regression (2026-11-12): real run `e64b26df-33c6-48fa-9ee3-8a9963fb01ba` had a saved Stop, clean CANCELLED session and no patch service, but routing repeatedly dropped its nested resolution task. Fixed by resolving inside the original background task, re-reading safety/Stop routing under the coordinator lock. `IdleStopRoutingTest` reproduced the missing resolution before the fix (1 failed) and passed after it (4 passed, including failure cleanup and unknown-recovery blocking); `:app:compileDebugKotlin` passed. Command: `android/gradlew.bat -p android --offline :app:testDebugUnitTest --tests dev.halixm.hokacepatcher.IdleStopRoutingTest :app:compileDebugKotlin`. Tests do not launch a service or access the game. Coordinator owns signed build/install and verification that reopen reaches idle, preserves Stop and starts no patch. These unit results do not close the real-device acceptance gate.
+
+Docs pass for steps 6–7 (2026-11-17; no commit, build, adb or phone operation). Lab notebook: new entries for the Wireless debugging cycles C3–C8 with the C8 byte proof and the C3 recheck, the Stop-reporting fix on `21f51bb2` (runs `497229f9`, `f7a510aa`), the old-data 1.8.0.1 → 1.10.1.2 reproduction (old patcher's `15_0.db` B-tree failure, the `builtin` planner crash fixed by `77461c4`, reviewed run `c26b206d`), the automatic Re-download run `99584a53` on `38c31162`, and Remove `665f5998`, with probe counts, single-run timings and the 5.7 GB storage observation. Feature records got dated report sections: update-stuck-redownload, language-switch, asset-restore (first phone run, packages 19 and 20 in `99584a53`), android-shell-providers and patch-speed; standalone-patcher-app unchanged (no new evidence). No coverage count moved (398/318). [validation.md](../validation.md) now lists the instrumentation that actually ran and a gate-status table. PRODUCT and DESIGN Re-download passages already match the automatic behaviour and were left as they are; README's after-update section still described a reviewed offer and Start to continue, and now describes the automatic deletion and **Downloads finished**.
+
+Status unchanged: this ticket stays open and step 8 (promotion) is not done. Blocking gates: Windows-USB real cycles (skipped by the user 2026-11-17, still open), Shizuku and Root real cycles, fixture-gated probes, the automatic Re-download loop guard and interrupted automatic deletion on a phone, frozen `build.bat`/`--selftest` and `run.bat`, GUI/visual checks, comparable performance measurements, the two parity findings (`windows_producer_identity` None from source; capture refuses APK builds), Remove/changed-input real controls, legacy schema-1 retry migration, and the historical `check_update_redownload` capture gate (the 1801 captures may serve, but lack `after-patch`/`after-finish` and were not run). Not release-ready.
