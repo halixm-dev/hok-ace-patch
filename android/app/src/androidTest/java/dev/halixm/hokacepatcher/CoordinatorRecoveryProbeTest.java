@@ -130,7 +130,8 @@ public final class CoordinatorRecoveryProbeTest {
         final JSONObject hashes = new JSONObject();
         Fixture() throws Exception {
             Context actual = InstrumentationRegistry.getInstrumentation().getTargetContext();
-            File root = new File(actual.getFilesDir(), "coordinator-probes/" + UUID.randomUUID());
+            // Canonical, like the coordinator's own root: journals built here must pass RunStore.safe.
+            File root = new File(actual.getFilesDir().getCanonicalFile(), "coordinator-probes/" + UUID.randomUUID());
             assertTrue(root.mkdirs());
             context = new ContextWrapper(actual) { @Override public File getFilesDir() { return root; } };
             PrivateProbeFixtures fixture = PrivateProbeFixtures.load(actual);
@@ -188,6 +189,8 @@ public final class CoordinatorRecoveryProbeTest {
             journal.outcome(PatchPhase.SNAPSHOT_ACCESS_INSTALLED, new JSONObject());
             journal.outcome(PatchPhase.SNAPSHOT_READY, new JSONObject());
             journal.outcome(PatchPhase.BUILDING, new JSONObject());
+            // As the engine does: the attempt's result folder exists before the journal pins it.
+            assertTrue(new File(journal.getDirectory(), "build-attempts/" + attempt + "/result").mkdirs());
             journal.record(new JSONObject().put("build_attempt", attempt).put("remove", false));
             File result = journal.getResultRoot();
             JSONArray staged = new JSONArray();
@@ -541,7 +544,7 @@ public final class CoordinatorRecoveryProbeTest {
         assertTrue("A rolled-back deletion re-downloaded nothing", saved.getRedownloadedPackages().isEmpty());
     }
 
-    @Test public void testRetentionReleasesOlderResolvedAndKeepsNewest() throws Exception {
+    @Test public void testFreeSpaceReleasesEveryResolvedSessionsBulk() throws Exception {
         Fixture first = linkedVerified(true);
         first.coordinator().recover(first.journal.getId());
         File receipt = new File(first.journal.getResultRoot(), ArtifactReceipts.NAME);
@@ -563,8 +566,11 @@ public final class CoordinatorRecoveryProbeTest {
         assertFalse(new File(first.journal.getDirectory(), "build-attempts").exists());
         assertTrue(new File(first.journal.getDirectory(), "snapshot/manifest.json").isFile());
         assertTrue(new File(first.journal.getDirectory(), "journal.json").isFile());
-        assertTrue("The newest resolved session stays the reusable cache",
-            new File(newer.getDirectory(), "snapshot/packages/1/1.db").isFile());
+        // Free up space releases every resolved session's bulk, the newest too; only a patch run's own
+        // cleanup keeps the newest as the reusable cache (releaseResolvedSessions' policy).
+        assertFalse("Free up space releases the newest resolved session's bulk too",
+            new File(newer.getDirectory(), "snapshot/packages/1/1.db").exists());
+        assertTrue(new File(newer.getDirectory(), "journal.json").isFile());
     }
     @Test public void testSavedFinalNormalProofNeverCompletesChangedLiveLayerAfterRestart() throws Exception {
         Fixture fixture = linkedVerified(true);
@@ -587,7 +593,9 @@ public final class CoordinatorRecoveryProbeTest {
                 if (expected.equals(fixture.device.normal)) new RunStore(fixture.context).stop(id);
             });
         JSONObject result = coordinator.recover(fixture.journal.getId());
-        assertEquals("stopped_consistent", result.getString("status"));
+        // A Stop that lands after the payload is verified and finalized reports the translation as added
+        // (WorkerStatus.afterStop); the journal and the run stay stopped.
+        assertEquals("complete", result.getString("status")); assertTrue(result.getBoolean("stopped_after_finish"));
         SessionJournal done = SessionJournal.Companion.load(fixture.journal.getDirectory());
         assertEquals(PatchPhase.CANCELLED, done.getPhase());
         assertTrue(done.snapshot().getBoolean("finalized"));
@@ -620,7 +628,8 @@ public final class CoordinatorRecoveryProbeTest {
         catch (IllegalStateException expected) { }
         int installs = fixture.device.installs;
         JSONObject result = fixture.coordinator().recover(fixture.journal.getId());
-        assertEquals("stopped_consistent", result.getString("status"));
+        // Finalized before the Stop: reported as added (WorkerStatus.afterStop), resolved as stopped.
+        assertEquals("complete", result.getString("status")); assertTrue(result.getBoolean("stopped_after_finish"));
         assertEquals(PatchPhase.CANCELLED, SessionJournal.Companion.load(fixture.journal.getDirectory()).getPhase());
         assertEquals("stopped", new RunStore(fixture.context).load(fixture.journal.getRunId()).getLifecycle());
         assertTrue("Required independent access/normal audit cycle missing", fixture.device.installs >= installs + 2);

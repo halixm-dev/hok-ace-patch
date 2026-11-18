@@ -183,7 +183,7 @@ public final class FullCoordinatorProbeTest {
     }
     private void runFull(boolean fault, boolean resume, boolean repeat) throws Exception {
         Context actual = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        File root = new File(actual.getFilesDir(), "coordinator-full-probes/" + UUID.randomUUID()); assertTrue(root.mkdirs());
+        File root = new File(actual.getFilesDir().getCanonicalFile(), "coordinator-full-probes/" + UUID.randomUUID()); assertTrue(root.mkdirs());
         Context scoped = new ContextWrapper(actual) { @Override public File getFilesDir() { return root; } };
         PrivateProbeFixtures fixture = PrivateProbeFixtures.load(actual);
         File sourceRoot = fixture.sourceRoot();
@@ -320,7 +320,7 @@ public final class FullCoordinatorProbeTest {
         Context actual = InstrumentationRegistry.getInstrumentation().getTargetContext();
         PrivateProbeFixtures fixture = PrivateProbeFixtures.load(actual);
         for (boolean breakNormalRestore : new boolean[]{false, true}) {
-            File root = new File(actual.getFilesDir(), "coordinator-full-probes/" + UUID.randomUUID());
+            File root = new File(actual.getFilesDir().getCanonicalFile(), "coordinator-full-probes/" + UUID.randomUUID());
             assertTrue(root.mkdirs());
             Context scoped = new ContextWrapper(actual) { @Override public File getFilesDir() { return root; } };
             try {

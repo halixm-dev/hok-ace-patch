@@ -1749,7 +1749,9 @@ class PatchCoordinator @JvmOverloads constructor(
         val originals = transaction?.verifyOriginals()
         if (originals != null) {
             transaction.prepareRollback(originals)
-            journal.record(JSONObject().put("recovery_original_hash_passes", transaction.originalHashPasses))
+            // A metric only: a legacy (schema-1) journal records no checkpoints and must still roll back.
+            if (journal.runId != null)
+                journal.record(JSONObject().put("recovery_original_hash_passes", transaction.originalHashPasses))
         }
         journal.outcome(PatchPhase.RESTORING)
         if (applied != null) {

@@ -5596,3 +5596,111 @@ install (`check_first_delta`, `push_translation`) writes the build, then the rea
   baseline: both trees have to produce the same pristine layer.
 - **Limits:** untouched packages are left off the stand-in phone; the APK install steps and the phone itself
   are not exercised; timings are disk copies on the stand-in, single runs; Android Remove is not covered here.
+
+## 2026-11-18 — Android Root real cycles on a KernelSU phone — pass
+
+Phone `ebad528e`: Redmi Note 9 Pro, Android 15 (API 35), KernelSU (`su` context `u:r:ksu:s0`). Game
+data 1.10.1.2, starting from the pristine layer the user pulled (`20261118-1.10.1.2`, 794 recorded files, all
+matched before the first run) and the re-signed normal APK `63bec243…` installed. Patcher: debug build of
+`cda1f22`, versionCode 108, `9292ec63…`, signed with the patcher key `555f2ff4…` and installed as an update over
+release 1.10.1.3. Provider Root. Taps, force-stops and the worker kill were driven over adb by a loop on the
+phone that watched `files/trace.log`.
+
+| Cycle | Run | What was done | Result |
+|---|---|---|---|
+| R1 fresh EN | `272bb82e` | `am force-stop` 115 s into `build_checkpoint` | Reopen: "Resuming the saved action after restart: CONTINUE", one uid-0 worker; snapshot reused (no unpack; identity 53 s, checkpoint 93 s), fresh build; "No pristine delta for this phone"; 11 files written; complete 398/318 (1 table skipped). Attempts build 2, snapshot 1, apply 1 |
+| EN repeat | `bb3c531a` | none | Rebuilt 11 files from the delta, wrote none (identical), complete 398/318 |
+| R4 force-stop after the writes | `4b0be5f0` (ID) | `am force-stop` 37 s after the last write began, before the installed-app check | Reopen resumed; payload not yet verified, so it restored the originals ("Restoring the original game files", ~2 min), verified the app, reused the build ("Reusing the verified build from the interrupted run"), wrote 3 files, complete. Attempts apply 2, build 1 |
+| R3 root worker killed mid-apply | `bfc9ab24` (EN) | `kill -9` of the uid-0 worker 50 ms after "Applying package file 1/1.db" | `recovery_required`, `packages_dirty=true`; automatic retry 1 s later on Root with a new uid-0 worker; rollback, build reused, 3 files written, complete |
+| R2 Stop mid-apply | `7c4cfff4` (ID) | Stop safely tapped 0.24 s after the first write | "Stopping safely"; originals restored; `stopped_consistent`, journal CANCELLED, lifecycle `stopped`, `stop_requested` true, continuation false; every game file byte-identical to the EN layer before the run |
+| R6 force-stop at the final check | `be986db2` (ID) | `am force-stop` 2 s after "Checking the installed game app" | Reopen: "Restoring consistency" with no restore, no rebuild, no write; app verified; complete in 2 min. Attempts apply 1, build 1 |
+| R5 Remove | `55dbee52` | Remove translation, one confirmation | Snapshot, "Rebuilding the original game files from the pristine delta", 11 files written, "no pristine delta is kept", complete `removed` 11. Every package file byte-identical to the pristine record |
+
+- **Zero installs:** after every run the game APK hashed `63bec243…` and its `lastUpdateTime` stayed 11:12:58;
+  each run logged "Skipped Unlock access" and "Skipped Restore game app: Root never replaced the game app".
+- **Owner and SELinux:** after R1 and after Remove every file under `files/QtsVFSCache` is owned by uid/gid
+  10246 and labelled `u:object_r:app_data_file:s0:c246,c256,c512,c768`, the game's own. Files the patcher
+  writes are mode 0666 where the originals were 0600, as the Root worker's `umask 000` (matching `run-as`)
+  gives.
+- **After Remove:** the four `Watchdog/*.db` files stay absent (every patch clears Watchdog, as on Wireless
+  debugging) and the empty `.hok-ace-patcher.lock` (`GameFileLock`) stays.
+- **Delta:** each run kept one delta; the file hash differs between runs of the same language (it records its
+  time), so it was not compared further here.
+- **Timing (single runs, one phone):** a fresh run is about 18–19 min: prepare 40 s (first run only),
+  snapshot about 6 min (unpack 78–84 s, identity 54–57 s, checkpoint 144–150 s), build 534–564 s, writes
+  2–3 s, final check about 1 min. Resuming a killed or force-stopped run costs about 10 min (rollback about
+  2 min, snapshot recheck about 2.5 min, build inspection about 2.3 min). Remove took 15.7 min.
+- **Seen in passing, not defects:** the first Start waits behind Android's notification prompt (declined
+  here); "Start another patch" starts a run in the selected language at once; in the Indonesian interface the
+  activity log lines stay English.
+- **Verdict:** pass. Root continues, stops, recovers and removes without installing anything, and keeps
+  the game's owner and labels.
+- **Limits:** one phone, one root manager (KernelSU); revoking root mid-run was not tried (killing the worker
+  stands in for it); game not launched afterwards.
+
+## 2026-11-18 — Android fixture-gated probes, first run — fail (probe defects, one possible app gap)
+
+- **Setup:** the KernelSU Redmi Note 9 Pro from the Root entry, `cda1f22` debug app and test APK. Private
+  fixture at `files/probe-fixtures/automatic-continuation/`: the dist `normal.apk` (63bec243…, version code
+  774472) hard-linked from the app's own preparation, and an access APK (71608bac…) made by
+  `apk_tools.rewrite_apk` + `sign_v2` with `resources/key`; descriptor schema 1 with no source fixture.
+- **Results:** `CoordinatorSourceGuardProbeTest` pass. `PatchRequestProbeTest` 1 of 2:
+  `legacyConfirmationCannotBecomeFreshPermission` passes; `claimBeforeJournalIsRecoverableAndCannotRetarget`
+  fails at its repeat dispatch (`Duplicate dispatch reached device`) after its claim, reclaim and retarget
+  assertions pass. `CoordinatorRecoveryProbeTest` 7 of 19.
+- **Causes:**
+  - The PatchRequest case expects a repeat dispatch on a clean, correlated journal to return
+    `recovery_required` without touching the device. Since ADR 0010 `dispatch` continues such a journal
+    (`continueExisting` → `continueLocked` → `checkpoint()` reads the binder). Stale probe.
+  - 11 CoordinatorRecovery cases (the 10 built by `linkedVerified` and
+    `testInterruptedRedownloadDeletionRollsBackThroughThePinnedPlan`) fail `Private path alias` in
+    `RunStore.safe` when reading `resultRoot` or `redownloadPlanRoot`. Their journals sit under the raw
+    `getFilesDir()`; production sessions sit under `RunStore.privateRoot`, the canonical folder. Probe
+    defect; the 7 passing cases never read either root.
+  - `testCoordinatorRetriesInterruptedWholeSetRollback` fails `Legacy journals carry no continuation
+    checkpoints`: `recover()` on a legacy (no run id) dirty journal reaches `recoverLocked`, which records
+    `recovery_original_hash_passes` through `SessionJournal.record`, and `record` refuses legacy journals.
+    Possible app gap: a dirty schema-1 session left by an older build may fail its safety recovery. Not
+    confirmed on a real schema-1 session.
+- **Not run:** `ApkPreparationProbeTest` refused on storage (`StorageBudget$Shortage`, 8,511,853,917 bytes
+  required, 2,567,680,000 available with the 4 GB fixture present); the phone cannot hold both.
+  `FullCoordinatorProbeTest` needs a source fixture, not built.
+- **Storage:** each `AuthorizedProbeRun` copies both APKs (about 4 GB) into its own folder and the probes
+  never delete their folders; a first combined run filled `/data` to 1.0 GB free. Probe folders and the
+  fixture were deleted afterwards (8.6 GB free; the preparation's `original.apk` back to one link).
+- **Verdict:** fail. The gate stays open until the probes are corrected and re-run, and the legacy-recovery
+  question is settled.
+
+## 2026-11-18 — Android fixture-gated probes, corrected and re-run — pass (one app fix)
+
+- **App fix:** `recoverLocked` now records `recovery_original_hash_passes` only for a journal with a run id.
+  Since `d1033eb` that metric went through `SessionJournal.record`, which refuses legacy (schema-1)
+  journals, so the safety rollback of a dirty schema-1 session failed after verifying its originals and
+  before restoring them. Only the probe exercised it; no schema-1 session was run on a phone.
+- **Probe corrections, each to documented behaviour:**
+  - `PatchRequestProbeTest`: a repeat dispatch attaches to the same child and continues it (ADR 0010). With
+    a device that refuses every call it now expects the continuation to fail, one child and the same run id
+    and authorization key. An `@After` deletes the probe's folders (each authorized run copies about 4 GB).
+  - `CoordinatorRecoveryProbeTest` and `FullCoordinatorProbeTest` root their fixtures at the canonical files
+    folder, as `RunStore.privateRoot` does; the linked fixture creates the build attempt's `result` folder
+    before pinning it, as the engine does.
+  - The two late-Stop cases expect `complete` with `stopped_after_finish` (`WorkerStatus.afterStop`), the
+    journal `CANCELLED` and the run `stopped`.
+  - The retention case, renamed `testFreeSpaceReleasesEveryResolvedSessionsBulk`, expects Free up space to
+    release the newest resolved session's bulk too (`releaseResolvedSessions(keepNewest = false)`, as its
+    docstring says). The keep-newest rule at a patch run's start has no probe.
+- **Results** (same phone and fixture, app with the fix, test APK with the corrections):
+  `PatchRequestProbeTest` 2/2, `CoordinatorRecoveryProbeTest` 19/19, `CoordinatorSourceGuardProbeTest` 1/1.
+  `:app:testDebugUnitTest` passed.
+- **Not run:** `ApkPreparationProbeTest` (storage: about 8.5 GB beside the fixture) and
+  `FullCoordinatorProbeTest` (no source fixture); the FullCoordinator root change is compiled, not run.
+- **Cleanup:** probe folders and the fixture deleted; 8.5 GB free; the preparation's `original.apk` has one
+  link, mode reset to 0600 after the fixture's `chmod`.
+- **Verdict:** pass for the three classes run; the gate stays partly open for the two not run.
+- **Addendum, same day:** after the user freed space (13 GB free), `ApkPreparationProbeTest` ran on the same
+  APK-only fixture: 1/1 pass (8.8 GB free during the run); its 2 GB probe folder was deleted afterwards.
+  `FullCoordinatorProbeTest` still does not fit: its source fixture (the 2.9 GB `packages/` layer) plus the
+  2 GB access APK, then per case a recovery copy of the normal APK and an authorized run (about 6 GB of APK
+  copies), the 2.9 GB snapshot and the build's work, comes to roughly 16 GB. The phone's SD card cannot hold
+  any of it: the coordinator works only in app-private internal storage (`RunStore.privateRoot`), and the card
+  is exFAT, mounted `noexec`, with no owner or SELinux labels.
