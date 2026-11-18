@@ -240,7 +240,7 @@ class ApkPreparation(private val context: Context) {
                 continue
             }
             val source = File(folder, "original.apk")
-              if (folder.canonicalFile == keep || folder.name in completionSources) continue
+            if (folder.canonicalFile == keep || folder.name in completionSources) continue
             if (!Files.exists(source.toPath(), LinkOption.NOFOLLOW_LINKS) || protects(source)) continue
             runCatching { sources += DurableFiles.deleteTree(source); DurableFiles.syncDirectory(folder) }
                 .onFailure { report("Could not remove a saved original game APK; keeping it") }

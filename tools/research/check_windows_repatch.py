@@ -61,7 +61,8 @@ def _write(folder: Path, files: dict[str, bytes]) -> None:
 
 class Repatch(unittest.TestCase):
     def setUp(self):
-        self.work = Path(tempfile.mkdtemp(prefix="windows-repatch-"))
+        # resolve(): the runner's TEMP is an 8.3 short path, which RunStore's exact_root refuses.
+        self.work = Path(tempfile.mkdtemp(prefix="windows-repatch-")).resolve()
         self.phone = self.work / "phone"
         _write(self.phone, PRISTINE)
         self.stamp = 0
