@@ -1,13 +1,28 @@
 ---
 feature: update-stuck-redownload
-status: built, device-tested (one-run plan 2026-10-23; reviewed and automatic Re-download on a phone 2026-11-13)
-updated: 2026-11-13
+status: built, device-tested (one-run plan 2026-10-23; reviewed and automatic Re-download on a phone 2026-11-13; interrupted automatic Re-download on a Root phone 2026-11-18)
+updated: 2026-11-19
 branch: master
 ---
 
 # Re-download damaged files after a stuck update
 
 ## Report
+
+### Interrupted automatic Re-download on a Root phone (2026-11-18 to 2026-11-19, `ebad528e`)
+
+Two real updates (1.8.0.1 data in English, then the in-game update to 1.10.2) on a KernelSU phone, Root
+provider; each re-patch planned 1, 10, 15 and 21 (12 files, 499 MB) and approved it automatically.
+Details in the [lab notebook](../lab-notebook.md)'s 2026-11-18 Re-download entries.
+
+| Case | Verdict |
+|---|---|
+| Force-stop at the first deletion, build `c921bf9` (three cuts) | Each rolled back and continued without a dialog, but an automatic re-approval of the re-measured plan reset the deletion count, so the guard held only after the third cut. Fixed: `RedownloadConsent.keepsDeleteAttempts` |
+| Same cut on the fixed build (one cut) | Rolled back, re-planned and kept the count (`redownload_delete` 2 after the finished deletion); *Downloads finished* continued to complete 398/318 with no idle-screen flash. **Pass** |
+| `check_update_redownload.py` over the second cycle's captures | Plans 1, 10, 15 and 21 over `after-update`, as the phone did; nothing over `after-finish`; a second plan reuses the mixed-package decision. **Pass** |
+
+Not measured on the fixed build: a second interruption of the same approval (the unit cases cover it).
+The loop-guard fallback for a package still damaged after its own download stays unphone-tested.
 
 ### Phone cycles on old data (2026-11-13, Wireless debugging, `f15a72e`)
 
@@ -171,7 +186,7 @@ refuses. Until now the only way out was clearing the game's data, about 2.8 GB t
 | Not ours | Broken assets only in packages this patcher never touched do not refuse; the game repairs those itself |
 | Plan | On a damaged-file refusal, `redownload_plan` stages every file of each stuck package, and of each package `_mixed_packages` refuses (`.db` and `.info`), into a fresh `redownload-plans/<id>/` with its snapshot SHA-256 in `staged-hashes.json`. Kotlin binds `plan.json`: run, session, authorization, action, target and provider, the snapshot manifest's SHA-256, engine and producer, the run's APKs, the kept delta and its `redownload.json` / `restore-refused.json` records, every file with hash and size, the Watchdog files cleared, and the consequence codes (`PatchCoordinator.REDOWNLOAD_CONSEQUENCES`). It is written atomically and read back; its digest is `ArtifactReceipts.identityKey(plan)`. The journal pins it (`redownload_plan`, `redownload_plan_sha256`) before the run record offers it (`RunStore.proposeRedownload`) |
 | Automatic approval | User decision 2026-11-13. The journal pins the plan with `waiting_reason: redownload_consent_required`, and `proposeRedownload(automatic = true)` approves it in the same run-record write (approval `source: "automatic"`) when `RedownloadConsent.automaticAllowed` holds. `awaitUser` then throws `RedownloadApproved`, and `continueLocked` runs `redownloadStage` in the same run, on the snapshot and access it already verified. The approval resets the attempt budgets (`redownload_delete` too) as a new destructive scope, as the user's did |
-| Loop guard | `RedownloadConsent.automaticAllowed`: only an unanswered plan, with fewer than two `redownload_delete` attempts, and none of whose packages is in the run record's `redownloaded_packages` (every package `redownloadProgress(..., deleted)` recorded in this run, whoever approved it). Otherwise the refusal becomes `WaitingForUser`: the run rolls back, restores the normal APK, closes the session `CANCELLED` and returns `status: waiting` with `reason: redownload_consent_required`. A plan that cannot be measured leaves the ordinary refusal: nothing unbound is deleted |
+| Loop guard | `RedownloadConsent.automaticAllowed`: only an unanswered plan, with fewer than two `redownload_delete` attempts, and none of whose packages is in the run record's `redownloaded_packages` (every package `redownloadProgress(..., deleted)` recorded in this run, whoever approved it). An automatic approval that replaces an unconsumed plan (one re-measured after an interrupted deletion) keeps the `redownload_delete` count (`RedownloadConsent.keepsDeleteAttempts`); the user's approval, or a plan after a consumed one, starts a fresh budget. Otherwise the refusal becomes `WaitingForUser`: the run rolls back, restores the normal APK, closes the session `CANCELLED` and returns `status: waiting` with `reason: redownload_consent_required`. A plan that cannot be measured leaves the ordinary refusal: nothing unbound is deleted |
 | Review (loop guard only) | The card's Delete and re-download tap calls `RunStore.approveRedownload(run, digest)` for the displayed digest only (approval `source: "user"`); it never clears Stop. Leaving the card grants nothing; Stop safely ends the action. Older saved `declined` plans remain reviewable and are never approved automatically. The same digest offered again keeps its answer; any other digest replaces it, approved automatically only if the loop guard allows |
 | Re-download | Only from an approved digest, after the snapshot is revalidated against the live layer. The pinned plan must still hold (`pinnedPlanHolds`: same run, manifest, engine, producer, APKs, delta, records and file hashes); otherwise the plan is measured again, pinned and approved again automatically (subject to the loop guard), and only that exact digest proceeds. `deleting` and the `redownload_delete` attempt are saved, `keep_redownload` writes its record (its identity kept as `redownload_kept`), and each deletion is journaled (`delete_file`, packages dirty) and checks the file still holds its hash. Then `Watchdog` is cleared, `redownloaded` and the `redownload_download_required` wait are saved, the approval is consumed (`deleted`) and the normal APK restored (Root: verified unchanged) |
 | Interrupted deletion | Rollback, as for a patch: every staged file and `Watchdog` back from the snapshot. The plan stays pinned and approved, so the next dispatch resumes it without a dialog; its own `redownload.json` is the one record change allowed. After two `redownload_delete` attempts the approval returns to `awaiting_consent` |

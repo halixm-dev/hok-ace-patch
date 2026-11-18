@@ -1,12 +1,26 @@
 ---
 feature: android-shell-providers
 status: building; ticket 03 device test requested
-updated: 2026-11-13
+updated: 2026-11-18
 ---
 
 # Android patcher shell providers
 
 ## Report
+
+### Root real interruption cycles (2026-11-18, KernelSU phone `ebad528e`)
+
+Redmi Note 9 Pro, Android 15, KernelSU; Android patcher `cda1f22`, then `c921bf9` for the Re-download
+cycle. Details in the [lab notebook](../lab-notebook.md)'s 2026-11-18 Root and Re-download entries.
+
+| Case | Verdict |
+|---|---|
+| Force-stop during build, worker kill mid-apply, Stop mid-apply, force-stop after the writes and at the final check | Each reopen continued on Root with one uid-0 worker, rolled back or reused the verified build as the saved phase called for, and completed; Stop restored the originals and stayed stopped. **Pass** |
+| EN repeat, EN/ID switches and Remove | Complete; Remove left every package file byte-identical to pristine. **Pass** |
+| Zero installs, owner and SELinux | The game APK hash and `lastUpdateTime` never changed; every file keeps the game's uid and `app_data_file` label. **Pass** |
+| Interrupted automatic Re-download (three force-stops at the first deletion) | Each rolled back and continued without a dialog; the loop guard held only after the third, found and fixed (`RedownloadConsent.keepsDeleteAttempts`). Over a second real update the fixed build kept the count across an automatic re-plan (`redownload_delete` 2 after one cut and the finished deletion) and resumed *Downloads finished* with no idle-screen flash. **Pass after fix** |
+
+Open: Shizuku real cycles (skipped by the user, 2026-11-18); revoking root mid-run was not tried.
 
 ### Wireless debugging real interruption cycles (2026-11-12 to 2026-11-13, `f15a72e`)
 
@@ -20,8 +34,7 @@ Phone `f15a72e` (Xiaomi M2007J3SG, Android 12), Wireless debugging only; details
 | Force-stop in the final normal install (C6) | Reopen restored and verified the normal APK with no snapshot, build or apply repeated. **Pass** |
 | Stop reporting (build `21f51bb2`) | A Stop during the final install reports the translation as added (`stopped_after_finish`); a Stop mid-write shows *Checking the original game files* and *Restoring the original game files* before *Stopped safely*. **Pass** |
 
-Open: Shizuku and Root real cycles (not selected by the user), so Root's zero-install path has no new
-phone run; the home screen's priority of recovery over Re-download; the screen heading stays
+Open then: Shizuku and Root real cycles; Root ran on 2026-11-18 (above). Also open: the home screen's priority of recovery over Re-download; the screen heading stays
 *Stopping safely* during rollback.
 
 ### Completion reuse provider boundary (2026-11-12, pass 1, unverified)

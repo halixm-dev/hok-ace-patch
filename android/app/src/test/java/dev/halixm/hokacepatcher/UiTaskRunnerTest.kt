@@ -29,7 +29,9 @@ class UiTaskRunnerTest {
     }
 
     @Test fun thenRunsOnceTheGateIsClearAndMayStartGatedWork() {
-        runner()
+        val busyAtFinish = mutableListOf<Boolean>()
+        runner = UiTaskRunner(execute = { it() }, postUi = { ui.addLast(it) }, started = { events += "started" },
+            failed = { events += "failed" }, finished = { events += "finished"; busyAtFinish += runner.busy })
         var resumed = false
         runner.run({ events += "task" }) {
             assertFalse(runner.busy)
@@ -40,7 +42,9 @@ class UiTaskRunnerTest {
         drain()
         assertTrue(resumed)
         assertFalse(runner.busy)
-        assertEquals(listOf("started", "task", "finished", "then", "started", "finished"), events)
+        assertEquals(listOf("started", "task", "then", "started", "finished", "finished"), events)
+        // The first task's refresh already sees the resumed work running, so no idle screen shows between them.
+        assertEquals(listOf(true, false), busyAtFinish)
     }
 
     @Test fun thenRunsAfterAFailedTaskAndASecondRunIsRefusedWhileBusy() {

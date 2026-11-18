@@ -302,8 +302,9 @@ A missing complete producer identity permits ordinary fresh processing and all f
 checks, but produces no reusable receipt. Restart reuse rehashes exact output/source/APK/delta
 identities and returns the saved summary without staging. A reset targets only an owned incomplete
 attempt and refuses any receipt-bearing attempt, even one whose receipt is damaged. Kotlin journal,
-transaction-path and finalization integration is ticket 10; no behavior, output-parity or device
-verification has run for this change. See the [ticket 09 handoff](../../.scratch/automatic-continuation/issues/09-bridge-checkpoints.md).
+transaction-path and finalization integration followed in the same release. Verified later: output
+parity, the changed-input controls and the Wireless debugging and Root phone cycles, recorded in
+[automatic-continuation](automatic-continuation.md).
 
 ### Android rollback and identical outputs (2026-11-12, Pass 1; unverified)
 

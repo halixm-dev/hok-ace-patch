@@ -1,13 +1,29 @@
 ---
 feature: patch-speed
 status: built; phone-checked on the Redmi Note 9 Pro
-updated: 2026-11-13
+updated: 2026-11-18
 branch: master
 ---
 
 # Android patch run speed
 
 ## Report
+
+### Phone observations on the Root phone `ebad528e` (2026-11-18, single runs, no comparison)
+
+By the user's decision of 2026-11-18 the performance gate closes on single runs: one phone (Redmi
+Note 9 Pro, KernelSU, Root provider), one run per case, no repeats, so no shortcut below is claimed as a
+measured saving. The [lab notebook](../lab-notebook.md)'s 2026-11-18 Root and Re-download entries hold the runs.
+
+| Case | Observed |
+|---|---|
+| Fresh EN patch | About 18–19 min: prepare 40 s (first run only), snapshot about 6 min (unpack 78–84 s, identity 54–57 s, checkpoint 144–150 s), build 534–564 s, writes 2–3 s, final check about 1 min |
+| Same-language repeat | Complete with 11 files rebuilt from the delta and none written (identical-write skips) |
+| Resume after a kill or force-stop mid-apply | About 10 min: rollback about 2 min, snapshot recheck about 2.5 min, build inspection about 2.3 min, no rebuild |
+| Force-stop at the final check (final-restore-only) | 2 min: no restore, rebuild or write |
+| Remove | 15.7 min |
+| After an automatic Re-download, *Downloads finished* to complete | 18 min 45 s: unpack 81.6 s, identity 50.7 s, checkpoint 144.5 s, build 571.5 s (asset restore of 19 and 20 included). Second update cycle (2026-11-19): 19 min 28 s, unpack 77.6 s, identity 51.3 s, checkpoint 155.2 s, build 602.6 s |
+| Re-download planning | `redownload_plan` 89–97 s per plan |
 
 ### Phone observations on `f15a72e` (2026-11-12 to 2026-11-13, no comparison)
 

@@ -509,6 +509,5 @@ returned output/hash-list/delta paths to the existing transaction/finalization m
 continues reading the independent session snapshot. It must remeasure installed producer/APK/game/
 readiness evidence after restart and bind measured inputs to the saved run without altering its
 authorization. Recovery of originals/normal APK remains independent of loading a new Python engine.
-These bridge APIs are implemented, but coordinator integration (10), retention (10/11) and behavior/
-interruption/device verification remain pending. Exact API and snapshot-rename instructions are in
-[ticket 09](../../.scratch/automatic-continuation/issues/09-bridge-checkpoints.md).
+Coordinator integration, retention and the interruption and phone checks followed in the same
+release; [automatic-continuation](automatic-continuation.md) records them.

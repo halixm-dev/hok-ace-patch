@@ -460,18 +460,21 @@ class RunStore(private val context: Context) {
         val proposed = RedownloadConsent.proposed(run.redownload, planId, planSha256, files, packages, bytes)
         val deleteAttempts = value.getJSONObject("attempts").optInt(RedownloadConsent.DELETE_OPERATION, 0)
         if (automatic && RedownloadConsent.automaticAllowed(proposed.state, deleteAttempts, run.redownloadedPackages, proposed.packages)) {
-            approve(value, proposed, RedownloadConsent.APPROVAL_AUTOMATIC)
+            approve(value, proposed, RedownloadConsent.APPROVAL_AUTOMATIC, run.redownload?.state)
         } else value.put("redownload", RedownloadConsent.encode(proposed))
     }
     /**
      * Approve [plan] as <source>. A new approval is a new destructive attempt scope, and it re-arms safe work
-     * too, exactly as the user's approval always did; the loop guard bounds how often that happens.
+     * too, exactly as the user's approval always did; the loop guard bounds how often that happens. An automatic
+     * approval replacing an interrupted plan keeps the deletion count ([RedownloadConsent.keepsDeleteAttempts]).
      */
-    private fun approve(value: JSONObject, plan: Redownload, source: String) {
+    private fun approve(value: JSONObject, plan: Redownload, source: String, previousState: String? = null) {
         value.put("redownload", RedownloadConsent.encode(RedownloadConsent.approved(plan, source,
             UUID.randomUUID().toString(), System.currentTimeMillis())))
         val attempts = value.getJSONObject("attempts")
-        for (operation in attempts.keys().asSequence().toList()) if (operation !in setOf("uninstall", "first_setup")) attempts.remove(operation)
+        val kept = if (RedownloadConsent.keepsDeleteAttempts(source, previousState))
+            setOf("uninstall", "first_setup", RedownloadConsent.DELETE_OPERATION) else setOf("uninstall", "first_setup")
+        for (operation in attempts.keys().asSequence().toList()) if (operation !in kept) attempts.remove(operation)
         value.remove("last_operation"); value.remove("failure"); value.remove("waiting")
     }
     /**

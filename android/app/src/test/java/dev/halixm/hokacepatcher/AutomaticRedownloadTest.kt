@@ -43,4 +43,21 @@ class AutomaticRedownloadTest {
         assertFalse(allowed(state = null))
         assertFalse(allowed(packages = emptyList()))
     }
+
+    @Test fun anAutomaticReapprovalAfterAnInterruptedDeletionKeepsItsCount() {
+        // Phone run 2026-11-18: the rollback of an interrupted deletion changed the plan's digest, and the
+        // automatic approval of the re-measured plan reset the count, so a third deletion began by itself.
+        for (state in listOf(RedownloadConsent.DELETING, RedownloadConsent.APPROVED, RedownloadConsent.AWAITING))
+            assertTrue(state, RedownloadConsent.keepsDeleteAttempts(RedownloadConsent.APPROVAL_AUTOMATIC, state))
+        // With the count kept, the second interruption leaves the plan for the user.
+        assertTrue(allowed(attempts = 1))
+        assertFalse(allowed(attempts = 2))
+    }
+
+    @Test fun theUsersApprovalAndAConsumedPlanStartAFreshBudget() {
+        for (state in RedownloadConsent.STATES + listOf<String?>(null))
+            assertFalse("$state", RedownloadConsent.keepsDeleteAttempts(RedownloadConsent.APPROVAL_USER, state))
+        for (state in listOf(RedownloadConsent.DELETED, RedownloadConsent.DOWNLOADS_CONFIRMED, null))
+            assertFalse("$state", RedownloadConsent.keepsDeleteAttempts(RedownloadConsent.APPROVAL_AUTOMATIC, state))
+    }
 }

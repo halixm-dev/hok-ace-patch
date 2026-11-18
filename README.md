@@ -176,6 +176,8 @@ There is no general test suite. Choose the check that matches your change:
 | Remove on real data (Windows) | `.venv\Scripts\python.exe tools\research\check_windows_remove.py --pristine <builtin-dir> --staged <build-output> --work <dir>` | A pristine layer and a build of it; about 5x the touched packages free |
 | Windows interruption fixtures | `.venv\Scripts\python.exe tools\research\check_windows_recovery.py` | Synthetic private files only; expected failures track known recovery gaps |
 | Baseline/change output controls | `.venv\Scripts\python.exe tools\research\compare_continuation_controls.py --help` | Capture external staging hashes, normalized summary and pristine delta; compare reports made with matching inputs |
+| Changed engine or game against saved work | `.venv\Scripts\python.exe tools\research\check_changed_input_controls.py --help` | Two pristine dumps with their APKs; about 40 GB free under `--work` |
+| Re-download over a real update | `.venv\Scripts\python.exe tools\research\check_update_redownload.py --cycle <cycle> --work <dir>` | An `update_cycle.py` capture set (`after-push`, `after-patch`, `after-update`, `after-finish`) on the same drive as `<dir>` |
 | Control-capture normalization | `.venv\Scripts\python.exe tools\research\check_continuation_controls.py` | Repository only |
 | A change requiring screen verification | [Device cycle](docs/runbooks/device-cycle.md) | Phone and matching game data |
 

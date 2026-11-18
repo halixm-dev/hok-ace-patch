@@ -5349,7 +5349,7 @@ patcher `a4dff827…` (build fixes-1920, signed `555f2ff4`). Probes on `a4dff827
 `StorageRetentionProbeTest`, `EngineProbeTest`, **OK (35 tests)**
 (`D:/scratch/hok-ac-pass2/logs/fixes-1920-probes.log`). Where the cycle names a forced interruption, the
 coordinator caused it from the host (`am force-stop`, or killing the `:worker` process) at the stated
-progress line. Evidence: the coordinator log in `.scratch/automatic-continuation/coordinator.md`, raw
+progress line. Evidence: the coordinator log (the feature's scratch `coordinator.md`, in git history before its promotion to [automatic-continuation](features/automatic-continuation.md)), raw
 captures under `D:/scratch/hok-ac-pass2/device-cycles`.
 
 | Cycle | Run | What was done | Result |
@@ -5740,3 +5740,89 @@ phone that watched `files/trace.log`.
 - **Not covered:** a changed engine reached through the Kotlin coordinator on a phone, and a real Windows
   build reused across an engine change (the Windows case checks the identity and the receipt only).
 - **Verdict:** pass.
+
+## 2026-11-18 — Interrupted automatic Re-download and its loop guard on a Root phone — guard needed three cuts (fixed)
+
+- **Setup:** KernelSU phone (Redmi Note 9 Pro), Root provider, Android patcher `c921bf9` (debug, versionCode 109,
+  signed with the patcher key). Pristine 1.8.0.1 pushed with `tools/research/update_cycle.py push`
+  (`D:/scratch/hok-ac-loopguard/push.log`), patched English (run `8bd89f44`, complete, 398/399, 1 table and
+  0 textures skipped), then the game updated itself to 1.10.2 data over the translation. The game APK stayed
+  1.8.0.1 normal (`29b3ee7e`).
+- **Re-patch (run `ca6306b0`, 21:26):** the build refused the stuck update (package 1, 67 assets; 10, 2 assets),
+  and the run planned Re-download of packages 1, 10, 15 and 21 (12 files, 499 MB) and approved it automatically.
+  A root watcher (`cut-delete.sh`) force-stopped the app and killed the worker at the first *Deleting package
+  file* line, three times (21:40:58, 21:49:56, 21:57:41; `cut1.log`–`cut3.log`).
+- **Each cut:** on reopen the run continued by itself (*Game app verified; interrupted session recovered*),
+  rolled back the partial deletion (`1/1.db` back, checked with a root capture) and continued *the approved
+  Re-download*. After cut 1 the re-measured plan differed (*The game files changed since the Re-download was
+  approved; nothing was deleted*, then *Re-download planned again*), and the automatic re-approval reset
+  `attempts.redownload_delete`: 1 after cut 2, 2 after cut 3 (`run-after-cut2.json`, `run-after-cut3.json`).
+- **Guard:** only after the third cut (22:00:49) did the run stop with *The approved Re-download was interrupted
+  twice; it needs a new approval* (`redownload_consent_required`) and show the review card
+  (`review-card.txt`: Files 12, 499 MB, packages 1, 10, 15, 21). Tapping *Delete and re-download* saved the
+  user's approval; the deletion finished (22:08:05), the game downloaded the files (root captures
+  `rcap/after-delete` 786 files, `after-download` 804), and *Downloads finished* continued the same run to
+  completion at 22:34:25: 398/318, 1 table and 0 textures skipped, *Rebuilt 2 files from the pristine delta*,
+  8 replaced files taken as the update left them, *Wrote the original bytes back into package 19, 20*, 9 files
+  applied (`rcap/after-finish` 800 files).
+- **Timings after Downloads finished** (one run): snapshot stream 81.6 s, identity 50.7 s, snapshot checkpoint
+  144.5 s, build 571.5 s, write 22:33:02–22:33:23; Downloads finished to complete 18 min 45 s.
+- **Finding 1, loop guard:** the guard is bounded, but a re-measured plan's automatic re-approval re-armed the
+  deletion budget, so it took three interruptions, not two. Fixed: `RedownloadConsent.keepsDeleteAttempts`
+  keeps the count when an automatic approval replaces an unconsumed plan; the user's approval and a plan after
+  a consumed one start fresh (`AutomaticRedownloadTest`, two new cases). Re-check on the phone: next entry.
+- **Finding 2, screen:** after *Delete and re-download* and after *Downloads finished* the idle saved-work
+  screen (*Finish your game safely*, *Continue saved work*) showed for 2 to 4 s before *Checking game files*.
+  `UiTaskRunner` refreshed the screen before its follow-up resumed the action; it now runs the follow-up first
+  (`UiTaskRunnerTest`).
+- **Evidence:** `D:/scratch/hok-ac-loopguard/` (`trace-full.log`, cut logs, run records, root captures).
+- **Verdict:** interrupted deletion: pass (every cut rolled back and continued, no dialog, no lost file). Loop
+  guard: fail as built (three cuts), fixed in code.
+
+## 2026-11-18 — The loop guard fix and the screen fix re-checked over a second real update, Root phone — pass
+
+- **Setup:** the same phone and provider, the patcher with both fixes from the entry above (debug, versionCode
+  109, signed with the patcher key, uncommitted on `c921bf9`). Pristine 1.8.0.1 pushed again (`push.log`: 618
+  files equal the snapshot), patched English (run `214b1089`, 23:03–23:21, complete, 398/399, 1 table and 0
+  textures skipped), then the game updated itself to 1.10.2 data over the translation (root capture
+  `after-update`: 718 files, 442 package files changed).
+- **Storage:** the `update_cycle.py capture` after the update could not reinstall the normal APK: the phone had
+  0.9 GB free, and the access APK stayed installed. *Free up space* freed 6.6 GB of earlier runs' files (trace:
+  `space_freed`, 7.65 GB free after); the normal APK went back with `adb install -r` and was checked
+  (`29b3ee7e`). Later captures used root reads (`rcap-pull.sh`), which install nothing.
+- **Re-patch (run `4ff4c6ff`, 23:41):** it planned Re-download of packages 1, 10, 15 and 21 (12 files, 499 MB),
+  as on the first cycle, and approved it automatically. Cut 1 at the first *Deleting package file 1/1.db*
+  (23:54:45); on reopen (23:57:51) the run continued by itself, rolled back and continued *the approved
+  Re-download*; the re-measured plan differed again (*Re-download planned again*, 00:02:40) and the automatic
+  re-approval kept the count. The watcher's second cut never fired (its start-time guard compared clock
+  strings and skipped every line after midnight), so the re-planned deletion ran to the end (00:03:42).
+- **Loop guard:** the run record after the deletion holds `attempts.redownload_delete: 2` (one cut plus the
+  finished deletion; the build before the fix reset it to 1 here) with `approval.source: automatic`
+  (`run-after-delete.json`). A third deletion of the same approval is therefore refused, which the first
+  cycle's third cut showed on the phone; the unit cases cover the count itself. No second interruption was
+  measured on this build.
+- **Screen:** *Downloads finished* (00:19:48) went straight to *Checking game files* and *Continuing saved
+  work*; the trace has no *Finish your game safely* screen between them (`trace-full.log`).
+- **Completion:** complete at 00:39:16, 398/318, 1 table and 0 textures skipped, *Rebuilt 2 files from the
+  pristine delta*, 8 replaced files taken as the update left them, *Wrote the original bytes back into package
+  19, 20* (root capture `after-complete`, 799 files). Timings (one run): snapshot stream 77.6 s, identity
+  51.3 s, snapshot checkpoint 155.2 s, build 602.6 s; *Downloads finished* to complete 19 min 28 s.
+- **History check:** `check_update_redownload.py` over this cycle's captures (`--expect-update 1,10,15,21
+  --expect-finish ""`; `after-finish` is the root capture once the game downloaded the four packages again)
+  passes: `after-update` plans 1, 10, 15 and 21 (12 files), as the phone did; a second plan in the same
+  session reuses the mixed-package decision (trial restores 4, then 1: the graphics inspection's own trial
+  restore is not kept, and the check now says so); `after-finish` plans nothing (refused with *No game files
+  hold a translation the patcher cannot rebuild*). The 2026-10-23 captures it was written for are gone, so
+  this run's captures replace them. The check also had to claim build ownership before `clear_build`.
+- **Indonesian:** *Start another patch* starts a run in the selected language at once (as on 2026-11-13); Stop
+  safely during Root preparation (00:45:59) stopped it with nothing written (*Stopped safely*), though the
+  result records a bare `Check failed.` from `RunStore.bind`, which checks that the run may continue: a stop
+  that lands between preparation and authorization surfaces there instead of as *Preparation cancelled* (wording
+  only, not fixed). Picking *Bahasa Indonesia* redrew the screen at once; the EN to ID switch (run `10c70338`,
+  00:47–01:05:59) showed every step, the result card and its buttons in Indonesian (*Patch selesai. Aplikasi
+  game tidak diganti.*, 398/318, 1 table and 0 textures skipped, *Rebuilt 11 files from the pristine delta*);
+  the activity log lines stay English, as recorded on 2026-11-13. Screens: `screens/en-*.png`, `id-*.png`.
+- **Evidence:** `D:/scratch/hok-ac-loopguard2/` (`trace-full.log`, `cut1.log`, run records, `cycle/`,
+  `rcap/`, `history.log`, `screens/`).
+- **Verdict:** pass. The count holds across an automatic re-plan, and the follow-up runs before the screen
+  refreshes. Limits: one phone, one cut on this build, single-run timings.

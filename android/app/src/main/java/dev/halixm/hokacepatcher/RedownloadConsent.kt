@@ -67,6 +67,18 @@ object RedownloadConsent {
         state == AWAITING && deleteAttempts < 2 && packages.isNotEmpty() && packages.none { it in redownloaded }
 
     /**
+     * Whether a new approval as [source] keeps the run's [DELETE_OPERATION] count. Only the user's own approval
+     * re-arms the deletion budget. An automatic approval that replaces an unconsumed plan ([previousState] is
+     * not [DELETED] or [DOWNLOADS_CONFIRMED]: its deletion was interrupted, or never finished) keeps the count,
+     * so a deletion interrupted twice waits for the user even when the rollback changed the plan's digest
+     * (phone run 2026-11-18: without this, a re-measured plan reset the count and a third deletion began by
+     * itself). After a consumed plan the next automatic plan starts with a fresh budget.
+     */
+    @JvmStatic
+    fun keepsDeleteAttempts(source: String, previousState: String?): Boolean =
+        source == APPROVAL_AUTOMATIC && previousState != null && previousState !in CONSUMED
+
+    /**
      * A confirmed Re-download download counts as the user's source-download answer only for this run's own
      * deletion: the run may continue, its plan is in [DOWNLOADS_CONFIRMED], and that plan is the last one the
      * session journal records as deleted ([deletedPlanSha256]). Anything else (a declined, approved,
