@@ -5704,3 +5704,39 @@ phone that watched `files/trace.log`.
   copies), the 2.9 GB snapshot and the build's work, comes to roughly 16 GB. The phone's SD card cannot hold
   any of it: the coordinator works only in app-private internal storage (`RunStore.privateRoot`), and the card
   is exFAT, mounted `noexec`, with no owner or SELinux labels.
+
+## 2026-11-18 — Changed engine/game real controls, offline — pass
+
+- **Tool:** new `tools/research/check_changed_input_controls.py`. It drives the real `android_bridge`
+  checkpoint functions (`checkpoint_identity`, `snapshot_checkpoint`, `build_checkpoint`,
+  `inspect_build_checkpoint`, `copy_completed_checkpoint`) on the Android debug build's own engine assets at
+  `0d59ba5`, checked against this checkout's `tools/`. Only the Kotlin side is stood in for: the measured live
+  files, the producer record and the target. Game A is the pristine 1.8.0.1 dump
+  (`dist/HOK ACE Patcher Data/pristine/20261029-1.8.0.1`, with the cached `installed.apk`), game B the
+  pristine 1.10.1.2 dump (`20261118-1.10.1.2`, its own `normal.apk`). English, five real builds.
+- **Results, 15/15 PASS** (`D:/scratch/hok-ac-controls2/report.json`):
+  - Same inputs: the saved build is reused with no staging call.
+  - Game A to B: the identity over the old snapshot is refused (`Snapshot differs from current measured game
+    files`) and so is the old build (`Inputs changed`). The rebuild in the continued session equals a fresh
+    build of B in a new session: 14 files, the same staged hashes, delta entries, bodies, counts and skipped
+    lists (tables 107, translated 189211).
+  - Same-size game change (one hash of `packages/0/0.db` at the same size): refused.
+  - Engine change (取消 "Cancel" to "CANCEL" in the English catalog's `unique` table): the saved build is refused
+    (`Inputs changed`), the completed-output copy is refused (`Completed build inputs changed: translation`)
+    and the snapshot is kept. The rebuild equals a fresh build with that engine, and differs from B's build in
+    `1/1_0.db`, so the change reaches the output.
+  - Same-size engine change (one byte of a comment in `tools/languages.py`): refused under the old producer
+    (`Current engine differs from producer evidence`), and the saved build is refused.
+  - Windows: `windows_producer_identity` over three copies of `app`/`tools`/`resources` (base, catalog change,
+    same-size change) gives three different keys, and a staged receipt published under the base producer is
+    refused under each of the other two (`Inputs changed`).
+- **Build times** (s): A 112; B rebuild 114, fresh 115; engine-2 rebuild 131, fresh 109. One run each, the same
+  PC; not a performance comparison.
+- **First run, discarded:** it changed an `english_updates` row. That edit is refused as an input change, but
+  it never reached the output (`changed_files: []`): an update replaces only a previously installed
+  translation, so a build from pristine data never applies it. The tool now changes a `unique` row and fails
+  if the output does not move. Its Windows fixture also lacked the summary and output manifest a staged
+  receipt needs; it now writes the layout `Checkpoints.publish_build` writes.
+- **Not covered:** a changed engine reached through the Kotlin coordinator on a phone, and a real Windows
+  build reused across an engine change (the Windows case checks the identity and the receipt only).
+- **Verdict:** pass.
