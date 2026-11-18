@@ -5551,8 +5551,31 @@ captures used an external wrapper that normalized that one form.
 
 - **Change:** `capture` normalizes it itself, only for `mode` `added-from-apk` with a path ending
   `prime/<package_id>`; `compare` no longer gates on the `normalizations` list.
-- **Run:** English, `--apk`, the 1.8.0.1 fixture, this checkout: build 53 s, capture 23 s, 15 output files.
-- **Result:** compare PASS against both Pass 2 English captures (baseline `f369e14` and that pass's current
-  tree), made through the wrapper. The Pass 2 Indonesian baseline against it FAILS (delta, output, summary),
-  so the compare still separates outputs.
-- **Limit:** single English run; Indonesian was not rebuilt.
+- **Runs:** `--apk`, the 1.8.0.1 fixture, this checkout, 15 output files each:
+
+| Language | Build | Capture | Against Pass 2 same language (baseline `f369e14`, current) | Against Pass 2 other language |
+|---|---|---|---|---|
+| English | 53 s | 23 s | PASS, PASS | FAIL (delta, output, summary) |
+| Indonesian (`resources/catalog_id`) | 84 s | 32 s | PASS, PASS | FAIL (delta, output, summary) |
+
+- **Verdict:** pass. The Pass 2 captures were made through the wrapper, so the built-in normalization gives
+  the same reports, and the compare still separates the two languages.
+- **Limit:** single run per language.
+
+## 2026-11-18 — Legacy (schema-1) session recovery retries on Android: review — keep unchanged
+
+Ticket 14 left the safety-only retry policy of schema-1 sessions as it was and made any migration a review
+gate. A schema-1 session is an interrupted session written by an Android patcher from before run records,
+so it has no RunStore record and no `initial plus one` safety budget. Code read at `c132935`:
+
+| Question | Finding | Where |
+|---|---|---|
+| Can it start or continue a patch? | No: no run id, so the worker accepts it for safety recovery only | `PatchWorkerService.dispatchRun` |
+| Is a failed recovery retried by itself? | No: the result carries no `run`, so `retryAutomatically` returns false and the automatic flow stops | `MainActivity.retryAutomatically` |
+| What does one attempt do? | Checks the access APK is installed and that there is space, then installs the normal APK and verifies it | `PatchCoordinator.recoverLocked`, `restoreNormalAfterFailure` |
+| What starts an attempt? | The player: **Restore interrupted patch**, or the automatic route after they tap Start | `GuidedHome`, `AutomaticRoute.choose` |
+
+- **Verdict:** keep unchanged (user decision, 2026-11-18). Repeated attempts come only from the player,
+  and each one is the restoring install. A budget would need a new counter in the schema-1 journal for a
+  case that exists only on phones that updated the patcher mid-run.
+- **Limit:** review only; no schema-1 session was run on a phone or emulator.
