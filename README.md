@@ -175,6 +175,7 @@ There is no general test suite. Choose the check that matches your change:
 | Run artifact identities | `.venv\Scripts\python.exe tools\research\check_run_artifacts.py` | Repository only; also fails if a tracked file under `app/`, `tools/` or `resources/` has a non-ASCII name |
 | Windows interruption fixtures | `.venv\Scripts\python.exe tools\research\check_windows_recovery.py` | Synthetic private files only; expected failures track known recovery gaps |
 | Baseline/change output controls | `.venv\Scripts\python.exe tools\research\compare_continuation_controls.py --help` | Capture external staging hashes, normalized summary and pristine delta; compare reports made with matching inputs |
+| Control-capture normalization | `.venv\Scripts\python.exe tools\research\check_continuation_controls.py` | Repository only |
 | A change requiring screen verification | [Device cycle](docs/runbooks/device-cycle.md) | Phone and matching game data |
 
 Run both documentation checks after moving or renaming a doc. Offline checks verify file

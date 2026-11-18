@@ -5542,3 +5542,17 @@ had Chinese names. A None identity turns off snapshot, build and signing reuse f
 - **Guard:** `check_run_artifacts.py` now fails on any non-ASCII tracked path under those three folders;
   a temporary file with a Chinese name, added under `tools/research/` with `git add -N`, made it fail as expected.
 - **Limit:** untracked files in those folders are hashed too, so a local non-ASCII file still returns None.
+
+## 2026-11-18 — `compare_continuation_controls.py capture` on an APK build — pass after fix
+
+`capture` refused every build run with `--apk`: a package added from the APK records
+`source_package` as `<work>/prime/<id>`, outside `WXQ_Data/Package/builtin/`. The Pass 2 parity
+captures used an external wrapper that normalized that one form.
+
+- **Change:** `capture` normalizes it itself, only for `mode` `added-from-apk` with a path ending
+  `prime/<package_id>`; `compare` no longer gates on the `normalizations` list.
+- **Run:** English, `--apk`, the 1.8.0.1 fixture, this checkout: build 53 s, capture 23 s, 15 output files.
+- **Result:** compare PASS against both Pass 2 English captures (baseline `f369e14` and that pass's current
+  tree), made through the wrapper. The Pass 2 Indonesian baseline against it FAILS (delta, output, summary),
+  so the compare still separates outputs.
+- **Limit:** single English run; Indonesian was not rebuilt.

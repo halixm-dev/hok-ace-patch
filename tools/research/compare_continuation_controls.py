@@ -3,8 +3,9 @@
 Capture after each successful build with the SAME pristine input and dependencies:
   python compare_continuation_controls.py capture --staged OUT --pristine BUILTIN --apk APK --report FILE
 Then compare the two reports. Only packages[*].source_package absolute roots are
-normalized; all other summary fields, payload files, delta ranges and asset bodies
-remain comparison gates. This is research tooling, never shipping code.
+normalized: a built-in package to `<builtin>/<id>`, a package added from the APK
+(`<work>/prime/<id>`) to `<work>/prime/<id>`. All other summary fields, payload files,
+delta ranges and asset bodies remain comparison gates; `normalizations` is metadata. This is research tooling, never shipping code.
 """
 from __future__ import annotations
 
@@ -21,6 +22,8 @@ sys.path.append(str(ROOT / "resources" / "runtime"))
 import pristine_delta  # noqa: E402
 
 SUMMARY = "device_patch_summary.json"
+NORMALIZATIONS = ["packages[*].source_package: builtin-relative",
+                  "packages[*].source_package: added-from-apk prime-relative"]
 
 
 def _digest(data: bytes) -> str:
@@ -45,6 +48,12 @@ def _summary(value: dict) -> dict:
         if "source_package" in package:
             path = package["source_package"].replace("\\", "/")
             marker = "/WXQ_Data/Package/builtin/"
+            if package.get("mode") == "added-from-apk" and marker not in path:
+                # extract_prime copies the APK's package to <work>/prime/<id>.
+                if path.rsplit("/", 2)[-2:] != ["prime", str(package.get("package_id"))]:
+                    raise ValueError(f"unrecognized prime source path: {path}")
+                package["source_package"] = "<work>/prime/" + path.rsplit("/", 1)[1]
+                continue
             if marker not in path:
                 raise ValueError(f"unrecognized summary source path: {path}")
             relative = path.rsplit(marker, 1)[1]
@@ -72,7 +81,7 @@ def capture(staged: Path, pristine: Path, apk: Path) -> dict:
                                           "sha256": _digest(data)} for size, data in body.chunks]}
                         for name, body in sorted(kept.items())}
               for package, kept in sorted((delta.bodies or {}).items())}
-    return {"schema": 1, "normalizations": ["packages[*].source_package: builtin-relative"],
+    return {"schema": 1, "normalizations": NORMALIZATIONS,
             "pristine": source,
             "apk": {"size": apk.stat().st_size, "sha256": pristine_delta.sha256_file(apk)},
             "output": output, "summary": _summary(raw_summary),
@@ -111,7 +120,9 @@ def main() -> int:
     changed = json.loads(args.changed.read_text(encoding="utf-8"))
     if baseline.get("schema") != 1 or changed.get("schema") != 1:
         parser.error("Unsupported control schema")
-    keys = sorted(set(baseline) | set(changed))
+    # Which normalizations a capture applied is metadata, not output; a report from an
+    # older capture differs there only and stays comparable.
+    keys = sorted((set(baseline) | set(changed)) - {"normalizations"})
     differing = [key for key in keys if baseline.get(key) != changed.get(key)]
     print("FAIL differing sections: " + ", ".join(differing) if differing
           else "PASS identical input, output, normalized summary and pristine delta controls")
