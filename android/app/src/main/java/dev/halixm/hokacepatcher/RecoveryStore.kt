@@ -7,7 +7,7 @@ import org.json.JSONObject
 
 /** Retain independently verified normal APKs, separate from source/access APKs and build outputs. */
 class RecoveryStore(private val context: Context) {
-    private val root = File(context.filesDir, "recovery")
+    private val root = File(RunStore.privateRoot(context), "recovery")
 
     fun normal(id: String): File {
         require(id.matches(Regex("[0-9a-f]{64}"))) { "Invalid recovery identity" }

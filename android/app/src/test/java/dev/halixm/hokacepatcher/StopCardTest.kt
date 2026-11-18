@@ -25,12 +25,11 @@ class StopCardTest {
         assertEquals(Exit.REDOWNLOAD_MIXED, error("PatchError: ${StopCard.UPDATE_MIXED}: package 15"))
     }
 
-    @Test fun aPatchRunReviewsStuckMixedAndUnreachableFiles() {
+    @Test fun aPatchRunDeletesStuckAndMixedFilesItself() {
         assertTrue(StopCard.damagedFiles("com.chaquo.python.PyException: PatchError: ${StopCard.UPDATE_STUCK}: package 1 (332 assets)"))
         assertTrue(StopCard.damagedFiles("PatchError: ${StopCard.UPDATE_MIXED}: package 15"))
         assertTrue(StopCard.damagedFiles("PatchError: ${StopCard.PACKAGE_UNREACHABLE}: package 15"))
-        assertEquals(Exit.REDOWNLOAD_MIXED, error("PatchError: ${StopCard.PACKAGE_UNREACHABLE}: package 15"))
-        assertFalse(StopCard.damagedFiles("15_0.db: slot 0x1dd2c4 (key DD242E3E) not in the B-tree"))
+        assertFalse(StopCard.damagedFiles("RuntimeError: 15_0.db: slot 0x1dd2c4 not in the B-tree"))
         assertFalse(StopCard.damagedFiles("PatchError: ${StopCard.UPDATE_WAITING}: package 1"))
         assertFalse(StopCard.damagedFiles("PatchError: ${StopCard.DOWNLOAD_UNFINISHED}: package 1"))
         assertFalse(StopCard.damagedFiles("PatchError: ${StopCard.CLEAR_DATA}"))
@@ -43,6 +42,12 @@ class StopCardTest {
     // Xiaomi M2007J3SG, 2026-10-29: package 1060101007's folder without its index.
     @Test fun aPackageStillDownloadingWaitsForTheGame() {
         assertEquals(Exit.WAIT_FOR_GAME, error("PatchError: ${StopCard.DOWNLOAD_UNFINISHED}: package 1060101007"))
+    }
+
+    // Ticket 13: no Open game while unfinished work is unresolved; recovery comes first.
+    @Test fun aDownloadWaitWithUnfinishedWorkRecoversBeforeOpenGame() {
+        assertEquals(Exit.RECOVERY, error("PatchError: ${StopCard.UPDATE_WAITING}: package 1", pending = true))
+        assertEquals(Exit.RECOVERY, error("PatchError: ${StopCard.DOWNLOAD_UNFINISHED}: package 1", pending = null))
     }
 
     @Test fun aProviderRefusalOffersStartEvenWithWorkPending() {
@@ -78,5 +83,41 @@ class StopCardTest {
 
     @Test fun onlyTheUpdateCardsReplaceTheStopsOwnLine() {
         assertEquals(setOf(Exit.REDOWNLOAD_STUCK, Exit.REDOWNLOAD_MIXED, Exit.WAIT_FOR_GAME), Exit.entries.filter(StopCard::ownCard).toSet())
+    }
+
+    // Phone f15a72e, 2026-11-12: an update stuck on translated files never offers Re-download over unfinished work.
+    @Test fun aStuckOrMixedUpdateWithUnfinishedWorkRecoversBeforeRedownload() {
+        assertEquals(Exit.RECOVERY, error("PatchError: ${StopCard.UPDATE_STUCK}: package 1", pending = true))
+        assertEquals(Exit.RECOVERY, error("PatchError: ${StopCard.UPDATE_MIXED}: package 15", pending = null))
+    }
+
+    private fun wait(status: String? = "waiting", pending: Boolean = false, mayContinue: Boolean = true,
+                     waiting: String? = null, sourceDownloads: String? = null, needsAnswer: Boolean = false,
+                     state: String? = null) =
+        StopCard.savedWait(status, pending, mayContinue, waiting, sourceDownloads, needsAnswer, state)
+
+    @Test fun aConsistentSavedActionShowsItsWait() {
+        assertEquals(StopCard.Wait.STORAGE, wait(waiting = "storage"))
+        assertEquals(StopCard.Wait.SOURCE_DOWNLOADS, wait(sourceDownloads = "required"))
+        assertEquals(StopCard.Wait.REDOWNLOAD_ANSWER, wait(needsAnswer = true, state = RedownloadConsent.AWAITING))
+        assertEquals(StopCard.Wait.REDOWNLOAD_DOWNLOAD, wait(state = RedownloadConsent.DELETED))
+        assertNull(wait())
+    }
+
+    // Phone f15a72e, 2026-11-12: recovery_required with the access APK installed showed "Review Re-download".
+    @Test fun requiredRecoveryLeadsBeforeEveryWait() {
+        val status = "recovery_required"
+        assertNull(wait(status = status, needsAnswer = true, state = RedownloadConsent.AWAITING))
+        assertNull(wait(status = status, sourceDownloads = "required"))
+        assertNull(wait(status = status, state = RedownloadConsent.DELETED))
+        assertNull(wait(status = status, waiting = "storage"))
+        assertNull(wait(pending = true, needsAnswer = true, state = RedownloadConsent.AWAITING))
+        assertNull(wait(pending = true, sourceDownloads = "required"))
+        assertNull(wait(pending = true, state = RedownloadConsent.DELETED))
+        assertNull(wait(pending = true, waiting = "storage"))
+    }
+
+    @Test fun aStoppedActionOffersNoWait() {
+        assertNull(wait(mayContinue = false, needsAnswer = true, state = RedownloadConsent.AWAITING))
     }
 }

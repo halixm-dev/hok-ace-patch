@@ -5145,6 +5145,152 @@ Rollback completed: package 19 restored from the phone backup; shard SHA1 again 
 - **Repository checks:** `check_ui_strings.py` (400 shared keys), `check_references.py`,
   `check_staging_contract.py` and scoped `git diff --check` all pass.
 
+### 2026-11-12 — Automatic continuation, corrected Wireless build and apply
+
+Phone `f15a72e` (Xiaomi M2007J3SG, Android12), Wireless provider uid2000, patcher vc100,
+full codecs, installed patcher SHA256 `0d680ed2c8f4a3b763f3ad13a4809782a4abb0f574fd749835ede34935f7431a`.
+Run `63ff0ad4-1b7e-44a8-9ed1-bbbe1dcb63fb`, final attempt
+`f95fb7c3-9f3b-4dc9-901a-c43ac68b61ea`, completed16:30:07 WIB.
+
+The prior real build failed because final payload validation counted the runtime's
+`package1_stage_manifest.json` as a game file. All14 private staged package hashes independently
+matched their recorded hashes. A regression reproduced the exact failure; strict separation of
+known retained runtime diagnostics from payload passed18 bridge checks. Unknown extras, malformed
+reports, changed payload and receipt corruption remain refused. No runtime binary was edited.
+
+| Observation | Result |
+|---|---|
+| Result counts |398 text tables;318 textures applied;1 table skipped;0 textures skipped|
+| Full source / applied manifest |794 originals /790 expected files after Watchdog clearing|
+| Writes / identical skips |11 files,943,570,944B /3 files,6,635,520B|
+| Measured coordinator time |647.399s (single retry observation, including audits)|
+| Minimum sampled free space |4,115,369,984B|
+| Maximum sampled RSS |973,788KiB; lifetime high water1,052,932KiB|
+| Normal APK |Full SHA256 matches pinned `29b3ee7e5a0d21de7d1282d704416402d341b651da95af2eeb5b274c818defdc`; debuggable=false|
+| Kept pristine delta |55,029,830B;14 entries;751 asset fingerprints;49,756,557B kept bodies|
+| Delta SHA256 |`b5eeb8214a6152d71e962ef944ae8049c0559dd7ba4191ca8b9394e55d80fb6c`|
+
+RunStore/journal agree complete, full payload and normal APK verified, metadata finalized with no
+pending intent, receipt outcome verified_complete. Independently rehashed active delta/staged record
+match completion; copied delta decodes and copied applied manifest exactly equals receipt.expected.
+Raw evidence: `D:/scratch/hok-ac-pass2/device-cycles/c2-fixed-20261112-1630` (run, journal, completion,
+applied manifest, resource metrics, trace, delta and staged record). No comparative speed claim.
+User confirms normal launch, reports some Chinese and an update to1.10.0.2 on launch. New update
+translation coverage and further real interruption/provider gates remain open; this is one cycle,
+not a release verdict.
+
+### 2026-11-12 — Follow-up run blocked by storage before C3
+
+User finished the1.10.0.2 update and started run `e64b26df-33c6-48fa-9ee3-8a9963fb01ba`.
+The planned build interruption was not performed: the snapshot storage gate refused first.
+
+| Observation | Evidence |
+|---|---|
+| Required / initially available |8,214,798,243B /4,489,297,920B|
+| Previous resolved session retained |4,666,457KiB; snapshot3,037,880KiB; build-attempts1,628,107KiB|
+| Unexpected automatic retry |Snapshot attempts2; access installs2; recovery normal restores2|
+| Settled state16:42 |Run waiting explicit_retry; journal CANCELLED; normal_verified=true; packages_dirty=false; service stopped|
+| Independent safety read-back |Installed normal SHA256 `29b3ee7e...defdc`; active delta `b5eeb821...fb6c`; staged record `78a54b0d...e078`, all unchanged from C2|
+
+Raw interim evidence: `D:/scratch/hok-ac-pass2/device-cycles/c3-storage-20261112`.
+Storage must wait without automatic operation retries; explicit Free up space must be able to evict
+the removable newest resolved cache. Focused corrections/tests in progress. No phone cache or delta
+was deleted. C3 and changed-data output verification remain open.
+
+## 2026-11-12 — Recovery log: package 15 graphics relocation, reproduction pending
+
+Source: `recovery-log/hok-ace-recovery-log-latest.txt`, exported by Android patcher
+1.10.1.1 (101) on Redmi 2312DRA50G. Export timestamps use +0900; this entry uses
+the investigation date in Asia/Jakarta. Raw exported journals are unvalidated evidence.
+
+| Check | Observation |
+|---|---|
+| Latest failure | `qts_relocate._repoint` through `port_graphics`: `15_0.db: slot 0x1dd2c4 (key DD242E3E) not in the B-tree` |
+| Reported recovery | Normal APK verified afterward; latest journal says `CANCELLED`, `packages_dirty=false`, no committed files |
+| Available comparison | `D:/scratch/hok-1.0.9.1/game/WXQ_Data/Package/builtin/15`: the same slot/key belongs to texture `0111F5872C9B2275` and is live |
+| Offline replay | `.venv/Scripts/python.exe .scratch/graphics-btree/reproduce.py --package D:/scratch/hok-1.0.9.1/game/WXQ_Data/Package/builtin/15` passes in 3.80 s: real `port_graphics` writes one texture, and `QtsPackage`/`read_raw` reads back exactly the expected translated bytes |
+| Device availability | ADB lists M2007J3SG, not the affected Redmi. No device game files or patcher state changed |
+
+The replay uses a temporary package copy, removed on exit. Initial sandbox execution
+was blocked creating its temporary output; the permitted offline replay passed.
+No command has reproduced this failure against the affected phone's bytes, so the
+diagnosis remains at Phase 1: no ranked hypotheses or shipping fix. Need the failing
+package `15` directory (`15.db` and every shard), ideally from its saved snapshot,
+and its pristine delta if asset restore participates. The export reports that the
+latest run's temporary snapshot was removed. No regression claim or device verdict.
+
+### 2026-11-12 — Recovery-log follow-up: scoped fallback, not an updater diagnosis
+
+The user cannot connect the Redmi and asked for targeted Re-download recovery. Investigated the
+failure-handling boundary rather than claiming to reconstruct the missing corruption history.
+
+| Hypothesis / check | Measured result |
+|---|---|
+| Generic staging error bypasses recovery | Red run of `check_unreachable_redownload.py`: exact logged RuntimeError escaped the real `build_checkpoint` seam instead of becoming a recoverable PatchError |
+| Typed failure can preserve measured scope | Green: 8 cases pass in 2.585 s; exact failure → verified package 15 → failed-attempt reset → real planner, 3 files only; source manifest unchanged; discovery writes no deletion record |
+| Cleanup / stale evidence | Parent-session marker survives reset. Changed engine, delta records or verified snapshot, malformed marker, plain error-text lookalike and a package absent from the snapshot offer no plan |
+| Existing checkpoint invariants | `check_bridge_continuation.py`: 25 cases pass in 28.689 s |
+| Relocation compatibility | `check_btree_split.py`: 3 cases pass in 0.694 s; healthy real package-15 texture replay passes again in 6.95 s |
+| Android recovery routing / download answer | Focused `StopCardTest` (18) and `RedownloadSourceAnswerTest` (3): 21 JVM cases pass; build successful in 53 s |
+| Shared copy and contracts | `check_ui_strings.py`: 400 bilingual strings pass; references resolve; staging contract check passes |
+
+`UnreachableSlot` retains the error's path, key and offset. Android accepts only a shard inside this
+attempt's staged package with the same shard in the verified snapshot. `package-refused.json` binds
+the refusal to that snapshot, resolved path, engine and kept delta/records. Existing exact-plan approval,
+live hash checks, journaled deletion, rollback, normal APK restoration and download readiness remain.
+
+User then requested **Review Re-download and direct deletion → open the game to download → return and
+continue**. The card now shows scope and consequences before **Delete and re-download**, without an
+extra dialog. That tap approves the displayed run id and digest; a changed plan is shown again.
+The download card offers **Open game** and **Downloads finished**, with direct continuation on the
+latter. Returning alone grants nothing. Old declined plans remain reviewable, and Stop still applies.
+
+An isolated emulator preview uses app-id suffix `.recoverypreview`; its build plus instrumentation
+APK compile successfully in 3 min 41 s. No connected-phone game files or installed patcher state
+were modified. English recovery review and download screenshots were inspected without clipping.
+API-36 emulator instrumentation completed in 308.154 s: **26 tests pass** (`HomeStatesCaptureTest`
+and `RunStoreProbeTest`). All 38 home-state captures fit at font scale 1.0 in English and Indonesian.
+Direct review, Open game and Downloads finished button routing passes; a following completed result
+resets the reused secondary button to Start. Store probes include changed-digest rejection, Stop,
+spent approvals and the one-snapshot source-download answer. The four new review/download screenshots
+were visually inspected in both languages, with no clipped text. Screenshots are retained under
+`.scratch/graphics-btree/ui-captures/`. These probes performed no game-file writes, package deletion,
+game installation or game launch.
+The emulator was closed afterward. A normal `:app:assembleDebug` then passed in 21 s, restoring the
+standard output APK to application id `dev.halixm.hokacepatcher`; the preview suffix is not shipped.
+
+This is a recovery fallback. The older patcher's role and the affected Redmi's original package bytes
+remain unverified; no affected-device deletion, game download or resumed patch cycle was performed.
+
+### 2026-11-12 — One review checks mixed packages and missing texture slots
+
+User asked to check both before deletion, avoiding mixed-package recovery followed by a second
+Re-download for package 15. The existing `_restore_pristine` refusal precedes texture staging, so
+merging only previously recorded errors could not discover that later problem.
+
+| Check | Result |
+|---|---|
+| Red loop | `check_unreachable_redownload.py UnreachableRedownload.test_mixed_refusal_also_finds_broken_graphics_before_any_build`: FAIL in 0.263 s; review contains mixed package 19 but omits package 15 |
+| Minimal seam | Actual planner and current B-tree bytes; synthetic index reader returns the exact logged missing key/slot; no game or full historical corruption simulation |
+| Combined-discovery regression | Expanded suite: 15 tests pass in 4.608 s; mixed + broken graphics share a plan; multiple broken packages collected; live slots and packages repaired by a real file delta are not added; incomplete mixed/tree inspection refuses a partial plan |
+| Healthy real data | Read-only scan of `D:/scratch/hok-1.0.9.1/game/WXQ_Data/Package/builtin`: 290 packages, 402 graphics targets from both catalogs, zero false deletion candidates in 14.99 s |
+| Checkpoint compatibility after final inspection guard | 25 bridge checks pass in 36.743 s |
+| B-tree compatibility | 3 synthetic split checks pass in 1.267 s |
+| Android build | Normal `:app:assembleDebug` passes in 2 min 10 s; APK producer hash matches the current bridge and its packaged B-tree checker matches the current source |
+| Copy and contracts | 402 bilingual strings pass; staging contract and reference checks pass; scoped diff has no whitespace errors |
+| Historical mixed-update cycle | Not rerun: `D:/scratch/hok-update-cycle/after-update/capture.json` is unavailable. Its research engine setup now includes both catalogs needed for candidate enumeration |
+
+The ranked predictions were inspection before review finds both problems, reconstructing a suspect
+before selecting it avoids a needless deletion, and collecting failures finds all broken packages
+rather than only the first. All pass at the planner seam. `unreachable_slots` reads only current tree
+metadata through the corrected slot map. `_inspect_graphics_packages` scans packages not already in
+the stuck/mixed/recorded-failure plan; suspect delta packages are rebuilt or asset-restored in private
+disposable copies and checked again. No completed inspection record is kept outside the bound plan.
+Both mixed and graphics inspections must finish; neither unknown result is silently dropped.
+
+No live game bytes, normal/access APK behavior, consent, plan identity, rollback, update readiness or
+UI flow changed. This inspects current reachable texture chunks; it cannot predict an unrelated
+future staging failure or a later game update. The affected Redmi's recovery cycle remains untested.
 
 ## 2026-11-12 — Recovery-only release for missing texture slots
 
@@ -5189,3 +5335,494 @@ file-delta reconstruction are real. Nothing was installed or deleted on the conn
 Future updates or unrelated failures can still need another repair; one combined review is not a
 promise that all possible corruption is detectable. The reported Redmi's real deletion/download/
 repatch cycle remains unverified.
+
+Superseded on `feat/automatic-continuation`: the merge of this release keeps the combined
+scope but deletes it automatically (see the 2026-11-13 entries below); the inline review card and the
+`review_redownload` bridge call were not carried over.
+
+## 2026-11-12 — Automatic continuation: Wireless debugging interruption cycles C3–C8 — pass
+
+Phone `f15a72e` (Xiaomi M2007J3SG, Android 12), Wireless debugging provider (worker uid 2000), game
+data 1.10.0.2 then the 1.10.2 lobby after a scoped Re-download, normal APK `29b3ee7e…` throughout. The
+first C3 ran on the build installed before 18:05 (SHA-256 `c7f24249…`); every later cycle ran on
+patcher `a4dff827…` (build fixes-1920, signed `555f2ff4`). Probes on `a4dff827…`: `RunStoreProbeTest`,
+`StorageRetentionProbeTest`, `EngineProbeTest`, **OK (35 tests)**
+(`D:/scratch/hok-ac-pass2/logs/fixes-1920-probes.log`). Where the cycle names a forced interruption, the
+coordinator caused it from the host (`am force-stop`, or killing the `:worker` process) at the stated
+progress line. Evidence: the coordinator log (the feature's scratch `coordinator.md`, in git history before its promotion to [automatic-continuation](features/automatic-continuation.md)), raw
+captures under `D:/scratch/hok-ac-pass2/device-cycles`.
+
+| Cycle | Run | What was done | Result |
+|---|---|---|---|
+| C3 force-stop during build | `248572aa` | Force-stop at 18:22:13, about 100 s into `build_checkpoint` (access APK installed, no game write) | Reopen 18:22:38 resumed the saved action (*Resuming the saved action after restart: CONTINUE*), one worker, snapshot reused (44 s, no recopy), fresh build attempt. **Pass** for continuation. Defect: `reset_checkpoint_attempt` raised `FileNotFoundError` on a killed attempt without `build-owner.json` (non-fatal); fixed in the bridge (`check_bridge_continuation` 21/21) |
+| Scoped Re-download | `248572aa` | Reviewed approval after `UPDATE_STUCK` package 1 | 3 files of package 1 deleted, normal APK restored, game updated to the 1.10.2 lobby, *Downloads finished*. **Pass**. A build refusal *Snapshot, kept delta or pinned APK changed during build* (`redownload.json` unlinked mid-build) was fixed in `a4dff827…`; the automatic retry rebuilt 9 files and kept the 2 update-replaced files |
+| C4 Stop during apply | `248572aa` | Stop at 19:13:59 | Both payload files (`1/1.db`, `1/1_0.db`) had finished; `stopped_consistent`. The journal shows `patch_payload_verified=true`, `finalized=true`, so the game kept the translation while the home said *Stopped safely*. Copy defect, fixed in the next entry |
+| ID, then ID again | `a123804e`, `48fcabc6` | Indonesian Start, then a repeat | Complete 398/318, 1 table skipped; wrote `1/1.db`, `1/1_0.db`, `19/19_0.db`. The repeat wrote no file (idempotent), complete |
+| C7 Stop mid-apply | `468d719c` (EN after ID) | Stop 0.3 s after *Applying 1/1.db* (20:18:51) | `1/1_0.db` written, `19/19_0.db` never. `stopped_consistent`; journal CANCELLED, `packages_dirty=false`, `normal_verified=true`; one original-hash pass over 790 files / 3.17 GB, `written_files=2`. Delta `e42eb6a8…` and staged-hash record `abc206d7…` unchanged. The next EN Start (`923ad9ad`) rebuilt 11 files from the delta, wrote 3, complete 398/318. **Pass**. Gap: no progress line named the rollback (about 3 min of *Stopping safely*), fixed in the next entry |
+| C5 worker loss mid-apply | `28932a16` (ID after EN) | Killed the `:worker` process 0.1 s after *Applying 1/1.db* (21:04) | `recovery_required` *Worker disconnected*, `packages_dirty=true`, no false *installed app changed*. Automatic retry 3 s later reconnected the same provider by port scan (21:05:08), rolled back (about 3 min), verified the normal APK, reused the verified build (*Reusing the verified build from the interrupted run*), wrote 3 files, complete 398/318. Attempts: apply 2, build 1, access_install 2, recovery_normal_restore 1, final_install 1. **Pass** |
+| C6 force-stop in the final normal install | `6a664446` (EN after ID) | Force-stop 2 s after *Restoring normal game APK* (21:38:27), game left on the access APK `593ec269…` | Reopen 21:38:46 resumed, *Restoring consistency before continuing* (about 2.5 min, no file written), normal APK restored and verified, complete 398/318. No snapshot, build or apply repeated (each attempt count 1). **Pass**. Notes: no *Kept the pristine delta* line on this path; the session has no `resource-metrics.json` |
+| C8 Remove | `93d5aad3` | Remove, one confirmation | Rebuilt the originals from the pristine delta, wrote 11 files (packages 1, 10, 15, 19, 20, 21, 1050016095), normal APK verified, *no pristine delta is kept*; complete, removed 11. `files/pristine` keeps only `staged-hashes.json`. **Pass** |
+| C3 recheck from pristine | `ddfda089` (EN after C8) | Force-stop 100 s into `build_checkpoint` (22:36:00) | Reopen 22:36:19 resumed, access already open, snapshot revalidated (85 s, no unpack), fresh build (build attempts 2, snapshot 1), *No pristine delta for this phone*, wrote 11 files, complete 398/318. No `FileNotFound`, exception or traceback line after the stop. **Pass** |
+
+- **C8 byte proof:** the EN delta that `ddfda089` built from the files exactly as Remove left them has
+  `body_sha256` `6318dd32…` and `asset_body_sha256` `257e90a5…`, identical to the EN deltas built
+  from the delta-rebuilt pristine layer (`923ad9ad`, `6a664446`). Remove restored the pristine bytes
+  exactly. The ID delta's body is `320472122d…` with the same asset body hash: ranges differ by language
+  by design. The delta file's own hash changes every run (header `info.made` and `info.language`).
+- **Timings:** each run without an interruption took 17–19 min from Start to complete (ID 19:20–19:38, ID repeat
+  19:39–19:58, EN 20:24–20:43, Remove 22:07–22:24); interrupted runs took longer by their recovery
+  (C6 21:19–21:44, C3 recheck 22:25–22:51). One observation each; no comparison with the historical
+  616–621 s, which measured other code, data and phone.
+- **Storage:** from 20:50 every run logged *Freed 5.7 GB of files left by earlier runs*: the previous
+  run's kept snapshot is released at the next run's measured shortage. Between runs the patcher holds
+  about 5.7 GB more until the next Start.
+- **Limits:** one phone, one provider. Not exercised: the home screen's priority of recovery over
+  Re-download (the automatic retry took over first). Shizuku, Root and the Windows patcher had no cycle.
+
+## 2026-11-13 — Stop reporting fix on build 21f51bb2: late Stop and mid-write Stop — pass
+
+The C4 and C7 defects above: a Stop that lands after the payload is verified now reports the
+translation as added (`WorkerStatus.afterStop`, `stopped_after_finish`), and recovery names its two
+slow steps (*Checking the original game files*, *Restoring the original game files*). Build
+stopfix-2350: app `21F51BB2…C6AE`, version 1.10.1.1, signed `555f2ff4`, built from `413a837` plus the
+uncommitted Stop fix; phone `f15a72e`, Wireless debugging, 2026-11-12 23:50 to 2026-11-13 00:38. Probes
+`RunStoreProbeTest`, `StorageRetentionProbeTest`, `EngineProbeTest`: **OK (35 tests)**
+(`D:/scratch/hok-ac-pass2/logs/stopfix-2350-probes.log`).
+
+| Case | Run | Observation | Verdict |
+|---|---|---|---|
+| Late Stop | `497229f9` (ID) | Stop at 00:12:07 during the final *Restoring normal game APK*. Result `complete`, phase CANCELLED, `stopped_after_finish: true`, counts present; the screen read *SELESAI — Terjemahan diterapkan* with the counts. After a force-stop and reopen: no resume, lifecycle stopped, continuation false | **Pass** |
+| Mid-write Stop | `f7a510aa` (EN after ID) | Stop at 00:34:10.58, between `1_0.db` and `19_0.db`. Progress: *Checking the original game files* 00:35:03, *Restoring the original game files* 00:35:39, *Restoring normal game APK*, *Normal game APK verified* 00:38:19. Result `stopped_consistent`, CANCELLED, *Stopped safely. Start when you want to patch again.*; home back to Ready with the beta caveat; the game back on the ID layer | **Pass** |
+
+- **Limits:** the screen heading stays *Stopping safely* during rollback; only the activity log shows the
+  new lines. Instrumentation beyond the three classes above was not re-run on this build.
+
+## 2026-11-13 — Old data 1.8.0.1 → 1.10.1.2: the old patcher's Re-download leaves package 15 unpatchable; the new planner repairs it — pass
+
+Reproduction of the Redmi 2312DRA50G field report on `f15a72e`, Wireless debugging, with the user's
+consent ("Use 1.8.0.1, go ahead"). Small-state backup: `D:/scratch/hok-ac-pass2/phone-backup-20261113-redownload`
+(delta `5048e550…`, runs, journals, prefs). Captures: `D:/scratch/hok-ac-pass2/device-cycles/redownload-1801`;
+logs `D:/scratch/hok-ac-pass2/logs/redownload-1801-*`.
+
+1. **Setup:** pushed pristine `20261029-1.8.0.1` (618 files equal), normal `29b3ee7e…` verified. Uninstalled
+   the patcher; MIUI refused the USB install of release 1.8.1.2 (`INSTALL_FAILED_USER_RESTRICTED`), so the
+   user installed it from Download (SHA-256 `c0f35204…`, signer `555f2ff4`).
+2. **Old patcher, then the update:** release 1.8.1.2 patched English. The in-game update went 1.8.0.1 →
+   1.10.1.2: 471 of 736 package files changed, and `BrokenList` held 68 assets (package 1: 67, package 10:
+   1). The 1.8.1.2 re-patch refused `UPDATE_STUCK` 1, 10. Its Re-download deleted packages 1, 10 and 21
+   (9 files). Every re-patch after the download failed with
+   `15_0.db: slot 0x1dd2c4 (key DD242E3E) not in the B-tree`: the field bug, reproduced.
+3. **Build 21f51bb2 over it:** it detected package 15, but `redownload_plan` crashed with
+   `ValueError: invalid literal for int() with base 10: 'builtin'` (the `packages/builtin/Globalindex`
+   folder) in `_inspect_graphics_packages`. Same bug as the Redmi report, fixed by `77461c4`
+   (hotfix/redownload-global-index, release 1.10.1.3; PR 16 merged to origin/master as `8582585`).
+   Rebuilt with the fix as `ddfed788…` (signed `555f2ff4`) and installed.
+4. **Run `c26b206d` on `ddfed788…`:** the review card showed; the user approved. It deleted `15/15.db`,
+   `15.info`, `15_0.db`, restored the normal APK and waited (`redownload_download_required`). The user
+   downloaded and tapped *Downloads finished* at 11:07. Fresh snapshot, build, applied 1, 10,
+   `15/15_0.db`, 19, 20 and 21. Complete 398/318, 1 table skipped, 0 textures skipped; *Translation added*
+   at 11:18.
+
+- **Verdict:** pass. The `15_0.db` B-tree failure is repaired end to end on a phone.
+- **Limits:** the affected Redmi itself was not available; this is the same failure from the same
+  update path on another phone.
+
+## 2026-11-13 — Automatic Re-download on build 38c31162: stuck and B-tree packages in one round — pass
+
+The user's 2026-11-13 decision: Re-download deletion runs without a review, at most once per package
+per run (`RunStore.automaticRedownloadAllowed`). Build autoredownload-1130: app `38c31162…`, test APK
+`55F9B522…`, both signed `555f2ff4`. Probes `RunStoreProbeTest`, `StorageRetentionProbeTest`,
+`EngineProbeTest`, `CoordinatorRecoveryProbeTest`: **OK (56 tests)**, but `CoordinatorRecoveryProbeTest`'s
+19 cases were fixture-skipped, so an interrupted automatic deletion was not exercised on the device
+(`D:/scratch/hok-ac-pass2/logs/autoredownload-1130-probes.log`). MIUI blocked the USB install of the new
+test package; the user installed it from Download.
+
+1. **Setup:** the first push stalled at 13:37 (an `exec-out` pull hung after a USB drop, with the access
+   APK installed); stopped, normal APK reinstalled (`29b3ee7e…` verified), push re-run into
+   `D:/scratch/hok-ac-pass2/device-cycles/autoredownload-1801b`: 618 files equal.
+2. **Old patcher, then the update:** release 1.8.1.2 patched English; the update went 1.8.0.1 → 1.10.1.2
+   (444 of 709 package files changed), `BrokenList` 68 assets in packages 1 and 10. No old re-patch this
+   time.
+3. **Run `99584a53` on `38c31162…`** (installed over 1.8.1.2, keeping its delta). The only taps: Start
+   15:22, Open game 15:43, Downloads finished 15:45.
+
+| Step (trace time) | Observation |
+|---|---|
+| Snapshot | `unpack_snapshot_stream` 56.6 s; `snapshot_checkpoint` 65.4 s |
+| Build refusal 15:30:31 | `build_checkpoint` failed after 117.8 s: *The game's update stopped on translated files: package 1 (67 assets), 10 (1 assets)* |
+| Plan | `redownload_plan` 47.9 s: packages 1, 10, 15 and 21, 12 files, 499,515,540 B, plan `fda5ab3f…` |
+| Deletion 15:31:53–15:31:59 | *Damaged game files found; deleting them so the game downloads them again*; 12 files deleted with no review. The run record has approval source `automatic`, `redownloaded_packages` [1, 10, 15, 21], `redownload_delete` 1 |
+| Wait 15:32:25 | Normal APK restored; result `waiting`, `redownload_download_required`, state `deleted` |
+| After *Downloads finished* | Continued in the same run without another tap; fresh snapshot (61.3 s), build 345.5 s: *Rebuilt 2 files from the pristine delta*; *8 file(s) the game update replaced hold none of this patcher's translation*; *Wrote the original bytes back into package 19, 20* (asset restore) |
+| Apply 15:57:51–15:58:04 | 1/1.db, 1/1_0.db, 10/10.db, 10/10_0.db, 15/15_0.db, 19/19_0.db, 20/20_0.db, 21/21.db, 21/21_0.db |
+| Complete 15:59:23 | 398/318, 1 table skipped, 0 textures skipped; *Kept the pristine delta*; *Translation added* |
+
+- **Verdict:** pass for automatic deletion and for stuck plus B-tree packages in one round; also the
+  first phone run of asset restore (packages 19 and 20).
+- **Timing:** 37 min from Start to complete, of which about 13 min was the user's in-game download.
+- **Limits:** not phone-tested: the loop-guard fallback (a package still damaged after its own download)
+  and an interrupted automatic deletion. A screen briefly showed *Finish your game safely / Continue
+  saved work* after *Downloads finished* (0.4 s, then it continued on its own).
+
+## 2026-11-13 — Android Remove after the automatic cycle — pass
+
+Run `665f5998`, 16:44, `f15a72e`, Wireless debugging, patcher `38c31162…`: complete, removed 11, pristine
+delta cleared (only `staged-hashes.json` kept), normal `29b3ee7e…` verified. The phone now holds the
+pristine 1.10.1.2 layer and the Android patcher with no delta. No byte proof is recorded for this
+Remove; the C8 byte proof above is on the 1.10.2 data.
+
+## 2026-11-17 — Append pass checked offline on 1.8.0.1: re-run adds nothing, existing assets unchanged — pass
+
+`tools/research/check_append.py --game <pristine 1.8.0.1 game> --apk installed.apk` (APK `29b3ee7e…`,
+the one every local pristine snapshot was read with), English catalog, staged to a temporary folder.
+
+| Package | First run | Second run over the same output | Existing assets after |
+|---|---|---|---|
+| `1` | 287 of 288 appended; `3A70308AAF6F18F8` refused by the encoder (the known refusal) | 0 appended; the same 1 refusal reported again | 453 of 453 read back byte-identical |
+| `1050016095` | 71 of 71 textures appended | 0 appended, 0 skipped | 2 of 2 read back byte-identical |
+
+- **Verdict:** pass. A re-run re-offers what the encoder refused and reports it again, because that
+  asset still stays Chinese; it appends nothing twice.
+- **Synthetic cases** (7, run in CI): a `TreeFull` package lands in `append_skipped` and the run goes
+  on; the copy the pass created is removed and an earlier pass's copy kept; a re-run appends only what
+  the staged copy lacks; refused shares are reported. Each case was shown to fail on a mutated
+  `add_prime_only` (staged entries not subtracted, `TreeFull` not caught, the created copy left behind,
+  an earlier copy removed).
+- **Not covered:** a real `TreeFull` (no local layer has a leaf at 510 keys) and a multi-shard device copy.
+
+## 2026-11-17 — What the frozen exe needs from `app/build_exe.py`: `HIDDEN_IMPORTS` yes, two codec collections no
+
+Four builds of `app/build_exe.py` (PyInstaller 6.22.3, `pyinstaller-hooks-contrib` 2026.7, Python 3.12,
+Windows 11), each followed by the frozen `--smoketest`, which imports the pipeline and the runtime's
+`adaptive`, `qtsvfs` and `unity_package_installer`, reads both catalogs and runs lz4, zstandard, pypinyin,
+an ASTC encode and decode and a PNG save once:
+
+| Build | `--smoketest` |
+|---|---|
+| unchanged | pass, about 10 s |
+| without `--collect-all pypinyin` | pass: pypinyin ships its own hook (`pypinyin/__pyinstaller/hook-pypinyin.py`) |
+| without `--collect-all astc_encoder` | pass: PyInstaller still bundles all four CPU variants (`_encoder_avx2/none/sse2/sse41.pyd`); the flag adds only their `.iobj`/`.ipdb` debug files |
+| `HIDDEN_IMPORTS` emptied | **fail**: `import wxq_patch.adaptive` → `gemini` → `asyncio`: `No module named '_overlapped'` |
+
+- **Verdict:** `HIDDEN_IMPORTS` is load-bearing; the `pypinyin` and `astc_encoder` collections are not,
+  on these versions. Both stay in as margin. `ooz` and `texture2ddecoder` were not built without their
+  flags, so their need is unmeasured.
+- **Limit:** the smoke test catches imports made when a module loads, not ones inside a function it never
+  calls; the frozen `--selftest` over a dump stays the release check.
+
+## 2026-11-17 — Frozen `build.bat` and `--selftest` on 1.8.0.1: identical to source — pass
+
+`build.bat` at `96c4613` (clean tree, PyInstaller 6.22.3, 354 s) built `dist\HOK ACE Language Patcher.exe`
+(SHA-256 `a3eefa572e25eb34…`). Its `--smoketest` passed 12/12. Then `--selftest` over the pristine
+1.8.0.1 layer (`pristine/20261029-1.8.0.1/game`), against `hok_patcher.py --selftest` from source on the
+same layer:
+
+| Run | Result | Time | Staged files |
+|---|---|---|---|
+| Source, English | `ok`, packages 1 (89, 11, 1), 1050016095 (1), 15 (302), 19 (23), 20 (1), 10 (3) | 182 s | 14 |
+| Frozen, English | same list | 164 s | 14, every SHA-256 equal to source |
+| Source, Indonesian | same list | 177 s | 14 |
+| Frozen, Indonesian | same list | 235 s | 14, every SHA-256 equal to source |
+
+- **Verdict:** pass. The two languages differ in 5 of the 14 files, so the equality covers both catalogs.
+  No traceback in either frozen log.
+- **Limits:** `--selftest` passes no APK, so the append pass (prime-only content) is not exercised frozen;
+  `check_append.py --game --apk` covers it from source (entry above). Timings are single runs, and the
+  frozen Indonesian run overlapped the source Indonesian run.
+
+## 2026-11-18 — Windows source producer identity from a checkout — pass after rename
+
+`run_artifacts.windows_producer_identity` returned None for every Windows source checkout:
+`relative_path` refuses non-ASCII names, and 8 tracked PNGs under `tools/research/career_atlas/originals/`
+had Chinese names. A None identity turns off snapshot, build and signing reuse for source runs.
+
+- **Change:** the 8 files renamed to ASCII; `relative_path` unchanged.
+- **Result:** from this checkout, each of `app`, `tools` and `resources` passes `tree_manifest`, and the
+  identity is `windows-source` (182 s to compute, single run).
+- **Guard:** `check_run_artifacts.py` now fails on any non-ASCII tracked path under those three folders;
+  a temporary file with a Chinese name, added under `tools/research/` with `git add -N`, made it fail as expected.
+- **Limit:** untracked files in those folders are hashed too, so a local non-ASCII file still returns None.
+
+## 2026-11-18 — `compare_continuation_controls.py capture` on an APK build — pass after fix
+
+`capture` refused every build run with `--apk`: a package added from the APK records
+`source_package` as `<work>/prime/<id>`, outside `WXQ_Data/Package/builtin/`. The Pass 2 parity
+captures used an external wrapper that normalized that one form.
+
+- **Change:** `capture` normalizes it itself, only for `mode` `added-from-apk` with a path ending
+  `prime/<package_id>`; `compare` no longer gates on the `normalizations` list.
+- **Runs:** `--apk`, the 1.8.0.1 fixture, this checkout, 15 output files each:
+
+| Language | Build | Capture | Against Pass 2 same language (baseline `f369e14`, current) | Against Pass 2 other language |
+|---|---|---|---|---|
+| English | 53 s | 23 s | PASS, PASS | FAIL (delta, output, summary) |
+| Indonesian (`resources/catalog_id`) | 84 s | 32 s | PASS, PASS | FAIL (delta, output, summary) |
+
+- **Verdict:** pass. The Pass 2 captures were made through the wrapper, so the built-in normalization gives
+  the same reports, and the compare still separates the two languages.
+- **Limit:** single run per language.
+
+## 2026-11-18 — Legacy (schema-1) session recovery retries on Android: review — keep unchanged
+
+Ticket 14 left the safety-only retry policy of schema-1 sessions as it was and made any migration a review
+gate. A schema-1 session is an interrupted session written by an Android patcher from before run records,
+so it has no RunStore record and no `initial plus one` safety budget. Code read at `c132935`:
+
+| Question | Finding | Where |
+|---|---|---|
+| Can it start or continue a patch? | No: no run id, so the worker accepts it for safety recovery only | `PatchWorkerService.dispatchRun` |
+| Is a failed recovery retried by itself? | No: the result carries no `run`, so `retryAutomatically` returns false and the automatic flow stops | `MainActivity.retryAutomatically` |
+| What does one attempt do? | Checks the access APK is installed and that there is space, then installs the normal APK and verifies it | `PatchCoordinator.recoverLocked`, `restoreNormalAfterFailure` |
+| What starts an attempt? | The player: **Restore interrupted patch**, or the automatic route after they tap Start | `GuidedHome`, `AutomaticRoute.choose` |
+
+- **Verdict:** keep unchanged (user decision, 2026-11-18). Repeated attempts come only from the player,
+  and each one is the restoring install. A budget would need a new counter in the schema-1 journal for a
+  case that exists only on phones that updated the patcher mid-run.
+- **Limit:** review only; no schema-1 session was run on a phone or emulator.
+
+## 2026-11-18 — Windows Remove on real 1.8.0.1 data, offline — pass
+
+`tools/research/check_windows_remove.py`: a stand-in phone (the adb stand-in from `check_windows_repatch.py`)
+holds the pristine copy of the 7 packages a build touches (14 files, about 0.9 GB). The real Windows
+install (`check_first_delta`, `push_translation`) writes the build, then the real Remove (`restore_pristine`,
+`write_back_pristine`) runs on a fresh pull. Builds: the 2026-11-18 `--apk` outputs at `c132935`.
+
+| Build | Changed by install | Removed | After Remove | Install | Remove |
+|---|---|---|---|---|---|
+| English | 11 of 14 | 11, the same files | all 14 byte-identical to pristine, no delta left | 326 s | 323 s |
+| Indonesian | 11 of 14 | 11, the same files | all 14 byte-identical to pristine, no delta left | 283 s | 292 s |
+
+- **Verdict:** pass. Remove must return pristine bytes, so this also settles Remove output parity with the
+  baseline: both trees have to produce the same pristine layer.
+- **Limits:** untouched packages are left off the stand-in phone; the APK install steps and the phone itself
+  are not exercised; timings are disk copies on the stand-in, single runs; Android Remove is not covered here.
+
+## 2026-11-18 — Android Root real cycles on a KernelSU phone — pass
+
+Phone `ebad528e`: Redmi Note 9 Pro, Android 15 (API 35), KernelSU (`su` context `u:r:ksu:s0`). Game
+data 1.10.1.2, starting from the pristine layer the user pulled (`20261118-1.10.1.2`, 794 recorded files, all
+matched before the first run) and the re-signed normal APK `63bec243…` installed. Patcher: debug build of
+`cda1f22`, versionCode 108, `9292ec63…`, signed with the patcher key `555f2ff4…` and installed as an update over
+release 1.10.1.3. Provider Root. Taps, force-stops and the worker kill were driven over adb by a loop on the
+phone that watched `files/trace.log`.
+
+| Cycle | Run | What was done | Result |
+|---|---|---|---|
+| R1 fresh EN | `272bb82e` | `am force-stop` 115 s into `build_checkpoint` | Reopen: "Resuming the saved action after restart: CONTINUE", one uid-0 worker; snapshot reused (no unpack; identity 53 s, checkpoint 93 s), fresh build; "No pristine delta for this phone"; 11 files written; complete 398/318 (1 table skipped). Attempts build 2, snapshot 1, apply 1 |
+| EN repeat | `bb3c531a` | none | Rebuilt 11 files from the delta, wrote none (identical), complete 398/318 |
+| R4 force-stop after the writes | `4b0be5f0` (ID) | `am force-stop` 37 s after the last write began, before the installed-app check | Reopen resumed; payload not yet verified, so it restored the originals ("Restoring the original game files", ~2 min), verified the app, reused the build ("Reusing the verified build from the interrupted run"), wrote 3 files, complete. Attempts apply 2, build 1 |
+| R3 root worker killed mid-apply | `bfc9ab24` (EN) | `kill -9` of the uid-0 worker 50 ms after "Applying package file 1/1.db" | `recovery_required`, `packages_dirty=true`; automatic retry 1 s later on Root with a new uid-0 worker; rollback, build reused, 3 files written, complete |
+| R2 Stop mid-apply | `7c4cfff4` (ID) | Stop safely tapped 0.24 s after the first write | "Stopping safely"; originals restored; `stopped_consistent`, journal CANCELLED, lifecycle `stopped`, `stop_requested` true, continuation false; every game file byte-identical to the EN layer before the run |
+| R6 force-stop at the final check | `be986db2` (ID) | `am force-stop` 2 s after "Checking the installed game app" | Reopen: "Restoring consistency" with no restore, no rebuild, no write; app verified; complete in 2 min. Attempts apply 1, build 1 |
+| R5 Remove | `55dbee52` | Remove translation, one confirmation | Snapshot, "Rebuilding the original game files from the pristine delta", 11 files written, "no pristine delta is kept", complete `removed` 11. Every package file byte-identical to the pristine record |
+
+- **Zero installs:** after every run the game APK hashed `63bec243…` and its `lastUpdateTime` stayed 11:12:58;
+  each run logged "Skipped Unlock access" and "Skipped Restore game app: Root never replaced the game app".
+- **Owner and SELinux:** after R1 and after Remove every file under `files/QtsVFSCache` is owned by uid/gid
+  10246 and labelled `u:object_r:app_data_file:s0:c246,c256,c512,c768`, the game's own. Files the patcher
+  writes are mode 0666 where the originals were 0600, as the Root worker's `umask 000` (matching `run-as`)
+  gives.
+- **After Remove:** the four `Watchdog/*.db` files stay absent (every patch clears Watchdog, as on Wireless
+  debugging) and the empty `.hok-ace-patcher.lock` (`GameFileLock`) stays.
+- **Delta:** each run kept one delta; the file hash differs between runs of the same language (it records its
+  time), so it was not compared further here.
+- **Timing (single runs, one phone):** a fresh run is about 18–19 min: prepare 40 s (first run only),
+  snapshot about 6 min (unpack 78–84 s, identity 54–57 s, checkpoint 144–150 s), build 534–564 s, writes
+  2–3 s, final check about 1 min. Resuming a killed or force-stopped run costs about 10 min (rollback about
+  2 min, snapshot recheck about 2.5 min, build inspection about 2.3 min). Remove took 15.7 min.
+- **Seen in passing, not defects:** the first Start waits behind Android's notification prompt (declined
+  here); "Start another patch" starts a run in the selected language at once; in the Indonesian interface the
+  activity log lines stay English.
+- **Verdict:** pass. Root continues, stops, recovers and removes without installing anything, and keeps
+  the game's owner and labels.
+- **Limits:** one phone, one root manager (KernelSU); revoking root mid-run was not tried (killing the worker
+  stands in for it); game not launched afterwards.
+
+## 2026-11-18 — Android fixture-gated probes, first run — fail (probe defects, one possible app gap)
+
+- **Setup:** the KernelSU Redmi Note 9 Pro from the Root entry, `cda1f22` debug app and test APK. Private
+  fixture at `files/probe-fixtures/automatic-continuation/`: the dist `normal.apk` (63bec243…, version code
+  774472) hard-linked from the app's own preparation, and an access APK (71608bac…) made by
+  `apk_tools.rewrite_apk` + `sign_v2` with `resources/key`; descriptor schema 1 with no source fixture.
+- **Results:** `CoordinatorSourceGuardProbeTest` pass. `PatchRequestProbeTest` 1 of 2:
+  `legacyConfirmationCannotBecomeFreshPermission` passes; `claimBeforeJournalIsRecoverableAndCannotRetarget`
+  fails at its repeat dispatch (`Duplicate dispatch reached device`) after its claim, reclaim and retarget
+  assertions pass. `CoordinatorRecoveryProbeTest` 7 of 19.
+- **Causes:**
+  - The PatchRequest case expects a repeat dispatch on a clean, correlated journal to return
+    `recovery_required` without touching the device. Since ADR 0010 `dispatch` continues such a journal
+    (`continueExisting` → `continueLocked` → `checkpoint()` reads the binder). Stale probe.
+  - 11 CoordinatorRecovery cases (the 10 built by `linkedVerified` and
+    `testInterruptedRedownloadDeletionRollsBackThroughThePinnedPlan`) fail `Private path alias` in
+    `RunStore.safe` when reading `resultRoot` or `redownloadPlanRoot`. Their journals sit under the raw
+    `getFilesDir()`; production sessions sit under `RunStore.privateRoot`, the canonical folder. Probe
+    defect; the 7 passing cases never read either root.
+  - `testCoordinatorRetriesInterruptedWholeSetRollback` fails `Legacy journals carry no continuation
+    checkpoints`: `recover()` on a legacy (no run id) dirty journal reaches `recoverLocked`, which records
+    `recovery_original_hash_passes` through `SessionJournal.record`, and `record` refuses legacy journals.
+    Possible app gap: a dirty schema-1 session left by an older build may fail its safety recovery. Not
+    confirmed on a real schema-1 session.
+- **Not run:** `ApkPreparationProbeTest` refused on storage (`StorageBudget$Shortage`, 8,511,853,917 bytes
+  required, 2,567,680,000 available with the 4 GB fixture present); the phone cannot hold both.
+  `FullCoordinatorProbeTest` needs a source fixture, not built.
+- **Storage:** each `AuthorizedProbeRun` copies both APKs (about 4 GB) into its own folder and the probes
+  never delete their folders; a first combined run filled `/data` to 1.0 GB free. Probe folders and the
+  fixture were deleted afterwards (8.6 GB free; the preparation's `original.apk` back to one link).
+- **Verdict:** fail. The gate stays open until the probes are corrected and re-run, and the legacy-recovery
+  question is settled.
+
+## 2026-11-18 — Android fixture-gated probes, corrected and re-run — pass (one app fix)
+
+- **App fix:** `recoverLocked` now records `recovery_original_hash_passes` only for a journal with a run id.
+  Since `d1033eb` that metric went through `SessionJournal.record`, which refuses legacy (schema-1)
+  journals, so the safety rollback of a dirty schema-1 session failed after verifying its originals and
+  before restoring them. Only the probe exercised it; no schema-1 session was run on a phone.
+- **Probe corrections, each to documented behaviour:**
+  - `PatchRequestProbeTest`: a repeat dispatch attaches to the same child and continues it (ADR 0010). With
+    a device that refuses every call it now expects the continuation to fail, one child and the same run id
+    and authorization key. An `@After` deletes the probe's folders (each authorized run copies about 4 GB).
+  - `CoordinatorRecoveryProbeTest` and `FullCoordinatorProbeTest` root their fixtures at the canonical files
+    folder, as `RunStore.privateRoot` does; the linked fixture creates the build attempt's `result` folder
+    before pinning it, as the engine does.
+  - The two late-Stop cases expect `complete` with `stopped_after_finish` (`WorkerStatus.afterStop`), the
+    journal `CANCELLED` and the run `stopped`.
+  - The retention case, renamed `testFreeSpaceReleasesEveryResolvedSessionsBulk`, expects Free up space to
+    release the newest resolved session's bulk too (`releaseResolvedSessions(keepNewest = false)`, as its
+    docstring says). The keep-newest rule at a patch run's start has no probe.
+- **Results** (same phone and fixture, app with the fix, test APK with the corrections):
+  `PatchRequestProbeTest` 2/2, `CoordinatorRecoveryProbeTest` 19/19, `CoordinatorSourceGuardProbeTest` 1/1.
+  `:app:testDebugUnitTest` passed.
+- **Not run:** `ApkPreparationProbeTest` (storage: about 8.5 GB beside the fixture) and
+  `FullCoordinatorProbeTest` (no source fixture); the FullCoordinator root change is compiled, not run.
+- **Cleanup:** probe folders and the fixture deleted; 8.5 GB free; the preparation's `original.apk` has one
+  link, mode reset to 0600 after the fixture's `chmod`.
+- **Verdict:** pass for the three classes run; the gate stays partly open for the two not run.
+- **Addendum, same day:** after the user freed space (13 GB free), `ApkPreparationProbeTest` ran on the same
+  APK-only fixture: 1/1 pass (8.8 GB free during the run); its 2 GB probe folder was deleted afterwards.
+  `FullCoordinatorProbeTest` still does not fit: its source fixture (the 2.9 GB `packages/` layer) plus the
+  2 GB access APK, then per case a recovery copy of the normal APK and an authorized run (about 6 GB of APK
+  copies), the 2.9 GB snapshot and the build's work, comes to roughly 16 GB. The phone's SD card cannot hold
+  any of it: the coordinator works only in app-private internal storage (`RunStore.privateRoot`), and the card
+  is exFAT, mounted `noexec`, with no owner or SELinux labels.
+
+## 2026-11-18 — Changed engine/game real controls, offline — pass
+
+- **Tool:** new `tools/research/check_changed_input_controls.py`. It drives the real `android_bridge`
+  checkpoint functions (`checkpoint_identity`, `snapshot_checkpoint`, `build_checkpoint`,
+  `inspect_build_checkpoint`, `copy_completed_checkpoint`) on the Android debug build's own engine assets at
+  `0d59ba5`, checked against this checkout's `tools/`. Only the Kotlin side is stood in for: the measured live
+  files, the producer record and the target. Game A is the pristine 1.8.0.1 dump
+  (`dist/HOK ACE Patcher Data/pristine/20261029-1.8.0.1`, with the cached `installed.apk`), game B the
+  pristine 1.10.1.2 dump (`20261118-1.10.1.2`, its own `normal.apk`). English, five real builds.
+- **Results, 15/15 PASS** (`D:/scratch/hok-ac-controls2/report.json`):
+  - Same inputs: the saved build is reused with no staging call.
+  - Game A to B: the identity over the old snapshot is refused (`Snapshot differs from current measured game
+    files`) and so is the old build (`Inputs changed`). The rebuild in the continued session equals a fresh
+    build of B in a new session: 14 files, the same staged hashes, delta entries, bodies, counts and skipped
+    lists (tables 107, translated 189211).
+  - Same-size game change (one hash of `packages/0/0.db` at the same size): refused.
+  - Engine change (取消 "Cancel" to "CANCEL" in the English catalog's `unique` table): the saved build is refused
+    (`Inputs changed`), the completed-output copy is refused (`Completed build inputs changed: translation`)
+    and the snapshot is kept. The rebuild equals a fresh build with that engine, and differs from B's build in
+    `1/1_0.db`, so the change reaches the output.
+  - Same-size engine change (one byte of a comment in `tools/languages.py`): refused under the old producer
+    (`Current engine differs from producer evidence`), and the saved build is refused.
+  - Windows: `windows_producer_identity` over three copies of `app`/`tools`/`resources` (base, catalog change,
+    same-size change) gives three different keys, and a staged receipt published under the base producer is
+    refused under each of the other two (`Inputs changed`).
+- **Build times** (s): A 112; B rebuild 114, fresh 115; engine-2 rebuild 131, fresh 109. One run each, the same
+  PC; not a performance comparison.
+- **First run, discarded:** it changed an `english_updates` row. That edit is refused as an input change, but
+  it never reached the output (`changed_files: []`): an update replaces only a previously installed
+  translation, so a build from pristine data never applies it. The tool now changes a `unique` row and fails
+  if the output does not move. Its Windows fixture also lacked the summary and output manifest a staged
+  receipt needs; it now writes the layout `Checkpoints.publish_build` writes.
+- **Not covered:** a changed engine reached through the Kotlin coordinator on a phone, and a real Windows
+  build reused across an engine change (the Windows case checks the identity and the receipt only).
+- **Verdict:** pass.
+
+## 2026-11-18 — Interrupted automatic Re-download and its loop guard on a Root phone — guard needed three cuts (fixed)
+
+- **Setup:** KernelSU phone (Redmi Note 9 Pro), Root provider, Android patcher `c921bf9` (debug, versionCode 109,
+  signed with the patcher key). Pristine 1.8.0.1 pushed with `tools/research/update_cycle.py push`
+  (`D:/scratch/hok-ac-loopguard/push.log`), patched English (run `8bd89f44`, complete, 398/399, 1 table and
+  0 textures skipped), then the game updated itself to 1.10.2 data over the translation. The game APK stayed
+  1.8.0.1 normal (`29b3ee7e`).
+- **Re-patch (run `ca6306b0`, 21:26):** the build refused the stuck update (package 1, 67 assets; 10, 2 assets),
+  and the run planned Re-download of packages 1, 10, 15 and 21 (12 files, 499 MB) and approved it automatically.
+  A root watcher (`cut-delete.sh`) force-stopped the app and killed the worker at the first *Deleting package
+  file* line, three times (21:40:58, 21:49:56, 21:57:41; `cut1.log`–`cut3.log`).
+- **Each cut:** on reopen the run continued by itself (*Game app verified; interrupted session recovered*),
+  rolled back the partial deletion (`1/1.db` back, checked with a root capture) and continued *the approved
+  Re-download*. After cut 1 the re-measured plan differed (*The game files changed since the Re-download was
+  approved; nothing was deleted*, then *Re-download planned again*), and the automatic re-approval reset
+  `attempts.redownload_delete`: 1 after cut 2, 2 after cut 3 (`run-after-cut2.json`, `run-after-cut3.json`).
+- **Guard:** only after the third cut (22:00:49) did the run stop with *The approved Re-download was interrupted
+  twice; it needs a new approval* (`redownload_consent_required`) and show the review card
+  (`review-card.txt`: Files 12, 499 MB, packages 1, 10, 15, 21). Tapping *Delete and re-download* saved the
+  user's approval; the deletion finished (22:08:05), the game downloaded the files (root captures
+  `rcap/after-delete` 786 files, `after-download` 804), and *Downloads finished* continued the same run to
+  completion at 22:34:25: 398/318, 1 table and 0 textures skipped, *Rebuilt 2 files from the pristine delta*,
+  8 replaced files taken as the update left them, *Wrote the original bytes back into package 19, 20*, 9 files
+  applied (`rcap/after-finish` 800 files).
+- **Timings after Downloads finished** (one run): snapshot stream 81.6 s, identity 50.7 s, snapshot checkpoint
+  144.5 s, build 571.5 s, write 22:33:02–22:33:23; Downloads finished to complete 18 min 45 s.
+- **Finding 1, loop guard:** the guard is bounded, but a re-measured plan's automatic re-approval re-armed the
+  deletion budget, so it took three interruptions, not two. Fixed: `RedownloadConsent.keepsDeleteAttempts`
+  keeps the count when an automatic approval replaces an unconsumed plan; the user's approval and a plan after
+  a consumed one start fresh (`AutomaticRedownloadTest`, two new cases). Re-check on the phone: next entry.
+- **Finding 2, screen:** after *Delete and re-download* and after *Downloads finished* the idle saved-work
+  screen (*Finish your game safely*, *Continue saved work*) showed for 2 to 4 s before *Checking game files*.
+  `UiTaskRunner` refreshed the screen before its follow-up resumed the action; it now runs the follow-up first
+  (`UiTaskRunnerTest`).
+- **Evidence:** `D:/scratch/hok-ac-loopguard/` (`trace-full.log`, cut logs, run records, root captures).
+- **Verdict:** interrupted deletion: pass (every cut rolled back and continued, no dialog, no lost file). Loop
+  guard: fail as built (three cuts), fixed in code.
+
+## 2026-11-18 — The loop guard fix and the screen fix re-checked over a second real update, Root phone — pass
+
+- **Setup:** the same phone and provider, the patcher with both fixes from the entry above (debug, versionCode
+  109, signed with the patcher key, uncommitted on `c921bf9`). Pristine 1.8.0.1 pushed again (`push.log`: 618
+  files equal the snapshot), patched English (run `214b1089`, 23:03–23:21, complete, 398/399, 1 table and 0
+  textures skipped), then the game updated itself to 1.10.2 data over the translation (root capture
+  `after-update`: 718 files, 442 package files changed).
+- **Storage:** the `update_cycle.py capture` after the update could not reinstall the normal APK: the phone had
+  0.9 GB free, and the access APK stayed installed. *Free up space* freed 6.6 GB of earlier runs' files (trace:
+  `space_freed`, 7.65 GB free after); the normal APK went back with `adb install -r` and was checked
+  (`29b3ee7e`). Later captures used root reads (`rcap-pull.sh`), which install nothing.
+- **Re-patch (run `4ff4c6ff`, 23:41):** it planned Re-download of packages 1, 10, 15 and 21 (12 files, 499 MB),
+  as on the first cycle, and approved it automatically. Cut 1 at the first *Deleting package file 1/1.db*
+  (23:54:45); on reopen (23:57:51) the run continued by itself, rolled back and continued *the approved
+  Re-download*; the re-measured plan differed again (*Re-download planned again*, 00:02:40) and the automatic
+  re-approval kept the count. The watcher's second cut never fired (its start-time guard compared clock
+  strings and skipped every line after midnight), so the re-planned deletion ran to the end (00:03:42).
+- **Loop guard:** the run record after the deletion holds `attempts.redownload_delete: 2` (one cut plus the
+  finished deletion; the build before the fix reset it to 1 here) with `approval.source: automatic`
+  (`run-after-delete.json`). A third deletion of the same approval is therefore refused, which the first
+  cycle's third cut showed on the phone; the unit cases cover the count itself. No second interruption was
+  measured on this build.
+- **Screen:** *Downloads finished* (00:19:48) went straight to *Checking game files* and *Continuing saved
+  work*; the trace has no *Finish your game safely* screen between them (`trace-full.log`).
+- **Completion:** complete at 00:39:16, 398/318, 1 table and 0 textures skipped, *Rebuilt 2 files from the
+  pristine delta*, 8 replaced files taken as the update left them, *Wrote the original bytes back into package
+  19, 20* (root capture `after-complete`, 799 files). Timings (one run): snapshot stream 77.6 s, identity
+  51.3 s, snapshot checkpoint 155.2 s, build 602.6 s; *Downloads finished* to complete 19 min 28 s.
+- **History check:** `check_update_redownload.py` over this cycle's captures (`--expect-update 1,10,15,21
+  --expect-finish ""`; `after-finish` is the root capture once the game downloaded the four packages again)
+  passes: `after-update` plans 1, 10, 15 and 21 (12 files), as the phone did; a second plan in the same
+  session reuses the mixed-package decision (trial restores 4, then 1: the graphics inspection's own trial
+  restore is not kept, and the check now says so); `after-finish` plans nothing (refused with *No game files
+  hold a translation the patcher cannot rebuild*). The 2026-10-23 captures it was written for are gone, so
+  this run's captures replace them. The check also had to claim build ownership before `clear_build`.
+- **Indonesian:** *Start another patch* starts a run in the selected language at once (as on 2026-11-13); Stop
+  safely during Root preparation (00:45:59) stopped it with nothing written (*Stopped safely*), though the
+  result records a bare `Check failed.` from `RunStore.bind`, which checks that the run may continue: a stop
+  that lands between preparation and authorization surfaces there instead of as *Preparation cancelled* (wording
+  only, not fixed). Picking *Bahasa Indonesia* redrew the screen at once; the EN to ID switch (run `10c70338`,
+  00:47–01:05:59) showed every step, the result card and its buttons in Indonesian (*Patch selesai. Aplikasi
+  game tidak diganti.*, 398/318, 1 table and 0 textures skipped, *Rebuilt 11 files from the pristine delta*);
+  the activity log lines stay English, as recorded on 2026-11-13. Screens: `screens/en-*.png`, `id-*.png`.
+- **Evidence:** `D:/scratch/hok-ac-loopguard2/` (`trace-full.log`, `cut1.log`, run records, `cycle/`,
+  `rcap/`, `history.log`, `screens/`).
+- **Verdict:** pass. The count holds across an automatic re-plan, and the follow-up runs before the screen
+  refreshes. Limits: one phone, one cut on this build, single-run timings.

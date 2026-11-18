@@ -27,9 +27,20 @@ class FirstSetupRequestStore(private val context: Context) {
         } catch (error: Throwable) { storage.failWrite(stream); throw error }
     }
 
-    fun confirm(prepared: ApkPreparation.Prepared, dataLossConfirmed: Boolean, scanLoginConfirmed: Boolean): String {
+    /**
+     * <parentRun> is the saved translate Start that found the official build. Setup keeps it, so after the
+     * downloads answer the same language/provider translation continues; the consent itself stays one-use.
+     */
+    @JvmOverloads
+    fun confirm(prepared: ApkPreparation.Prepared, dataLossConfirmed: Boolean, scanLoginConfirmed: Boolean,
+                parentRun: String? = null): String {
         check(dataLossConfirmed && scanLoginConfirmed) { "Confirm local data loss and Scan-to-login first" }
         ready()
+        if (parentRun != null) {
+            val run = RunStore(context).load(parentRun); RunStore(context).requireTarget(run)
+            check(run.action == "translate" && run.mayContinue && run.provider != ShellProvider.ROOT &&
+                run.lifecycle == "authorized") { "Setup consent differs from the saved Start" }
+        }
         check(prepared.requiresSignatureConversion) { "This game is already converted; use the update checkpoint" }
         val preparation = prepared.directory.name; GameFilePolicy.session(preparation)
         check(prepared.directory.canonicalFile == File(context.filesDir, "preparations/$preparation").canonicalFile)
@@ -42,14 +53,23 @@ class FirstSetupRequestStore(private val context: Context) {
             .put("receipt_sha256", ApkIdentity.digest(receipt(preparation))).put("source", prepared.source.sha256)
             .put("normal", prepared.normal.sha256).put("access", prepared.access.sha256)
             .put("data_loss_confirmed", true).put("scan_login_confirmed", true)
-            .put("confirmed_ms", System.currentTimeMillis()).put("consumed", false))
+            .put("confirmed_ms", System.currentTimeMillis()).put("consumed", false).put("parent_run", parentRun))
         return id
+    }
+
+    /** The saved Start a consent request belongs to, or null for a request made without one. */
+    fun parent(id: String): String? {
+        val bytes = DurableFiles.readCommitted(file(id)); check(bytes.size <= 8192)
+        val saved = JSONObject(String(bytes, Charsets.UTF_8))
+        check(saved.getInt("schema") == 1 && saved.getString("id") == id)
+        if (!saved.has("parent_run")) return null
+        return saved.getString("parent_run").also { GameFilePolicy.session(it) }
     }
 
     fun claim(id: String): ApkPreparation.Prepared {
         DurableFiles.createDirectories(root)
         RandomAccessFile(File(root, "claim.lock"), "rw").use { handle -> handle.channel.use { channel ->
-            checkNotNull(channel.tryLock()) { "Another setup confirmation is being checked" }.use {
+            checkNotNull(try { channel.tryLock() } catch (_: java.nio.channels.OverlappingFileLockException) { null }) { "Another setup confirmation is being checked" }.use {
                 val bytes = DurableFiles.readCommitted(file(id))
                 check(bytes.size <= 8192)
                 val saved = JSONObject(String(bytes, Charsets.UTF_8))
@@ -73,7 +93,7 @@ class FirstSetupRequestStore(private val context: Context) {
     /** Bind the journal's mutation attempt to the consumed consent; a second attempt needs new consent. */
     fun begin(id: String, prepared: ApkPreparation.Prepared) {
         RandomAccessFile(File(root, "claim.lock"), "rw").use { handle -> handle.channel.use { channel ->
-            checkNotNull(channel.tryLock()) { "Another setup confirmation is being checked" }.use {
+            checkNotNull(try { channel.tryLock() } catch (_: java.nio.channels.OverlappingFileLockException) { null }) { "Another setup confirmation is being checked" }.use {
                 val bytes = DurableFiles.readCommitted(file(id)); check(bytes.size <= 8192)
                 val saved = JSONObject(String(bytes, Charsets.UTF_8))
                 check(saved.getInt("schema") == 1 && saved.getString("id") == id && saved.getBoolean("consumed") &&

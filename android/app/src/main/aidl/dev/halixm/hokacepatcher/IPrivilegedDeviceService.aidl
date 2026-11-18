@@ -26,5 +26,7 @@ interface IPrivilegedDeviceService {
     void checkGameProfiles() = 19;
     String releaseReplacedGameApks() = 20;
     void deleteGameFile(String session, String relative, String sha256) = 21;
+    String reconcileGameFiles(String session, String operation, String relative, in ParcelFileDescriptor policy,
+        in ParcelFileDescriptor source, long length, String sha256) = 22;
     void destroy() = 16777114;
 }

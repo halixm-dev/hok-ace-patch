@@ -17,8 +17,8 @@ import org.json.JSONObject
  *
  * Android 13+ shows an app's notifications only once the player allows them. The patcher asks once,
  * when its first run is under way (Shizuku access is settled by then, so the two dialogs never stack),
- * and the run goes on whatever the answer. A result that leaves the game ready offers Open game; a
- * failure says Work stopped and opens the patcher. Nothing is posted while the patcher is on screen.
+ * and the run goes on whatever the answer. A result that leaves the game ready offers Open game; an
+ * unconfirmed Translation written posts without it; a failure says Work stopped and opens the patcher. Nothing is posted while the patcher is on screen.
  */
 data class RunNotification(val title: String, val text: String, val openGame: Boolean) {
     companion object {
@@ -29,9 +29,16 @@ data class RunNotification(val title: String, val text: String, val openGame: Bo
         const val REQUEST = 1403
         const val GAME = "com.tencent.tmgp.osgame"
 
-        /** What the finished <state> posts in language <code>, or null for a step, a stop the player asked for, or Space freed. */
+        /**
+         * What the finished <state> posts in language <code>, or null for a step, a stop the player asked for, or Space freed.
+         * Translation written (unconfirmed) still ends the run, so it posts, but without Open game: the game is not ready.
+         */
         fun of(code: String, state: JSONObject): RunNotification? {
-            UiText.result(code, state)?.let { return if (it.gameReady) RunNotification(it.heading, it.summary, true) else null }
+            UiText.result(code, state)?.let {
+                return if (it.gameReady) RunNotification(it.heading, it.summary, true)
+                else if (state.optString("status") == "recovered_unconfirmed") RunNotification(it.heading, it.summary, false)
+                else null
+            }
             return if (state.optString("status") in setOf("error", "recovery_required")) RunNotification(
                 UiText.translate(code, "Work stopped"), UiText.translate(code, "Tap to see what happened and what to do next."), false)
             else null

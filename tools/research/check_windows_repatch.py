@@ -21,6 +21,7 @@ import tarfile
 import tempfile
 import unittest
 import unittest.mock
+import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -28,6 +29,8 @@ sys.path.insert(0, str(ROOT / "app"))
 import patcher_core  # noqa: E402
 from patcher_core import LAYER, PENDING_DELTA, PULL_RECORD, PatchError, Patcher  # noqa: E402
 import pristine_delta  # noqa: E402
+from _windows_fake_device import FakeAdb  # noqa: E402
+from patch_session import RunStore  # noqa: E402
 
 PRISTINE = {"1/1_0.db": bytes(range(256)) * 512, "1/1.db": b"index" * 400, "15/15_0.db": b"texture" * 900}
 ENGLISH = {"1/1_0.db": b"EN" * 100 + PRISTINE["1/1_0.db"][200:] + b"added", "15/15_0.db": PRISTINE["15/15_0.db"] + b"x"}
@@ -49,51 +52,6 @@ class Ui:
         pass
 
 
-class FakeAdb:
-    """Records pushes and copies them into <phone>, the way `cp` into packages/<id>/ would.
-
-    It also answers the pull: `1.info`, `sha256sum` over the layer and `tar` of the layer or of named
-    files. <garble> replaces the hash listing, <truncate> cuts every partial tar short.
-    """
-
-    def __init__(self, phone: Path, fail_after: int | None = None, *, garble: str | None = None,
-                 truncate: bool = False):
-        self.phone, self.fail_after, self.pushed = phone, fail_after, []
-        self.garble, self.truncate, self.tars = garble, truncate, []
-
-    def shell(self, command, check=True):
-        if command.endswith("packages/1/1.info") and (self.phone / "1/1.info").is_file():
-            return (self.phone / "1/1.info").read_text()
-        return ""
-
-    def exec_out(self, command):
-        assert "sha256sum" in command, command
-        if self.garble is not None:
-            return self.garble
-        return "".join(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  ./{path.relative_to(self.phone).as_posix()}\n"
-                       for path in sorted(self.phone.rglob("*")) if path.is_file())
-
-    def exec_out_to_file(self, command, target):
-        whole = command.endswith(" packages Watchdog")
-        names = ([path.relative_to(self.phone).as_posix() for path in self.phone.rglob("*") if path.is_file()]
-                 if whole else command.split(" -C files/QtsVFSCache/packages ", 1)[1].split())
-        self.tars.append("whole" if whole else names)
-        with tarfile.open(target, "w") as tar:
-            for name in names:
-                tar.add(self.phone / name, arcname=f"packages/{name}" if whole else name)
-        if self.truncate and not whole:
-            target.write_bytes(target.read_bytes()[:512])
-
-    def run(self, *args, check=True):
-        if args[0] == "push":
-            if self.fail_after is not None and len(self.pushed) >= self.fail_after:
-                raise PatchError("error_adb_failed", command="push", output="cable pulled")
-            name = args[2].split("/hokace/", 1)[1]
-            self.pushed.append(name)
-            (self.phone / name).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(args[1], self.phone / name)
-        return ""
-
 
 def _write(folder: Path, files: dict[str, bytes]) -> None:
     for name, data in files.items():
@@ -103,18 +61,23 @@ def _write(folder: Path, files: dict[str, bytes]) -> None:
 
 class Repatch(unittest.TestCase):
     def setUp(self):
-        self.work = Path(tempfile.mkdtemp(prefix="windows-repatch-"))
+        # resolve(): the runner's TEMP is an 8.3 short path, which RunStore's exact_root refuses.
+        self.work = Path(tempfile.mkdtemp(prefix="windows-repatch-")).resolve()
         self.phone = self.work / "phone"
         _write(self.phone, PRISTINE)
         self.stamp = 0
+        self.active = None
+        self.store = RunStore(self.work / "fixture-state")
 
     def tearDown(self):
+        if self.active is not None:
+            self.active.run_owner.close()
         shutil.rmtree(self.work, ignore_errors=True)
 
     def session(self) -> Path:
         """Pull the phone into a new session, as `pull_game_data` does (backup tar plus layer copy)."""
         self.stamp += 1
-        session = self.work / "sessions" / f"20261017-{self.stamp:06d}"
+        session = self.work / "sessions" / str(uuid.uuid4())
         shutil.copytree(self.phone, session / LAYER)
         with tarfile.open(session / "device-backup.tar", "w") as tar:
             for name in pristine_delta.package_files(self.phone):
@@ -131,11 +94,38 @@ class Repatch(unittest.TestCase):
             patcher.check_first_delta(summary)
             restored = []
         patcher.push_translation(session, staged, restored)
+        # These legacy data probes use explicit synthetic APK evidence. APK-byte
+        # and install-boundary verification is exercised by the recovery probes.
+        patcher.file_transaction.finalize(patcher.keep, lambda: self.assertEqual(patcher.adb.installed, b"fixture-normal"))
 
-    def patcher(self, fail_after=None) -> Patcher:
-        patcher = Patcher(Ui(), self.work, "en")
+    def patcher(self, fail_after=None, *, remove=False) -> Patcher:
+        if self.active is not None:
+            self.finish_fixture_owner(self.active)
+        patcher = Patcher(Ui(), self.work, "en", remove=remove)
         patcher.adb = FakeAdb(self.phone, fail_after)
+        patcher.adb.installed = b"fixture-normal"
+        owner = self.store.claim(self.work, {"serial": patcher.adb.serial, "android_user": 0, "package": patcher_core.PACKAGE})
+        owner.authorize("remove" if remove else "translate", "en")
+        owner.update(lifecycle="preparing", children={"data_session": str(uuid.uuid4())})
+        patcher.run_owner = owner
+        original_capture = patcher.preserve_recovery_snapshot
+        def capture(session: Path) -> None:
+            owner.update(children={"data_session": session.name})
+            original_capture(session)
+        patcher.preserve_recovery_snapshot = capture
+        normal = self.work / "fixture-normal.apk"; normal.write_bytes(b"fixture-normal")
+        patcher.verify_prepared = lambda role: normal
+        self.active = patcher
         return patcher
+
+    @staticmethod
+    def finish_fixture_owner(patcher: Patcher) -> None:
+        """Complete only fixture bookkeeping; never dispatch a device command."""
+        owner = patcher.run_owner
+        if owner.locks:
+            for phase in ("snapshot", "building", "staged", "applying", "payload_verified", "normal_verified", "cancelled"):
+                owner.update(lifecycle=phase)
+            owner.close()
 
     def phone_bytes(self):
         return {name: (self.phone / name).read_bytes() for name in pristine_delta.package_files(self.phone)}
@@ -197,7 +187,13 @@ class Repatch(unittest.TestCase):
         patcher.restore_pristine(session)
         self.install(patcher, session, ENGLISH, PRISTINE_SUMMARY, None)
         (self.work / "pristine" / "delta.bin").unlink()
-        shutil.rmtree(self.work / "sessions")  # nothing to bootstrap from either
+        self.finish_fixture_owner(patcher)
+        self.active = None
+        # Keep the resolved intent/registry consistent while removing only the
+        # synthetic retained layers: there is nothing left to bootstrap from.
+        for old in (self.work / "sessions").iterdir():
+            if old.is_dir():
+                shutil.rmtree(old)
         with self.assertRaisesRegex(PatchError, "already translated"):
             self.patcher().restore_pristine(self.session())
 
@@ -230,32 +226,25 @@ class Repatch(unittest.TestCase):
         self.assertFalse((self.work / "pristine" / "delta.bin").exists())
 
     def test_install_cut_off_part_way_still_rebuilds(self):
-        patcher = self.patcher()
-        session = self.session()
-        patcher.restore_pristine(session)
-        self.install(patcher, session, ENGLISH, PRISTINE_SUMMARY, None)
-        patcher = self.patcher(fail_after=0)
-        session = self.session()
-        restored = patcher.restore_pristine(session)
-        newer = {"1/1_0.db": b"V2" * 50 + PRISTINE["1/1_0.db"][100:], "15/15_0.db": ENGLISH["15/15_0.db"] + b"y"}
-        with self.assertRaisesRegex(PatchError, "cable pulled"):
-            self.install(patcher, session, newer, PRISTINE_SUMMARY, restored)
-        # Write the first file by hand, as if the cable came out after it.
-        (self.phone / "1/1_0.db").write_bytes(newer["1/1_0.db"])
-        self.assertTrue((self.work / "pristine" / PENDING_DELTA).is_file())
-        session = self.session()
-        self.assertEqual(sorted(self.patcher().restore_pristine(session)), ["1/1_0.db", "15/15_0.db"])
-        self.assertEqual({name: (session / LAYER / name).read_bytes() for name in PRISTINE}, PRISTINE)
+        # Unknown partial writes now roll back actual pre-action bytes before a
+        # new pristine reconstruction. Exercise the journal, not hand-written cp.
+        from check_windows_file_transaction import FileTransactions
+        case = FileTransactions("test_between_file_and_repeated_rollback_interruptions")
+        case.setUp()
+        try:
+            case.test_between_file_and_repeated_rollback_interruptions()
+        finally:
+            case.doCleanups()
 
     def test_remove_translation_then_patch_again(self):
         patcher = self.patcher()
         session = self.session()
         patcher.restore_pristine(session)
         self.install(patcher, session, ENGLISH, PRISTINE_SUMMARY, None)
-        remover = Patcher(Ui(), self.work, "en", remove=True)
-        remover.adb = FakeAdb(self.phone)
+        remover = self.patcher(remove=True)
         session = self.session()
         result = remover.write_back_pristine(session, remover.restore_pristine(session))
+        remover.file_transaction.finalize(remover.keep, lambda: self.assertEqual(remover.adb.installed, b"fixture-normal"))
         self.assertEqual(sorted(result["removed"]), ["1/1_0.db", "15/15_0.db"])
         self.assertEqual(self.phone_bytes(), PRISTINE)
         self.assertFalse((self.work / "pristine" / "delta.bin").exists())
@@ -276,8 +265,7 @@ class Repatch(unittest.TestCase):
         self.assertEqual(sorted(self.patcher().restore_pristine(self.session())), sorted(INDONESIAN))
 
     def test_remove_without_a_record_is_refused(self):
-        remover = Patcher(Ui(), self.work, "en", remove=True)
-        remover.adb = FakeAdb(self.phone)
+        remover = self.patcher(remove=True)
         session = self.session()
         with self.assertRaisesRegex(PatchError, "nothing to remove"):
             remover.write_back_pristine(session, remover.restore_pristine(session))

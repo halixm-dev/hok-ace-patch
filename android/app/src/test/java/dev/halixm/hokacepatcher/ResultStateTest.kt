@@ -65,11 +65,14 @@ class ResultStateTest {
         assertEquals("", result.note)
     }
 
-    /** A result that leaves the game ready to play leads with Open game; Space freed changed no game files. */
+    /**
+     * A verified result that leaves the game ready to play leads with Open game; Space freed changed no game files,
+     * and an unconfirmed translation (ticket 13) is not Verified complete, so it offers Start instead.
+     */
     @Test fun onlyResultsThatLeaveTheGameReadyOfferOpenGame() {
         assertTrue(UiText.result("en", complete(counts))!!.gameReady)
         assertTrue(UiText.result("en", complete().put("removed", 7))!!.gameReady)
-        assertTrue(UiText.result("en", JSONObject().put("status", "recovered_unconfirmed"))!!.gameReady)
+        assertFalse(UiText.result("en", JSONObject().put("status", "recovered_unconfirmed"))!!.gameReady)
         assertFalse(UiText.result("en", JSONObject().put("status", "space_freed"))!!.gameReady)
     }
 

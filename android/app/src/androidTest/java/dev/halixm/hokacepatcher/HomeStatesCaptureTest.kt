@@ -16,7 +16,7 @@ import java.io.File
 
 /**
  * The home screen's states (`DESIGN.md`, Layout; `docs/features/shared-design.md`), each
- * drawn as a full page in both languages at the phone's current font size, saved to `files/home-states/<code>-<fontScale>-<state>.png`. Fails on any shown text that is
+ * drawn as a full page in both languages at the phone's current font size, saved to `cache/home-states/<code>-<fontScale>-<state>.png`. Fails on any shown text that is
  * ellipsized, broken inside a word, taller than its view, or wider than the page. UI only: never
  * starts a worker. Run it once per font size (`settings put system font_scale`).
  */
@@ -26,8 +26,19 @@ class HomeStatesCaptureTest {
     private val logLines = (1..40).map { "Log line $it: checking package files" }
 
     private val states: List<Pair<String, (GuidedHome, Activity) -> Unit>> = listOf(
-        "idle" to { home, _ ->
-            home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
+        "idle" to { home, activity ->
+            home.show("Ready when you are", UiText.string(activity, "ready_before_start"), "Start", "start", false)
+        },
+        "redownload-review" to { home, activity ->
+            home.show(UiText.string(activity, "redownload_review_title"),
+                UiText.string(activity, "redownload_review_scope", "files" to 12, "size" to "450 MB",
+                    "packages" to "1, 10, 15, 21") + "\n\n" + UiText.string(activity, "redownload_review_consequences"),
+                UiText.string(activity, "delete_and_redownload"), "redownload", false, GuidedHome.Stage.ATTENTION)
+        },
+        "redownload-download" to { home, activity ->
+            home.show(UiText.string(activity, "redownload_download_title"), UiText.string(activity, "redownload_download_body"),
+                "Open game", "redownload_game", false, GuidedHome.Stage.ATTENTION,
+                UiText.string(activity, "downloads_finished"), "redownload_finished")
         },
         "install-shizuku" to { home, _ ->
             home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", false, GuidedHome.Stage.ACCESS)
@@ -40,6 +51,24 @@ class HomeStatesCaptureTest {
                 .put("action", "patch").put("step", "unlock_access").put("steps", 6))!!
             home.show("Working on your game", step.line, "Please wait", "start", false, GuidedHome.Stage.WORKING)
             home.working(true); home.languageEnabled(false); home.progress(true, step); home.logs(logLines)
+        },
+        // Ticket 13: the states the run state names, and Recovery needs attention's own recovery action.
+        "continuing" to { home, activity ->
+            home.show(UiText.string(activity, "continuing_saved_work"), "Checking and preparing files…", "Please wait", "start", false,
+                GuidedHome.Stage.WORKING)
+            home.working(true); home.languageEnabled(false, locked = true); home.progress(true)
+        },
+        "restoring" to { home, activity ->
+            home.show(UiText.string(activity, "restoring_your_game"), "Checking and preparing files…", "Please wait", "start", false,
+                GuidedHome.Stage.WORKING)
+            home.working(true); home.languageEnabled(false, locked = true); home.progress(true)
+        },
+        "attention" to { home, activity ->
+            home.recoveryActions(null)
+            home.show("Recovery needs attention", UiText.string(activity, "attention_saved_action"),
+                UiText.string(activity, "continue_saved_work"), "recover_attention", true, GuidedHome.Stage.ATTENTION)
+            home.languageEnabled(false, locked = true)
+            home.errorDetails("ERROR: Worker lost")
         },
         "recovery" to { home, _ ->
             home.recoveryActions(null)
@@ -69,21 +98,12 @@ class HomeStatesCaptureTest {
             home.result(UiText.result(PatchLanguage.current(activity), JSONObject().put("status", "space_freed")
                 .put("freed_bytes", 12_345_000_000L).put("free_bytes", 99_999_000_000L))!!, "Start")
         },
-        "redownload-review" to { home, activity ->
-            home.show("Review Re-download", UiText.string(activity, "recovery_review_scope", "files" to 15,
-                "size" to "2.4 GB", "packages" to "1, 15, 19") + "\n\n" + UiText.string(activity, "recovery_review_consequences"),
-                "Delete and re-download", "redownload_delete", false, GuidedHome.Stage.ATTENTION)
-        },
-        "redownload-downloads" to { home, activity ->
-            home.show("Finish game downloads", UiText.string(activity, "recovery_download_instructions"),
-                "Open game", "redownload_game", false, GuidedHome.Stage.ATTENTION, "Downloads finished", "redownload_finished")
-        },
-        "notice" to { home, _ ->
-            home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
+        "notice" to { home, activity ->
+            home.show("Ready when you are", UiText.string(activity, "ready_before_start"), "Start", "start", false)
             home.message("Access was not allowed. Tap Start to try again.", failure = true)
         },
-        "notice-info" to { home, _ ->
-            home.show("Ready when you are", "Tap Start. We will check your game and prepare everything. Keep the game closed while we work.", "Start", "start", false)
+        "notice-info" to { home, activity ->
+            home.show("Ready when you are", UiText.string(activity, "ready_before_start"), "Start", "start", false)
             home.message("Finish the current work before freeing space.")
         },
         "failed" to { home, _ ->
@@ -93,26 +113,27 @@ class HomeStatesCaptureTest {
         },
     )
 
-    @Test fun recoveryButtonsDispatchTheDirectActions() {
+    private fun shown(view: View): Boolean =
+        view.visibility == View.VISIBLE && (view.parent as? View)?.let(::shown) ?: true
+
+    /** These taps dispatch directly; the reused secondary button must revert after the download wait. */
+    @Test fun downloadButtonsDispatchDirectlyAndResultResetsTheSecondaryAction() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val actions = mutableListOf<String>()
                 val home = GuidedHome(activity) { actions += it }
-                home.show("Review Re-download", "", "Delete and re-download", "redownload_delete", false)
+                states.first { it.first == "redownload-review" }.second(home, activity)
                 activity.window.decorView.findViewWithTag<View>("next-step").performClick()
-                home.show("Finish game downloads", "", "Open game", "redownload_game", false,
-                    GuidedHome.Stage.ATTENTION, "Downloads finished", "redownload_finished")
+                states.first { it.first == "redownload-download" }.second(home, activity)
                 activity.window.decorView.findViewWithTag<View>("next-step").performClick()
                 activity.window.decorView.findViewWithTag<View>("start-again").performClick()
-                home.result(UiText.result("en", JSONObject().put("status", "complete").put("counts", counts))!!, "Start another patch")
+                home.result(UiText.result(PatchLanguage.current(activity),
+                    JSONObject().put("status", "complete").put("counts", counts))!!, "Start another patch")
                 activity.window.decorView.findViewWithTag<View>("start-again").performClick()
-                org.junit.Assert.assertEquals(listOf("redownload_delete", "redownload_game", "redownload_finished", "start"), actions)
+                org.junit.Assert.assertEquals(listOf("redownload", "redownload_game", "redownload_finished", "start"), actions)
             }
         }
     }
-
-    private fun shown(view: View): Boolean =
-        view.visibility == View.VISIBLE && (view.parent as? View)?.let(::shown) ?: true
 
     private fun textViews(view: View): List<TextView> = when (view) {
         is TextView -> listOf(view)
@@ -140,11 +161,7 @@ class HomeStatesCaptureTest {
         }
     }
 
-    @Test fun everyBriefStateFitsAndIsSaved() = captureStates(states)
-
-    @Test fun recoveryCardsFitAndAreSaved() = captureStates(states.filter { it.first.startsWith("redownload-") })
-
-    private fun captureStates(selected: List<Pair<String, (GuidedHome, Activity) -> Unit>>) {
+    @Test fun everyBriefStateFitsAndIsSaved() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val original = PatchLanguage.current(context)
@@ -152,7 +169,7 @@ class HomeStatesCaptureTest {
         try {
             for (code in listOf("en", "id")) {
                 PatchLanguage.set(context, code)
-                for ((name, apply) in selected) {
+                for ((name, apply) in states) {
                     ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                         scenario.onActivity { activity -> apply(GuidedHome(activity) { }, activity) }
                         instrumentation.waitForIdleSync()
@@ -162,7 +179,7 @@ class HomeStatesCaptureTest {
                             clipped(page).forEach { problems += "$code $scale $name: $it" }
                             val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
                             page.draw(Canvas(bitmap))
-                            val folder = File(activity.filesDir, "home-states").apply { mkdirs() }
+                            val folder = File(activity.cacheDir, "home-states").apply { mkdirs() }
                             File(folder, "$code-$scale-$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
                             bitmap.recycle()
                         }

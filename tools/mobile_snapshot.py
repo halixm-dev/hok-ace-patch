@@ -175,6 +175,8 @@ def package_files_at(manifest: dict, hashes: set[str]) -> list[str]:
 
 def verify_snapshot(destination: Path) -> dict:
     """Rehash retained originals before trusting them for build or rollback."""
+    if destination.is_symlink():
+        raise ValueError("Snapshot destination contains a link")
     manifest = read_manifest(destination)
     actual_files = set()
     for root_name in ("packages", "Watchdog"):
@@ -196,3 +198,37 @@ def verify_snapshot(destination: Path) -> dict:
         if path.stat().st_size != expected["bytes"] or digest != expected["sha256"]:
             raise ValueError(f"Snapshot file changed: {name}")
     return manifest
+
+
+def checkpoint_snapshot(destination: Path, *, identity: dict, run_id: str,
+                        publish: bool = False) -> dict:
+    """Verify the complete measured source set before publishing/reusing snapshot proof.
+
+    The caller independently reconciles live source/readiness/APKs under coordinator ownership.
+    Extraction/stream completion alone never calls this: compare transport evidence first.
+    Producer changes invalidate a build, not immutable rollback/snapshot bytes. Snapshot reuse
+    therefore compares source/target/APKs and verifies its saved producer receipt separately.
+    """
+    from run_artifacts import ArtifactError, file_identity, publish_receipt, tree_manifest, verify_receipt
+
+    manifest = verify_snapshot(destination)
+    files = {name: {"size": item["bytes"], "sha256": item["sha256"]}
+             for name, item in manifest["files"].items()}
+    if files != identity["game"]["files"]:
+        raise ArtifactError("Snapshot differs from independently measured source set")
+    actual = tree_manifest(destination, exclude=frozenset({"build-receipt.json"}))
+    if actual != {**files, "manifest.json": file_identity(destination / "manifest.json")}:
+        raise ArtifactError("Snapshot contains unexpected artifacts")
+    if publish:
+        if (destination / "build-receipt.json").exists():
+            raise ArtifactError("Snapshot checkpoint is already published")
+        return publish_receipt(destination, identity=identity, run_id=run_id, stage="snapshot",
+                               references={"summary": None, "delta": None, "manifest": "manifest.json"})
+    receipt = verify_receipt(destination, stage="snapshot")
+    if receipt["run_id"] != run_id:
+        raise ArtifactError("Snapshot owner differs")
+    saved = receipt["identity"]
+    for field in ("target", "game", "apks"):
+        if saved[field] != identity[field]:
+            raise ArtifactError(f"Snapshot {field} identity changed")
+    return receipt

@@ -5,6 +5,8 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.ParcelFileDescriptor
 import java.security.MessageDigest
+import java.io.File
+import java.util.zip.ZipFile
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -14,6 +16,49 @@ class InstalledGameVerifier(private val context: Context, private val device: IP
     companion object {
         /** Prefix of every mismatch; the UI matches on it. A mismatch is a different app, not a damaged one. */
         const val DIFFERENT_APP = "The installed game app is not the expected one"
+
+        /** A check the shell provider's loss cut short; ③ reads "disconnected" as a lost provider and waits for it. */
+        const val PROVIDER_LOST = "Worker disconnected while checking the installed game app"
+
+        /**
+         * Whether <error> from [verify] is the shell provider's loss rather than a verdict on the installed app:
+         * the worker's binder is dead (<binderAlive> false), or the failure is a remote call, stream or wait that
+         * ended early. Such a check proves neither a match nor a different app, so it never counts as either.
+         */
+        fun providerLost(error: Throwable, binderAlive: Boolean): Boolean =
+            !binderAlive || generateSequence(error) { it.cause }.take(16).any {
+                it is android.os.RemoteException || it is java.io.EOFException || it is java.util.concurrent.TimeoutException
+            }
+
+        /** Independent original -> normal content proof for completed-install reuse. */
+        fun verifyManifestOnlySource(source: File, normal: File) {
+            fun entries(file: File): Map<String, String> = ZipFile(file).use { zip ->
+                val result = sortedMapOf<String, String>()
+                val seen = mutableSetOf<String>()
+                val entries = zip.entries()
+                while (entries.hasMoreElements()) {
+                    val entry = entries.nextElement()
+                    check(seen.size < 100000 && seen.add(entry.name)) { "Duplicate or oversized APK inventory" }
+                    val name = entry.name.uppercase(java.util.Locale.ROOT)
+                    if (entry.name == "AndroidManifest.xml" || (name.startsWith("META-INF/") &&
+                        listOf(".SF", ".RSA", ".DSA", ".EC", ".MF").any { name.endsWith(it) })) continue
+                    val digest = MessageDigest.getInstance("SHA-256")
+                    var length = 0L
+                    zip.getInputStream(entry).use { input ->
+                        val buffer = ByteArray(1024 * 1024)
+                        while (true) {
+                            val count = input.read(buffer); if (count < 0) break
+                            length += count; check(length <= 3L * 1024 * 1024 * 1024); digest.update(buffer, 0, count)
+                        }
+                    }
+                    check(length == entry.size)
+                    result[entry.name] = "$length:" + digest.digest().joinToString("") { "%02x".format(it) }
+                }
+                check("AndroidManifest.xml" in seen)
+                result
+            }
+            check(entries(source) == entries(normal)) { "Normal APK differs beyond its manifest/signature records" }
+        }
     }
 
     fun verify(expected: ApkIdentity) {

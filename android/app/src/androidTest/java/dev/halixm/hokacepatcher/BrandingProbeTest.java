@@ -20,12 +20,12 @@ public final class BrandingProbeTest {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         assertEquals("dev.halixm.hokacepatcher", context.getPackageName());
         ApplicationInfo app = context.getApplicationInfo();
-        assertEquals("HOK ACE Language Patcher", context.getPackageManager().getApplicationLabel(app).toString());
+        assertEquals("HOK ACE Patch", context.getPackageManager().getApplicationLabel(app).toString());
         Drawable icon = context.getPackageManager().getApplicationIcon(app);
         assertTrue("Launcher icon must be adaptive", icon instanceof AdaptiveIconDrawable);
         AdaptiveIconDrawable adaptive = (AdaptiveIconDrawable) icon;
         assertTrue(adaptive.getBackground() instanceof ColorDrawable);
-        assertEquals(Color.parseColor("#9EBEF7"), ((ColorDrawable) adaptive.getBackground()).getColor());
+        assertEquals(Color.parseColor("#FFFFFF"), ((ColorDrawable) adaptive.getBackground()).getColor());
         assertNotNull(adaptive.getForeground());
         Bitmap image = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888);
         adaptive.setBounds(0, 0, 512, 512);

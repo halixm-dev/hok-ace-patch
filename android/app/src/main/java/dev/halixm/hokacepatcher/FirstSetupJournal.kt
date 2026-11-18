@@ -16,6 +16,8 @@ class FirstSetupJournal private constructor(val directory: File, private val val
     val normal: ApkIdentity get() = ApkIdentity.fromJson(value.getJSONObject("normal"))
     val source: ApkIdentity get() = ApkIdentity.fromJson(value.getJSONObject("source"))
     val preparation: String get() = value.getString("preparation")
+    /** The ordinary Start (translate) this setup was approved under; null for a legacy or Technical tools setup. */
+    val parentRun: String? get() = if (value.has("parent_run")) value.getString("parent_run") else null
     @get:Synchronized val normalVerified: Boolean get() = value.getBoolean("normal_verified")
 
     @Synchronized fun snapshot(): JSONObject = JSONObject(value.toString())
@@ -67,8 +69,10 @@ class FirstSetupJournal private constructor(val directory: File, private val val
         persist()
     }
     @Synchronized fun result(): JSONObject {
+        // The consent was used by this attempt: a new setup needs fresh data-loss approval, never a repeated uninstall.
         if (phase == FirstSetupPhase.CANCELLED) return JSONObject().put("status", "setup_cancelled")
             .put("action", "first_setup").put("setup", id).put("translation_started", false)
+            .put("fresh_consent_required", true).put("preparation", preparation)
             .put("original_verified", value.getBoolean("original_verified"))
             .put("data_loss_may_have_happened", value.getBoolean("data_loss_may_have_happened"))
         check(normalVerified && phase in setOf(FirstSetupPhase.WAITING_FOR_GAME_UPDATE, FirstSetupPhase.READY)) {
@@ -82,7 +86,7 @@ class FirstSetupJournal private constructor(val directory: File, private val val
     companion object {
         private const val INITIALIZING = ".creating-"
         @JvmOverloads fun create(parent: File, prepared: ApkPreparation.Prepared, engineId: String, dataLossConfirmed: Boolean,
-                                consentRequest: String? = null): FirstSetupJournal {
+                                consentRequest: String? = null, parentRun: String? = null): FirstSetupJournal {
             check(dataLossConfirmed) { "First setup requires explicit data-loss consent" }
             check(prepared.requiresSignatureConversion && !prepared.source.debuggable) { "Converted or debug games cannot enter first setup" }
             prepared.normal.requireRecovery()
@@ -99,12 +103,14 @@ class FirstSetupJournal private constructor(val directory: File, private val val
             require(engineId.matches(Regex("[0-9a-f]{64}")))
             val id = UUID.randomUUID().toString()
             if (consentRequest != null) GameFilePolicy.session(consentRequest)
+            if (parentRun != null) GameFilePolicy.session(parentRun)
             val target = File(parent, id)
             val staging = File(parent, "$INITIALIZING$id")
             check(!target.exists() && !staging.exists()) { "First setup journal already exists" }
             val staged = FirstSetupJournal(staging, JSONObject().put("schema", 1).put("id", id)
                 .put("preparation", prepared.directory.name).put("engine_id", engineId)
                 .put("source", prepared.source.json()).put("normal", prepared.normal.json()).put("consent_request", consentRequest)
+                .put("parent_run", parentRun)
                 .put("data_loss_confirmed", true).put("normal_verified", false)
                 .put("phase", FirstSetupPhase.PREPARED.name))
             // Nothing can mutate the game until the initialized directory is published and synced.
@@ -121,6 +127,7 @@ class FirstSetupJournal private constructor(val directory: File, private val val
             check(value.getInt("schema") == 1 && value.getString("id") == directory.name && value.getBoolean("data_loss_confirmed"))
             GameFilePolicy.session(value.getString("preparation"))
             if (value.has("consent_request")) GameFilePolicy.session(value.getString("consent_request"))
+            if (value.has("parent_run")) GameFilePolicy.session(value.getString("parent_run"))
             val result = FirstSetupJournal(directory, value)
             result.normal.requireRecovery()
             check(value.getString("engine_id").matches(Regex("[0-9a-f]{64}")))
@@ -150,5 +157,14 @@ class FirstSetupJournal private constructor(val directory: File, private val val
 
         fun pending(context: Context): List<FirstSetupJournal> = history(context)
             .filter { it.phase !in setOf(FirstSetupPhase.READY, FirstSetupPhase.CANCELLED) }
+
+        /**
+         * Setup finished for saved Start <runId>: normal app verified, and the player answered that downloads
+         * finished and the game is closed. That answer is the one the translation needed, so it continues without
+         * another routine dialog.
+         */
+        fun readyFor(context: Context, runId: String): Boolean = history(context).any {
+            it.parentRun == runId && it.phase == FirstSetupPhase.READY
+        }
     }
 }

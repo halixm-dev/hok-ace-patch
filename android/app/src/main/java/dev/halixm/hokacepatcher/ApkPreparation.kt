@@ -37,7 +37,7 @@ class ApkPreparation(private val context: Context) {
     fun prepareRoot(device: IPrivilegedDeviceService, report: (String) -> Unit, checkpoint: () -> Unit): RootPrepared {
         RandomAccessFile(File(context.filesDir, "preparation.lock"), "rw").use { file ->
             file.channel.use { channel ->
-                val lock = checkNotNull(channel.tryLock()) { "Another APK preparation is running" }
+                val lock = checkNotNull(try { channel.tryLock() } catch (_: java.nio.channels.OverlappingFileLockException) { null }) { "Another APK preparation is running" }
                 lock.use { return prepareRootLocked(device, report, checkpoint) }
             }
         }
@@ -126,7 +126,7 @@ class ApkPreparation(private val context: Context) {
     fun prepare(device: IPrivilegedDeviceService, report: (String) -> Unit, checkpoint: () -> Unit): Prepared {
         RandomAccessFile(File(context.filesDir, "preparation.lock"), "rw").use { file ->
             file.channel.use { channel ->
-                val lock = checkNotNull(channel.tryLock()) { "Another APK preparation is running" }
+                val lock = checkNotNull(try { channel.tryLock() } catch (_: java.nio.channels.OverlappingFileLockException) { null }) { "Another APK preparation is running" }
                 lock.use { return prepareLocked(device, report, checkpoint) }
             }
         }
@@ -199,6 +199,18 @@ class ApkPreparation(private val context: Context) {
 
     private fun releaseLocked(installed: ApkIdentity, keep: File?, report: (String) -> Unit) {
         val root = File(context.filesDir, "preparations")
+        // Optional completion reuse needs the actual original source, never a fabricated
+        // source identity from the normalized APK. Bulk session release invalidates the
+        // receipt first; only then may this independent source copy be reclaimed.
+        val completionSources = File(context.filesDir, "sessions").listFiles().orEmpty().mapNotNull { session ->
+            if (!File(session, "completion-receipt.json").isFile) return@mapNotNull null
+            runCatching {
+                val journal = SessionJournal.load(session)
+                val run = RunStore(context).load(checkNotNull(journal.runId))
+                check(run.lifecycle == "complete" && journal.phase == PatchPhase.COMPLETE && !run.stopRequested)
+                checkNotNull(run.preparation).getString("id")
+            }.getOrNull()
+        }.toSet()
         val folders = root.listFiles().orEmpty().filter {
             it.isDirectory && !Files.isSymbolicLink(it.toPath()) && File(it, "receipt.json").isFile
         }
@@ -228,6 +240,7 @@ class ApkPreparation(private val context: Context) {
                 continue
             }
             val source = File(folder, "original.apk")
+            if (folder.canonicalFile == keep || folder.name in completionSources) continue
             if (!Files.exists(source.toPath(), LinkOption.NOFOLLOW_LINKS) || protects(source)) continue
             runCatching { sources += DurableFiles.deleteTree(source); DurableFiles.syncDirectory(folder) }
                 .onFailure { report("Could not remove a saved original game APK; keeping it") }

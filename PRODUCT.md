@@ -36,16 +36,28 @@ affiliated with Tencent.
   language and a working folder (about 8 GB), and clicks Start. It runs seven device steps: connect
   phone, prepare game APK, unlock data access, read language data, build translation, install
   translation, restore game.
-- **Android patcher**: the player installs Shizuku, picks a language and taps Start. The patcher
-  checks and recovers unfinished work before patching, asks for explicit consent before anything
-  destructive, and keeps recovery tools for a game that won't open. It also offers *Remove
-  translation* and *Free up space*. Package recovery uses **Review Re-download → Delete and
-  re-download → Open game → Downloads finished**. Review lists the affected files before direct
-  deletion. The player finishes downloads and closes the game before continuing.
+- **Android patcher**: the player picks a shell provider (Shizuku, Wireless debugging or Root), a
+  language and taps Start. The patcher checks and recovers unfinished work before patching, asks
+  for explicit consent before anything that deletes game data (Re-download excepted, below), and
+  keeps recovery tools for a game that won't open. It also offers *Remove translation* and *Free up
+  space*.
 - **Both patchers** offer *Remove translation* while they keep a pristine delta: it restores the
   original game files without clearing the game's data.
-- The translation is written only after the in-game update finishes. During a run the game must stay
-  closed. Afterwards the player logs in with *Scan to login*, because re-signing breaks direct
+- The translation is written only after the in-game update finishes. Both patchers say so on the
+  Start card, before Start: finish every in-game download and close the game. No routine checkbox
+  or dialog follows Start; *Remove translation* asks once, at the tap. During a run the game must
+  stay closed.
+- Re-download is automatic (the user's decision, 2026-11-13): when Start finds damaged game files,
+  the run deletes exactly those package files, without a review, so the game downloads them again.
+  Then **Open game**, finish the downloads, close the game, return and tap **Downloads finished** to
+  continue the saved translation. A package still damaged after its own download, or a deletion
+  interrupted twice, is not deleted again by itself: the main card shows it for review above
+  **Delete and re-download**.
+- A run can be stopped safely and continued. Saved work is continued or recovered before anything
+  new: while it waits, the Start button becomes its recovery action (*Continue saved work*, *Finish
+  stopping safely*, *Restore interrupted patch* …), and the screen names the state (*Working*,
+  *Continuing*, *Stopping safely*, *Restoring*, *Waiting for you*, *Recovery needs attention*).
+  Only a verified run reads as complete. Afterwards the player logs in with *Scan to login*, because re-signing breaks direct
   WeChat/QQ login.
 - Releases are published on GitHub (`halixm-dev/hok-ace-patch`). The Android patcher checks for
   updates only when the player asks.
@@ -58,9 +70,10 @@ affiliated with Tencent.
   translated: each keeps a pristine delta and rebuilds the untranslated files first. A phone the
   other patcher (or a version from before deltas) translated, or one a game update changed, still
   needs the game's data cleared. Repatching after an in-game update needs no clear either, in both
-  patchers; it was checked offline, not yet on a real update. A clear is still needed when an update
-  left a package holding both updated and translated files, or when the delta predates the asset
-  record (fingerprints) the update check reads.
+  patchers; on Android it ran on real updates (2026-11-13 and 2026-11-18). When an update left a
+  package holding both updated and translated files, the Android patcher writes the original bytes back
+  where it can and re-downloads the rest; the Windows patcher still refuses it, and then a clear is
+  needed. So is one when the delta predates the asset record (fingerprints) the update check reads.
 - First setup on an officially signed game deletes local game data and needs a fresh download
   (about 1.7–2.7 GB) and a new login. Consent checkboxes start unchecked.
 - The interface is in English or Indonesian, following the chosen translation. Technical logs stay

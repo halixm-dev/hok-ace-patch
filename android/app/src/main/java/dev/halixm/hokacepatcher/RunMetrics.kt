@@ -24,6 +24,22 @@ class RunMetrics(private val context: Context, private val destination: File) {
     private var samples = 0
     private var unavailable = 0
     private val sampler = Executors.newSingleThreadScheduledExecutor()
+    private val files = JSONObject().put("original_hash_passes", 0).put("written_files", 0).put("written_bytes", 0L)
+
+    @Synchronized fun filePlan(originals: JSONObject, hashes: JSONObject, result: File, changed: List<String>) {
+        files.put("original_files", originals.length()).put("original_bytes",
+            originals.keys().asSequence().sumOf { originals.getJSONObject(it).getLong("bytes") })
+        val names = hashes.keys().asSequence().toList()
+        val planned = names.sumOf { File(result, "out/$it").length() }
+        files.put("planned_files", names.size).put("planned_bytes", planned)
+            .put("skipped_files", names.size - changed.size)
+            .put("skipped_bytes", planned - changed.sumOf { File(result, "out/$it").length() })
+    }
+    @Synchronized fun fileWritten(bytes: Long) {
+        files.put("written_files", files.getInt("written_files") + 1)
+            .put("written_bytes", files.getLong("written_bytes") + bytes)
+    }
+    @Synchronized fun originalHashPasses(passes: Int) { files.put("original_hash_passes", passes) }
 
     init {
         sample()
@@ -58,6 +74,7 @@ class RunMetrics(private val context: Context, private val destination: File) {
         sample()
         val result = synchronized(this) {
             JSONObject().put("schema", 1).put("status", status)
+                .put("file_io", JSONObject(files.toString()))
                 .put("elapsed_seconds", (SystemClock.elapsedRealtime() - started) / 1000.0)
                 .put("sample_interval_seconds", 1).put("samples", samples)
                 .put("initial_free_bytes", initialFree).put("minimum_free_bytes", minimumFree)

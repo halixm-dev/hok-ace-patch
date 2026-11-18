@@ -10,6 +10,14 @@ commits: 290f5d8..46ed048
 
 ## Report
 
+**2026-11-12 recovery:** a relocation whose old slot is absent from the live B-tree now raises the
+structured `UnreachableSlot` (still a `RuntimeError`, with the same diagnostic text). The Android
+checkpoint build can offer the affected package through the existing approved
+[Re-download flow](update-stuck-redownload.md). It does not suppress the error or save the failed shard.
+That flow also checks texture-slot reachability before review when mixed data prevented staging:
+`unreachable_slots` uses the corrected reader and current B-tree metadata without a writable `Shard`.
+Suspect packages are checked after any available delta/asset restore in a disposable copy first.
+
 **What was built** — the patched game now renders the English textures. `tools/mobile_graphics.py`
 applies one catalog edit to one device texture: a `.blocks` BC7 payload is ported block for block when
 the device texture uses the 4x4 ASTC footprint, a `.blocks` RGBA32 payload is pasted onto the decoded
@@ -584,7 +592,9 @@ graphics pass now does, so **both** places come back:
   `--collect-data archspec`.
 
 Skipping the build-exe half is invisible at source-run time and fatal in the frozen exe, so the Report verifies it
-with a real build and a frozen `--selftest`, not `py_compile`.
+with a real build and a frozen `--selftest`, not `py_compile`. **Measured since (2026-11-17, PyInstaller 6.22):**
+a build without `--collect-all astc_encoder` still passes the frozen `--smoketest`, so that flag is margin, not
+load-bearing; `ooz` and `texture2ddecoder` were not built without theirs (lab notebook).
 
 ### `install_btree_slot_map` re-check
 
@@ -667,7 +677,7 @@ Ground truth moves to `tools/research/check_graphics.py`, which is off the runti
 ### Unreachable staged texture slots
 
 `qts_relocate.UnreachableSlot` reports a staged chunk whose exact key/offset is absent from its
-shard's B-tree. Android records only a verified snapshot package and offers the scoped
-[Re-download flow](update-stuck-redownload.md). Planning inspects the remaining texture targets
-read-only before review, so an earlier mixed-package refusal cannot hide this failure until a
+shard's B-tree. Android records only a verified snapshot package and adds it to the automatic
+[Re-download](update-stuck-redownload.md) scope. Planning inspects the remaining texture targets
+read-only before deletion, so an earlier mixed-package refusal cannot hide this failure until a
 second download. It never guesses a replacement slot or changes healthy texture relocation.

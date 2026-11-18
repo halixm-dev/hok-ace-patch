@@ -27,11 +27,11 @@ CONTEXT_ORIGIN = (190, 100)  # context_atlas_after_port.png is the atlas cropped
 # sprite -> (kind, text, style reference, the original it replaces)
 SPECS = {
     "Image_410780920": ("label", "MY SKINS", "reference_english/my_chessplayers.png",
-                        "originals/zh_Image_410780920_我的皮肤.png"),
+                        "originals/zh_Image_410780920_my_skins.png"),
     "Image_920603129": ("label", "TOTAL PROFIT", "reference_english/achievement_points.png",
-                        "originals/zh_Image_920603129_总盈利.png"),
-    "Image_1795213190": ("badge", "LOSS", None, "originals/zh_Image_1795213190_badge_失败.png"),
-    "Image_1611657762": ("badge", "WIN", None, "originals/zh_Image_1611657762_badge_胜利.png"),
+                        "originals/zh_Image_920603129_total_profit.png"),
+    "Image_1795213190": ("badge", "LOSS", None, "originals/zh_Image_1795213190_badge_loss.png"),
+    "Image_1611657762": ("badge", "WIN", None, "originals/zh_Image_1611657762_badge_win.png"),
 }
 FAILURES: list[str] = []
 

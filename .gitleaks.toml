@@ -14,3 +14,10 @@ condition = "AND"
 paths = ['''^\.scratch/.+\.json$''']
 regexTarget = "match"
 regexes = ['''^example_key": "[0-9A-F]{16}"$''']
+
+[[allowlists]]
+description = "SHA-256 content-identity keys (run_artifacts.identity_key) in the run-artifact test vectors, not credentials"
+condition = "AND"
+paths = ['''^tools/research/fixtures/run_artifacts/vectors\.json$''']
+regexTarget = "match"
+regexes = ['''key": "[0-9a-f]{64}"$''']

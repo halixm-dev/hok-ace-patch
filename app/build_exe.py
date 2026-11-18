@@ -64,6 +64,10 @@ def build() -> None:
     ]
     for module in HIDDEN_IMPORTS:
         args += ["--hidden-import", module]
+    # Checkpoint readers are shipping code; research probes are deliberately not bundled.
+    # Their producer identity hashes the actual onefile exe and extracted native bundle,
+    # so local changes and codec bytes are covered without trusting VERSION metadata.
+    args += ["--hidden-import", "run_artifacts"]
     args.append(str(APP / "hok_patcher.py"))
     subprocess.run(args, check=True)
 

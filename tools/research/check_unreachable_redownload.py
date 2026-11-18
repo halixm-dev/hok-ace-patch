@@ -5,7 +5,7 @@
 The tiny shard uses the existing synthetic B-tree fixture. Staging is narrowed to
 the real Shard.relocate call that fails in port_graphics; no game APK is installed.
 The original updater/older-patcher history is unknown and is not simulated here.
-Snapshot verification, refused-build cleanup, scope binding and deletion plans are real.
+Snapshot verification, checkpoint attempts, refusal binding and deletion plans are real.
 Pre-review tests replace only the synthetic package-index reader and candidate enumeration;
 current B-tree reads, combined planning and the file-delta rebuild remain real.
 """
@@ -31,10 +31,7 @@ sys.path.append(str(ROOT / "resources/runtime"))
 from check_btree_split import DATA, one_leaf_shard
 from mobile_snapshot import extract_snapshot, verify_snapshot
 from qts_relocate import KEYS_PER_PAGE, Shard
-import hashlib
-
-def file_identity(path):
-    return {"size": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+from run_artifacts import file_identity
 import android_bridge as bridge
 
 SYMPTOM = "15_0.db: slot 0x1dd2c4 (key DD242E3E) not in the B-tree"
@@ -92,18 +89,16 @@ class UnreachableRedownload(unittest.TestCase):
     def fail_build(self) -> Exception:
         with patch.object(bridge, "_build_scratch", self.stage):
             try:
-                bridge.build_snapshot(str(self.engine), str(self.session), str(self.apk),
+                bridge.build_checkpoint(str(self.engine), str(self.session),
+                    "91e93575-6767-45f6-8144-80bfa64ece0f", str(self.apk),
                     file_identity(self.apk)["sha256"], "en", str(self.keep))
             except Exception as error:
-                bridge.clear_build(str(self.session))
                 return error
         raise AssertionError("Broken build unexpectedly succeeded")
 
     def plan(self, name: str = "first") -> dict:
-        bridge.review_redownload(str(self.engine), str(self.session), str(self.keep))
-        record = json.loads((self.session / "redownload-review.json").read_text())
-        scope = record["scope"]
-        return {"packages": scope["summary"]["packages"], "files": {"packages/" + name: item for name, item in scope["files"].items()}}
+        return json.loads(bridge.redownload_plan(str(self.engine), str(self.session), str(self.keep),
+            str(self.session / "redownload-plans" / name)))
 
     def test_logged_failure_offers_only_its_package_without_deleting(self) -> None:
         before = verify_snapshot(self.session / "snapshot")
@@ -112,7 +107,9 @@ class UnreachableRedownload(unittest.TestCase):
         self.assertIn(REFUSAL, str(error))
         self.assertIn(SYMPTOM, str(error.__cause__))
         # Resetting the failed attempt must not lose the measured refusal.
-        bridge.clear_build(str(self.session))
+        attempt = next((self.session / "build-attempts").iterdir())
+        bridge.reset_checkpoint_attempt(str(self.engine), str(self.session),
+            "91e93575-6767-45f6-8144-80bfa64ece0f", attempt.name, "staged")
         plan = self.plan()
         self.assertEqual(set(plan["packages"]), {"15"})
         self.assertEqual(set(plan["files"]), {"packages/15/15.db", "packages/15/15_0.db", "packages/15/15.info"})
@@ -120,7 +117,7 @@ class UnreachableRedownload(unittest.TestCase):
         self.assertFalse((self.keep / bridge.REDOWNLOAD_NAME).exists())
 
     def test_healthy_session_has_no_plan(self) -> None:
-        with self.assertRaisesRegex(bridge.PatchError, "No game files hold a translation"):
+        with self.assertRaisesRegex(bridge.PatchError, bridge.NOTHING_TO_REDOWNLOAD):
             self.plan()
 
     @contextmanager
@@ -212,50 +209,25 @@ class UnreachableRedownload(unittest.TestCase):
         with self.inspect({"19": "mixed fixture"}), self.assertRaisesRegex(
                 bridge.PatchError, "inspection could not finish package 15"):
             self.plan()
-        self.assertFalse((self.session / "staged-hashes.json").exists())
+        self.assertFalse((self.session / "redownload-plans/first/staged-hashes.json").exists())
 
     def test_failed_mixed_inspection_does_not_offer_only_the_known_btree_failure(self) -> None:
         self.fail_build()
         with patch.object(bridge, "_mixed_packages", side_effect=RuntimeError("fixture mixed inspection failed")), \
              self.assertRaisesRegex(RuntimeError, "fixture mixed inspection failed"):
             self.plan()
-        self.assertFalse((self.session / "staged-hashes.json").exists())
-
-    def test_approved_review_rechecks_exact_scope(self) -> None:
-        with self.inspect({"19": "mixed fixture"}):
-            self.plan()
-        record = json.loads((self.session / "redownload-review.json").read_text())
-        summary = json.loads(bridge.check_redownload_review(str(self.engine), str(self.session), str(self.keep), record["digest"]))
-        self.assertEqual(set(summary["packages"]), {"15", "19"})
-        with self.assertRaisesRegex(bridge.PatchError, "plan changed"):
-            bridge.check_redownload_review(str(self.engine), str(self.session), str(self.keep), "0" * 64)
-
-    def test_changed_review_files_refuse_deletion(self) -> None:
-        with self.inspect({"19": "mixed fixture"}):
-            self.plan()
-        record = json.loads((self.session / "redownload-review.json").read_text())
-        (self.session / "staged-hashes.json").write_text('{}')
-        with self.assertRaisesRegex(bridge.PatchError, "plan differs"):
-            bridge.check_redownload_review(str(self.engine), str(self.session), str(self.keep), record["digest"])
-
-    def test_changed_kept_records_refuse_deletion(self) -> None:
-        with self.inspect({"19": "mixed fixture"}):
-            self.plan()
-        record = json.loads((self.session / "redownload-review.json").read_text())
-        (self.keep / bridge.RESTORE_REFUSED_NAME).write_text('{"packages": ["19"]}')
-        with self.assertRaisesRegex(bridge.PatchError, "plan changed"):
-            bridge.check_redownload_review(str(self.engine), str(self.session), str(self.keep), record["digest"])
+        self.assertFalse((self.session / "redownload-plans/first/staged-hashes.json").exists())
 
     def test_changed_engine_invalidates_failure(self) -> None:
         self.fail_build()
         (self.engine / "code.bin").write_bytes(b"different engine")
-        with self.assertRaisesRegex(bridge.PatchError, "No game files hold a translation"):
+        with self.assertRaisesRegex(bridge.PatchError, bridge.NOTHING_TO_REDOWNLOAD):
             self.plan()
 
     def test_changed_delta_records_invalidate_failure(self) -> None:
         self.fail_build()
         (self.keep / bridge.RESTORE_REFUSED_NAME).write_text('{"packages": []}', encoding="utf-8")
-        with self.assertRaisesRegex(bridge.PatchError, "No game files hold a translation"):
+        with self.assertRaisesRegex(bridge.PatchError, bridge.NOTHING_TO_REDOWNLOAD):
             self.plan()
 
     def test_changed_snapshot_invalidates_failure(self) -> None:
@@ -270,27 +242,27 @@ class UnreachableRedownload(unittest.TestCase):
         manifest["bytes"] = sum(item["bytes"] for item in manifest["files"].values())
         marker.write_text(json.dumps(manifest), encoding="utf-8")
         verify_snapshot(snapshot)
-        with self.assertRaisesRegex(bridge.PatchError, "No game files hold a translation"):
+        with self.assertRaisesRegex(bridge.PatchError, bridge.NOTHING_TO_REDOWNLOAD):
             self.plan()
 
     def test_lookalike_log_message_never_authorizes_a_plan(self) -> None:
         with patch.object(self, "stage", side_effect=RuntimeError(SYMPTOM)):
             error = self.fail_build()
         self.assertIs(type(error), RuntimeError)
-        with self.assertRaisesRegex(bridge.PatchError, "No game files hold a translation"):
+        with self.assertRaisesRegex(bridge.PatchError, bridge.NOTHING_TO_REDOWNLOAD):
             self.plan()
 
     def test_broken_refusal_record_never_authorizes_a_plan(self) -> None:
         self.fail_build()
         (self.session / bridge.PACKAGE_REFUSED_NAME).write_text('{"packages": {"19": "wrong package"}}', encoding="utf-8")
-        with self.assertRaisesRegex(bridge.PatchError, "No game files hold a translation"):
+        with self.assertRaisesRegex(bridge.PatchError, bridge.NOTHING_TO_REDOWNLOAD):
             self.plan()
 
     def test_package_absent_from_snapshot_never_gets_a_plan(self) -> None:
         self.output_package = "21"
         error = self.fail_build()
         self.assertNotIsInstance(error, bridge.PatchError)
-        with self.assertRaisesRegex(bridge.PatchError, "No game files hold a translation"):
+        with self.assertRaisesRegex(bridge.PatchError, bridge.NOTHING_TO_REDOWNLOAD):
             self.plan()
 
 

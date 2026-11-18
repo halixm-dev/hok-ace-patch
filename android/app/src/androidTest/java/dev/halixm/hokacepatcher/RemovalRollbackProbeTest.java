@@ -1,6 +1,7 @@
 package dev.halixm.hokacepatcher;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.ParcelFileDescriptor;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,7 +61,21 @@ public final class RemovalRollbackProbeTest {
             } catch (RuntimeException error) { throw error; }
             catch (Exception error) { throw new RuntimeException(error); }
         }
-        @Override public String validateGameSnapshot(ParcelFileDescriptor descriptor) { return "verified"; }
+        @Override public String reconcileGameFiles(String session, String operation, String relative,
+                ParcelFileDescriptor policy, ParcelFileDescriptor source, long length, String sha256) {
+            return PrivateRecoveryPolicy.apply(this, files, session, operation, relative, policy, source, length, sha256);
+        }
+        @Override public String validateGameSnapshot(ParcelFileDescriptor descriptor) {
+            try (java.io.InputStream input = new ParcelFileDescriptor.AutoCloseInputStream(ParcelFileDescriptor.dup(descriptor.getFileDescriptor()))) {
+                JSONObject expected = new JSONObject(new String(read(input), StandardCharsets.UTF_8)).getJSONObject("files");
+                assertEquals(expected.length(), files.size());
+                for (String name : files.keySet()) {
+                    assertEquals(expected.getJSONObject(name).getLong("bytes"), files.get(name).length);
+                    assertEquals(expected.getJSONObject(name).getString("sha256"), hash(files.get(name)));
+                }
+                return "verified";
+            } catch (Exception error) { throw new RuntimeException(error); }
+        }
         @Override public void clearGameWatchdog() { files.keySet().removeIf(name -> name.startsWith("Watchdog/")); }
         @Override public void clearSessionTemp(String session, String relative) { GameFilePolicy.INSTANCE.session(session); }
         @Override public void restoreWatchdogDirectory(String relative) { GameFilePolicy.INSTANCE.watchdogDirectory(relative); }
@@ -186,12 +202,14 @@ public final class RemovalRollbackProbeTest {
         hashes = new JSONObject(new String(Files.readAllBytes(
             new File(second.getDirectory(), "staged-hashes.json").toPath()), StandardCharsets.UTF_8));
         transaction = new GameFileTransaction(second, device);
-        transaction.verifyOriginals();
-        for (Iterator<String> names = hashes.keys(); names.hasNext(); ) {
-            String name = names.next();
+        GameFileTransaction.VerifiedOriginals proof = transaction.verifyOriginals();
+        java.util.List<String> changed = transaction.changedWrites(hashes, proof);
+        assertEquals(hashes.length(), changed.size()); // This control changes every staged pristine file.
+        for (String name : changed) {
             transaction.write("packages/" + name, new File(second.getDirectory(), "out/" + name), hashes.getString(name), false);
         }
-        transaction.finishApply(hashes);
+        transaction.finishApply(hashes, proof);
+        assertEquals(1, transaction.getOriginalHashPasses());
         for (Iterator<String> names = identities.keys(); names.hasNext(); ) {
             String name = names.next();
             assertEquals(name, identities.getJSONArray(name).getString(1), hash(device.files.get("packages/" + name)));
@@ -201,5 +219,65 @@ public final class RemovalRollbackProbeTest {
         assertTrue(new File(keep, "delta.bin").isFile());
         python.getModule("android_bridge").callAttr("keep_delta", engine.getPath(), second.getDirectory().getPath(), keep.getPath());
         assertFalse(new File(keep, "delta.bin").exists());
+    }
+    /**
+     * A linked Remove finalizes byte-only (no engine): the kept delta is deleted, the prior kept files are
+     * pinned beside the attempt first, a kill mid-finalization repeats safely, and a repeat changes nothing.
+     */
+    @Test public void testRemoveFinalizationIsByteOnlyAndIdempotent() throws Exception {
+        Context actual = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        File root = new File(RunStore.Companion.privateRoot(actual), "removal-probes/" + UUID.randomUUID());
+        Context context = new ContextWrapper(actual) { @Override public File getFilesDir() { return root; } };
+        boolean pythonStarted = Python.isStarted();
+        File keep = PristineDelta.INSTANCE.directory(context);
+        assertTrue(keep.mkdirs());
+        Files.write(new File(keep, "delta.bin").toPath(), "old-delta".getBytes(StandardCharsets.UTF_8));
+        String prior = hash("prior".getBytes(StandardCharsets.UTF_8));
+        Files.write(new File(keep, "staged-hashes.json").toPath(), new JSONObject().put("schema", 1)
+            .put("sha256", new JSONArray().put(prior)).toString().getBytes(StandardCharsets.UTF_8));
+        SessionJournal journal = SessionJournal.Companion.create(new File(root, "sessions"), ID, ID, null,
+            UUID.randomUUID().toString(), ID);
+        journal.outcome(PatchPhase.SNAPSHOT_ACCESS_INSTALLED, new JSONObject());
+        journal.outcome(PatchPhase.SNAPSHOT_READY, new JSONObject());
+        journal.outcome(PatchPhase.BUILDING, new JSONObject());
+        String attempt = UUID.randomUUID().toString();
+        // The attempt's result folder exists before the journal pins it; resultRoot refuses a missing one.
+        assertTrue(new File(journal.getDirectory(), "build-attempts/" + attempt + "/result").mkdirs());
+        journal.record(new JSONObject().put("build_attempt", attempt).put("remove", true));
+        File result = journal.getResultRoot();
+        Files.write(new File(result, "staged-hashes.json").toPath(), "{}".getBytes(StandardCharsets.UTF_8));
+        byte[] delta = "removal-delta".getBytes(StandardCharsets.UTF_8);
+        Files.write(new File(result, PristineDelta.SESSION_DELTA).toPath(), delta);
+        // Remove records no translated bytes: a plan naming any is refused before it is sealed.
+        try {
+            PristineDelta.INSTANCE.seal(context, journal, new JSONObject().put("schema", 1).put("remove", true).put("files", 0)
+                .put("bytes", 0).put("delta_sha256", hash(delta)).put("staged_hashes", new JSONArray().put(prior)));
+            fail("Remove plan with translated bytes sealed");
+        } catch (IllegalStateException expected) { }
+        PristineDelta.INSTANCE.seal(context, journal, new JSONObject().put("schema", 1).put("remove", true).put("files", 0)
+            .put("bytes", 0).put("delta_sha256", hash(delta)).put("staged_hashes", new JSONArray()));
+        journal.outcome(PatchPhase.STAGED, new JSONObject());
+        journal.outcome(PatchPhase.APPLYING, new JSONObject());
+        journal.outcome(PatchPhase.RESTORING, new JSONObject().put("patch_payload_verified", true).put("normal_verified", true));
+        // Recreate a justified cut after the record promotion, using the sealed old/final intent.
+        PristineDelta.INSTANCE.finalize(context, journal);
+        journal.record(new JSONObject().put("finalization_pending", true).put("finalized", false));
+        File previous = new File(result.getParentFile(), "finalization");
+        Files.write(new File(keep, "delta.bin").toPath(), "old-delta".getBytes(StandardCharsets.UTF_8));
+        PristineDelta.INSTANCE.finalize(context, journal);
+        assertFalse(new File(keep, "delta.bin").exists());
+        JSONObject record = new JSONObject(new String(Files.readAllBytes(new File(keep, "staged-hashes.json").toPath()),
+            StandardCharsets.UTF_8));
+        assertEquals(1, record.getJSONArray("sha256").length());
+        assertArrayEquals("old-delta".getBytes(StandardCharsets.UTF_8),
+            Files.readAllBytes(new File(previous, "previous-delta.bin").toPath()));
+        SessionJournal reloaded = SessionJournal.Companion.load(journal.getDirectory());
+        assertTrue(reloaded.snapshot().getBoolean("finalized"));
+        assertFalse(reloaded.snapshot().getBoolean("finalization_pending"));
+        byte[] before = Files.readAllBytes(new File(keep, "staged-hashes.json").toPath());
+        PristineDelta.INSTANCE.finalize(context, reloaded);
+        assertArrayEquals(before, Files.readAllBytes(new File(keep, "staged-hashes.json").toPath()));
+        reloaded.outcome(PatchPhase.COMPLETE, new JSONObject().put("normal_verified", true));
+        assertEquals(pythonStarted, Python.isStarted());
     }
 }

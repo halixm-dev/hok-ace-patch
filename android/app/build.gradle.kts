@@ -18,6 +18,11 @@ require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+").matches(buildVersion)) {
 
 val engineAssets = layout.buildDirectory.dir("generated/engine-assets")
 val stageEngineAssets by tasks.registering(Sync::class) {
+    // The installed APK is the final executable identity. Also retain byte fingerprints
+    // of bridge/app/native inputs beside the engine resource manifest for audit/readers.
+    val producerInputs = files(fileTree("src/main"), fileTree("../wheels"),
+        "build.gradle.kts", "../build.gradle.kts", "../settings.gradle.kts")
+    inputs.files(producerInputs)
     into(engineAssets)
     // AAPT otherwise decompresses .gz assets and strips their suffix, changing consumed bytes.
     from("../../resources/runtime") {
@@ -64,7 +69,23 @@ val stageEngineAssets by tasks.registering(Sync::class) {
             hashes[file.relativeTo(root).invariantSeparatorsPath.removeSuffix(".payload")] =
                 hash.digest().joinToString("") { "%02x".format(it) }
         }
-        root.resolve("manifest.json").writeText(groovy.json.JsonOutput.toJson(mapOf("files" to hashes)))
+        val producerHashes = sortedMapOf<String, String>()
+        producerInputs.files.filter { it.isFile }.forEach { source ->
+            val hash = MessageDigest.getInstance("SHA-256")
+            source.inputStream().use { stream ->
+                val bytes = ByteArray(1024 * 1024)
+                while (true) {
+                    val count = stream.read(bytes)
+                    if (count < 0) break
+                    hash.update(bytes, 0, count)
+                }
+            }
+            producerHashes[source.relativeTo(rootProject.projectDir).invariantSeparatorsPath] =
+                hash.digest().joinToString("") { "%02x".format(it) }
+        }
+        root.resolve("manifest.json").writeText(groovy.json.JsonOutput.toJson(mapOf(
+            "schema" to 1, "files" to hashes, "producer_inputs" to producerHashes,
+            "producer_scope" to "installed-apks-and-verified-engine")))
     }
 }
 
@@ -159,6 +180,8 @@ android {
     sourceSets.getByName("main").assets.srcDir(engineAssets)
     sourceSets.getByName("main").res.srcDir(uiResources)
     sourceSets.getByName("main").resources.srcDir(uiClassResources)
+    // Shared tiny cross-language vectors are test-only, never engine/shipping inputs.
+    sourceSets.getByName("test").resources.srcDir("../../tools/research/fixtures/run_artifacts")
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

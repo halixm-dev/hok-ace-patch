@@ -118,6 +118,14 @@ _Avoid_: patched APK, game APK (when the re-signed copy is meant)
 A debuggable copy of the normal APK, installed only long enough to write the override layer.
 _Avoid_: debug APK, data-access copy
 
+**Automatic continuation**:
+Finishing an interrupted action the player already approved when the patcher reopens or its connection returns, reusing work that is still valid. It carries the same action and consent; it grants no new permission to delete game data.
+_Avoid_: automatic retry (when the whole interrupted action is meant)
+
+**Stop safely**:
+The player's instruction to end the current action and leave the game's files and installed app consistent. That action stays stopped when the patcher reopens.
+_Avoid_: pause (the player has ended the action)
+
 **Windows patcher**:
 The Windows app that installs the translation onto a phone connected over USB.
 _Avoid_: PC patcher, Windows GUI, Windows app, desktop patcher

@@ -3,6 +3,7 @@ package dev.halixm.hokacepatcher
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -19,9 +20,21 @@ class RunNotificationTest {
         assertTrue(note.openGame)
     }
 
-    @Test fun removedAndWrittenOfferOpenGame() {
-        assertEquals("Translation removed", RunNotification.of("en", state("complete").put("removed", 3))!!.title)
-        assertTrue(RunNotification.of("en", state("recovered_unconfirmed"))!!.openGame)
+    @Test fun removedOffersOpenGame() {
+        val note = RunNotification.of("en", state("complete").put("removed", 3))!!
+        assertEquals("Translation removed", note.title)
+        assertTrue(note.openGame)
+    }
+
+    /** Unconfirmed is not game-ready, but the run ended: the player in the background still hears, without Open game. */
+    @Test fun writtenUnconfirmedPostsWithoutOpenGame() {
+        val state = state("recovered_unconfirmed")
+        val result = UiText.result("en", state)!!
+        val note = RunNotification.of("en", state)
+        assertNotNull(note)
+        assertEquals("Translation written", note!!.title)
+        assertEquals(result.summary, note.text)
+        assertFalse(note.openGame)
     }
 
     @Test fun aFailureSaysWorkStoppedAndOpensThePatcher() {

@@ -56,7 +56,7 @@ public final class FirstSetupJournalProbeTest {
             fail("Preparation bypassed first setup"); }
         catch (IllegalStateException expected) { assertTrue(expected.getMessage().contains("first-time setup")); }
         try { new PatchRequestStore(scoped).confirm(prepared, true); fail("Patch approval bypassed first setup"); }
-        catch (IllegalStateException expected) { assertTrue(expected.getMessage().contains("first-time setup")); }
+        catch (IllegalStateException expected) { assertTrue(expected.getMessage().contains("durable Start")); }
         try { new PatchCoordinator(scoped, IPrivilegedDeviceService.Stub.asInterface(new Binder()), message -> kotlin.Unit.INSTANCE)
             .run(sha, new File(root, "missing-access.apk")); fail("Patch coordinator bypassed first setup"); }
         catch (IllegalStateException expected) { assertTrue(expected.getMessage().contains("first-time setup")); }

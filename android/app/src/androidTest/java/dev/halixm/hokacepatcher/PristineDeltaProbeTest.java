@@ -54,7 +54,9 @@ public final class PristineDeltaProbeTest {
             "    target = session / 'snapshot/packages/1/1_0.db'\n" +
             "    data = bytearray(target.read_bytes()); data[100] ^= 1; target.write_bytes(bytes(data))\n" +
             "    try: android_bridge._restore_pristine(session, keep)\n" +
-            "    except android_bridge.PatchError as error: assert 'Clear the game' in str(error), error\n" +
+            "    except android_bridge.PatchError as error:\n" +
+            "        # ADR 0008: a package an update changed only in part is refused for Re-download, by name.\n" +
+            "        assert str(error).startswith(android_bridge.UPDATE_MIXED + ': package 1.'), error\n" +
             "    else: raise AssertionError('a changed file was rebuilt')\n" +
             "with tempfile.TemporaryDirectory() as temporary:\n" +
             "    base = Path(temporary)\n" +

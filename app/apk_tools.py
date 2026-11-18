@@ -156,3 +156,106 @@ def signed_with(apk: Path, cert_der: bytes) -> bool:
         cd_offset = struct.unpack("<I", f.read(4))[0]
         f.seek(max(0, cd_offset - 64 * 1024))
         return cert_der in f.read(min(cd_offset, 64 * 1024))
+
+
+def apk_identity(apk: Path) -> dict:
+    """Normalize malformed binary input to ValueError at the identity boundary."""
+    try:
+        return _apk_identity(apk)
+    except (struct.error, IndexError, KeyError, UnicodeError, StopIteration, OverflowError) as error:
+        raise ValueError("Malformed APK identity") from error
+
+
+def _apk_identity(apk: Path) -> dict:
+    """Content and semantic identity read from actual APK bytes; no timestamps or labels.
+
+    The expected descriptor must originate from a trusted source/preparation, never
+    from an install reply. Exact installed-byte equality also binds all signatures.
+    """
+    from axml_set_debuggable import parse_string_pool, is_debuggable
+
+    with zipfile.ZipFile(apk) as archive:
+        if len(set(archive.namelist())) != len(archive.namelist()):
+            raise ValueError("duplicate APK entries")
+        if not 8 <= archive.getinfo("AndroidManifest.xml").file_size <= 8 * 1024**2:
+            raise ValueError("unsupported manifest size")
+        manifest = archive.read("AndroidManifest.xml")
+        signers = []
+        for name in archive.namelist():
+            if name.upper().startswith("META-INF/") and name.upper().endswith((".RSA", ".DSA", ".EC")):
+                if archive.getinfo(name).file_size > 4 * 1024**2:
+                    raise ValueError("unsupported signature size")
+                from cryptography.hazmat.primitives.serialization.pkcs7 import load_der_pkcs7_certificates
+                from cryptography.hazmat.primitives import serialization
+                signers.extend(hashlib.sha256(cert.public_bytes(serialization.Encoding.DER)).hexdigest()
+                               for cert in load_der_pkcs7_certificates(archive.read(name)))
+    strings = None
+    attributes = {}
+    pos = struct.unpack_from("<H", manifest, 2)[0]
+    while pos < len(manifest):
+        kind, header, size = struct.unpack_from("<HHI", manifest, pos)
+        if size < header or size < 8 or pos + size > len(manifest):
+            raise ValueError("invalid manifest chunk")
+        chunk = manifest[pos:pos + size]
+        if kind == 1:
+            strings, _ = parse_string_pool(chunk)
+        if kind == 0x102 and strings is not None:
+            _, name, start, width, count = struct.unpack_from("<IIHHH", chunk, header)
+            if strings[name] == "manifest":
+                for index in range(count):
+                    _, key, raw, _, _, value_type, data = struct.unpack_from("<IIIHBBI", chunk, header + start + index * width)
+                    attributes[strings[key]] = strings[data] if value_type == 3 else data
+        pos += size
+    if not isinstance(attributes.get("package"), str) or type(attributes.get("versionCode")) is not int:
+        raise ValueError("APK package/version identity unavailable")
+
+    def lp(data: bytes, offset: int = 0) -> tuple[bytes, int]:
+        if offset + 4 > len(data):
+            raise ValueError("truncated signing block")
+        length = struct.unpack_from("<I", data, offset)[0]
+        end = offset + 4 + length
+        if end > len(data):
+            raise ValueError("truncated signing value")
+        return data[offset + 4:end], end
+
+    with apk.open("rb") as stream:
+        eocd = _find_eocd(stream, apk.stat().st_size)
+        stream.seek(eocd + 16)
+        central = struct.unpack("<I", stream.read(4))[0]
+        if central >= 24:
+            stream.seek(central - 24)
+            footer = stream.read(24)
+            if footer[8:] == APK_SIG_BLOCK_MAGIC:
+                length = struct.unpack_from("<Q", footer)[0]
+                if not 24 <= length <= min(16 * 1024 * 1024, central - 8):
+                    raise ValueError("unsupported signing block")
+                stream.seek(central - length - 8)
+                block = stream.read(length + 8)
+                if struct.unpack_from("<Q", block)[0] != length:
+                    raise ValueError("invalid signing block size")
+                offset = 8
+                while offset < len(block) - 24:
+                    pair_size, pair_id = struct.unpack_from("<QI", block, offset)
+                    if pair_size < 4 or offset + 8 + pair_size > len(block) - 24:
+                        raise ValueError("invalid signing pair")
+                    if pair_id == V2_BLOCK_ID:
+                        sequence, _ = lp(block[offset + 12:offset + 8 + pair_size])
+                        cursor = 0
+                        signers = []  # v2 is authoritative when present
+                        while cursor < len(sequence):
+                            signer, cursor = lp(sequence, cursor)
+                            signed, _ = lp(signer)
+                            _, cert_offset = lp(signed)
+                            certificates, _ = lp(signed, cert_offset)
+                            certificate, _ = lp(certificates)
+                            signers.append(hashlib.sha256(certificate).hexdigest())
+                    offset += 8 + pair_size
+    if not signers:
+        raise ValueError("APK signer identity unavailable")
+    digest = hashlib.sha256()
+    with apk.open("rb") as stream:
+        for data in iter(lambda: stream.read(CHUNK), b""):
+            digest.update(data)
+    return {"size": apk.stat().st_size, "sha256": digest.hexdigest(),
+            "package": attributes["package"], "version": attributes["versionCode"],
+            "signers": sorted(set(signers)), "debuggable": is_debuggable(manifest)}

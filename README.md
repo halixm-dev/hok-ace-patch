@@ -48,7 +48,7 @@ After a game update, run the patcher again. When the update rewrote a translated
 checks that package asset by asset: if none of its translation is left in it, it builds from the
 update's files and keeps a new delta against them. When some of the translation is still in it, the
 Android patcher writes the original bytes of those assets back (asset restore), or, when it cannot,
-offers **Re-download damaged files** for that package (below). A run that cannot rebuild the
+deletes that package so the game downloads it again (Re-download, below). A run that cannot rebuild the
 untranslated files otherwise stops before it writes anything and tells you to clear the game's data:
 when the Windows patcher finds part of the translation left in a file an update changed, when the delta was made by patcher 1.6.1.5 or older (it has
 no asset record), or on a phone another patcher (or a patcher version from before deltas) translated. Then clear the game's data,
@@ -57,10 +57,13 @@ and requires another login.
 
 If the game's own update stops on the translated files ("资源修复失败，请清理资源后重新下载资源"), the
 Android patcher sees it on the next Start or Remove translation: the game lists those files as broken.
-It then offers **Re-download damaged files**, which deletes only the translated packages the game
-listed, the mixed packages it cannot restore (an update rewrote them while some of the translation is
-still in them), and the game's update records. Open the game, let it download them and finish the update to the
-login screen, close it, then tap Start to patch again. No other game data is deleted. The Windows
+Start then deletes, without a review, only the translated packages the game listed, the mixed
+packages it cannot restore (an update rewrote them while some of the translation is still in them),
+any package with a texture slot it can no longer reach, and the game's update records (Re-download).
+Open the game, let it download them and finish the update to the login screen, close it, then return
+and tap **Downloads finished**: the translation continues in the same run. A package still damaged
+after its own download is not deleted again by itself; the patcher shows it for review above
+**Delete and re-download**. No other game data is deleted. The Windows
 patcher does not detect this yet; clear the game's data instead.
 
 Use the APK and game data from the phone's current version. An older staged package can
@@ -96,6 +99,8 @@ increasing workflow run number; local builds can set `-PpatchVersionCode=<number
 | Push a tag matching `VERSION`, such as `android-v1.6.1.1` | Release APK signed with the current patcher key and its rotation lineage, SHA-256, codec source companion and a draft GitHub release |
 
 CI runs Android unit tests, lint, native ELF alignment, APK ZIP alignment and signer verification.
+A separate `checks` job runs every repository-only check under [Verify changes](#verify-changes)
+on each push and pull request, and a release waits for it.
 The release attaches only the APK, `SHA256SUMS` and the codec source companion; the native
 alignment and runtime dependency reports stay in the run's artifacts.
 Artifacts expire after 14 days; draft release attachments remain. A draft's notes start from
@@ -121,6 +126,11 @@ If `py -3.12` is unavailable, select your Python 3.12 executable before setup:
 set PYTHON=C:\path\to\python3.12.exe
 setup.bat
 ```
+
+To check a built exe without a phone or a game dump, run
+`"dist\HOK ACE Language Patcher.exe" --smoketest <out-dir>`: it imports the pipeline and the
+runtime, reads both catalogs and runs each codec once, then writes `<out-dir>\smoketest.json`.
+The **Windows exe** workflow builds the exe and runs this on each push to `master` and pull request.
 
 `build/`, `dist/` and `.venv/` are generated. Recreate them with the commands above as needed.
 Keep any game data or recovery files stored beside the exe before deleting `dist/`.
@@ -159,8 +169,16 @@ There is no general test suite. Choose the check that matches your change:
 | Texture processing | `.venv\Scripts\python.exe tools\research\check_graphics.py` | Shipped assets; add `--game <game-dir>` to check a dump |
 | Indonesian texture edits | `.venv\Scripts\python.exe tools\research\make_language_payloads.py --check` | Shipped assets |
 | Pristine delta | `.venv\Scripts\python.exe tools\research\check_pristine_delta.py` | Repository only; add `--game <pristine game-dir> --apk <apk> --work <dir>` for the round trip and language switches |
+| Append pass | `.venv\Scripts\python.exe tools\research\check_append.py` | Repository only; add `--game <game-dir> --apk <apk> [--package <id>]` to append to a real package twice |
 | Shard B-tree splits | `.venv\Scripts\python.exe tools\research\check_btree_split.py` | Repository only; add `--game <game-dir>` to check every shard of a layer |
 | Repatch without a clear (Windows) | `.venv\Scripts\python.exe tools\research\check_windows_repatch.py` | Repository only |
+| Run artifact identities | `.venv\Scripts\python.exe tools\research\check_run_artifacts.py` | Repository only; also fails if a tracked file under `app/`, `tools/` or `resources/` has a non-ASCII name |
+| Remove on real data (Windows) | `.venv\Scripts\python.exe tools\research\check_windows_remove.py --pristine <builtin-dir> --staged <build-output> --work <dir>` | A pristine layer and a build of it; about 5x the touched packages free |
+| Windows interruption fixtures | `.venv\Scripts\python.exe tools\research\check_windows_recovery.py` | Synthetic private files only; expected failures track known recovery gaps |
+| Baseline/change output controls | `.venv\Scripts\python.exe tools\research\compare_continuation_controls.py --help` | Capture external staging hashes, normalized summary and pristine delta; compare reports made with matching inputs |
+| Changed engine or game against saved work | `.venv\Scripts\python.exe tools\research\check_changed_input_controls.py --help` | Two pristine dumps with their APKs; about 40 GB free under `--work` |
+| Re-download over a real update | `.venv\Scripts\python.exe tools\research\check_update_redownload.py --cycle <cycle> --work <dir>` | An `update_cycle.py` capture set (`after-push`, `after-patch`, `after-update`, `after-finish`) on the same drive as `<dir>` |
+| Control-capture normalization | `.venv\Scripts\python.exe tools\research\check_continuation_controls.py` | Repository only |
 | A change requiring screen verification | [Device cycle](docs/runbooks/device-cycle.md) | Phone and matching game data |
 
 Run both documentation checks after moving or renaming a doc. Offline checks verify file

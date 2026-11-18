@@ -2,7 +2,10 @@
 layer, captured end to end").
 
     .venv\\Scripts\\python.exe tools\\research\\check_update_redownload.py --work <scratch dir on D:> ^
-        [--cycle D:\\scratch\\hok-update-cycle]
+        [--cycle D:\\scratch\\hok-update-cycle] [--expect-update 1,10,21] [--expect-finish 10,21]
+
+Another cycle's captures pass the packages its phone planned: over `after-finish`, the layer once the game
+has downloaded them again, a run that deleted every planned package at once expects none (`--expect-finish ""`).
 
 The cycle's captures (`tools/research/update_cycle.py`) name every file's SHA-256; the bytes come from its
 `objects/` store and the extracted snapshots, hard-linked, so <work> must be on the same drive. The delta
@@ -10,7 +13,10 @@ is made as the Android patcher made it after `after-patch` (pristine 1.6.0.1 aga
 with asset fingerprints). Over the `after-update` layer, where the game's repair stuck on package `1` while
 `10` and `21` kept appended assets and `15`, `19`, `20` kept only modified ones:
 - Re-download plans `1`, `10` and `21` in one run, and nothing restore can take;
-- over the `after-finish` layer (package `1` downloaded again), it plans `10` and `21`, as the phone did.
+- over the `after-finish` layer (package `1` downloaded again), it plans `10` and `21`, as the phone did;
+- (ticket 17) a second plan of the same session, through an engine the bridge can identify, plans exactly
+  the same files and reuses the first one's mixed-package decision, so it runs fewer trial restores (the
+  graphics inspection's trial restores are not kept).
 """
 from __future__ import annotations
 
@@ -91,6 +97,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--cycle", type=Path, default=Path(r"D:\scratch\hok-update-cycle"))
     parser.add_argument("--work", type=Path, required=True)
+    parser.add_argument("--expect-update", default="1,10,21",
+                        help="packages Re-download plans over after-update (the 2026-10-23 cycle's by default)")
+    parser.add_argument("--expect-finish", default="10,21",
+                        help="packages it plans over after-finish; empty for a layer that needs none")
     args = parser.parse_args()
     if args.work.exists():
         shutil.rmtree(args.work)
@@ -114,19 +124,39 @@ def main() -> None:
     pristine_delta.record_staged_hashes(keep / pristine_delta.STAGED_HASHES_NAME, delta.staged_hashes)
     engine = args.work / "engine"
     engine.mkdir()
-    for name, target in (("runtime", ROOT / "resources" / "runtime"), ("tools", ROOT / "tools")):
+    for name, target in (("runtime", ROOT / "resources" / "runtime"), ("tools", ROOT / "tools"),
+                         ("catalog", ROOT / "resources" / "catalog"),
+                         ("catalog_id", ROOT / "resources" / "catalog_id")):
         subprocess.run(["cmd", "/c", "mklink", "/J", str(engine / name), str(target)], check=True,
                        capture_output=True)
 
+    # Ticket 17: a real copy of the engine can be identified, so the bridge keeps its decision for the
+    # session; the junction engine above cannot, so the first plan of each session is the fresh control.
+    identified = args.work / "engine-copy"
+    shutil.copytree(ROOT / "tools", identified / "tools", ignore=shutil.ignore_patterns("__pycache__", "research"))
+    shutil.copytree(ROOT / "resources" / "runtime", identified / "runtime", ignore=shutil.ignore_patterns("__pycache__"))
+    for name in ("catalog", "catalog_id"):
+        shutil.copytree(ROOT / "resources" / name, identified / name)
+
     failures = []
-    for label, expected in (("after-update", ["1", "10", "21"]), ("after-finish", ["10", "21"])):
+    expectations = (("after-update", args.expect_update), ("after-finish", args.expect_finish))
+    for label, expected in ((label, [name for name in text.split(",") if name]) for label, text in expectations):
         root = session(args.cycle, label, source, args.work / label)
-        # What a patch run's refused build leaves behind, before the same run plans the deletion.
+        # What a patch run's refused build leaves behind, before the same run plans the deletion: the
+        # build claims ownership first (`_own_legacy_build`), which is what `clear_build` resets.
+        bridge._own_legacy_build(root.absolute())
         (root / "out").mkdir()
         (root / "game" / "WXQ_Data").mkdir(parents=True)
         (root / "staged-hashes.json").write_text("{}", encoding="utf-8")
         bridge.clear_build(str(root))
-        plan = json.loads(bridge.plan_redownload(str(engine), str(root), str(keep)))
+        try:
+            plan = json.loads(bridge.plan_redownload(str(engine), str(root), str(keep)))
+        except bridge.PatchError as error:
+            # A layer the game has downloaded again in full holds nothing to re-download: the bridge refuses.
+            if expected or bridge.NOTHING_TO_REDOWNLOAD not in str(error):
+                raise
+            print(f"ok   {label}: Re-download plans nothing (refused: {bridge.NOTHING_TO_REDOWNLOAD}), expected []")
+            continue
         planned = sorted(plan["packages"], key=int)
         files = sorted({name.split("/")[0] for name in plan["redownload"]}, key=int)
         ok = planned == expected and files == expected
@@ -134,6 +164,28 @@ def main() -> None:
               f"expected {expected}")
         if not ok:
             failures.append(label)
+        control = (plan, json.loads((root / "staged-hashes.json").read_text(encoding="utf-8")))
+        bridge._forget_mixed_decisions()
+        rounds = []
+        for round_name in ("first", "again"):
+            folder = root / "redownload-plans" / round_name
+            before = dict(bridge.MIXED_DECISION_STATS)
+            again = json.loads(bridge.plan_redownload(str(identified), str(root), str(keep), str(folder)))
+            moved = {name: bridge.MIXED_DECISION_STATS[name] - before[name] for name in before}
+            rounds.append(((again, json.loads((folder / "staged-hashes.json").read_text(encoding="utf-8"))), moved))
+        (first, first_moved), (second, second_moved) = rounds
+        mixed = bool(first_moved["computed"])  # a layer with no mixed package decides nothing
+        # Ticket 17 keeps `_mixed_packages`' decision; the graphics inspection's trial restores of a suspect
+        # package are not kept, so the second plan still restores those, and only those.
+        ok = (first == control and second == control
+              and (not mixed or (first_moved["recorded"] >= 1 and second_moved["reused"] >= 1
+                                 and second_moved["restores"] < first_moved["restores"])))
+        print(f"{'ok  ' if ok else 'FAIL'} {label}: the same session plans the same again, reusing its decision "
+              f"(first: computed {first_moved['computed']:.0f}, restores {first_moved['restores']:.0f}, "
+              f"copied {first_moved['copied_bytes']:,.0f} B; again: reused {second_moved['reused']:.0f}, "
+              f"restores {second_moved['restores']:.0f}, proof hashed {second_moved['proof_bytes']:,.0f} B)")
+        if not ok:
+            failures.append(f"{label} reuse")
     shutil.rmtree(args.work, ignore_errors=True)
     sys.exit(1 if failures else 0)
 

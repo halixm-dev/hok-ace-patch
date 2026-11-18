@@ -50,36 +50,43 @@ class FirstSetupCoordinator @JvmOverloads constructor(
         catch (error: Throwable) { android.util.Log.w("HokAceSetup", "Progress display unavailable", error) }
     }
 
-    private fun <T> exclusive(action: () -> T): T {
+    private fun <T> exclusive(action: () -> T): T = RunStore.coordinator(context) {
         val sessions = File(context.filesDir, "sessions")
-        DurableFiles.createDirectories(sessions)
-        RandomAccessFile(File(sessions, "coordinator.lock"), "rw").use { file ->
-            file.channel.use { channel ->
-                checkNotNull(channel.tryLock()) { "Another patch or recovery is running" }.use {
-                    check(SessionJournal.pending(sessions).isEmpty()) { "Recover the interrupted translation before first setup" }
-                    return action()
-                }
-            }
-        }
+        check(SessionJournal.pending(sessions).isEmpty()) { "Recover the interrupted translation before first setup" }
+        action()
     }
 
+    /**
+     * <parentRun> is the saved translate Start the consent was given under (the request's own, when there is one).
+     * A Stop saved on it, or a cancel, before the uninstall intent ends setup with nothing removed. Once the old
+     * app is being removed, Stop waits for the verified normal install: that is the next safe boundary.
+     */
     @JvmOverloads fun run(prepared: ApkPreparation.Prepared, engineId: String, dataLossConfirmed: Boolean,
-                         consentRequest: String? = null): JSONObject = exclusive {
+                         consentRequest: String? = null, parentRun: String? = null): JSONObject = exclusive {
         check(dataLossConfirmed) { "First setup requires explicit data-loss consent" }
         EmergencyRestoreStore(context).requireResolved()
         check(consentRequest != null || recoveryMaterial != null) { "First setup requires a verified one-use consent request" }
-        check(!cancelled.get()) { "Setup cancelled before removal" }
+        if (consentRequest != null) check(FirstSetupRequestStore(context).parent(consentRequest) == parentRun) {
+            "Setup consent differs from the saved Start"
+        }
+        val proceed = {
+            check(!cancelled.get() && parentRun?.let { RunStore(context).load(it).mayContinue } != false) {
+                "Setup cancelled before removal"
+            }
+        }
+        proceed()
         check(FirstSetupJournal.pending(context).isEmpty()) { "Recover the unfinished first setup" }
         val normalFile = recovery(prepared.normal)
         StorageBudget.requireAvailable(context.filesDir, "First setup installer", prepared.normal.bytes)
         transport.verifyInstalled(prepared.source)
-        check(!cancelled.get()) { "Setup cancelled before removal" }
+        proceed()
         if (consentRequest != null) FirstSetupRequestStore(context).begin(consentRequest, prepared)
-        val journal = FirstSetupJournal.create(File(context.filesDir, "first-setups"), prepared, engineId, true, consentRequest)
+        val journal = FirstSetupJournal.create(File(context.filesDir, "first-setups"), prepared, engineId, true,
+            consentRequest, parentRun)
         active.set(journal)
         try {
             transport.forceStop()
-            check(!cancelled.get()) { "Setup cancelled before removal" }
+            proceed()
             journal.beforeUninstall()
             progress("Removing the old game app and its local data")
             transport.uninstallVerified(prepared.source)
@@ -115,7 +122,11 @@ class FirstSetupCoordinator @JvmOverloads constructor(
         return journal.result()
     }
 
-    /** Recover installation only. Never repeat an uninstall or claim deleted user data was restored. */
+    /**
+     * Recover installation only. Never repeat an uninstall or claim deleted user data was restored. Runs even
+     * after a saved Stop: installing the pinned normal app is safety recovery, not continuation. The original
+     * still present after an uncertain uninstall cancels this attempt; another setup needs fresh consent.
+     */
     fun recover(id: String): JSONObject = exclusive {
         GameFilePolicy.session(id)
         val journal = FirstSetupJournal.load(File(context.filesDir, "first-setups/$id"))

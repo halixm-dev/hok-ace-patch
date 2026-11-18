@@ -45,7 +45,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val heading = text("Let's get started", Type.HEADING)
     private val detail = text("", Type.BODY)
     private val primary = button("Start", "next-step", true) { invoke(next) }
-    /** Under Open game, on a result that leaves the game ready: the result's own label (Start another patch). */
+    /** Under Open game: Downloads finished at the download wait, or Start another patch after a result. */
     private var secondaryAction = "start"
     private val again = button("Start another patch", "start-again") { invoke(secondaryAction) }.apply { visibility = View.GONE }
     private val recovery = card(R.color.warning_surface, R.color.warning)
@@ -244,26 +244,26 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     fun show(title: String, instruction: String, label: String, action: String, recoveryNeeded: Boolean,
-             stage: Stage = Stage.READY, secondaryLabel: String? = null, secondary: String = "start") {
+             stage: Stage = Stage.READY, secondaryLabel: String? = null, secondaryAction: String = "start") {
         trace("$title | $instruction | $label -> $action, recovery $recoveryNeeded")
         heading.text = ui(title); detail.text = ui(instruction); primary.text = ui(label); next = action
         this.stage.text = ui(stage.eyebrow)
         recovery.visibility = if (recoveryNeeded) View.VISIBLE else View.GONE
-        secondaryAction = secondary
+        this.secondaryAction = secondaryAction
+        again.text = secondaryLabel?.let(::ui).orEmpty()
         again.visibility = if (secondaryLabel == null) View.GONE else View.VISIBLE
-        if (secondaryLabel != null) again.text = ui(secondaryLabel)
         showItems(emptyList(), "")
         showRecoveryExport()
     }
 
     /** A result state: its heading and summary, the run's own counts as a list, the login note, then Open game or <label>. */
     fun result(result: UiText.Result, label: String) {
-        secondaryAction = "start"
         // A new result starts without the notice an earlier screen left.
         if (trace("${result.english} | $label")) { notice.text = ""; noticeMark.visibility = View.GONE }
         heading.text = result.heading; detail.text = result.summary
         if (result.gameReady) {
             primary.text = ui("Open game"); next = "game"
+            secondaryAction = "start"
             again.text = ui(label); again.visibility = View.VISIBLE
         } else {
             primary.text = ui(label); next = "start"
@@ -326,12 +326,18 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     /** Show the bar in place of the button while <value>; <step> fills it, and without one it only moves. */
-    fun progress(value: Boolean, step: UiText.Step? = null) {
+    fun progress(value: Boolean, step: UiText.Step? = null, canStop: Boolean = value) {
         bar.visibility = if (value) View.VISIBLE else View.GONE
         primary.visibility = if (value) View.GONE else View.VISIBLE
-        stop.visibility = if (value) View.VISIBLE else View.GONE
+        stop.visibility = if (canStop) View.VISIBLE else View.GONE
         bar.isIndeterminate = step == null
         if (step != null) { bar.max = step.total; bar.progress = step.number }
+    }
+
+    /** Stop is saved and being acted on: the button says so and cannot send a second Stop. */
+    fun stopping(value: Boolean) {
+        stop.isEnabled = !value
+        stop.text = ui(if (value) "Stopping safely" else "Stop safely")
     }
 
     fun logs(lines: List<String>) {
@@ -346,10 +352,15 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     fun working(value: Boolean) { primary.isEnabled = !value; again.isEnabled = !value; freeSpaceButton.isEnabled = !value }
 
     /**
-     * A launcher shortcut's <key>, acted on like a tap. Start is refused while ③ offers only Save log for help
-     * (recovery records cannot be read): the player could not tap Start there either.
+     * A launcher shortcut's <key>, acted on like a tap. Start is refused while ③ offers a recovery action instead
+     * (Recovery needs attention): the player could not tap Start there either.
      */
-    fun shortcut(key: String) { if (key != "start" || next != "export") invoke(key) }
+    fun shortcut(key: String) { if (key != "start" || next !in RECOVERY_KEYS) invoke(key) }
+
+    private companion object {
+        /** ③'s actions while recovery is unresolved; none of them starts a fresh patch. */
+        val RECOVERY_KEYS = setOf("export", "recovery_options", "recover_attention")
+    }
 
     fun checkingUpdate(value: Boolean) {
         updateButton.isEnabled = !value
@@ -410,9 +421,13 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         })
     }
 
-    /** A run reads the language once at its start, so the choice is locked while work is in progress. */
-    fun languageEnabled(value: Boolean) {
-        if (value) showLanguageNote()
+    /**
+     * A run reads the language once at its start, so the choice is locked while work is in progress. <locked>: an
+     * unresolved saved action holds it, and the note says how to change it (finish it, or Stop safely).
+     */
+    fun languageEnabled(value: Boolean, locked: Boolean = false) {
+        if (locked) languageNote.text = UiText.string(activity, "choices_locked")
+        else if (value || languageNote.text.toString() == UiText.string(activity, "choices_locked")) showLanguageNote()
         removeButton.isEnabled = value
         for (index in 0 until languages.childCount) languages.getChildAt(index).isEnabled = value
     }
