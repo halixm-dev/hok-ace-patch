@@ -5529,3 +5529,16 @@ same layer:
 - **Limits:** `--selftest` passes no APK, so the append pass (prime-only content) is not exercised frozen;
   `check_append.py --game --apk` covers it from source (entry above). Timings are single runs, and the
   frozen Indonesian run overlapped the source Indonesian run.
+
+## 2026-11-18 — Windows source producer identity from a checkout — pass after rename
+
+`run_artifacts.windows_producer_identity` returned None for every Windows source checkout:
+`relative_path` refuses non-ASCII names, and 8 tracked PNGs under `tools/research/career_atlas/originals/`
+had Chinese names. A None identity turns off snapshot, build and signing reuse for source runs.
+
+- **Change:** the 8 files renamed to ASCII; `relative_path` unchanged.
+- **Result:** from this checkout, each of `app`, `tools` and `resources` passes `tree_manifest`, and the
+  identity is `windows-source` (182 s to compute, single run).
+- **Guard:** `check_run_artifacts.py` now fails on any non-ASCII tracked path under those three folders;
+  a temporary file with a Chinese name, added under `tools/research/` with `git add -N`, made it fail as expected.
+- **Limit:** untracked files in those folders are hashed too, so a local non-ASCII file still returns None.

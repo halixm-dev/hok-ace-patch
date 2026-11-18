@@ -49,6 +49,7 @@ jobs:
             @('tools/research/check_btree_split.py'),
             @('tools/research/check_append.py'),
             @('tools/research/check_windows_repatch.py'),
+            @('tools/research/check_run_artifacts.py'),
             @('tools/research/check_graphics.py')
           )
           $failed = @()

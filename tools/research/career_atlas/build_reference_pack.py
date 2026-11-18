@@ -46,10 +46,10 @@ def main() -> None:
         save(A.english_region(label), "reference_english", label)
     # The Chinese originals the new labels replace, and the two badges, from the pristine 10-03 atlas.
     pristine, pristine_rects = A.read_atlas(PRISTINE, A.CAREER)
-    for sprite, name in (("Image_410780920", "zh_Image_410780920_我的皮肤"),
-                         ("Image_920603129", "zh_Image_920603129_总盈利"),
-                         ("Image_1795213190", "zh_Image_1795213190_badge_失败"),
-                         ("Image_1611657762", "zh_Image_1611657762_badge_胜利")):
+    for sprite, name in (("Image_410780920", "zh_Image_410780920_my_skins"),
+                         ("Image_920603129", "zh_Image_920603129_total_profit"),
+                         ("Image_1795213190", "zh_Image_1795213190_badge_loss"),
+                         ("Image_1611657762", "zh_Image_1611657762_badge_win")):
         save(pristine.crop(pristine_rects[sprite]), "originals", name)
     # What ships today.
     for path in sorted((A.ART / A.CAREER / "labels").glob("*.png")):

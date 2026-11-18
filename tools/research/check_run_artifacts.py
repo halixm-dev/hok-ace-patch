@@ -8,6 +8,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -187,6 +188,26 @@ def _source_and_frozen() -> None:
                 path.write_bytes(b"A")
 
 
+def _tracked_paths() -> None:
+    """Every tracked file a source identity hashes must pass relative_path.
+
+    One non-ASCII name under app/, tools/ or resources/ makes windows_producer_identity
+    return None, which silently turns off reuse for every source run (2026-11-18).
+    """
+    root = Path(__file__).absolute().parents[2]
+    listed = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", "app", "tools", "resources"],
+                            check=True, capture_output=True).stdout
+    names = [name.decode("utf-8") for name in listed.split(b"\0") if name]
+    assert names, "git ls-files found nothing under app/, tools/ or resources/"
+    bad = []
+    for name in names:
+        try:
+            artifacts.relative_path(name)
+        except artifacts.ArtifactError:
+            bad.append(name)
+    assert not bad, f"Rename these tracked files to safe ASCII paths: {bad}"
+
+
 def _installed_keys() -> None:
     """Same-length byte identities and every output-affecting request/producer must invalidate."""
     identity = _identity()
@@ -234,7 +255,7 @@ def main() -> None:
             _refused(lambda: artifacts.read_record(path))
         path.write_bytes(b" " * (artifacts.MAX_JSON + 1))
         _refused(lambda: artifacts.read_record(path))
-    _publication(); _mutations(); _source_and_frozen(); _installed_keys()
+    _publication(); _mutations(); _source_and_frozen(); _installed_keys(); _tracked_paths()
     print("PASS run artifact identities, byte mutations and all publication boundaries")
 
 

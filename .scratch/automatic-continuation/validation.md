@@ -131,7 +131,7 @@ PASS means a run with recorded evidence; OPEN means not run or not passed; SKIPP
 | Source `run.bat` | OPEN | Needs a person at the GUI |
 | GUI/visual checks (both languages, enlarged fonts, progress/Close/Stop/permission states) on either patcher | OPEN | Not run on the phone builds; emulator captures exist only for the review card (N, 2026-11-12) |
 | Comparable performance measurements (fresh, repeat, resume, final-restore-only) | OPEN | Single phone observations only (N); no comparison |
-| Parity finding: `run_artifacts.windows_producer_identity` is None for every source checkout (non-ASCII names under `tools/research/career_atlas/originals/`) | OPEN | C, parity worker finding 1 |
+| Parity finding: `run_artifacts.windows_producer_identity` is None for every source checkout (non-ASCII names under `tools/research/career_atlas/originals/`) | FIXED (2026-11-18): the 8 files renamed to ASCII; identity is `windows-source` from this checkout; `check_run_artifacts.py` (CI `checks`) refuses a non-ASCII tracked name | C, parity worker finding 1 |
 | Parity finding: `compare_continuation_controls.py capture` refuses APK builds | OPEN | C, parity worker finding 2 |
 | Remove output parity offline; changed engine/game real controls | OPEN | C, parity worker "Not covered" |
 | Legacy schema-1 safety-only retry migration | OPEN | C, ticket 14 entry |
