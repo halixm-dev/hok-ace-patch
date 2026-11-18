@@ -30,7 +30,7 @@ class DurableRuns(unittest.TestCase):
     def setUp(self) -> None:
         self.directory = tempfile.TemporaryDirectory(prefix="windows-runs-")
         self.addCleanup(self.directory.cleanup)
-        self.base = Path(self.directory.name)
+        self.base = Path(self.directory.name).resolve()  # TEMP can be an 8.3 short path; RunStore wants the long one
         self.work = self.base / "work"; self.work.mkdir()
         self.other = self.base / "other"; self.other.mkdir()
         self.store = RunStore(self.base / "state")
@@ -361,7 +361,7 @@ class Transport(unittest.TestCase):
     def setUp(self) -> None:
         self.directory = tempfile.TemporaryDirectory(prefix="windows-recovery-")
         self.addCleanup(self.directory.cleanup)
-        self.root = Path(self.directory.name)
+        self.root = Path(self.directory.name).resolve()  # TEMP can be an 8.3 short path; RunStore wants the long one
         self.phone = self.root / "phone"
         _write(self.phone, {"1/1.db": b"original"})
 

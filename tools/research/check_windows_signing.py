@@ -32,7 +32,7 @@ class SigningReuse(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="windows-signing-")
         self.addCleanup(self.temporary.cleanup)
-        self.root = Path(self.temporary.name)
+        self.root = Path(self.temporary.name).resolve()  # TEMP can be an 8.3 short path; RunStore wants the long one
         self.work = self.root / "work"; self.work.mkdir()
         self.phone = self.root / "phone"; self.phone.mkdir()
         self.store = RunStore(self.root / "state")

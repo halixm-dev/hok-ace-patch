@@ -27,7 +27,7 @@ class WindowsControls(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="windows-controls-")
         self.addCleanup(self.temporary.cleanup)
-        self.base = Path(self.temporary.name)
+        self.base = Path(self.temporary.name).resolve()  # TEMP can be an 8.3 short path; RunStore wants the long one
         self.work = self.base / "work"
         self.work.mkdir()
         self.store = RunStore(self.base / "state")
@@ -386,7 +386,7 @@ class WindowsRecoveryOnly(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="windows-recovery-only-")
         self.addCleanup(self.temporary.cleanup)
-        self.base = Path(self.temporary.name)
+        self.base = Path(self.temporary.name).resolve()  # TEMP can be an 8.3 short path; RunStore wants the long one
         self.work = self.base / "work"
         self.work.mkdir()
         self.store = RunStore(self.base / "state")

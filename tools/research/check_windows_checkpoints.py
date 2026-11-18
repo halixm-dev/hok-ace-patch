@@ -32,7 +32,7 @@ class CheckpointContinuation(unittest.TestCase):
         from check_windows_recovery import signed_fixture
         self.temporary = tempfile.TemporaryDirectory(prefix="windows-checkpoints-")
         self.addCleanup(self.temporary.cleanup)
-        self.base = Path(self.temporary.name)
+        self.base = Path(self.temporary.name).resolve()  # TEMP can be an 8.3 short path; RunStore wants the long one
         self.work = self.base / "work"; self.work.mkdir()
         self.phone = self.base / "phone"
         _write(self.phone, {**PRISTINE, "1/1.info": b'{"version":"synthetic"}'})

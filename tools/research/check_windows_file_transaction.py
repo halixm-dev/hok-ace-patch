@@ -37,7 +37,7 @@ class FileTransactions(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="file-transaction-")
         self.addCleanup(self.temporary.cleanup)
-        self.root = Path(self.temporary.name)
+        self.root = Path(self.temporary.name).resolve()  # TEMP can be an 8.3 short path; RunStore wants the long one
         self.work = self.root / "work"; self.work.mkdir()
         self.phone = self.root / "phone"
         _write(self.phone, {"1/1.db": b"already translated before action", "1/1_0.db": b"unchanged",
