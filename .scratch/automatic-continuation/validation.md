@@ -133,7 +133,8 @@ PASS means a run with recorded evidence; OPEN means not run or not passed; SKIPP
 | Comparable performance measurements (fresh, repeat, resume, final-restore-only) | OPEN | Single phone observations only (N); no comparison |
 | Parity finding: `run_artifacts.windows_producer_identity` is None for every source checkout (non-ASCII names under `tools/research/career_atlas/originals/`) | FIXED (2026-11-18): the 8 files renamed to ASCII; identity is `windows-source` from this checkout; `check_run_artifacts.py` (CI `checks`) refuses a non-ASCII tracked name | C, parity worker finding 1 |
 | Parity finding: `compare_continuation_controls.py capture` refuses APK builds | FIXED (2026-11-18): capture normalizes an `added-from-apk` package's `<work>/prime/<id>` itself; EN and ID +APK builds at HEAD captured with no wrapper each compare PASS against both Pass 2 reports of their language (base and current); `check_continuation_controls.py` (CI `checks`) | N, 2026-11-18 entry |
-| Remove output parity offline; changed engine/game real controls | OPEN | C, parity worker "Not covered" |
+| Remove output offline (Windows) | PASS (2026-11-18): EN and ID +APK builds installed and removed on a stand-in phone holding the real 1.8.0.1 packages; every file byte-identical to pristine after Remove, 11 removed = 11 changed of 14, no delta left (`check_windows_remove.py`) | N, 2026-11-18 Remove entry |
+| Changed engine/game real controls | OPEN | C, parity worker "Not covered" |
 | Legacy schema-1 safety-only retry migration | CLOSED by decision (user, 2026-11-18, "Yes, record it"): no migration; the safety-only policy stays as it is | N, 2026-11-18 legacy-retry review |
 | Historical `check_update_redownload.py` real-update capture | OPEN | C, 2026-11-12 user answer |
 

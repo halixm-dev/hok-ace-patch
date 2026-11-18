@@ -5579,3 +5579,20 @@ so it has no RunStore record and no `initial plus one` safety budget. Code read 
   and each one is the restoring install. A budget would need a new counter in the schema-1 journal for a
   case that exists only on phones that updated the patcher mid-run.
 - **Limit:** review only; no schema-1 session was run on a phone or emulator.
+
+## 2026-11-18 — Windows Remove on real 1.8.0.1 data, offline — pass
+
+`tools/research/check_windows_remove.py`: a stand-in phone (the adb stand-in from `check_windows_repatch.py`)
+holds the pristine copy of the 7 packages a build touches (14 files, about 0.9 GB). The real Windows
+install (`check_first_delta`, `push_translation`) writes the build, then the real Remove (`restore_pristine`,
+`write_back_pristine`) runs on a fresh pull. Builds: the 2026-11-18 `--apk` outputs at `c132935`.
+
+| Build | Changed by install | Removed | After Remove | Install | Remove |
+|---|---|---|---|---|---|
+| English | 11 of 14 | 11, the same files | all 14 byte-identical to pristine, no delta left | 326 s | 323 s |
+| Indonesian | 11 of 14 | 11, the same files | all 14 byte-identical to pristine, no delta left | 283 s | 292 s |
+
+- **Verdict:** pass. Remove must return pristine bytes, so this also settles Remove output parity with the
+  baseline: both trees have to produce the same pristine layer.
+- **Limits:** untouched packages are left off the stand-in phone; the APK install steps and the phone itself
+  are not exercised; timings are disk copies on the stand-in, single runs; Android Remove is not covered here.
