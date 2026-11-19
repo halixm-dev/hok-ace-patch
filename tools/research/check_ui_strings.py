@@ -39,8 +39,9 @@ STRINGS = ROOT / "resources" / "ui" / "strings.json"
 ANDROID = ROOT / "android" / "app" / "src" / "main" / "java"
 STOP_CARD = ANDROID / "dev" / "halixm" / "hokacepatcher" / "StopCard.kt"
 BRIDGE = ROOT / "android" / "app" / "src" / "main" / "python" / "android_bridge.py"
-# The GUI and the device workflow, whose dialogs and device hints reach the screen through the GUI.
-WINDOWS = (ROOT / "app" / "hok_patcher.py", ROOT / "app" / "patcher_core.py")
+# The GUI and the device workflow (with its ADB client), whose dialogs and device hints reach the screen
+# through the GUI.
+WINDOWS = (ROOT / "app" / "hok_patcher.py", ROOT / "app" / "patcher_core.py", ROOT / "app" / "adb_device.py")
 
 LANGUAGES = ("en", "id")
 PLATFORMS = {"android", "windows"}
