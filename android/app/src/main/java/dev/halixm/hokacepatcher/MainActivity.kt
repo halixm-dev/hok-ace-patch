@@ -14,10 +14,8 @@ import android.net.Uri
 import android.provider.Settings
 import android.os.ParcelFileDescriptor
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import android.widget.CheckBox
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import rikka.shizuku.Shizuku
@@ -26,8 +24,6 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.concurrent.Executors
 import org.json.JSONObject
-import java.text.DateFormat
-import java.util.Date
 
 /** A launcher shortcut's Start waits for Shizuku's binder this many times, this long apart (3 s in all). */
 private const val SHORTCUT_TRIES = 15
@@ -37,11 +33,13 @@ private const val PAIRING_NOTIFICATIONS = 1405
 
 /** Feasibility UI: independent engine checks and explicit, fixed device probes. */
 class MainActivity : Activity() {
+    // Members marked internal are used by the dialogs in MainActivityDialogs.kt (tech-debt ticket 02).
     private val worker = Executors.newSingleThreadExecutor()
     private val updateWorker = Executors.newSingleThreadExecutor()
     private var checkingUpdate = false
     private var updateDialog: AlertDialog? = null
-    private lateinit var home: GuidedHome
+    internal lateinit var home: GuidedHome
+        private set
     private val actions = mutableMapOf<String, () -> Unit>()
     private lateinit var output: TextView
     private lateinit var workerStatus: TextView
@@ -80,17 +78,18 @@ class MainActivity : Activity() {
         },
         finished = { if (!destroyed) refreshHome() },
     )
-    private val busy: Boolean get() = tasks.busy
-    private var automatic = false
+    internal val busy: Boolean get() = tasks.busy
+    internal var automatic = false
+        private set
     /** The automatic flow ends in Remove translation rather than a patch. */
-    private var removing = false
+    internal var removing = false
     /** The automatic flow ends in Re-download damaged files rather than a patch. */
     private var awaitingToken: String? = null
     private var awaitingAction: String? = null
     private var permissionRequested = false
     private var waitingForShizuku = false
     private var awaitingSince = 0L
-    private var waitingForDownloads: String? = null
+    internal var waitingForDownloads: String? = null
     /** Stop safely was tapped: only safety recovery and closing the stopped record may run until it ends. */
     private var stopping = false
     /** A saved action waits for its own provider (Wi-Fi, pairing, Wireless debugging) to come back while open. */
@@ -100,7 +99,8 @@ class MainActivity : Activity() {
     /** The flow came from Recovery needs attention's button: it recovers or continues, never prepares a fresh patch. */
     private var recoveryOnly = false
     /** The one unresolved saved Start, re-read every refresh; its provider and choices are locked until it resolves. */
-    @Volatile private var savedRun: RunStore.Run? = null
+    @Volatile internal var savedRun: RunStore.Run? = null
+        private set
     /** The exact scope rendered on the card; a tap must never approve a newer, unseen plan. */
     private var shownRedownload: Pair<String, String>? = null
     private val args by lazy {
@@ -413,7 +413,7 @@ class MainActivity : Activity() {
     }
 
     /** The saved action's own provider while one is unresolved, otherwise the one a new Start would use. */
-    private fun provider() = savedRun?.provider ?: ShellProvider.current(this)
+    internal fun provider() = savedRun?.provider ?: ShellProvider.current(this)
 
     private fun usesShizuku() = provider() == ShellProvider.SHIZUKU
 
@@ -473,7 +473,7 @@ class MainActivity : Activity() {
      * <explicit> is a tap on Start or Try again: it re-arms the saved action's safe automatic retries (never Stop,
      * consent or an uninstall). A saved action whose provider is not ready waits for it while the app is open.
      */
-    private fun beginAutomatic(explicit: Boolean = false) {
+    internal fun beginAutomatic(explicit: Boolean = false) {
         if (busy || PatchWorkerService.isWorking || awaitingToken != null) return
         loadSavedRun()
         if (explicit) savedRun?.let { run ->
@@ -536,7 +536,7 @@ class MainActivity : Activity() {
     /** The guide's line for a provider this build cannot start yet. */
     private fun notReady(provider: ShellProvider) = FailureText.notReady(this, provider)
 
-    private fun stopAutomatic() { automatic = false; removing = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null; waitingForAccess = false; stopping = false; continuing = false; recoveryOnly = false }
+    internal fun stopAutomatic() { automatic = false; removing = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null; waitingForAccess = false; stopping = false; continuing = false; recoveryOnly = false }
 
     private fun openShizuku() {
         if (!ShizukuLauncher.open(this)) {
@@ -622,7 +622,7 @@ class MainActivity : Activity() {
         })
     }
 
-    private fun startWorker(intent: Intent) {
+    internal fun startWorker(intent: Intent) {
         if (destroyed) return
         // A Stop in flight never starts new work; the worker's own durable checks refuse it as well.
         if (stopping && intent.action in setOf("prepare", "patch", "remove", "redownload", "first_setup", "setup_update")) {
@@ -1014,144 +1014,9 @@ class MainActivity : Activity() {
                                 recoverable: Boolean = runCatching { RecoveryMaterial.read(this).any }.getOrDefault(true)): String =
         FailureText.explain(this, provider(), message, recoverable)
 
-    private fun ui(value: String) = UiText.text(this, value)
+    internal fun ui(value: String) = UiText.text(this, value)
 
     private fun device(): IPrivilegedDeviceService = checkNotNull(service) { "Authorize and connect Shizuku first" }
-
-    private fun choosePreparedPatch() {
-        val choices = File(filesDir, "preparations").listFiles().orEmpty().filter {
-            it.isDirectory && File(it, "receipt.json").isFile
-        }.sortedByDescending { it.lastModified() }
-        if (choices.isEmpty()) { log("Prepare game files first"); return }
-        runOnUiThread {
-            AlertDialog.Builder(this).setTitle(ui("Choose prepared game files"))
-                .setItems(choices.map { DateFormat.getDateTimeInstance().format(Date(it.lastModified())) }.toTypedArray()) { _, index ->
-                    runTask {
-                        log("Checking prepared game files")
-                        val prepared = ApkPreparation(this).load(choices[index].name)
-                        check(!prepared.requiresSignatureConversion) { "Use First setup and confirm its separate data-loss warning first" }
-                        val run = RunStore(this).start("translate", PatchLanguage.current(this), provider(), RunStore.Target.local(this))
-                        // Choosing the files is the explicit action; no routine confirmation follows (ticket 13).
-                        val request = PatchRequestStore(this).authorize(run.id, prepared)
-                        runOnUiThread { startWorker(Intent(this, PatchWorkerService::class.java)
-                            .setAction("patch").putExtra("request", request)) }
-                    }
-                }.setNegativeButton(ui("Cancel"), null).show()
-        }
-    }
-
-    private fun chooseFirstSetup() {
-        check(FirstSetupJournal.pending(this).isEmpty()) { "Use Recover or finish game setup first" }
-        val choices = File(filesDir, "preparations").listFiles().orEmpty().filter {
-            it.isDirectory && File(it, "receipt.json").isFile
-        }.sortedByDescending { it.lastModified() }
-        if (choices.isEmpty()) { log("Prepare game files first"); return }
-        runOnUiThread {
-            AlertDialog.Builder(this).setTitle(ui("Choose game files for first setup"))
-                .setItems(choices.map { DateFormat.getDateTimeInstance().format(Date(it.lastModified())) }.toTypedArray()) { _, index ->
-                    runTask {
-                        val prepared = ApkPreparation(this).load(choices[index].name)
-                        check(prepared.requiresSignatureConversion) { "This game is already converted; use the patch update checkpoint" }
-                        runOnUiThread { showFirstSetupConfirmation(prepared) }
-                    }
-                }.setNegativeButton(ui("Cancel"), null).show()
-        }
-    }
-
-    /** <parentRun> is the saved translate Start that found the official build; setup keeps it for the translation after. */
-    private fun showFirstSetupConfirmation(prepared: ApkPreparation.Prepared, parentRun: String? = null): AlertDialog {
-        val loss = CheckBox(this).apply { tag = "setup-data-loss"; text = ui("I accept deletion of the game's local data") }
-        val login = CheckBox(this).apply { tag = "setup-scan-login"; text = ui("I will use Scan to login") }
-        val checks = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; addView(loss); addView(login) }
-        val dialog = AlertDialog.Builder(this).setTitle(ui("First setup deletes local game data"))
-            .setMessage(UiText.firstSetup(this))
-            .setView(checks).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton(ui("Delete data and set up"), null).create()
-        dialog.show()
-        val start = dialog.getButton(AlertDialog.BUTTON_POSITIVE); start.isEnabled = false
-        val refresh = { start.isEnabled = loss.isChecked && login.isChecked }
-        loss.setOnCheckedChangeListener { _, _ -> refresh() }
-        login.setOnCheckedChangeListener { _, _ -> refresh() }
-        start.setOnClickListener {
-            if (!busy) {
-                dialog.dismiss()
-                runTask {
-                    val request = FirstSetupRequestStore(this).confirm(prepared, loss.isChecked, login.isChecked, parentRun)
-                    runOnUiThread { startWorker(Intent(this, PatchWorkerService::class.java)
-                        .setAction("first_setup").putExtra("request", request)) }
-                }
-            }
-        }
-        return dialog
-    }
-
-    private fun chooseSetupRecovery() {
-        val pending = FirstSetupJournal.pending(this)
-        if (pending.isEmpty()) { log("No pending game setup"); return }
-        runOnUiThread {
-            AlertDialog.Builder(this).setTitle(ui("Recover or finish game setup"))
-                .setItems(pending.map { DateFormat.getDateTimeInstance().format(Date(it.snapshot().getLong("updated_ms"))) }.toTypedArray()) { _, index ->
-                    val journal = pending[index]
-                    if (journal.phase == FirstSetupPhase.WAITING_FOR_GAME_UPDATE) showSetupUpdateConfirmation(journal.id)
-                    else AlertDialog.Builder(this).setTitle(ui("Recover game installation"))
-                        .setMessage(ui("Check the installed app and restore the verified normal game app if it is absent. " +
-                            "Recovery will not repeat removal. Deleted local game data cannot be restored by this step."))
-                        .setNegativeButton(ui("Cancel"), null).setPositiveButton(ui("Recover")) { _, _ ->
-                            startWorker(Intent(this, PatchWorkerService::class.java)
-                                .setAction("setup_recover").putExtra("setup", journal.id))
-                        }.show()
-                }.setNegativeButton(ui("Cancel"), null).show()
-        }
-    }
-
-    private fun showSetupUpdateConfirmation(id: String): AlertDialog {
-        val check = CheckBox(this).apply { tag = "setup-update-confirmation";
-            text = ui("Every fresh game update finished, and I closed the game") }
-        val dialog = AlertDialog.Builder(this).setTitle(ui("Finish game setup"))
-            .setMessage(UiText.setupUpdate(this))
-            .setNeutralButton(ui("Open game")) { _, _ ->
-                if (automatic) waitingForDownloads = id
-                runTask {
-                    val setup = FirstSetupJournal.pending(this).single { it.id == id }
-                    check(setup.phase == FirstSetupPhase.WAITING_FOR_GAME_UPDATE && setup.normalVerified)
-                    check(SessionJournal.pending(File(filesDir, "sessions")).isEmpty())
-                    EmergencyRestoreStore(this).requireResolved()
-                    runOnUiThread {
-                        val launch = packageManager.getLaunchIntentForPackage("com.tencent.tmgp.osgame")
-                        if (launch != null) startActivity(launch) else home.message("The game cannot be opened. Use recovery.", failure = true)
-                    }
-                }
-            }.setView(check).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton(ui("Confirm updates"), null).create()
-        dialog.show()
-        val finish = dialog.getButton(AlertDialog.BUTTON_POSITIVE); finish.isEnabled = false
-        check.setOnCheckedChangeListener { _, checked -> finish.isEnabled = checked }
-        finish.setOnClickListener {
-            dialog.dismiss()
-            startWorker(Intent(this, PatchWorkerService::class.java).setAction("setup_update")
-                .putExtra("setup", id).putExtra("confirmed", check.isChecked))
-        }
-        return dialog
-    }
-
-    /** The opt-in starts unchecked and is offered only while saved game apps exist. */
-    private fun showFreeSpaceConfirmation() {
-        val saved = listOf("preparations", "recovery").sumOf { name ->
-            File(filesDir, name).walkTopDown().filter { it.isFile }.sumOf { it.length() }
-        }
-        val apk = File(filesDir, "recovery").walkTopDown().filter { it.name == "normal.apk" }
-            .maxOfOrNull { it.length() } ?: 0L
-        val remove = CheckBox(this).apply {
-            tag = "free-space-remove-apks"
-            text = UiText.removeSavedApks(this@MainActivity, saved, StorageBudget.required(apk, apk, apk, apk))
-        }
-        AlertDialog.Builder(this).setTitle(ui("Free up space?"))
-            .setMessage(ui("Removes leftovers from earlier or interrupted runs, and saved game apps this game version no longer needs.\n\nThe original game files the patcher changed are always kept, so you can still remove the translation or switch languages without clearing game data.\n\nKeep the game closed while this runs."))
-            .also { if (saved > 0 && apk > 0) it.setView(remove) }
-            .setNegativeButton(ui("Cancel"), null).setPositiveButton(ui("Free space")) { _, _ ->
-                if (!busy && !automatic && !PatchWorkerService.isWorking)
-                    startWorker(Intent(this, PatchWorkerService::class.java).setAction("free_space")
-                        .putExtra("remove_saved_apks", remove.isChecked))
-            }.show().also(PanelDialog::style)
-    }
 
     /** A direct deletion tap approves only the plan already rendered on the recovery card. */
     private fun reviewRedownload() {
@@ -1233,39 +1098,6 @@ class MainActivity : Activity() {
     /** Send the saved action, its prepared files now bound to it: Remove translation or the patch. */
     private fun dispatchAuthorized(request: String) = startWorker(Intent(this, PatchWorkerService::class.java)
         .setAction(if (removing) "remove" else "patch").putExtra("request", request))
-
-    /**
-     * Remove translation, at the tap: one plain dialog (DESIGN.md, Dialogs), no checkbox. It deletes no game data,
-     * so the tap plus this answer is the whole authorization; preparation and continuation never ask again.
-     * Cancel or dismissing it starts nothing.
-     */
-    private fun showRemoveConfirmation(): AlertDialog {
-        val dialog = AlertDialog.Builder(this).setTitle(ui("Remove translation"))
-            .setMessage(UiText.removeConfirmation(this, provider() == ShellProvider.ROOT))
-            .setNegativeButton(ui("Cancel"), null)
-            .setPositiveButton(ui("Remove the translation")) { _, _ ->
-                if (!busy && !automatic && !PatchWorkerService.isWorking && savedRun == null) {
-                    removing = true
-                    beginAutomatic()
-                }
-            }.create()
-        dialog.show()
-        PanelDialog.style(dialog)
-        return dialog
-    }
-
-    private fun chooseRecovery() {
-        val pending = SessionJournal.pending(File(filesDir, "sessions"))
-        if (pending.isEmpty()) { log("No interrupted patch to recover"); return }
-        runOnUiThread {
-            AlertDialog.Builder(this).setTitle(ui("Recover interrupted patch"))
-                .setItems(pending.map { DateFormat.getDateTimeInstance().format(
-                    Date(it.snapshot().getLong("created_ms"))) + " — " + ui("Interrupted run") }.toTypedArray()) { _, index ->
-                    startWorker(Intent(this, PatchWorkerService::class.java).setAction("recover")
-                        .putExtra("session", pending[index].id))
-                }.setNegativeButton(ui("Cancel"), null).show()
-        }
-    }
 
     override fun onResume() { super.onResume(); shown = true; DiagnosticTrace.event("ui", "Activity resumed"); statusHandler.post(refreshStatus) }
     override fun onPause() { shown = false; DiagnosticTrace.event("ui", "Activity paused"); statusHandler.removeCallbacks(refreshStatus); super.onPause() }
@@ -1393,10 +1225,10 @@ class MainActivity : Activity() {
         } finally { target.delete() }
     }
 
-    private fun runTask(task: () -> Unit) = tasks.run(task)
+    internal fun runTask(task: () -> Unit) = tasks.run(task)
     /** [runTask], then <then> on the UI thread once the gate is clear, so <then> may start gated work itself. */
     private fun runTaskThen(task: () -> Unit, then: () -> Unit) = tasks.run(task, then)
-    private fun log(message: String) {
+    internal fun log(message: String) {
         DiagnosticTrace.event("ui", "Log: $message")
         runOnUiThread {
             if (!destroyed) {
