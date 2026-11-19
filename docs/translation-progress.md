@@ -129,7 +129,7 @@ name as the catalog loads (`docs/features/terminology-table.md`): the default *S
 English catalog that rewrites 40 targets to Steal, 9 to Prepare and 1 to Deploy; on the Indonesian one 36, 7
 and 1, and it also puts 107 Indonesian series labels in the Indonesian order ("Seri Prepare"). It changes words inside tables that are already counted, so no count below moves.
 
-Before the terminology table, `tools/catalog_supplement.py` adds the strings the game introduced after the catalog
+Before the terminology table, `tools/catalog_supplement.py` (data in `resources/catalog_supplement/`) adds the strings the game introduced after the catalog
 was built, into tables the catalog already covers, and only where `unique` has no entry of its own. Game
 data **1.6.0.1** (2026-10-16) left **2073 rows / 1184 distinct strings** of package `1`'s catalog tables
 Chinese, against 146 rows on the pristine 1.4.0.2 layer: an achievement-title system with numbered tiers

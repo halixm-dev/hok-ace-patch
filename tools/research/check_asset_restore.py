@@ -489,7 +489,7 @@ class Checks:
         text signal passes; the new delta points at the restored packages as pristine."""
         import android_bridge as bridge
 
-        for name in ("catalog", "catalog_id", "sprites", "ui", "fonts", "key"):
+        for name in ("catalog", "catalog_id", "catalog_supplement", "sprites", "ui", "fonts", "key"):
             if (ROOT / "resources" / name).is_dir() and not (self.engine / name).exists():
                 subprocess.run(["cmd", "/c", "mklink", "/J", str(self.engine / name), str(ROOT / "resources" / name)],
                                check=True, capture_output=True)

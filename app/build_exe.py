@@ -42,6 +42,8 @@ def build() -> None:
         # This repo's own sprite art for the regioned atlases, read beside the catalogs
         # (mobile_graphics.SPRITE_ART); without it the Career atlas loses its labels and repairs.
         "--add-data", f"{RESOURCES / 'sprites'}{sep}sprites",
+        # The strings data updates added after the catalog was built (catalog_supplement._data_dir).
+        "--add-data", f"{RESOURCES / 'catalog_supplement'}{sep}catalog_supplement",
         # resources/qtsvfs is not shipped: no package is laid out whole (REBUILD_PACKAGES is empty),
         # so the exe never loads Tencent's builder. It stays in the repo for --builder runs from source.
         "--add-data", f"{RESOURCES / 'key' / 'cert.der'}{sep}key",

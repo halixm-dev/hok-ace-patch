@@ -35,6 +35,8 @@ val stageEngineAssets by tasks.registering(Sync::class) {
     from("../../resources/catalog_id") { into("engine/catalog_id"); rename { "$it.payload" } }
     // This repo's sprite art for the regioned atlases, read from beside the catalogs.
     from("../../resources/sprites") { into("engine/sprites"); rename { "$it.payload" } }
+    // The strings data updates added after the catalog was built, read beside tools/ (catalog_supplement).
+    from("../../resources/catalog_supplement") { into("engine/catalog_supplement"); rename { "$it.payload" } }
     from("../../tools") {
         into("engine/tools")
         include("*.py")

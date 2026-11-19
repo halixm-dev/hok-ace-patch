@@ -1,0 +1,11 @@
+[
+  {
+    "note": "The weekly leaderboards, ranked 第一 .. 第一百: {n} is the rank. %s%s is the season and the Chessplayer.",
+    "texts": {
+      "上周钻石狂潮排行榜排名第": ["Ranked No. {n} on the Diamond Frenzy leaderboard last week", "Peringkat No. {n} di leaderboard Diamond Frenzy minggu lalu"],
+      "上周成就大师排行榜排名第": ["Ranked No. {n} on the Achievement Master leaderboard last week", "Peringkat No. {n} di leaderboard Achievement Master minggu lalu"],
+      "上周战力巅峰排行榜排名第": ["Ranked No. {n} on the Peak Combat Power leaderboard last week", "Peringkat No. {n} di leaderboard Peak Combat Power minggu lalu"],
+      "上周%s%s棋手代言榜排名第": ["Ranked No. {n} on the %s%s Chessplayer Spokesperson leaderboard last week", "Peringkat No. {n} di leaderboard Spokesperson Chessplayer %s%s minggu lalu"]
+    }
+  }
+]

@@ -20,7 +20,7 @@ English and Indonesian. That covers 118 of 118 distinct strings in 264 fields: t
 |---|---|
 | the three bins mapped, each named as a table | `tools/research/lineup_bins.py`; lab notebook, "The three lineup bins mapped" |
 | the config-bin checksum (fields 1 and 4) and its reseal | `tools/config_bin.py`; `tools/research/config_bin_checksum.py` |
-| 198 lineup strings, English and Indonesian | `tools/catalog_supplement.py`, `TEXTS`, "Official lineups" |
+| 198 lineup strings, English and Indonesian | `resources/catalog_supplement/texts.json` (`catalog_supplement.TEXTS`), "Official lineups" sections |
 | the share-code rewrite | `tools/lineup_codes.py` (`rewrite_bin`), called by `extra_text.rewrite_config` from both paths |
 | the device verdict | `tools/extra_text.py`, `SAFE_ASSETS`, beside the hash |
 

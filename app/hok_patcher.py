@@ -1037,6 +1037,9 @@ def smoketest(out: Path) -> None:
                 with gzip.open(languages.catalog_dir(BUNDLE, code) / "catalog.json.gz", "rt", encoding="utf-8") as handle:
                     json.load(handle)
                 passed.append(f"catalog {code}")
+            import catalog_supplement
+            assert catalog_supplement.TEXTS and catalog_supplement.LEADERBOARDS
+            passed.append("catalog supplement")
 
             import lz4.block
             import ooz  # noqa: F401 - only decompress exists; the import loads the native module
