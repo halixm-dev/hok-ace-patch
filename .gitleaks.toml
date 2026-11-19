@@ -13,7 +13,7 @@ description = "Game text-table row keys (16 hex digits) recorded as example_key 
 condition = "AND"
 paths = ['''^\.scratch/.+\.json$''']
 regexTarget = "match"
-regexes = ['''^example_key": "[0-9A-F]{16}"$''']
+regexes = ['''example_key": "[0-9A-F]{16}"''']
 
 [[allowlists]]
 description = "SHA-256 content-identity keys (run_artifacts.identity_key) in the run-artifact test vectors, not credentials"
