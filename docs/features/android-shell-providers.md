@@ -81,7 +81,9 @@ providers: Shizuku (today's), Wireless debugging and Root, picked by the user on
 work in flight is [`.scratch/shell-providers/`](../../.scratch/shell-providers/spec.md), tickets 01–04;
 the root write path is decided in [ADR 0007](../adr/0007-on-a-rooted-phone-write-the-override-layer-directly.md).
 Shizuku's own history stays in [android-shizuku-patcher](android-shizuku-patcher.md). Ticket 01 passed on a phone;
-tickets 02 and 03 passed on the same phone, and passed again in an independent retest. No coverage count moves.
+tickets 02 and 03 passed on the same phone, and passed again in an independent retest. On 2026-11-19 the user
+reported Root on KernelSU, the Shizuku/Root switch and direct WeChat/QQ login under Root (with the game's original
+APK installed) working on 1.11.1.1. No coverage count moves.
 
 ### Journey log
 
