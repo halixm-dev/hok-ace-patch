@@ -4,6 +4,8 @@ import org.json.JSONObject
 import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 
 /** Budget simultaneously live transient files, retaining room for normal-APK recovery. */
 object StorageBudget {
@@ -12,6 +14,23 @@ object StorageBudget {
     private const val MB = 1_000_000L
     /** The smallest free-space change [replacedGameApksReport] counts as a released game APK. */
     const val REPLACED_APK_MIN_BYTES = 100L * MB
+    /** Android's default cap on the low-storage reserve an install must leave free (500 MiB). */
+    const val ANDROID_LOW_STORAGE_BYTES = 500L * 1024 * 1024
+
+    /**
+     * What installing <apk> (<bytes> long) holds at once: `pm` stages the whole APK, then refuses unless the
+     * installed size, the APK plus every compressed native library it extracts, still fits above Android's
+     * low-storage reserve. The game APK (2.03 GB, 0.40 GB of compressed libraries) failed with 4.1 GB free
+     * while one APK was budgeted (measured 2026-11-19).
+     */
+    fun installAllocations(apk: File, bytes: Long): LongArray {
+        val libraries = ZipFile(apk).use { zip ->
+            zip.entries().asSequence()
+                .filter { !it.isDirectory && it.name.startsWith("lib/") && it.method != ZipEntry.STORED }
+                .sumOf { maxOf(it.size, 0L) }
+        }
+        return longArrayOf(bytes, Math.addExact(bytes, libraries), ANDROID_LOW_STORAGE_BYTES)
+    }
 
     fun required(vararg allocations: Long): Long {
         require(allocations.isNotEmpty() && allocations.all { it >= 0 }) { "Invalid storage allocation" }

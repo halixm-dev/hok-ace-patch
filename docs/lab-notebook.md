@@ -5923,3 +5923,27 @@ phone that watched `files/trace.log`.
   `check_bridge_continuation`, `check_windows_repatch`, `check_continuation_controls`,
   `check_run_artifacts`, `check_windows_recovery` (109) OK.
 - **Verdict:** pass offline. Not run: a patch on a phone with this build.
+
+## 2026-11-19 — Android Wireless debugging cycle on 1.11.1.1: force-stop, Remove, worker loss — pass (two storage fixes)
+
+Phone `ebad528e` (Xiaomi Redmi Note 9 Pro, Android 15, 45 GB, 2.1–8.1 GB free), Wireless debugging provider
+(worker uid 2000), normal APK `29b3ee7e…`. Patcher debug builds 112, 113 and 114 from `fix/recovery-apk-link`
+(signed `555f2ff4`). Interruptions were caused from the host. Evidence: the app's `files/trace.log` on the phone.
+
+| Cycle | Run | What was done | Result |
+|---|---|---|---|
+| Storage before the snapshot | `a355d2cb` (ID) | Start on build 112 | The snapshot needed 9.7 GB, with 8.1 GB free. The recovery copy `recovery/<sha>/normal.apk` and `preparations/<id>/original.apk` were the same 2 GB twice. **Fixed** in build 113: the shortage reclaim logged *Freed 2.0 GB by sharing identical saved APKs* (21:37) and the snapshot ran. `original.apk` is now a symlink (the phone refused a hard link) |
+| Wireless debugging dropped | `a355d2cb` | None: the phone turned Wireless debugging off 8.5 min into the snapshot (21:43:58) | `recovery_required` *Worker disconnected*. No game file was written. The home said to turn it on; *Continue saved process* reconnected in 0.8 s with no new pairing. **Pass** |
+| W1 force-stop during build | `a355d2cb` | `am force-stop` 100 s into *Building text and graphics* (22:05:25) | Reopen 22:06:03 resumed (*Resuming the saved action after restart: CONTINUE*), rebuilt 11 files from the delta, wrote 3. Then **fail**: the normal APK install got `INSTALL_FAILED_INSUFFICIENT_STORAGE` with 2.1 GB free, and again with 4.1 GB free after the user freed space. The budget counted one APK. **Fixed** in build 114: *Freed 1.6 GB of finished build work of this run*, normal APK verified, complete 398/318, 1 table skipped (23:26) |
+| W2 Remove | `7c3a1e18` | Remove, one confirmation | Saved APKs reused, *Freed 4.5 GB of files left by earlier runs*, 11 originals rebuilt and written, normal APK verified, *no pristine delta is kept*; complete, removed 11 (23:27–23:49). **Pass** |
+| W3 worker loss mid-apply | `dbe811da` (EN after Remove) | Killed the shell worker 1 s after *Applying package file 1/1.db* (00:13:30) | `1/1.db` and `1/1_0.db` written; `recovery_required`, `packages_dirty=true`. Automatic retry 2 s later reconnected, restored the originals (about 3 min), verified the normal APK, reused the verified build, wrote 11 files, *Kept the pristine delta*; complete 398/318 (00:31). **Pass** |
+
+- **Install space:** the game APK is 2.03 GB, with 0.40 GB of compressed native libraries (`lib/arm64-v8a`).
+  `pm` stages the whole APK before it checks that the installed size fits above Android's 500 MiB
+  reserve, so an install holds about 5.0 GB at once. Every install now budgets that
+  (`StorageBudget.installAllocations`, `InstallSpaceTest`).
+- **Other findings, not fixed here:** APK preparation refuses for space without first running the
+  reclaim (`ApkPreparation` "APK preparation" budget). A Start refused for space leaves a pending run, so *Free up space*
+  refuses until *Stop safely*. A Kotlin incremental local build kept an old `BuildConfig.VERSION_NAME`;
+  deleting `app/build/kotlin` and `app/build/tmp/kotlin-classes` fixed it (CI builds clean).
+- **Limits:** one phone, one provider. Not done: logging in to check the screens. Shizuku and Root had no cycle.

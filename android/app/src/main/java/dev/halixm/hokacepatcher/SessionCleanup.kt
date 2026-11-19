@@ -3,6 +3,7 @@ package dev.halixm.hokacepatcher
 import android.content.Context
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -20,13 +21,15 @@ internal class SessionCleanup(
 ) {
     /**
      * Coordinator lock held, on a measured shortage only: every resolved session's bulk, <journal>'s retired
-     * snapshots ([releaseRetiredSnapshots]) and the engine folders of earlier app builds ([releaseStaleEngines]).
+     * snapshots ([releaseRetiredSnapshots]) and finished build work ([releasePublishedScratch]), the engine folders of earlier app builds ([releaseStaleEngines])
+     * and second copies of identical saved APKs ([ApkPreparation.shareDuplicates]).
      * Each part refuses on its own unreadable state; the caller remeasures the same budget afterwards.
      */
     fun reclaimForShortage(journal: SessionJournal?) {
         releaseResolvedSessions(keepNewest = false)
-        if (journal != null) releaseRetiredSnapshots(journal)
+        if (journal != null) { releaseRetiredSnapshots(journal); releasePublishedScratch(journal) }
         releaseStaleEngines()
+        ApkPreparation(context).shareDuplicates(report)
     }
 
     /**
@@ -97,6 +100,34 @@ internal class SessionCleanup(
             if (done.isFailure) report("Could not remove a replaced snapshot of this run (${done.exceptionOrNull()?.javaClass?.simpleName})")
         }
         if (freed > 0) report("Freed ${StorageBudget.freeSpaceLabel(freed)} of a replaced snapshot of this run")
+    }
+
+    /**
+     * <journal>'s build scratch once its result is published (`result/build-receipt.json`): the build moved its
+     * output, delta and hashes into `result/`, and nothing reads the scratch again. It holds the pristine copies
+     * and work files (1.6 GB on the 2026-11-19 phone run). A linked scratch, or one a live link points into, stays.
+     */
+    private fun releasePublishedScratch(journal: SessionJournal) {
+        val base = context.filesDir.canonicalFile
+        val folders = File(journal.directory, "build-attempts").listFiles().orEmpty().mapNotNull { attempt ->
+            val scratch = File(attempt, "scratch")
+            runCatching {
+                check(!Files.isSymbolicLink(attempt.toPath()) && File(attempt, "result/${ArtifactReceipts.NAME}").isFile)
+                check(Files.isDirectory(scratch.toPath(), LinkOption.NOFOLLOW_LINKS))
+                RunStore.safe(base, scratch, true)
+                scratch
+            }.getOrNull()
+        }
+        if (folders.isEmpty()) return
+        val targets = linkTargets(referenceRoots(), folders.map { it.canonicalPath }.toSet()) ?: return
+        var freed = 0L
+        for (folder in folders) {
+            val path = folder.canonicalPath
+            if (targets.any { it == path || it.startsWith(path + File.separator) }) continue
+            runCatching { freed += DurableFiles.deleteTree(folder) }
+                .onFailure { report("Could not remove finished build work of this run (${it.javaClass.simpleName})") }
+        }
+        if (freed > 0) report("Freed ${StorageBudget.freeSpaceLabel(freed)} of finished build work of this run")
     }
 
     /**
