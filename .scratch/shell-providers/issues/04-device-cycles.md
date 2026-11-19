@@ -13,7 +13,7 @@
 
 - [ ] Wireless debugging cycles recorded
 - [x] Root on KernelSU cycles recorded
-- [ ] Direct login under root (needs a never re-signed phone)
+- [x] Direct login under root (needs a never re-signed phone)
 - [x] Cross-provider cycle recorded
 - [ ] Removing Shizuku: decide in its own ticket once each new provider has passed on two phones
 
@@ -27,4 +27,6 @@
 - **Wireless debugging with the screen off.** Patch started, then the phone set to unplugged (`dumpsys battery unplug`) and the screen turned off. Deep Doze reached `IDLE` within 3 minutes and stayed there for 22 of 26 polls. The run went on regardless: `complete` 13 minutes after the screen went off, 11 rebuilt from the delta, 14-file delta (identical except for `made`), normal APK restored (installed `base.apk` SHA-256 `63bec2…`). The installed files match the delta's staged hashes. The connection log now reads `Wireless debugging, Xiaomi …` with no `port -1`, and the port appears on its own line.
 - **Game after the screen-off run:** checked later the same day, once the phone was unlocked (`cfc9890`, same layer). The files still match the delta, and the game started to the English login with QTS scan `errorCode=0` and no QtsVFS errors (`d1-wireless-screenoff-unlocked-game.png`).
 - **Observation:** after a Shizuku run, a `dev.halixm.hokacepatcher:device` process stays alive as `shell` with parent 1. That is Shizuku's user service, not a root worker. No uid-0 worker was left after any Root run.
-- **Still open for this ticket:** pairing on a second phone maker; Magisk and APatch; direct WeChat/QQ login under root on a phone whose game was never re-signed.
+- **Still open for this ticket:** pairing on a second phone maker; Magisk and APatch.
+
+**2026-11-19, Android patcher 1.11.1.1, KernelSU phone: user's report, all pass.** Root on KernelSU and switching between Shizuku and Root work on the latest patch. Direct WeChat/QQ login works after a Root patch when the installed game APK is the game's original (never re-signed): Root writes the override layer and installs no APK, so the game keeps its own signature. Reported by the user; no logs were taken in this session. Lab notebook, 2026-11-19.

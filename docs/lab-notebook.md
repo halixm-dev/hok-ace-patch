@@ -5878,3 +5878,17 @@ phone that watched `files/trace.log`.
   `:app:testDebugUnitTest :app:assembleDebug` (full codecs) pass, the APK carrying
   `assets/engine/catalog_supplement/{texts,leaderboards}.json.payload`.
 - **Verdict:** pass offline. Not run: a patch on a phone with this build.
+
+## 2026-11-19 — Root on KernelSU, provider switch and direct login under Root on 1.11.1.1 — pass (user's report)
+
+- **Source:** the user's report on the Android patcher 1.11.1.1, KernelSU phone. No logs or screenshots
+  were taken in this session.
+- **Root on KernelSU:** patches complete on the latest patch.
+- **Provider switch:** switching between Shizuku and Root works (first measured 2026-10-24, ticket 04).
+- **Direct login:** direct WeChat/QQ login works after a Root patch when the installed game APK is the
+  game's original, never re-signed. As ADR 0007 predicts, Root writes the override layer itself and
+  installs no APK, so the game keeps its own signature. Closes the last root item of shell-providers
+  ticket 04.
+- **Graphics B-tree:** the unreachable-slot case (`.scratch/graphics-btree/`, ticket 01) is reported
+  solved on the latest patch; its original corruption diagnosis was not re-measured.
+- **Verdict:** pass, on the user's report. Not run: Magisk, APatch, a second phone maker.

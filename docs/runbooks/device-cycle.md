@@ -53,7 +53,7 @@ measurements behind these steps are in [`docs/lab-notebook.md`](../lab-notebook.
    `/storage/emulated/0/Android/data/com.tencent.tmgp.osgame/files/bqLog/ccs_log/normal1.log` for the
    game's own repair (`errorCode:361`). Screenshot the login screen. If the game dies, follow
    [`read-a-crash.md`](read-a-crash.md) before blaming the change.
-9. **Log in and walk the screens.** Use *Scan to login* (a re-signed APK cannot do direct WeChat/QQ login),
+9. **Log in and walk the screens.** Use *Scan to login* (a re-signed APK cannot do direct WeChat/QQ login; under Root with the original APK it can),
    then walk every screen the change could reach: the loading tips, the Chessplayer page, the lobby, the
    Card menu, the arena artwork, and the screen the change targets. A staged file that reads back correctly
    is not evidence about a screen.

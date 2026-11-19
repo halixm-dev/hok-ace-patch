@@ -58,7 +58,7 @@ affiliated with Tencent.
   stopping safely*, *Restore interrupted patch* …), and the screen names the state (*Working*,
   *Continuing*, *Stopping safely*, *Restoring*, *Waiting for you*, *Recovery needs attention*).
   Only a verified run reads as complete. Afterwards the player logs in with *Scan to login*, because re-signing breaks direct
-  WeChat/QQ login.
+  WeChat/QQ login. Root installs no APK, so a game app that was never re-signed keeps direct login.
 - Releases are published on GitHub (`halixm-dev/hok-ace-patch`). The Android patcher checks for
   updates only when the player asks.
 

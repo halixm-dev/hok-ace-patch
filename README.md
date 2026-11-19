@@ -26,7 +26,8 @@ each run reports what it actually applied and skipped.
    default folder is `HOK ACE Patcher Data` beside the exe.
 5. Click **Start** and follow the installation prompts. Keep the game closed until
    the patch finishes and the normal APK is restored.
-6. Open the game and use **Scan to login**. Direct WeChat/QQ login breaks when the APK is re-signed.
+6. Open the game and use **Scan to login**. Direct WeChat/QQ login breaks when the APK is re-signed. With **Root**, the
+   patcher installs no APK: if the game app on the phone is still the original, direct login keeps working.
 
 ### Updates and language changes
 
