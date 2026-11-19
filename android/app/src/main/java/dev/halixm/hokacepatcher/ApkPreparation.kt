@@ -312,8 +312,8 @@ class ApkPreparation(private val context: Context) {
         val directory = File(context.filesDir, "preparations/${UUID.randomUUID()}")
         check(!directory.exists())
         DurableFiles.createDirectories(directory)
-        try {
-            return prepareInto(directory, bytes, device, report, checkpoint)
+        val prepared = try {
+            prepareInto(directory, bytes, device, report, checkpoint)
         } catch (error: Throwable) {
             // Until its receipt exists nothing refers to this folder; a failed or cancelled preparation
             // otherwise leaves ~3 APK copies (measured: 18 GB after three retries on one phone).
@@ -323,6 +323,24 @@ class ApkPreparation(private val context: Context) {
                 if (freed > 0) report("Removed ${StorageBudget.freeSpaceLabel(freed)} left by the failed preparation")
             }
             throw error
+        }
+        // When the installed game already carries the stable key, the recovery copy is the source's bytes:
+        // share them, or the run holds a second 2 GB copy through the snapshot (measured 2026-11-19).
+        deduplicateApks(report, checkpoint)
+        return prepared
+    }
+
+    /**
+     * On a measured shortage: share byte-identical saved APKs ([deduplicateApks]). Skipped while another
+     * preparation holds the lock; the caller remeasures afterwards.
+     */
+    fun shareDuplicates(report: (String) -> Unit) {
+        RandomAccessFile(File(context.filesDir, "preparation.lock"), "rw").use { file ->
+            file.channel.use { channel ->
+                val lock = try { channel.tryLock() } catch (_: java.nio.channels.OverlappingFileLockException) { null }
+                    ?: return
+                lock.use { deduplicateApks(report) {} }
+            }
         }
     }
 

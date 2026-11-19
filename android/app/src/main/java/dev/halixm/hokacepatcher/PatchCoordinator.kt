@@ -190,6 +190,8 @@ class PatchCoordinator @JvmOverloads constructor(
         check(expected == null || identity == expected) { "The session's APK changed after it was checked" }
         if (!access) identity.requireRecovery()
         else check(identity.debuggable && identity.certificateSha256 == GameSigner.CERTIFICATE_SHA256)
+        requireSpace(if (access) "access APK install" else "normal APK install",
+            *StorageBudget.installAllocations(file, identity.bytes))
         journal.intent(if (access) "install_access" else "install_normal", identity.json())
         report(if (access) "Opening game data access" else "Restoring normal game APK")
         ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use {
@@ -1345,7 +1347,8 @@ class PatchCoordinator @JvmOverloads constructor(
             if (!installed(normal)) {
                 val access = ApkIdentity.read(context, File(journal.directory, "access.apk"))
                 check(installed(access)) { INSTALLED_CHANGED }
-                requireSpace("emergency normal APK restore", normal.bytes)
+                requireSpace("emergency normal APK restore",
+                    *StorageBudget.installAllocations(store.normal(normal.sha256), normal.bytes))
                 journal.runId?.let { RunStore(context).beginSafetyAttempt(it, "recovery_emergency_normal") }
                 journal.beginRecoveryNormal(normal)
                 report("Restoring normal APK; package recovery remains required")
