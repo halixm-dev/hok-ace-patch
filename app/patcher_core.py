@@ -19,10 +19,8 @@ from functools import cached_property
 from pathlib import Path
 from typing import Protocol
 
-PACKAGE = "com.tencent.tmgp.osgame"
 REMOTE_TMP = "/data/local/tmp/hokace"
 MIN_FREE_BYTES = 8 * 1024**3
-NO_WINDOW = 0x08000000 if os.name == "nt" else 0
 # The name the game is listed under once patched. Writing it is cosmetic, so a manifest this cannot
 # be written into is logged and the run continues.
 APP_NAME = "Honor of Kings: ACE"
@@ -39,6 +37,9 @@ SETTINGS = Path(os.environ.get("APPDATA", Path.home())) / "HOKAceEnglishPatcher"
 sys.path.append(str(BUNDLE / "runtime"))
 
 import apk_tools  # noqa: E402
+# Moved out, re-exported: callers and checks keep using patcher_core's names.
+from ui_strings import UI_STRINGS, PatchError, set_interface_language, ui_text  # noqa: E402,F401
+from adb_device import NO_WINDOW, PACKAGE, Adb  # noqa: E402,F401
 import languages  # noqa: E402
 import pristine_delta  # noqa: E402
 from axml_label import set_label  # noqa: E402
@@ -79,49 +80,10 @@ STEPS = [
 ]
 
 
-UI_STRINGS = json.loads((BUNDLE / "ui" / "strings.json").read_text(encoding="utf-8"))["strings"]
-# The language choice in ① also sets the interface language (DESIGN.md, Wording and language).
-_interface_language = languages.DEFAULT_LANGUAGE
-
-
-def set_interface_language(code: str) -> None:
-    global _interface_language
-    _interface_language = languages.get(code).code
-
-
-def _render(key: str, language: str, values: dict[str, object]) -> str:
-    text = UI_STRINGS[key][language]
-    for name, value in values.items():
-        text = text.replace("{" + name + "}", str(value))
-    return text
-
-
-def ui_text(key: str, **values: object) -> str:
-    """The shared interface string <key> (resources/ui/strings.json) in the interface language."""
-    return _render(key, _interface_language, values)
-
-
 def build_patch(*args: object, **kwargs: object) -> dict:
     """Load the translation engine only for a fresh staging operation."""
     from build_device_patch import build_patch as build
     return build(*args, **kwargs)
-
-
-class PatchError(Exception):
-    """Expected failure meant for the user: shared strings <keys>, joined by blank lines.
-
-    ``str()`` is the English text, for the log, which stays raw; ``shown()`` is the interface language.
-    """
-
-    def __init__(self, *keys: str, **values: object) -> None:
-        self.keys, self.values = keys, values
-        super().__init__(self._text("en"))
-
-    def _text(self, language: str) -> str:
-        return "\n\n".join(_render(key, language, self.values) for key in self.keys)
-
-    def shown(self) -> str:
-        return self._text(_interface_language)
 
 
 def _session_error(error: SessionError) -> PatchError:
@@ -278,144 +240,6 @@ class Ui(Protocol):
     def set_device(self, text: str, connected: bool) -> None: ...
     def ask(self, title: str, message: str, danger: bool = True) -> bool: ...
     def wait_user(self, title: str, message: str) -> None: ...
-
-
-class Adb:
-    def __init__(self, work: Path, *, serial: str | None = None, android_user: int | None = None,
-                 owner: OwnedRun | None = None) -> None:
-        self.serial, self.android_user, self.owner = serial, android_user, owner
-        self.boundary = None
-        self.progress = None
-        target = work / "adb"
-        target.mkdir(parents=True, exist_ok=True)
-        # Run adb from a persistent folder so its background server never locks the PyInstaller temp dir.
-        for item in (BUNDLE / "adb").iterdir():
-            if not (target / item.name).exists() or (target / item.name).stat().st_size != item.stat().st_size:
-                shutil.copy2(item, target / item.name)
-        self.exe = str(target / "adb.exe")
-
-    def bind(self, serial: str, android_user: int | None = None) -> None:
-        if (not re.fullmatch(r"[A-Za-z0-9_.:-]{1,256}", serial)
-                or self.serial is not None and self.serial != serial
-                or self.android_user is not None and android_user is not None and self.android_user != android_user):
-            raise PatchError("error_run_target", detail=serial)
-        self.serial = serial
-        if android_user is not None:
-            self.android_user = android_user
-
-    def _argv(self, args: tuple[str, ...]) -> list[str]:
-        if args and args[0] in {"start-server", "devices"} and len(args) == 1:
-            return [self.exe, *args]
-        if not self.serial or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,256}", self.serial):
-            raise PatchError("error_run_target", detail="Select the saved phone first")
-        if not args or args[0] not in {"shell", "exec-out", "pull", "push", "install", "uninstall",
-                                         "reconnect", "get-state", "get-serialno", "wait-for-device"}:
-            raise PatchError("error_run_target", detail="Unsafe ADB target override")
-        return [self.exe, "-s", self.serial, *args]
-
-    def _process_options(self) -> dict:
-        return self.owner.subprocess_options() if self.owner is not None else {}
-
-    def assert_target(self) -> int:
-        """Refuse Android-user switching before any device mutation."""
-        value = self.shell("am get-current-user").strip()
-        if not value.isdecimal():
-            raise PatchError("error_run_target", detail="Cannot verify Android user")
-        user = int(value)
-        if self.android_user is not None and user != self.android_user:
-            raise PatchError("error_run_target", detail=f"Android user {user}")
-        self.android_user = user
-        # run-as and the shared package paths used here target Android's owner user.
-        if user != 0:
-            raise PatchError("error_run_target", detail="Use the phone's owner profile (user 0)")
-        return user
-
-    def run(self, *args: str, check: bool = True) -> str:
-        if self.boundary is not None:
-            self.boundary()
-        if args and args[0] in {"push", "install", "uninstall", "reconnect"}:
-            self.assert_target()
-        result = subprocess.run(self._argv(args), capture_output=True, text=True, encoding="utf-8",
-                                errors="replace", creationflags=NO_WINDOW, timeout=180, **self._process_options())
-        output = (result.stdout + result.stderr).strip()
-        if check and result.returncode != 0:
-            raise PatchError("error_adb_failed", command=" ".join(args), output=output)
-        return output
-
-    def shell(self, command: str, check: bool = True) -> str:
-        if command != "am get-current-user":
-            self.assert_target()
-        return self.run("shell", command, check=check)
-
-    def exec_out(self, command: str) -> str:
-        self.assert_target()
-        return self.run("exec-out", command)
-
-    def exec_out_to_file(self, command: str, target: Path) -> None:
-        if self.boundary is not None:
-            self.boundary()
-        self.assert_target()
-        with target.open("wb") as out:
-            result = subprocess.run(self._argv(("exec-out", command)), stdout=out, stderr=subprocess.PIPE,
-                                    creationflags=NO_WINDOW, timeout=180, **self._process_options())
-        if self.progress is not None:
-            self.progress(target.stat().st_size)
-        if result.returncode != 0:
-            stderr = result.stderr.decode(errors="replace")
-            raise PatchError("error_read_failed", output=stderr)
-
-    def installed_identity(self) -> dict | None:
-        """Independently read installed bytes, with path/hash stability across the pull."""
-        self.assert_target()
-        listed = self.shell(f"pm list packages --user 0 {PACKAGE}").strip()
-        if listed == "":
-            return None
-        if listed != f"package:{PACKAGE}":
-            raise PatchError("error_apk_identity", detail="Package enumeration is ambiguous")
-        path_output = self.shell(f"pm path {PACKAGE}").strip()
-        match = re.fullmatch(r"package:(/data/app/[A-Za-z0-9_./=+~-]+\.apk)", path_output)
-        if match is None or ".." in match[1].split("/"):
-            raise PatchError("error_apk_identity", detail="Cannot verify a single installed APK")
-        remote = match[1]
-        before = self.shell(f"sha256sum '{remote}'").split()
-        if len(before) != 2 or not re.fullmatch("[0-9a-f]{64}", before[0]):
-            raise PatchError("error_apk_identity", detail="Installed APK hash unavailable")
-        with tempfile.TemporaryDirectory(prefix="apk-audit-", dir=Path(self.exe).parent) as temporary:
-            local = Path(temporary) / "observed.apk"
-            self.run("pull", remote, str(local))
-            try:
-                identity = apk_tools.apk_identity(local)
-            except (OSError, ValueError, KeyError, IndexError, zipfile.BadZipFile) as error:
-                raise PatchError("error_apk_identity", detail=error) from error
-        after = self.shell(f"sha256sum '{remote}'").split()
-        if (before != after or identity["sha256"] != before[0]
-                or self.shell(f"pm path {PACKAGE}").strip() != path_output or identity["package"] != PACKAGE):
-            raise PatchError("error_apk_identity", detail="Installed APK changed during observation")
-        return identity
-
-    def install(self, apk: Path) -> None:
-        """Reconcile commit-before-lost-reply; transport Success alone is never proof."""
-        self.assert_target()
-        try:
-            expected = apk_tools.apk_identity(apk)
-        except (OSError, ValueError, KeyError, IndexError, zipfile.BadZipFile) as error:
-            raise PatchError("error_apk_identity", detail=error) from error
-        failure = None
-        try:
-            output = self.run("install", "-r", str(apk), check=False)
-        except (OSError, PatchError) as error:
-            failure, output = error, str(error)
-        if self.installed_identity() == expected:
-            return
-        if "INSTALL_FAILED_VERIFICATION_FAILURE" in output:
-            raise PatchError("error_play_protect_blocked") from failure
-        raise PatchError("error_install_failed", output=output) from failure
-
-    @staticmethod
-    def kill_server(work: Path) -> None:
-        adb = work / "adb" / "adb.exe"
-        if adb.exists():
-            subprocess.run([str(adb), "kill-server"], creationflags=NO_WINDOW, capture_output=True)
 
 
 class _SavedRunReader:
