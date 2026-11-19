@@ -168,6 +168,31 @@ class Synthetic(unittest.TestCase):
         self.assertIn("no Chinese", pristine_delta.text_not_pristine(summary(387, [("graphics", 3)])))
         self.assertIn("2 of the 387", pristine_delta.text_not_pristine(summary(387, [("relocated-text", 2)])))
 
+    def test_layer_verdict_follows_the_one_order(self):
+        Layer, verdict, Report = pristine_delta.Layer, pristine_delta.layer_verdict, pristine_delta.RebuildReport
+        # No delta: translated files are refused, none read as a first install.
+        self.assertEqual(verdict([], None), pristine_delta.LayerVerdict(Layer.FIRST))
+        self.assertEqual(verdict(["1/1_0.db"], None).kind, Layer.NO_RECORD)
+        # The delta matches nothing left and no file holds the translation: stale, read as first.
+        gone = Report(unmatched={"1/1_0.db": CHANGED, "7/7.db": MISSING})
+        self.assertEqual(verdict([], gone), pristine_delta.LayerVerdict(Layer.STALE, ("1/1_0.db", "7/7.db")))
+        # An update replaced files while some still hold the translation: the caller decides, then asks again.
+        mixed = Report(rebuilt=["1/1_0.db"], unmatched={"7/7.db": CHANGED})
+        self.assertEqual(verdict(["1/1_0.db"], mixed).kind, Layer.MIXED)
+        self.assertEqual(verdict(["1/1_0.db"], mixed, {"7": "still translated"}),
+                         pristine_delta.LayerVerdict(Layer.CHANGED, ("7",)))
+        self.assertEqual(verdict(["1/1_0.db"], mixed, {}).kind, Layer.REBUILT)
+        # A refusal outranks a leftover file; a leftover file the rebuild did not cover is refused.
+        self.assertEqual(verdict(["1/1_0.db", "9/9_0.db"], mixed, {"7": "x"}).kind, Layer.CHANGED)
+        self.assertEqual(verdict(["1/1_0.db", "9/9_0.db"], mixed, {}),
+                         pristine_delta.LayerVerdict(Layer.UNCOVERED, ("9/9_0.db",)))
+        complete = Report(rebuilt=["1/1_0.db", "15/15_0.db"], pristine=["9/9_0.db"])
+        self.assertEqual(verdict(["1/1_0.db", "9/9_0.db"], complete).names, ("9/9_0.db",))
+        # Complete: rebuilt, whatever <refused> says.
+        self.assertEqual(verdict(["1/1_0.db"], complete),
+                         pristine_delta.LayerVerdict(Layer.REBUILT, ("1/1_0.db", "15/15_0.db")))
+        self.assertEqual(verdict([], complete, {"7": "x"}).kind, Layer.REBUILT)
+
     def test_classify(self):
         delta = self._delta()
         self.assertEqual(pristine_delta.classify(delta.entry("1/1_0.db"), self.staged_dir), REBUILT)

@@ -62,6 +62,7 @@ from the delta's kept asset bodies ([asset-restore](asset-restore.md)), and the 
 | what landed | where |
 |---|---|
 | the delta: `make`, `write`/`read`, `rebuild`, the staged-hash record, `text_not_pristine`, `accept_replaced` | `tools/pristine_delta.py` |
+| the pristine layer verdict (first install, stale delta, mixed, refusals, rebuilt), in one order for both patchers | `pristine_delta.layer_verdict` |
 | Windows repatch from the delta, the pending delta, Remove | `patcher_core` (`restore_pristine`, `check_first_delta`, `push_translation`, `write_back_pristine`) |
 | Windows first delta from a kept session | `Patcher.bootstrap_delta` |
 | Android repatch, delta promotion, Remove | `android_bridge` (`build_snapshot`, `keep_delta`, `build_removal`), `PristineDelta.kt`, `PatchCoordinator` |
@@ -264,7 +265,7 @@ back to the Chinese source.
 | Windows bootstrap | With no delta, try once to make one from a kept session whose backup passes the pristine signals and whose staged files equal the phone's |
 | Where kept | Windows `<working folder>/pristine/delta.bin`; Android `filesDir/pristine/delta.bin`, outside `sessions/` |
 | Android build input | `snapshot/` keeps the phone's bytes for rollback; the rebuilt files go into a separate copy of only the files the delta names (~0.9 GB), which `build_storage.estimate` reserves |
-| Refusals | After the pull and before any game file is written, with the clear-data message (or "patch with the patcher that patched it last") |
+| Refusals | After the pull and before any game file is written, with the clear-data message (or "patch with the patcher that patched it last"). Which one is `pristine_delta.layer_verdict`'s, shared; each patcher keeps its own message |
 | Dropped files | A file the last install translated and the new build no longer stages goes back at its rebuilt pristine bytes |
 | Remove translation | Writes the rebuilt pristine files through the install path (Android through `GameFileTransaction`), then deletes the delta. The re-signed normal APK stays; the screen says to keep using Scan to login |
 | After an update | A package the update replaced becomes its new pristine when none of its files and none of the recorded assets is at staged bytes, and the text signal holds (`accept_replaced`); asset restore takes a partly translated one; the rest refuse with `UPDATE_MIXED`, and a stuck one with `UPDATE_STUCK`, both offering Re-download on Android |

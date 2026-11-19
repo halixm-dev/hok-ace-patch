@@ -30,6 +30,10 @@ refused only because assets this install *modified* are still translated is rest
 kept their bodies: `restore_assets` writes each one's pristine stored chunks and record fields back into
 a copy of the updated package, and the copy stands as the new pristine. Anything it cannot restore stays
 refused, and the caller falls back to Re-download.
+
+**The layer verdict.** `layer_verdict` reads the layer, before anything is built or written, as a first
+install, a stale delta (read as first), rebuilt, or a refusal, in one order for both patchers. Each
+decides an update's replaced files its own way between its two calls, and keeps its own messages.
 """
 from __future__ import annotations
 
@@ -39,6 +43,7 @@ import os
 import shutil
 import zlib
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
 from typing import Callable, Iterable
 
@@ -629,6 +634,50 @@ def files_at(layer_dir: Path, hashes: set[str]) -> list[str]:
     if not hashes:
         return []
     return [name for name in package_files(layer_dir) if sha256_file(layer_dir / name) in hashes]
+
+
+class Layer(Enum):
+    """What `layer_verdict` reads the layer as, before anything is built or written."""
+
+    FIRST = "first"          # no delta and no file at a staged hash: the layer may be pristine
+    NO_RECORD = "no-record"  # no delta, yet files at a staged hash: refuse
+    STALE = "stale"          # the delta matches nothing left and no file holds the translation: as FIRST
+    MIXED = "mixed"          # an update replaced files: the caller decides them, then asks again
+    CHANGED = "changed"      # packages the caller could not take after an update: refuse
+    UNCOVERED = "uncovered"  # files still translated that the rebuild did not cover: refuse
+    REBUILT = "rebuilt"      # the delta rebuilt the pristine layer
+
+
+@dataclass(frozen=True)
+class LayerVerdict:
+    kind: Layer
+    names: tuple[str, ...] = ()
+
+
+def layer_verdict(translated: list[str], report: RebuildReport | None,
+                  refused: dict[str, str] | None = None) -> LayerVerdict:
+    """Read the layer as first install, rebuilt from the delta, or a refusal, in the patchers' one order.
+
+    <translated> names the files at a staged hash this patcher recorded, read before the rebuild;
+    <report> is the delta's rebuild, or None when the patcher holds no delta. A report an update left
+    incomplete gives `MIXED`: the caller decides the replaced files its own way (Windows refuses a
+    restorable package, Android restores it, ADR 0008) and asks again with <refused>, the packages it
+    could not take. Each caller keeps its own messages and I/O; the order of the rules is this one.
+    """
+    if report is None:
+        return LayerVerdict(Layer.NO_RECORD, tuple(translated)) if translated else LayerVerdict(Layer.FIRST)
+    if not report.complete:
+        if not translated:
+            return LayerVerdict(Layer.STALE, tuple(sorted(report.unmatched)))
+        if refused is None:
+            return LayerVerdict(Layer.MIXED, tuple(sorted(report.unmatched)))
+        if refused:
+            return LayerVerdict(Layer.CHANGED, tuple(refused))
+    rebuilt = set(report.rebuilt)
+    leftover = tuple(name for name in translated if name not in rebuilt)
+    if leftover:
+        return LayerVerdict(Layer.UNCOVERED, leftover)
+    return LayerVerdict(Layer.REBUILT, tuple(report.rebuilt))
 
 
 def load_staged_hashes(path: Path) -> set[str]:
