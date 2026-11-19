@@ -45,11 +45,12 @@ class PatchCoordinator @JvmOverloads constructor(
     /** A completion source is still needed while its owned output copy is being adopted. */
     private val adoptingSessions = mutableSetOf<String>()
     private val cleanup = SessionCleanup(context, sessions, adoptingSessions, report)
+    private val plans = RedownloadPlans(context, pristine, report) { name, arguments -> bridge(name, *arguments) }
 
     fun cancel() { cancelled.set(true) }
 
     /** The saved action now waits for the user (an approval or the game's download): not a failure. */
-    private class WaitingForUser(message: String) : IllegalStateException(message)
+    internal class WaitingForUser(message: String) : IllegalStateException(message)
 
     /**
      * A build refusal over damaged files whose measured plan the coordinator just approved itself (user decision
@@ -79,9 +80,6 @@ class PatchCoordinator @JvmOverloads constructor(
         const val SOURCE_DOWNLOADS = "source_download_required"
         /** `android_bridge.NOTHING_TO_REDOWNLOAD`: the plan found nothing left to delete. */
         private const val NOTHING_TO_REDOWNLOAD = "No game files hold a translation the patcher cannot rebuild"
-        /** `android_bridge.REDOWNLOAD_NAME` and `RESTORE_REFUSED_NAME`: the kept records a plan binds. */
-        private const val REDOWNLOAD_RECORD = "redownload.json"
-        private const val RESTORE_REFUSED_RECORD = "restore-refused.json"
         /**
          * What an approved Re-download does, as stable codes bound into its plan digest (and shown on the review
          * card the loop guard falls back to):
@@ -257,187 +255,8 @@ class PatchCoordinator @JvmOverloads constructor(
     private fun gameChanged(error: Throwable) = GAME_CHANGED.any { error.message.orEmpty().contains(it) }
 
     /**
-     * Measure the exact Re-download scope from this session's verified snapshot into a fresh plan folder and
-     * bind it (ticket 12): run, session, action and target, the snapshot manifest, the kept delta and its
-     * records, engine and producer, the run's APKs, every file deleted with its hash and size, the Watchdog
-     * files cleared, and [REDOWNLOAD_CONSEQUENCES]. No game file changes. An approval names the plan's digest
-     * ([ArtifactReceipts.identityKey] of `plan.json`). The staged list that the deletions and their rollback
-     * read must be exactly the plan's files at their snapshot hashes. Returns the plan's id and content.
-     */
-    private fun planRedownload(journal: SessionJournal, apks: RunApks, enginePath: String,
-                               run: RunStore.Run, manifest: File): Pair<String, JSONObject> {
-        val parent = File(journal.directory, "redownload-plans")
-        DurableFiles.createDirectories(parent)
-        RunStore.safe(context.filesDir.canonicalFile, parent, true)
-        val id = UUID.randomUUID().toString()
-        val folder = File(parent, id)
-        val measured = JSONObject(bridge("redownload_plan", enginePath, journal.directory.path, pristine.path,
-            folder.path))
-        val plan = JSONObject().put("schema", 1).put("kind", "redownload")
-            .put("run_id", run.id).put("session_id", journal.id).put("authorization_key", run.authorizationKey)
-            .put("action", run.action).put("target", run.target.json().put("provider", run.provider.key))
-            .put("snapshot_manifest_sha256", ApkIdentity.digest(manifest))
-            .put("engine_id", File(enginePath).name).put("producer_key", producerKey())
-            .put("apks", apkBinding(apks))
-            .put("delta", measured.opt("delta") ?: JSONObject.NULL).put("records", measured.getJSONObject("records"))
-            .put("packages", measured.getJSONObject("packages")).put("files", measured.getJSONObject("files"))
-            .put("watchdog", JSONObject().put("change", "clear").put("files", measured.getJSONObject("watchdog")))
-            .put("consequences", JSONArray(REDOWNLOAD_CONSEQUENCES))
-        requirePlanScope(folder, plan, manifest)
-        writeRecord(File(folder, "plan.json"), ArtifactReceipts.canonical(plan).toByteArray(Charsets.UTF_8))
-        return id to plan
-    }
-
-    private fun producerKey(): Any =
-        EngineAssets.producerIdentity(context)?.let { ArtifactReceipts.identityKey(it) } ?: JSONObject.NULL
-
-    private fun apkBinding(apks: RunApks) = JSONObject().put("recovery_id", apks.recoveryId).put("root", apks.root)
-        .put("access_sha256", apks.access?.sha256 ?: JSONObject.NULL)
-
-    /**
-     * The plan's files are exactly its staged list, at the snapshot manifest's hashes and sizes; its Watchdog
-     * files are exactly the manifest's; its packages are the packages the files belong to.
-     */
-    private fun requirePlanScope(folder: File, plan: JSONObject, manifest: File) {
-        val entries = ArtifactReceipts.parse(manifest.readBytes()).getJSONObject("files")
-        val files = plan.getJSONObject("files")
-        check(files.length() in 1..8192) { "Unsupported Re-download file count" }
-        val stagedFile = File(folder, "staged-hashes.json")
-        RunStore.safe(context.filesDir.canonicalFile, stagedFile)
-        check(stagedFile.length() in 1..(1024 * 1024)) { "Invalid Re-download staged list" }
-        val staged = ArtifactReceipts.parse(stagedFile.readBytes())
-        check(staged.keys().asSequence().map { "packages/$it" }.toSet() == files.keys().asSequence().toSet()) {
-            "The Re-download staged list differs from its plan"
-        }
-        val owners = mutableSetOf<String>()
-        for (name in staged.keys()) {
-            val relative = "packages/$name"
-            GameFilePolicy.validate(relative, writable = true)
-            val entry = files.getJSONObject(relative)
-            val live = entries.getJSONObject(relative)
-            check(staged.getString(name) == entry.getString("sha256") && entry.getString("sha256") == live.getString("sha256") &&
-                entry.getLong("bytes") == live.getLong("bytes")) { "The Re-download plan differs from the snapshot: $name" }
-            owners += name.substringBefore('/')
-        }
-        val packages = plan.getJSONObject("packages").keys().asSequence().toSet()
-        check(packages.size in 1..1024 && packages.all { it.matches(Regex("[0-9]{1,20}")) } && packages == owners) {
-            "Unsupported Re-download packages"
-        }
-        val watchdog = plan.getJSONObject("watchdog").getJSONObject("files")
-        val expected = entries.keys().asSequence().filter { it.startsWith("Watchdog/") }.toSet()
-        check(watchdog.keys().asSequence().toSet() == expected && expected.all {
-            watchdog.getJSONObject(it).getString("sha256") == entries.getJSONObject(it).getString("sha256")
-        }) { "The Re-download Watchdog differs from the snapshot" }
-    }
-
-    /** Atomic, fsynced, read back: a plan an approval names is never half-written. */
-    private fun writeRecord(file: File, bytes: ByteArray) {
-        val storage = AtomicFile(file)
-        val stream = storage.startWrite()
-        try {
-            stream.write(bytes)
-            stream.fd.sync()
-            storage.finishWrite(stream)
-        } catch (error: Throwable) { storage.failWrite(stream); throw error }
-        DurableFiles.syncDirectory(checkNotNull(file.parentFile))
-        check(DurableFiles.readCommitted(file).contentEquals(bytes)) { "Re-download plan read-back differs" }
-    }
-
-    /** The pinned plan ([SessionJournal.redownloadPlanRoot]), read back and checked against its saved digest. */
-    private fun savedPlan(journal: SessionJournal): Pair<String, JSONObject>? {
-        val saved = journal.snapshot()
-        val id = saved.optString("redownload_plan").takeIf { it.isNotEmpty() } ?: return null
-        GameFilePolicy.session(id)
-        val file = File(checkNotNull(journal.redownloadPlanRoot), "plan.json")
-        RunStore.safe(context.filesDir.canonicalFile, file)
-        val plan = ArtifactReceipts.parse(DurableFiles.readCommitted(file))
-        check(ArtifactReceipts.identityKey(plan) == saved.getString("redownload_plan_sha256")) {
-            "The saved Re-download plan changed"
-        }
-        check(plan.getString("run_id") == journal.runId && plan.getString("session_id") == journal.id &&
-            plan.getString("authorization_key") == journal.authorizationKey) {
-            "The Re-download plan belongs to another action"
-        }
-        return id to plan
-    }
-
-    /**
-     * Pin <plan> in the journal first (with the consent wait when <waiting>), then offer it in the run record,
-     * which approves it automatically in the same write unless the loop guard holds it back (user decision
-     * 2026-11-13). The run record keeps an answer only for the same digest ([RunStore.proposeRedownload]).
-     */
-    private fun pinRedownload(journal: SessionJournal, run: RunStore.Run, id: String, plan: JSONObject,
-                              waiting: Boolean) {
-        val updates = JSONObject().put("redownload_plan", id)
-            .put("redownload_plan_sha256", ArtifactReceipts.identityKey(plan)).put("build_attempt", "")
-        if (waiting) updates.put("waiting_reason", REDOWNLOAD_CONSENT)
-        journal.record(updates)
-        offerRedownload(run, id, plan)
-    }
-
-    private fun offerRedownload(run: RunStore.Run, id: String, plan: JSONObject) {
-        val files = plan.getJSONObject("files")
-        val bytes = files.keys().asSequence().sumOf { files.getJSONObject(it).getLong("bytes") }
-        val packages = plan.getJSONObject("packages").keys().asSequence().sortedBy { it.toBigInteger() }.toList()
-        RunStore(context).proposeRedownload(run.id, id, ArtifactReceipts.identityKey(plan), files.length(),
-            packages, bytes, automatic = true)
-    }
-
-    /** The run record's approval of exactly <plan>, or null when the loop guard left it for the user's review. */
-    private fun approvedPlan(run: RunStore.Run, plan: JSONObject): Redownload? =
-        RunStore(context).load(run.id).redownload?.takeIf { it.approved && it.planSha256 == ArtifactReceipts.identityKey(plan) }
-
-    /** Why the loop guard held <plan> back, reported before the action waits for the user's review. */
-    private fun heldBack(run: RunStore.Run, plan: JSONObject): WaitingForUser {
-        val saved = RunStore(context).load(run.id)
-        val again = plan.getJSONObject("packages").keys().asSequence()
-            .filter { it in saved.redownloadedPackages }.sortedBy { it.toBigInteger() }.toList()
-        val message = when {
-            again.isNotEmpty() -> "Package ${again.joinToString(", ")} is still damaged after its Re-download in " +
-                "this run; it is not deleted again without your review"
-            saved.attempts.optInt(RedownloadConsent.DELETE_OPERATION, 0) >= 2 ->
-                "The Re-download was interrupted twice; it is not deleted again without your review"
-            else -> "The Re-download waits for your review; nothing was deleted"
-        }
-        report(message)
-        return WaitingForUser(message)
-    }
-
-    /**
-     * Whether the pinned, approved <plan> is still exactly what planning would measure now: the same run,
-     * snapshot manifest (the live layer was just validated against it), engine, producer, APKs, kept delta and
-     * records, and every file at its planned hash. The one change allowed is this plan's own record, after an
-     * interrupted deletion of the same plan (<deleting>): `keep_redownload` wrote the record the journal saved
-     * and dropped the restore-refused record; the rollback put every file back.
-     */
-    private fun pinnedPlanHolds(journal: SessionJournal, plan: JSONObject, apks: RunApks, enginePath: String,
-                                run: RunStore.Run, manifest: File, deleting: Boolean): Boolean = runCatching {
-        val bound = plan.getString("action") == run.action &&
-            ArtifactReceipts.canonical(plan.getJSONObject("target")) ==
-                ArtifactReceipts.canonical(run.target.json().put("provider", run.provider.key)) &&
-            plan.getString("snapshot_manifest_sha256") == ApkIdentity.digest(manifest) &&
-            plan.getString("engine_id") == File(enginePath).name &&
-            ArtifactReceipts.canonical(plan.get("producer_key")) == ArtifactReceipts.canonical(producerKey()) &&
-            ArtifactReceipts.canonical(plan.getJSONObject("apks")) == ArtifactReceipts.canonical(apkBinding(apks)) &&
-            ArtifactReceipts.canonical(plan.getJSONArray("consequences")) ==
-                ArtifactReceipts.canonical(JSONArray(REDOWNLOAD_CONSEQUENCES))
-        if (!bound) return@runCatching false
-        requirePlanScope(checkNotNull(journal.redownloadPlanRoot), plan, manifest)
-        val evidence = JSONObject(bridge("redownload_evidence", enginePath, pristine.path))
-        if (ArtifactReceipts.canonical(evidence.opt("delta")) != ArtifactReceipts.canonical(plan.opt("delta"))) {
-            return@runCatching false
-        }
-        val records = ArtifactReceipts.canonical(evidence.getJSONObject("records"))
-        if (records == ArtifactReceipts.canonical(plan.getJSONObject("records"))) return@runCatching true
-        val kept = journal.snapshot().optJSONObject("redownload_kept")
-        deleting && kept != null && kept.optString("plan_sha256") == ArtifactReceipts.identityKey(plan) &&
-            records == ArtifactReceipts.canonical(JSONObject().put(REDOWNLOAD_RECORD, kept.getJSONObject("record"))
-                .put(RESTORE_REFUSED_RECORD, JSONObject.NULL))
-    }.getOrElse { report("The saved Re-download plan no longer reads (${it.javaClass.simpleName})"); false }
-
-    /**
      * The approved Re-download, from a snapshot just revalidated against the live layer. The pinned plan must
-     * still hold ([pinnedPlanHolds]); otherwise the scope is measured again, and only exactly the approved
+     * still hold ([RedownloadPlans.pinnedPlanHolds]); otherwise the scope is measured again, and only exactly the approved
      * digest proceeds. A changed plan deletes nothing under the old approval: it is pinned and approved again
      * automatically, or waits for the user's review when the loop guard holds it back. `deleting`, the
      * `redownload_delete` attempt and each `delete_file` intent are saved before their change. An interruption
@@ -451,13 +270,13 @@ class PatchCoordinator @JvmOverloads constructor(
                                 transaction: GameFileTransaction): JSONObject? {
         report(WorkerStep.DAMAGED_FILES_FOUND)
         if (journal.phase == PatchPhase.SNAPSHOT_READY) journal.outcome(PatchPhase.BUILDING)
-        val pinned = savedPlan(journal)?.takeIf { (_, plan) ->
-            ArtifactReceipts.identityKey(plan) == approved.planSha256 && pinnedPlanHolds(journal, plan, apks,
+        val pinned = plans.savedPlan(journal)?.takeIf { (_, plan) ->
+            ArtifactReceipts.identityKey(plan) == approved.planSha256 && plans.pinnedPlanHolds(journal, plan, apks,
                 enginePath, run, manifest, approved.state == RedownloadConsent.DELETING)
         }
         val (id, plan) = pinned ?: kotlin.run {
             report("Finding the package files the game update could not change")
-            val measured = try { planRedownload(journal, apks, enginePath, run, manifest) } catch (error: Exception) {
+            val measured = try { plans.planRedownload(journal, apks, enginePath, run, manifest) } catch (error: Exception) {
                 if (!error.message.orEmpty().contains(NOTHING_TO_REDOWNLOAD)) throw error
                 // The game replaced those files itself: the approval is unused and the action goes on.
                 journal.record(JSONObject().put("waiting_reason", "").put("redownload_plan", "")
@@ -465,10 +284,10 @@ class PatchCoordinator @JvmOverloads constructor(
                 report("No damaged game files are left; continuing without Re-download")
                 return null
             }
-            pinRedownload(journal, run, measured.first, measured.second, waiting = true)
+            plans.pinRedownload(journal, run, measured.first, measured.second, waiting = true)
             if (ArtifactReceipts.identityKey(measured.second) != approved.planSha256) {
                 report("The game files changed since the Re-download was approved; nothing was deleted")
-                approvedPlan(run, measured.second) ?: throw heldBack(run, measured.second)
+                plans.approvedPlan(run, measured.second) ?: throw plans.heldBack(run, measured.second)
                 report("Re-download planned again for the changed files")
             }
             measured
@@ -544,7 +363,7 @@ class PatchCoordinator @JvmOverloads constructor(
                 }
             }
             REDOWNLOAD_CONSENT -> {
-                val pinned = savedPlan(journal)
+                val pinned = plans.savedPlan(journal)
                 if (pinned == null) {
                     // A wait saved before plans existed: nothing is approved, so the build measures one.
                     if (saved.mayContinue) { journal.record(JSONObject().put("waiting_reason", "")); return null }
@@ -553,7 +372,7 @@ class PatchCoordinator @JvmOverloads constructor(
                     val digest = ArtifactReceipts.identityKey(plan)
                     // A cut between the journal and the run record: offer the pinned plan (same digest keeps its answer).
                     if (saved.mayContinue && saved.redownload?.let { it.planSha256 != digest || it.planId != id } != false) {
-                        offerRedownload(run, id, plan)
+                        plans.offerRedownload(run, id, plan)
                     }
                     val consent = runs.load(run.id).redownload
                     if (saved.mayContinue && consent != null && consent.approved && consent.planSha256 == digest) {
@@ -626,7 +445,7 @@ class PatchCoordinator @JvmOverloads constructor(
      * the normal restore needs, reserved beside every allocation; root needs none. <source> is the installed
      * game the preparation read (shell path), the only other identity a continuation may find installed.
      */
-    private class RunApks(val recoveryId: String, val buildApk: File, val access: ApkIdentity?,
+    internal class RunApks(val recoveryId: String, val buildApk: File, val access: ApkIdentity?,
                           val accessApk: File?, val installed: ApkIdentity?, val restoreBytes: Long,
                           val source: ApkIdentity? = null) {
         val root: Boolean get() = installed != null
@@ -1214,14 +1033,14 @@ class PatchCoordinator @JvmOverloads constructor(
         val runs = RunStore(context)
         if (StopCard.damagedFiles(message)) {
             val (id, plan) = try {
-                planRedownload(journal, apks, enginePath, run, File(journal.directory, "snapshot/manifest.json"))
+                plans.planRedownload(journal, apks, enginePath, run, File(journal.directory, "snapshot/manifest.json"))
             } catch (error: Exception) {
                 refusal.addSuppressed(error)
                 report("Damaged game files found, but their Re-download could not be planned (${error.javaClass.simpleName})")
                 return
             }
-            pinRedownload(journal, run, id, plan, waiting = true)
-            throw RedownloadApproved(approvedPlan(run, plan) ?: throw heldBack(run, plan))
+            plans.pinRedownload(journal, run, id, plan, waiting = true)
+            throw RedownloadApproved(plans.approvedPlan(run, plan) ?: throw plans.heldBack(run, plan))
         }
         val consent = runs.load(run.id).redownload
         if ((message.contains(StopCard.UPDATE_WAITING) || message.contains(StopCard.DOWNLOAD_UNFINISHED)) &&
