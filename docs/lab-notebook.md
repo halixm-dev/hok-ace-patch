@@ -5909,3 +5909,17 @@ phone that watched `files/trace.log`.
   `check_continuation_controls`, `check_windows_recovery`. One `check_bridge_continuation` run hit a
   Windows rename "Access is denied" in a temp folder while two large checks ran beside it; two re-runs passed.
 - **Verdict:** pass offline. Not run: a patch on a phone with this build.
+
+## 2026-11-19 — The pristine knowledge identity shared between the patchers — pass
+
+- **Change:** `pristine_delta.knowledge_identity(keep, names)` gives each kept file's identity, or None
+  when absent. Windows `active_delta_identity` (its five names, with `delta.pending.bin`, and its link
+  guards) and Android `_delta_identity` (its four names) both call it (tech-debt ticket 03, move 2).
+- **Same identity:** on a keep folder with two of the five files, the Windows identity serializes
+  byte-identically to the old expression; Android's is the same expression moved. Saved checkpoints keep
+  matching. `windows_checkpoints.Run.identity` and `android_bridge`'s `is_file` record keep their own
+  shapes, since saved records depend on them.
+- **Checks:** `check_pristine_delta` 17 OK (one new), `check_windows_checkpoints`,
+  `check_bridge_continuation`, `check_windows_repatch`, `check_continuation_controls`,
+  `check_run_artifacts`, `check_windows_recovery` (109) OK.
+- **Verdict:** pass offline. Not run: a patch on a phone with this build.

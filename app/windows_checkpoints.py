@@ -21,6 +21,9 @@ from run_artifacts import (ArtifactError, RECEIPT_NAME, file_identity, identity_
                            tree_manifest, verify_manifest, verify_receipt, installed_state_key)
 
 
+KNOWLEDGE_NAMES = ("delta.bin", "delta.pending.bin", "staged-hashes.json", "restore-refused.json", "redownload.json")
+
+
 def active_delta_identity(keep: Path) -> dict:
     """Explicit absence and fresh full hashes, never a cached finalization flag."""
     from run_artifacts import safe_file
@@ -36,7 +39,7 @@ def active_delta_identity(keep: Path) -> dict:
             raise ArtifactError("Linked absent delta path")
         current = current.parent
     safe_file(current, directory=True)
-    for name in ("delta.bin", "delta.pending.bin", "staged-hashes.json", "restore-refused.json", "redownload.json"):
+    for name in KNOWLEDGE_NAMES:
         path = keep / name
         try:
             info = path.lstat()
@@ -48,8 +51,7 @@ def active_delta_identity(keep: Path) -> dict:
             file_identity(path)
     if (keep / "delta.bin").exists():
         pristine_delta.read(keep / "delta.bin")
-    return {name: file_identity(keep / name) if (keep / name).exists() else None
-            for name in ("delta.bin", "delta.pending.bin", "staged-hashes.json", "restore-refused.json", "redownload.json")}
+    return pristine_delta.knowledge_identity(keep, KNOWLEDGE_NAMES)
 
 
 def reuse_completed(checkpoint: Checkpoints, identity: dict, apks: dict) -> tuple[dict, Path] | None:

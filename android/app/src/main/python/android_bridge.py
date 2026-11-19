@@ -1392,16 +1392,14 @@ def prepare_game_apks(engine_root: str, source_path: str, destination_path: str,
 # Explicit continuation APIs. These never authorize dispatch, live writes or delta promotion.
 # Kotlin owns coordinator.lock, current-source reconciliation and artifact retention.
 def _delta_identity(keep: Path | None) -> dict | None:
-    from run_artifacts import file_identity
     import pristine_delta
 
     if keep is None:
         return None
     # Reading validates the binary format and its embedded kept asset bodies as on a fresh run.
     delta = _read_delta(keep)
-    records = {name: file_identity(keep / name) if (keep / name).exists() else None
-               for name in (pristine_delta.DELTA_NAME, pristine_delta.STAGED_HASHES_NAME,
-                            RESTORE_REFUSED_NAME, REDOWNLOAD_NAME)}
+    records = pristine_delta.knowledge_identity(keep, (pristine_delta.DELTA_NAME, pristine_delta.STAGED_HASHES_NAME,
+                                                       RESTORE_REFUSED_NAME, REDOWNLOAD_NAME))
     return {"files": records, "present": delta is not None}
 
 
