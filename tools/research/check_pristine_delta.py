@@ -193,6 +193,17 @@ class Synthetic(unittest.TestCase):
                          pristine_delta.LayerVerdict(Layer.REBUILT, ("1/1_0.db", "15/15_0.db")))
         self.assertEqual(verdict([], complete, {"7": "x"}).kind, Layer.REBUILT)
 
+    def test_knowledge_identity_names_each_file_or_its_absence(self):
+        from run_artifacts import file_identity
+        keep = self.root / "keep"
+        keep.mkdir()
+        (keep / "delta.bin").write_bytes(b"delta")
+        identity = pristine_delta.knowledge_identity(keep, ("delta.bin", "delta.pending.bin", "staged-hashes.json"))
+        self.assertEqual(list(identity), ["delta.bin", "delta.pending.bin", "staged-hashes.json"])
+        self.assertEqual(identity["delta.bin"], file_identity(keep / "delta.bin"))
+        self.assertIsNone(identity["delta.pending.bin"])
+        self.assertIsNone(identity["staged-hashes.json"])
+
     def test_classify(self):
         delta = self._delta()
         self.assertEqual(pristine_delta.classify(delta.entry("1/1_0.db"), self.staged_dir), REBUILT)

@@ -680,6 +680,16 @@ def layer_verdict(translated: list[str], report: RebuildReport | None,
     return LayerVerdict(Layer.REBUILT, tuple(report.rebuilt))
 
 
+def knowledge_identity(keep: Path, names: Iterable[str]) -> dict:
+    """{name: its `run_artifacts.file_identity`, or None when absent} for each of a patcher's kept files.
+
+    A checkpoint's identity covers this patcher's pristine knowledge through it. Each patcher passes its
+    own names (Windows also its pending delta) and keeps its own guards, so saved identities stay as they were.
+    """
+    from run_artifacts import file_identity
+    return {name: file_identity(keep / name) if (keep / name).exists() else None for name in names}
+
+
 def load_staged_hashes(path: Path) -> set[str]:
     """The staged SHA-256 of every file every install of this patcher wrote; empty when none is kept."""
     try:
