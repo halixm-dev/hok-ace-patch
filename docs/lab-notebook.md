@@ -5859,3 +5859,22 @@ phone that watched `files/trace.log`.
   remain Chinese; the one Chinese row left is the known refused prime row in `3A70308AAF6F18F8`.
 - **Verdict:** pass offline in both languages and on the phone in English. Not run: Indonesian on the
   phone, screens in the game.
+
+## 2026-11-19 — The catalog supplement's pairs moved into data files — pass
+
+- **Change:** `catalog_supplement.TEXTS` (1726 pairs, 55 commented groups) and `LEADERBOARDS` (4)
+  moved verbatim into `resources/catalog_supplement/texts.json` and `leaderboards.json`, each a list of
+  `{note, texts}` sections, generated from the module's own literals with `ast` and `tokenize`. The
+  module reads them at import (refusing a repeated source) and keeps the generators.
+  `tools/catalog_supplement.py`: 6038 -> 257 lines. Shipped by `--add-data` in `app/build_exe.py` and
+  `engine/catalog_supplement` in `android/app/build.gradle.kts`; the exe's `--smoketest` now imports it.
+- **Pairs:** `entries(unique, code)` for `en` and `id` (4018 each, with the shipped catalogs) and
+  `TEXTS`/`LEADERBOARDS` dumped before and after: byte-identical JSON, order included.
+- **Builds:** `build_device_patch.py` with the cached APK over `D:/scratch/hok-data-1.11.0.1/game`,
+  before and after, both languages: `compare_continuation_controls.py compare` PASS identical input,
+  output, normalized summary and pristine delta controls. `.scratch/data-1.11.0.1/verify.py` on the
+  new outputs: 203 sources, 292 rows, 1726 pairs validated, 0 Chinese, in both languages.
+- **Patchers:** frozen exe `--smoketest` ok (`catalog supplement` among its checks);
+  `:app:testDebugUnitTest :app:assembleDebug` (full codecs) pass, the APK carrying
+  `assets/engine/catalog_supplement/{texts,leaderboards}.json.payload`.
+- **Verdict:** pass offline. Not run: a patch on a phone with this build.
