@@ -516,7 +516,7 @@ class RunStore(private val context: Context) {
         value.put("redownload", RedownloadConsent.encode(RedownloadConsent.downloadsConfirmed(run.redownload)))
     }
     internal fun bind(id: String, binding: JSONObject): Run = update(id) { value, run ->
-        check(run.mayContinue && run.lifecycle in setOf("authorized", "prepared", "claimed"))
+        check(run.mayContinue && run.lifecycle in setOf("authorized", "prepared", "claimed")) { "Run is stopped or resolved" }
         check(run.preparation == null || ArtifactReceipts.canonical(run.preparation) == ArtifactReceipts.canonical(binding)) { "Cannot retarget prepared input" }
         value.put("preparation", binding).put("lifecycle", "prepared")
     }
