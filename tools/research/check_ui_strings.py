@@ -43,7 +43,8 @@ BRIDGE = ROOT / "android" / "app" / "src" / "main" / "python" / "android_bridge.
 # reach the screen through the GUI.
 WINDOWS = (ROOT / "app" / "hok_patcher.py", ROOT / "app" / "patcher_core.py", ROOT / "app" / "adb_device.py",
            ROOT / "app" / "pristine_layer.py",
-           ROOT / "app" / "apk_preparation.py")
+           ROOT / "app" / "apk_preparation.py",
+           ROOT / "app" / "game_data_pull.py")
 
 LANGUAGES = ("en", "id")
 PLATFORMS = {"android", "windows"}

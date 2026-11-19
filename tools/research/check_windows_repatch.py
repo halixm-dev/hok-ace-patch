@@ -27,6 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "app"))
 import patcher_core  # noqa: E402
+import game_data_pull  # noqa: E402
 from patcher_core import LAYER, PENDING_DELTA, PULL_RECORD, PatchError, Patcher  # noqa: E402
 import pristine_delta  # noqa: E402
 from _windows_fake_device import FakeAdb  # noqa: E402
@@ -276,7 +277,7 @@ class Repatch(unittest.TestCase):
         patcher = self.patcher()
         patcher.adb = adb or patcher.adb
         stamp = f"20261018-{self.stamp:06d}"
-        with unittest.mock.patch.object(patcher_core, "datetime") as clock:
+        with unittest.mock.patch.object(game_data_pull, "datetime") as clock:
             clock.now.return_value.strftime.return_value = stamp
             session = patcher.pull_game_data()
         self.assertEqual(self.layer_bytes(session), self.all_phone_bytes())

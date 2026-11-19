@@ -40,6 +40,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "app"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import patcher_core  # noqa: E402  (puts tools/ and the runtime on sys.path)
+import game_data_pull  # noqa: E402
 from patcher_core import LAYER, PULL_RECORD, Patcher  # noqa: E402
 import pristine_delta  # noqa: E402
 from pristine_delta import CHANGED, MISSING  # noqa: E402
@@ -263,7 +264,7 @@ class Checks:
             patcher.normal_apk = apk
             patcher.ui.set_step = lambda *args: None
             from unittest import mock
-            with mock.patch.object(patcher_core, "datetime") as clock:
+            with mock.patch.object(game_data_pull, "datetime") as clock:
                 clock.now.return_value.strftime.return_value = f"20261018-00000{run}"
                 session = patcher.pull_game_data()
             record = json.loads((session / PULL_RECORD).read_text(encoding="utf-8"))
