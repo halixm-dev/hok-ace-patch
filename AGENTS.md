@@ -44,7 +44,7 @@ After moving or renaming a doc, run `tools\research\check_references.py` and `to
 
 | Path | Role |
 |---|---|
-| `app/` | GUI (`hok_patcher.py`), device workflow (`patcher_core.py`, with its ADB client `adb_device.py`, its pristine layer `pristine_layer.py` and its APK preparation `apk_preparation.py`, its game-data pull `game_data_pull.py` (all three mixed into `Patcher`), and the interface strings and `PatchError` in `ui_strings.py`, all re-exported), APK rewrite + v2 signing (`apk_tools.py`) |
+| `app/` | GUI (`hok_patcher.py`), device workflow (`patcher_core.py`, with its ADB client `adb_device.py`, its pristine layer `pristine_layer.py`, APK preparation `apk_preparation.py`, game-data pull `game_data_pull.py` and translation payload `translation_payload.py` (all four mixed into `Patcher`), and the interface strings and `PatchError` in `ui_strings.py`, all re-exported), APK rewrite + v2 signing (`apk_tools.py`) |
 | `tools/` | Pipeline: `languages`, `terminology`, staging (`build_device_patch`), rebuild (`package_rebuild`, `qts_builder`), append (`qts_insert`), textures (`device_extensions`, `sprite_table`, `mobile_graphics`), extra text (`extra_text`, `pb_text`, `unity_text`; lineup bins `lineup_codes`, `config_bin`), relocation (`qts_relocate`) |
 | `tools/research/` | Probes and offline checks, run by hand |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime (from the PC patcher) |
