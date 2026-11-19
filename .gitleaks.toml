@@ -9,11 +9,11 @@ regexTarget = "match"
 regexes = ['''^stable-key access APK, adopts/verifies $''']
 
 [[allowlists]]
-description = "Game text-table row keys (16 hex digits) recorded as example_key in .scratch research JSON, not credentials"
+description = "Game text-table row keys (16 hex digits or a named key such as PrizeDescItem3_OSHPoint) recorded as example_key in .scratch research JSON, not credentials"
 condition = "AND"
 paths = ['''^\.scratch/.+\.json$''']
 regexTarget = "match"
-regexes = ['''example_key": "[0-9A-F]{16}"''']
+regexes = ['''example_key": "[0-9A-Za-z_]{1,80}"''']
 
 [[allowlists]]
 description = "SHA-256 content-identity keys (run_artifacts.identity_key) in the run-artifact test vectors, not credentials"
