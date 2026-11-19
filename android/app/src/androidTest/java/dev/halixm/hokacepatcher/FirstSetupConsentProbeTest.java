@@ -7,7 +7,6 @@ import android.widget.CheckBox;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.platform.app.InstrumentationRegistry;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
@@ -30,14 +29,12 @@ public final class FirstSetupConsentProbeTest {
         ApkIdentity access = new ApkIdentity(1, sha, normal.getPackageName(), 1, "fixture", GameSigner.CERTIFICATE_SHA256, true);
         ApkPreparation.Prepared fixture = new ApkPreparation.Prepared(new File(context.getFilesDir(),
             "preparations/" + UUID.randomUUID()), source, normal, access);
-        Method show = MainActivity.class.getDeclaredMethod("showFirstSetupConfirmation", ApkPreparation.Prepared.class);
-        Method update = MainActivity.class.getDeclaredMethod("showSetupUpdateConfirmation", String.class);
-        show.setAccessible(true); update.setAccessible(true);
         try (ActivityScenario<MainActivity> activity = ActivityScenario.launch(MainActivity.class)) {
             AtomicReference<AlertDialog> shown = new AtomicReference<>();
             activity.onActivity(current -> {
-                try {
-                    AlertDialog dialog = (AlertDialog) show.invoke(current, fixture); shown.set(dialog);
+                {
+                    // The dialogs are MainActivity extensions (MainActivityDialogs.kt), public in bytecode.
+                    AlertDialog dialog = MainActivityDialogsKt.showFirstSetupConfirmation(current, fixture, null); shown.set(dialog);
                     CheckBox loss = dialog.getWindow().getDecorView().findViewWithTag("setup-data-loss");
                     CheckBox login = dialog.getWindow().getDecorView().findViewWithTag("setup-scan-login");
                     assertNotNull(loss); assertNotNull(login); assertFalse(loss.isChecked()); assertFalse(login.isChecked());
@@ -47,21 +44,21 @@ public final class FirstSetupConsentProbeTest {
                     loss.setChecked(true); assertTrue(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
                     login.setChecked(false); assertFalse(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
                     dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
-                } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+                }
             });
             InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             activity.onActivity(current -> assertFalse(shown.get().isShowing()));
             activity.recreate();
             activity.onActivity(current -> {
-                try {
-                    AlertDialog dialog = (AlertDialog) update.invoke(current, UUID.randomUUID().toString()); shown.set(dialog);
+                {
+                    AlertDialog dialog = MainActivityDialogsKt.showSetupUpdateConfirmation(current, UUID.randomUUID().toString()); shown.set(dialog);
                     CheckBox checkbox = dialog.getWindow().getDecorView().findViewWithTag("setup-update-confirmation");
                     assertNotNull(checkbox); assertFalse(checkbox.isChecked());
                     assertFalse(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
                     checkbox.setChecked(true); assertTrue(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
                     checkbox.setChecked(false); assertFalse(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
                     dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
-                } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+                }
             });
             InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             activity.onActivity(current -> assertFalse(shown.get().isShowing()));

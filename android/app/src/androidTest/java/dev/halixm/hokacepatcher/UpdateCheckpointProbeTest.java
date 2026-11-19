@@ -32,19 +32,18 @@ public final class UpdateCheckpointProbeTest {
         File requests = new File(context.getFilesDir(), "patch-requests");
         int before = requests.isDirectory() ? requests.list().length : 0;
         int runsBefore = new RunStore(context).pending().size();
-        Method show = MainActivity.class.getDeclaredMethod("showRemoveConfirmation");
-        show.setAccessible(true);
         try (ActivityScenario<MainActivity> activity = ActivityScenario.launch(MainActivity.class)) {
             AtomicReference<AlertDialog> shown = new AtomicReference<>();
             activity.onActivity(current -> {
-                try {
-                    AlertDialog dialog = (AlertDialog) show.invoke(current);
+                {
+                    // A MainActivity extension (MainActivityDialogs.kt), public in bytecode.
+                    AlertDialog dialog = MainActivityDialogsKt.showRemoveConfirmation(current);
                     shown.set(dialog);
                     assertNull(dialog.getWindow().getDecorView().findViewWithTag("update-confirmation"));
                     assertFalse(containsCheckBox(dialog.getWindow().getDecorView()));
                     assertTrue(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
                     dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
-                } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+                }
             });
             InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             activity.onActivity(current -> assertFalse(shown.get().isShowing()));
