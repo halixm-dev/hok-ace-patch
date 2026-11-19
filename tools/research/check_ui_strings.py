@@ -44,7 +44,8 @@ BRIDGE = ROOT / "android" / "app" / "src" / "main" / "python" / "android_bridge.
 WINDOWS = (ROOT / "app" / "hok_patcher.py", ROOT / "app" / "patcher_core.py", ROOT / "app" / "adb_device.py",
            ROOT / "app" / "pristine_layer.py",
            ROOT / "app" / "apk_preparation.py",
-           ROOT / "app" / "game_data_pull.py")
+           ROOT / "app" / "game_data_pull.py",
+           ROOT / "app" / "translation_payload.py")
 
 LANGUAGES = ("en", "id")
 PLATFORMS = {"android", "windows"}
