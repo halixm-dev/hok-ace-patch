@@ -20,6 +20,7 @@ from unittest.mock import Mock, patch
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "app"), str(ROOT / "tools"), str(ROOT / "tools/research")]
 import patcher_core
+import apk_preparation
 from patch_session import ApkJournal, RunStore, SessionError
 from run_artifacts import ArtifactError, read_record
 from windows_checkpoints import PreparedApks
@@ -56,7 +57,7 @@ class SigningReuse(unittest.TestCase):
         if named:
             unsigned, ready = self.root / "named.unsigned", self.root / "named.apk"
             patcher_core.apk_tools.rewrite_apk(path, unsigned, {"AndroidManifest.xml":
-                patcher_core.set_label(patcher_core.apk_manifest(path), patcher_core.APP_NAME)})
+                apk_preparation.set_label(patcher_core.apk_manifest(path), patcher_core.APP_NAME)})
             self.real_sign(unsigned, ready, (patcher_core.BUNDLE / "key/key.pk8").read_bytes(),
                            (patcher_core.BUNDLE / "key/cert.der").read_bytes())
             path = ready
@@ -132,7 +133,7 @@ class SigningReuse(unittest.TestCase):
 
     def test_rename_failure_still_converts_official_once(self) -> None:
         self.source(official=True)
-        with patch.object(patcher_core, "set_label", side_effect=ValueError("fixture rename refusal")):
+        with patch.object(apk_preparation, "set_label", side_effect=ValueError("fixture rename refusal")):
             self.prepare()
             self.receipt().verify("normal", self.normal_manifest())
         self.assertEqual(len(self.calls), 1)
