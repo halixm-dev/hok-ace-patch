@@ -63,8 +63,8 @@ from the delta's kept asset bodies ([asset-restore](asset-restore.md)), and the 
 |---|---|
 | the delta: `make`, `write`/`read`, `rebuild`, the staged-hash record, `text_not_pristine`, `accept_replaced` | `tools/pristine_delta.py` |
 | the pristine layer verdict (first install, stale delta, mixed, refusals, rebuilt), in one order for both patchers | `pristine_delta.layer_verdict` |
-| Windows repatch from the delta, the pending delta, Remove | `patcher_core` (`restore_pristine`, `check_first_delta`, `push_translation`, `write_back_pristine`) |
-| Windows first delta from a kept session | `Patcher.bootstrap_delta` |
+| Windows repatch from the delta, the pending delta, Remove | `pristine_layer.PristineLayer`, mixed into `patcher_core.Patcher` (`restore_pristine`, `check_first_delta`, `write_back_pristine`), and `Patcher.push_translation` |
+| Windows first delta from a kept session | `PristineLayer.bootstrap_delta` |
 | Android repatch, delta promotion, Remove | `android_bridge` (`build_snapshot`, `keep_delta`, `build_removal`), `PristineDelta.kt`, `PatchCoordinator` |
 | Android build-input copy budget | `build_storage.estimate(pristine_copy_bytes=)` |
 | an updated package accepted as the new pristine, per package | `pristine_delta.accept_replaced` |
