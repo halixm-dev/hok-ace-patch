@@ -5852,4 +5852,10 @@ phone that watched `files/trace.log`.
   292 rows in 49 tables match the catalog's final targets, row keys unchanged, none Chinese.
 - **Evidence:** `.scratch/data-1.11.0.1/{leftovers,translations,verification}.json`, `stage-en.log`,
   `stage-id.log`; large folders `D:/scratch/hok-data-1.11.0.1/{game,out-en,out-id,census-*.json}`.
-- **Verdict:** pass offline in both languages. Phone acceptance is recorded below when run.
+- **Phone (Root, English):** the 1.11.0.1 run `98387d89…` waited at Downloads finished while the
+  new build (versionCode 110) was installed over it; it continued on that build and completed: 398 text
+  tables, 318 images applied, 1 table and 0 images skipped. `census_catalog.py --overlay` on the phone's
+  patched package `1` (pulled with `adb exec-out`) against the pristine one: 0 of the 203 new sources
+  remain Chinese; the one Chinese row left is the known refused prime row in `3A70308AAF6F18F8`.
+- **Verdict:** pass offline in both languages and on the phone in English. Not run: Indonesian on the
+  phone, screens in the game.

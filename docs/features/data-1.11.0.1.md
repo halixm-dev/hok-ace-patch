@@ -24,6 +24,11 @@ keeps its row keys. These are package-`1` checks, not full installs or new textu
 The allowed Official recommendation lineups have no missing translations. The ambiguous asset
 `4B15FC0D7596513F` stays refused.
 
+On the Root phone, an English patch with this change completed on the re-downloaded data (398 text
+tables, 318 images). Its patched package `1` leaves none of the 203 new sources Chinese; the one
+Chinese row left is the known refused prime row in `3A70308AAF6F18F8`. Indonesian was checked offline
+only, and no screen was inspected in the game.
+
 ### How the pristine package was obtained
 
 The phone's live package `1` was a mixed layer after the in-game update. Seven large text tables
