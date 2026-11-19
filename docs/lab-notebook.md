@@ -5826,3 +5826,36 @@ phone that watched `files/trace.log`.
   `rcap/`, `history.log`, `screens/`).
 - **Verdict:** pass. The count holds across an automatic re-plan, and the follow-up runs before the screen
   refreshes. Limits: one phone, one cut on this build, single-run timings.
+
+## 2026-11-19 — Data 1.11.0.1: 203 missing sources translated offline — pass
+
+- **Source:** package `1` as the game re-downloaded it after the patcher's automatic Re-download
+  (run `98387d89-3200-4ef3-b71e-6e893097b5e5`), pulled with `adb exec-out` before any patch was
+  written. `1.info` reports `1.11.0.1`, revision `0`. SHA-256 in `.scratch/data-1.11.0.1/leftovers.json`.
+- **Why a re-download:** the live package `1` after the in-game update held seven text tables
+  (`04F21C67…`, `27BBF8CD…`, `42E8DB43…`, `5EB61A02…`, `A336359C…`, `C4E32B49…`, `F628F40C…`)
+  that spliced the update's Chinese chunks with chunks of the earlier Indonesian translation; they did
+  not parse. Restoring the delta's kept bodies put back 53 of 108 assets, not these (their records were
+  replaced). The phone build refused the stuck update (package `1` 57 assets, `10` 1) and deleted
+  packages `1`, `10`, `21`. A pull with `adb shell cat` corrupts binaries; use `adb exec-out`.
+- **Before:** `census_catalog.py` with the cached `installed.apk` and the old supplement:
+  109 override + 389 prime-only tables, 352833 records; the same 203 sources / 292 rows / 49 override
+  tables missing in both languages. Only `4B15FC0D7596513F` refused. Lineups: zero missing.
+- **Change:** 203 English/Indonesian pairs in `catalog_supplement.TEXTS` (Starry Brocade Wish and
+  gifting, ACE Quick Match, Weaving the Stars mansions, Super Weekend, top-up event, team queue,
+  Overtime, cosmetics, two card texts). Supplement log 2687 -> 2890. All 1726 literal pairs pass
+  `adaptive.validate_translation` and exact markup comparison in both languages.
+- **After:** the same census with the change: 0 sources remaining Chinese in both languages.
+- **Offline staging:** fresh `build_device_patch.py`, package `1` only, no APK, both languages:
+  98 in place + 11 relocated, `unknown` 0, 8 uncatalogued tables unstaged as before.
+- **Actual-byte verification:** `.scratch/data-1.11.0.1/verify.py`: both languages, 203 sources,
+  292 rows in 49 tables match the catalog's final targets, row keys unchanged, none Chinese.
+- **Evidence:** `.scratch/data-1.11.0.1/{leftovers,translations,verification}.json`, `stage-en.log`,
+  `stage-id.log`; large folders `D:/scratch/hok-data-1.11.0.1/{game,out-en,out-id,census-*.json}`.
+- **Phone (Root, English):** the 1.11.0.1 run `98387d89…` waited at Downloads finished while the
+  new build (versionCode 110) was installed over it; it continued on that build and completed: 398 text
+  tables, 318 images applied, 1 table and 0 images skipped. `census_catalog.py --overlay` on the phone's
+  patched package `1` (pulled with `adb exec-out`) against the pristine one: 0 of the 203 new sources
+  remain Chinese; the one Chinese row left is the known refused prime row in `3A70308AAF6F18F8`.
+- **Verdict:** pass offline in both languages and on the phone in English. Not run: Indonesian on the
+  phone, screens in the game.

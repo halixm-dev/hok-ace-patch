@@ -582,3 +582,23 @@ recommendation lineups have no missing translations; the existing ambiguous tabl
 Staging checks use package `1` only, without the APK, and do not change the full-install or texture
 counts above. No phone files were written; screen acceptance remains pending.
 See [the feature record](features/data-1.10.0.1.md) and the dated lab evidence.
+
+## 2026-11-19: game data 1.11.0.1
+
+The census of package `1` as the game re-downloaded it, with the cached APK, finds 203 missing sources
+in 292 rows across 49 catalogued override tables, identical in English and Indonesian. Both languages
+now receive those supplement entries. The supplement log rises from 2687 to 2890 strings.
+
+| Package-1 offline result | English | Indonesian |
+|---|---:|---:|
+| Newly translated sources | 203 | 203 |
+| New rows verified in actual staged bytes | 292 | 292 |
+| New rows remaining Chinese | 0 | 0 |
+| Override text tables staged (98 in place + 11 relocated) | 109 | 109 |
+| Unknown rows in the override staging scan | 0 | 0 |
+
+Census: 109 override + 389 prime-only readable catalogued tables; with the change, no catalogued string
+stays Chinese. The allowed Official recommendation lineups have no missing translations; the existing
+ambiguous table stays refused. Staging checks use package `1` only, without the APK, and do not change
+the full-install or texture counts above.
+See [the feature record](features/data-1.11.0.1.md) and the dated lab evidence.

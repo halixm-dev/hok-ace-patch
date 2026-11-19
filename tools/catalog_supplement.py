@@ -13,6 +13,8 @@ Faction Highlights, Double Energy Storage missions, and reworded card and skill 
 missing descriptions in the allowed Official recommendation lineup bin.
 Game data 1.10.0.1 added 158 catalog-table strings: the Duo Festival, Super Weekend,
 Quick Match, Intimacy gifting, and reworded card and talent effects.
+Game data 1.11.0.1 added 203 catalog-table strings: the Starry Brocade Wish and its gifting shop,
+ACE Quick Match, the Weaving the Stars mansions, team queue settings, and two reworded card texts.
 `apply` fills them in.
 The official lineups' strategy text is here too: it lives in config bins the catalog does not cover, inside
 their share codes, for the share-code pass to write.
@@ -5250,6 +5252,616 @@ TEXTS: dict[str, tuple[str, str]] = {
         'Golden Age',
         'Golden Age'),
 
+    # Game data 1.11.0.1: Starry Brocade Wish, ACE Quick Match, Weaving the Stars mansions, gifting and card rewordings.
+    '<color=#FFF7D9FF>抽数</color><color=#FFF7D9FF>{0}</color>/{1}': (
+        '<color=#FFF7D9FF>Draws </color><color=#FFF7D9FF>{0}</color>/{1}',
+        '<color=#FFF7D9FF>Draw </color><color=#FFF7D9FF>{0}</color>/{1}'),
+    '<color=#FFFFFF>来源:</color><color=#FFFFFFB2>玩家带入对局的积分。</color>': (
+        '<color=#FFFFFF>Source: </color><color=#FFFFFFB2>Points players bring into the match.</color>',
+        '<color=#FFFFFF>Sumber: </color><color=#FFFFFFB2>Poin yang dibawa pemain ke dalam pertandingan.</color>'),
+    '<color=#FFFFFF>说明:</color><color=#FFFFFFB2>每位玩家带入的积分量不同，合理分配、使用积分提升战力是夺冠的主要策略。</color>': (
+        '<color=#FFFFFF>Note: </color><color=#FFFFFFB2>Each player brings a different amount of Points. Allocating and spending Points wisely to raise your strength is the key to winning.</color>',
+        '<color=#FFFFFF>Catatan: </color><color=#FFFFFFB2>Setiap pemain membawa jumlah Poin yang berbeda. Membagi dan memakai Poin dengan bijak untuk menambah kekuatan adalah kunci kemenangan.</color>'),
+    '<color=#c8c2dbff>抽数</color><color=#ffea9cff>6</color>/100': (
+        '<color=#c8c2dbff>Draws </color><color=#ffea9cff>6</color>/100',
+        '<color=#c8c2dbff>Draw </color><color=#ffea9cff>6</color>/100'),
+    'AI灵宝设置': (
+        'AI Spirit Settings',
+        'Pengaturan AI Spirit'),
+    'S{0}赛季最高段位': (
+        'Highest Rank in Season S{0}',
+        'Rank Tertinggi Season S{0}'),
+    '{0} 达成等级:': (
+        '{0} Level reached:',
+        'Level {0} tercapai:'),
+    '{0}<color=#FFFFFF99>，兑换{1}还需</color>': (
+        '{0}<color=#FFFFFF99>, still needed to redeem {1}: </color>',
+        '{0}<color=#FFFFFF99>, masih dibutuhkan untuk menukar {1}: </color>'),
+    '{0}不足（<quad path={1} size=50 yoff=-1 type=0><color=#DF7C7C>{2}</color>/{3}），是否继续祈愿获得积分？': (
+        'Not enough {0} (<quad path={1} size=50 yoff=-1 type=0><color=#DF7C7C>{2}</color>/{3}). Keep making Wishes to earn Points?',
+        '{0} tidak cukup (<quad path={1} size=50 yoff=-1 type=0><color=#DF7C7C>{2}</color>/{3}). Lanjut Doa untuk mendapatkan Poin?'),
+    '{0}包含受限内容，无法收藏': (
+        '{0} contains restricted content and cannot be added to Favorites',
+        '{0} berisi konten terbatas dan tidak bisa difavoritkan'),
+    '{0}后关闭，剩': (
+        'Closes in {0}, remaining',
+        'Tutup dalam {0}, sisa'),
+    '{0}赠送给您一份{1}礼物，是否前往领取该礼物？': (
+        '{0} sent you a {1} gift. Go claim it?',
+        '{0} mengirimimu hadiah {1}. Ambil hadiahnya?'),
+    '一键全选': (
+        'Select All',
+        'Pilih Semua'),
+    '一键分解': (
+        'Dismantle All',
+        'Bongkar Semua'),
+    '下回合消耗-{0}积分': (
+        'Next Round costs -{0} Points',
+        'Ronde berikutnya memakan -{0} Poin'),
+    '下次再约': (
+        'Maybe Next Time',
+        'Lain Kali'),
+    '仅显示有货商品': (
+        'Show In-Stock Items Only',
+        'Tampilkan Item Tersedia Saja'),
+    '使用{0}赠送': (
+        'Gift with {0}',
+        'Hadiahkan dengan {0}'),
+    '兑换{0}，并赠送给{1}吗？': (
+        'Exchange {0} and gift it to {1}?',
+        'Tukar {0} dan hadiahkan ke {1}?'),
+    '兑换后将直接发放给您，不可转赠': (
+        'Exchanged items go straight to you and cannot be gifted',
+        'Item yang ditukar langsung masuk ke akunmu dan tidak bisa dihadiahkan'),
+    '兑换棋盘': (
+        'Exchange Board',
+        'Tukar Board'),
+    '再抽10次': (
+        'Draw 10 More',
+        'Tarik 10 Lagi'),
+    '决斗胜利，赢取对方{0}积分': (
+        'Duel won: take {0} Points from your opponent',
+        'Duel menang: ambil {0} Poin dari lawan'),
+    '分解{0}': (
+        'Dismantle {0}',
+        'Bongkar {0}'),
+    '分解后将获得<quad path={0} size=50 yoff=-1 type=0>{1} ，是否确认分解？': (
+        'Dismantling grants <quad path={0} size=50 yoff=-1 type=0>{1}. Confirm Dismantle?',
+        'Membongkar memberi <quad path={0} size=50 yoff=-1 type=0>{1}. Yakin bongkar?'),
+    '分解道具': (
+        'Dismantle Item',
+        'Bongkar Item'),
+    '初次进入祈愿界面可获得以下奖励，首抽可享点券优惠！': (
+        'Enter the Wish screen for the first time to receive these rewards, and your first draw comes with a Coupon discount!',
+        'Masuk ke layar Doa pertama kali untuk mendapatkan hadiah berikut, dan tarikan pertama mendapat diskon Kupon!'),
+    '初次进入祈愿界面赠送{0}x{1}，{2}x{3}！首抽仅需<color=#FFF7D9FF>{4}</color>{5}！': (
+        'First visit to the Wish screen grants {0}x{1} and {2}x{3}! Your first draw costs only <color=#FFF7D9FF>{4}</color>{5}!',
+        'Kunjungan pertama ke layar Doa memberi {0}x{1} dan {2}x{3}! Tarikan pertama hanya <color=#FFF7D9FF>{4}</color>{5}!'),
+    '前往祈愿': (
+        'Go to Wish',
+        'Ke Doa'),
+    '剩余积分': (
+        'Points Left',
+        'Sisa Poin'),
+    '危三星不直旧先知，杵臼在人星的旁边。三星连成，四星连成臼。人上七乌号车': (
+        'Rooftop has three stars, not straight; the old Seer stands by. Pestle and Mortar lie beside the Man stars. Three stars form a line, four form the Mortar. Above the Man, seven Crows are named Chariot',
+        'Rooftop punya tiga bintang, tak lurus; sang Peramal tua di dekatnya. Alu dan Lesung di samping bintang Manusia. Tiga bintang membentuk garis, empat membentuk Lesung. Di atas Manusia, tujuh Gagak bernama Kereta'),
+    '危宿': (
+        'Rooftop Mansion',
+        'Rasi Rooftop'),
+    '取消兑换': (
+        'Cancel Exchange',
+        'Batal Tukar'),
+    '只能禁用两个阵营，请先取消一个已选阵营': (
+        'You can only ban two Factions. Deselect one first',
+        'Kamu hanya bisa mem-ban dua Faction. Batalkan satu dulu'),
+    '可兑换商品': (
+        'Exchangeable Items',
+        'Item yang Bisa Ditukar'),
+    '可分解': (
+        'Can Dismantle',
+        'Bisa Dibongkar'),
+    '商品不可赠送': (
+        'This item cannot be gifted',
+        'Item ini tidak bisa dihadiahkan'),
+    '商品赠送数量已满': (
+        'Gift limit for this item reached',
+        'Batas hadiah item ini tercapai'),
+    '商店赠送总量已满': (
+        'Shop gift limit reached',
+        'Batas hadiah toko tercapai'),
+    '壁两星下头是霹雳，霹雳五星横著行。云雨次之曰四方，壁上天厩十圆黄。': (
+        'Below the two Wall stars lies Thunderbolt, five stars in a row. Next come Clouds and Rain, the Four Directions; above the Wall, ten yellow circles form the Heavenly Stable.',
+        'Di bawah dua bintang Wall ada Petir, lima bintang berjajar. Berikutnya Awan dan Hujan, Empat Penjuru; di atas Wall, sepuluh lingkaran kuning membentuk Kandang Langit.'),
+    '壁宿': (
+        'Wall Mansion',
+        'Rasi Wall'),
+    '奖励已经收入祈愿盒，可前往领取或分解': (
+        'Rewards have gone into the Wish Box. Claim or Dismantle them there',
+        'Hadiah sudah masuk ke Kotak Doa. Ambil atau bongkar di sana'),
+    '奖励条件未达成，再来一局吧~': (
+        'Reward condition not met. Play another match~',
+        'Syarat hadiah belum tercapai. Main satu pertandingan lagi~'),
+    '女四星如箕主嫁娶，十二诸国在下陈。先从越国向东论，东西两周次二秦。': (
+        "Girl's four stars, like a winnowing basket, rule over marriage; the Twelve States lie below. Start from Yue and count eastward: the Eastern and Western Zhou, then the two Qin.",
+        'Empat bintang Girl, seperti tampah, mengatur pernikahan; Dua Belas Negara di bawahnya. Mulai dari Yue dan hitung ke timur: Zhou Timur dan Barat, lalu dua Qin.'),
+    '女宿': (
+        'Girl Mansion',
+        'Rasi Girl'),
+    '娱乐积分': (
+        'Casual Points',
+        'Poin Casual'),
+    '娱乐积分 {0}': (
+        'Casual Points {0}',
+        'Poin Casual {0}'),
+    '完成上一个星宿任务后，可解锁当前星宿': (
+        "Complete the previous Mansion's mission to unlock this Mansion",
+        'Selesaikan misi Rasi sebelumnya untuk membuka Rasi ini'),
+    '室两星上有离宫出，绕室三双有六星。底下风头八星形，坟墓屈曲细寻辨。': (
+        "Above the two Encampment stars rises the Detached Palace, three pairs around it, six stars. Below, eight stars form the Wind's Head; trace the winding Tomb with care.",
+        'Di atas dua bintang Encampment berdiri Istana Terpisah, tiga pasang mengelilinginya, enam bintang. Di bawah, delapan bintang membentuk Kepala Angin; telusuri Makam yang berliku dengan cermat.'),
+    '室宿': (
+        'Encampment Mansion',
+        'Rasi Encampment'),
+    '已领福利': (
+        'Perks Claimed',
+        'Bonus Diambil'),
+    '带出积分': (
+        'Points Carried Out',
+        'Poin Dibawa Keluar'),
+    '开启宝箱': (
+        'Open Chest',
+        'Buka Peti'),
+    '当前分解可得': (
+        'Dismantling now grants',
+        'Membongkar sekarang memberi'),
+    '当前可赠送 {0}/{1}': (
+        'Can gift now {0}/{1}',
+        'Bisa dihadiahkan sekarang {0}/{1}'),
+    '当前局势对您较为不利，返场将消耗较多积分，且翻盘难度较高，建议谨慎考虑。': (
+        'The match is against you. Returning will cost many Points and a comeback will be hard. Think carefully.',
+        'Pertandingan sedang tidak menguntungkanmu. Kembali akan memakan banyak Poin dan sulit membalikkan keadaan. Pertimbangkan baik-baik.'),
+    '当前祈愿次数：{0}': (
+        'Current Wishes: {0}',
+        'Jumlah Doa saat ini: {0}'),
+    '当前综合劣势明显，返场需消耗大量积分，回报预期较低。不建议您在此局势下返场。': (
+        'You are clearly behind. Returning costs a lot of Points for little expected reward. Returning now is not recommended.',
+        'Kamu jelas tertinggal. Kembali memakan banyak Poin dengan hasil yang kecil. Kembali sekarang tidak disarankan.'),
+    '恭喜获得每日奖励：{0}×{1}': (
+        'Daily reward received: {0}×{1}',
+        'Hadiah harian didapat: {0}×{1}'),
+    '您可以执行返场操作。返场将消耗一定积分与本局返场次数，请知悉。': (
+        "You can Return. Returning costs some Points and one of this match's Returns.",
+        'Kamu bisa Kembali. Kembali memakan sejumlah Poin dan satu jatah Kembali di pertandingan ini.'),
+    '您现在处于队伍中，是否继续与队友一起游戏?': (
+        'You are in a team. Keep playing with your teammates?',
+        'Kamu sedang dalam tim. Lanjut bermain bersama rekan tim?'),
+    '您确定使用<quad path={0} size=50 yoff=-1 type=0>{1}，兑换{2}个{3}吗？': (
+        'Use <quad path={0} size=50 yoff=-1 type=0>{1} to exchange for {2} {3}?',
+        'Gunakan <quad path={0} size=50 yoff=-1 type=0>{1} untuk menukar {2} {3}?'),
+    '您还未选择奖励噢~': (
+        "You haven't picked a reward yet~",
+        'Kamu belum memilih hadiah~'),
+    '房主已更改{0}为:({1})': (
+        'The host changed {0} to: ({1})',
+        'Host mengubah {0} menjadi: ({1})'),
+    '抽奖已结束': (
+        'The draw has ended',
+        'Undian sudah berakhir'),
+    '拥有999': (
+        'Owned 999',
+        'Dimiliki 999'),
+    '斗六星其状似北斗，魁上建星三相对。天弁建上三三九，斗下圆安十四星。': (
+        "Dipper's six stars look like the Northern Dipper; above its bowl, three Establishment stars face each other. Above them the Heavenly Market, three by three by nine; below the Dipper, fourteen round stars.",
+        'Enam bintang Dipper mirip Biduk Utara; di atas mangkuknya, tiga bintang Establishment saling berhadapan. Di atasnya Pasar Langit, tiga kali tiga kali sembilan; di bawah Dipper, empat belas bintang bulat.'),
+    '斗宿': (
+        'Dipper Mansion',
+        'Rasi Dipper'),
+    '是否兑换{0}？': (
+        'Exchange {0}?',
+        'Tukar {0}?'),
+    '是否确认领取当前选中奖励？': (
+        'Claim the selected rewards?',
+        'Ambil hadiah yang dipilih?'),
+    '是否花费<color=#98cbff>{0}</color>{1}购买<color=#98cbff>{2}</color>，并将其赠与好友<color=#98cbff>{3}</color>': (
+        'Spend <color=#98cbff>{0}</color>{1} to buy <color=#98cbff>{2}</color> and gift it to your friend <color=#98cbff>{3}</color>?',
+        'Habiskan <color=#98cbff>{0}</color>{1} untuk membeli <color=#98cbff>{2}</color> dan menghadiahkannya ke temanmu <color=#98cbff>{3}</color>?'),
+    '暂无可分解物品': (
+        'Nothing to Dismantle',
+        'Tidak ada yang bisa dibongkar'),
+    '本局': (
+        'This Match',
+        'Pertandingan Ini'),
+    '本期奖励已全部领取': (
+        'All rewards for this period claimed',
+        'Semua hadiah periode ini sudah diambil'),
+    '来看看我的本局高光吧！': (
+        'Check out my Highlights from this match!',
+        'Lihat Sorotan pertandinganku ini!'),
+    '查看称号': (
+        'View Titles',
+        'Lihat Title'),
+    '段位需达到倔强青铜方可邀请玩家！': (
+        'You must reach Stubborn Bronze to invite players!',
+        'Kamu harus mencapai Stubborn Bronze untuk mengundang pemain!'),
+    '牛六星近在河岸头，头上虽然有两角，腹下从来欠一脚。牛下九黑是天田，田下三': (
+        "Ox's six stars sit close to the riverbank; two horns on its head, yet always a foot short below. Below the Ox, nine black stars are the Heavenly Field; below the Field, three",
+        'Enam bintang Ox dekat tepi sungai; dua tanduk di kepala, tapi selalu kurang satu kaki di bawah. Di bawah Ox, sembilan bintang hitam adalah Ladang Langit; di bawah Ladang, tiga'),
+    '牛宿': (
+        'Ox Mansion',
+        'Rasi Ox'),
+    '玩家{0}赠送': (
+        'Gifted by player {0}',
+        'Hadiah dari pemain {0}'),
+    '礼物已经达到赠送上限，无法继续赠送': (
+        'This gift has reached its gifting limit',
+        'Hadiah ini sudah mencapai batas pemberian'),
+    '祈愿已结束，还可以去商店兑换哦': (
+        'The Wish has ended. You can still exchange in the Shop',
+        'Doa sudah berakhir. Kamu masih bisa menukar di Toko'),
+    '祈愿盒': (
+        'Wish Box',
+        'Kotak Doa'),
+    '祈愿盒记录': (
+        'Wish Box Log',
+        'Riwayat Kotak Doa'),
+    '祈愿记录': (
+        'Wish Log',
+        'Riwayat Doa'),
+    '稍后再说': (
+        'Later',
+        'Nanti'),
+    '系统赠送': (
+        'System Gift',
+        'Hadiah Sistem'),
+    '累抽宝箱x{0}': (
+        'Multi-Draw Chest x{0}',
+        'Peti Multi-Draw x{0}'),
+    '累计{0}抽（{1}/{0}），即可领取<color=#FFF7D9FF>{2}×{3}！</color>': (
+        'Draw {0} times in total ({1}/{0}) to claim <color=#FFF7D9FF>{2}×{3}!</color>',
+        'Tarik total {0} kali ({1}/{0}) untuk mengambil <color=#FFF7D9FF>{2}×{3}!</color>'),
+    '累计{0}抽（{1}/{0}），开启宝箱可得<color=#FFF7D9FF>20/40/60</color>锦绣星河祈愿币！': (
+        'Draw {0} times in total ({1}/{0}) and open the chest for <color=#FFF7D9FF>20/40/60</color> Starry Brocade Wish Coins!',
+        'Tarik total {0} kali ({1}/{0}) dan buka peti untuk <color=#FFF7D9FF>20/40/60</color> Koin Doa Starry Brocade!'),
+    '累计祈愿<color=#FFF7D9FF>{0}次</color>获得{1}': (
+        'Make <color=#FFF7D9FF>{0} Wishes</color> in total to get {1}',
+        'Lakukan <color=#FFF7D9FF>{0} Doa</color> total untuk mendapatkan {1}'),
+    '累计祈愿<color=#ffea5eff>X次</color>获得线条小狗天幕': (
+        'Make <color=#ffea5eff>X Wishes</color> in total to get the Line Puppy Sky Screen',
+        'Lakukan <color=#ffea5eff>X Doa</color> total untuk mendapatkan Sky Screen Line Puppy'),
+    '组排不掉分': (
+        'No rank point loss when teaming up',
+        'Poin rank tidak berkurang saat bermain tim'),
+    '继续并肩': (
+        'Stay Together',
+        'Tetap Bersama'),
+    '自定义禁用': (
+        'Custom Bans',
+        'Ban Kustom'),
+    '获取方式': (
+        'How to Get',
+        'Cara Mendapatkan'),
+    '获得棋盘后领取': (
+        'Claim after getting the Board',
+        'Ambil setelah mendapatkan Board'),
+    '获得物品': (
+        'Items Obtained',
+        'Item Didapat'),
+    '虚上下各一如连珠，命禄危非虚上呈。虚危之下哭泣星，哭泣双双下垒城。': (
+        'Emptiness has one star above and one below, like strung pearls; Fate, Wealth, Danger and Wrong sit above it. Below Emptiness and Rooftop lie the Weeping stars, paired, and below them the Rampart City.',
+        'Emptiness punya satu bintang di atas dan satu di bawah, seperti untaian mutiara; Takdir, Rezeki, Bahaya dan Salah di atasnya. Di bawah Emptiness dan Rooftop ada bintang Tangis, berpasangan, dan di bawahnya Kota Benteng.'),
+    '虚宿': (
+        'Emptiness Mansion',
+        'Rasi Emptiness'),
+    '补充积分中...{0}s': (
+        'Refilling Points... {0}s',
+        'Mengisi Poin... {0}s'),
+    '请选择禁用两个阵营或随机禁用': (
+        'Choose two Factions to ban, or ban at random',
+        'Pilih dua Faction untuk di-ban, atau ban acak'),
+    '请选择需要分解或领取的奖励': (
+        'Select the rewards to Dismantle or claim',
+        'Pilih hadiah yang akan dibongkar atau diambil'),
+    '请选择需要领取或分解的奖励': (
+        'Select the rewards to claim or Dismantle',
+        'Pilih hadiah yang akan diambil atau dibongkar'),
+    '购买<color=#FFF7D9FF>{0}x{1}</color>，可获赠<color=#FFF7D9FF>{2}x{3}</color>，可参与祈愿获得奖励': (
+        'Buy <color=#FFF7D9FF>{0}x{1}</color> to receive <color=#FFF7D9FF>{2}x{3}</color> free and join the Wish for rewards',
+        'Beli <color=#FFF7D9FF>{0}x{1}</color> untuk mendapat bonus <color=#FFF7D9FF>{2}x{3}</color> dan ikut Doa untuk hadiah'),
+    '赠收记录': (
+        'Gift Log',
+        'Riwayat Hadiah'),
+    '赠送/接收人': (
+        'Sender/Recipient',
+        'Pengirim/Penerima'),
+    '赠送商品需要先拥有': (
+        'You must own an item before gifting it',
+        'Kamu harus memiliki item sebelum menghadiahkannya'),
+    '赠送给玩家{0}': (
+        'Gift to player {0}',
+        'Hadiahkan ke pemain {0}'),
+    '过期时间：{0}': (
+        'Expires: {0}',
+        'Kedaluwarsa: {0}'),
+    '返场需要消耗积分与返场次数，并可能影响您后续的资源规划与阵容节奏，请确认后再操作。': (
+        'Returning costs Points and a Return, and may affect your later resource planning and lineup pace. Confirm before you continue.',
+        'Kembali memakan Poin dan jatah Kembali, dan bisa memengaruhi rencana sumber daya dan tempo lineup-mu. Pastikan sebelum lanjut.'),
+    '进入奖池送积分': (
+        'Points for entering the pool',
+        'Poin saat masuk pool'),
+    '锦绣星河积分不足（<quad path={0} size=50 yoff=-1 type=0><color=#DF7C7C>{1}</color>/{2}），是否继续祈愿获得积分？': (
+        'Not enough Starry Brocade Points (<quad path={0} size=50 yoff=-1 type=0><color=#DF7C7C>{1}</color>/{2}). Keep making Wishes to earn Points?',
+        'Poin Starry Brocade tidak cukup (<quad path={0} size=50 yoff=-1 type=0><color=#DF7C7C>{1}</color>/{2}). Lanjut Doa untuk mendapatkan Poin?'),
+    '需要自己拥有{0}后才能赠送给好友喔': (
+        'You must own {0} yourself before gifting it to a friend',
+        'Kamu harus memiliki {0} sendiri sebelum menghadiahkannya ke teman'),
+    '领取道具': (
+        'Claim Item',
+        'Ambil Item'),
+    '，可兑换{0}': (
+        ', can exchange for {0}',
+        ', bisa ditukar dengan {0}'),
+    '，是否兑换{0}?': (
+        ', exchange for {0}?',
+        ', tukar dengan {0}?'),
+    '，还差<color=#98CBFFFF>{0}</color>兑换{1}': (
+        ', <color=#98CBFFFF>{0}</color> more to exchange for {1}',
+        ', kurang <color=#98CBFFFF>{0}</color> untuk menukar {1}'),
+    '墨龙铸剑': (
+        'Ink Dragon Forges the Sword',
+        'Ink Dragon Forges the Sword'),
+    '巧手工艺细细勾勒，尽揽星河浩瀚。赠送可增加 10 点亲密度。「锦绣予心上人」': (
+        'Fine handiwork traces every stitch, holding the vast Starry River. Gift to increase Intimacy by 10. "Brocade for the one I love"',
+        'Kerajinan halus menelusuri setiap jahitan, merangkum luasnya Sungai Bintang. Hadiahkan untuk menambah Intimacy sebesar 10. "Brokat untuk kekasih hati"'),
+    '打开礼包，随机获得20/40/60锦绣星河积分。': (
+        'Open the pack to randomly get 20/40/60 Starry Brocade Points.',
+        'Buka paket untuk mendapatkan 20/40/60 Poin Starry Brocade secara acak.'),
+    '澜海寻梦': (
+        'Lan Sea Dream Seeking',
+        'Lan Sea Dream Seeking'),
+    '获得“羽织星罗”个性戳戳1天使用权，在定制系统中装配后可在组队房间内使用。': (
+        'Obtain 1-day Usage rights for the "Feather-Woven Stars" Personalized Poke. Equip it in the Custom System to use it in team rooms.',
+        'Dapatkan hak pakai 1 hari untuk Personalized Poke "Feather-Woven Stars". Pasang di Sistem Kustomisasi untuk menggunakannya di room tim.'),
+    '获得“羽织星罗”个性戳戳30天使用权，在定制系统中装配后可在组队房间内使用。': (
+        'Obtain 30-day Usage rights for the "Feather-Woven Stars" Personalized Poke. Equip it in the Custom System to use it in team rooms.',
+        'Dapatkan hak pakai 30 hari untuk Personalized Poke "Feather-Woven Stars". Pasang di Sistem Kustomisasi untuk menggunakannya di room tim.'),
+    '获得“羽织星罗”个性戳戳365天使用权，在定制系统中装配后可在组队房间内使用。': (
+        'Obtain 365-day Usage rights for the "Feather-Woven Stars" Personalized Poke. Equip it in the Custom System to use it in team rooms.',
+        'Dapatkan hak pakai 365 hari untuk Personalized Poke "Feather-Woven Stars". Pasang di Sistem Kustomisasi untuk menggunakannya di room tim.'),
+    '获得“羽织星罗”个性戳戳，使用后可一直生效，在定制系统中装配后可在组队房间内使用。': (
+        'Obtain the "Feather-Woven Stars" Personalized Poke. Once used, it remains permanently active. Equip it in the Custom System to use it in team rooms.',
+        'Dapatkan Personalized Poke "Feather-Woven Stars". Setelah digunakan, aktif secara permanen. Pasang di Sistem Kustomisasi untuk menggunakannya di room tim.'),
+    '获得“锦枕摧星”互动道具1天使用权，在定制系统中装配后可带入局内使用。': (
+        'Unlock the “Brocade Pillow Fight” Interactive Item for 1 day. Equip it in Customization to use it in matches.',
+        'Buka Item Interaktif “Brocade Pillow Fight” selama 1 hari. Pasang di Kustomisasi untuk menggunakannya dalam pertandingan.'),
+    '获得“锦枕摧星”互动道具30天使用权，在定制系统中装配后可带入局内使用。': (
+        'Unlock the “Brocade Pillow Fight” Interactive Item for 30 days. Equip it in Customization to use it in matches.',
+        'Buka Item Interaktif “Brocade Pillow Fight” selama 30 hari. Pasang di Kustomisasi untuk menggunakannya dalam pertandingan.'),
+    '获得“锦枕摧星”互动道具365天使用权，在定制系统中装配后可带入局内使用。': (
+        'Unlock the “Brocade Pillow Fight” Interactive Item for 365 days. Equip it in Customization to use it in matches.',
+        'Buka Item Interaktif “Brocade Pillow Fight” selama 365 hari. Pasang di Kustomisasi untuk menggunakannya dalam pertandingan.'),
+    '获得“锦枕摧星”互动道具，使用后可一直生效，在定制系统中装配后可带入局内使用。': (
+        'Unlock the “Brocade Pillow Fight” Interactive Item. Once used, it remains permanently active. Equip it in Customization to use it in matches.',
+        'Buka Item Interaktif “Brocade Pillow Fight”. Setelah digunakan, aktif secara permanen. Pasang di Kustomisasi untuk menggunakannya dalam pertandingan.'),
+    '锦绣星河刺绣': (
+        'Starry Brocade Embroidery',
+        'Bordir Starry Brocade'),
+    '锦绣星河随机积分礼包': (
+        'Starry Brocade Random Points Pack',
+        'Paket Poin Acak Starry Brocade'),
+    '充值领好礼': (
+        'Top Up for Gifts',
+        'Top Up Dapat Hadiah'),
+    '新玩法万象速决': (
+        'New Mode: ACE Quick Match',
+        'Mode Baru: ACE Quick Match'),
+    '星河织锦': (
+        'Weaving the Stars',
+        'Weaving the Stars'),
+    '点亮星宿领取奖励': (
+        'Light up Mansions to claim rewards',
+        'Nyalakan Rasi untuk mengambil hadiah'),
+    '累计充值达到指定档位领取奖励': (
+        'Reach the set total top-up tiers to claim rewards',
+        'Capai tingkat total top up untuk mengambil hadiah'),
+    '累计充值达指定档位领取奖励': (
+        'Reach set total top-up tiers to claim rewards',
+        'Capai tingkat total top up tertentu untuk mengambil hadiah'),
+    '超快对局超快爽感': (
+        'Super-fast matches, super-fast thrills',
+        'Pertandingan super cepat, keseruan super cepat'),
+    '万象大赛获得第一名1局': (
+        'Win 1st place in 1 ACE Tournament match',
+        'Raih peringkat 1 di 1 pertandingan ACE Tournament'),
+    '万象大赛进入前三名1局': (
+        'Finish top 3 in 1 ACE Tournament match',
+        'Masuk 3 besar di 1 pertandingan ACE Tournament'),
+    '万象速决积分达到1200分': (
+        'Reach 1200 ACE Quick Match Points',
+        'Capai 1200 Poin ACE Quick Match'),
+    '完成1局万象大赛': (
+        'Complete 1 ACE Tournament match',
+        'Selesaikan 1 pertandingan ACE Tournament'),
+    '完成1局万象速决': (
+        'Complete 1 ACE Quick Match',
+        'Selesaikan 1 ACE Quick Match'),
+    '完成3局万象速决': (
+        'Complete 3 ACE Quick Matches',
+        'Selesaikan 3 ACE Quick Match'),
+    '万象速决活动奖励': (
+        'ACE Quick Match Event Rewards',
+        'Hadiah Event ACE Quick Match'),
+    '星河织锦活动奖励': (
+        'Weaving the Stars Event Rewards',
+        'Hadiah Event Weaving the Stars'),
+    '锦绣星河商店有奖励可兑换': (
+        'Rewards ready to exchange in the Starry Brocade Shop',
+        'Ada hadiah yang bisa ditukar di Toko Starry Brocade'),
+    '锦绣星河无双棋盘祈愿上线': (
+        'Starry Brocade Peerless Board Wish is live',
+        'Doa Peerless Board Starry Brocade sudah hadir'),
+    '锦绣星河祈愿即将下线': (
+        'Starry Brocade Wish ends soon',
+        'Doa Starry Brocade segera berakhir'),
+    '锦绣星河累抽奖励': (
+        'Starry Brocade Multi-Draw Rewards',
+        'Hadiah Multi-Draw Starry Brocade'),
+    '<color=#98cbff>一、时间：</color>\n<color=#FFFFFF>1、祈愿时间：2026年11月20日 00:00:00-2026年12月19日 23:59:59。\n2、兑换时间：2026年11月20日 00:00:00-2026年12月22日 23:59:59。\n注：12月19日祈愿时间结束后，锦绣星河祈愿币将不可使用，请及时使用；12月19日后仅保留兑换商店，请拥有锦绣星河积分的玩家们及时兑换，兑换时间结束后活动道具（锦绣星河祈愿币，锦绣星河积分）将被清空。</color>\n\n<color=#98cbff>二、祈愿规则：</color>\n<color=#FFFFFF>1、在活动界面消耗100点券购买10个爱心投送1天体验卡可获赠10个【锦绣星河祈愿币】，每次祈愿消耗10个锦绣星河祈愿币。活动期间，每人祈愿限1000次。\n2、祈愿福利： \n（1）祈愿福利1：首次进入奖池将会赠送锦绣星河祈愿币×9，首抽仅需10点券；\n（2）祈愿福利2：每日首次进入锦绣星河无双祈愿，可获赠锦绣星河积分×1（活动期间限领7次）；\n（3）祈愿福利3：祈愿达5/10/25次，可领取锦绣星河随机积分礼包，领取后随机获得20/40/60锦绣星河积分，概率分别为60%/30%/10%；祈愿达40次，可领取锦绣星河积分×288，依此类推至120抽为止。\n3、锦绣星河积分可用于在兑换商店中兑换指定奖励，详细兑换内容可前往兑换商店查看。\n4、重复获取：抽到已拥有的棋盘、名片、特效将自动转化为指定数量的锦绣星河积分，具体重复转化数量如下：\n锦绣星河棋盘：288；锦绣星河名片：120；锦绣星河传送特效：98。\n5、祈愿盒规则：在祈愿盒中，玩家可选择领取或分解奖励，具体分解数量如下：\x0b互动道具-锦枕摧星（1天）*1：5；个性戳戳-羽织星罗（1天）*1：5；亲密度道具-锦绣星河刺绣*1：5。\n6、锦绣星河无双祈愿奖池限时开启，抽奖进度不会被其他祈愿活动继承。</color>\n\n<color=#98cbff>三、概率公示：</color>\n<color=#FFFFFF>锦绣星河无双棋盘：0.2%\n锦绣星河积分*288：0.2%\n锦绣星河动态名片：0.2%\n传送特效-织星为锦：0.3%\n锦绣星河积分*68：2.15%\n锦绣星河积分*48：4%\n锦绣星河积分*28：6%\n锦绣星河积分*18：24.85%\n锦绣星河积分*8：35%\n互动道具-锦枕摧星（1天）*1：7.5%\n个性戳戳-羽织星罗（1天）*1：7.5%\n亲密度道具-锦绣星河刺绣*1：12.1%\n</color>': (
+        '<color=#98cbff>I. Time:</color>\n<color=#FFFFFF>1. Wish period: November 20, 2026, 00:00:00 - December 19, 2026, 23:59:59.\n2. Exchange period: November 20, 2026, 00:00:00 - December 22, 2026, 23:59:59.\nNote: Starry Brocade Wish Coins can no longer be used after the Wish period ends on December 19, so use them in time. After December 19 only the Exchange Shop remains; players holding Starry Brocade Points should exchange them in time. When the exchange period ends, the event items (Starry Brocade Wish Coins, Starry Brocade Points) will be cleared.</color>\n\n<color=#98cbff>II. Wish Rules:</color>\n<color=#FFFFFF>1. On the event screen, spend 100 Coupons to buy 10 Love Delivery 1-Day Trial Cards and receive 10 [Starry Brocade Wish Coins]. Each Wish costs 10 Starry Brocade Wish Coins. Each player can make up to 1000 Wishes during the event.\n2. Wish perks:\n(1) Perk 1: your first visit to the pool grants Starry Brocade Wish Coin ×9, and your first draw costs only 10 Coupons;\n(2) Perk 2: your first visit to the Starry Brocade Peerless Wish each day grants Starry Brocade Points ×1 (up to 7 times during the event);\n(3) Perk 3: at 5/10/25 Wishes, claim a Starry Brocade Random Points Pack, which grants 20/40/60 Starry Brocade Points at 60%/30%/10% respectively; at 40 Wishes, claim Starry Brocade Points ×288, and so on up to 120 draws.\n3. Starry Brocade Points can be exchanged for set rewards in the Exchange Shop. See the Exchange Shop for details.\n4. Duplicates: a Board, Nameplate or Effect you already own is converted into Starry Brocade Points as follows:\nStarry Brocade Board: 288; Starry Brocade Nameplate: 120; Starry Brocade Teleport Effect: 98.\n5. Wish Box rules: in the Wish Box you can claim or Dismantle rewards. Dismantling grants:\nInteractive Item - Brocade Pillow Fight (1 Day) ×1: 5; Personalized Poke - Feather-Woven Stars (1 Day) ×1: 5; Intimacy Item - Starry Brocade Embroidery ×1: 5.\n6. The Starry Brocade Peerless Wish pool is available for a limited time. Progress will not carry over to other Wish events.</color>\n\n<color=#98cbff>III. Probability Disclosure:</color>\n<color=#FFFFFF>Starry Brocade Peerless Board: 0.2%\nStarry Brocade Points ×288: 0.2%\nStarry Brocade Animated Nameplate: 0.2%\nTeleport Effect - Stars Woven to Brocade: 0.3%\nStarry Brocade Points ×68: 2.15%\nStarry Brocade Points ×48: 4%\nStarry Brocade Points ×28: 6%\nStarry Brocade Points ×18: 24.85%\nStarry Brocade Points ×8: 35%\nInteractive Item - Brocade Pillow Fight (1 Day) ×1: 7.5%\nPersonalized Poke - Feather-Woven Stars (1 Day) ×1: 7.5%\nIntimacy Item - Starry Brocade Embroidery ×1: 12.1%\n</color>',
+        '<color=#98cbff>I. Waktu:</color>\n<color=#FFFFFF>1. Waktu Doa: 20 November 2026, 00:00:00 - 19 Desember 2026, 23:59:59.\n2. Waktu Penukaran: 20 November 2026, 00:00:00 - 22 Desember 2026, 23:59:59.\nCatatan: Koin Doa Starry Brocade tidak bisa digunakan lagi setelah waktu Doa berakhir pada 19 Desember, jadi segera gunakan. Setelah 19 Desember hanya Exchange Shop yang tersisa; pemain yang memiliki Poin Starry Brocade harap segera menukarnya. Setelah waktu penukaran berakhir, item event (Koin Doa Starry Brocade, Poin Starry Brocade) akan dihapus.</color>\n\n<color=#98cbff>II. Aturan Doa:</color>\n<color=#FFFFFF>1. Di layar event, habiskan 100 Kupon untuk membeli 10 Kartu Uji Coba 1 Hari Love Delivery dan dapatkan 10 [Koin Doa Starry Brocade]. Setiap Doa memakan 10 Koin Doa Starry Brocade. Setiap pemain bisa melakukan hingga 1000 Doa selama event.\n2. Bonus Doa:\n(1) Bonus 1: kunjungan pertama ke pool memberi Koin Doa Starry Brocade ×9, dan tarikan pertama hanya 10 Kupon;\n(2) Bonus 2: kunjungan pertama ke Doa Peerless Starry Brocade setiap hari memberi Poin Starry Brocade ×1 (maksimal 7 kali selama event);\n(3) Bonus 3: pada 5/10/25 Doa, ambil Paket Poin Acak Starry Brocade, yang memberi 20/40/60 Poin Starry Brocade dengan peluang 60%/30%/10%; pada 40 Doa, ambil Poin Starry Brocade ×288, dan seterusnya hingga 120 tarikan.\n3. Poin Starry Brocade bisa ditukar dengan hadiah tertentu di Exchange Shop. Lihat Exchange Shop untuk detailnya.\n4. Duplikat: Board, Nameplate atau Efek yang sudah dimiliki diubah menjadi Poin Starry Brocade sebagai berikut:\nBoard Starry Brocade: 288; Nameplate Starry Brocade: 120; Efek Teleportasi Starry Brocade: 98.\n5. Aturan Kotak Doa: di Kotak Doa kamu bisa mengambil atau membongkar hadiah. Membongkar memberi:\nItem Interaktif - Brocade Pillow Fight (1 Hari) ×1: 5; Personalized Poke - Feather-Woven Stars (1 Hari) ×1: 5; Item Intimacy - Bordir Starry Brocade ×1: 5.\n6. Pool Doa Peerless Starry Brocade tersedia dalam waktu terbatas. Progres tidak akan dibawa ke event Doa lainnya.</color>\n\n<color=#98cbff>III. Pengungkapan Peluang:</color>\n<color=#FFFFFF>Peerless Board Starry Brocade: 0,2%\nPoin Starry Brocade ×288: 0,2%\nNameplate Animasi Starry Brocade: 0,2%\nEfek Teleportasi - Stars Woven to Brocade: 0,3%\nPoin Starry Brocade ×68: 2,15%\nPoin Starry Brocade ×48: 4%\nPoin Starry Brocade ×28: 6%\nPoin Starry Brocade ×18: 24,85%\nPoin Starry Brocade ×8: 35%\nItem Interaktif - Brocade Pillow Fight (1 Hari) ×1: 7,5%\nPersonalized Poke - Feather-Woven Stars (1 Hari) ×1: 7,5%\nItem Intimacy - Bordir Starry Brocade ×1: 12,1%\n</color>'),
+    '<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成万象速决对局任务即可领取奖励。</color>\n<color=#FFFFFF>2、娱乐积分将在每次对应娱乐玩法结束时重置清零。</color>': (
+        '<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete ACE Quick Match missions to claim rewards.</color>\n<color=#FFFFFF>2. Casual Points reset to zero at the end of each Casual mode match.</color>',
+        '<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi ACE Quick Match untuk mengambil hadiah.</color>\n<color=#FFFFFF>2. Poin Casual direset ke nol di akhir setiap pertandingan mode Casual.</color>'),
+    '<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成任务可点亮星宿领取奖励。</color>\n<color=#FFFFFF>2、完成上一个星宿任务才可激活下一个星宿任务。</color>\n<color=#98cbff>二、星宿小知识</color>\n<color=#FFFFFF>北宫玄武，冬夜之象。斗、牛、女、虚、危、室、壁七宿列阵北天，古人把它想象成龟蛇合体的镇守之神。</color>\n<color=#FFFFFF>斗宿：天上另一把“斗勺”——南斗六星。掌握的是福气值。</color>\n<color=#FFFFFF>牛宿：牛郎织女都在它地盘上，银河两岸隔河相望——七夕的天文户口就落在这儿。</color>\n<color=#FFFFFF>女宿：四星排成小方格，像一台织机，掌针线女红儿。</color>\n<color=#FFFFFF>虚宿：“虚”是空旷的旧庭院，北天最安静的一块地，安静得能听见落雪。</color>\n<color=#FFFFFF>危宿：“危”是屋脊，站得越高越要稳，是天上的工程监理。</color>\n<color=#FFFFFF>室宿：又名“营室”，天上的施工队：天气一冷就提醒你修屋顶、囤冬粮。</color>\n<color=#FFFFFF>壁宿：东壁藏书，是天上的图书馆，排兵布阵的兵法都从这儿借。</color>': (
+        '<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete missions to light up Mansions and claim rewards.</color>\n<color=#FFFFFF>2. Complete the previous Mansion\'s mission to activate the next one.</color>\n<color=#98cbff>II. About the Mansions</color>\n<color=#FFFFFF>The Black Tortoise of the North, the image of winter nights. Seven Mansions (Dipper, Ox, Girl, Emptiness, Rooftop, Encampment and Wall) line the northern sky, which the ancients pictured as a guardian god of tortoise and snake combined.</color>\n<color=#FFFFFF>Dipper: the other "ladle" in the sky, the six stars of the Southern Dipper. It keeps the score of good fortune.</color>\n<color=#FFFFFF>Ox: the Cowherd and the Weaver Girl both live here, gazing at each other across the Milky Way. Qixi\'s stars are registered at this address.</color>\n<color=#FFFFFF>Girl: four stars in a small square like a loom, in charge of needlework.</color>\n<color=#FFFFFF>Emptiness: "emptiness" is an old, deserted courtyard, the quietest corner of the northern sky, so quiet you can hear the snow fall.</color>\n<color=#FFFFFF>Rooftop: "rooftop" is a roof ridge. The higher you stand, the steadier you must be: the sky\'s building inspector.</color>\n<color=#FFFFFF>Encampment: also called the "Camp House", the sky\'s builders, reminding you to fix the roof and store grain once the weather turns cold.</color>\n<color=#FFFFFF>Wall: the Eastern Wall holds books, the sky\'s library, where every war manual on troop formations is borrowed from.</color>',
+        '<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi untuk menyalakan Rasi dan mengambil hadiah.</color>\n<color=#FFFFFF>2. Selesaikan misi Rasi sebelumnya untuk mengaktifkan misi berikutnya.</color>\n<color=#98cbff>II. Tentang Rasi</color>\n<color=#FFFFFF>Kura-kura Hitam Utara, lambang malam musim dingin. Tujuh Rasi (Dipper, Ox, Girl, Emptiness, Rooftop, Encampment dan Wall) berjajar di langit utara, yang dibayangkan orang dahulu sebagai dewa penjaga berwujud kura-kura dan ular.</color>\n<color=#FFFFFF>Dipper: "gayung" lain di langit, enam bintang Biduk Selatan. Ia menyimpan catatan keberuntungan.</color>\n<color=#FFFFFF>Ox: Si Penggembala dan Gadis Penenun sama-sama tinggal di sini, saling memandang di seberang Bima Sakti. Bintang Qixi terdaftar di alamat ini.</color>\n<color=#FFFFFF>Girl: empat bintang membentuk kotak kecil seperti alat tenun, mengurus jahit-menjahit.</color>\n<color=#FFFFFF>Emptiness: "kekosongan" adalah halaman tua yang sepi, sudut paling tenang di langit utara, begitu tenang hingga salju yang jatuh terdengar.</color>\n<color=#FFFFFF>Rooftop: "atap" adalah bubungan rumah. Makin tinggi berdiri, makin harus kokoh: pengawas bangunan di langit.</color>\n<color=#FFFFFF>Encampment: disebut juga "Rumah Perkemahan", tukang bangunan di langit, yang mengingatkanmu memperbaiki atap dan menimbun bahan pangan saat cuaca mulai dingin.</color>\n<color=#FFFFFF>Wall: Tembok Timur menyimpan buku, perpustakaan di langit, tempat semua kitab strategi perang dipinjam.</color>'),
+    '<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、活动期间完成任务可领取对应奖励。</color>\n<color=#FFFFFF>2、每日任务将于每天0点刷新。</color>\n<color=#98cbff>二、超级周末特权开启</color>\n<color=#FFFFFF>1、活动期间内开启3项特权：（1）每日参与万象大赛，前3次结算翻牌产出钻石翻倍；（2）有分同享不限亲密度；（3）每日参与万象大赛首胜加分。</color>\n<color=#FFFFFF>2、其中有分同享不限亲密度，如果队伍中有王者段位5000分以上玩家则不能享受有分同享规则。</color>\n<color=#FFFFFF>3、活动期间，玩家每日首次在排位对局中取得胜利，可额外获得5段位分。玩家通过有分同享共享队友排名并获得段位分时也视为满足首胜条件，可获得额外5段位分。完成对局结算时处于活动时间内，本局即可享受该特权。最强王者5000分以上的玩家，无法享受该特权。</color>': (
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete missions during the event to claim the corresponding rewards.</color>\n<color=#FFFFFF>2. Daily missions reset at 00:00.</color>\n<color=#98cbff>II. Super Weekend Perks</color>\n<color=#FFFFFF>1. Three perks are active during the event: (1) Diamonds from your first 3 flips each day in the ACE Tournament are doubled; (2) Shared Score has no Intimacy requirement; (3) your first ACE Tournament win each day grants bonus points.</color>\n<color=#FFFFFF>2. Shared Score without an Intimacy requirement is unavailable if anyone on the team has more than 5000 Honor points.</color>\n<color=#FFFFFF>3. During the event, your first Ranked win each day grants an extra 5 rank points. Gaining rank points by sharing a teammate's placement through Shared Score also counts as a first win and grants the extra 5 rank points. The perk applies to a match settled during the event period. Players with more than 5000 Honor points cannot use this perk.</color>",
+        '<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi selama event untuk mengambil hadiah yang sesuai.</color>\n<color=#FFFFFF>2. Misi harian direset pukul 00:00.</color>\n<color=#98cbff>II. Keuntungan Super Weekend</color>\n<color=#FFFFFF>1. Tiga keuntungan aktif selama event: (1) Diamond dari 3 balik kartu pertama setiap hari di ACE Tournament jadi ganda; (2) Shared Score tanpa syarat Intimacy; (3) kemenangan pertama ACE Tournament setiap hari memberi poin bonus.</color>\n<color=#FFFFFF>2. Shared Score tanpa syarat Intimacy tidak berlaku jika ada anggota tim dengan poin Honor di atas 5000.</color>\n<color=#FFFFFF>3. Selama event, kemenangan Ranked pertama setiap hari memberi tambahan 5 poin rank. Mendapat poin rank dengan berbagi peringkat rekan tim lewat Shared Score juga dihitung sebagai kemenangan pertama dan memberi tambahan 5 poin rank. Keuntungan berlaku untuk pertandingan yang selesai saat event berlangsung. Pemain dengan poin Honor di atas 5000 tidak bisa memakai keuntungan ini.</color>'),
+    '<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>在活动持续期间，累计充值点券到达一定档位，可在活动内领取对应档位的奖励。累计充值档位与奖励如下：\n在活动期间累计充值达到指定档位，即可领取对应奖励，具体如下：\n1、累计充值1元：夺宝币*3\n2、累计充值6元：夺宝币*3，探宝秘钥*1\n3、累计充值30元：夺宝币*6，探宝秘钥*2\n4、累计充值98元：夺宝币*6，长安舞榭·星彩*2，探宝秘钥*3\n5、累计充值188元：夺宝币*12，长安舞榭·星彩*3，探宝秘钥*5</color>': (
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>During the event, reach a total Coupon top-up tier to claim that tier's reward in the event. The tiers and rewards are:\nReach a total top-up tier during the event to claim the matching reward, as follows:\n1. Top up 1 yuan in total: Treasure Coin ×3\n2. Top up 6 yuan in total: Treasure Coin ×3, Treasure Key ×1\n3. Top up 30 yuan in total: Treasure Coin ×6, Treasure Key ×2\n4. Top up 98 yuan in total: Treasure Coin ×6, Chang'an Pavilion · Star Color ×2, Treasure Key ×3\n5. Top up 188 yuan in total: Treasure Coin ×12, Chang'an Pavilion · Star Color ×3, Treasure Key ×5</color>",
+        "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>Selama event, capai tingkat total top up Kupon untuk mengambil hadiah tingkat tersebut di event. Tingkat dan hadiahnya:\nCapai tingkat total top up selama event untuk mengambil hadiah yang sesuai, sebagai berikut:\n1. Top up total 1 yuan: Treasure Coin ×3\n2. Top up total 6 yuan: Treasure Coin ×3, Treasure Key ×1\n3. Top up total 30 yuan: Treasure Coin ×6, Treasure Key ×2\n4. Top up total 98 yuan: Treasure Coin ×6, Chang'an Pavilion · Star Color ×2, Treasure Key ×3\n5. Top up total 188 yuan: Treasure Coin ×12, Chang'an Pavilion · Star Color ×3, Treasure Key ×5</color>"),
+    '<color=#98cbff>一、超级周末专属特权</color>\n<color=#FFFFFF>超级周末开启！活动期间将开启以下特权：每日排位首胜额外加分；有分同享不限亲密度；每日翻牌前3局钻石翻倍。</color>\n\n<color=#98cbff>二、特权具体说明</color>\n<color=#FFFFFF>1. 每日排位首胜额外加分\n活动期间，玩家每日首次在排位对局中取得胜利，可额外获得5段位分。玩家通过有分同享共享队友排名并获得段位分时，也视为满足首胜条件，可获得额外5段位分。玩家完成对局结算时处于活动时间内，本局即可享受该特权。\n最强王者5000分以上的玩家，无法享受该特权。\n\n2. 有分同享不限亲密度\n活动期间，最强王者0-5000分的玩家组队参与排位时，无需满足好友亲密度条件，即可开启有分同享。\n开启后，每位玩家本局获得的段位分，将与队伍中排名最高的玩家保持一致。玩家开始游戏时处于活动时间内，本局即可享受该特权。\n若队伍中有最强王者5000分以上的玩家，则无法享受该特权。\n\n3. 每日翻牌前3局钻石翻倍\n活动期间，所有玩家在对局结束后翻牌获得钻石时，钻石奖励翻倍，每日最多享受3次（未翻到钻石不会消耗特权次数）。玩家进行翻牌时处于活动时间内，即可享受该特权。</color>': (
+        "<color=#98cbff>I. Super Weekend Perks</color>\n<color=#FFFFFF>Super Weekend is here! During the event: your first Ranked win each day grants bonus points, Shared Score has no Intimacy requirement, and Diamonds from your first 3 flips each day are doubled.</color>\n\n<color=#98cbff>II. Perk Details</color>\n<color=#FFFFFF>1. Daily First Ranked Win Bonus\nDuring the event, your first Ranked win each day grants an extra 5 rank points. Gaining rank points by sharing a teammate's placement through Shared Score also counts as a first win and grants the extra 5 rank points. Finish the match during the event period to enjoy this perk for that match.\nPlayers with more than 5000 Honor points cannot use this perk.\n\n2. Shared Score Without Intimacy Requirements\nDuring the event, players with 0-5000 Honor points can enable Shared Score in team Ranked matches without meeting friend Intimacy requirements.\nEach player's rank points gained in the match will match those of the highest-placing teammate. Start your match during the event period to enjoy this perk.\nThis perk is unavailable if anyone on the team has more than 5000 Honor points.\n\n3. Double Diamonds on Your First 3 Flips Each Day\nDuring the event, Diamonds every player gets from the post-match flip are doubled, up to 3 times a day (a flip with no Diamonds does not use up the perk). Flip during the event period to enjoy this perk.</color>",
+        '<color=#98cbff>I. Keuntungan Super Weekend</color>\n<color=#FFFFFF>Super Weekend tiba! Selama event: kemenangan Ranked pertama setiap hari memberi poin bonus, Shared Score tanpa syarat Intimacy, dan Diamond dari 3 balik kartu pertama setiap hari jadi ganda.</color>\n\n<color=#98cbff>II. Rincian Keuntungan</color>\n<color=#FFFFFF>1. Bonus Kemenangan Ranked Pertama Harian\nSelama event, kemenangan Ranked pertama setiap hari memberi tambahan 5 poin rank. Mendapat poin rank dengan berbagi peringkat rekan tim lewat Shared Score juga dihitung sebagai kemenangan pertama dan memberi tambahan 5 poin rank. Selesaikan pertandingan saat event berlangsung untuk menikmati keuntungan ini dalam pertandingan tersebut.\nPemain dengan poin Honor di atas 5000 tidak bisa memakai keuntungan ini.\n\n2. Shared Score Tanpa Syarat Intimacy\nSelama event, pemain dengan 0-5000 poin Honor dapat mengaktifkan Shared Score dalam Ranked tim tanpa memenuhi syarat Intimacy pertemanan.\nPoin rank yang didapat setiap pemain akan sama dengan rekan satu tim yang menempati peringkat tertinggi. Mulai pertandingan saat event berlangsung untuk menikmati keuntungan ini.\nKeuntungan ini tidak berlaku jika ada anggota tim dengan poin Honor di atas 5000.\n\n3. Diamond Ganda di 3 Balik Kartu Pertama Setiap Hari\nSelama event, Diamond yang didapat setiap pemain dari balik kartu setelah pertandingan jadi ganda, maksimal 3 kali sehari (balik kartu tanpa Diamond tidak memakai jatah keuntungan). Balik kartu saat event berlangsung untuk menikmati keuntungan ini.</color>'),
+    '<color=#98cbff>十分钟</color>一局，战斗全程加速。': (
+        '<color=#98cbff>Ten minutes</color> a match, with combat sped up throughout.',
+        '<color=#98cbff>Sepuluh menit</color> per pertandingan, dengan combat dipercepat sepanjang laga.'),
+    '商店有几率出现觉醒英雄、特殊装备甚至六阶效果牌。': (
+        'The Shop may offer Awakened Heroes, Special Equipment and even Tier 6 Effect Cards.',
+        'Toko bisa menawarkan Hero Awakened, Special Equipment, bahkan Kartu Efek Tier 6.'),
+    '移除拍卖回合，我没时间陪你“闹”了~': (
+        'Auction Rounds are gone. No time to "play around" with you~',
+        'Ronde Lelang dihapus. Tak ada waktu untuk "main-main" denganmu~'),
+    '经验无法购买，但每回合自动疯涨！': (
+        "EXP can't be bought, but it soars automatically every Round!",
+        'EXP tidak bisa dibeli, tapi melonjak otomatis setiap Ronde!'),
+    '每次祈愿有概率获得积分和<color=#98CBFF>无双棋盘</color>': (
+        'Each Wish has a chance to grant Points and the <color=#98CBFF>Peerless Board</color>',
+        'Setiap Doa berpeluang memberi Poin dan <color=#98CBFF>Peerless Board</color>'),
+    '积分足够时可兑换无双棋盘': (
+        'Exchange for the Peerless Board once you have enough Points',
+        'Tukar dengan Peerless Board saat Poin sudah cukup'),
+    '达到一定抽数可领取随机积分礼盒或<color=#98CBFF>288积分</color>': (
+        'Reach set draw counts to claim a Random Points Pack or <color=#98CBFF>288 Points</color>',
+        'Capai jumlah tarikan tertentu untuk mengambil Paket Poin Acak atau <color=#98CBFF>288 Poin</color>'),
+    '部分奖励将收入祈愿盒，可领取或分解为积分': (
+        'Some rewards go into the Wish Box, where you can claim them or Dismantle them into Points',
+        'Sebagian hadiah masuk ke Kotak Doa, tempat kamu bisa mengambilnya atau membongkarnya jadi Poin'),
+    '活动货币，用于在锦绣星河奖池兑换商店兑换奖励。': (
+        "Event currency, used to exchange rewards in the Starry Brocade pool's Exchange Shop.",
+        'Mata uang event, untuk menukar hadiah di Exchange Shop pool Starry Brocade.'),
+    '活动货币，用于锦绣星河奖池抽奖。': (
+        'Event currency, used to draw from the Starry Brocade pool.',
+        'Mata uang event, untuk menarik dari pool Starry Brocade.'),
+    '锦绣星河祈愿币': (
+        'Starry Brocade Wish Coin',
+        'Koin Doa Starry Brocade'),
+    '锦绣星河积分': (
+        'Starry Brocade Points',
+        'Poin Starry Brocade'),
+    '单局内，在【锦绣星河】棋盘放飞梭子，触发彩带1次': (
+        'In one match, launch the shuttle on the [Starry Brocade] Board to trigger the ribbons once',
+        'Dalam satu pertandingan, luncurkan torak di Board [Starry Brocade] untuk memicu pita sekali'),
+    '在【双倍储能】中，最终夺冠时，阵容中有且仅有2名999级的英雄': (
+        'In [Double Energy Storage], win the competition with exactly 2 Level 999 Heroes in your Lineup',
+        'Di [Double Energy Storage], menangkan kompetisi dengan tepat 2 Hero Level 999 di Lineup kamu'),
+    '星辰大海': (
+        'Stars and Seas',
+        'Stars and Seas'),
+    '把漫天星河织成蜀锦。': (
+        'Weave the whole starry sky into Shu brocade.',
+        'Menenun seluruh langit berbintang menjadi brokat Shu.'),
+    '织星为锦': (
+        'Stars Woven to Brocade',
+        'Stars Woven to Brocade'),
+    '织星为锦传送特效': (
+        'Stars Woven to Brocade Teleport Effect',
+        'Efek Teleportasi Stars Woven to Brocade'),
+    '组排设置': (
+        'Team Queue Settings',
+        'Pengaturan Antrean Tim'),
+    '返回大厅时是否保留组排队伍': (
+        'Keep the team queue together when returning to the Lobby',
+        'Pertahankan tim antrean saat kembali ke Lobby'),
+    '退出队伍;留在队内': (
+        'Leave Team;Stay in Team',
+        'Keluar Tim;Tetap di Tim'),
+    '<color=#FFE897>加时赛</color>! 英雄攻速+20%, 生命恢复-75%！': (
+        '<color=#FFE897>Overtime</color>! Hero Attack Speed +20%, HP Regen -75%!',
+        '<color=#FFE897>Overtime</color>! Attack Speed Hero +20%, HP Regen -75%!'),
+    '战斗进一步加速！': (
+        'Combat speeds up further!',
+        'Combat semakin cepat!'),
+    '你真棒表情': (
+        "You're Awesome Emote",
+        "Emote You're Awesome"),
+    '心灵手巧表情': (
+        'Skillful Hands Emote',
+        'Emote Skillful Hands'),
+    '参与官方电竞赛事，并入围当前赛季总决赛': (
+        "Take part in an official esports event and reach the current Season's Grand Finals",
+        'Ikuti event esports resmi dan lolos ke Grand Final Season ini'),
+    '王牌电竞选手': (
+        'Ace Esports Player',
+        'Ace Esports Player'),
+    '成为王者万象棋生态创作者': (
+        'Become an Honor of Kings: Ace community creator',
+        'Jadi kreator komunitas Honor of Kings: Ace'),
+    '种棵小草': (
+        'Plant a Little Sprout',
+        'Plant a Little Sprout'),
+    '获得棋盘【锦绣星河】7天限时体验。': (
+        'Get a 7-day trial of the [Starry Brocade] Board.',
+        'Dapatkan trial 7 hari Board [Starry Brocade].'),
+    '锦绣星河7天限时卡': (
+        'Starry Brocade 7-Day Trial Card',
+        'Kartu Trial 7 Hari Starry Brocade'),
+    '使用3张相同非觉醒英雄牌，使用<color=#ffffff><b>轮指</b></color>：下个指法触发2次。\n\n使用3张同品阶非觉醒英雄牌，使用<color=#ffffff><b>扫拂</b></color>：使场上等级最低的2名英雄获得等于棋手等级的等级。\n\n使用3张同阵营非觉醒英雄牌，使用<color=#ffffff><b>吟揉</b></color>：获得1张随机的<color=#ffffff>╆<b>转瞬</b></color>英雄牌': (
+        'Play 3 identical non-Awakened Hero Cards to use <color=#ffffff><b>Pluck</b></color>: your next fingering technique triggers twice.\n\nPlay 3 non-Awakened Hero Cards of the same Tier to use <color=#ffffff><b>Sweep</b></color>: the 2 lowest-Level Heroes on the board gain Levels equal to your Chessplayer Level.\n\nPlay 3 non-Awakened Hero Cards of the same Faction to use <color=#ffffff><b>Vibrato</b></color>: gain 1 random <color=#ffffff>╆<b>Fleeting</b></color> Hero Card.',
+        'Mainkan 3 Kartu Hero non-Awaken yang sama untuk menggunakan <color=#ffffff><b>Pluck</b></color>: teknik jari berikutnya terpicu 2 kali.\n\nMainkan 3 Kartu Hero non-Awaken dengan Tier yang sama untuk menggunakan <color=#ffffff><b>Sweep</b></color>: 2 Hero dengan Level terendah di papan mendapatkan Level sebesar Level Chessplayer kamu.\n\nMainkan 3 Kartu Hero non-Awaken dari Faction yang sama untuk menggunakan <color=#ffffff><b>Vibrato</b></color>: dapatkan 1 Kartu Hero <color=#ffffff>╆<b>Fleeting</b></color> acak.'),
+    '合成英雄时，获得1{Energy}，每回合限3次。单回合内合成第4次时随机获得1张场上英雄的复制。': (
+        'When you Combine Heroes, gain 1{Energy}, up to 3 times per Round. Your 4th Combine in a Round randomly gains 1 copy of a Hero on the board.',
+        'Saat melakukan Combine Hero, dapatkan 1{Energy}, maksimal 3 kali per Ronde. Combine ke-4 dalam satu Ronde memberi 1 salinan Hero di board secara acak.'),
+    '无双祈愿': (
+        'Peerless Wish',
+        'Doa Peerless'),
+    '枕头打人就不疼了吗？（互动道具，可在对局内对其他玩家使用）': (
+        'Does it hurt less if you hit people with a pillow? (Interactive Item, usable on other players in matches)',
+        'Apakah dipukul bantal jadi tidak sakit? (Item Interaktif, bisa dipakai ke pemain lain dalam pertandingan)'),
+    '梭起星河，锦暖人间': (
+        'A shuttle weaves the stars; brocade warms the world',
+        'Torak menenun bintang; brokat menghangatkan dunia'),
+    '燕归星河头像框': (
+        'Swallows Return to the Stars Avatar Frame',
+        'Avatar Frame Swallows Return to the Stars'),
+    '羽织星罗': (
+        'Feather-Woven Stars',
+        'Feather-Woven Stars'),
+    '选人时隐藏棋手显示': (
+        'Hide Chessplayer during Pick',
+        'Sembunyikan Chessplayer saat Pick'),
+    '金燕织星气泡': (
+        'Golden Swallow Weaves Stars Chat Bubble',
+        'Chat Bubble Golden Swallow Weaves Stars'),
+    '锦枕摧星': (
+        'Brocade Pillow Fight',
+        'Brocade Pillow Fight'),
+    '锦绣星河名片': (
+        'Starry Brocade Nameplate',
+        'Nameplate Starry Brocade'),
+    '锦绣星河商店': (
+        'Starry Brocade Shop',
+        'Toko Starry Brocade'),
+    '锦绣星河祈愿获取': (
+        'From the Starry Brocade Wish',
+        'Dari Doa Starry Brocade'),
+    '锦绣星河默认音乐': (
+        'Starry Brocade Default Music',
+        'Musik Default Starry Brocade'),
+    '锦羽织天，星罗漫舞。（个性戳戳，可在组队界面对其他玩家使用）': (
+        'Brocade feathers weave the sky as stars dance. (Personalized Poke, usable on other players in team screens)',
+        'Bulu brokat menenun langit saat bintang menari. (Personalized Poke, bisa dipakai ke pemain lain di layar tim)'),
 }
 
 # The weekly leaderboards, ranked 第一 .. 第一百. `%s%s` is the season and the Chessplayer.

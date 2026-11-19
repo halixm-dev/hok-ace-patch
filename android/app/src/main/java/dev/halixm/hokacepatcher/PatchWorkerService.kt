@@ -238,11 +238,14 @@ class PatchWorkerService : Service() {
                         // Root installs no APK, so it prepares only a copy of the installed game app (ADR 0007).
                         val result = if (WorkerAccess.of(device) == WorkerAccess.ROOT) {
                             val prepared = ApkPreparation(this).prepareRoot(device, { message -> show(message) }, checkpoint)
+                            // A Stop during the last preparation step reads as a cancel, not as a refused bind.
+                            checkpoint()
                             PatchRequestStore(this).authorizeRoot(run, prepared)
                             JSONObject().put("preparation", prepared.directory.name).put("root", true)
                                 .put("normal", prepared.installed.sha256).put("requires_signature_conversion", false)
                         } else {
                             val prepared = ApkPreparation(this).prepare(device, { message -> show(message) }, checkpoint)
+                            checkpoint()
                             if (!prepared.requiresSignatureConversion) PatchRequestStore(this).authorize(run, prepared)
                             JSONObject().put("preparation", prepared.directory.name).put("normal", prepared.normal.sha256)
                                 .put("requires_signature_conversion", prepared.requiresSignatureConversion)

@@ -85,9 +85,9 @@ the feature's scratch folder (removed by the promoting commit; see `git log -- .
 Real interruption cycles for the Windows patcher and Shizuku; `FullCoordinatorProbeTest` on a phone
 with about 16 GB free; a comparable (repeated) performance measurement; the Windows window opened at
 the enlarged-font and progress states; one phone and one root manager only; a second interruption of
-one automatic Re-download approval on the fixed build (unit-tested only). A Stop that lands between Root
-preparation and authorization records a bare `Check failed.` from `RunStore.bind` instead of *Preparation
-cancelled*; the stop itself is safe.
+one automatic Re-download approval on the fixed build (unit-tested only). A Stop that lands between
+preparation and authorization now reads as a cancel (a checkpoint before `authorize`, and
+`RunStore.bind` names its refusal); that path is compiled and unit-tested, not re-timed on a phone.
 
 ## [S1] Problem
 
