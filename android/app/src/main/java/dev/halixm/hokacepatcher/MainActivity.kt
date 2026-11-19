@@ -1,7 +1,6 @@
 package dev.halixm.hokacepatcher
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Intent
 import android.content.ComponentName
 import android.content.ServiceConnection
@@ -10,8 +9,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.Handler
 import android.os.Looper
-import android.net.Uri
-import android.provider.Settings
 import android.os.ParcelFileDescriptor
 import android.widget.Button
 import android.widget.ScrollView
@@ -33,11 +30,9 @@ private const val PAIRING_NOTIFICATIONS = 1405
 
 /** Feasibility UI: independent engine checks and explicit, fixed device probes. */
 class MainActivity : Activity() {
-    // Members marked internal are used by the dialogs in MainActivityDialogs.kt (tech-debt ticket 02).
+    // Members marked internal are used by MainActivityDialogs.kt and AppUpdatePrompt.kt (tech-debt ticket 02).
     private val worker = Executors.newSingleThreadExecutor()
-    private val updateWorker = Executors.newSingleThreadExecutor()
-    private var checkingUpdate = false
-    private var updateDialog: AlertDialog? = null
+    private val updateCheck = AppUpdatePrompt(this)
     internal lateinit var home: GuidedHome
         private set
     private val actions = mutableMapOf<String, () -> Unit>()
@@ -64,7 +59,8 @@ class MainActivity : Activity() {
     @Volatile private var service: IPrivilegedDeviceService? = null
     /** Raw text of the newest `ERROR:` an on-screen task logged; cleared when the next task starts. */
     private var lastTaskError = ""
-    @Volatile private var destroyed = false
+    @Volatile internal var destroyed = false
+        private set
     private val tasks = UiTaskRunner(
         execute = { worker.execute(it) }, postUi = { runOnUiThread(it) },
         started = {
@@ -161,7 +157,7 @@ class MainActivity : Activity() {
             DiagnosticTrace.event("ui", "Tap $key; busy $busy automatic $automatic provider ${provider().key} " +
                 "shizuku ${Shizuku.pingBinder()}")
             when (key) {
-                "check_update" -> checkAppUpdate()
+                "check_update" -> updateCheck.checkAppUpdate()
                 "start" -> beginAutomatic(explicit = true)
                 // The explicit Remove: one plain dialog at the tap, then no further question (ticket 13).
                 "remove" -> if (!PristineDelta.held(this)) {
@@ -432,41 +428,6 @@ class MainActivity : Activity() {
             }
             false
         } catch (error: Exception) { stopAutomatic(); log("ERROR: ${error.message}"); false }
-    }
-
-    private fun checkAppUpdate() {
-        if (checkingUpdate || destroyed) return
-        checkingUpdate = true
-        home.checkingUpdate(true)
-        updateWorker.execute {
-            val result = AppUpdateChecker().check(BuildConfig.VERSION_NAME)
-            runOnUiThread {
-                if (destroyed || isFinishing) return@runOnUiThread
-                checkingUpdate = false
-                home.checkingUpdate(false)
-                updateDialog?.dismiss()
-                val dialog = AlertDialog.Builder(this).setTitle(ui("Patcher updates"))
-                    .setMessage(ui(result.message) + (result.version?.let { "\n${ui("Available version")}: $it" } ?: ""))
-                    .setNegativeButton(ui("Close"), null)
-                result.downloadUrl?.let { url ->
-                    dialog.setPositiveButton(ui("Download update")) { _, _ ->
-                        if (busy || automatic || PatchWorkerService.isWorking) {
-                            updateDialog = AlertDialog.Builder(this).setTitle(ui("Patcher updates"))
-                                .setMessage(ui("Finish patching or recovery before updating the patcher."))
-                                .setPositiveButton(ui("Close"), null).show()
-                        } else {
-                            try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-                            catch (_: android.content.ActivityNotFoundException) {
-                                updateDialog = AlertDialog.Builder(this).setTitle(ui("Patcher updates"))
-                                    .setMessage(ui("No browser could open the download. Install a browser and try again."))
-                                    .setPositiveButton(ui("Close"), null).show()
-                            }
-                        }
-                    }
-                }
-                updateDialog = dialog.show()
-            }
-        }
     }
 
     /**
@@ -1110,56 +1071,6 @@ class MainActivity : Activity() {
         private val RESTORE_ACTIONS = setOf("recover", "setup_recover", "verify")
     }
 
-    private fun recoveryId(): String {
-        EmergencyRestoreStore(this).snapshot()?.takeIf {
-            it.getString("status") == "verification_pending"
-        }?.let { return it.getString("normal") }
-        val pending = SessionJournal.pending(File(filesDir, "sessions")).map { it.recoveryId }.distinct()
-        val setupPending = FirstSetupJournal.pending(this).map { it.normal.sha256 }
-        if (pending.isNotEmpty() || setupPending.isNotEmpty()) return (pending + setupPending).distinct().single()
-        return File(filesDir, "recovery").listFiles().orEmpty().filter {
-            it.isDirectory && it.name.matches(Regex("[0-9a-f]{64}"))
-        }.maxByOrNull { it.lastModified() }?.name ?: error("No verified normal recovery APK retained")
-    }
-
-    private fun openRecoveryInstaller() {
-        val choices = EmergencyRecoveryChoices(this).resolve { recoveryId() }
-        if (choices.needsSelection) {
-            log("Recovery records cannot be read. Choose a retained APK; game-data recovery remains unresolved.")
-            runOnUiThread {
-                AlertDialog.Builder(this).setTitle(ui("Choose emergency normal APK"))
-                    .setItems(choices.ids.map { ui("Saved APK") + " " + it.take(12) }.toTypedArray()) { _, index ->
-                        runTask { openRecoveryInstaller(choices.ids[index]) }
-                    }.setNegativeButton(ui("Cancel"), null).show()
-            }
-        } else openRecoveryInstaller(choices.ids.single())
-    }
-
-    private fun openRecoveryInstaller(id: String) {
-        val identity = RecoveryStore(this).verify(id)
-        val uri = Uri.parse("content://$packageName.recovery/$id/normal.apk")
-        runOnUiThread {
-            AlertDialog.Builder(this).setTitle(ui("Restore normal game APK"))
-                .setMessage(UiText.restore(this, identity.versionName))
-                .setNegativeButton(ui("Cancel"), null)
-                .setPositiveButton(ui("Open installer")) { _, _ ->
-                    if (!packageManager.canRequestPackageInstalls()) {
-                        log("Allow this app to install APKs, then press Emergency normal APK installer again.")
-                        startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                            Uri.parse("package:$packageName")))
-                    } else {
-                        runCatching {
-                            EmergencyRestoreStore(this).begin(id)
-                            startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri,
-                                "application/vnd.android.package-archive")
-                                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
-                        }.onSuccess { log("Normal APK installer opened; restoration remains unverified.") }
-                            .onFailure { log("Cannot open normal APK installer: ${it.message}. Restoration remains unverified.") }
-                    }
-                }.show()
-        }
-    }
-
     @Deprecated("Activity result API retained for the minimal diagnostic UI")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -1262,8 +1173,7 @@ class MainActivity : Activity() {
     override fun onDestroy() {
         DiagnosticTrace.event("ui", "Activity destroyed; changing configuration $isChangingConfigurations")
         destroyed = true
-        updateDialog?.dismiss()
-        updateWorker.shutdownNow()
+        updateCheck.close()
         statusHandler.removeCallbacks(refreshStatus)
         Shizuku.removeBinderReceivedListener(received)
         Shizuku.removeBinderDeadListener(died)
