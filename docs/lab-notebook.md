@@ -5892,3 +5892,20 @@ phone that watched `files/trace.log`.
 - **Graphics B-tree:** the unreachable-slot case (`.scratch/graphics-btree/`, ticket 01) is reported
   solved on the latest patch; its original corruption diagnosis was not re-measured.
 - **Verdict:** pass, on the user's report. Not run: Magisk, APatch, a second phone maker.
+
+## 2026-11-19 — The pristine layer verdict shared between the patchers — pass
+
+- **Change:** `pristine_delta.layer_verdict` decides, in one order, what Windows `restore_pristine` and
+  Android `_restore_pristine` read the layer as (first install, stale delta, mixed, the three refusals,
+  rebuilt). Each keeps its own messages, logs and I/O (tech-debt ticket 03, move 1).
+- **Check fix:** `check_asset_restore.py` gave its stand-in engines the catalogs and the supplement.
+  Re-download planning reads them since the supplement landed, so on master the check stopped at
+  "The English catalog is missing from the engine" (Android part) and failed 15 decision-reuse cases.
+- **Before (master `440048c` with only the check fix) and after, same session from the 1.10.1.2 pristine copy:**
+  `check_asset_restore` 58 PASS both, same verdict lines; `check_update_repatch --skip-build` identical
+  output but timings; `check_windows_remove` same counts (7 packages, 14 files, 11 changed, 11 removed).
+- **After only (passed before too):** `check_pristine_delta` 16 tests OK (one new: every verdict and its
+  order), `check_bridge_continuation`, `check_windows_checkpoints`, `check_windows_repatch`,
+  `check_continuation_controls`, `check_windows_recovery`. One `check_bridge_continuation` run hit a
+  Windows rename "Access is denied" in a temp folder while two large checks ran beside it; two re-runs passed.
+- **Verdict:** pass offline. Not run: a patch on a phone with this build.

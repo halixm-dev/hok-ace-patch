@@ -223,8 +223,9 @@ class Checks:
 
         engine = self.work / "engine"
         engine.mkdir()
-        for name in ("runtime", "tools"):
-            target = ROOT / ("resources/runtime" if name == "runtime" else "tools")
+        # Re-download planning reads the catalogs and the supplement beside the tools, as on the phone.
+        for name in ("runtime", "tools", "catalog", "catalog_id", "catalog_supplement", "sprites"):
+            target = ROOT / ("tools" if name == "tools" else f"resources/{name}")
             subprocess.run(["cmd", "/c", "mklink", "/J", str(engine / name), str(target)], check=True,
                            capture_output=True)
         keep = self.work / "keep"
@@ -316,8 +317,8 @@ class Checks:
 
         engine = self.work / "engine-copy"
         shutil.copytree(ROOT / "tools", engine / "tools", ignore=shutil.ignore_patterns("__pycache__", "research"))
-        shutil.copytree(ROOT / "resources" / "runtime", engine / "runtime",
-                        ignore=shutil.ignore_patterns("__pycache__"))
+        for name in ("runtime", "catalog", "catalog_id", "catalog_supplement", "sprites"):
+            shutil.copytree(ROOT / "resources" / name, engine / name, ignore=shutil.ignore_patterns("__pycache__"))
         keep, stats, marker = self.keep, bridge.MIXED_DECISION_STATS, self.keep / bridge.RESTORE_REFUSED_NAME
         bridge._forget_mixed_decisions()
 

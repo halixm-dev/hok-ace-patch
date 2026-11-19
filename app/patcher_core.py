@@ -1784,20 +1784,22 @@ class Patcher:
             delta = self.bootstrap_delta(session)
         known = pristine_delta.load_staged_hashes(self.keep / pristine_delta.STAGED_HASHES_NAME)
         translated = pristine_delta.files_at(layer, known)  # read before the rebuild changes them
+        Layer = pristine_delta.Layer
         if delta is None and pending is None:
-            if translated:
+            if pristine_delta.layer_verdict(translated, None).kind is Layer.NO_RECORD:
                 self.log("  this phone holds files this patcher wrote, but no record of their original bytes")
                 raise PatchError("error_cannot_rebuild", "clear_game_data")
             self.log("  no pristine delta for this phone: building from the files as pulled")
             return None
         report = pristine_delta.rebuild(layer, delta or pending, layer, fallback=pending if delta else None)
-        if not report.complete and not translated:
+        verdict = pristine_delta.layer_verdict(translated, report)
+        if verdict.kind is Layer.STALE:
             # Nothing this patcher wrote is left, as after clearing the game's data and downloading a
             # newer version: the delta describes a layer that is gone. The text signal decides instead.
             self.log(f"  the pristine delta no longer matches ({len(report.unmatched)} file(s) differ) and no "
                      f"file holds this patcher's translation: building from the files as pulled")
             return None
-        if not report.complete:
+        if verdict.kind is Layer.MIXED:
             for name, state in sorted(report.unmatched.items()):
                 self.log(f"  {name}: {state} since the last install")
             accepted, restorable, refused = pristine_delta.accept_replaced(layer, delta or pending, report,
@@ -1807,16 +1809,16 @@ class Patcher:
             refused = {**restorable, **refused}
             for package, reason in refused.items():
                 self.log(f"  package {package} cannot be read as untranslated: {reason}")
-            if refused:
+            verdict = pristine_delta.layer_verdict(translated, report, refused)
+            if verdict.kind is Layer.CHANGED:
                 self.log(f"  cannot rebuild from the pristine delta: {len(report.unmatched)} file(s) changed")
                 raise PatchError("error_files_changed", "clear_game_data")
             # The update's bytes stand as the new pristine; the text pass must still read them as such.
             self.replaced = accepted
             self.log(f"  {len(accepted)} file(s) the game update replaced hold none of this patcher's "
                      "translation: building from them as the update left them")
-        leftover = [name for name in translated if name not in report.rebuilt]
-        if leftover:
-            self.log(f"  still translated after the rebuild: {', '.join(leftover)}")
+        if verdict.kind is Layer.UNCOVERED:
+            self.log(f"  still translated after the rebuild: {', '.join(verdict.names)}")
             raise PatchError("error_uncovered_files", "clear_game_data")
         self.log(f"  rebuilt {len(report.rebuilt)} files from the pristine delta"
                  + (f" ({len(report.pristine)} already untranslated)" if report.pristine else ""))

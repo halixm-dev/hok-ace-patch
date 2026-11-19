@@ -1037,9 +1037,10 @@ def _restore_pristine(session: Path, keep: Path, manifest: dict | None = None,
         return (package_files_at(manifest, known) if manifest is not None
                 else pristine_delta.files_at(packages, known))
 
+    Layer = pristine_delta.Layer
     delta = _read_delta(keep)
     if delta is None:
-        if files_at():
+        if pristine_delta.layer_verdict(files_at(), None).kind is Layer.NO_RECORD:
             raise PatchError("This phone is already translated, and the patcher cannot rebuild its "
                              "untranslated game files. " + CLEAR_DATA)
         return {"mode": "first", "rebuilt": [], "pristine": [], "sha256": {}}
@@ -1048,14 +1049,15 @@ def _restore_pristine(session: Path, keep: Path, manifest: dict | None = None,
         raise PatchError("Snapshot build requires a fresh session layout")
     translated = files_at()
     report = pristine_delta.rebuild(packages, delta, copy)
-    if not report.complete and not translated:
+    verdict = pristine_delta.layer_verdict(translated, report)
+    if verdict.kind is Layer.STALE:
         # Nothing this patcher wrote is left, as after clearing the game's data and downloading a newer
         # version: the delta describes a layer that is gone, and the text signal decides instead.
         shutil.rmtree(copy, ignore_errors=True)
         return {"mode": "first", "rebuilt": [], "pristine": [], "sha256": {}, "stale": len(report.unmatched)}
     replaced: list[str] = []
     taken: dict[str, dict[str, str]] = {}
-    if not report.complete:
+    if verdict.kind is Layer.MIXED:
         # A refusal this process already proved for the same session snapshot and inputs is raised again
         # without trying restore; a decision that took every package is always made afresh, since the
         # build needs the restored copies themselves.
@@ -1070,11 +1072,11 @@ def _restore_pristine(session: Path, keep: Path, manifest: dict | None = None,
         replaced, taken, refused, failed = _decide_mixed(packages, delta, report, keep, copy)
         after = _mixed_evidence(engine, session, keep, manifest) if proof is not None else None
         _record_decision(evidence, proof, after, replaced, taken, refused, failed)
-        if refused:
+        verdict = pristine_delta.layer_verdict(translated, report, refused)
+        if verdict.kind is Layer.CHANGED:
             raise _mixed_refusal(report, refused)
-    leftover = [name for name in translated if name not in report.rebuilt]
-    if leftover:
-        raise PatchError(f"Translated game files the patcher has no record of: {', '.join(leftover)}. "
+    if verdict.kind is Layer.UNCOVERED:
+        raise PatchError(f"Translated game files the patcher has no record of: {', '.join(verdict.names)}. "
                          + CLEAR_DATA)
     sha256 = {entry.path: entry.pristine_sha256 for entry in delta.files
               if not entry.created and entry.path not in replaced}
