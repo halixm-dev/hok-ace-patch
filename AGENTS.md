@@ -116,7 +116,7 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 - **Process guard**: every PC job refuses while `wxq*.exe` or `王者万象棋.exe` runs, listed through `CreateToolhelp32Snapshot`.
 - **Replacements**: empty `<work>\replacements\` before each Install and Check; the engine never empties it, and a leftover file stops the next install.
 - **Hooks**: every hook into the runtime goes through `engine_hooks.install`, and the PC-only ones (`scan`, `receipt_root`) only in a PC job.
-- **Per-install catalog** (`pc_catalog`): the language's catalog plus the regioned atlases ported at the PC edition's own sprite table (a refused atlas is dropped from the copy), the re-hashed re-drawn payloads and the Lua entries; no append, no card-dictionary chunk gain. Its stage folder keeps the language's catalog folder name, because `languages.for_catalog` reads the language from it.
+- **Per-install catalog** (`pc_catalog`): the language's catalog plus the regioned atlases ported at the PC edition's own sprite table (a refused atlas is dropped from the copy), the re-hashed re-drawn payloads and the Lua entries; no append, no card-dictionary chunk gain. Its stage folder keeps the language's catalog folder name, because `languages.for_catalog` reads the language from it. ([pc-edition](docs/features/pc-edition.md))
 - **Jobs** run in the `--pc-job` child, with no Stop safely or automatic continuation: the engine's commit recovers its own pending files on its next run. The game is found from the launcher's records or a picked folder, never by a drive scan.
 
 **Freezing**
