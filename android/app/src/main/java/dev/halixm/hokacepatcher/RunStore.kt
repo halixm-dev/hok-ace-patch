@@ -121,8 +121,10 @@ class RunStore(private val context: Context) {
             return canonical
         }
         internal fun requireCoordinator(context: Context) {
-            check(owner.get() == context.filesDir.canonicalPath) { "Coordinator ownership required" }
+            check(ownsCoordinator(context)) { "Coordinator ownership required" }
         }
+        /** Whether this thread holds the coordinator lock for <context>'s private root. */
+        internal fun ownsCoordinator(context: Context): Boolean = owner.get() == context.filesDir.canonicalPath
         internal fun safe(base: File, file: File, directory: Boolean = false) {
             val path = file.absoluteFile.toPath().normalize()
             check(path.startsWith(base.toPath()) && path != base.toPath()) { "Record escaped private root" }

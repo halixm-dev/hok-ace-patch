@@ -5944,6 +5944,6 @@ Phone `ebad528e` (Xiaomi Redmi Note 9 Pro, Android 15, 45 GB, 2.1–8.1 GB free)
   (`StorageBudget.installAllocations`, `InstallSpaceTest`).
 - **Other findings, not fixed here:** APK preparation refuses for space without first running the
   reclaim (`ApkPreparation` "APK preparation" budget). A Start refused for space leaves a pending run, so *Free up space*
-  refuses until *Stop safely*. A Kotlin incremental local build kept an old `BuildConfig.VERSION_NAME`;
+  refuses until *Stop safely* (both fixed 2026-11-20, host tests only: [language-switch](features/language-switch.md)). A Kotlin incremental local build kept an old `BuildConfig.VERSION_NAME`;
   deleting `app/build/kotlin` and `app/build/tmp/kotlin-classes` fixed it (CI builds clean).
 - **Limits:** one phone, one provider. Not done: logging in to check the screens. Shizuku and Root had no cycle.

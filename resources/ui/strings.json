@@ -292,6 +292,13 @@
       "en": "Kept the saved game apps: the installed game app is not one of them",
       "id": "Aplikasi game tersimpan tetap disimpan: aplikasi game yang terpasang bukan salah satunya"
     },
+    "kept_saved_apps_action_needs_them": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Kept the saved game apps: the saved action still needs them",
+      "id": "Aplikasi game tersimpan tetap disimpan: tindakan tersimpan masih memerlukannya"
+    },
     "translation_written": {
       "platforms": [
         "android"
