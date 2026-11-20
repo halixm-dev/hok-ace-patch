@@ -3,11 +3,12 @@
 Repository: [halixm-dev/hok-ace-patch](https://github.com/halixm-dev/hok-ace-patch).
 
 Install an English or Indonesian translation into 王者万象棋 (`com.tencent.tmgp.osgame`)
-on an Android phone, without root.
+on an Android phone, without root, or into the game's PC edition (`WXQ.exe`) on the same computer.
 
 | Patcher | Start here |
 |---|---|
 | Windows app, connected to the phone over USB | Follow the steps below |
+| Windows app, for the PC edition on this computer | [Patch the PC edition](#patch-the-pc-edition) |
 | Android app, using Shizuku on the phone | [Android setup and build guide](android/README.md); development build with device acceptance still pending |
 
 The translation includes catalog text tables, catalog edits, two Career-atlas labels
@@ -69,6 +70,28 @@ patcher does not detect this yet; clear the game's data instead.
 
 Use the APK and game data from the phone's current version. An older staged package can
 stall loading and cause the game to repair away the translation.
+
+## Patch the PC edition
+
+1. Let the launcher finish any update, then close the game and the launcher. Every PC action refuses
+   while `wxq*.exe` or `王者万象棋.exe` runs.
+2. Open the Windows app and choose **PC game on this computer** at the top. Choose the translation on
+   the Language card and a working folder on a drive with about 10 GB free: the receipts take about
+   4 GB per install, and a job stages about 4 GB more while it runs.
+3. The game folder is found from the launcher's records; otherwise use **Choose folder** and pick the
+   folder that holds `WXQ.exe`. **Check** runs by itself and shows *installed*, *not installed*,
+   *replaced by an update* or *partly installed*.
+4. Click **Install**. A job takes several minutes and cannot be stopped part way; keep the window open
+   until it finishes. Then start the game from its launcher.
+
+Before each install the app keeps the original bytes of every file it changes as a **receipt**, in
+`pc\receipts\` in the working folder. **Remove translation** writes them back. Installing the other
+language restores from the receipts first, then installs, in one job. After a launcher update
+replaced the translated files, Check shows *replaced by an update*; run **Install** again. When the
+receipts no longer match the files, or the game was translated by another patcher, the app asks you
+to use the launcher's **Repair** first and then Install. The window title stays 王者万象棋: the
+launcher repairs any listed file whose size changes
+([ADR 0011](docs/adr/0011-keep-every-file-the-pc-launcher-lists-at-its-listed-size.md)).
 
 ## Patch versions
 
@@ -180,7 +203,9 @@ There is no general test suite. Choose the check that matches your change:
 | Changed engine or game against saved work | `.venv\Scripts\python.exe tools\research\check_changed_input_controls.py --help` | Two pristine dumps with their APKs; about 40 GB free under `--work` |
 | Re-download over a real update | `.venv\Scripts\python.exe tools\research\check_update_redownload.py --cycle <cycle> --work <dir>` | An `update_cycle.py` capture set (`after-push`, `after-patch`, `after-update`, `after-finish`) on the same drive as `<dir>` |
 | Control-capture normalization | `.venv\Scripts\python.exe tools\research\check_continuation_controls.py` | Repository only |
+| PC edition workflow | `.venv\Scripts\python.exe tools\research\check_pc_install.py --game <game-copy> --work <dir>` | A copy of the PC edition's folder, never the installed game; about 8 GB free under `--work` |
 | A change requiring screen verification | [Device cycle](docs/runbooks/device-cycle.md) | Phone and matching game data |
+| A change requiring screen verification in the PC edition | [PC cycle](docs/runbooks/pc-cycle.md) | The PC edition and its launcher |
 
 Run both documentation checks after moving or renaming a doc. Offline checks verify file
 processing; a device cycle verifies what the game displays.
@@ -209,11 +234,37 @@ Add `id` after `<out-dir>` for Indonesian. Check `<out-dir>\selftest.json` for `
 and the adjacent `<out-dir>.log` for failures. This check runs without an APK, so it does
 not exercise prime-only append.
 
+### Check the PC edition offline
+
+Work on a **copy** of the PC edition's folder, never the installed game, with the game and its
+launcher closed. `--pc-selftest` builds both languages' per-install catalogs and has the engine
+stage and verify them without writing to the copy; it writes `<out-dir>\pc_selftest.json` and
+`<out-dir>.log`:
+
+```bat
+"dist\HOK ACE Language Patcher.exe" --pc-selftest <game-copy> <out-dir>
+```
+
+`check_pc_install.py` runs the whole sequence on the copy in both language orders (install, Check,
+install again, switch, Check, restore). It fails when a restore leaves any package file changed, a
+repeat install changes anything, a switch skips the receipts, `replacements\` is not empty when the
+engine starts, or `LocalFileList.json` or a listed file's size changes. It writes into the copy and
+`<work-dir>`, and needs about 8 GB free there:
+
+```bat
+.venv\Scripts\python.exe tools\research\check_pc_install.py --game <game-copy> --work <work-dir>
+```
+
+The window runs each PC job as a child process,
+`--pc-job <action> <game> <work> <answer.json> <language>` with `install`, `status` (Check) or
+`restore`; it answers through `<answer.json>` and logs to `<answer.json>.log`.
+
 ## Find the right file
 
 | Task | Read or edit |
 |---|---|
 | Change the Windows interface or workflow | `app/`; [Windows patcher record](docs/features/standalone-patcher-app.md) |
+| Change the PC edition workflow or its catalog | `app/pc_edition.py`, `tools/pc_catalog.py`, `tools/engine_hooks.py`; [PC cycle](docs/runbooks/pc-cycle.md) |
 | Change staging or its result fields | `tools/build_device_patch.py`, including the `build_patch` contract docstring |
 | Change texture processing or Career-atlas art | [Texture translation](docs/features/texture-translation.md); [Career-atlas art brief](tools/research/career_atlas/art_brief.md) |
 | Change languages or regenerate language-specific catalog edits | [Indonesian language](docs/features/indonesian-language.md) |
@@ -233,7 +284,7 @@ not exercise prime-only append.
 | `resources/catalog/` | English catalog and shared catalog edits |
 | `resources/catalog_id/` | Indonesian catalog and its own catalog edits; other edits fall back to English |
 | `resources/catalog_supplement/` | Strings game data updates added after the catalog was built, English and Indonesian, merged as the catalog loads |
-| `resources/sprites/` | Hand-finished atlas labels and pristine restore crops |
+| `resources/sprites/` | Hand-finished atlas labels, per-language label textures and pristine restore crops |
 | `resources/ui/` | Shared theme tokens (`theme.json`) and English/Indonesian strings (`strings.json`) for both patchers |
 | `resources/fonts/` | Barlow and Barlow Condensed, with the OFL licence |
 | `resources/adb/` | Bundled Android Debug Bridge |
