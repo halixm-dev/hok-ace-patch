@@ -21,6 +21,10 @@ Two payload families and five paths:
 An atlas the catalog has no edit for at all (``LABEL_ATLASES``) carries only this repo's labels, drawn
 at the device's sprite rects by ``label_atlas``.
 
+Both atlas functions also serve the PC edition (``codec="bc7"``, called by ``pc_catalog``): the same port
+onto the installed game's BC7 atlas, re-encoding only the stale blocks with ``bc7_mode6`` and judging
+them by ``BC7_MATCH_MEAN``. The default ``codec="astc"`` leaves the mobile path byte for byte as it was.
+
 Nothing here raises for a texture it cannot handle: ``english_raw`` returns ``None`` and the caller
 counts the texture as skipped. A silently skipped texture is far better than a failed patch run.
 """
@@ -41,6 +45,8 @@ from sprite_table import REGION_SPRITE_ASSETS
 OODLE_BLOCK = 0x40000  # Oodle LZ streams are split into 256 KiB blocks
 ASTC_FOOTPRINTS = [(4, 4), (5, 5), (6, 6), (8, 8), (10, 10), (12, 12)]
 PC_FORMATS = ("bc7", "rgba32")
+# The block formats a regioned atlas can be ported in: the mobile edition's and the PC edition's.
+CODECS = ("astc", "bc7")
 
 # Recovering a whole-image replacement whose device revision is a different size. A consumer build can
 # re-cut the same art by a block row, which changes the raw size and makes `astc_layout` refuse it. The
@@ -149,6 +155,11 @@ LABEL_ATLASES: dict[int, tuple[int, int]] = {
 # re-encoded on every run, which is byte-identical only because the encoder is deterministic for the same
 # input on the same platform.
 BLOCK_MATCH_MEAN = 6.0
+# The same measure for a BC7 block (`codec="bc7"`, the PC edition). BC7 holds anti-aliased label edges
+# over transparency less closely: on the Secret Technique title atlas about 2600 blocks stayed above 6
+# with both encoders `bc7_mode6` tries (median 7.5, worst 13.9, 2026-11-20), and each re-run re-encoded
+# them. This sits just above that worst, so a block the encoder already wrote is left alone.
+BC7_MATCH_MEAN = 14.0
 # A restoration crop is used only while the device's copy of the sprite, outside the blocks the old port
 # wrote, still matches it this closely. The same art re-encoded at another block phase measured <= 5.3.
 RESTORE_MATCH_MEAN = 12.0
@@ -396,6 +407,21 @@ def _dimensions(graphic: dict) -> tuple[int, int, str | None]:
     return width, height, fmt
 
 
+def _decode(raw: bytes, width: int, height: int, codec: str) -> bytes:
+    """A 4x4-block texture in <codec> -> RGBA8, in its own (bottom-up) row order."""
+    return decode_pc(raw, width, height, "bc7") if codec == "bc7" else decode_astc(raw, width, height, 4, 4)
+
+
+def _apply_blocks(raw: bytes, graphic: dict, payload: bytes) -> bytes:
+    """A BC7 ``.blocks`` payload written into a BC7 texture as it is, run by run, at the catalog's offsets."""
+    out = bytearray(raw)
+    cursor = 0
+    for offset, length in graphic["patch_ranges"]:
+        out[offset:offset + length] = payload[cursor:cursor + length]
+        cursor += length
+    return bytes(out)
+
+
 def _port_blocks(mobile_raw: bytes, graphic: dict, payload: bytes) -> bytes:
     """Port a BC7 ``.blocks`` payload onto a 4x4 ASTC texture at the same byte offsets.
 
@@ -448,8 +474,13 @@ def _premultiplied_diff(left: bytes | bytearray, right: bytes | bytearray, at: i
 
 
 def port_atlas(mobile_raw: bytes, graphic: dict, catalog: Path,
-               sprites: dict[str, tuple[int, int, int, int]]) -> bytes | None:
+               sprites: dict[str, tuple[int, int, int, int]], codec: str = "astc") -> bytes | None:
     """Port a regioned atlas edit sprite by sprite, at the device's own sprite rects, or return None.
+
+    <codec> is the texture's own block format: ``"astc"`` (4x4) on the mobile edition, ``"bc7"`` on the
+    PC edition, whose launcher updates re-packed the Career and lobby atlases just as the mobile builds
+    did. Both are 16-byte blocks on a 4x4 grid, so only the decode and the re-encode differ
+    (``CODECS``); <mobile_raw> is then the PC texture, and an unmoved edit is the catalog's own blocks.
 
     The catalog drew its ``.blocks`` patch on the PC atlas layout, and the mobile atlas may pack the same
     sprites elsewhere: ported offset for offset, a moved sprite's English lands on whatever the device
@@ -469,8 +500,8 @@ def port_atlas(mobile_raw: bytes, graphic: dict, catalog: Path,
     draw, this is exactly the offset port.
     """
     width, height, fmt = _dimensions(graphic)
-    if (fmt != "bc7" or not graphic["payload"].endswith(".blocks") or width % 4 or height % 4
-            or astc_layout(len(mobile_raw), width, height) != (4, 4)):
+    if (codec not in CODECS or fmt != "bc7" or not graphic["payload"].endswith(".blocks") or width % 4
+            or height % 4 or astc_layout(len(mobile_raw), width, height) != (4, 4)):
         return None
     moves: list[tuple[tuple[int, ...], tuple[int, ...]]] = []
     for region in graphic["regions"]:
@@ -481,6 +512,8 @@ def port_atlas(mobile_raw: bytes, graphic: dict, catalog: Path,
     payload = payload_path(catalog, graphic["payload"]).read_bytes()
     labels, restorations = atlas_art(catalog, graphic["hash"], sprites)
     if all(pc == device for pc, device in moves) and not labels and not restorations:
+        if codec == "bc7":
+            return _apply_blocks(mobile_raw, graphic, payload)
         return _port_blocks(mobile_raw, graphic, payload)
 
     blocks_x, stride = width // 4, width * 4
@@ -509,7 +542,7 @@ def port_atlas(mobile_raw: bytes, graphic: dict, catalog: Path,
         if any(block_of(x, y) not in damaged for y in range(pc[1], pc[3]) for x in range(pc[0], pc[2])):
             return None  # the payload does not carry this region's pixels; refuse rather than guess
 
-    device_rgba = decode_astc(mobile_raw, width, height, 4, 4)
+    device_rgba = _decode(mobile_raw, width, height, codec)
     target = bytearray(device_rgba)
     decided = bytearray(width * height)
 
@@ -550,19 +583,19 @@ def port_atlas(mobile_raw: bytes, graphic: dict, catalog: Path,
 
     touched = set(damaged) | _box_blocks([sprites[name] for name in labels] + [d for _pc, d in moves],
                                          width, height)
-    return _reencode(mobile_raw, target, device_rgba, decided, touched, width)
+    return _reencode(mobile_raw, target, device_rgba, decided, touched, width, codec)
 
 
 def label_atlas(mobile_raw: bytes, texture: str, catalog: Path,
-                sprites: dict[str, tuple[int, int, int, int]]) -> bytes | None:
+                sprites: dict[str, tuple[int, int, int, int]], codec: str = "astc") -> bytes | None:
     """Draw this repo's labels into an atlas the catalog has no edit for (``LABEL_ATLASES``), or None.
 
-    Every label of ``ATLAS_LABELS[texture]`` must be in the device's sprite table at its art's own size;
+    <codec> is the texture's own block format, as in ``port_atlas``. Every label of ``ATLAS_LABELS[texture]`` must be in the device's sprite table at its art's own size;
     a layout that drops or resizes one refuses the whole atlas, so it is reported as skipped instead of
     drawn in part. Only the 4x4 blocks the labels touch are re-encoded, as in ``port_atlas``.
     """
     width, height = LABEL_ATLASES[int(texture, 16)]
-    if width % 4 or height % 4 or astc_layout(len(mobile_raw), width, height) != (4, 4):
+    if codec not in CODECS or width % 4 or height % 4 or astc_layout(len(mobile_raw), width, height) != (4, 4):
         return None
     labels, _restorations = atlas_art(catalog, texture, sprites)
     if not labels or set(labels) != set(ATLAS_LABELS.get(texture, {})):
@@ -573,10 +606,10 @@ def label_atlas(mobile_raw: bytes, texture: str, catalog: Path,
     # this output changes nothing. One extra pass settles it on the dump's atlas.
     raw = mobile_raw
     for _attempt in range(LABEL_PASSES):
-        device_rgba = decode_astc(raw, width, height, 4, 4)
+        device_rgba = _decode(raw, width, height, codec)
         target, decided = bytearray(device_rgba), bytearray(width * height)
         _draw_labels(target, decided, labels, sprites, width, height)
-        drawn = _reencode(raw, target, device_rgba, decided, touched, width)
+        drawn = _reencode(raw, target, device_rgba, decided, touched, width, codec)
         if drawn == raw:
             break
         raw = drawn
@@ -607,14 +640,30 @@ def _box_blocks(boxes: list[tuple[int, ...]], width: int, height: int) -> set[in
 
 
 def _reencode(mobile_raw: bytes, target: bytearray, device_rgba: bytes, decided: bytearray,
-              touched: set[int], width: int) -> bytes:
-    """<mobile_raw> with each touched block re-encoded from <target> unless it already shows it."""
+              touched: set[int], width: int, codec: str = "astc") -> bytes:
+    """<mobile_raw> with each touched block re-encoded from <target> unless it already shows it.
+
+    ASTC encodes each run of stale blocks in a row as one strip; BC7 (``bc7_mode6``) encodes block by
+    block. Either way only the stale blocks' 16 bytes are written.
+    """
     blocks_x, stride = width // 4, width * 4
+    threshold = BC7_MATCH_MEAN if codec == "bc7" else BLOCK_MATCH_MEAN
     stale = [block for block in sorted(touched)
-             if _block_mismatch(target, device_rgba, decided, block, blocks_x, width) > BLOCK_MATCH_MEAN]
+             if _block_mismatch(target, device_rgba, decided, block, blocks_x, width) > threshold]
     if not stale:
         return mobile_raw
     out = bytearray(mobile_raw)
+    if codec == "bc7":
+        from bc7_mode6 import encode_block
+
+        for block in stale:
+            raw_row, column = (block // blocks_x) * 4, (block % blocks_x) * 4
+            pixels = []
+            for row in range(raw_row, raw_row + 4):
+                start = row * stride + column * 4
+                pixels += [tuple(target[start + i:start + i + 4]) for i in range(0, 16, 4)]
+            out[block * 16:block * 16 + 16] = encode_block(pixels)
+        return bytes(out)
     rows: dict[int, list[int]] = {}
     for block in stale:
         rows.setdefault(block // blocks_x, []).append(block % blocks_x)

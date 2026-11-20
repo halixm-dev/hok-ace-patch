@@ -9,6 +9,8 @@ lz4==4.4.5
 pyooz==0.0.8
 astc-encoder-py==0.1.12
 texture2ddecoder==1.0.6
+# The PC edition's BC7 atlas ports (tools/bc7_mode6.py) encode with etcpak first.
+etcpak==0.9.15
 # Some of the game's own chunks are Zstandard frames (tools/qts_relocate.py reads them by their magic),
 # which the package rebuild of `21` has to decode before it can lay the package out again.
 zstandard==0.25.0

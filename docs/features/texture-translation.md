@@ -374,6 +374,37 @@ shard SHA-1 `d9f4a2a1…` matched on the phone): scan `errorCode=0`, SYMPHONY OF
 card. That output's layout differs from the prototype's only by five swaps of equal-width titles. The
 in-match hand card was not seen.
 
+### The PC edition: the same ports in BC7 (2026-11-20)
+
+The PC edition re-packs the regioned atlases as the mobile edition does, so the catalog's PC offsets
+miss them there too. `port_atlas` and `label_atlas` take `codec="astc" | "bc7"`; `tools/pc_catalog.py`
+calls them with `"bc7"` on the installed game's atlas in package `19`, at its own sprite table. The
+default `"astc"` path is unchanged: the mobile `--selftest` gives the same summary and the same staged
+bytes, both languages.
+
+- **The same grid.** BC7 and ASTC 4x4 both store a 16-byte block per 4x4 pixels, bottom-up, so the
+  port's block bookkeeping (`astc_layout`, `_box_blocks`, the stale-block test) serves both codecs.
+  When nothing moved and there is no repo art, a BC7 port is the catalog's own blocks at its own
+  offsets (`_apply_blocks`), byte for byte.
+- **The encoder** (`tools/bc7_mode6.py`) encodes one stale block at a time. etcpak's native
+  `compress_bc7` (uber level 2) goes first; a block it leaves more than `BLOCK_MATCH_MEAN` from its
+  pixels is tried in BC7 modes 6, 5, 4 (both index sets) and 7 in Python, and the closest is kept.
+  Errors are measured premultiplied, as the port measures them. Started from the azydev fork's
+  mode-6 encoder, which ties alpha to color on one line and missed the Career atlas's English by a
+  mean of 28.8 levels; the game's own encoder wrote most label blocks in modes 4, 5 and 7.
+- **Its own threshold.** On anti-aliased label edges over transparency no encoder tried came within
+  6 levels for about 2600 title-atlas blocks (median 7.5, worst 13.9), so each re-run re-encoded them.
+  A BC7 block is stale only above `BC7_MATCH_MEAN` (14); ASTC keeps `BLOCK_MATCH_MEAN` (6). Every
+  label still lands at its box within 6 (worst 3.25).
+- **Refusal is the same.** A missing or moved region refuses the atlas (ADR 0006). On the PC data of
+  2026-11-20, the ready atlas `E86DF43167CA2143` has no `Image_1585869273` (*confirm choice*) in its
+  sprite table and is refused; `pc_catalog` drops its entry, never leaving it to land at the PC offsets.
+
+| Check | Result |
+|---|---|
+| `check_graphics.py` `[13]` (BC7 on a synthetic texture) | Career port: English at every device box, worst 2.83; labels worst 0.71; deterministic; re-run encodes 0 blocks; catalog layout equals the catalog's blocks; resized sprite and unknown codec refused. Titles: only label blocks change, worst 3.25, re-run encodes 0 blocks. ASTC unchanged by the argument. 64 Career English blocks round-trip at mean 0.30, worst 5.44 premultiplied |
+| `pc_catalog` on a copy of the PC edition's packages `0 1 10 15 19` | English 124 s, Indonesian 82 s; a second build reuses the stage in 0.03 s. Lab notebook, 2026-11-20 |
+
 ### `english_raw` contract
 
 `english_raw(mobile_raw: bytes, graphic: dict, catalog: Path, sprites: dict | None = None) -> bytes | None`
