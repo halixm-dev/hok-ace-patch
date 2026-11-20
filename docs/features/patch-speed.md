@@ -180,8 +180,10 @@ Private transaction, Remove, recovery, policy parser/large-manifest and full-coo
 |---|---|
 | Snapshot checkpoint's separate verification and tree read | Receipt publication checks the exact snapshot tree against the independently measured file identities and the bytes of the manifest. It checks the tree again before renaming the receipt and reads back the committed receipt and tree. Reopening checks the entire tree and the expected manifest in one audit. |
 | Repeated snapshot, APK and delta reads before staging | The build checks the snapshot receipt or audits the snapshot directly when producer evidence is unavailable. It passes the verified snapshot and measured APK and delta identities within the same worker, while the coordinator owns the private files. |
+| Bridge preparation repeated when going from the checkpoint to staging | The checkpoint checks the same Python 3.12 process, runtime bytecode and native LZ4 binding at entry. Direct staging entry points still perform their own preparation. |
 | Two checks of build inputs after staging | One fresh audit, after the final output manifest, compares the snapshot, APK and delta to the opening measurements and checks the complete input identity before publishing. A changed file of the same size still fails. |
 | Early and late engine-tree reads inside checkpoint identity | One engine tree digest must match the producer and is bound as the translation identity. The build measures the engine again at entry and before publishing reusable output. |
+| Root claim refused an APK link made by storage cleanup | The claim accepts a link through plain folders to a read-only file in the patcher's private storage. It still verifies the preparation receipt and saved APK identity. |
 
 The phone baseline and profiles are in the [lab notebook](../lab-notebook.md#2026-11-20--root-re-patch-baseline-on-ebad528e).
 
@@ -189,5 +191,51 @@ The phone baseline and profiles are in the [lab notebook](../lab-notebook.md#202
 |---|---|
 | Use the first snapshot for most of the second | 15 paths changed, including six package files and nine Watchdog files. The changed files present in the second snapshot accounted for 3.5% of its bytes. Safe reuse still needs proof for the other paths and ownership of both rollback snapshots. |
 | Fold planning into the build refusal | The refusal found stuck assets in two packages. The plan inspected mixed packages and selected a third package too. The mixed-package inspection accounted for 39 s of the 53.9 s offline plan. Sharing only the stuck classification leaves that work in place. |
-| Encode textures ahead of time or cache them | The offline build profile counted 71 s constructing slot maps and 58 s making the pristine delta, including overlapping fingerprint work. Reusing encoded texture bytes would still leave those costs, plus the before and after snapshot audits. |
+| Encode textures ahead of time or cache them | ASTC compression took 14 s in the offline profile. Slot maps accounted for 71 s and making the pristine delta for 58 s, including overlapping fingerprint work. Reusing encoded texture bytes would still leave those costs, plus the snapshot audits. |
 | Stage packages during the game's download | The build scans inputs before relocation, then appends prime-only content and records the combined result. The two snapshots differed in packages used by those passes. A split build needs a parity check on the combined result and a separate phone run to measure contention with the downloader. |
+
+Both timed runs used Root on the same Redmi Note 9 Pro. The user selected Root after the
+Wireless debugging run paused for storage. Each build has one observed journey. Times below
+come from the app's diagnostic trace. The candidate started with more free space. The baseline
+spent 54 s sharing stored APKs before its first snapshot. The game also downloaded live in both runs.
+
+| Stage | Master 121 | Candidate 123 | Observed change |
+|---|---:|---:|---:|
+| **Start to Re-download card** | **14m 39s** | **9m 54s** | **4m 46s shorter** |
+| Start to first snapshot stream | 2m 32s | 1m 40s | 52s shorter |
+| First snapshot stream and unpack | 1m 25s | 1m 29s | 3s longer |
+| First live-layer check and handoff | 1m 06s | 1m 05s | 1s shorter |
+| First checkpoint identity | 53s | 49s | 4s shorter |
+| First snapshot checkpoint | 2m 30s | 1m 32s | 59s shorter |
+| Build through stuck-update refusal | 3m 48s | 50s | 2m 58s shorter |
+| Re-download plan | 1m 09s | 1m 18s | 9s longer |
+| Plan ready through deletion, APK verification and card | 1m 06s | 1m 04s | 2s shorter |
+| Open game to Downloads finished | 2m 29s | 2m 02s | 26s shorter |
+| **Downloads finished to Translation added** | **21m 16s** | **14m 41s** | **6m 35s shorter** |
+| From manual retry on master and from Downloads finished on candidate | 19m 20s | 14m 41s | 4m 39s shorter |
+| Second snapshot stream and unpack | 1m 26s | 1m 27s | 1s longer |
+| Second live-layer check and handoff | 1m 05s | 1m 06s | 1s longer |
+| Second checkpoint identity | 53s | 51s | 2s shorter |
+| Second snapshot checkpoint | 2m 24s | 1m 33s | 51s shorter |
+| Successful build checkpoint | 9m 31s | 5m 57s | 3m 34s shorter |
+| Write preparation, writes and final checks | 2m 42s | 2m 48s | 6s longer |
+| **Start to Translation added** | **38m 39s** | **27m 20s** | **11m 19s shorter** |
+
+The baseline's shared Root APK claim cost 1m 56s before a manual retry. The candidate
+continued automatically. The 11m 19s observed journey difference includes the retry, the
+different cleanup work and the game's download time. The build storage estimate took 5–6 s
+in both halves. The finalization plan took 7.4 s on each build.
+
+Both runs deleted the same nine files from packages 1, 10 and 21. The game reached login
+after each Re-download and after each patch. The game logs contained zero `errorCode:361`
+matches. Each completed run's 14 staged hashes matched its installed files.
+
+The live downloads produced different bytes in five package files and two Watchdog files.
+An isolated build on the same Redmi replayed the baseline's 798-file second snapshot, the same
+normal APK and the same kept records. All 14 staged SHA-256 values, both summaries and all skip
+lists matched. The comparison normalized the per-attempt paths in the summaries. Both builds
+reported 398 tables, 318 applied textures, one skipped table and zero skipped textures.
+
+Force-stopping during the Root claim, checkpoint identity, snapshot checkpoint and build
+checkpoint each recovered on opening the patcher. The same run completed without another
+Start tap. [Candidate trace and verification record](../lab-notebook.md#2026-11-20--timed-root-candidate-on-ebad528e)
