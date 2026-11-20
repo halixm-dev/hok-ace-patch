@@ -25,7 +25,7 @@ A run reports four numbers through the app's `translate` step, all read from
 | reported | accessor | holds |
 |---|---|---|
 | text tables | `count_translated` | catalog tables the run applied |
-| images | `count_translated` | catalog textures the run applied, plus each repo-labelled atlas the catalog lacks (`LABEL_ATLASES`) |
+| images | `count_translated` | catalog textures the run applied, plus each repo-labelled atlas (`LABEL_ATLASES`) and repo-drawn label texture (`LABEL_TEXTURES`) the catalog lacks |
 | text tables left in Chinese | `count_untranslated_text` | translated, then not applied — `text_skipped`, `append_skipped` |
 | images left in Chinese | `count_untranslated_graphics` | found, then not translated or not added — `graphics_skipped`, `append_skipped` |
 
@@ -374,6 +374,15 @@ Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
   `EXCLUDED_PACKAGES` is `{"10", "14"}`, the skill editor's labels and the gameplay scripts, where the
   Chinese is logic rather than display text.
 
+One more texture is this repo's own and is drawn per language: the Super Weekend skin of the lobby's start
+button, `A71C734D3EFAFBFF` (package `19`), which the catalog lacks, reads **START GAME** in English and
+**MULAI GAME** in Indonesian (`mobile_graphics.LABEL_TEXTURES`, art in
+`resources/sprites/A71C734D3EFAFBFF/labels/<language>/`). It **adds one texture** to the images count where
+the game carries it: an offline run over the phone's 1.10.1.2 layer without the APK writes 23 of 24 package-`19`
+textures (247 in all, the same in both languages), the label being the 24th; the PC per-install catalog
+overrides 49 assets in English and 50 in Indonesian against ticket 05's 48 and 49. Verified offline
+2026-11-21, not yet on screen; the skin shows only during the event.
+
 34 images are this repo's own, not the catalog's. Two are on the Career atlas `13C19E4E4486B31C`,
 `Image_410780920` `我的皮肤` → **MY SKINS** (no catalog entry) and `Image_920603129` `总盈利` → **TOTAL
 PROFIT** (the text table's "Total profit"), in `resources/sprites/` (`mobile_graphics.ATLAS_LABELS`). They
@@ -461,7 +470,7 @@ with MULAI GAME on its start button (`indonesian-language.md`, *Device cycle*):
 | Textures applied | 398 (395 before the device revisions) |
 | Text tables skipped | 1 (`0196F0E230EC1C70`, the append encoder's refusal) |
 | Textures skipped | 0 |
-| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME) |
+| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME), plus the repo-drawn event label `A71C734D3EFAFBFF` (MULAI GAME) since 2026-11-21 |
 
 The other 396 applied textures carry the English edit. Two gaps are specific to the language:
 
@@ -555,7 +564,7 @@ textures, which are written.
   sprite names are not looked up). The catalog has no edit for them and this repo draws none.
 - The `国服` badge on the "National server Chess Player" avatar frame (`国服骑手头像框`): no catalog edit,
   texture not located.
-- Every texture outside `resources/catalog/` (bar the two Career labels above) and every text table outside
+- Every texture outside `resources/catalog/` (bar this repo's labels above) and every text table outside
   the staged packages.
 - The prime-only remainder no catalog entry covers at all: **2084** of package `1`'s 2492 prime-only
   assets and **535** of package `1050016095`'s 606. This is the honest measure of what is not merely

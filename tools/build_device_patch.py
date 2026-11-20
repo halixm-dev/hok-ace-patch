@@ -584,7 +584,9 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       edit present in them onto the device ASTC textures (`port_atlas`'s default `codec="astc"`; the
       PC edition's `pc_catalog` passes `"bc7"`), draws this repo's labels into each atlas the
       catalog has no edit for (`mobile_graphics.LABEL_ATLASES`, counted as a texture like an edit, and
-      skipped the same way), and runs the extra-text pass. Drawing the Secret Technique title atlas
+      skipped the same way), replaces each standalone label the catalog has no edit for with this
+      repo's art in the catalog's language (`mobile_graphics.LABEL_TEXTURES`, counted and skipped the
+      same way; a package without the texture draws nothing), and runs the extra-text pass. Drawing the Secret Technique title atlas
       also re-lays its title sprites (`card_titles.relayout`, ADR 0009): package `19`'s Sprite table,
       its TimiAtlas and 33 card prefabs are rewritten in place beside the atlas. They are not counted as
       textures and add no field; a layout that does not match refuses the atlas, which is then skipped
