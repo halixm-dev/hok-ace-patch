@@ -25,7 +25,7 @@ A run reports four numbers through the app's `translate` step, all read from
 | reported | accessor | holds |
 |---|---|---|
 | text tables | `count_translated` | catalog tables the run applied |
-| images | `count_translated` | catalog textures the run applied, plus each repo-labelled atlas the catalog lacks (`LABEL_ATLASES`) |
+| images | `count_translated` | catalog textures the run applied, plus each repo-labelled atlas (`LABEL_ATLASES`) and repo-drawn label texture (`LABEL_TEXTURES`) the catalog lacks |
 | text tables left in Chinese | `count_untranslated_text` | translated, then not applied — `text_skipped`, `append_skipped` |
 | images left in Chinese | `count_untranslated_graphics` | found, then not translated or not added — `graphics_skipped`, `append_skipped` |
 
@@ -374,6 +374,15 @@ Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
   `EXCLUDED_PACKAGES` is `{"10", "14"}`, the skill editor's labels and the gameplay scripts, where the
   Chinese is logic rather than display text.
 
+One more texture is this repo's own and is drawn per language: the Super Weekend skin of the lobby's start
+button, `A71C734D3EFAFBFF` (package `19`), which the catalog lacks, reads **START GAME** in English and
+**MULAI GAME** in Indonesian (`mobile_graphics.LABEL_TEXTURES`, art in
+`resources/sprites/A71C734D3EFAFBFF/labels/<language>/`). It **adds one texture** to the images count where
+the game carries it: an offline run over the phone's 1.10.1.2 layer without the APK writes 23 of 24 package-`19`
+textures (247 in all, the same in both languages), the label being the 24th; the PC per-install catalog
+overrides 49 assets in English and 50 in Indonesian against ticket 05's 48 and 49. Verified offline
+2026-11-21, not yet on screen; the skin shows only during the event.
+
 34 images are this repo's own, not the catalog's. Two are on the Career atlas `13C19E4E4486B31C`,
 `Image_410780920` `我的皮肤` → **MY SKINS** (no catalog entry) and `Image_920603129` `总盈利` → **TOTAL
 PROFIT** (the text table's "Total profit"), in `resources/sprites/` (`mobile_graphics.ATLAS_LABELS`). They
@@ -461,7 +470,7 @@ with MULAI GAME on its start button (`indonesian-language.md`, *Device cycle*):
 | Textures applied | 398 (395 before the device revisions) |
 | Text tables skipped | 1 (`0196F0E230EC1C70`, the append encoder's refusal) |
 | Textures skipped | 0 |
-| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME) |
+| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME), plus the repo-drawn event label `A71C734D3EFAFBFF` (MULAI GAME) since 2026-11-21 |
 
 The other 396 applied textures carry the English edit. Two gaps are specific to the language:
 
@@ -472,6 +481,47 @@ The other 396 applied textures carry the English edit. Two gaps are specific to 
 - **Switching an already-translated install changes no text.** The Indonesian catalog over the 387
   English-staged tables changes none of them; only the re-drawn textures would switch. Clear the game's
   data first, as for any newer translation build.
+
+## The PC edition
+
+The Windows patcher also installs into the PC edition (`app/pc_edition.py`). The runtime engine writes
+the catalog in place under `WXQ_Data\Package\builtin\`, from a per-install copy of the catalog
+(`tools/pc_catalog.py`). There is no prime layer, so nothing is appended. No card dictionary gains a
+chunk, and no config bin is translated: the allowlist is per edition, and no PC cycle has cleared a
+bin yet. The PC counts below come from the frozen exe's `--pc-selftest` on a full copy of the PC
+edition at game data **1.11.0.2**, as the copy's `WXQ_Data\StreamingAssets\Config\Version.txt` reads
+(2026-11-20, `pc_selftest.json`, lab notebook "PC edition ticket 02").
+That run stages each language and has the engine verify it. An English install on the same copy
+reported the same counts and verified every package. The installed game gave the same counts in a PC
+cycle per language (2026-11-21, launcher 26111.0.4.30004, data 1.11.0.2, lab notebook "PC edition ticket
+05"): the lobby reads English or Indonesian, and the start button's event skin (开始游戏, "Super Weekend
+Perks Are Here!") is not in the catalog and stays Chinese in both editions; it hides the two START GAME
+textures, which are written.
+
+| result | Mobile edition (data 1.9.0.1, 2026-11-05) | PC edition, English | PC edition, Indonesian |
+|---|---:|---:|---:|
+| Textures applied (PC: the engine's `graphics`) | 398 | 359 | 359 |
+| Text tables applied (`count_translated`) | 391 | not counted per table | not counted per table |
+| Tables the engine's scan read (`tables`) | — | 506 | 506 |
+| Strings translated (`translated`) | — | 248 321 | 248 321 |
+| Replacements written, across packages | — | 755 in 7 | 755 in 7 |
+| Assets the per-install catalog overrides (`pc_catalog`) | — | 48 | 49 |
+| Regioned atlases refused at the sprite table | — | 1 (`E86DF43167CA2143`) | 1 (`E86DF43167CA2143`) |
+| Assets the engine could not read (`unreadable_assets`) | — | 6 | 6 |
+| Config bins | 1 (`F79FB1A213A9DA90`) | 0 | 0 |
+
+- **Replacements per package:** `1` 396, `10` 10, `1050016095` 71, `15` 219, `19` 57, `20` 1, `21` 1.
+  The engine reports no split between text tables and textures inside a package, so there is no PC
+  text-table count to set beside the mobile one.
+- **The per-install catalog's overrides** are the regioned atlases ported at the PC sprite table, the
+  Secret Technique title atlas and the assets its relayout moves, and the Lua label and edits. The
+  Indonesian count is one higher: a re-drawn payload, re-hashed from the installed original.
+- **The refused atlas** is the ready atlas. Its installed source does not match the catalog, and its
+  sprite table has no `Image_1585869273`. The mobile layer skips the same atlas.
+- **The six unreadable assets:** the English install's `skipped` list names six assets, all in package
+  `1`, each with "Asset length differs from its current index descriptor". That matches the count.
+- **The window title** stays 王者万象棋. The launcher lists the title file, and a translated title
+  changes its size (ADR 0011).
 
 ## Knowingly left Chinese
 
@@ -514,7 +564,7 @@ The other 396 applied textures carry the English edit. Two gaps are specific to 
   sprite names are not looked up). The catalog has no edit for them and this repo draws none.
 - The `国服` badge on the "National server Chess Player" avatar frame (`国服骑手头像框`): no catalog edit,
   texture not located.
-- Every texture outside `resources/catalog/` (bar the two Career labels above) and every text table outside
+- Every texture outside `resources/catalog/` (bar this repo's labels above) and every text table outside
   the staged packages.
 - The prime-only remainder no catalog entry covers at all: **2084** of package `1`'s 2492 prime-only
   assets and **535** of package `1050016095`'s 606. This is the honest measure of what is not merely
@@ -526,7 +576,9 @@ Update it in the same change as the work when any of these moves a count:
 
 - the catalog is re-imported — the four numbers in *What the catalog holds* change together;
 - a pass gains or loses a translated asset kind, or a package enters or leaves `REBUILD_PACKAGES`;
-- a device cycle adds or withdraws an `extra_text` allowlist entry;
+- a device cycle adds or withdraws an `extra_text` allowlist entry, or a PC cycle clears one for the
+  PC edition;
+- a PC run's `pc_selftest.json` or install counts move, which moves *The PC edition*;
 - a run comes back with `text_skipped`, `graphics_skipped` or `append_skipped` non-empty, which moves a
   count out of the applied column.
 

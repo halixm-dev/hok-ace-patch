@@ -374,6 +374,33 @@ shard SHA-1 `d9f4a2a1…` matched on the phone): scan `errorCode=0`, SYMPHONY OF
 card. That output's layout differs from the prototype's only by five swaps of equal-width titles. The
 in-match hand card was not seen.
 
+### A standalone label the catalog lacks: the event start button (2026-11-21)
+
+- **The gap.** During Super Weekend the lobby's start button wears an event skin: 开始游戏 over the
+  line "Super Weekend Perks Are Here!". The line is text (the supplement's `超级周末，特权开启！`). The
+  label is `A71C734D3EFAFBFF`, a package-`19` loose sprite under `UIResources/GameCenter`: 372x102, RGBA32
+  on the PC (151,776 B) and ASTC 6x6 on the phone (16,864 B). The catalog has no edit for it, so it
+  stayed Chinese over the applied START GAME edits. It is on the phone from data 1.10.1.2 (absent at
+  1.8.0.1) and on the PC at 1.11.0.2.
+- **Not an alias.** It is a warm-tinted twin of the catalog's START GAME `863114A42F12EF76`: same size,
+  but only 57 % of alpha values equal, a cream vertical gradient instead of the cool sheen. That is no
+  measured match, so `DEVICE_REVISIONS` stays shut to it.
+- **The art** is `resources/sprites/A71C734D3EFAFBFF/labels/<language code>/start_game.png`: the
+  first repo labels drawn per language. English is START GAME, Indonesian MULAI GAME. Each is the
+  catalog's own render for that language (`863114A42F12EF76.blocks`), re-shaded row by row to the event
+  label's measured colour, alpha kept. The user chose these drafts over hand-finished art (2026-11-21;
+  `.scratch/event-start-button/`). Like every `labels/` file they are the shipped source of truth.
+  `atlas_sprites.py labels --check` checks each language's file for size, RGBA and a transparent outer
+  ring.
+- **The pass.** `mobile_graphics.LABEL_TEXTURES` names the texture with its size and art name.
+  `label_texture` replaces the whole image with the language's art (English when a language has none).
+  On the phone it re-encodes at the footprint the raw size gives, and on the PC (`codec="rgba32"`) it
+  writes bottom-up rows. A texture of another size is refused, and the phone run puts it in
+  `graphics_skipped`. `port_graphics` takes it beside the catalog edits and counts it as one texture.
+  `pc_catalog._label_textures` adds a package-`19` entry for it to the per-install catalog, and refuses
+  it the same way. A whole re-encode is deterministic, so a re-run over the output changes nothing.
+- **Verified offline** (lab notebook, 2026-11-21, "Event start button"); not yet on screen.
+
 ### The PC edition: the same ports in BC7 (2026-11-20)
 
 The PC edition re-packs the regioned atlases as the mobile edition does, so the catalog's PC offsets
