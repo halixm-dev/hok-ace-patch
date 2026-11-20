@@ -483,8 +483,11 @@ bin yet. The PC counts below come from the frozen exe's `--pc-selftest` on a ful
 edition at game data **1.11.0.2**, as the copy's `WXQ_Data\StreamingAssets\Config\Version.txt` reads
 (2026-11-20, `pc_selftest.json`, lab notebook "PC edition ticket 02").
 That run stages each language and has the engine verify it. An English install on the same copy
-reported the same counts and verified every package. Both are offline. Nothing has been watched in the
-game yet; that is ticket 05's PC cycle (`docs/runbooks/pc-cycle.md`).
+reported the same counts and verified every package. The installed game gave the same counts in a PC
+cycle per language (2026-11-21, launcher 26111.0.4.30004, data 1.11.0.2, lab notebook "PC edition ticket
+05"): the lobby reads English or Indonesian, and the start button's event skin (开始游戏, "Super Weekend
+Perks Are Here!") is not in the catalog and stays Chinese in both editions; it hides the two START GAME
+textures, which are written.
 
 | result | Mobile edition (data 1.9.0.1, 2026-11-05) | PC edition, English | PC edition, Indonesian |
 |---|---:|---:|---:|

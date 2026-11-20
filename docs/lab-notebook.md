@@ -6361,3 +6361,61 @@ attempt was archived and verified on the PC during the probe to make room for it
   failure now has its own message, `pc_disk_full`.
 - **Not run:** the fork's PC page on the same copy (the speed comparison is ticket 05's PC cycle), a
   launcher start after an install (PC cycle), and the interface (ticket 03).
+
+## 2026-11-21 — PC edition ticket 05: one PC cycle per language on the installed game — pass
+
+- **Inputs:** the installed PC edition at `D:\WXQ`, **launcher 26111.0.4.30004** (`launcherConfig.json`'s
+  `launcherExePath`), **game data 1.11.0.2** (`Version.txt`, `QtsPackageConfig.json`). The launcher read
+  26102.0.2.30004 at the first Check and updated itself when the user opened it to run Repair, before any
+  install; the data version did not change. Every job ran from source at `586fb71` (ticket 04's branch),
+  `app\hok_patcher.py --pc-job <action> D:\WXQ D:\scratch\pc-edition-05\work <answer> <language>`, with
+  the working folder on D: (receipts in `<work>\pc\receipts\dd68449755176798c59093de\`). The user closed
+  the launcher and the game before each job and started and watched them at each checkpoint; nothing
+  was edited by hand. The answers, job logs and SHA-256 lists of `builtin` are kept outside the repo in
+  `D:\scratch\pc-edition-05\evidence\`.
+- **Starting state:** Check read *not installed* (95.1 s, stage built), then the user ran the launcher's
+  Repair. `builtin` held 592 files; `LocalFileList.json` (1250 entries, SHA-256 `80d9b6b5…`) kept these
+  bytes through every step below, and every listed file stayed at its listed size after each install.
+- **Jobs**, in order (seconds are the job's own `seconds`; the stage was reused unless noted):
+
+  | Step | Answer | Seconds |
+  |---|---|---:|
+  | Check, before | *not installed* | 95.1 (English stage built) |
+  | Install English | *installed*, `en`: 248321 strings, 359 graphics, 36 unknown left Chinese | 410.2 |
+  | Check | *installed*, `en` | 34.6 |
+  | Install Indonesian (restore `en`, then install) | *installed*, `id`, 359 graphics | 509.4 (`catalog_id` stage built) |
+  | Install English (restore `id`, then install) | *installed*, `en` | 410.6 |
+  | Check | *installed*, `en` | 29.5 |
+  | Remove translation | *not installed*, "Saved originals restored and verified" | 31.2 |
+  | Check, after | *not installed* | 35.2 |
+
+  The English install changed 16 files in packages `1`, `10`, `15`, `19`, `20`, `21` and `1050016095`,
+  as on the scratch copy. After the switch back, every file under `builtin` had the same SHA-256 as after
+  the first English install; after Remove, every file had its starting SHA-256. Receipts: 4.0 GB after an
+  install, 7.9 GB after Remove (the engine prunes the pair on its next run). The ready atlas
+  `E86DF43167CA2143` was refused at this installation's sprite table in both languages, as offline. The
+  engine's own message reads "English installed and verified" for the Indonesian install too; that text
+  is the runtime's, and the answer's `language` is `id`.
+- **In the game (user's observations), English:** the launcher reached its start button with no repair;
+  the lobby is English and the window title stays 王者万象棋; text wraps cleanly; card text shows no raw
+  `{Energy}`/`{LordHp}`/`{LordExp}`; the Career atlas labels and the Secret Technique titles are English
+  and in place. **Pass.**
+- **In the game, Indonesian:** the launcher reached its start button with no repair; the lobby is
+  Indonesian; wrapping, token expansion and the atlases as in English. **Pass.**
+- **MULAI GAME / START GAME:** the lobby shows an event skin of the start button (开始游戏 over "Super
+  Weekend Perks Are Here!", the user's screenshot), a texture the catalog does not carry, so it stays
+  Chinese in both languages, and on the phone as well since the last update (user's report). It hides
+  the two catalog textures. Both are written: read back from package `19`, `863114A42F12EF76` and
+  `C9F49510F2F67402` match the stage's `patched_sha256` in English (`c6c0b356…`, `a2f7c57d…`, the atlas
+  ported at the PC sprite `Image_1845319953`) and in Indonesian (`8c9a9db1…`, `625a12c4…`). MULAI GAME is
+  therefore verified on disk, not on screen. The user's decision: the cycles pass, and the event button
+  is a coverage gap shared with the mobile edition, outside ticket 05. The room screen's event line
+  `翻牌钻石翻倍 0/3，有分同享不限亲密度` stays Chinese too.
+- **Remove translation:** the launcher accepted the restored files and reached its start button with no
+  repair. **Pass.**
+- **ADR 0011 holds:** the launcher compares listed sizes, not bytes. It started without a repair after
+  the English install, the Indonesian install and Remove translation.
+- **Not run:** *After a launcher update* (Check reads *replaced by an update*, then Install). The one
+  update in this window shipped before any install, so it replaced no translated file; the step waits for
+  an update that ships while a translation is installed. Not run either: the frozen exe (the jobs ran
+  from source) and a match start and end.

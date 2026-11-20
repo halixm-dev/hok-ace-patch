@@ -354,6 +354,10 @@ runs are in the lab notebook, 2026-11-20, "PC edition ticket 02".
 **Verified offline:** `tools/research/check_pc_install.py` on a full copy of the PC edition passed in
 both orders (`en` then `id`, `id` then `en`). Each switch ran the engine's restore and then its
 install in one job. Restore returned every file under `builtin` to its starting SHA-256. A second
-install changed nothing. `LocalFileList.json` and every listed size held (ADR 0011). Whether the
-launcher accepts the installed files, and what the game shows, is for a PC cycle
-([`docs/runbooks/pc-cycle.md`](../runbooks/pc-cycle.md)).
+install changed nothing. `LocalFileList.json` and every listed size held (ADR 0011).
+
+**Verified in the game** (PC cycles on the installed game, 2026-11-21, launcher 26111.0.4.30004, data
+1.11.0.2, lab notebook "PC edition ticket 05"): English, then Indonesian, then English again through the
+receipts, then Remove translation. The switch back left every file under `builtin` byte-identical to the
+first English install, Remove returned every file to its starting SHA-256, and the launcher started
+without a repair after each install and after Remove ([`docs/runbooks/pc-cycle.md`](../runbooks/pc-cycle.md)).
