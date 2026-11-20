@@ -948,6 +948,7 @@ class App(ctk.CTk):
         """Read the child's answer, then run Check after Install and Remove translation."""
         action, seconds = self.pc_action, time.monotonic() - self.pc_started
         error = None
+        self.show_work_dir()  # the job used the working folder's space
         try:
             answer = pc_edition.read_answer(self.pc_answer)
         except PatchError as failure:
