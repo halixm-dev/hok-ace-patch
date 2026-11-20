@@ -6055,3 +6055,19 @@ run's build took about 4 min 41 s.
   longer walked, about 1% of the 69 s build, rather than a precise figure.
 - **Checks:** the 12 repository checks the Android workflow runs, all exit 0.
 - **Verdict:** pass offline. Not run: the frozen exe `--smoketest`, a patch on a phone with this build.
+
+## 2026-11-20 — Wireless debugging re-patch baseline setup on `ebad528e` — pass
+
+- Build `121` from master `2938ec2`, with Android host tests passing. `update_cycle.py push` verified
+  package hashes against the 1.10.1.2 snapshot and restored the normal APK (`29b3ee7e…`).
+  *Free up space* freed 2.0 GB and left 10.9 GB free with recovery copies kept.
+- English setup run `94124358` took 25 min 18 s from *Start* to worker completion. Snapshot stream
+  106.3 s, identity 51.9 s, snapshot checkpoint 135.1 s, build checkpoint 503.9 s. The normal APK was
+  verified. Output was 398 text tables and 318 applied textures, with 1 table and 0 textures skipped.
+- The normal game downloaded its update and reached the v1.11.2 login screen. This run prepared
+  the input for the timed Re-download. Evidence is under
+  `D:/scratch/hok-ac-repatch-speed/baseline-2938ec2-121/` (`setup-trace.log`, `setup-update-latest.png`).
+- The first `after-update` capture ran out of space while reinstalling the normal APK. With the game
+  closed, *Free up space* reclaimed 4.8 GB and the normal APK was reinstalled and checked by SHA-256.
+  The same capture code completed with read-only Root reads, leaving that APK installed. The capture
+  records game data 1.11.0.2, 803 files and no unfinished package folders.
