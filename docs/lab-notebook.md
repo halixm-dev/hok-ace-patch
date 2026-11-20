@@ -6055,3 +6055,81 @@ run's build took about 4 min 41 s.
   longer walked, about 1% of the 69 s build, rather than a precise figure.
 - **Checks:** the 12 repository checks the Android workflow runs, all exit 0.
 - **Verdict:** pass offline. Not run: the frozen exe `--smoketest`, a patch on a phone with this build.
+
+## 2026-11-20 — PC edition ticket 01: engine hooks, the per-install catalog, BC7 ports — measurement
+
+- **Inputs:** a copy of the PC edition's packages `0`, `1`, `10`, `15` and `19` (2.7 GB) and
+  `LocalFileList.json`, read from the installed game and copied to
+  `D:/scratch/pc-edition-01/pc-game`. Nothing ran against the installed game. The mobile byte check
+  used the pristine layer at `D:/scratch/layer-verdict/session/game`. The azydev fork is
+  hok-ace-patcher 1.10.1.3, run read-only from its own folder with bytecode writing off and its work
+  folder outside it.
+- **Token hook:** the engine records no replacement hash between `adaptive.scan` and `commit`. That was
+  read from the disassembly of `wxq_patch.adaptive`. A `scan` wrapper may therefore rewrite the
+  materialized replacements, as `build_patch` already does in place.
+- **Mobile unchanged:** `--selftest` from source before and after the change, English and Indonesian.
+  `selftest.json` is identical (packages `1` 96, `1` 11, `1050016095` 1, `15` 222, `19` 22, `20` 1,
+  `1` 1, `10` 3), and all 14 staged files have identical SHA-256. Re-run after the last edit.
+- **BC7 encoder quality**, mean premultiplied difference per block, Career atlas English (8404 blocks):
+
+  | Encoder | Mean | p90 | Worst | Blocks over 6 | Time |
+  |---|---:|---:|---:|---:|---:|
+  | The fork's mode 6 alone | 11.5 | — | 89.7 | — | — |
+  | Modes 6, 5, 4 (Python) | 0.77 | 2.75 | 12.0 | 147 | 20.4 s |
+  | Modes 6, 5, 4, 7 (Python) | 0.27 | 0.88 | 7.6 | 5 | 31.4 s |
+  | etcpak first, Python modes past 6 | 0.44 | 1.75 | 7.4 | — | 8.8 s |
+
+  Every mode decodes bit-exact through texture2ddecoder, checked on 300 random blocks each. The
+  mode-7 partition and anchor tables were read back from that decoder. The game's own encoder wrote
+  most Career label blocks in modes 4 (2506), 5 (498) and 7 (4906).
+- **The threshold BC7 cannot meet:** the Secret Technique title atlas left 2077 distinct blocks above
+  6 levels. All of them carry alpha, and each re-run re-encoded them. The Python encoder with 4, 16
+  or all 64 mode-7 partitions left 2077, 1986 and 1962 above 6 (median 7.4, worst 13.9). etcpak at
+  uber levels 0, 2 and 4 left 2060, 2053 and 2053 (median 12.1). The better of the two per block left
+  2075 (median 7.5, worst 13.9). Bleeding the color of low-alpha pixels toward the block mean made
+  etcpak worse (median 12.9 to 14.8). Verdict: this is BC7's limit on anti-aliased edges over
+  transparency at this measure, not the encoder's. BC7 blocks are judged by `BC7_MATCH_MEAN` = 14,
+  and ASTC keeps 6 (user's decision).
+- **etcpak 0.9.15** (`etcpak-0.9.15-cp37-abi3-win_amd64.whl`, MIT): `compress_bc7` takes RGBA in
+  the texture's row order. Its `decompress_bc7` raised MemoryError on one 4x4 block and crashed the
+  process in a loop, so blocks are decoded with texture2ddecoder.
+- **`check_graphics.py` `[13]`** runs on a synthetic BC7 texture (all 13 sections pass, 136 s):
+
+  | Encoder | Career port | Career re-run | Titles | Titles re-run |
+  |---|---|---|---|---|
+  | The fork's mode 6 | English mean 28.8 | 3354 blocks | — | 9471 blocks |
+  | Python modes 6, 5, 4, 7 | 9168 blocks, 33.7 s | 221 blocks | 25898 blocks, 241.2 s | 2634 blocks |
+  | etcpak first, threshold 6 | 9168 blocks, 12.7 s | 220 blocks | 25893 blocks, 103.5 s | 2629 blocks |
+  | etcpak first, BC7 threshold 14 | 9168 blocks, 11.0 s | 0 | 23264 blocks, 51.0 s | 0 |
+
+  With the threshold at 14, English stands at every Career device box (worst 2.83), and both labels
+  are within 0.71. Titles are within 3.25. 64 English blocks round-trip at mean 0.30 and worst 5.44
+  premultiplied. A plain RGBA mean reads up to 30.4 on blocks with transparent pixels.
+- **Timings on the same copy**, seconds:
+
+  | Run | Fork `prepare_catalog` | This repo `pc_catalog.build` |
+  |---|---:|---:|
+  | English, first build | 37.0 (cold), 32.1 | 124.1 |
+  | Indonesian, first build | 31.4 | 81.7 |
+  | Again, nothing changed | 27.7 (no cache) | 0.03 English, 0.02 Indonesian |
+  | English, Python encoder only | — | 453.6 (atlases 446.1) |
+  | Indonesian, Python encoder only | — | 327.2 (atlases 320.5) |
+
+  Assets patched: fork 12 English and 13 Indonesian; this repo 48 and 49. This repo adds the Secret
+  Technique titles and their relayout (whole-file entries) and the Lua label and edits. The fork spends
+  37.5 s of a profiled 62 s encoding 10372 blocks in mode 6, plus 16 s on two package slot maps.
+  This repo's English build profiled at 241 s. The title atlas took 178 s and the three catalog
+  atlases 46 s. 29960 blocks went to `encode_block`; etcpak took 1.2 s for all of them. The 7548
+  blocks it left above 6 went through the Python modes, and mode 7 took 174 s. Two slot maps took
+  12 s, the Lua 2 s and the hard-linked stage 3 s (400 payloads linked, 0 copied).
+- **Cache check cost:** re-reading the 52 input assets walks every chunk of packages `19` and `10`
+  (`QtsPackage.build_slot_map`), which took 64 s unprofiled. With the record's file stamps, the
+  first check re-hashed in 41 s and wrote the stamps. Later checks took 1.6 s for the whole process
+  and 0.03 s inside `build`.
+- **Refused:** the ready atlas `E86DF43167CA2143`. Its installed source does not match the catalog's
+  `source_sha256`, and its sprite table has no `Image_1585869273` (*confirm
+  choice*). It is dropped from the per-install catalog (ADR 0006). The mobile full layer skips the
+  same atlas.
+- **Verdict:** pass offline. BC7 was the slow step; with the user's approval etcpak was added and
+  the remaining time is the Python fallback's mode 7. Not run: an engine install on the PC edition
+  (ticket 02) or the frozen exe with etcpak.
