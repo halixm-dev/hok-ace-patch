@@ -5971,3 +5971,66 @@ filler file in `/data/local/tmp` leaving 1.5 GB free (runs 3 and 4), both undone
   Once the link exists, every later Start reuses that preparation and refused the same way.
 - **Limits:** the *Freed X* line of the storage card (`storage_wait_freed`) was not reached: the run's own
   reclaim leaves Free up space nothing. *Also remove all saved game apps* was not ticked during the wait.
+
+## 2026-11-20 — The terminology pass skips sources that hold no term — pass
+
+- **Change:** `terminology.apply` scans each source once for any term's Chinese (one alternation regex)
+  and skips the per-term loop when there is none. `Term.rewrite` already returned those targets as
+  they were, so only the work changes. About 94% of sources hold no term (1971 of 40103 `unique`,
+  2091 of 29750 `english_updates` in the English catalog before the supplement).
+- **Speed:** `apply` alone, best of 7 on a fresh copy of each shipped catalog, master against this
+  change: English 154 -> 70 ms (x2.2), Indonesian 260 -> 104 ms (x2.5). Per load, with the supplement,
+  the terminology stage went from 250/281 ms to 107/115 ms. A run loads the catalog at least twice
+  (`build_device_patch`, `device_extensions`).
+- **Same output:** both catalogs, after `apply`, compare equal to master's, and so do the per-term
+  counts (1495 English, 1168 Indonesian changed targets).
+- **Checks:** the 12 repository checks the Android workflow runs, all exit 0.
+- **Verdict:** pass offline. Not run: a full `build_device_patch` build, the frozen exe `--smoketest`,
+  a patch on a phone with this build.
+
+## 2026-11-20 — Offline staging timings, a month after the baseline — measurement
+
+Re-measures the 2026-10-17 offline staging baseline with its own script,
+`1aa2573:.scratch/staging-performance/measure.py`, restored for the run and removed after. Code: this
+branch (master `d889311` plus the terminology prefilter above). Python 3.12.10, Windows 11 build 26200,
+English catalog, no QtsVFS builder, sequential runs with normal Windows caching. Each run used a fresh
+directory under `D:/scratch/hok-staging-performance/`; no phone access.
+
+| Input | Wall | Process CPU |
+|---|---:|---:|
+| `D:/scratch/hok-data-1.11.0.1/game` (package `1` only, so no texture pass), 1.10.1.2 `normal.apk` | 24.1 s | 18.8 s |
+| Saved 1.10.1.2 pristine layer (`dist/HOK ACE Patcher Data/pristine/20261118-1.10.1.2/game`, 2.9 GB), its `normal.apk` | 69.4 s | 144.2 s |
+| The same, under cProfile (call attribution only) | 73.1 s | — |
+
+The baseline's 180–230 s (1.6.0.1) is not directly comparable: different game data, and the slot-map,
+ASTC-threading and ASTC small-input-cache changes landed between them.
+
+Full-layer run, stage wall times exclusive of nested stages:
+
+| Stage | Wall | CPU |
+|---|---:|---:|
+| Append APK-only assets | 25.9 s | 101.0 s |
+| Texture pass and discovery | 21.9 s | 26.7 s |
+| Scan and translate text | 7.3 s | 6.9 s |
+| Write text packages | 5.8 s | 4.1 s |
+| Resource token expansion | 3.8 s | 1.5 s |
+| Catalog loading and terminology, three loads | 1.5 s | 1.4 s |
+| Extra text, overflow relocation, card repair, the rest | 3.1 s | 2.4 s |
+
+Nested, not to be added: ASTC encoding 9.2 s wall / 89.7 s CPU in the append (72 calls) and 3.7 s /
+16.2 s in the texture pass (2843 calls); the small-input cache had 1541 hits, 944 misses, full at 512.
+`adaptive.translate_table` 3.9 s (119 calls) in the scan and 1.8 s (391) in the append. Slot maps 8.8 s
+over 28 calls.
+
+| Profile evidence | Observation |
+|---|---|
+| Package indexes | `qtsvfs.parse_index` runs 1295 times: 879 from `adaptive.discover` (the scan, `extend_graphics`, `repair_card_dictionaries`), 293 from `extra_text.extend_text`, 103 from `add_prime_only`. Unprofiled, one parse of all 293 package indexes takes 0.36 s and one `discover` 0.37–0.53 s, so the repeats cost about 1.6 s: the profiler inflated them about six times. |
+| File opens | 3298 `Path.open` calls, 6.5 s of internal time; re-reading files a pass has just written is the slowest (`_expand_staged_tokens` 107 reads, 1.8 s; `stage_unity_package` 97, 1.4 s). Not CPU time. |
+| Native work | ASTC compress 10.3 s internal (1374 calls), LZ4 compress 3.0 s (623), Windows file copy 2.8 s (206). |
+| Staging result | Full layer: package `15` 222, `19` 22 (1 of 23 skipped, `E86DF43167CA2143`), `20` 1 and `1050016095` 1 textures translated; 280 + 7 + 71 + 1 assets added from the APK, the existing encoder refusal `3A70308AAF6F18F8` again. |
+
+**Verdict:** no remaining stage has a small, output-preserving fix that is worth making. The time is
+in native ASTC encoding (already threaded and cached), file traffic and the compiled runtime's
+translation. Sharing parsed packages between passes would save about 1 s (1.5%), at the cost of
+holding runtime objects across passes that write files. Not measured: a phone, where the 2026-10-17
+run's build took about 4 min 41 s.
