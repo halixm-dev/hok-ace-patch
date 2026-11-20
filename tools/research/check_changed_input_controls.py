@@ -105,12 +105,12 @@ class Controls:
         self.bridge = _load_bridge()
         self.events: list[dict] = []
         self.stage_calls = 0
-        original = self.bridge.build_snapshot
+        original = self.bridge._stage_translation
 
         def counted(*args, **kwargs):
             self.stage_calls += 1
             return original(*args, **kwargs)
-        self.bridge.build_snapshot = counted
+        self.bridge._stage_translation = counted
 
     def log(self, case: str, verdict: str, **detail) -> None:
         self.events.append({"case": case, "verdict": verdict, **detail})
