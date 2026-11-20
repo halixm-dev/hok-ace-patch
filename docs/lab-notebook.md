@@ -5947,3 +5947,19 @@ Phone `ebad528e` (Xiaomi Redmi Note 9 Pro, Android 15, 45 GB, 2.1–8.1 GB free)
   refuses until *Stop safely*. A Kotlin incremental local build kept an old `BuildConfig.VERSION_NAME`;
   deleting `app/build/kotlin` and `app/build/tmp/kotlin-classes` fixed it (CI builds clean).
 - **Limits:** one phone, one provider. Not done: logging in to check the screens. Shizuku and Root had no cycle.
+
+## 2026-11-20 — The terminology pass skips sources that hold no term — pass
+
+- **Change:** `terminology.apply` scans each source once for any term's Chinese (one alternation regex)
+  and skips the per-term loop when there is none. `Term.rewrite` already returned those targets as
+  they were, so only the work changes. About 94% of sources hold no term (1971 of 40103 `unique`,
+  2091 of 29750 `english_updates` in the English catalog before the supplement).
+- **Speed:** `apply` alone, best of 7 on a fresh copy of each shipped catalog, master against this
+  change: English 154 -> 70 ms (x2.2), Indonesian 260 -> 104 ms (x2.5). Per load, with the supplement,
+  the terminology stage went from 250/281 ms to 107/115 ms. A run loads the catalog at least twice
+  (`build_device_patch`, `device_extensions`).
+- **Same output:** both catalogs, after `apply`, compare equal to master's, and so do the per-term
+  counts (1495 English, 1168 Indonesian changed targets).
+- **Checks:** the 12 repository checks the Android workflow runs, all exit 0.
+- **Verdict:** pass offline. Not run: a full `build_device_patch` build, the frozen exe `--smoketest`,
+  a patch on a phone with this build.
