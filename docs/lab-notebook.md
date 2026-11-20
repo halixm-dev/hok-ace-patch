@@ -6071,3 +6071,12 @@ run's build took about 4 min 41 s.
   closed, *Free up space* reclaimed 4.8 GB and the normal APK was reinstalled and checked by SHA-256.
   The same capture code completed with read-only Root reads, leaving that APK installed. The capture
   records game data 1.11.0.2, 803 files and no unfinished package folders.
+
+## 2026-11-20 — Wireless debugging re-patch baseline on `ebad528e` — waiting for storage
+
+- Run `140b468b` on build `121` paused 8 min 24 s after *Start*, before taking a snapshot or deleting
+  packages. The app needed 9,332,576,002 B for the snapshot, build and normal restore and had
+  6,787,031,040 B with access open. It restored and verified the normal APK (`29b3ee7e…`) as it paused.
+- The phone had 8,815,943,680 B free after restoring the normal APK. *Free up space* reclaimed 0 B
+  and retained the saved recovery files. Asked for 3 GB more to cover the observed shortfall.
+  Evidence is `D:/scratch/hok-ac-repatch-speed/baseline-2938ec2-121/storage-wait-trace.log`.
