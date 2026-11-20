@@ -1057,6 +1057,23 @@ def smoketest(out: Path) -> None:
             png = io.BytesIO()
             Image.new("RGBA", (4, 4), (200, 100, 50, 255)).save(png, "PNG")
             passed += ["lz4", "ooz", "zstandard", "pypinyin", "astc round trip", "png"]
+
+            # The PC edition: its three modules, the engine attributes its hooks replace, and one BC7
+            # block through the native encoder (etcpak) and the decoder.
+            for name in ("engine_hooks", "pc_catalog", "pc_edition"):
+                importlib.import_module(name)
+                passed.append(f"import {name}")
+            import bc7_mode6
+            import engine_hooks
+            import etcpak  # noqa: F401 - bc7_mode6 imports it only when it encodes; fail here, not there
+
+            missing = engine_hooks.check()
+            assert not missing, f"runtime lacks {missing}"
+            passed.append("engine hook attributes")
+            pixels = [(200, 100, 50, 255)] * 16
+            decoded = mobile_graphics.decode_pc(bc7_mode6.encode_block(pixels), 4, 4, "bc7")
+            assert max(abs(a - b) for a, b in zip(decoded, bytes(c for p in pixels for c in p))) <= 8
+            passed.append("bc7 round trip")
             ok = True
         except Exception:  # noqa: BLE001 - the report records the failure; CI reads ``ok``
             traceback.print_exc()
@@ -1070,6 +1087,15 @@ def main() -> None:
         return
     if len(sys.argv) == 3 and sys.argv[1] == "--smoketest":
         smoketest(Path(sys.argv[2]))
+        return
+    if len(sys.argv) == 7 and sys.argv[1] == "--pc-job":
+        import pc_edition  # a PC job's child: <action> <game> <work> <answer.json> <language>
+
+        sys.exit(pc_edition.job(*sys.argv[2:]))
+    if len(sys.argv) == 4 and sys.argv[1] == "--pc-selftest":
+        import pc_edition
+
+        pc_edition.selftest(Path(sys.argv[2]), Path(sys.argv[3]))
         return
     try:
         # Own taskbar identity so Windows shows our icon instead of the Python one.

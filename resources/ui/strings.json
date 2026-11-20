@@ -3084,6 +3084,86 @@
       "en": "Finish every in-game download to the login screen and close the game, then tap Start. We change game files with root; the game app is not replaced. Keep the game closed until the work finishes. Adding the translation has not passed all phone tests.",
       "id": "Selesaikan semua unduhan dalam game sampai layar login dan tutup game, lalu ketuk Mulai. Kami mengubah file game dengan root; aplikasi game tidak diganti. Jangan buka game sampai proses selesai. Penerapan terjemahan belum lulus semua pengujian ponsel.",
       "draft": true
+    },
+    "pc_game_folder_invalid": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{path} is not the PC game's folder. Pick the folder that holds WXQ.exe.",
+      "id": "{path} bukan folder game PC. Pilih folder yang berisi WXQ.exe.",
+      "draft": true
+    },
+    "pc_close_game": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Close the game and its launcher first ({processes}), then try again.",
+      "id": "Tutup game dan launcher-nya dulu ({processes}), lalu coba lagi.",
+      "draft": true
+    },
+    "pc_file_in_use": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "A game file is in use by another program. Close the game and its launcher, then try again.",
+      "id": "Sebuah file game sedang dipakai program lain. Tutup game dan launcher-nya, lalu coba lagi.",
+      "draft": true
+    },
+    "pc_engine_failed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The translation could not be written: {detail}",
+      "id": "Terjemahan tidak dapat ditulis: {detail}",
+      "draft": true
+    },
+    "pc_no_receipt": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "There is no saved original to put back for these game files.",
+      "id": "Tidak ada file asli tersimpan untuk dikembalikan ke file game ini.",
+      "draft": true
+    },
+    "pc_receipts_mismatch": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The game files no longer match the originals this patcher saved, so the language cannot be switched safely.",
+      "id": "File game tidak lagi cocok dengan file asli yang disimpan patcher ini, jadi bahasa tidak dapat diganti dengan aman.",
+      "draft": true
+    },
+    "pc_foreign_install": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "This game was translated by another patcher, and this patcher has no saved originals for it.",
+      "id": "Game ini diterjemahkan oleh patcher lain, dan patcher ini tidak punya file asli tersimpan untuknya.",
+      "draft": true
+    },
+    "pc_repair_advice": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Run Repair in the game's launcher to get the original files back, then install again.",
+      "id": "Jalankan Perbaiki di launcher game untuk mengembalikan file asli, lalu pasang lagi.",
+      "draft": true
+    },
+    "pc_catalog_missing": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The translation files for {language} are missing from this patcher. Download the patcher again.",
+      "id": "File terjemahan untuk {language} tidak ada di patcher ini. Unduh ulang patcher.",
+      "draft": true
+    },
+    "pc_disk_full": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The drive ran out of space. Installing needs about 10 GB free on the drive of the working folder ({folder}) and on the system drive. Free some space, then try again.",
+      "id": "Ruang drive habis. Pemasangan memerlukan sekitar 10 GB ruang kosong di drive folder kerja ({folder}) dan di drive sistem. Kosongkan sebagian ruang, lalu coba lagi.",
+      "draft": true
     }
   }
 }
