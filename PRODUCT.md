@@ -36,7 +36,7 @@ affiliated with Tencent.
   language and a working folder (about 8 GB), and clicks Start. It runs seven device steps: connect
   phone, prepare game APK, unlock data access, read language data, build translation, install
   translation, restore game.
-- **Android patcher**: the player picks a shell provider (Shizuku, Wireless debugging or Root), a
+- **Android patcher**: the player picks a shell provider (Wireless debugging, the default, Shizuku or Root), a
   language and taps Start. The patcher checks and recovers unfinished work before patching, asks
   for explicit consent before anything that deletes game data (Re-download excepted, below), and
   keeps recovery tools for a game that won't open. It also offers *Remove translation* and *Free up

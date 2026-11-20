@@ -597,13 +597,6 @@
       "en": "Root",
       "id": "Root"
     },
-    "provider_beta": {
-      "platforms": [
-        "android"
-      ],
-      "en": "Beta",
-      "id": "Beta"
-    },
     "shizuku_guide_install": {
       "platforms": [
         "android"
