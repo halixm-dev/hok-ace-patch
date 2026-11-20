@@ -24,6 +24,9 @@ path, and the path *is* the language.
   turns it into payloads named exactly as the English ones they replace:
   `863114A42F12EF76.blocks` (the standalone 372x102 RGBA32 label) and `C9F49510F2F67402.blocks` (the BC7
   atlas whose `start_game` sprite is the same pixels). Every other texture edit is the English one.
+- The Super Weekend skin of the same button (`A71C734D3EFAFBFF`, which the catalog lacks) also reads
+  MULAI GAME: `resources/sprites/A71C734D3EFAFBFF/labels/id/start_game.png`, the MULAI GAME render
+  re-shaded to the event's colour (`mobile_graphics.LABEL_TEXTURES`, `texture-translation.md`).
 - `{Energy}`/`{LordExp}`/`{LordHp}` expand to the language's terms (`Language.resource_terms`):
   Indonesian writes `Energy`, `EXP Chessplayer`, `HP Chessplayer`, the order its own catalog uses.
 - `device_patch_summary.json` gains `language`, and the run logs `language: <name> (<catalog dir>)`.
