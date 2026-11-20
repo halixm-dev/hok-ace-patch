@@ -5,9 +5,9 @@ The catalog was translated string by string, so a keyword reads differently from
 "Snatch", "Siphon" or "drain", and `整备` (the Prepare keyword, `href=11`) is mostly "Prepare" but also
 "Ready", "Readiness" or "Maintenance". The glossary keeps the default names, Steal and Prepare; Plunder
 and Readiness are the unofficial community translation's. The catalog is
-the PC pipeline's file and is not edited here, so the correction is made in memory: `install` wraps
-`adaptive.load_catalog`, and every pass — the scanner, which loads the catalog itself, the prime append,
-the texture and extra-text passes — reads the corrected strings.
+the PC pipeline's file and is not edited here, so the correction is made in memory:
+`engine_hooks.install` wraps `adaptive.load_catalog`, and every pass — the scanner, which loads the
+catalog itself, the prime append, the texture and extra-text passes — reads the corrected strings.
 
 A rule is keyed on the **Chinese** source, not on the English: it rewrites a target only when its
 source contains the term, so "steal" in a line of dialogue that never says `夺取` is left alone. Within
@@ -299,38 +299,3 @@ def apply(data: dict, terms: tuple[Term, ...]) -> Counter:
             if len(row) >= 5:
                 row[3] = rewrite(row[4], row[3])
     return changed
-
-
-def install() -> None:
-    """Make `adaptive.load_catalog` return the catalog with its language's glossary applied.
-
-    Idempotent. The scanner calls `load_catalog` by its module name, so the wrapper has to replace the
-    runtime's own function rather than be called beside it. Before the glossary it merges
-    `catalog_supplement`, the strings the game added after the catalog was built, so they obey the same
-    glossary. The returned catalog carries `terminology`, the per-term count of changed targets, and
-    `supplemented`, the number of strings added, for the run's log.
-    """
-    from wxq_patch import adaptive
-
-    import catalog_supplement
-    import catalog_updates
-
-    if getattr(adaptive.load_catalog, "_terminology", False):
-        return
-
-    def load_catalog(folder: Path):
-        from languages import for_catalog
-
-        with gzip.open(Path(folder) / "catalog.json.gz", "rt", encoding="utf-8") as handle:
-            data = json.load(handle)
-        language = for_catalog(folder)
-        added = catalog_supplement.apply(data, language.code)
-        changed = apply(data, language.terms)
-        catalog_updates.apply(data, language.code)
-        catalog = adaptive.Catalog(data)
-        catalog.terminology = changed
-        catalog.supplemented = added
-        return catalog
-
-    load_catalog._terminology = True
-    adaptive.load_catalog = load_catalog

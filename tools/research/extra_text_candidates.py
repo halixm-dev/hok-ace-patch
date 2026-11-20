@@ -33,7 +33,7 @@ import pb_text  # noqa: E402
 from qts_relocate import read_raw  # noqa: E402
 from wxq_patch import adaptive  # noqa: E402
 from wxq_patch.qtsvfs import QtsPackage  # noqa: E402
-from terminology import install as install_terminology  # noqa: E402
+from engine_hooks import install as install_terminology  # noqa: E402
 
 CATALOG = ROOT / "resources" / "catalog"
 

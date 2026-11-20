@@ -193,7 +193,7 @@ def check_game(game: Path, apk: Path, package: str | None) -> int:
     import json
 
     from qts_relocate import install_btree_slot_map, read_raw
-    from terminology import install as install_terminology
+    from engine_hooks import install as install_terminology
     from wxq_patch import adaptive
     from wxq_patch.qtsvfs import QtsPackage
 

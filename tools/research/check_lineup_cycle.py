@@ -40,7 +40,7 @@ import extra_text  # noqa: E402
 import lineup_codes  # noqa: E402
 from languages import for_catalog  # noqa: E402
 from resource_tokens import expand_resource_tokens  # noqa: E402
-from terminology import install as install_terminology  # noqa: E402
+from engine_hooks import install as install_terminology  # noqa: E402
 from wxq_patch import adaptive  # noqa: E402
 
 CATALOGS = {"en": ROOT / "resources" / "catalog", "id": ROOT / "resources" / "catalog_id"}

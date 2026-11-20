@@ -13,7 +13,7 @@ import catalog_supplement
 from languages import for_catalog
 from qts_relocate import install_btree_slot_map, read_raw
 from resource_tokens import expand_resource_tokens
-from terminology import install
+from engine_hooks import install
 from wxq_patch import adaptive
 from wxq_patch.qtsvfs import QtsPackage
 

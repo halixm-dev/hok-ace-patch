@@ -370,33 +370,6 @@ def _retry_totals(metrics: dict) -> dict:
     return totals
 
 
-def _expand_staged_tokens(plans, log, terms: dict[str, str]) -> int:
-    """Bake the language's resource terms (<terms>) into the staged replacements, after translation.
-
-    translate_table requires source and target to carry identical placeholders, so the catalog keeps
-    {Energy}/{LordExp}/{LordHp} and the client would otherwise expand them to Chinese at render time.
-    Rewriting the materialized replacements keeps validation intact and still covers both staging
-    paths, because full mode copies this directory and fit-only takes its subset from it.
-    """
-    from resource_tokens import expand_tokens_in_message
-
-    changed = 0
-    for _package, replacements, _per_asset in plans:
-        for path in sorted(replacements.glob("*.assets")):
-            raw = path.read_bytes()
-            try:
-                expanded, count = expand_tokens_in_message(raw, terms)
-            except Exception as error:  # an asset we cannot parse is left byte-for-byte alone
-                log(f"token expand skipped {path.name}: {error}")
-                continue
-            if count:
-                path.write_bytes(expanded)
-                changed += count
-    if changed:
-        log(f"expanded resource tokens in {changed} replacement strings")
-    return changed
-
-
 def _drop_uncatalogued_tables(plans, catalog, counts, log) -> list:
     """Drop the replacements for tables the catalog has no record for, and take the census down with them.
 
@@ -493,6 +466,11 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
       `languages.catalog_dir(resources, code)` and passes that path.
     - It imports `wxq_patch` from whatever runtime directory the caller already put on `sys.path`; it
       never adds paths itself. That is what lets the frozen exe run it.
+    - Before the first catalog load it calls `engine_hooks.install()` with no receipts, which wraps
+      `adaptive.load_catalog` alone (terminology, the catalog supplement and the data-update catalog
+      edits); `scan` and `receipt_root` are taken only by a PC job. Right after `adaptive.scan` it calls
+      `resource_tokens.expand_staged(plans, log, language.resource_terms)` on the materialized
+      replacements, so both staging paths carry the expanded resource tokens.
     - `cycle_assets` is a device cycle's one variable: the candidate queue's assets
       (`extra_text.CANDIDATE_ASSETS`) this run enables on top of the allowlist,
       `extra_text.SAFE_ASSETS`. Empty on a normal run. It must reach **both** paths that can translate
@@ -603,7 +581,8 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     - After text relocation it calls
       `device_extensions.extend_graphics(game, catalog, output, log, skip=rebuilt)`, which discovers
       the game packages afresh (a texture-heavy package usually stages no text), ports every catalog
-      edit present in them onto the device ASTC textures, draws this repo's labels into each atlas the
+      edit present in them onto the device ASTC textures (`port_atlas`'s default `codec="astc"`; the
+      PC edition's `pc_catalog` passes `"bc7"`), draws this repo's labels into each atlas the
       catalog has no edit for (`mobile_graphics.LABEL_ATLASES`, counted as a texture like an edit, and
       skipped the same way), and runs the extra-text pass. Drawing the Secret Technique title atlas
       also re-lays its title sprites (`card_titles.relayout`, ADR 0009): package `19`'s Sprite table,
@@ -633,12 +612,13 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     from qts_relocate import BTREE_FALLBACKS, install_btree_slot_map
     from device_extensions import exclude_extra_chunks, extend_graphics, relocate_text, repair_card_dictionaries
     from languages import for_catalog
-    from terminology import install as install_terminology
+    from engine_hooks import install as install_engine_hooks
+    from resource_tokens import expand_staged
 
     install_btree_slot_map()
     BTREE_FALLBACKS.clear()
     # Before the first load: the scanner and every pass after it load the catalog through this.
-    install_terminology()
+    install_engine_hooks()
     language = for_catalog(catalog)
     log(f"language: {language.name} ({catalog.name})")
 
@@ -697,7 +677,7 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
         game, catalog, work / "scan", materialize=True
     )
     plans = _drop_uncatalogued_tables(plans, loaded_catalog, counts, log)
-    _expand_staged_tokens(plans, log, language.resource_terms)
+    expand_staged(plans, log, language.resource_terms)
 
     def fit_only(package, replacements):
         fit_summary = capacity_report(package.package_dir, replacements)

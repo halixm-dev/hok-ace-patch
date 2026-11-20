@@ -10,7 +10,9 @@ branch: master
 ## Report
 
 **What was built** — one game keyword now reads one way, the default way. `tools/terminology.py` holds a
-terminology table per language (`languages.Language.terms`) and `install()` wraps `adaptive.load_catalog`, so
+terminology table per language (`languages.Language.terms`) and `engine_hooks.install()` wraps
+`adaptive.load_catalog` (moved there from `terminology.install` on 2026-11-20, so the PC edition takes the
+same hook), so
 every catalog the pipeline loads has its targets corrected in memory before the runtime's `Catalog` is
 built from them. `build_patch` installs it next to `install_btree_slot_map()` and logs
 `glossary: N catalog strings now read 'Prepare', M … 'Steal'`. `catalog.json.gz` is not edited.
