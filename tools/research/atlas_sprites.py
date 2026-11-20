@@ -53,6 +53,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 sys.path.append(str(ROOT / "resources" / "runtime"))
 
 import card_titles  # noqa: E402
+import languages  # noqa: E402
 import mobile_graphics as mg  # noqa: E402
 import qts_relocate  # noqa: E402
 from PIL import Image, ImageDraw, ImageFont  # noqa: E402
@@ -705,6 +706,31 @@ def cmd_labels(args) -> int:
                 faults = _label_faults(image, folder.split("/")[0])
                 print(f"  {'FAIL' if faults else 'ok  '} {folder}/{name} {image.size[0]}x{image.size[1]}: "
                       f"{wording[name]}" + (f" -- {'; '.join(faults)}" if faults else ""))
+            failed |= bool(faults)
+    # Standalone label textures (mg.LABEL_TEXTURES): one PNG per language, at the texture's own size,
+    # RGBA with a transparent outer ring. English is required; another language falls back to it.
+    for texture, (width, height, name) in sorted(mg.LABEL_TEXTURES.items()):
+        folder = ART / f"{texture:016X}" / "labels"
+        for code in sorted(languages.LANGUAGES):
+            path = folder / code / f"{name}.png"
+            if not path.is_file():
+                fault = code == languages.ENGLISH.code
+                print(f"  {'FAIL' if fault else 'ok  '} {texture:016X}/labels/{code}/{name}: "
+                      f"{'no PNG' if fault else 'no PNG, draws the English art'}")
+                failed |= fault
+                continue
+            with Image.open(path) as image:
+                faults = [] if image.size == (width, height) else [f"{image.size}, not {(width, height)}"]
+                if image.mode != "RGBA":
+                    faults.append(f"mode {image.mode}, not RGBA")
+                w, h = image.size
+                rgba = image.convert("RGBA")
+                edge = max(rgba.getpixel((x, y))[3] for x in range(w) for y in range(h)
+                           if x in (0, w - 1) or y in (0, h - 1))
+                if edge > 16:
+                    faults.append(f"outermost ring not transparent (alpha {edge})")
+                print(f"  {'FAIL' if faults else 'ok  '} {texture:016X}/labels/{code}/{name} "
+                      f"{image.size[0]}x{image.size[1]}" + (f" -- {'; '.join(faults)}" if faults else ""))
             failed |= bool(faults)
     return 1 if failed else 0
 

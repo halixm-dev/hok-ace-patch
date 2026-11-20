@@ -6230,3 +6230,233 @@ identity. The installed game stayed closed and untouched during the test.
 Evidence is `exact-input-probe.log`, `RepatchParityLocalProbeTest.java` and
 `exact-input-parity/` in the candidate evidence directory. The phone's completed candidate
 attempt was archived and verified on the PC during the probe to make room for its private build.
+
+## 2026-11-20 — PC edition ticket 01: engine hooks, the per-install catalog, BC7 ports — measurement
+
+- **Inputs:** a copy of the PC edition's packages `0`, `1`, `10`, `15` and `19` (2.7 GB) and
+  `LocalFileList.json`, read from the installed game and copied to
+  `D:/scratch/pc-edition-01/pc-game`. Nothing ran against the installed game. The mobile byte check
+  used the pristine layer at `D:/scratch/layer-verdict/session/game`. The azydev fork is
+  hok-ace-patcher 1.10.1.3, run read-only from its own folder with bytecode writing off and its work
+  folder outside it.
+- **Token hook:** the engine records no replacement hash between `adaptive.scan` and `commit`. That was
+  read from the disassembly of `wxq_patch.adaptive`. A `scan` wrapper may therefore rewrite the
+  materialized replacements, as `build_patch` already does in place.
+- **Mobile unchanged:** `--selftest` from source before and after the change, English and Indonesian.
+  `selftest.json` is identical (packages `1` 96, `1` 11, `1050016095` 1, `15` 222, `19` 22, `20` 1,
+  `1` 1, `10` 3), and all 14 staged files have identical SHA-256. Re-run after the last edit.
+- **BC7 encoder quality**, mean premultiplied difference per block, Career atlas English (8404 blocks):
+
+  | Encoder | Mean | p90 | Worst | Blocks over 6 | Time |
+  |---|---:|---:|---:|---:|---:|
+  | The fork's mode 6 alone | 11.5 | — | 89.7 | — | — |
+  | Modes 6, 5, 4 (Python) | 0.77 | 2.75 | 12.0 | 147 | 20.4 s |
+  | Modes 6, 5, 4, 7 (Python) | 0.27 | 0.88 | 7.6 | 5 | 31.4 s |
+  | etcpak first, Python modes past 6 | 0.44 | 1.75 | 7.4 | — | 8.8 s |
+
+  Every mode decodes bit-exact through texture2ddecoder, checked on 300 random blocks each. The
+  mode-7 partition and anchor tables were read back from that decoder. The game's own encoder wrote
+  most Career label blocks in modes 4 (2506), 5 (498) and 7 (4906).
+- **The threshold BC7 cannot meet:** the Secret Technique title atlas left 2077 distinct blocks above
+  6 levels. All of them carry alpha, and each re-run re-encoded them. The Python encoder with 4, 16
+  or all 64 mode-7 partitions left 2077, 1986 and 1962 above 6 (median 7.4, worst 13.9). etcpak at
+  uber levels 0, 2 and 4 left 2060, 2053 and 2053 (median 12.1). The better of the two per block left
+  2075 (median 7.5, worst 13.9). Bleeding the color of low-alpha pixels toward the block mean made
+  etcpak worse (median 12.9 to 14.8). Verdict: this is BC7's limit on anti-aliased edges over
+  transparency at this measure, not the encoder's. BC7 blocks are judged by `BC7_MATCH_MEAN` = 14,
+  and ASTC keeps 6 (user's decision).
+- **etcpak 0.9.15** (`etcpak-0.9.15-cp37-abi3-win_amd64.whl`, MIT): `compress_bc7` takes RGBA in
+  the texture's row order. Its `decompress_bc7` raised MemoryError on one 4x4 block and crashed the
+  process in a loop, so blocks are decoded with texture2ddecoder.
+- **`check_graphics.py` `[13]`** runs on a synthetic BC7 texture (all 13 sections pass, 136 s):
+
+  | Encoder | Career port | Career re-run | Titles | Titles re-run |
+  |---|---|---|---|---|
+  | The fork's mode 6 | English mean 28.8 | 3354 blocks | — | 9471 blocks |
+  | Python modes 6, 5, 4, 7 | 9168 blocks, 33.7 s | 221 blocks | 25898 blocks, 241.2 s | 2634 blocks |
+  | etcpak first, threshold 6 | 9168 blocks, 12.7 s | 220 blocks | 25893 blocks, 103.5 s | 2629 blocks |
+  | etcpak first, BC7 threshold 14 | 9168 blocks, 11.0 s | 0 | 23264 blocks, 51.0 s | 0 |
+
+  With the threshold at 14, English stands at every Career device box (worst 2.83), and both labels
+  are within 0.71. Titles are within 3.25. 64 English blocks round-trip at mean 0.30 and worst 5.44
+  premultiplied. A plain RGBA mean reads up to 30.4 on blocks with transparent pixels.
+- **Timings on the same copy**, seconds:
+
+  | Run | Fork `prepare_catalog` | This repo `pc_catalog.build` |
+  |---|---:|---:|
+  | English, first build | 37.0 (cold), 32.1 | 124.1 |
+  | Indonesian, first build | 31.4 | 81.7 |
+  | Again, nothing changed | 27.7 (no cache) | 0.03 English, 0.02 Indonesian |
+  | English, Python encoder only | — | 453.6 (atlases 446.1) |
+  | Indonesian, Python encoder only | — | 327.2 (atlases 320.5) |
+
+  Assets patched: fork 12 English and 13 Indonesian; this repo 48 and 49. This repo adds the Secret
+  Technique titles and their relayout (whole-file entries) and the Lua label and edits. The fork spends
+  37.5 s of a profiled 62 s encoding 10372 blocks in mode 6, plus 16 s on two package slot maps.
+  This repo's English build profiled at 241 s. The title atlas took 178 s and the three catalog
+  atlases 46 s. 29960 blocks went to `encode_block`; etcpak took 1.2 s for all of them. The 7548
+  blocks it left above 6 went through the Python modes, and mode 7 took 174 s. Two slot maps took
+  12 s, the Lua 2 s and the hard-linked stage 3 s (400 payloads linked, 0 copied).
+- **Cache check cost:** re-reading the 52 input assets walks every chunk of packages `19` and `10`
+  (`QtsPackage.build_slot_map`), which took 64 s unprofiled. With the record's file stamps, the
+  first check re-hashed in 41 s and wrote the stamps. Later checks took 1.6 s for the whole process
+  and 0.03 s inside `build`.
+- **Refused:** the ready atlas `E86DF43167CA2143`. Its installed source does not match the catalog's
+  `source_sha256`, and its sprite table has no `Image_1585869273` (*confirm
+  choice*). It is dropped from the per-install catalog (ADR 0006). The mobile full layer skips the
+  same atlas.
+- **Verdict:** pass offline. BC7 was the slow step; with the user's approval etcpak was added and
+  the remaining time is the Python fallback's mode 7. Not run: an engine install on the PC edition
+  (ticket 02) or the frozen exe with etcpak.
+
+## 2026-11-20 — PC edition ticket 02: the PC workflow on a scratch copy — pass
+
+- **Inputs:** a full copy of the PC edition (14.5 GB, 1905 files) at `C:/scratch/pc-edition-02/game`,
+  copied from the installed game with `robocopy` once its download had finished. Every job ran on the
+  copy; nothing ran against the installed game. The launcher was closed for the run.
+- **What the engine writes:** one English install changed 16 files in packages `1`, `10`, `15`, `19`,
+  `20`, `21` and `1050016095`, each package's index (`<id>.db`) and every shard. **All 16 are listed in
+  `LocalFileList.json`**, contrary to the fork's note that the patched packages are not. Each kept its
+  exact listed size. The shards also kept their modification times; only the indexes got new ones.
+  `LocalFileList.json` was left alone (`launcher_manifest.updated` false), and the engine deleted the
+  four unlisted QtsVFS watchdog ledgers (`QtsDataFolder/QtsVFSCache/Watchdog`, 80 KB). ADR 0011 was
+  reworded from *never write a listed file* to *keep every listed file at its listed size* (user's
+  decision). Whether the launcher accepts this is for a PC cycle to confirm.
+- **Receipts:** one install receipt holds the 16 originals (4.0 GB). A restore writes its own receipt
+  beside the install receipt it undid, and the engine prunes both on its next install or restore
+  (7.9 GB at the peak). `pc_edition` therefore lets a completed restore cancel every install receipt
+  before it.
+- **Foreign install:** the engine's scan reads the same with no receipts of ours. On the untranslated
+  game it counts 248321 strings to translate and 32617 already English; after an install, 0 and 276513.
+  *Foreign* is "no receipts of ours, and more strings already in the language than left to translate",
+  or a changed window title.
+- **Process guard:** `CreateToolhelp32Snapshot` listed seven `王者万象棋.exe` processes while the
+  launcher was open, and a `--pc-job status` from source answered `pc_close_game` with that name.
+- **`tools/research/check_pc_install.py`, both orders (`en:id,id:en`): OK.** Restore returned every
+  file under `builtin` to its starting SHA-256, the second install changed nothing, each switch ran a
+  restore and then an install, `replacements` was empty at every engine start, and `LocalFileList.json`
+  and every listed size held. Times in seconds; the stage was cached unless noted:
+
+  | Step | `en` then `id` | `id` then `en` |
+  |---|---:|---:|
+  | Check, untranslated | 27.8 | 130.8 (stage re-hashed) |
+  | Install A | 481.5 | 631.0 (`id` stage built) |
+  | Check, installed | 37.9 | 57.3 |
+  | Install A again | 71.7 | 103.4 |
+  | Install B (restore, then install) | 4200.5 (standby, below) | 608.2 |
+  | Check after the switch | 70.9 | 38.8 |
+  | Restore | 42.1 | 840.6 (standby, below) |
+
+  Install A includes the scan for a foreign install (about 30 s) and the engine's own install. Two
+  timings are void: the computer was in Modern Standby from 15:58 to 16:55 and from 17:26 to 17:39
+  (the System log, Kernel-Power 506/507), inside those two jobs. The first, a probe on the same copy,
+  restored in 36.0 s, and the English install it undid took 627.8 s with a stage build of 135.3 s.
+- **The frozen exe** (PyInstaller 6.22.3, 64.0 MB): `--smoketest` gives `ok` with 18 checks, among
+  them `import pc_edition` and `bc7 round trip`. `--pc-job status` on the untranslated copy answered
+  *not installed* in 49.7 s (56 s with start-up). `--pc-selftest` staged and verified both languages
+  in 1002 s without writing to the copy: 396.3 s for English and 393.9 s for Indonesian at the engine,
+  the same seven packages (`1` 396, `10` 10, `1050016095` 71, `15` 219, `19` 57, `20` 1, `21` 1) and
+  the ready atlas refused in each. Its first try ran C: out of space (`WinError 112`): the engine
+  stages whole packages in the working folder (4.2 GB) and copies one to `%TEMP%` to hash it. That
+  failure now has its own message, `pc_disk_full`.
+- **Not run:** the fork's PC page on the same copy (the speed comparison is ticket 05's PC cycle), a
+  launcher start after an install (PC cycle), and the interface (ticket 03).
+
+## 2026-11-21 — PC edition ticket 05: one PC cycle per language on the installed game — pass
+
+- **Inputs:** the installed PC edition at `D:\WXQ`, **launcher 26111.0.4.30004** (`launcherConfig.json`'s
+  `launcherExePath`), **game data 1.11.0.2** (`Version.txt`, `QtsPackageConfig.json`). The launcher read
+  26102.0.2.30004 at the first Check and updated itself when the user opened it to run Repair, before any
+  install; the data version did not change. Every job ran from source at `586fb71` (ticket 04's branch),
+  `app\hok_patcher.py --pc-job <action> D:\WXQ D:\scratch\pc-edition-05\work <answer> <language>`, with
+  the working folder on D: (receipts in `<work>\pc\receipts\dd68449755176798c59093de\`). The user closed
+  the launcher and the game before each job and started and watched them at each checkpoint; nothing
+  was edited by hand. The answers, job logs and SHA-256 lists of `builtin` are kept outside the repo in
+  `D:\scratch\pc-edition-05\evidence\`.
+- **Starting state:** Check read *not installed* (95.1 s, stage built), then the user ran the launcher's
+  Repair. `builtin` held 592 files; `LocalFileList.json` (1250 entries, SHA-256 `80d9b6b5…`) kept these
+  bytes through every step below, and every listed file stayed at its listed size after each install.
+- **Jobs**, in order (seconds are the job's own `seconds`; the stage was reused unless noted):
+
+  | Step | Answer | Seconds |
+  |---|---|---:|
+  | Check, before | *not installed* | 95.1 (English stage built) |
+  | Install English | *installed*, `en`: 248321 strings, 359 graphics, 36 unknown left Chinese | 410.2 |
+  | Check | *installed*, `en` | 34.6 |
+  | Install Indonesian (restore `en`, then install) | *installed*, `id`, 359 graphics | 509.4 (`catalog_id` stage built) |
+  | Install English (restore `id`, then install) | *installed*, `en` | 410.6 |
+  | Check | *installed*, `en` | 29.5 |
+  | Remove translation | *not installed*, "Saved originals restored and verified" | 31.2 |
+  | Check, after | *not installed* | 35.2 |
+
+  The English install changed 16 files in packages `1`, `10`, `15`, `19`, `20`, `21` and `1050016095`,
+  as on the scratch copy. After the switch back, every file under `builtin` had the same SHA-256 as after
+  the first English install; after Remove, every file had its starting SHA-256. Receipts: 4.0 GB after an
+  install, 7.9 GB after Remove (the engine prunes the pair on its next run). The ready atlas
+  `E86DF43167CA2143` was refused at this installation's sprite table in both languages, as offline. The
+  engine's own message reads "English installed and verified" for the Indonesian install too; that text
+  is the runtime's, and the answer's `language` is `id`.
+- **In the game (user's observations), English:** the launcher reached its start button with no repair;
+  the lobby is English and the window title stays 王者万象棋; text wraps cleanly; card text shows no raw
+  `{Energy}`/`{LordHp}`/`{LordExp}`; the Career atlas labels and the Secret Technique titles are English
+  and in place. **Pass.**
+- **In the game, Indonesian:** the launcher reached its start button with no repair; the lobby is
+  Indonesian; wrapping, token expansion and the atlases as in English. **Pass.**
+- **MULAI GAME / START GAME:** the lobby shows an event skin of the start button (开始游戏 over "Super
+  Weekend Perks Are Here!", the user's screenshot), a texture the catalog does not carry, so it stays
+  Chinese in both languages, and on the phone as well since the last update (user's report). It hides
+  the two catalog textures. Both are written: read back from package `19`, `863114A42F12EF76` and
+  `C9F49510F2F67402` match the stage's `patched_sha256` in English (`c6c0b356…`, `a2f7c57d…`, the atlas
+  ported at the PC sprite `Image_1845319953`) and in Indonesian (`8c9a9db1…`, `625a12c4…`). MULAI GAME is
+  therefore verified on disk, not on screen. The user's decision: the cycles pass, and the event button
+  is a coverage gap shared with the mobile edition, outside ticket 05. The room screen's event line
+  `翻牌钻石翻倍 0/3，有分同享不限亲密度` stays Chinese too.
+- **Remove translation:** the launcher accepted the restored files and reached its start button with no
+  repair. **Pass.**
+- **ADR 0011 holds:** the launcher compares listed sizes, not bytes. It started without a repair after
+  the English install, the Indonesian install and Remove translation.
+- **Not run:** *After a launcher update* (Check reads *replaced by an update*, then Install). The one
+  update in this window shipped before any install, so it replaced no translated file; the step waits for
+  an update that ships while a translation is installed. Not run either: the frozen exe (the jobs ran
+  from source) and a match start and end.
+
+## 2026-11-21 — Event start button: the Super Weekend label found and drawn from repo art — measurement
+
+Offline only; nothing read from `D:\WXQ` or the phone. Inputs: the PC scratch copy
+`D:\scratch\pc-edition-01\pc-game` (package `19` hashes equal to the 1.11.0.2 starting state of ticket 05),
+the phone's pristine snapshots `20261029-1.8.0.1` and `20261118-1.10.1.2`. Plan and renders:
+`.scratch/event-start-button/`; builds under `D:\scratch\event-start-button\`.
+
+- **The label.** Package `19` holds twelve 151,776 B assets (372x102 RGBA32). Ten are catalog edits; the
+  uncatalogued ones are `A71C734D3EFAFBFF`, 开始游戏 in a warm cream gradient (the Super Weekend skin), and
+  `0915100A62E078D8`, 确认选择. All twelve are loose sprites under `UIResources/GameCenter`; no prefab names
+  the event sprite, so the event code swaps it in. On the phone `A71C734D3EFAFBFF` is in package `19` at
+  1.10.1.2 (16,864 B, ASTC 6x6, the same image) and absent at 1.8.0.1.
+- **Not a revision of START GAME.** Against `863114A42F12EF76`, 57 % of alpha values are equal (max
+  difference 255), and the colour is a warm row gradient (about (233,224,221) bottom to (255,244,234) top).
+  So no `DEVICE_REVISIONS` alias.
+- **The subtitle** "Super Weekend Perks Are Here!" is the supplement's `超级周末，特权开启！`, already text.
+- **The room line** `翻牌钻石翻倍 0/3，有分同享不限亲密度` comes from package `1`'s `9E924AAB5066EE19` (293 B,
+  phone 1.10.1.2 on), a sealed config bin of 7 perk rows (`翻牌钻石翻倍 %d/%d`, `有分同享不限亲密度`, …) the
+  room joins with `，`. Not in the catalog's `table_hashes`, none of the 7 strings in the catalog or the
+  supplement. Only the allowlist reaches it, and `rewrite_config` would first need a reseal for sealed
+  bins other than the lineup bins. Left open; the user has not decided.
+- **The pass** (`mobile_graphics.LABEL_TEXTURES`, `label_texture`): art re-shaded from the catalog's
+  START GAME / MULAI GAME renders to the event's row colour, approved by the user as drafts.
+  - `check_graphics.py`: all checks pass, with the new [14] (art per language, whole replacement at 6x6,
+    decode mean 1.31 from the art, re-run unchanged, PC rows bottom-up, wrong size refused).
+  - `atlas_sprites.py labels --check`: both files ok.
+  - **Phone, offline, 1.10.1.2 layer, no APK**, `build_device_patch.py` in English and Indonesian: package
+    `19` "23 textures translated, 1 of 24 skipped (`E86DF43167CA2143`)"; 111 tables and 247 textures in
+    each. The staged `A71C734D3EFAFBFF` reads back (with `install_btree_slot_map`) as START GAME /
+    MULAI GAME. It differs from the same art encoded in another process in 1 / 4 of 1054 blocks, at most
+    one level per channel. So `label_texture` keeps an existing texture within `LABEL_TEXTURE_KEEP` (2),
+    and a re-run over the staged output then returns it unchanged.
+  - **PC, offline**, `pc_catalog` on the scratch copy: English stage 49 assets patched, Indonesian 50
+    (ticket 05: 48 and 49), the ready atlas refused as before. The new package-`19` entry's payload
+    applied to the installed source gives its `patched_sha256`, and the source and payload hashes match
+    too, in both languages. The copy's package `19` hashes are unchanged.
+  - The engine's `stage` step did not run: the scratch copy has no `WXQ_Data\Plugins\x86_64` QtsVFS
+    runtime (and no `WXQ.exe`, so `--pc-selftest` refuses it as a game folder).
+- **Not run:** a phone cycle and a PC cycle with the event live, the engine's own stage verification on a
+  full PC copy, and the APK-included phone run.

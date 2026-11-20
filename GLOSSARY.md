@@ -1,10 +1,18 @@
 # HOK ACE Mobile English Patcher
 
-Installs a translation of 王者万象棋 onto an Android phone by rewriting the game's own data packages, without root.
+Installs a translation of 王者万象棋 by rewriting the game's own data packages: onto an Android phone without root, or onto the PC edition on the same computer.
 
 ## Language
 
 ### Game data
+
+**Mobile edition**:
+The game as it runs on an Android phone (`com.tencent.tmgp.osgame`).
+_Avoid_: Android version, mobile game
+
+**PC edition**:
+The game as it runs on Windows (`WXQ.exe`), installed and kept current by its own launcher.
+_Avoid_: PC version, Windows game, desktop client
 
 **Data layer**:
 One of the two places the game reads its packages from; the override layer is read first, the prime layer only for what the override lacks.
@@ -25,6 +33,10 @@ _Avoid_: original, clean, unpatched data
 **Pristine delta**:
 The pristine bytes an install overwrote, kept so a later run can rebuild the pristine layer from the files the install left unchanged.
 _Avoid_: restore delta, backup, undo
+
+**Receipt**:
+The original bytes of the PC edition files one install overwrote, kept by the runtime engine in this patcher's working folder; the PC edition's only undo record, owned by this patcher alone.
+_Avoid_: backup, pristine delta (that is the mobile edition's)
 
 **Replaced file**:
 A file the pristine delta names that a game update rewrote, so it matches neither side of its entry. It becomes the new pristine only when the delta's asset record shows none of this patcher's assets left in its package.
@@ -127,7 +139,7 @@ The player's instruction to end the current action and leave the game's files an
 _Avoid_: pause (the player has ended the action)
 
 **Windows patcher**:
-The Windows app that installs the translation onto a phone connected over USB.
+The Windows app that installs the translation onto a phone connected over USB, or onto the PC edition on the same computer.
 _Avoid_: PC patcher, Windows GUI, Windows app, desktop patcher
 
 **Android patcher**:
@@ -139,8 +151,8 @@ What gives the Android patcher the privileges to reach the game's files, chosen 
 _Avoid_: access method (access is the access APK's word), route, mode
 
 **PC patcher**:
-The upstream patcher for the PC edition of the game, which produces the catalog and the translation runtime this project ships.
-_Avoid_: using it for the Windows patcher
+The upstream patcher for the PC edition, which produces the catalog and the translation runtime this project ships.
+_Avoid_: using it for the Windows patcher, or for the Windows patcher's PC edition support
 
 ### Verification
 
@@ -148,8 +160,12 @@ _Avoid_: using it for the Windows patcher
 One watched run on a real phone that tests a single change and ends in a verdict.
 _Avoid_: test run, watched cycle
 
+**PC cycle**:
+One watched run in the PC edition itself that tests a single change and ends in a verdict.
+_Avoid_: device cycle (that is the phone's), PC test
+
 **Allowlist**:
-The config bins a device cycle has cleared for translation; one today, the Official recommendation lineups.
+The config bins a cycle has cleared for translation, per edition: a device cycle clears a bin for the mobile edition (one today, the Official recommendation lineups), a PC cycle for the PC edition (none yet).
 _Avoid_: safe list, whitelist
 
 **Candidate queue**:

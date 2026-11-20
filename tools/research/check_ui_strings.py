@@ -42,12 +42,13 @@ ANDROID = ROOT / "android" / "app" / "src" / "main" / "java"
 STOP_CARD = ANDROID / "dev" / "halixm" / "hokacepatcher" / "StopCard.kt"
 BRIDGE = ROOT / "android" / "app" / "src" / "main" / "python" / "android_bridge.py"
 # The GUI and the device workflow (with its ADB client and pristine layer), whose dialogs and device hints
-# reach the screen through the GUI.
+# reach the screen through the GUI, and the PC edition's workflow.
 WINDOWS = (ROOT / "app" / "hok_patcher.py", ROOT / "app" / "patcher_core.py", ROOT / "app" / "adb_device.py",
            ROOT / "app" / "pristine_layer.py",
            ROOT / "app" / "apk_preparation.py",
            ROOT / "app" / "game_data_pull.py",
-           ROOT / "app" / "translation_payload.py")
+           ROOT / "app" / "translation_payload.py",
+           ROOT / "app" / "pc_edition.py")
 
 LANGUAGES = ("en", "id")
 PLATFORMS = {"android", "windows"}

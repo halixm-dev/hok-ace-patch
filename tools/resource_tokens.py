@@ -116,6 +116,34 @@ def expand_tokens(data: bytes, log=None, terms: dict[str, str] = RESOURCE_TOKENS
     return expanded
 
 
+def expand_staged(plans, log, terms: dict[str, str]) -> int:
+    """Bake the language's resource terms (<terms>) into the staged replacements, after translation.
+
+    <plans> is `adaptive.scan`'s first result: `(package, replacements directory, per-asset counts)`
+    per package. translate_table requires source and target to carry identical placeholders, so the
+    catalog keeps {Energy}/{LordExp}/{LordHp} and the client would otherwise expand them to Chinese at
+    render time. Rewriting the materialized replacements keeps validation intact and still covers every
+    staging path that reads them: on the mobile edition full mode copies the directory and fit-only takes
+    its subset from it; on the PC edition the engine stages from it (`engine_hooks`' `scan` hook). Both
+    editions call this one function. Returns the number of strings changed.
+    """
+    changed = 0
+    for _package, replacements, _per_asset in plans:
+        for path in sorted(replacements.glob("*.assets")):
+            raw = path.read_bytes()
+            try:
+                expanded, count = expand_tokens_in_message(raw, terms)
+            except Exception as error:  # an asset we cannot parse is left byte-for-byte alone
+                log(f"token expand skipped {path.name}: {error}")
+                continue
+            if count:
+                path.write_bytes(expanded)
+                changed += count
+    if changed:
+        log(f"expanded resource tokens in {changed} replacement strings")
+    return changed
+
+
 def _varint(data: bytes, pos: int) -> tuple[int, int]:
     result = shift = 0
     while True:

@@ -139,22 +139,29 @@ Top to bottom:
 1. **Hero** — a panel. Eyebrow `COMMUNITY PATCHER  /  HOK ACE` in `on-panel-muted`, the app title in `title`,
    one line saying it is an unofficial, partial translation and that login goes through *Scan to
    login*. Drawn locally: the panel gradient plus a few faint diagonal light bands. No images.
-2. **① Language** — a card with, in order: the title, the language note, the two choices (English
+2. **Target choice** (Windows only) — a card with the eyebrow `YOUR GAME`, the title and two choices:
+   *Phone over USB* and *PC game on this computer*, styled like the language choices. The chosen
+   target is remembered. It locks with the language choices while either target works, and while
+   saved phone work waits, which also puts the window back on the phone (one line says so). The
+   Android patcher has no target choice.
+3. **① Language** — a card with, in order: the title, the language note, the two choices (English
    and Bahasa Indonesia), then **Remove translation**, a secondary outlined button.
    - The language note has two variants: no clear is needed while the patcher keeps a pristine
      delta; otherwise one short conditional line says a clear is needed only on a game another
      patcher or an older version translated. It never opens with the data-clearing instruction.
    - Remove translation shows only while a pristine delta is kept (Windows: in its working folder).
+   - On the **PC target** the note says a language switch puts back the saved originals first, and
+     Remove translation moves to the PC card.
    - The choices and Remove translation lock together while work runs, in the disabled colours.
      While unfinished work waits for recovery they stay locked, with one note saying the
      recovery action on Start comes first.
-3. **② Shell provider** (Android only) — a card with, in order: the eyebrow `02  /  SHELL PROVIDER`,
+4. **② Shell provider** (Android only) — a card with, in order: the eyebrow `02  /  SHELL PROVIDER`,
    the title, one supporting line, the three choices (Wireless debugging, the default, then Shizuku
    and Root), then the chosen provider's numbered guide, one
    line per step. A provider the build cannot start yet shows one line saying so instead of steps.
    The choices lock while work runs, like the language choices. **Windows** has no shell provider,
    so its Start card stays ②.
-4. **③ Start** (② on Windows) — a card with the single Start button. It rewrites itself in place for each state:
+5. **③ Start** (② on Windows) — a card with the single Start button. It rewrites itself in place for each state:
    - **Idle** and **not ready**: the Start button, with the blocker as the next step when there is one.
      The idle instruction says, before Start, to finish every in-game download and close the game;
      no checkbox or dialog follows Start.
@@ -194,7 +201,28 @@ Top to bottom:
    then device status and the working folder (with its free space and Change…), above the state and
    the Start button. A folder short of space is the not-ready blocker. The *Translation added*
    counts leave out the "game app verified" line, which only the Android patcher checks.
-5. **Warning or error card**, directly under Start, when one exists:
+6. **② PC game** (Windows, PC target) — in place of ② Start, a card with, in order:
+   - the *Before you start* checklist for the PC (launcher update finished, game and launcher closed,
+     time and space), while the game is not installed and no job result shows;
+   - the game folder (`GAME FOLDER`) with *Choose folder*, or a line saying no PC game was found;
+   - Check's state (`TRANSLATION`): a dot and *Installed: <language>*, *Not installed*, *Replaced by an
+     update*, *Partly installed*, *Translated by another patcher*, *Checking…* or *Not checked yet*. The
+     dot is `ink` when installed, `warning` for the three that need action, `disabled-text` otherwise;
+   - the working folder, its free space and Change…, as on the phone;
+   - the heading and one line: the state's next step, or a job's result (*Translation added*,
+     *Translation removed*, with the time it took), or *Work stopped* with the error card;
+   - **Install** (primary, full width), then **Check** and **Remove translation** as two secondary
+     buttons sharing one row. Remove translation asks once with a plain dialog, like the phone's.
+     Install is disabled without a game or with too little space; Remove translation when Check says
+     *not installed* or *translated by another patcher*.
+
+   Its eyebrows are the phone's: `02  /  READY TO PLAY` (not installed, not checked, no game),
+   `IN PROGRESS`, `DONE` (installed, or a job's result) and `NEEDS ATTENTION` (replaced, partly
+   installed, another patcher's, a failure). While a job runs the actions give way to a bar, the
+   elapsed time and the job's last log line; there is no Stop safely, and one line says the game and
+   launcher stay closed. Check runs when the target opens and after each Install or Remove
+   translation. Closing the window during a job shows a dialog asking the player to wait.
+7. **Warning or error card**, directly under Start, when one exists:
    - The **warning card** holds anything that needs action. On Android it is "Game won't open?",
      with the recovery options folded behind *Show recovery options*, which reads *Hide recovery
      options* while they are open. Restore interrupted patch comes first, a secondary button. The
@@ -202,9 +230,9 @@ Top to bottom:
      their *Save log for help* is hidden while the error card or Start already offers it: one per screen.
    - The **error card** holds the cause and the next step, with *Copy error details* (Android) and
      *Save log for help*.
-6. **Log** — the live activity log; on Android also the technical log. Each log scrolls inside its
+8. **Log** — the live activity log; on the PC target, the job's log as it runs; on Android also the technical log. Each log scrolls inside its
    own height-bounded panel while the page scrolls outside it.
-7. **Footer** — the installed version, then one row of text buttons: *Technical tools*, *Check for
+9. **Footer** — the installed version, then one row of text buttons: *Technical tools*, *Check for
    updates* and, on Android, *Free up space*. They are not full-width buttons. At a large system font they stack, one per line, still text buttons (see Buttons).
 
 Warnings and recovery messages never appear as extra steps.

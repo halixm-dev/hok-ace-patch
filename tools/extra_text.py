@@ -511,6 +511,10 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
 }
 # Every Lua script the pass may write.
 SCRIPT_ASSETS = frozenset(SCRIPT_LABELS) | frozenset(SCRIPT_EDITS)
+# The PC edition's package holding every SCRIPT_ASSETS script, the same Lua as the mobile edition's
+# (azydev fork, 2026-11-18, PC 1.10.1.2). `pc_catalog` opens only this package for them; a script it
+# lacks is looked for by a scan of every package's index, which the build logs.
+SCRIPT_PC_PACKAGE = "10"
 _CJK_RUN = re.compile(r"[\u3400-\u9fff\uf900-\ufaff]+")
 
 

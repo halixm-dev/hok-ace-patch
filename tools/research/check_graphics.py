@@ -11,6 +11,8 @@ Two independent oracles, both in this repo:
   offsets and of its device sprite boxes (section 10, and ``atlas_blocks``). An atlas the catalog has
   no edit for (``mobile_graphics.LABEL_ATLASES``) may change only its labels' blocks (section 11), and
   the Secret Technique title relayout may change only the moved sprites' fields (section 12).
+  The PC edition's BC7 ports (``codec="bc7"``, section 13) hold the same invariants on a synthetic
+  BC7 texture, and a re-run over their own output encodes no block.
 
 Run by hand from the project root:
 
@@ -779,6 +781,36 @@ def check_label_atlas() -> None:
           mg.label_atlas(raw, texture, CATALOG, unmoved) is None)
 
 
+def check_label_texture() -> None:
+    print("\n[14] a standalone label drawn from this repo's art, per language (LABEL_TEXTURES)")
+    for texture, (width, height, _name) in sorted(mg.LABEL_TEXTURES.items()):
+        name = f"{texture:016X}"
+        english = mg.label_texture_art(CATALOG, name)
+        indonesian = mg.label_texture_art(CATALOG.parent / "catalog_id", name)
+        check(f"{name}: English and Indonesian art ship at {width}x{height}",
+              english is not None and indonesian is not None)
+        if english is None or indonesian is None:
+            continue
+        check(f"{name}: Indonesian draws its own art, not the English", english != indonesian)
+        device = device_bytes(width, height, 6, 6)
+        drawn = mg.label_texture(device, name, CATALOG)
+        check(f"{name}: the phone's 6x6 texture is replaced whole at its own size",
+              drawn is not None and len(drawn) == len(device) and drawn != device)
+        if drawn is not None:
+            shown = vertical_flip(mg.decode_astc(drawn, width, height, 6, 6), width, height)
+            check(f"{name}: it decodes to the art", mean_abs_diff(shown, english) < 4,
+                  f"mean {mean_abs_diff(shown, english):.2f}")
+            check(f"{name}: a re-run over its own output changes nothing",
+                  mg.label_texture(drawn, name, CATALOG) == drawn)
+        pc = bytes(width * height * 4)
+        rows = mg.label_texture(pc, name, CATALOG, codec="rgba32")
+        check(f"{name}: the PC's RGBA32 texture gets the art in bottom-up rows",
+              rows is not None and vertical_flip(rows, width, height) == english)
+        check(f"{name}: a texture of another size returns None",
+              mg.label_texture(device[:-16], name, CATALOG) is None
+              and mg.label_texture(pc[:-4], name, CATALOG, codec="rgba32") is None)
+
+
 def check_relayout() -> None:
     print("\n[12] the Secret Technique title relayout, on pristine fixtures")
     import struct  # noqa: PLC0415
@@ -841,6 +873,138 @@ def check_relayout() -> None:
           card_titles.relayout({**pristine, 0xF86A7241DD039F73: b"\0" * 64}.get, layout) is None)
 
 
+# --------------------------------------------------------------------------------------------
+# 13. the PC edition's BC7 atlases: the same ports, decoded and re-encoded as BC7
+# --------------------------------------------------------------------------------------------
+def bc7_texture(width: int, height: int, rgba: tuple[int, int, int, int] = (7, 38, 69, 255)) -> bytes:
+    """A valid flat BC7 texture: one encoded block, repeated (every block of a flat image is the same)."""
+    import bc7_mode6  # noqa: PLC0415
+
+    return bc7_mode6.encode_block([rgba] * 16) * ((width // 4) * (height // 4))
+
+
+class EncodeCounter:
+    """Counts `bc7_mode6.encode_block` calls; `_reencode` imports it at call time, so this sees each one."""
+
+    def __init__(self) -> None:
+        import bc7_mode6  # noqa: PLC0415
+
+        self.module, self.original, self.calls, self.seconds = bc7_mode6, bc7_mode6.encode_block, 0, 0.0
+
+    def __enter__(self) -> "EncodeCounter":
+        def counted(pixels):
+            started = time.perf_counter()
+            try:
+                return self.original(pixels)
+            finally:
+                self.calls += 1
+                self.seconds += time.perf_counter() - started
+
+        self.module.encode_block = counted
+        return self
+
+    def __exit__(self, *_exc) -> None:
+        self.module.encode_block = self.original
+
+
+def check_bc7(catalog) -> None:
+    print("\n[13] the PC edition's BC7 atlases (port_atlas / label_atlas with codec='bc7')")
+    import json  # noqa: PLC0415
+    import random  # noqa: PLC0415
+
+    import bc7_mode6  # noqa: PLC0415
+    from pc_catalog import block_runs  # noqa: PLC0415
+
+    graphic = catalog.graphics[0x13C19E4E4486B31C]
+    width, height = int(graphic["width"]), int(graphic["height"])
+    raw = bc7_texture(width, height)
+    payload = (CATALOG / graphic["payload"]).read_bytes()
+    english = mg.decode_pc(mg._apply_blocks(raw, graphic, payload), width, height, "bc7")
+    # Blocks of real label art: the Career atlas's English, sampled where the catalog patches it, judged
+    # premultiplied as the port judges a block (mobile_graphics.BLOCK_MATCH_MEAN). A plain RGBA mean also
+    # counts the color under transparent pixels, which BC7 may drop: 30.4 on one such block (2026-11-20).
+    rng = random.Random(20261120)
+    patched = [offset // 16 + i for offset, length in graphic["patch_ranges"] for i in range(length // 16)]
+    worst = total = 0.0
+    for block in rng.sample(patched, 64):
+        row, column = (block // (width // 4)) * 4, (block % (width // 4)) * 4
+        pixels = [tuple(english[((row + y) * width + column + x) * 4:((row + y) * width + column + x) * 4 + 4])
+                  for y in range(4) for x in range(4)]
+        decoded = mg.decode_pc(bc7_mode6.encode_block(pixels), 4, 4, "bc7")
+        difference = bc7_mode6.mismatch(pixels, [tuple(decoded[i:i + 4]) for i in range(0, 64, 4)])
+        worst, total = max(worst, difference), total + difference
+    check("a block of the Career atlas's English round-trips", worst <= mg.BLOCK_MATCH_MEAN,
+          f"64 blocks, mean {total / 64:.2f}, worst {worst:.2f}")
+    edge = [(255, 255, 255, 255)] * 8 + [(0, 0, 0, 0)] * 8
+    decoded = mg.decode_pc(bc7_mode6.encode_block(edge), 4, 4, "bc7")
+    check("a block half label, half transparent keeps both", mean_abs_diff(decoded, bytes(c for p in edge for c in p)) <= 1.0)
+
+    sprites = {name: tuple(box) for name, box in json.loads(LAYOUT_FIXTURE.read_text()).items()}
+    with EncodeCounter() as first:
+        new = mg.port_atlas(raw, graphic, CATALOG, sprites, codec="bc7")
+    check("the Career atlas ports in BC7", new is not None and len(new) == len(raw),
+          f"{first.calls} blocks encoded in {first.seconds:.1f}s")
+    if new is None:
+        return
+    check("only the old offsets and the drawn boxes change",
+          blocks_outside(raw, new, atlas_blocks(graphic, sprites)) == 0)
+    decoded = mg.decode_pc(new, width, height, "bc7")
+    worst = max(sprite_diff(decoded, width, height, sprites[r["sprite"]],
+                            crop_box(english, width, height, r["box"])) for r in graphic["regions"])
+    check("every region's English stands at its device box", worst <= mg.BLOCK_MATCH_MEAN,
+          f"worst mean difference {worst:.2f}")
+    labels, _restorations = mg.atlas_art(CATALOG, graphic["hash"], sprites)
+    drawn = max((sprite_diff(decoded, width, height, sprites[n], px) for n, px in labels.items()), default=99)
+    check("this repo's labels are drawn at their device boxes", drawn <= mg.BLOCK_MATCH_MEAN,
+          f"{sorted(labels)}, worst {drawn:.2f}")
+    check("the port is deterministic", mg.port_atlas(raw, graphic, CATALOG, sprites, codec="bc7") == new)
+    with EncodeCounter() as rerun:
+        again = mg.port_atlas(new, graphic, CATALOG, sprites, codec="bc7")
+    check("a re-run over its own output re-encodes nothing", again == new and rerun.calls == 0,
+          f"{rerun.calls} blocks encoded")
+    check("the catalog's own layout takes the catalog's blocks byte for byte",
+          mg.port_atlas(raw, graphic, CATALOG, catalog_sprites(graphic), codec="bc7")
+          == mg._apply_blocks(raw, graphic, payload))
+    region = graphic["regions"][0]
+    shrunk = {**sprites, region["sprite"]: (*sprites[region["sprite"]][:3], sprites[region["sprite"]][3] - 1)}
+    check("a region whose sprite changed size is refused",
+          mg.port_atlas(raw, graphic, CATALOG, shrunk, codec="bc7") is None)
+    check("an unknown codec is refused", mg.port_atlas(raw, graphic, CATALOG, sprites, codec="etc2") is None)
+    ranges = block_runs(raw, new)
+    patch = {"patch_ranges": ranges}
+    check("the per-install payload rebuilds the port from the original",
+          mg._apply_blocks(raw, patch, b"".join(new[o:o + n] for o, n in ranges)) == new,
+          f"{len(ranges)} runs, {sum(n for _o, n in ranges) // 16} blocks")
+
+    texture = "0B4DA7A85D27E87A"
+    width, height = mg.LABEL_ATLASES[int(texture, 16)]
+    layout = card_titles.load_layout(CATALOG)
+    if layout is None:
+        check("the title layout ships", False)
+        return
+    titles = title_sprites(layout, height)
+    raw = bc7_texture(width, height)
+    with EncodeCounter() as first:
+        new = mg.label_atlas(raw, texture, CATALOG, titles, codec="bc7")
+    check("the Secret Technique titles draw in BC7", new is not None and len(new) == len(raw),
+          f"{first.calls} blocks encoded in {first.seconds:.1f}s")
+    if new is None:
+        return
+    labels, _restorations = mg.atlas_art(CATALOG, texture, titles)
+    allowed = mg._box_blocks([titles[name] for name in labels], width, height)
+    check("only the labels' blocks change", blocks_outside(raw, new, allowed) == 0)
+    decoded = mg.decode_pc(new, width, height, "bc7")
+    drawn = max(sprite_diff(decoded, width, height, titles[n], px) for n, px in labels.items())
+    check("every title is drawn at its box", drawn <= mg.BLOCK_MATCH_MEAN, f"worst {drawn:.2f}")
+    with EncodeCounter() as rerun:
+        again = mg.label_atlas(new, texture, CATALOG, titles, codec="bc7")
+    check("a re-run over its own output re-encodes nothing", again == new and rerun.calls == 0,
+          f"{rerun.calls} blocks encoded")
+    check("the ASTC path is untouched by the codec argument",
+          mg.label_atlas(device_bytes(width, height, 4, 4), texture, CATALOG, titles)
+          == mg.label_atlas(device_bytes(width, height, 4, 4), texture, CATALOG, titles, codec="astc"))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--game", type=pathlib.Path,
@@ -865,7 +1029,9 @@ def main() -> int:
     check_splice(catalog)
     check_atlas(catalog)
     check_label_atlas()
+    check_label_texture()
     check_relayout()
+    check_bc7(catalog)
     if args.skip_slow:
         print("\n[5][6][7] skipped (--skip-slow)")
     else:

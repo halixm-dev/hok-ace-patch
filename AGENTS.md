@@ -1,6 +1,6 @@
 # HOK ACE Language Patcher
 
-Windows GUI that installs the English or Indonesian translation into 王者万象棋 (`com.tencent.tmgp.osgame`) on an Android phone over USB, without root. The Android app in `android/` runs the same pipeline on the phone through Shizuku.
+Windows GUI that installs the English or Indonesian translation into 王者万象棋: the mobile edition (`com.tencent.tmgp.osgame`) on an Android phone over USB, without root, or the PC edition (`WXQ.exe`) on the same computer. The Android app in `android/` runs the phone pipeline on the phone through Shizuku.
 
 Python **3.12 only**. `resources/runtime/` is 3.12 bytecode and will not load on any other version.
 
@@ -21,6 +21,12 @@ Headless runtime check (needs a dumped game directory):
 ```
 
 Without a dump, `--smoketest <out-dir>` checks that the freeze carries every module and codec (the Windows exe workflow runs it on each pull request).
+
+The PC edition's headless check stages both languages against a copy of the game and writes nothing to it; `tools\research\check_pc_install.py --game <copy> --work <dir>` drives the whole install, switch and restore sequence on a copy:
+
+```bat
+"dist\HOK ACE Language Patcher.exe" --pc-selftest <game-copy> <out-dir>
+```
 
 No test suite. Verify changes with `run.bat` or `--selftest`. The texture codec has its own offline check, which needs neither a device nor a game dump:
 
@@ -44,17 +50,17 @@ After moving or renaming a doc, run `tools\research\check_references.py` and `to
 
 | Path | Role |
 |---|---|
-| `app/` | GUI (`hok_patcher.py`), device workflow (`patcher_core.py`, with its ADB client `adb_device.py`, its pristine layer `pristine_layer.py`, APK preparation `apk_preparation.py`, game-data pull `game_data_pull.py` and translation payload `translation_payload.py` (all four mixed into `Patcher`), and the interface strings and `PatchError` in `ui_strings.py`, all re-exported), APK rewrite + v2 signing (`apk_tools.py`) |
-| `tools/` | Pipeline: `languages`, `terminology`, staging (`build_device_patch`), rebuild (`package_rebuild`, `qts_builder`), append (`qts_insert`), textures (`device_extensions`, `sprite_table`, `mobile_graphics`), extra text (`extra_text`, `pb_text`, `unity_text`; lineup bins `lineup_codes`, `config_bin`), relocation (`qts_relocate`) |
+| `app/` | GUI (`hok_patcher.py`), device workflow (`patcher_core.py`, with its ADB client `adb_device.py`, its pristine layer `pristine_layer.py`, APK preparation `apk_preparation.py`, game-data pull `game_data_pull.py` and translation payload `translation_payload.py` (all four mixed into `Patcher`), and the interface strings and `PatchError` in `ui_strings.py`, all re-exported), APK rewrite + v2 signing (`apk_tools.py`), PC edition workflow (`pc_edition.py`: finding the game, the process guard, receipts, state, the `--pc-job` child) |
+| `tools/` | Pipeline: `languages`, `terminology`, staging (`build_device_patch`), rebuild (`package_rebuild`, `qts_builder`), append (`qts_insert`), textures (`device_extensions`, `sprite_table`, `mobile_graphics`), extra text (`extra_text`, `pb_text`, `unity_text`; lineup bins `lineup_codes`, `config_bin`), relocation (`qts_relocate`), PC edition (`engine_hooks`: every hook into the runtime; `pc_catalog`: the per-install catalog; `bc7_mode6`: the BC7 encoder for its atlas ports) |
 | `tools/research/` | Probes and offline checks, run by hand |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime (from the PC patcher) |
 | `resources/catalog/` | English catalog (`catalog.json.gz`) plus the English catalog edits (`.blocks` / `.assets`) |
 | `resources/catalog_id/` | Indonesian catalog, plus only the catalog edits it re-draws (`<HASH>.blocks` + `previews/<HASH>.png`); every other payload is read from `catalog/` |
-| `resources/sprites/` | This repo's own art for regioned atlases: `<HASH>/labels/` and `<HASH>/restore/` |
+| `resources/sprites/` | This repo's own art for regioned atlases (`<HASH>/labels/` and `<HASH>/restore/`) and for label textures (`<HASH>/labels/<language>/`) |
 | `resources/ui/`, `resources/fonts/` | The shared design's theme tokens, strings and fonts, read by both patchers (`DESIGN.md`) |
 | `resources/qtsvfs/` | Tencent's own package builder (`QtsVFS.dll` + `QtskDB.dll` + VC runtimes), driven by ctypes; kept in the repo for `--builder` runs from source, not shipped |
 
-Flow: `patcher_core` drives the seven device steps and calls `build_patch`; the GUI talks only to `patcher_core`.
+Flow: two cores. For the phone, `patcher_core` drives the seven device steps and calls `build_patch`; for the PC edition, `pc_edition` builds the per-install catalog (`pc_catalog`) and runs the runtime engine (`wxq_patch.adaptive.run`) in a `--pc-job` child process. The GUI talks only to these two.
 
 `sys.path` is set in `patcher_core.py`: `tools/` is inserted for source runs; `resources/runtime/` is **appended** so the project stdlib wins.
 
@@ -81,7 +87,7 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 
 **Coverage and gating**
 
-- **Coverage** is the staged text tables, the catalog edits, 34 repo-drawn atlas labels (`mobile_graphics.ATLAS_LABELS`: two on the Career atlas, the 32 Secret Technique card titles in `LABEL_ATLASES`, English in both languages), one Lua label (`extra_text.SCRIPT_LABELS`), nine Lua edits (`extra_text.SCRIPT_EDITS`: the rank title's spacing, the line-break flag turned off, the "Exit now" label on the two match-end ranking toasts, across the faction tab item and its bar, one shared size for the Card screen's faction tab names that fits every tab, and in the lobby, one size for the bottom-right button names and the Menu and top-bar names kept clear of their icons) and one config bin (`extra_text.SAFE_ASSETS`, the Official recommendation lineups). Never call it a complete translation; state the texture count as *applied*, never *covered*. ([translation-progress](docs/translation-progress.md))
+- **Coverage** is the staged text tables, the catalog edits, 34 repo-drawn atlas labels (`mobile_graphics.ATLAS_LABELS`: two on the Career atlas, the 32 Secret Technique card titles in `LABEL_ATLASES`, English in both languages), one repo-drawn label texture drawn per language (`mobile_graphics.LABEL_TEXTURES`: the Super Weekend start button, START GAME / MULAI GAME), one Lua label (`extra_text.SCRIPT_LABELS`), nine Lua edits (`extra_text.SCRIPT_EDITS`: the rank title's spacing, the line-break flag turned off, the "Exit now" label on the two match-end ranking toasts, across the faction tab item and its bar, one shared size for the Card screen's faction tab names that fits every tab, and in the lobby, one size for the bottom-right button names and the Menu and top-bar names kept clear of their icons) and one config bin (`extra_text.SAFE_ASSETS`, the Official recommendation lineups). Never call it a complete translation; state the texture count as *applied*, never *covered*. ([translation-progress](docs/translation-progress.md))
 - **Catalog only**: the text pass stages the catalog's tables and nothing else (`_drop_uncatalogued_tables`). ([prime-only-append](docs/features/prime-only-append.md))
 - **Allowlist**: a config bin is translated only once a device cycle clears it onto `extra_text.SAFE_ASSETS` (one today, the Official recommendation lineup bin). `--cycle-asset` enables one `CANDIDATE_ASSETS` hash per run; `tools/extra_text.py` records each withdrawn hash with its failing screen. ([ADR 0004](docs/adr/0004-the-allowlist-is-the-only-gate-for-config-bins.md), [extra-text-cycles](docs/features/extra-text-cycles.md))
 - **Uncatalogued config bins** are never rewritten, not even re-pointed at identical length. ([ADR 0005](docs/adr/0005-never-rewrite-an-uncatalogued-config-bin.md))
@@ -101,6 +107,17 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 - **Terminology table**: one game keyword reads one way, the default name (`夺取` is *Steal*, never the community *Plunder*). It applies in memory as the catalog loads. Add a term only with its variants measured on both catalogs. ([terminology-table](docs/features/terminology-table.md))
 - **Tokens**: `{Energy}`/`{LordExp}`/`{LordHp}` are expanded in the staged replacements by `resource_tokens.expand_tokens`; the catalog keeps the tokens. ([resource-token-expansion](docs/features/resource-token-expansion.md))
 - **Update strings**: strings a data update adds come from the supplement (`resources/catalog_supplement/texts.json`, one section per update, loaded by `tools/catalog_supplement.py`), only where the catalog has no entry, and must pass `adaptive.validate_translation`.
+
+**PC edition**
+
+- **Receipts** live in `<work>\pc\receipts\<game-id>\` (`engine_hooks` moves the engine's `receipt_root` there), owned by this patcher alone, never in the engine's default folder (the upstream PC patcher's `%LOCALAPPDATA%`). They are the PC edition's only undo record; nothing is imported from the fork or the upstream patcher. A language switch restores from the receipts, then installs, in one job. ([language-switch](docs/features/language-switch.md))
+- **Allowlist per edition**: a config bin a device cycle cleared stays untranslated on the PC edition until a PC cycle clears it there; the PC catalog carries none today, the lineup bin included. ([pc-cycle](docs/runbooks/pc-cycle.md))
+- **Launcher list**: never write `LocalFileList.json` and keep every file it lists at its listed size, so the window title stays 王者万象棋. ([ADR 0011](docs/adr/0011-keep-every-file-the-pc-launcher-lists-at-its-listed-size.md))
+- **Process guard**: every PC job refuses while `wxq*.exe` or `王者万象棋.exe` runs, listed through `CreateToolhelp32Snapshot`.
+- **Replacements**: empty `<work>\replacements\` before each Install and Check; the engine never empties it, and a leftover file stops the next install.
+- **Hooks**: every hook into the runtime goes through `engine_hooks.install`, and the PC-only ones (`scan`, `receipt_root`) only in a PC job.
+- **Per-install catalog** (`pc_catalog`): the language's catalog plus the regioned atlases ported at the PC edition's own sprite table (a refused atlas is dropped from the copy), the re-hashed re-drawn payloads and the Lua entries; no append, no card-dictionary chunk gain. Its stage folder keeps the language's catalog folder name, because `languages.for_catalog` reads the language from it. ([pc-edition](docs/features/pc-edition.md))
+- **Jobs** run in the `--pc-job` child, with no Stop safely or automatic continuation: the engine's commit recovers its own pending files on its next run. The game is found from the launcher's records or a picked folder, never by a drive scan.
 
 **Freezing**
 
@@ -128,6 +145,7 @@ Every kind of doc has one home. Write prose in the vocabulary of `GLOSSARY.md`.
 | Decisions | `docs/adr/` | changing an area an ADR names |
 | Feature records | `docs/features/` | changing a pass; update it in the same change |
 | Device cycle | `docs/runbooks/device-cycle.md` | testing a change on a phone |
+| PC cycle | `docs/runbooks/pc-cycle.md` | testing a change in the PC edition |
 | Untranslated string | `docs/runbooks/diagnose-untranslated.md` | a string stays Chinese |
 | Crash | `docs/runbooks/read-a-crash.md` | the game crashes |
 | Evidence | `docs/lab-notebook.md`, the single source for numbers and verdicts | before re-running an experiment |

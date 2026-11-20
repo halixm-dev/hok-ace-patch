@@ -3084,6 +3084,438 @@
       "en": "Finish every in-game download to the login screen and close the game, then tap Start. We change game files with root; the game app is not replaced. Keep the game closed until the work finishes. Adding the translation has not passed all phone tests.",
       "id": "Selesaikan semua unduhan dalam game sampai layar login dan tutup game, lalu ketuk Mulai. Kami mengubah file game dengan root; aplikasi game tidak diganti. Jangan buka game sampai proses selesai. Penerapan terjemahan belum lulus semua pengujian ponsel.",
       "draft": true
+    },
+    "pc_game_folder_invalid": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{path} is not the PC game's folder. Pick the folder that holds WXQ.exe.",
+      "id": "{path} bukan folder game PC. Pilih folder yang berisi WXQ.exe.",
+      "draft": true
+    },
+    "pc_close_game": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Close the game and its launcher first ({processes}), then try again.",
+      "id": "Tutup game dan launcher-nya dulu ({processes}), lalu coba lagi.",
+      "draft": true
+    },
+    "pc_file_in_use": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "A game file is in use by another program. Close the game and its launcher, then try again.",
+      "id": "Sebuah file game sedang dipakai program lain. Tutup game dan launcher-nya, lalu coba lagi.",
+      "draft": true
+    },
+    "pc_engine_failed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The translation could not be written: {detail}",
+      "id": "Terjemahan tidak dapat ditulis: {detail}",
+      "draft": true
+    },
+    "pc_no_receipt": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "There is no saved original to put back for these game files.",
+      "id": "Tidak ada file asli tersimpan untuk dikembalikan ke file game ini.",
+      "draft": true
+    },
+    "pc_receipts_mismatch": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The game files no longer match the originals this patcher saved, so the language cannot be switched safely.",
+      "id": "File game tidak lagi cocok dengan file asli yang disimpan patcher ini, jadi bahasa tidak dapat diganti dengan aman.",
+      "draft": true
+    },
+    "pc_foreign_install": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "This game was translated by another patcher, and this patcher has no saved originals for it.",
+      "id": "Game ini diterjemahkan oleh patcher lain, dan patcher ini tidak punya file asli tersimpan untuknya.",
+      "draft": true
+    },
+    "pc_repair_advice": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Run Repair in the game's launcher to get the original files back, then install again.",
+      "id": "Jalankan Perbaiki di launcher game untuk mengembalikan file asli, lalu pasang lagi.",
+      "draft": true
+    },
+    "pc_catalog_missing": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The translation files for {language} are missing from this patcher. Download the patcher again.",
+      "id": "File terjemahan untuk {language} tidak ada di patcher ini. Unduh ulang patcher.",
+      "draft": true
+    },
+    "pc_disk_full": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The drive ran out of space. Installing needs about 10 GB free on the drive of the working folder ({folder}) and on the system drive. Free some space, then try again.",
+      "id": "Ruang drive habis. Pemasangan memerlukan sekitar 10 GB ruang kosong di drive folder kerja ({folder}) dan di drive sistem. Kosongkan sebagian ruang, lalu coba lagi.",
+      "draft": true
+    },
+    "target_eyebrow": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "YOUR GAME",
+      "id": "GAME ANDA",
+      "draft": true
+    },
+    "target_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Where is the game?",
+      "id": "Di mana game-nya?",
+      "draft": true
+    },
+    "target_phone": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Phone over USB",
+      "id": "Ponsel lewat USB",
+      "draft": true
+    },
+    "target_pc": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "PC game on this computer",
+      "id": "Game PC di komputer ini",
+      "draft": true
+    },
+    "target_locked": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Finish the current work before you switch where to install.",
+      "id": "Selesaikan pekerjaan saat ini sebelum mengganti tempat memasang.",
+      "draft": true
+    },
+    "pc_language_note": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Switching languages? Install puts back the original files this patcher saved, then adds the other language.",
+      "id": "Mengganti bahasa? Pasang mengembalikan file asli yang disimpan patcher ini, lalu menambahkan bahasa lain.",
+      "draft": true
+    },
+    "pc_before_you_start_tips": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "1.  Let any update in the game's launcher finish.\n2.  Close the game and its launcher, and keep them closed until the patcher finishes.\n3.  An install takes about 10 minutes and needs about 10 GB free on the working folder's drive and on the system drive.",
+      "id": "1.  Biarkan pembaruan di launcher game selesai.\n2.  Tutup game dan launcher-nya, dan biarkan tertutup sampai patcher selesai.\n3.  Pemasangan memakan waktu sekitar 10 menit dan memerlukan sekitar 10 GB ruang kosong di drive folder kerja dan di drive sistem.",
+      "draft": true
+    },
+    "pc_game_folder_label": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "GAME FOLDER",
+      "id": "FOLDER GAME",
+      "draft": true
+    },
+    "pc_choose_folder": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Choose folder",
+      "id": "Pilih folder",
+      "draft": true
+    },
+    "pc_choose_folder_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Choose the folder that holds WXQ.exe",
+      "id": "Pilih folder yang berisi WXQ.exe",
+      "draft": true
+    },
+    "pc_no_game_found": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "No PC game found on this computer.",
+      "id": "Game PC tidak ditemukan di komputer ini.",
+      "draft": true
+    },
+    "pc_status_label": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "TRANSLATION",
+      "id": "TERJEMAHAN",
+      "draft": true
+    },
+    "pc_working_folder_label": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "WORKING FOLDER  ·  saved original files, about 4 GB per install",
+      "id": "FOLDER KERJA  ·  file asli tersimpan, sekitar 4 GB per pemasangan",
+      "draft": true
+    },
+    "pc_state_unknown": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Not checked yet",
+      "id": "Belum diperiksa",
+      "draft": true
+    },
+    "pc_state_checking": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Checking…",
+      "id": "Memeriksa…",
+      "draft": true
+    },
+    "pc_state_installed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Installed: {language}",
+      "id": "Terpasang: {language}",
+      "draft": true
+    },
+    "pc_state_not_installed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Not installed",
+      "id": "Belum terpasang",
+      "draft": true
+    },
+    "pc_state_replaced_by_update": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Replaced by an update",
+      "id": "Diganti oleh pembaruan",
+      "draft": true
+    },
+    "pc_state_partly_installed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Partly installed",
+      "id": "Terpasang sebagian",
+      "draft": true
+    },
+    "pc_state_foreign": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Translated by another patcher",
+      "id": "Diterjemahkan oleh patcher lain",
+      "draft": true
+    },
+    "pc_heading_installed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Translation installed",
+      "id": "Terjemahan terpasang",
+      "draft": true
+    },
+    "pc_heading_replaced": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "An update replaced the translation",
+      "id": "Pembaruan menggantikan terjemahan",
+      "draft": true
+    },
+    "pc_heading_partly": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The translation is partly installed",
+      "id": "Terjemahan terpasang sebagian",
+      "draft": true
+    },
+    "pc_heading_foreign": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The game needs a repair first",
+      "id": "Game perlu diperbaiki dulu",
+      "draft": true
+    },
+    "pc_heading_no_game": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Choose the game folder",
+      "id": "Pilih folder game",
+      "draft": true
+    },
+    "pc_detail_no_game": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Click Choose folder and pick the folder that holds WXQ.exe.",
+      "id": "Klik Pilih folder dan pilih folder yang berisi WXQ.exe.",
+      "draft": true
+    },
+    "pc_detail_unknown": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Click Check to see whether the translation is installed.",
+      "id": "Klik Periksa untuk melihat apakah terjemahan terpasang.",
+      "draft": true
+    },
+    "pc_detail_not_installed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Close the game and its launcher, then click Install.",
+      "id": "Tutup game dan launcher-nya, lalu klik Pasang.",
+      "draft": true
+    },
+    "pc_detail_installed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Start the game from its launcher. Some game text stays Chinese. After a launcher update, click Check.",
+      "id": "Jalankan game dari launcher-nya. Sebagian teks game tetap berbahasa Tionghoa. Setelah launcher memperbarui game, klik Periksa.",
+      "draft": true
+    },
+    "pc_detail_replaced": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The launcher put back original game files. Click Install to add the translation again.",
+      "id": "Launcher mengembalikan file game asli. Klik Pasang untuk menambahkan terjemahan lagi.",
+      "draft": true
+    },
+    "pc_detail_partly": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Some game files carry the translation and some do not. Click Install to finish it, or Remove translation to put back the original files.",
+      "id": "Sebagian file game memuat terjemahan dan sebagian tidak. Klik Pasang untuk menyelesaikannya, atau Hapus terjemahan untuk mengembalikan file asli.",
+      "draft": true
+    },
+    "pc_result_added": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Start the game from its launcher. Some game text stays Chinese.",
+      "id": "Jalankan game dari launcher-nya. Sebagian teks game tetap berbahasa Tionghoa.",
+      "draft": true
+    },
+    "pc_installing": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Installing the translation",
+      "id": "Memasang terjemahan",
+      "draft": true
+    },
+    "pc_removing": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Removing the translation",
+      "id": "Menghapus terjemahan",
+      "draft": true
+    },
+    "pc_checking": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Checking the game",
+      "id": "Memeriksa game",
+      "draft": true
+    },
+    "pc_busy_note": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Keep the game and its launcher closed until this finishes. A PC job cannot be stopped part-way; if it is cut off, the next run puts back the files it left unfinished.",
+      "id": "Biarkan game dan launcher-nya tertutup sampai proses ini selesai. Pekerjaan PC tidak dapat dihentikan di tengah jalan; jika terputus, proses berikutnya mengembalikan file yang belum selesai.",
+      "draft": true
+    },
+    "pc_elapsed": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "{elapsed} elapsed",
+      "id": "{elapsed} berlalu",
+      "draft": true
+    },
+    "pc_finished_in": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Finished in {elapsed}.",
+      "id": "Selesai dalam {elapsed}.",
+      "draft": true
+    },
+    "pc_install": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Install",
+      "id": "Pasang",
+      "draft": true
+    },
+    "pc_check": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Check",
+      "id": "Periksa",
+      "draft": true
+    },
+    "pc_remove_confirmation": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "This puts back the original game files this patcher saved, so the game reads in Chinese again. No game data is deleted and no download is needed.",
+      "id": "Ini mengembalikan file game asli yang disimpan patcher ini, sehingga game kembali berbahasa Tionghoa. Data game tidak dihapus dan tidak perlu mengunduh ulang.",
+      "draft": true
+    },
+    "pc_failed_status": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The cause is below. Fix it, then try again. Save the log if you need help.",
+      "id": "Penyebabnya ada di bawah. Perbaiki, lalu coba lagi. Simpan log jika perlu bantuan.",
+      "draft": true
+    },
+    "pc_close_wait_title": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Please wait",
+      "id": "Mohon tunggu",
+      "draft": true
+    },
+    "pc_close_wait": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The patcher is changing the game's files. Wait until the job finishes, then close the window.",
+      "id": "Patcher sedang mengubah file game. Tunggu sampai pekerjaan selesai, lalu tutup jendela.",
+      "draft": true
     }
   }
 }

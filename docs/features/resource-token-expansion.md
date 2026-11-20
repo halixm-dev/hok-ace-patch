@@ -16,7 +16,7 @@ terms. `tools/resource_tokens.py` maps `{Energy}`/`{LordExp}`/`{LordHp}` to `Ene
 replacement asset — with its own varint, text-classification and length-prefix handling, because this
 repo does not carry `tools/pb_text.py` — rewriting only fields that carry one of the three tokens, so
 `{HeroName}`, `{X}` and numeric `{0|1}` are untouched. `tools/build_device_patch.py` calls
-`_expand_staged_tokens(plans, log)` immediately after `adaptive.scan`, so the substitution lands after
+`resource_tokens.expand_staged(plans, log, terms)` immediately after `adaptive.scan`, so the substitution lands after
 `translate_table` validation and before staging, and both the `full`-mode copy and the `fit-only`
 subset carry it.
 
@@ -119,7 +119,7 @@ so `validate_translation` still sees matching placeholders on both sides.
 ```
 game data ──adaptive.scan / translate_table──> scan/replacements/<id>/*.assets   (tokens intact)
                                                         │
-                                                        └─ _expand_staged_tokens()   <-- expand here
+                                                        └─ expand_staged()   <-- expand here
                                                                  │
                                                     fit_only() / stage()  →  output/<id>/
 ```
@@ -202,14 +202,16 @@ token; replayed through both walkers, all 388 give the same result (lab notebook
 
 ### Hook contract
 
-`tools/build_device_patch.py` gains `_expand_staged_tokens(plans, log) -> int`, called immediately
-after `adaptive.scan(...)` and before the `fit_only` / `stage` closures run:
+`tools/resource_tokens.py` holds `expand_staged(plans, log, terms) -> int` (until 2026-11-20 it was
+`build_device_patch._expand_staged_tokens`; it moved so the PC edition's `scan` hook in
+`tools/engine_hooks.py` calls the same function). `build_patch` calls it immediately after
+`adaptive.scan(...)` and before the `fit_only` / `stage` closures run:
 
 ```python
 plans, fingerprints, counts, skipped = adaptive.scan(
     game, catalog, work / "scan", materialize=True
 )
-_expand_staged_tokens(plans, log)
+expand_staged(plans, log, language.resource_terms)
 ```
 
 For every plan it rewrites each `*.assets` in that plan's materialized `replacements` directory in
