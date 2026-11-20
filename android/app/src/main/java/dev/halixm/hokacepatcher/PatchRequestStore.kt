@@ -78,7 +78,7 @@ class PatchRequestStore(private val context: Context) {
         check(run.provider != ShellProvider.ROOT)
         val saved = checkNotNull(run.preparation)
         check(ApkIdentity.digest(receipt(saved.getString("id"))) == saved.getString("receipt_sha256")) { "Prepared receipt changed" }
-        RunStore.safe(base, File(base, "preparations/${saved.getString("id")}/apks/access.apk"))
+        RunStore.safeShared(base, File(base, "preparations/${saved.getString("id")}/apks/access.apk"))
         val normal = ApkIdentity.fromJson(saved.getJSONObject("normal"))
         RunStore.safe(base, RecoveryStore(context).normal(normal.sha256))
         RunStore.safe(base, File(RecoveryStore(context).normal(normal.sha256).parentFile, "identity.json"))

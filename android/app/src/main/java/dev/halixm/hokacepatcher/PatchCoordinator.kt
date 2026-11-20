@@ -59,7 +59,20 @@ class PatchCoordinator @JvmOverloads constructor(
     private class RedownloadApproved(val consent: Redownload) :
         IllegalStateException("Damaged game files found; Re-download approved automatically")
 
+    /** What Free up space may do beside the saved actions still pending ([freeSpaceScope]). */
+    enum class FreeSpaceScope { EVERYTHING, SHORTAGE_RECLAIM, REFUSED }
+
     companion object {
+        /**
+         * No pending action: everything Free up space does. Only actions that wait for storage, Stop not asked:
+         * the measured-shortage reclaim, which keeps each one's records pinned. Anything else (running, Stop
+         * in flight, or waiting for the provider, a Retry, an answer or a download) refuses.
+         */
+        fun freeSpaceScope(pending: List<RunStore.Run>): FreeSpaceScope = when {
+            pending.isEmpty() -> FreeSpaceScope.EVERYTHING
+            pending.all { it.mayContinue && it.waiting == "storage" } -> FreeSpaceScope.SHORTAGE_RECLAIM
+            else -> FreeSpaceScope.REFUSED
+        }
         /** `validateGameSnapshot`'s reasons for a layer the game itself changed. */
         private val GAME_CHANGED = listOf("Game file set changed", "Game file changed: ")
         /** Root's refusals the UI shows as they are. */
@@ -1277,10 +1290,47 @@ class PatchCoordinator @JvmOverloads constructor(
      * unfinished run that left no game file mid-change, closed by [SessionJournal.closeUnconfirmed]
      * once the normal APK is verified installed. Pristine deltas, the saved normal APKs and this game
      * version's prepared APKs stay unless <removeSavedApks>; see [ApkPreparation.removeSaved]. A run that
-     * stopped mid-change is refused: it needs recovery. An unresolved saved action pins everything.
+     * stopped mid-change is refused: it needs recovery. A saved action that waits for storage gets only
+     * [freeSpaceWhileWaiting]; any other unresolved saved action pins everything.
      */
     @JvmOverloads fun freeSpace(removeSavedApks: Boolean = false): JSONObject = exclusive {
-        check(RunStore(context).pending().isEmpty()) { "Stop or finish the authorized action before freeing space" }
+        val pending = RunStore(context).pending()
+        when (freeSpaceScope(pending)) {
+            FreeSpaceScope.REFUSED -> error("Stop or finish the authorized action before freeing space")
+            FreeSpaceScope.SHORTAGE_RECLAIM -> freeSpaceWhileWaiting(pending, removeSavedApks)
+            FreeSpaceScope.EVERYTHING -> freeSpaceIdle(removeSavedApks)
+        }
+    }
+
+    /**
+     * A Start refused for space leaves its saved action pending, waiting for storage, so that Try again keeps its
+     * consent (2026-11-19: Free up space then refused until Stop safely). Free up space runs the same
+     * measured-shortage reclaim the action's own budget runs ([SessionCleanup.reclaimForShortage]): resolved
+     * sessions, this action's retired snapshots and finished build work, earlier engine folders and duplicate
+     * saved APKs. Each pending run's session, its preparation and every recovery APK stay pinned. Nothing is
+     * closed and no saved game app is removed; any unfinished session (a file change to restore) refuses.
+     */
+    private fun freeSpaceWhileWaiting(pending: List<RunStore.Run>, removeSavedApks: Boolean): JSONObject {
+        EmergencyRestoreStore(context).requireResolved()
+        check(FirstSetupJournal.pending(context).isEmpty()) { "Finish or recover first-time setup before freeing space" }
+        check(SessionJournal.pending(sessions).isEmpty()) { "Stop or finish the authorized action before freeing space" }
+        val before = context.filesDir.usableSpace
+        // A storage wait inside a session leaves it consistent (CANCELLED); one refused before the session has none.
+        val journals = pending.mapNotNull { run ->
+            val directory = File(sessions, run.sessionId)
+            if (!directory.isDirectory || Files.isSymbolicLink(directory.toPath())) return@mapNotNull null
+            SessionJournal.load(directory).also { check(it.runId == run.id) { "Cannot correlate Start and journal" } }
+        }
+        StorageBudget.releaseReplacedGameApks(device, report)
+        if (journals.isEmpty()) cleanup.reclaimForShortage(null) else journals.forEach { cleanup.reclaimForShortage(it) }
+        if (removeSavedApks) report("Kept the saved game apps: the saved action still needs them")
+        val freed = (context.filesDir.usableSpace - before).coerceAtLeast(0L)
+        return JSONObject().put("status", "space_freed").put("action", "free_space").put("freed_bytes", freed)
+            .put("closed_runs", 0).put("free_bytes", context.filesDir.usableSpace)
+            .put("removed_saved_apks", false).put("storage_wait", true)
+    }
+
+    private fun freeSpaceIdle(removeSavedApks: Boolean): JSONObject {
         EmergencyRestoreStore(context).requireResolved()
         check(FirstSetupJournal.pending(context).isEmpty()) { "Finish or recover first-time setup before freeing space" }
         val before = context.filesDir.usableSpace
@@ -1317,7 +1367,7 @@ class PatchCoordinator @JvmOverloads constructor(
         } else if (known != null) runCatching { ApkPreparation(context).releaseUnneeded(known, null, report) }
             .onFailure { report("Could not remove unneeded saved APKs (${it.javaClass.simpleName})") }
         val freed = (context.filesDir.usableSpace - before).coerceAtLeast(0L)
-        JSONObject().put("status", "space_freed").put("action", "free_space").put("freed_bytes", freed)
+        return JSONObject().put("status", "space_freed").put("action", "free_space").put("freed_bytes", freed)
             .put("closed_runs", unfinished.size).put("free_bytes", context.filesDir.usableSpace)
             .put("removed_saved_apks", removed)
     }
