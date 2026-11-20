@@ -1676,6 +1676,7 @@ def build_checkpoint(engine_root: str, session_root: str, run_id: str, normal_ap
             (scratch / name).replace(result / name)
     # Preserve pipeline summary format; final bridge summary (with pristine information) is separate.
     (result / "bridge-summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (result / "metrics.json").write_text(json.dumps({"elapsed_seconds": time.monotonic() - started}), encoding="utf-8")
     _final_build_manifest(result, remove=remove)
     receipt = None
     # The build only reads the kept folder; an obsolete Re-download record is reported in the summary
@@ -1685,7 +1686,6 @@ def build_checkpoint(engine_root: str, session_root: str, run_id: str, normal_ap
     apk_after = file_identity(apk)
     if snapshot_after != snapshot_before or delta_after != delta_before or apk_after != apk_before:
         raise PatchError("Snapshot, kept delta or pinned APK changed during build")
-    (result / "metrics.json").write_text(json.dumps({"elapsed_seconds": time.monotonic() - started}), encoding="utf-8")
     if identity is not None:
         _check_checkpoint_inputs(root, identity, snapshot_after, apk_after, delta_after)
         # Empty translation output is valid ordinary work but cannot be a reusable STAGED.

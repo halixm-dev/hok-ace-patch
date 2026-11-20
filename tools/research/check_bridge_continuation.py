@@ -114,7 +114,10 @@ class BridgeContinuation(unittest.TestCase):
 
     def test_complete_reuse_performs_zero_stage_calls(self) -> None:
         result = self.build()
-        before = artifacts.tree_manifest(Path(result["result_root"]))
+        root = Path(result["result_root"])
+        manifest = artifacts.read_record(root / "final-manifest.json")
+        self.assertEqual(manifest["files"]["metrics.json"], artifacts.file_identity(root / "metrics.json"))
+        before = artifacts.tree_manifest(root)
         reused = self.inspect(result)
         self.assertEqual(self.stage_calls, 1)
         self.assertEqual(reused, result)
