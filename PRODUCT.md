@@ -7,13 +7,14 @@
 adaptive
 
 One product on two platforms: the **Windows patcher** (a desktop app that patches a phone connected
-over USB) and the **Android patcher** (an app that patches the phone it runs on, through Shizuku).
+over USB, or the PC edition of the game on the same computer) and the **Android patcher** (an app that
+patches the phone it runs on, through Shizuku).
 Both follow one shared design (`DESIGN.md`) rather than each platform's native design language.
 
 ## Users
 
 Players of 王者万象棋 (Honor of Kings: Ace, Chinese server) who don't read Chinese, mainly English
-and Indonesian speakers, patching their own phone. They are comfortable enough to enable USB
+and Indonesian speakers, patching their own phone or their own PC install. They are comfortable enough to enable USB
 debugging or install Shizuku when told how, but they are not developers: they follow the steps the
 patcher gives them and rarely read logs.
 
@@ -32,16 +33,26 @@ affiliated with Tencent.
 
 ## Operating Context
 
-- **Windows patcher**: the player connects the phone by USB with USB debugging allowed, picks a
-  language and a working folder (about 8 GB), and clicks Start. It runs seven device steps: connect
-  phone, prepare game APK, unlock data access, read language data, build translation, install
-  translation, restore game.
+- **Windows patcher**: the player first picks where the game is, *Phone over USB* or *PC game on
+  this computer*; the language choice is shared by both and still sets the interface language.
+  - **Phone over USB**: the player connects the phone by USB with USB debugging allowed, picks a
+    language and a working folder (about 8 GB), and clicks Start. It runs seven device steps: connect
+    phone, prepare game APK, unlock data access, read language data, build translation, install
+    translation, restore game.
+  - **PC game on this computer**: the patcher finds the game from the launcher's records or a folder
+    the player picks (it remembers the folder), and offers **Install**, **Check** and **Remove
+    translation**. Check runs when the target opens and after every job, and says *installed*, *not
+    installed*, *replaced by an update* or *partly installed*; a game another patcher translated is
+    refused with the launcher's *Repair* as the next step. The game and its launcher must stay closed.
+    A PC job cannot be stopped part-way (no Stop safely); an install takes about 10 minutes, Check
+    and Remove translation under a minute each. The working folder keeps the original files the
+    install replaced (about 4 GB), which Remove translation and a language switch put back.
 - **Android patcher**: the player picks a shell provider (Wireless debugging, the default, Shizuku or Root), a
   language and taps Start. The patcher checks and recovers unfinished work before patching, asks
   for explicit consent before anything that deletes game data (Re-download excepted, below), and
   keeps recovery tools for a game that won't open. It also offers *Remove translation* and *Free up
   space*.
-- **Both patchers** offer *Remove translation* while they keep a pristine delta: it restores the
+- **Both patchers** offer *Remove translation* on a phone while they keep a pristine delta: it restores the
   original game files without clearing the game's data.
 - The translation is written only after the in-game update finishes. Both patchers say so on the
   Start card, before Start: finish every in-game download and close the game. No routine checkbox

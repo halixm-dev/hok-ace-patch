@@ -1,4 +1,8 @@
-"""HOK ACE Language Patcher: English or Indonesian translation for a USB-connected Android phone."""
+"""HOK ACE Language Patcher: English or Indonesian translation for a USB-connected Android phone or the PC game.
+
+The window has two targets: *Phone over USB* drives `patcher_core`, *PC game on this computer* drives
+`pc_edition`, whose jobs run in a child process (`--pc-job`) that this window polls.
+"""
 from __future__ import annotations
 
 import ctypes
@@ -8,6 +12,7 @@ import tkinter.filedialog as filedialog
 import queue
 import sys
 import threading
+import time
 import traceback
 from pathlib import Path
 from typing import Callable
@@ -15,11 +20,12 @@ from typing import Callable
 import customtkinter as ctk
 from PIL import Image, ImageDraw, ImageFont
 
-from patcher_core import (BUNDLE, MIN_FREE_BYTES, STEPS, Adb, PatchError, Patcher, build_patch, count_translated,
-                          count_untranslated_graphics, count_untranslated_text, free_space, holds_delta,
-                          languages, load_language, load_work_dir, save_language, save_work_dir,
+from patcher_core import (BUNDLE, MIN_FREE_BYTES, SETTINGS, STEPS, Adb, PatchError, Patcher, build_patch,
+                          count_translated, count_untranslated_graphics, count_untranslated_text, free_space,
+                          holds_delta, languages, load_language, load_work_dir, save_language, save_work_dir,
                           set_interface_language, ui_text)
 from patcher_core import NOTHING_TO_RECOVER, discover_pending_runs
+import pc_edition  # noqa: E402 - after patcher_core, which puts tools/ and the runtime on sys.path
 
 APP_TITLE = "HOK ACE Language Patcher"
 VERSION_FILE = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1])) / "VERSION"
@@ -74,6 +80,43 @@ FONT_FILES = {
     ("Barlow Condensed", 800): "BarlowCondensed-ExtraBold.ttf",
 }
 FR_PRIVATE = 0x10
+
+# The two targets of the target choice, and the settings key that remembers the last one.
+PHONE, PC = "phone", "pc"
+TARGET_KEY = "target"
+# How often the window polls a PC job's child and tails its log, in ms.
+PC_TICK = 500
+# A failed job these keys name left the game as it was, so no Check follows it.
+PC_NO_FOLLOW_UP = ("pc_close_game", "pc_game_folder_invalid", "pc_catalog_missing")
+
+
+def load_target() -> str:
+    """The target the window last showed; the phone when none was saved."""
+    try:
+        value = json.loads(SETTINGS.read_text(encoding="utf-8")).get(TARGET_KEY)
+    except (OSError, ValueError, AttributeError):
+        return PHONE
+    return value if value in (PHONE, PC) else PHONE
+
+
+def save_target(target: str) -> None:
+    try:
+        data = json.loads(SETTINGS.read_text(encoding="utf-8"))
+        data = data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        data = {}
+    try:
+        SETTINGS.parent.mkdir(parents=True, exist_ok=True)
+        SETTINGS.write_text(json.dumps({**data, TARGET_KEY: target}), encoding="utf-8")
+    except OSError:
+        pass  # the choice still applies for this session
+
+
+def _elapsed(seconds: float) -> str:
+    """Seconds as m:ss, or h:mm:ss from an hour."""
+    minutes, secs = divmod(int(seconds), 60)
+    hours, minutes = divmod(minutes, 60)
+    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
 
 
 def _type(kind: str) -> tuple[tuple[str, int], int, float]:
@@ -306,6 +349,20 @@ class App(ctk.CTk):
         self.result: tuple[str, object] | None = None
         self.connected = False
         self.blocker = ""
+        # The PC target: the game root, the running child job, Check's last state and the last job's result.
+        self.target = load_target()
+        self.pc_game: Path | None = None
+        self.pc_job = None
+        self.pc_action = ""
+        self.pc_answer: Path | None = None
+        self.pc_log_offset = 0
+        self.pc_started = 0.0
+        self.pc_follow_up = False
+        self.pc_state: str | None = None
+        self.pc_language: str | None = None
+        self.pc_result: tuple[str, float] | None = None
+        self.pc_error: PatchError | None = None
+        self.pc_opened = False
 
         self.page = page = ctk.CTkScrollableFrame(self, fg_color=PAGE, corner_radius=0,
                                                   scrollbar_button_color=CARD_EDGE,
@@ -317,17 +374,18 @@ class App(ctk.CTk):
         self.column.columnconfigure(0, weight=1)
         self.hero = ctk.CTkLabel(self.column, text="", image=_hero_image())
         self.hero.grid(row=0, column=0, sticky="ew")
+        self._build_target()
         self._build_language()
         self._build_start()
+        self._build_pc()
         self._build_error()
         self._build_log()
         footer = ctk.CTkLabel(self.column, text_color=MUTED, font=_font("body"))
-        footer.grid(row=5, column=0, pady=(SPACE["md"], 0))
+        footer.grid(row=6, column=0, pady=(SPACE["md"], 0))
         self.bind_text(footer, lambda: f"{ui_text('patcher_version')}: {APP_VERSION}")
         self.device_label.configure(text=ui_text("device_not_connected"))
         self.show_work_dir()
-        self.show_language_card()
-        self.show_start()
+        self.show_target()
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.after(100, self.pump)
         self.after(150, self.discover_saved_work)
@@ -351,9 +409,109 @@ class App(ctk.CTk):
     def place(self, widget: ctk.CTkBaseClass, row: int, top: int = 0, bottom: int = 0, **options) -> None:
         widget.grid(row=row, column=0, sticky="ew", padx=CARD_PAD, pady=(top, bottom), **options)
 
+    def _build_target(self) -> None:
+        """The target choice, above ①: Phone over USB or PC game on this computer."""
+        card = self.card(1)
+        self.place(self.bind_text(self.label(card, "label", MUTED), lambda: ui_text("target_eyebrow")), 0,
+                   top=CARD_PAD)
+        self.place(self.bind_text(self.label(card, "heading"), lambda: ui_text("target_title")), 1, top=SPACE["xxs"])
+        choices = ctk.CTkFrame(card, fg_color="transparent")
+        self.place(choices, 2, top=SPACE["sm"])
+        self.targets: dict[str, ctk.CTkButton] = {}
+        names = {PHONE: lambda: ui_text("target_phone"), PC: lambda: ui_text("target_pc")}
+        for column, target in enumerate((PHONE, PC)):
+            choices.columnconfigure(column, weight=1, uniform="target")
+            button = _make_button(choices, "secondary", lambda target=target: self.choose_target(target))
+            self.bind_text(button, names[target])
+            button.grid(row=0, column=column, sticky="ew", padx=(0 if column == 0 else SPACE["xs"], 0))
+            self.targets[target] = button
+        self.target_note = self.bind_text(self.label(card, "body", MUTED), lambda: ui_text("target_locked"))
+        self.place(self.target_note, 3, top=SPACE["xs"])
+        ctk.CTkFrame(card, fg_color="transparent", width=1, height=CARD_PAD).grid(row=4, column=0)
+
+    def _build_pc(self) -> None:
+        """② for the PC target: the checklist, game folder, Check's state and working folder, then the actions."""
+        self.pc_card = card = self.card(3)
+        self.pc_stage = self.label(card, "label", MUTED)
+        self.place(self.pc_stage, 0, top=CARD_PAD)
+
+        self.pc_checklist = ctk.CTkFrame(card, fg_color="transparent")
+        self.pc_checklist.columnconfigure(0, weight=1)
+        self.bind_text(self.label(self.pc_checklist, "button"), lambda: ui_text("before_you_start")).grid(
+            row=0, column=0, sticky="ew")
+        self.bind_text(self.label(self.pc_checklist, "body", MUTED), lambda: ui_text("pc_before_you_start_tips")).grid(
+            row=1, column=0, sticky="ew", pady=(SPACE["xxs"], 0))
+        self.place(self.pc_checklist, 1, top=SPACE["sm"])
+
+        game = ctk.CTkFrame(card, fg_color="transparent")
+        game.columnconfigure(0, weight=1)
+        self.bind_text(self.label(game, "label", MUTED), lambda: ui_text("pc_game_folder_label")).grid(
+            row=0, column=0, sticky="ew")
+        self.pc_game_label = self.label(game, "body", wraplength=WRAP - 140)
+        self.pc_game_label.grid(row=1, column=0, sticky="ew")
+        self.pc_game_button = _make_button(game, "secondary", self.choose_game, width=120)
+        self.bind_text(self.pc_game_button, lambda: ui_text("pc_choose_folder"))
+        self.pc_game_button.grid(row=1, column=1, sticky="e", padx=(SPACE["sm"], 0))
+        self.place(game, 2, top=SPACE["md"])
+
+        status = ctk.CTkFrame(card, fg_color="transparent")
+        status.columnconfigure(1, weight=1)
+        self.bind_text(self.label(status, "label", MUTED), lambda: ui_text("pc_status_label")).grid(
+            row=0, column=0, columnspan=2, sticky="ew")
+        self.pc_dot = ctk.CTkLabel(status, text="●", text_color=DISABLED_TEXT, font=_font("body"), width=18)
+        self.pc_dot.grid(row=1, column=0, sticky="nw")
+        self.pc_state_label = self.label(status, "body", wraplength=WRAP - 24)
+        self.pc_state_label.grid(row=1, column=1, sticky="ew", padx=(SPACE["xxs"], 0))
+        self.place(status, 3, top=SPACE["md"])
+
+        folder = ctk.CTkFrame(card, fg_color="transparent")
+        folder.columnconfigure(0, weight=1)
+        self.bind_text(self.label(folder, "label", MUTED), lambda: ui_text("pc_working_folder_label")).grid(
+            row=0, column=0, sticky="ew")
+        self.pc_folder_label = self.label(folder, "body", wraplength=WRAP - 140)
+        self.pc_folder_label.grid(row=1, column=0, sticky="ew")
+        self.pc_space_label = self.label(folder, "body", MUTED, wraplength=WRAP - 140)
+        self.pc_space_label.grid(row=2, column=0, sticky="ew")
+        self.pc_folder_button = _make_button(folder, "secondary", self.choose_folder, width=120)
+        self.bind_text(self.pc_folder_button, lambda: ui_text("change_folder"))
+        self.pc_folder_button.grid(row=1, column=1, rowspan=2, sticky="e", padx=(SPACE["sm"], 0))
+        self.place(folder, 4, top=SPACE["md"])
+
+        self.pc_heading = self.label(card, "heading")
+        self.place(self.pc_heading, 5, top=SPACE["xl"])
+        self.pc_detail = self.label(card, "body", MUTED)
+        self.place(self.pc_detail, 6, top=SPACE["xxs"])
+
+        # Install is the card's primary action; Check and Remove translation share the row under it.
+        self.pc_actions = ctk.CTkFrame(card, fg_color="transparent")
+        self.pc_actions.columnconfigure((0, 1), weight=1, uniform="pc-action")
+        self.pc_install_button = _make_button(self.pc_actions, "primary", lambda: self.run_pc("install"))
+        self.bind_text(self.pc_install_button, lambda: ui_text("pc_install"))
+        self.pc_install_button.grid(row=0, column=0, columnspan=2, sticky="ew")
+        self.pc_check_button = _make_button(self.pc_actions, "secondary", lambda: self.run_pc("status"))
+        self.bind_text(self.pc_check_button, lambda: ui_text("pc_check"))
+        self.pc_check_button.grid(row=1, column=0, sticky="ew", pady=(SPACE["xs"], 0))
+        self.pc_remove_button = _make_button(self.pc_actions, "secondary", self.confirm_pc_remove)
+        self.bind_text(self.pc_remove_button, lambda: ui_text("remove_translation"))
+        self.pc_remove_button.grid(row=1, column=1, sticky="ew", padx=(SPACE["xs"], 0), pady=(SPACE["xs"], 0))
+        self.place(self.pc_actions, 7, top=SPACE["md"], bottom=CARD_PAD)
+
+        # Running: the bar, the elapsed time and the child's last log line; a PC job has no Stop safely.
+        self.pc_progress_view = ctk.CTkFrame(card, fg_color="transparent")
+        self.pc_progress_view.columnconfigure(0, weight=1)
+        self.pc_progress = ctk.CTkProgressBar(self.pc_progress_view, mode="indeterminate", progress_color=INK,
+                                              fg_color=DISABLED_FILL, height=8, corner_radius=4)
+        self.pc_progress.grid(row=0, column=0, sticky="ew")
+        self.pc_elapsed_line = self.label(self.pc_progress_view, "button")
+        self.pc_elapsed_line.grid(row=1, column=0, sticky="ew", pady=(SPACE["xs"], 0))
+        self.pc_operation_line = self.label(self.pc_progress_view, "body", color=MUTED, wraplength=COLUMN - 80)
+        self.pc_operation_line.grid(row=2, column=0, sticky="ew", pady=(SPACE["xs"], 0))
+        self.place(self.pc_progress_view, 8, top=SPACE["md"], bottom=CARD_PAD)
+        card.grid_remove()
+
     def _build_language(self) -> None:
         """① Language: the title, the language note, the two choices, then Remove translation."""
-        card = self.card(1)
+        card = self.card(2)
         self.place(self.bind_text(self.label(card, "label", MUTED), lambda: ui_text("01_your_translation")), 0,
                    top=CARD_PAD)
         self.place(self.bind_text(self.label(card, "heading"), lambda: ui_text("language")), 1, top=SPACE["xxs"])
@@ -375,7 +533,7 @@ class App(ctk.CTk):
 
     def _build_start(self) -> None:
         """② Start: the checklist, device and working folder, then the state and its one primary button."""
-        card = self.card(2)
+        self.start_card = card = self.card(3)
         self.stage = self.label(card, "label", MUTED)
         self.place(self.stage, 0, top=CARD_PAD)
 
@@ -440,7 +598,7 @@ class App(ctk.CTk):
 
     def _build_error(self) -> None:
         """The error card, directly under ②: the cause and Save log for help."""
-        self.error_card = self.card(3, ERROR_SURFACE, ERROR)
+        self.error_card = self.card(4, ERROR_SURFACE, ERROR)
         self.place(self.bind_text(self.label(self.error_card, "heading"), lambda: ui_text("error_details")), 0,
                    top=CARD_PAD)
         self.error_text = self.label(self.error_card, "body")
@@ -450,7 +608,7 @@ class App(ctk.CTk):
         self.error_card.grid_remove()
 
     def _build_log(self) -> None:
-        card = self.card(4)
+        card = self.card(5)
         self.place(self.bind_text(self.label(card, "heading"), lambda: ui_text("patching_activity")), 0, top=CARD_PAD)
         _, size, _ = _type("log")
         self.log_view = ctk.CTkTextbox(card, fg_color=PAGE, text_color=INK, corner_radius=RADIUS, border_width=0,
@@ -469,6 +627,10 @@ class App(ctk.CTk):
         """The note and Remove translation, from whether this folder keeps the phone's pristine delta."""
         held = holds_delta(self.work_dir)
         note = "language_note_no_clear" if held else "language_note_clear_first"
+        if self.target == PC:
+            # The PC target keeps no pristine delta: its receipts put the originals back before a switch,
+            # and its own Remove translation sits on its card.
+            note, held = "pc_language_note", False
         # Saved unfinished work keeps its language until it finishes or Stop safely resolves it.
         self.language_note.configure(text=ui_text("choices_locked") if self.pending_work and not self.busy
                                      else ui_text(note))
@@ -477,15 +639,17 @@ class App(ctk.CTk):
         else:
             self.remove_button.grid_remove()
         # A run reads the language once at its start, so the choices and Remove translation lock while it runs.
+        locked = self.busy or self.pending_work or self.pc_busy
         for code, button in self.choices.items():
             chosen = code == self.language
-            _style_button(button, "primary" if chosen else "secondary", not self.busy and not self.pending_work)
-            if (self.busy or self.pending_work) and chosen:
+            _style_button(button, "primary" if chosen else "secondary", not locked)
+            if locked and chosen:
                 button.configure(border_color=DISABLED_TEXT)
-        _style_button(self.remove_button, "secondary", not self.busy and not self.pending_work)
+        _style_button(self.remove_button, "secondary", not locked)
+        self.show_target_card()  # the target choice locks with the language choices
 
     def choose_language(self, code: str) -> None:
-        if self.busy or code == self.language:
+        if self.busy or self.pc_busy or code == self.language:
             return
         if self.busy or not self.settings_available():
             return
@@ -519,10 +683,15 @@ class App(ctk.CTk):
             self.blocker = ""
         self.space_label.configure(text=self.blocker or ui_text("drive_free", free=gigabytes),
                                    text_color=ERROR if self.blocker else MUTED)
+        self.pc_folder_label.configure(text=self.folder_label.cget("text"))
+        self.pc_space_label.configure(text=self.space_label.cget("text"), text_color=ERROR if self.blocker else MUTED)
 
     def show_start(self) -> None:
         """Rewrite ② in place from the run state (spec, User-visible states): Working, Continuing, Stopping
         safely, Restoring, Waiting for you, Verified complete or Recovery needs attention."""
+        if self.target == PC:
+            self.show_pc()
+            return
         kind, value = self.result or ("idle", None)
         items: list[str] = []
         note = ""
@@ -633,6 +802,257 @@ class App(ctk.CTk):
         self.step_line.configure(text=ui_text("progress_step", n=index + 1, total=len(STEPS),
                                               step=names[STEPS[index][0]]))
 
+    # ---------- the target choice ----------
+    @property
+    def pc_busy(self) -> bool:
+        return self.pc_job is not None
+
+    def show_target_card(self) -> None:
+        """Mark the chosen target; the choice locks while either target works or saved phone work waits."""
+        locked = self.busy or self.pc_busy or self.pending_work
+        for target, button in self.targets.items():
+            chosen = target == self.target
+            _style_button(button, "primary" if chosen else "secondary", not locked)
+            if locked and chosen:
+                button.configure(border_color=DISABLED_TEXT)
+        self._show(self.target_note, self.pending_work and not self.busy)
+
+    def show_target(self) -> None:
+        """Show the chosen target's ② card and redraw everything that depends on the target."""
+        self._show(self.start_card, self.target == PHONE)
+        self._show(self.pc_card, self.target == PC)
+        if self.target == PHONE:
+            self.error_card.grid_remove()
+        self.show_language_card()
+        self.show_start()
+
+    def choose_target(self, target: str) -> None:
+        if target == self.target or self.busy or self.pc_busy or self.pending_work or self.closing:
+            return
+        self.target = target
+        save_target(target)
+        self.show_target()
+        if target == PC:
+            self.open_pc()
+
+    def _force_phone(self) -> None:
+        """Saved phone work comes first (DESIGN.md, ② Start): show the phone target before it."""
+        if self.target != PHONE:
+            self.target = PHONE
+            self.show_target()
+
+    # ---------- the PC target ----------
+    def open_pc(self) -> None:
+        """Find the game (the remembered folder, then the launcher's records) and run Check on it."""
+        self.pc_opened = True
+        try:
+            games = pc_edition.find_games(SETTINGS)
+        except (PatchError, OSError, ValueError) as error:
+            self.log(f"PC edition: finding the game failed: {error}")
+            games = []
+        if games and self.pc_game is None:
+            self.pc_game = games[0]
+        self.show_start()
+        if self.pc_game is not None:
+            self.run_pc("status")
+
+    def choose_game(self) -> None:
+        if self.pc_busy:
+            return
+        start = self.pc_game if self.pc_game is not None and self.pc_game.exists() else Path.home()
+        chosen = filedialog.askdirectory(parent=self, title=ui_text("pc_choose_folder_title"), initialdir=str(start))
+        if not chosen:
+            return
+        self.set_game(Path(chosen))
+
+    def set_game(self, folder: Path) -> None:
+        """Take a picked folder as the game once `pc_edition.resolve` accepts it, remember it, then Check."""
+        try:
+            root = pc_edition.resolve(folder)
+        except PatchError as error:
+            self.pc_result, self.pc_error = ("failed", 0.0), error
+            self.log(f"\nFAILED: {error}")
+            self.show_start()
+            return
+        try:
+            pc_edition.remember_game(SETTINGS, root)
+        except OSError as error:
+            self.log(f"PC edition: the game folder was not saved: {error}")
+        self.pc_game, self.pc_state, self.pc_language = root, None, None
+        self.pc_result = self.pc_error = None
+        self.run_pc("status")
+
+    def confirm_pc_remove(self) -> None:
+        # A plain dialog: Remove translation puts the saved originals back and deletes no game data.
+        if Dialog.show(self, ui_text("remove_the_translation_question"), ui_text("pc_remove_confirmation"),
+                       confirm=True, confirm_label=ui_text("remove_the_translation")):
+            self.run_pc("restore")
+
+    def run_pc(self, action: str, follow_up: bool = False) -> None:
+        """Start one PC job in its child process; `pc_tick` follows it until it answers."""
+        if self.pc_busy or self.busy or self.closing or self.pc_game is None:
+            return
+        if not follow_up:
+            self.pc_result = self.pc_error = None
+        self.pc_action, self.pc_follow_up = action, follow_up
+        answer = self.work_dir / "pc" / "jobs" / f"{action}.json"
+        try:
+            answer.parent.mkdir(parents=True, exist_ok=True)
+            self.pc_job = pc_edition.start_job(action, self.pc_game, self.work_dir, answer, self.language)
+        except OSError as error:
+            self.pc_job = None
+            self.pc_result, self.pc_error = ("failed", 0.0), PatchError("pc_engine_failed", detail=error)
+            self.show_start()
+            return
+        self.pc_answer, self.pc_log_offset, self.pc_started = answer, 0, time.monotonic()
+        self.log(f"\nPC edition: {action} on {self.pc_game} (working folder {self.work_dir})")
+        self.pc_operation_line.configure(text="")
+        self.pc_progress.start()
+        self.show_language_card()
+        self.show_start()
+        self.after(PC_TICK, self.pc_tick)
+
+    def _tail_pc_log(self) -> None:
+        """Copy the child's new log lines into the log; its last line goes under the bar."""
+        try:
+            with (self.pc_answer.parent / (self.pc_answer.name + ".log")).open("rb") as handle:
+                handle.seek(self.pc_log_offset)
+                chunk = handle.read()
+        except OSError:
+            return
+        end = chunk.rfind(b"\n") + 1  # a line still being written waits for the next tick
+        if not end:
+            return
+        self.pc_log_offset += end
+        lines = [line for line in chunk[:end].decode("utf-8", "replace").splitlines() if line.strip()]
+        for line in lines:
+            self.log("  " + line)
+        if lines:
+            last = lines[-1].strip()
+            self.pc_operation_line.configure(text=last if len(last) <= 110 else last[:109] + "…")
+
+    def pc_tick(self) -> None:
+        if self.pc_job is None:
+            return
+        self._tail_pc_log()
+        self.pc_elapsed_line.configure(text=ui_text("pc_elapsed", elapsed=_elapsed(time.monotonic() - self.pc_started)))
+        if self.pc_job.poll() is None:
+            self.after(PC_TICK, self.pc_tick)
+            return
+        self._tail_pc_log()
+        self.pc_job = None
+        self.pc_progress.stop()
+        self.finish_pc()
+
+    def finish_pc(self) -> None:
+        """Read the child's answer, then run Check after Install and Remove translation."""
+        action, seconds = self.pc_action, time.monotonic() - self.pc_started
+        error = None
+        try:
+            answer = pc_edition.read_answer(self.pc_answer)
+        except PatchError as failure:
+            error = failure
+            self.log(f"\nFAILED: {failure}")
+        if action == "status":
+            if error is None:
+                self.pc_state, self.pc_language = answer.get("state"), answer.get("language")
+                self.log(f"\nCHECKED: {self.pc_state}" + (f" ({self.pc_language})" if self.pc_language else ""))
+            else:
+                self.pc_state = self.pc_language = None
+                # A follow-up Check never hides the job's own error.
+                if not (self.pc_follow_up and self.pc_error is not None):
+                    self.pc_error = error
+                if not self.pc_follow_up:
+                    self.pc_result = ("failed", seconds)
+        else:
+            if error is None:
+                self.pc_result = ("added" if action == "install" else "removed", seconds)
+                self.log(f"\nSUCCESS: {action} finished in {_elapsed(seconds)}")
+            else:
+                self.pc_result, self.pc_error = ("failed", seconds), error
+            if error is None or error.keys[:1] and error.keys[0] not in PC_NO_FOLLOW_UP:
+                self.pc_state = None
+                self.run_pc("status", follow_up=True)
+                return
+        self.show_language_card()
+        self.show_start()
+
+    def _pc_view(self) -> tuple[str, str, str]:
+        """(eyebrow, heading, detail) of the PC card from the job running, the last result and Check's state."""
+        if self.pc_busy:
+            heading = {"install": "pc_installing", "restore": "pc_removing"}.get(self.pc_action, "pc_checking")
+            return ui_text("02_working"), ui_text(heading), ui_text("pc_busy_note")
+        kind, seconds = self.pc_result or ("", 0.0)
+        finished = ui_text("pc_finished_in", elapsed=_elapsed(seconds))
+        if kind == "added":
+            return ui_text("02_done"), ui_text("translation_added"), f"{ui_text('pc_result_added')} {finished}"
+        if kind == "removed":
+            return ui_text("02_done"), ui_text("translation_removed"), f"{ui_text('reads_chinese_again')} {finished}"
+        if kind == "failed":
+            return ui_text("02_needs_attention"), ui_text("work_stopped"), ui_text("pc_failed_status")
+        if self.pc_game is None:
+            return ui_text("02_ready_to_play"), ui_text("pc_heading_no_game"), ui_text("pc_detail_no_game")
+        state = self.pc_state
+        if state == pc_edition.INSTALLED:
+            return ui_text("02_done"), ui_text("pc_heading_installed"), ui_text("pc_detail_installed")
+        if state == pc_edition.REPLACED:
+            return ui_text("02_needs_attention"), ui_text("pc_heading_replaced"), ui_text("pc_detail_replaced")
+        if state == pc_edition.PARTLY:
+            return ui_text("02_needs_attention"), ui_text("pc_heading_partly"), ui_text("pc_detail_partly")
+        if state == pc_edition.FOREIGN:
+            advice = f"{ui_text('pc_foreign_install')} {ui_text('pc_repair_advice')}"
+            return ui_text("02_needs_attention"), ui_text("pc_heading_foreign"), advice
+        if state == pc_edition.NOT_INSTALLED:
+            return ui_text("02_ready_to_play"), ui_text("ready_when_you_are"), self.blocker or ui_text(
+                "pc_detail_not_installed")
+        return ui_text("02_ready_to_play"), ui_text("ready_when_you_are"), self.blocker or ui_text("pc_detail_unknown")
+
+    def _pc_state_line(self) -> tuple[str, str]:
+        """Check's state as the status row reads it, with its dot colour."""
+        if self.pc_busy and self.pc_action == "status":
+            return ui_text("pc_state_checking"), DISABLED_TEXT
+        state = self.pc_state
+        if state == pc_edition.INSTALLED:
+            name = languages.get(self.pc_language).name if self.pc_language in languages.LANGUAGES else ""
+            return ui_text("pc_state_installed", language=name).rstrip(": "), INK
+        lines = {pc_edition.NOT_INSTALLED: (ui_text("pc_state_not_installed"), DISABLED_TEXT),
+                 pc_edition.REPLACED: (ui_text("pc_state_replaced_by_update"), WARNING),
+                 pc_edition.PARTLY: (ui_text("pc_state_partly_installed"), WARNING),
+                 pc_edition.FOREIGN: (ui_text("pc_state_foreign"), WARNING)}
+        return lines.get(state, (ui_text("pc_state_unknown"), DISABLED_TEXT))
+
+    def show_pc(self) -> None:
+        """Rewrite the PC card in place: running, a job's result, or Check's state with its next step."""
+        stage, heading, detail = self._pc_view()
+        self.pc_stage.configure(text=stage)
+        self.pc_heading.configure(text=heading)
+        self.pc_detail.configure(text=detail)
+        game = str(self.pc_game) if self.pc_game is not None else ui_text("pc_no_game_found")
+        self.pc_game_label.configure(text=game if len(game) <= 70 else "…" + game[-69:])
+        text, color = self._pc_state_line()
+        self.pc_state_label.configure(text=text)
+        self.pc_dot.configure(text_color=color)
+        busy = self.pc_busy
+        self._show(self.pc_checklist, not busy and self.pc_state != pc_edition.INSTALLED
+                   and (self.pc_result or ("",))[0] not in ("added", "removed"))
+        self._show(self.pc_actions, not busy)
+        self._show(self.pc_progress_view, busy)
+        ready = not busy and self.pc_game is not None
+        _style_button(self.pc_install_button, "primary", ready and not self.blocker)
+        _style_button(self.pc_check_button, "secondary", ready)
+        _style_button(self.pc_remove_button, "secondary",
+                      ready and self.pc_state not in (pc_edition.NOT_INSTALLED, pc_edition.FOREIGN))
+        _style_button(self.pc_game_button, "secondary", not busy)
+        _style_button(self.pc_folder_button, "secondary", not busy)
+        if busy:
+            self.pc_elapsed_line.configure(
+                text=ui_text("pc_elapsed", elapsed=_elapsed(time.monotonic() - self.pc_started)))
+        if self.pc_error is not None and not busy:
+            self.error_text.configure(text=self.pc_error.shown())
+            self.error_card.grid()
+        else:
+            self.error_card.grid_remove()
+
     # ---------- working folder ----------
     def settings_available(self) -> bool:
         """Use the durable registry, even when another working folder was selected."""
@@ -641,12 +1061,13 @@ class App(ctk.CTk):
             if pending:
                 raise PatchError("error_run_pending", detail=pending[0]["root"])
         except PatchError as error:
+            self._force_phone()
             self.finish("failed", error)
             return False
         return True
 
     def choose_folder(self) -> None:
-        if self.busy or not self.settings_available():
+        if self.busy or self.pc_busy or not self.settings_available():
             return
         chosen = filedialog.askdirectory(parent=self, title=ui_text("choose_folder_title"),
                                          initialdir=str(self.work_dir if self.work_dir.exists() else self.work_dir.parent))
@@ -661,6 +1082,10 @@ class App(ctk.CTk):
         self.show_work_dir()
         self.show_language_card()
         self.show_start()
+        if self.target == PC and self.pc_game is not None:
+            # The receipts live in the working folder, so Check reads the game against the new one.
+            self.pc_state = self.pc_language = None
+            self.run_pc("status")
 
     def save_log(self) -> None:
         chosen = filedialog.asksaveasfilename(parent=self, title=ui_text("save_log_for_help"),
@@ -825,6 +1250,8 @@ class App(ctk.CTk):
             pending = discover_pending_runs(self.work_dir)
             self.pending_runs = pending
             self.pending_work = bool(pending)
+            if pending:
+                self._force_phone()
             if len(pending) == 1 and pending[0]["kind"] == "authorized":
                 saved = pending[0]["record"]
                 self.work_dir = Path(pending[0]["root"])
@@ -834,8 +1261,11 @@ class App(ctk.CTk):
                 self.start(remove=saved["action"] == "remove", automatic=True)
             elif pending:
                 self.finish("failed", PatchError("error_run_pending", detail=pending[0]["root"]))
+            elif self.target == PC and not self.pc_opened:
+                self.open_pc()
         except PatchError as error:
             self.pending_work = True
+            self._force_phone()
             self.finish("failed", error)
 
     def main_action(self) -> None:
@@ -969,6 +1399,10 @@ class App(ctk.CTk):
         self._cancel_dialogs()
 
     def close(self) -> None:
+        if self.pc_busy:
+            # A PC job cannot stop part-way and its answer is read here: the player waits for it.
+            Dialog.show(self, ui_text("pc_close_wait_title"), ui_text("pc_close_wait"))
+            return
         if self.closing:
             return
         self.closing = True
