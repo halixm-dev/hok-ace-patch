@@ -499,9 +499,15 @@ class MainActivity : Activity() {
             // Space freed hands back plain Start; the other results offer another patch.
             // The saved action waits for the user (ticket 12): its scoped Re-download answer, or the game's download.
             // Only once nothing needs recovery: required recovery leads, below ([StopCard.savedWait]).
+            // Free up space during the wait leaves its own result, which has no error line: say what it freed.
             wait == StopCard.Wait.STORAGE ->
                 home.show(UiText.string(this, "free_up_space"),
-                    friendlyFailure(error, false), UiText.string(this, "try_again"), "start", false, GuidedHome.Stage.ATTENTION)
+                    if (state?.optBoolean("storage_wait") == true) {
+                        val freed = state.optLong("freed_bytes")
+                        if (freed > 0) UiText.string(this, "storage_wait_freed", "size" to StorageBudget.freeSpaceLabel(freed))
+                        else UiText.string(this, "storage_wait_nothing_freed")
+                    } else friendlyFailure(error, false),
+                    UiText.string(this, "try_again"), "start", false, GuidedHome.Stage.ATTENTION)
             wait == StopCard.Wait.SOURCE_DOWNLOADS ->
                 home.show(UiText.string(this, "redownload_download_title"), UiText.setupUpdate(this),
                     "Open game", "redownload_game", false, GuidedHome.Stage.ATTENTION,

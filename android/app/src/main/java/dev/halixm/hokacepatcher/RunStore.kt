@@ -7,6 +7,7 @@ import java.io.File
 import java.io.RandomAccessFile
 import java.nio.channels.OverlappingFileLockException
 import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -135,6 +136,30 @@ class RunStore(private val context: Context) {
             }
             check(file.canonicalFile.toPath() == path) { "Private path alias" }
             check(if (directory) file.isDirectory else file.isFile) { "Missing private record" }
+        }
+        private val WRITABLE = setOf(PosixFilePermission.OWNER_WRITE, PosixFilePermission.GROUP_WRITE,
+            PosixFilePermission.OTHERS_WRITE)
+        /**
+         * [safe] for a saved APK that [ApkPreparation.deduplicateApks] may have replaced by a symbolic link to an
+         * identical copy: its folders are plain, and a link resolves to a plain, read-only file inside <base>. The
+         * caller still verifies the bytes. 2026-11-20: a shared access APK refused the claim as a linked record.
+         */
+        internal fun safeShared(base: File, file: File) {
+            val path = file.absoluteFile.toPath().normalize()
+            if (!Files.isSymbolicLink(path)) return safe(base, file)
+            safe(base, checkNotNull(path.parent).toFile(), directory = true)
+            val target = file.canonicalFile
+            safe(base, target)
+            check(Files.getPosixFilePermissions(target.toPath()).none { it in WRITABLE }) { "Shared APK is writable" }
+        }
+        /**
+         * [recordFailure]'s charge: whether <operation> may retry automatically. A failure that again names the
+         * operation of the failure already recorded came before any new attempt began ([beginAttempt] counts
+         * those), so it spends the retry. 2026-11-20: a claim refused before its operation began retried forever.
+         */
+        internal fun chargeFailure(attempts: JSONObject, recorded: String?, operation: String): Boolean {
+            if (recorded == operation) attempts.put(operation, 2)
+            return attempts.optInt(operation, 0) < 2
         }
     }
 
@@ -362,7 +387,7 @@ class RunStore(private val context: Context) {
             val operation = run.lastOperation ?: START_OPERATION.also {
                 attempts.put(it, minOf(attempts.optInt(it, 0) + 1, 2)); value.put("last_operation", it)
             }
-            retry = attempts.optInt(operation, 0) < 2
+            retry = chargeFailure(attempts, value.optJSONObject("failure")?.optString("operation"), operation)
             value.put("failure", JSONObject().put("operation", operation).put("class", failureClass))
             if (retry) value.remove("waiting") else value.put("waiting", "explicit_retry")
         }
