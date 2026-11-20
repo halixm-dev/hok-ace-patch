@@ -6,6 +6,8 @@ Fingerprinting real package layouts remains the external EN/ID parity gate.
 """
 from __future__ import annotations
 
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 import copy
 import hashlib
 import importlib.util
@@ -16,6 +18,7 @@ import shutil
 import sys
 import tarfile
 import tempfile
+from typing import Any, IO
 import unittest
 from unittest.mock import patch
 
@@ -29,6 +32,24 @@ SPEC = importlib.util.spec_from_file_location("bridge_continuation_probe", ROOT 
 assert SPEC is not None and SPEC.loader is not None
 bridge = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(bridge)
+
+
+@contextmanager
+def _count_binary_reads(target: Path) -> Iterator[Callable[[], int]]:
+    original_open = Path.open
+    count = 0
+
+    def counted_open(path: Path, mode: str = "r", *args: Any, **kwargs: Any) -> IO[Any]:
+        nonlocal count
+        if path == target and mode == "rb":
+            count += 1
+        return original_open(path, mode, *args, **kwargs)
+
+    def read_count() -> int:
+        return count
+
+    with patch.object(Path, "open", counted_open):
+        yield read_count
 
 
 class BridgeContinuation(unittest.TestCase):
@@ -125,33 +146,26 @@ class BridgeContinuation(unittest.TestCase):
 
     def test_build_verifies_source_once_on_each_side_of_staging(self) -> None:
         game_file = self.session / "snapshot/packages/1/1.db"
-        original_open = Path.open
-        reads = 0
+        reads_at_staging_end = 0
 
-        def count_reads(path, mode="r", *args, **kwargs):
-            nonlocal reads
-            if path == game_file and mode == "rb":
-                reads += 1
-            return original_open(path, mode, *args, **kwargs)
-
-        def stage(*args):
-            nonlocal reads
-            self.assertEqual(reads, 1)
+        def stage(*args: Any) -> str:
+            nonlocal reads_at_staging_end
+            self.assertEqual(reads(), 1)
             summary = self.stage(*args)
-            reads = 0
+            reads_at_staging_end = reads()
             return summary
 
         apk_sha256 = artifacts.file_identity(self.apk)["sha256"]
-        with patch.object(Path, "open", count_reads), patch.object(bridge, "_stage_translation", stage):
+        with _count_binary_reads(game_file) as reads, patch.object(bridge, "_stage_translation", stage):
             result = json.loads(bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id,
                 str(self.apk), apk_sha256, "en", str(self.keep), json.dumps(self.identity)))
-        self.assertEqual(reads, 1)
+        self.assertEqual(reads() - reads_at_staging_end, 1)
         self.assertTrue(result["reusable"])
 
     def test_build_does_not_publish_when_source_changes_during_staging(self) -> None:
         game_file = self.session / "snapshot/packages/1/1.db"
 
-        def stage(*args):
+        def stage(*args: Any) -> str:
             summary = self.stage(*args)
             game_file.write_bytes(b"tampered")  # Same length as the fixture's original "pristine".
             return summary
@@ -508,23 +522,13 @@ class BridgeContinuation(unittest.TestCase):
     def test_snapshot_checkpoint_reads_each_game_file_once_per_receipt_audit(self) -> None:
         destination = self.session / "snapshot"
         game_file = destination / "packages/1/1.db"
-        original_open = Path.open
-        reads = 0
-
-        def count_reads(path, mode="r", *args, **kwargs):
-            nonlocal reads
-            if path == game_file and mode == "rb":
-                reads += 1
-            return original_open(path, mode, *args, **kwargs)
-
         (destination / artifacts.RECEIPT_NAME).unlink()
-        with patch.object(Path, "open", count_reads):
+        with _count_binary_reads(game_file) as publication_reads:
             published = checkpoint_snapshot(destination, identity=self.identity, run_id=self.run_id, publish=True)
-        self.assertEqual(reads, 3)  # Before publication, just before rename, and the committed read-back.
-        reads = 0
-        with patch.object(Path, "open", count_reads):
+        self.assertEqual(publication_reads(), 3)  # Before publication, just before rename, and the committed read-back.
+        with _count_binary_reads(game_file) as reuse_reads:
             reused = checkpoint_snapshot(destination, identity=self.identity, run_id=self.run_id)
-        self.assertEqual(reads, 1)
+        self.assertEqual(reuse_reads(), 1)
         self.assertEqual(reused, published)
 
     def test_snapshot_checkpoint_refuses_same_size_corruption_before_publication(self) -> None:

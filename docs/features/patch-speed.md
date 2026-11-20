@@ -190,14 +190,15 @@ The phone baseline and profiles are in the [lab notebook](../lab-notebook.md#202
 | Hypothesis | Evidence from the baseline and offline profiles |
 |---|---|
 | Use the first snapshot for most of the second | 15 paths changed, including six package files and nine Watchdog files. The changed files present in the second snapshot accounted for 3.5% of its bytes. Safe reuse still needs proof for the other paths and ownership of both rollback snapshots. |
-| Fold planning into the build refusal | The refusal found stuck assets in two packages. The plan inspected mixed packages and selected a third package too. The mixed-package inspection accounted for 39 s of the 53.9 s offline plan. Sharing only the stuck classification leaves that work in place. |
+| Plan directly from the phone or fold planning into the build refusal | The refusal found stuck assets in two packages. The plan inspected mixed packages and selected a third package too. The mixed-package inspection accounted for 39 s of the 53.9 s offline plan. Direct reads would need equivalent proof of the game state and rollback bytes before deletion. The profile used the existing snapshot planner. |
 | Encode textures ahead of time or cache them | ASTC compression took 14 s in the offline profile. Slot maps accounted for 71 s and making the pristine delta for 58 s, including overlapping fingerprint work. Reusing encoded texture bytes would still leave those costs, plus the snapshot audits. |
-| Stage packages during the game's download | The build scans inputs before relocation, then appends prime-only content and records the combined result. The two snapshots differed in packages used by those passes. A split build needs a parity check on the combined result and a separate phone run to measure contention with the downloader. |
+| Stage packages during the game's download | The build scans inputs before relocation, then appends prime-only content and records the combined result. The two snapshots differed in packages used by those passes. The profile covered these dependencies. CPU and storage contention with the downloader remains unmeasured. |
 
 Both timed runs used Root on the same Redmi Note 9 Pro. The user selected Root after the
-Wireless debugging run paused for storage. Each build has one observed journey. Times below
-come from the app's diagnostic trace. The candidate started with more free space. The baseline
-spent 54 s sharing stored APKs before its first snapshot. The game also downloaded live in both runs.
+Wireless debugging run paused for storage. Each build has one observed journey. Times and
+differences are rounded from the app's diagnostic trace. The candidate started with more free
+space. The baseline spent 54 s sharing stored APKs before its first snapshot. The game downloaded
+live in both runs.
 
 | Stage | Master 121 | Candidate 123 | Observed change |
 |---|---:|---:|---:|
