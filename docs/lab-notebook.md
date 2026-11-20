@@ -6080,3 +6080,54 @@ run's build took about 4 min 41 s.
 - The phone had 8,815,943,680 B free after restoring the normal APK. *Free up space* reclaimed 0 B
   and retained the saved recovery files. Asked for 3 GB more to cover the observed shortfall.
   Evidence is `D:/scratch/hok-ac-repatch-speed/baseline-2938ec2-121/storage-wait-trace.log`.
+
+## 2026-11-20 — Root re-patch baseline on `ebad528e`
+
+Build `121` from master `2938ec2`, run `43db02ab`, English. The user approved Root for both
+timed runs after confirming the phone could not free 3 GB more. The Wireless debugging run
+stopped safely before package deletion. Root used the same updated game layer and installed APK.
+
+| Stage | Observed |
+|---|---:|
+| Start at 12:40:50.649 to the download card at 12:55:30.012 | 14 min 39.363 s |
+| First snapshot stream and unpack | 85.271 s |
+| First checkpoint identity | 53.454 s |
+| First snapshot checkpoint | 150.416 s |
+| First build, through refusal for packages 1 and 10 | 227.585 s |
+| Re-download plan | 68.855 s |
+| Deletion | 9 files, 121,323,631 B, packages 1, 10 and 21 |
+| Second snapshot stream and unpack | 85.707 s |
+| Second checkpoint identity | 52.772 s |
+| Second snapshot checkpoint | 144.109 s |
+| Successful build checkpoint | 570.957 s |
+| First through last of nine writes | 20.484 s between write starts |
+| Downloads finished to Translation added | 21 min 15.508 s, including the manual recovery |
+| Retry to Translation added | 19 min 19.538 s |
+| Start to Translation added | 38 min 39.290 s |
+
+The game reached login after the Re-download. *Downloads finished* failed twice at the saved
+Root APK claim with `Linked private record`. Shortage cleanup had replaced `original.apk` with a
+symlink to an identical saved APK. With both apps stopped, a hard link to the existing read-only
+recovery APK restored the expected path. Its SHA-256 and size matched the run's bound identity.
+The retry at 13:00:10.401 continued run `43db02ab` and started its second snapshot. The 1 min
+55.970 s between *Downloads finished* and the retry is recorded separately when comparing patch
+stages. The worker completed at 13:19:27.547 with 398 text tables, 318 applied textures, one
+table skipped and zero textures skipped. Root verified the installed APK and did not replace it.
+Evidence is under `D:/scratch/hok-ac-repatch-speed/baseline-2938ec2-121/`.
+
+The first snapshot had 803 files. The second had 798 files and 3,272,213,201 B. The two
+manifests differ at 15 paths, nine in Watchdog and six in packages 1, 10 and 21. The changed
+paths present in the second snapshot total 114,999,296 B (3.5% of its bytes). This compares
+actual SHA-256 values and includes paths added or removed.
+
+The phone's sampled build log first reported translation around 4 min 19 s into
+`build_checkpoint`, and reported its final pipeline counts around 2 min 2 s later. The exact
+pre-download snapshot was also reconstructed and verified offline from the capture. A master
+profile on the PC counted five full snapshot reads in checkpoint publication and six more
+before the stuck-update refusal. The Re-download plan spent 39.0 s of its 53.9 s of profiled PC
+time inspecting mixed packages and selected the same nine files. The PC profile explains the
+work inside the recorded phone stages.
+
+The after-complete capture verified the normal APK (`29b3ee7e…`) and matched all 14 staged
+hashes to files on the phone. The normal game reached the English v1.11.2 login screen.
+`normal1.log` contained zero occurrences of `errorCode:361` before and after this launch.
