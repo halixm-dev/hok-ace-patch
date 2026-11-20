@@ -399,7 +399,40 @@ in-match hand card was not seen.
   `graphics_skipped`. `port_graphics` takes it beside the catalog edits and counts it as one texture.
   `pc_catalog._label_textures` adds a package-`19` entry for it to the per-install catalog, and refuses
   it the same way. A whole re-encode is deterministic, so a re-run over the output changes nothing.
-- **Verified offline** (lab notebook, 2026-11-21, "Event start button"); not yet on screen.
+- **Verified offline** (lab notebook, 2026-11-21, "Event start button"). On the phone the lobby does not
+  draw it (next section).
+
+### The lobby's Super Weekend sprites (2026-11-21)
+
+With `A71C734D3EFAFBFF` staged and on the phone, the lobby's button still read 开始游戏. The lobby
+prefab `770C8EA0BD10E1F2` gives `UILobbyClass.textStatus` four sprites of the lobby atlas
+`C9F49510F2F67402` (`UIResources/Lobby`), picked by `SetSimilarSpriteByIndex`:
+
+| index | `UILobbyClassTextStatus` | sprite | art | drawn by |
+|---:|---|---|---|---|
+| 0 | `StartPlay` | `Image_1845319953` | START GAME | catalog region `start_game` |
+| 1 | `MatchSpecialTraining` | `Image_546530720` | BATTLE TRAINING | catalog region `battle_training` |
+| 2 | `SuperWeekends` | `Image_1495219937` | 超级周末, the login flash | `ATLAS_LABELS`: SUPER WEEKEND |
+| 3 | `StartPlayTwo` | `Image_2023783232` | the warm 开始游戏, the event's steady label | `ATLAS_LABELS`: START GAME / MULAI GAME |
+
+`UILobbyClass:RefreshRightBottomArtFont` shows `StartPlayTwo` while `IsSuperWeekendActive()`, and the
+login animation flashes `SuperWeekends` first. The GameCenter texture `A71C734D3EFAFBFF` carries the same
+art as `Image_2023783232` (mean difference about 5 levels, ASTC 6x6 against 4x4), so `LABEL_TEXTURES` stays
+for any screen that draws it.
+
+- **The pass** is the Career atlas's: `port_atlas` writes `atlas_art`'s labels over their device boxes,
+  then the catalog's regions. A sprite missing from the device's table, or at another size, is left out,
+  so older data without the event sprites ports as before.
+- **Per language.** `atlas_art` reads `labels/<language code>/<sprite>.png`, then the English one, then the
+  shared `labels/<sprite>.png`. `Image_2023783232` has `en/` and `id/` copies of the approved
+  `A71C734D3EFAFBFF` art; `Image_1495219937` is shared, because both catalogs say Super Weekend.
+  `atlas_sprites.py labels --check` reads both layouts and holds the lobby labels to the cream art (at
+  least 60 % of solid pixels light; the Indonesian bevel measures 69 %).
+- **The art.** SUPER WEEKEND is Barlow Condensed ExtraBold, scaled to START GAME's cap height (rows 22-80)
+  and the full width, filled row by row with the 超级周末 sprite's own measured colour, with a soft brown
+  shadow (script in the lab notebook entry). A draft, not hand-finished.
+- **Verified** offline (both languages port, re-runs change nothing, `check_graphics.py` passes) and on the
+  phone's lobby, 2026-11-21 (lab notebook, "Super Weekend lobby sprites").
 
 ### The PC edition: the same ports in BC7 (2026-11-20)
 

@@ -386,7 +386,16 @@ textures (247 in all, the same in both languages), the label being the 24th; the
 overrides 49 assets in English and 50 in Indonesian against ticket 05's 48 and 49. Verified offline
 2026-11-21, not yet on screen; the skin shows only during the event.
 
-34 images are this repo's own, not the catalog's. Two are on the Career atlas `13C19E4E4486B31C`,
+The button the lobby actually draws during the event is not that texture: `UILobbyClass` swaps its label
+(`textStatus`) between four sprites of the lobby atlas `C9F49510F2F67402`, and the catalog's two regions
+there cover only the plain START GAME and BATTLE TRAINING. The event's steady label `Image_2023783232` (the
+warm 开始游戏, the same art as `A71C734D3EFAFBFF`) and the login flash `Image_1495219937` (超级周末) are two
+more of this repo's labels (`mobile_graphics.ATLAS_LABELS`): **START GAME** / **MULAI GAME** per language,
+and **SUPER WEEKEND** in both (the supplement's "Super Weekend"). They are drawn into a texture the
+catalog already edits, so they add no texture to the count. Device-verified on the lobby, 2026-11-21
+(English, Redmi, data 1.11.0.2).
+
+36 images are this repo's own, not the catalog's. Two are on the lobby atlas (above). Two are on the Career atlas `13C19E4E4486B31C`,
 `Image_410780920` `我的皮肤` → **MY SKINS** (no catalog entry) and `Image_920603129` `总盈利` → **TOTAL
 PROFIT** (the text table's "Total profit"), in `resources/sprites/` (`mobile_graphics.ATLAS_LABELS`). They
 are drawn into a texture the catalog already edits, so they add no texture to the count. Every language
@@ -473,7 +482,7 @@ with MULAI GAME on its start button (`indonesian-language.md`, *Device cycle*):
 | Textures applied | 398 (395 before the device revisions) |
 | Text tables skipped | 1 (`0196F0E230EC1C70`, the append encoder's refusal) |
 | Textures skipped | 0 |
-| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME), plus the repo-drawn event label `A71C734D3EFAFBFF` (MULAI GAME) since 2026-11-21 |
+| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME), plus the repo-drawn event label `A71C734D3EFAFBFF` and the lobby atlas's event sprite `Image_2023783232` (MULAI GAME) since 2026-11-21 |
 
 The other 396 applied textures carry the English edit. Two gaps are specific to the language:
 
@@ -500,7 +509,8 @@ reported the same counts and verified every package. The installed game gave the
 cycle per language (2026-11-21, launcher 26111.0.4.30004, data 1.11.0.2, lab notebook "PC edition ticket
 05"): the lobby reads English or Indonesian, and the start button's event skin (开始游戏, "Super Weekend
 Perks Are Here!") is not in the catalog and stays Chinese in both editions; it hides the two START GAME
-textures, which are written.
+textures, which are written. Since 2026-11-21 this repo draws the skin's sprites in the lobby atlas
+(see "Translated outside the catalog"); the phone shows them, the PC edition is not yet cycled.
 
 | result | Mobile edition (data 1.9.0.1, 2026-11-05) | PC edition, English | PC edition, Indonesian |
 |---|---:|---:|---:|

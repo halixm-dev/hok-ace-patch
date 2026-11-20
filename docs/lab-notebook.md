@@ -6494,6 +6494,46 @@ Evidence outside the repo: `D:\scratch\event-room-line\` (bins, build log, phone
 - **Seen in passing, the event start button on the phone:** the lobby's Super Weekend button still reads
   开始游戏 (`phone-lobby-en.png`), although this build stages `A71C734D3EFAFBFF` as START GAME (decoded
   from the staged package `19`, whose files match the phone's). So the button on screen does not draw
-  that texture at 1.11.0.2; PR #47's label is applied but not what the lobby shows. Not investigated
-  here. "万象速决" in the lobby's bottom row is Chinese too.
+  that texture at 1.11.0.2; PR #47's label is applied but not what the lobby shows. Resolved in the
+  next entry. "万象速决" in the lobby's bottom row is Chinese too.
 - **Phone left on** the cycle build; the pristine copy is `D:\scratch\event-room-line\device\pristine-backup.tar`.
+
+## 2026-11-21 — Super Weekend lobby sprites: the button draws the lobby atlas, not `A71C734D3EFAFBFF`; device pass
+
+Redmi Note 9 Pro `ebad528e`, rooted (KernelSU), game data 1.11.0.2, English, the event live. Scratch
+`D:\scratch\event-room-line\` (`grep_assets.py`, `dump_asset.py`, `art\draw_sw.py`, `evidence\`).
+
+- **What the button draws.** The lobby script `FC07FFAAB85F0418` (`UILobbyClass`, package `10`) sets the
+  label with `SetTextStatus`, which `25D1A19B4BE0B669` maps to `textStatus:SetSimilarSpriteByIndex(0..3)`:
+  `StartPlay`, `MatchSpecialTraining`, `SuperWeekends`, `StartPlayTwo`. The lobby prefab `770C8EA0BD10E1F2`
+  (package `19`) lists that image's four sprites, all `UIResources/Lobby`: `Image_1845319953`,
+  `Image_546530720`, `Image_1495219937`, `Image_2023783232`. `RefreshRightBottomArtFont` shows
+  `StartPlayTwo` while `IsSuperWeekendActive()`; the login animation flashes `SuperWeekends` first.
+- **Where they are.** All four are sprites of the lobby atlas `C9F49510F2F67402` (sprite table
+  `22BD565B3703EDA9`; 1024x1024 ASTC 4x4). Device rects at 1.11.0.2: `Image_1495219937` (1,25)-(373,127),
+  `Image_1845319953` (1,130), `Image_2023783232` (1,235), `Image_546530720` (1,340), each 372x102. Pristine
+  crops: 开始游戏, 对战特训, 超级周末, warm 开始游戏 (`lobby-atlas-4.png`). The catalog's two regions on this
+  atlas are only `start_game` (`Image_1845319953`) and `battle_training` (`Image_546530720`).
+- **`A71C734D3EFAFBFF` is the GameCenter twin.** Against the pristine `Image_2023783232` crop its decode
+  differs by a mean of 5.2/5.7/5.7/3.0 per channel (ASTC 6x6 against 4x4), the same art. The same
+  `Image_` names are listed under `UIResources/GameCenter` too (`751B471494DC6BC6`).
+- **Fix.** `ATLAS_LABELS["C9F49510F2F67402"]`: `Image_2023783232` START GAME / MULAI GAME (copies of the
+  approved `A71C734D3EFAFBFF` art, per language), `Image_1495219937` SUPER WEEKEND (new draft: Barlow
+  Condensed ExtraBold at START GAME's cap height, rows 22-80, filled with the 超级周末 sprite's row colours,
+  soft brown shadow; `art\draw_sw.py`). `atlas_art` now reads `labels/<code>/` before the shared file.
+- **Offline.** `english_raw` on the dump's lobby atlas ports in both catalogs and is idempotent
+  (`staged-lobby-atlas-both.png`); `check_graphics.py` (no `--game`) all checks passed;
+  `atlas_sprites.py labels --check` passes. `check_graphics.py --game` on this 1.11.0.2 dump stops with a
+  TypeError at `E86DF43167CA2143`, whose port returns None (the known skip) without a skip reason: a
+  check-script gap, untouched by this change (that atlas has no repo labels). The build over the dump with the APK:
+  package `19` 23 textures, 1 of 24 skipped (`E86DF43167CA2143`), as before; only `19_0.db` changed
+  against the room-perks build.
+- **Device: pass.** Root push of package `19` (hashes match the build), game started, notice closed,
+  "Click to Enter Game": the lobby's button reads **START GAME** in the cream event art over "Super Weekend
+  Perks Are Here!" (`lobby-button-before-after.png`). No crash, no repair. The 超级周末 → SUPER WEEKEND
+  flash was not caught between 1.5 s screenshots, so it is verified offline only.
+- **PC edition:** the PC per-install catalog ports this atlas with `codec="bc7"` and draws the same
+  labels where the installed sprite table carries them. The PC copy's table carries both sprites at the
+  phone's rects. `--pc-selftest` on `C:\scratch\pc-edition-02\game`: `ok: true`, 49 assets patched in
+  English and 50 in Indonesian, as before (the atlas was already patched). No PC cycle: not seen on screen.
+

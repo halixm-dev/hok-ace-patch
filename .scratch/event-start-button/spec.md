@@ -1,6 +1,6 @@
 # Event start button: the Super Weekend skin of START GAME
 
-Status: ready-for-human (button implemented and verified offline; room line and on-screen cycles waiting for the user)
+Status: ready-for-human (button and room line done on the phone; PC cycles skipped by the user)
 
 ## Problem
 
@@ -141,3 +141,8 @@ Anything on `D:\WXQ` or the phone until the user allows a cycle; other event ski
 - 2026-11-21: on the Redmi at 1.11.0.2 the lobby's Super Weekend button still reads 开始游戏 although the build
   staged `A71C734D3EFAFBFF` as START GAME and the phone's package `19` matches the build: the button on
   screen draws something else. Not investigated (lab notebook, "Super Weekend room perks").
+- 2026-11-21: resolved. The lobby draws the label from the lobby atlas `C9F49510F2F67402`
+  (`Image_2023783232`, the steady event label, and `Image_1495219937`, the 超级周末 login flash), which the
+  catalog's two regions there do not cover. Both are now `ATLAS_LABELS` (START GAME / MULAI GAME per
+  language, SUPER WEEKEND); the phone's lobby reads START GAME (lab notebook, "Super Weekend lobby sprites").
+  `A71C734D3EFAFBFF` stays as the GameCenter twin.
