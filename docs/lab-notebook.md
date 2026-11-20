@@ -6055,3 +6055,178 @@ run's build took about 4 min 41 s.
   longer walked, about 1% of the 69 s build, rather than a precise figure.
 - **Checks:** the 12 repository checks the Android workflow runs, all exit 0.
 - **Verdict:** pass offline. Not run: the frozen exe `--smoketest`, a patch on a phone with this build.
+
+## 2026-11-20 — Wireless debugging re-patch baseline setup on `ebad528e` — pass
+
+- Build `121` from master `2938ec2`, with Android host tests passing. `update_cycle.py push` verified
+  package hashes against the 1.10.1.2 snapshot and restored the normal APK (`29b3ee7e…`).
+  *Free up space* freed 2.0 GB and left 10.9 GB free with recovery copies kept.
+- English setup run `94124358` took 25 min 18 s from *Start* to worker completion. Snapshot stream
+  106.3 s, identity 51.9 s, snapshot checkpoint 135.1 s, build checkpoint 503.9 s. The normal APK was
+  verified. Output was 398 text tables and 318 applied textures, with 1 table and 0 textures skipped.
+- The normal game downloaded its update and reached the v1.11.2 login screen. This run prepared
+  the input for the timed Re-download. Evidence is under
+  `D:/scratch/hok-ac-repatch-speed/baseline-2938ec2-121/` (`setup-trace.log`, `setup-update-latest.png`).
+- The first `after-update` capture ran out of space while reinstalling the normal APK. With the game
+  closed, *Free up space* reclaimed 4.8 GB and the normal APK was reinstalled and checked by SHA-256.
+  The same capture code completed with read-only Root reads, leaving that APK installed. The capture
+  records game data 1.11.0.2, 803 files and no unfinished package folders.
+
+## 2026-11-20 — Wireless debugging re-patch baseline on `ebad528e` — waiting for storage
+
+- Run `140b468b` on build `121` paused 8 min 24 s after *Start*, before taking a snapshot or deleting
+  packages. The app needed 9,332,576,002 B for the snapshot, build and normal restore and had
+  6,787,031,040 B with access open. It restored and verified the normal APK (`29b3ee7e…`) as it paused.
+- The phone had 8,815,943,680 B free after restoring the normal APK. *Free up space* reclaimed 0 B
+  and retained the saved recovery files. Asked for 3 GB more to cover the observed shortfall.
+  Evidence is `D:/scratch/hok-ac-repatch-speed/baseline-2938ec2-121/storage-wait-trace.log`.
+
+## 2026-11-20 — Root re-patch baseline on `ebad528e`
+
+Build `121` from master `2938ec2`, run `43db02ab`, English. The user approved Root for both
+timed runs after confirming the phone could not free 3 GB more. The Wireless debugging run
+stopped safely before package deletion. Root used the same updated game layer and installed APK.
+
+| Stage | Observed |
+|---|---:|
+| Start at 12:40:50.649 to the download card at 12:55:30.012 | 14 min 39.363 s |
+| First snapshot stream and unpack | 85.271 s |
+| First checkpoint identity | 53.454 s |
+| First snapshot checkpoint | 150.416 s |
+| First build, through refusal for packages 1 and 10 | 227.585 s |
+| Re-download plan | 68.855 s |
+| Deletion | 9 files, 121,323,631 B, packages 1, 10 and 21 |
+| Second snapshot stream and unpack | 85.707 s |
+| Second checkpoint identity | 52.772 s |
+| Second snapshot checkpoint | 144.109 s |
+| Successful build checkpoint | 570.957 s |
+| First through last of nine writes | 20.484 s between write starts |
+| Downloads finished to Translation added | 21 min 15.816 s, including the manual recovery |
+| Retry to Translation added | 19 min 19.538 s |
+| Start to Translation added | 38 min 39.290 s |
+
+The game reached login after the Re-download. *Downloads finished* failed twice at the saved
+Root APK claim with `Linked private record`. Shortage cleanup had replaced `original.apk` with a
+symlink to an identical saved APK. With both apps stopped, a hard link to the existing read-only
+recovery APK restored the expected path. Its SHA-256 and size matched the run's bound identity.
+The retry at 13:00:10.401 continued run `43db02ab` and started its second snapshot. The trace
+records 1 min 56.278 s between *Downloads finished* and the retry, counted separately when
+comparing patch stages. The worker completed at 13:19:27.547 with 398 text tables, 318 applied textures, one
+table skipped and zero textures skipped. Root verified the installed APK and did not replace it.
+Evidence is under `D:/scratch/hok-ac-repatch-speed/baseline-2938ec2-121/`.
+
+The first snapshot had 803 files. The second had 798 files and 3,272,213,201 B. The two
+manifests differ at 15 paths, nine in Watchdog and six in packages 1, 10 and 21. The changed
+paths present in the second snapshot total 114,999,296 B (3.5% of its bytes). This compares
+actual SHA-256 values and includes paths added or removed.
+
+The phone's sampled build log first reported translation around 4 min 19 s into
+`build_checkpoint`, and reported its final pipeline counts around 2 min 2 s later. The exact
+pre-download snapshot was also reconstructed and verified offline from the capture. A master
+profile on the PC counted five full snapshot reads in checkpoint publication and six more
+before the stuck-update refusal. The Re-download plan spent 39.0 s of its 53.9 s of profiled PC
+time inspecting mixed packages and selected the same nine files. The PC profile explains the
+work inside the recorded phone stages.
+
+The after-complete capture verified the normal APK (`29b3ee7e…`) and matched all 14 staged
+hashes to files on the phone. The normal game reached the English v1.11.2 login screen.
+`normal1.log` contained zero occurrences of `errorCode:361` before and after this launch.
+
+### 2026-11-20 — Candidate preparation on ebad528e
+
+A swipe after baseline verification accidentally started another run at 13:34:39. Stop safely
+resolved it during saved APK preparation, before snapshot or game writes. Built-in Free up space
+kept the recovery copy and raised `/data` free space from 4,572,620 to 10,462,680 KiB.
+
+An offline build on the exact second snapshot reached receipt publication and caught metrics
+being written after the output manifest. The failing continuation test now checks that the manifest
+includes the metrics file's final digest. The candidate writes metrics before sealing.
+The offline Windows output had five different package body hashes and differences within package
+summaries. Phone-to-phone parity is the release check. The offline candidate profile spent 71 s
+cumulatively in slot-map construction, 58 s making the pristine delta, and 41 s classifying mixed
+packages. These calls overlap other profile rows and are not phone timings.
+
+### 2026-11-20 — Root force-stop checks on ebad528e
+
+Version 123 (`87a3064`) restored the same official 1.10.1.2 package fixture for setup. Run
+`3a451b1f` started at 13:59 before the timed re-patch. The game stayed closed.
+
+| Force-stop | Automatic resume after opening the patcher |
+|---|---|
+| Root claim at 14:00:11, after its worker attached and before preflight | Continued at 14:00:14 and reached the snapshot space check. |
+| Checkpoint identity at 14:07:31 | Continued at 14:07:33. The check finished at 14:09:24. |
+| Snapshot checkpoint at 14:09:29 | Continued at 14:09:32. Receipt publication finished at 14:12:49. |
+| Build checkpoint at 14:13:01 | Continued at 14:13:04. Build finished at 14:20:32 and the app showed Translation added at 14:23:21. |
+
+After the first resume, storage was 263 MB short of the 7.25 GB required. The unused cached
+access APK matched the Windows copy byte for byte (`71608bac…`). Moving that cached copy off
+the phone made 2.03 GB available. The active Root preparation's `original.apk` remained linked
+to the read-only verified recovery copy. Reopening the app at 14:04 continued the same run.
+
+The setup patch completed with 398 tables, 318 applied textures and skips of one table and zero
+textures. The verified normal game then updated itself from v1.10.2 to v1.11.2 and reached login.
+The after-update capture had the same 803 paths as the baseline and data version `1.11.0.2`.
+Sixteen hashes differed across the two live updates, five Watchdog files and 11 package files.
+The captures and restart trace are in `D:/scratch/hok-ac-repatch-speed/candidate-837bc9a-122/`.
+
+### 2026-11-20 — Timed Root candidate on ebad528e
+
+To control for those differences, the timed run used the baseline's actual post-update capture.
+With both apps stopped, the 16 differing files and the two retained original-data records were
+restored from that capture. All 803 game-file hashes and both retained-record hashes were
+verified before Start. The game's Re-download runs live. `controlled-input.json` records the
+restored paths and hashes beside the two live captures.
+
+Run `82719ef9` used build 123 and Root. Before Start, `/data` had 12,659,444 KiB free. The
+first snapshot matched all 803 baseline hashes. Start at 14:33:09.880 to the Re-download card
+at 14:43:03.498 took 9 min 53.618 s. The stream took 88.515 s, checkpoint identity 49.484 s,
+snapshot checkpoint 91.676 s, build refusal 49.986 s, and planning 77.714 s. The plan again
+deleted nine files (121,323,631 B across packages 1, 10 and 21).
+
+The game opened at 14:43:46.773 and reached the v1.11.2 login screen. Its `normal1.log`
+contained zero occurrences of `errorCode:361`. Downloads finished at 14:45:49.094 resumed
+the same run and started the second snapshot.
+
+| Stage | Observed |
+|---|---:|
+| Second snapshot stream and unpack | 86.954 s |
+| Second checkpoint identity | 51.135 s |
+| Second snapshot checkpoint | 92.908 s |
+| Successful build checkpoint | 357.359 s |
+| Finalization plan | 7.426 s |
+| First through last of nine writes | 22.740 s between write starts |
+| Downloads finished to Translation added | 14 min 41.010 s |
+| Start to Translation added | 27 min 20.224 s |
+
+The worker finished at 15:00:28.154 and Translation added appeared at 15:00:30.104. Output
+was 398 tables, 318 applied textures, one skipped table and zero skipped textures. The second
+snapshot had the same 798 paths and byte sizes as the baseline. Five package hashes (one in
+package 1 and two each in packages 10 and 21) and two Watchdog hashes differed after the
+game's live download.
+
+The completed phone capture verified the normal APK (`29b3ee7e…`) and matched all 14 staged
+hashes to installed files. The same five paths with changed download bytes had different
+staged hashes from the baseline. The skip lists matched. The summary differences were the
+source/output hashes recorded within one package and the number of retained delta bytes.
+The normal game opened to the English v1.11.2 login screen and `normal1.log` showed zero
+occurrences of `errorCode:361`. Evidence is `after-complete/capture.json`, `parity.json`,
+`final-login.png` and `final-login-normal1.log` in the candidate evidence directory.
+
+### 2026-11-20 — Same-input Root build on ebad528e
+
+The candidate's signed instrumentation used the same installed patcher build (123) and ran the
+production snapshot checkpoint and build in an isolated app folder. Its snapshot had the 798
+baseline file identities, including all seven paths that differed after the live download. Its
+normal APK, kept pristine records, requested action and target matched the master run's build
+identity. The installed game stayed closed and untouched during the test.
+
+| Check | Result |
+|---|---|
+| Staged SHA-256 | 14 of 14 matched the master and the phone's staged receipt |
+| Bridge and pipeline summaries | Identical after normalizing each attempt's local paths |
+| Counts and skip lists | 398 tables, 318 applied textures, one skipped table, zero skipped textures |
+| Instrumentation | 1 test passed in 587.151 s, outside the journey timing |
+
+Evidence is `exact-input-probe.log`, `RepatchParityLocalProbeTest.java` and
+`exact-input-parity/` in the candidate evidence directory. The phone's completed candidate
+attempt was archived and verified on the PC during the probe to make room for its private build.
