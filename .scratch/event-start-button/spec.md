@@ -114,8 +114,11 @@ the same hash.
    colour, with alpha kept. `compare.png` shows them over a dark and a warm background next to the game's
    event label and the catalog art. Known difference: the catalog art has a dark bevelled edge, which the
    re-shade turns brown, and the event label has only a soft shadow. **Decided 2026-11-21 (user): ship the drafts.** They are `resources/sprites/A71C734D3EFAFBFF/labels/en|id/start_game.png`.
-3. Room line: queue `9E924AAB5066EE19` as a candidate (supplement strings + a reseal path in
-   `rewrite_config` + device and PC cycles), or leave it Chinese.
+3. ~~Room line~~ **Decided 2026-11-21 (user): queue it as a candidate. Done 2026-11-21.** The 7 strings
+   are in the supplement, `rewrite_config` reseals a sealed bin (`extra_text._resealed`), and the device
+   cycle passed (English, Redmi, 1.11.0.2), so `9E924AAB5066EE19` is on `SAFE_ASSETS`. The user skipped
+   the PC cycle: it stays a candidate for the PC edition (`PC_SAFE_ASSETS` is empty). Lab notebook,
+   "Super Weekend room perks".
 4. The AGENTS.md Coverage rule change that the chosen mechanism needs (a standalone repo-drawn label
    texture, re-drawn per language). It lands with the implementation, in the same change.
 
@@ -135,3 +138,6 @@ Anything on `D:\WXQ` or the phone until the user allows a cycle; other event ski
   `device_extensions.port_graphics` and `pc_catalog._label_textures`. Verified offline on the phone's 1.10.1.2
   layer and the PC scratch copy (lab notebook, "Event start button"). Still owed: a phone cycle and a PC cycle
   while the event is live, both with the user's permission; the room line (decision 3).
+- 2026-11-21: on the Redmi at 1.11.0.2 the lobby's Super Weekend button still reads 开始游戏 although the build
+  staged `A71C734D3EFAFBFF` as START GAME and the phone's package `19` matches the build: the button on
+  screen draws something else. Not investigated (lab notebook, "Super Weekend room perks").

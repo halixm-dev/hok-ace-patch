@@ -6460,3 +6460,40 @@ the phone's pristine snapshots `20261029-1.8.0.1` and `20261118-1.10.1.2`. Plan 
     runtime (and no `WXQ.exe`, so `--pc-selftest` refuses it as a game folder).
 - **Not run:** a phone cycle and a PC cycle with the event live, the engine's own stage verification on a
   full PC copy, and the APK-included phone run.
+
+## 2026-11-21 — Super Weekend room perks `9E924AAB5066EE19`: resealed, device cycle pass, PC cycle skipped
+
+Evidence outside the repo: `D:\scratch\event-room-line\` (bins, build log, phone hashes, screenshots in
+`evidence\`). Plan: `.scratch/event-start-button/spec.md`, decision 3.
+
+- **The bin.** Package `1`, 293 B, sealed (`config_bin.is_sealed`), byte-identical on the PC edition
+  (1.11.0.2, scratch copy) and the phone (1.10.1.2 snapshot, and the Redmi's 1.11.0.2 pristine layer).
+  Seven rows (id, name, sort); the room joins the active names with `，`.
+- **Offline, the reseal.** `rewrite_config` with the loaded catalog: English 293 → 375 B, Indonesian
+  293 → 400 B, both read back sealed, field 3 (the index) unchanged, no Chinese left. The generic
+  `pb_text.rewrite` alone leaves the bin unsealed, the failure mode of the withdrawn bins.
+- **Offline, the PC edition.** `pc_catalog --cycle-asset 9E92` on the PC scratch copy: English 50
+  assets patched, Indonesian 51 (49 / 50 without it). `--pc-selftest ... --cycle-asset 9E92` on the full
+  copy `C:\scratch\pc-edition-02\game` (package indexes equal to `D:\WXQ`'s): `ok: true` in both
+  languages, 361 graphics (ticket 05's 359, the start label and this bin), package `1` 397 replacements.
+- **Device cycle, English: pass.** Redmi Note 9 Pro (`ebad528e`, KernelSU), original game APK, data
+  1.11.0.2. The Android patcher's Remove translation first (03:37), then the pristine `packages` and
+  `Watchdog` pulled as root (3.3 GB, the rollback copy) and the phone's `base.apk`. Built with
+  `build_device_patch.py --apk ... --cycle-asset 9E924AAB5066EE19`: package `1` "2 extra assets
+  translated"; the staged bin reads back sealed and byte-equal to the offline English result. Pushed as
+  root (`cat` into the existing files, `chown`/`chcon` to `QtsVFSCache`'s, `Watchdog` cleared).
+  A first push was spoiled by the game being opened during the copy (04:16:20): it recreated
+  `19_0.db` at 114,688 B. Force-stopped, re-pushed with the game closed: all 14 files match the build.
+  In the game (user, screenshot `phone-room-en.png`): the ranked room's event line reads
+  "Double Diamonds from card flips 2/3，Shared Score with no Intimacy limit"; the counter moved from 0/3
+  over the matches played; a match ended without the QTS-failure popup; the lobby, Card and Chessplayer
+  labels are as before. After play the 14 files still match (no repair); `normal1.log` has no
+  `errorCode:361`, `QtsVFS.log` no read failure. `9E924AAB5066EE19` joins `SAFE_ASSETS` (mobile).
+- **PC cycle: not run** (the user's decision). The bin stays off `PC_SAFE_ASSETS` and on
+  `CANDIDATE_ASSETS` for a PC cycle.
+- **Seen in passing, the event start button on the phone:** the lobby's Super Weekend button still reads
+  开始游戏 (`phone-lobby-en.png`), although this build stages `A71C734D3EFAFBFF` as START GAME (decoded
+  from the staged package `19`, whose files match the phone's). So the button on screen does not draw
+  that texture at 1.11.0.2; PR #47's label is applied but not what the lobby shows. Not investigated
+  here. "万象速决" in the lobby's bottom row is Chinese too.
+- **Phone left on** the cycle build; the pristine copy is `D:\scratch\event-room-line\device\pristine-backup.tar`.

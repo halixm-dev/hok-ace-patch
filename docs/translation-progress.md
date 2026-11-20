@@ -14,9 +14,9 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **nine Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
-(`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21) —
-nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
+(`extra_text.SCRIPT_LABELS`), **nine Lua edits** (`extra_text.SCRIPT_EDITS`) **and two config bins** on the mobile edition
+(`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21, and
+`9E924AAB5066EE19`, the Super Weekend room perks, since 2026-11-21) — nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
 
 A run reports four numbers through the app's `translate` step, all read from
@@ -312,7 +312,10 @@ Re-measure:
 ## Translated outside the catalog
 
 `extra_text` (over `pb_text` and `unity_text`) translates display strings the catalog has no
-localization table for. Its config-asset allowlist, `SAFE_ASSETS`, is device-gated and holds **one** bin:
+localization table for. Its config-asset allowlist, `SAFE_ASSETS`, is device-gated and holds **two** bins.
+The second, since 2026-11-21, is `9E924AAB5066EE19`, the Super Weekend room perks: 7 of 7 strings, all
+from the catalog supplement, rewritten and resealed (`extra_text._resealed`), so the room screen's event
+line reads translated; device-cleared in English on a Redmi Note 9 Pro, data 1.11.0.2. The first is
 `F79FB1A213A9DA90` (`ResSeasonAILineupDataBin`), the Lineup → Official recommendation lineups, 118 of
 118 distinct strings (264 fields) inside its 28 share codes and its rows, translated and resealed
 (`lineup_codes.rewrite_bin`). Device-cleared on 2026-10-21 (Xiaomi M2007J3SG, data 1.6.0.1) in English
@@ -487,8 +490,9 @@ The other 396 applied textures carry the English edit. Two gaps are specific to 
 The Windows patcher also installs into the PC edition (`app/pc_edition.py`). The runtime engine writes
 the catalog in place under `WXQ_Data\Package\builtin\`, from a per-install copy of the catalog
 (`tools/pc_catalog.py`). There is no prime layer, so nothing is appended. No card dictionary gains a
-chunk, and no config bin is translated: the allowlist is per edition, and no PC cycle has cleared a
-bin yet. The PC counts below come from the frozen exe's `--pc-selftest` on a full copy of the PC
+chunk, and no config bin is translated: the allowlist is per edition (`extra_text.PC_SAFE_ASSETS`), and
+no PC cycle has cleared a bin yet. The room perks bin `9E924AAB5066EE19` stages on a PC copy with
+`--cycle-asset` (2026-11-21) and waits for its PC cycle. The PC counts below come from the frozen exe's `--pc-selftest` on a full copy of the PC
 edition at game data **1.11.0.2**, as the copy's `WXQ_Data\StreamingAssets\Config\Version.txt` reads
 (2026-11-20, `pc_selftest.json`, lab notebook "PC edition ticket 02").
 That run stages each language and has the engine verify it. An English install on the same copy
