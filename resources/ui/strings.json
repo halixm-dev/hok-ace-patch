@@ -292,6 +292,29 @@
       "en": "Kept the saved game apps: the installed game app is not one of them",
       "id": "Aplikasi game tersimpan tetap disimpan: aplikasi game yang terpasang bukan salah satunya"
     },
+    "storage_wait_freed": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Freed {size}. Keep the game closed and tap Try again to continue the saved patch.",
+      "id": "{size} dikosongkan. Jangan buka game, lalu ketuk Coba lagi untuk melanjutkan patch tersimpan.",
+      "draft": true
+    },
+    "storage_wait_nothing_freed": {
+      "platforms": [
+        "android"
+      ],
+      "en": "The patcher has nothing more to free. Keep the game closed, free space on the phone, then tap Try again.",
+      "id": "Tidak ada lagi yang bisa dikosongkan patcher. Jangan buka game, kosongkan ruang di ponsel, lalu ketuk Coba lagi.",
+      "draft": true
+    },
+    "kept_saved_apps_action_needs_them": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Kept the saved game apps: the saved action still needs them",
+      "id": "Aplikasi game tersimpan tetap disimpan: tindakan tersimpan masih memerlukannya"
+    },
     "translation_written": {
       "platforms": [
         "android"
@@ -574,13 +597,6 @@
       "en": "Root",
       "id": "Root"
     },
-    "provider_beta": {
-      "platforms": [
-        "android"
-      ],
-      "en": "Beta",
-      "id": "Beta"
-    },
     "shizuku_guide_install": {
       "platforms": [
         "android"
@@ -753,8 +769,16 @@
       "platforms": [
         "android"
       ],
-      "en": "Wireless debugging is off. Turn it on in Developer options, then tap Start.",
-      "id": "Debugging nirkabel nonaktif. Aktifkan di Opsi pengembang, lalu ketuk Mulai.",
+      "en": "Wireless debugging is off. Turn it on, then come back here and tap Start.",
+      "id": "Debugging nirkabel nonaktif. Aktifkan, lalu kembali ke sini dan ketuk Mulai.",
+      "draft": true
+    },
+    "open_wireless_debugging_button": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Open Wireless debugging",
+      "id": "Buka Debugging nirkabel",
       "draft": true
     },
     "wireless_lost_in_prepare": {

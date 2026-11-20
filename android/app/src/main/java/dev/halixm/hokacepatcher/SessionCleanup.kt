@@ -24,12 +24,14 @@ internal class SessionCleanup(
      * snapshots ([releaseRetiredSnapshots]) and finished build work ([releasePublishedScratch]), the engine folders of earlier app builds ([releaseStaleEngines])
      * and second copies of identical saved APKs ([ApkPreparation.shareDuplicates]).
      * Each part refuses on its own unreadable state; the caller remeasures the same budget afterwards.
+     * <shareApks> false leaves the APK sharing to a caller that already holds `preparation.lock`
+     * ([ApkPreparation]'s own budgets), where [ApkPreparation.shareDuplicates] would skip on the held lock.
      */
-    fun reclaimForShortage(journal: SessionJournal?) {
+    fun reclaimForShortage(journal: SessionJournal?, shareApks: Boolean = true) {
         releaseResolvedSessions(keepNewest = false)
         if (journal != null) { releaseRetiredSnapshots(journal); releasePublishedScratch(journal) }
         releaseStaleEngines()
-        ApkPreparation(context).shareDuplicates(report)
+        if (shareApks) ApkPreparation(context).shareDuplicates(report)
     }
 
     /**

@@ -149,8 +149,8 @@ Top to bottom:
      While unfinished work waits for recovery they stay locked, with one note saying the
      recovery action on Start comes first.
 3. **② Shell provider** (Android only) — a card with, in order: the eyebrow `02  /  SHELL PROVIDER`,
-   the title, one supporting line, the three choices (Shizuku, then Wireless debugging and Root,
-   each with a `·  Beta` tag while in early testing), then the chosen provider's numbered guide, one
+   the title, one supporting line, the three choices (Wireless debugging, the default, then Shizuku
+   and Root), then the chosen provider's numbered guide, one
    line per step. A provider the build cannot start yet shows one line saying so instead of steps.
    The choices lock while work runs, like the language choices. **Windows** has no shell provider,
    so its Start card stays ②.

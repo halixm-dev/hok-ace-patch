@@ -185,6 +185,7 @@ class MainActivity : Activity() {
                 }
                 "recovery_options" -> home.showRecovery()
                 "pair" -> pairWireless()
+                "wireless_settings" -> openWirelessDebugging()
                 "provider:shizuku", "provider:wireless", "provider:root" -> {
                     val chosen = ShellProvider.of(key.removePrefix("provider:"))
                     // A saved action keeps the provider it was started with until Stop safely resolves it.
@@ -490,7 +491,8 @@ class MainActivity : Activity() {
                 "Turn on Wireless debugging, tap Pair, then type the pairing code into the patcher's notification.",
                 "Pair", "pair", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             provider == ShellProvider.WIRELESS && !WirelessDebugging.switchedOn(this) -> home.show("Turn on wireless debugging",
-                "Wireless debugging is off. Turn it on in Developer options, then tap Start.", "Start", "start",
+                "Wireless debugging is off. Turn it on, then come back here and tap Start.", "Open Wireless debugging",
+                "wireless_settings",
                 pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
@@ -499,9 +501,15 @@ class MainActivity : Activity() {
             // Space freed hands back plain Start; the other results offer another patch.
             // The saved action waits for the user (ticket 12): its scoped Re-download answer, or the game's download.
             // Only once nothing needs recovery: required recovery leads, below ([StopCard.savedWait]).
+            // Free up space during the wait leaves its own result, which has no error line: say what it freed.
             wait == StopCard.Wait.STORAGE ->
                 home.show(UiText.string(this, "free_up_space"),
-                    friendlyFailure(error, false), UiText.string(this, "try_again"), "start", false, GuidedHome.Stage.ATTENTION)
+                    if (state?.optBoolean("storage_wait") == true) {
+                        val freed = state.optLong("freed_bytes")
+                        if (freed > 0) UiText.string(this, "storage_wait_freed", "size" to StorageBudget.freeSpaceLabel(freed))
+                        else UiText.string(this, "storage_wait_nothing_freed")
+                    } else friendlyFailure(error, false),
+                    UiText.string(this, "try_again"), "start", false, GuidedHome.Stage.ATTENTION)
             wait == StopCard.Wait.SOURCE_DOWNLOADS ->
                 home.show(UiText.string(this, "redownload_download_title"), UiText.setupUpdate(this),
                     "Open game", "redownload_game", false, GuidedHome.Stage.ATTENTION,

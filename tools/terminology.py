@@ -277,8 +277,13 @@ def apply(data: dict, terms: tuple[Term, ...]) -> Counter:
     game ships in English. `contextual` rows carry no source a rule can be keyed on.
     """
     changed: Counter = Counter()
+    # One scan for every term's source: about 95% of sources contain none, and `Term.rewrite` leaves
+    # those targets as they are, so they skip the per-term loop.
+    keyed = re.compile("|".join(re.escape(source) for source in dict.fromkeys(t.source for t in terms)))
 
     def rewrite(source: str, target: str) -> str:
+        if not keyed.search(source):
+            return target
         for term in terms:
             new = term.rewrite(source, target)
             if new != target:
