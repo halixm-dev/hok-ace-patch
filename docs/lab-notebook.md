@@ -6133,3 +6133,56 @@ run's build took about 4 min 41 s.
 - **Verdict:** pass offline. BC7 was the slow step; with the user's approval etcpak was added and
   the remaining time is the Python fallback's mode 7. Not run: an engine install on the PC edition
   (ticket 02) or the frozen exe with etcpak.
+
+## 2026-11-20 — PC edition ticket 02: the PC workflow on a scratch copy — pass
+
+- **Inputs:** a full copy of the PC edition (14.5 GB, 1905 files) at `C:/scratch/pc-edition-02/game`,
+  copied from the installed game with `robocopy` once its download had finished. Every job ran on the
+  copy; nothing ran against the installed game. The launcher was closed for the run.
+- **What the engine writes:** one English install changed 16 files in packages `1`, `10`, `15`, `19`,
+  `20`, `21` and `1050016095`, each package's index (`<id>.db`) and every shard. **All 16 are listed in
+  `LocalFileList.json`**, contrary to the fork's note that the patched packages are not. Each kept its
+  exact listed size. The shards also kept their modification times; only the indexes got new ones.
+  `LocalFileList.json` was left alone (`launcher_manifest.updated` false), and the engine deleted the
+  four unlisted QtsVFS watchdog ledgers (`QtsDataFolder/QtsVFSCache/Watchdog`, 80 KB). ADR 0011 was
+  reworded from *never write a listed file* to *keep every listed file at its listed size* (user's
+  decision). Whether the launcher accepts this is for a PC cycle to confirm.
+- **Receipts:** one install receipt holds the 16 originals (4.0 GB). A restore writes its own receipt
+  beside the install receipt it undid, and the engine prunes both on its next install or restore
+  (7.9 GB at the peak). `pc_edition` therefore lets a completed restore cancel every install receipt
+  before it.
+- **Foreign install:** the engine's scan reads the same with no receipts of ours. On the untranslated
+  game it counts 248321 strings to translate and 32617 already English; after an install, 0 and 276513.
+  *Foreign* is "no receipts of ours, and more strings already in the language than left to translate",
+  or a changed window title.
+- **Process guard:** `CreateToolhelp32Snapshot` listed seven `王者万象棋.exe` processes while the
+  launcher was open, and a `--pc-job status` from source answered `pc_close_game` with that name.
+- **`tools/research/check_pc_install.py`, both orders (`en:id,id:en`): OK.** Restore returned every
+  file under `builtin` to its starting SHA-256, the second install changed nothing, each switch ran a
+  restore and then an install, `replacements` was empty at every engine start, and `LocalFileList.json`
+  and every listed size held. Times in seconds; the stage was cached unless noted:
+
+  | Step | `en` then `id` | `id` then `en` |
+  |---|---:|---:|
+  | Check, untranslated | 27.8 | 130.8 (stage re-hashed) |
+  | Install A | 481.5 | 631.0 (`id` stage built) |
+  | Check, installed | 37.9 | 57.3 |
+  | Install A again | 71.7 | 103.4 |
+  | Install B (restore, then install) | 4200.5 (standby, below) | 608.2 |
+  | Check after the switch | 70.9 | 38.8 |
+  | Restore | 42.1 | 840.6 (standby, below) |
+
+  Install A includes the scan for a foreign install (about 30 s) and the engine's own install. Two
+  timings are void: the computer was in Modern Standby from 15:58 to 16:55 and from 17:26 to 17:39
+  (the System log, Kernel-Power 506/507), inside those two jobs. The first, a probe on the same copy,
+  restored in 36.0 s, and the English install it undid took 627.8 s with a stage build of 135.3 s.
+- **The frozen exe** (PyInstaller 6.22.3, 64.0 MB): `--smoketest` gives `ok` with 18 checks, among
+  them `import pc_edition` and `bc7 round trip`. `--pc-job status` on the untranslated copy answered
+  *not installed* in 49.7 s (56 s with start-up). `--pc-selftest` staged and verified both languages
+  in 1002 s without writing to the copy: 396.3 s for English and 393.9 s for Indonesian at the engine,
+  the same seven packages (`1` 396, `10` 10, `1050016095` 71, `15` 219, `19` 57, `20` 1, `21` 1) and
+  the ready atlas refused in each. Its first try ran C: out of space (`WinError 112`): the engine
+  stages whole packages in the working folder (4.2 GB) and copies one to `%TEMP%` to hash it. That
+  failure now has its own message, `pc_disk_full`.
+- **Not run:** the fork's PC page on the same copy (the speed comparison is ticket 05's PC cycle), a
+  launcher start after an install (PC cycle), and the interface (ticket 03).

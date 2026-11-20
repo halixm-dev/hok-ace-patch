@@ -2,7 +2,7 @@
 
 Status: needs-triage
 
-Tickets: [`issues/`](issues/) 01–05. Settled through grilling rounds 1–3 and a round on code shape and speed (2026-11-20). Decision record: [ADR 0011](../../docs/adr/0011-never-write-a-file-the-pc-launcher-lists.md). Vocabulary: **PC edition**, **mobile edition**, **receipt**, **PC cycle** in [`GLOSSARY.md`](../../GLOSSARY.md).
+Tickets: [`issues/`](issues/) 01–05. Settled through grilling rounds 1–3 and a round on code shape and speed (2026-11-20). Decision record: [ADR 0011](../../docs/adr/0011-keep-every-file-the-pc-launcher-lists-at-its-listed-size.md). Vocabulary: **PC edition**, **mobile edition**, **receipt**, **PC cycle** in [`GLOSSARY.md`](../../GLOSSARY.md).
 
 ## Problem
 
@@ -166,7 +166,7 @@ Measured in a PC cycle, never assumed:
 
 ## Out of Scope
 
-- Translating the PC window title, or any file the launcher lists (ADR 0011).
+- Translating the PC window title, or changing the size of any file the launcher lists (ADR 0011).
 - Any config bin on the PC edition, the lineup bin included, until a PC cycle clears it.
 - Importing the fork's or the upstream PC patcher's receipts or state.
 - Stop safely and automatic continuation for PC jobs.

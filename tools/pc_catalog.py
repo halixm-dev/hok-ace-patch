@@ -219,6 +219,10 @@ def _stamps(game: Path, package_ids: set[str]) -> dict[str, list[int]]:
     A shortcut for the cache, not its key: while these match, the assets the stage was built from are
     the same bytes, so a cache check reads nothing. When any differs, every input asset is re-read and
     re-hashed, and a stage whose assets are all unchanged is still reused.
+
+    The engine rewrites a package's shards in place at the same size and modification time; only the
+    package's index (`<id>.db`) gets a new time (2026-11-20). An engine install or restore always
+    rewrites the index with its shards, so the index's stamp is what moves.
     """
     root = _builtin(game)
     stamps: dict[str, list[int]] = {}

@@ -8,7 +8,7 @@
   - *Constraints* gain:
     - receipts in the working folder, never the engine's default;
     - the per-edition allowlist;
-    - ADR 0011 (never write a launcher-listed file);
+    - ADR 0011 (keep every launcher-listed file at its listed size);
     - refuse while `wxq*.exe` or `王者万象棋.exe` runs;
     - empty `replacements\` before each job.
 - **`README.md`:** the PC target, `--pc-job`, `--pc-selftest` and `check_pc_install.py`.
