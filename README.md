@@ -284,7 +284,7 @@ The window runs each PC job as a child process,
 | `resources/catalog/` | English catalog and shared catalog edits |
 | `resources/catalog_id/` | Indonesian catalog and its own catalog edits; other edits fall back to English |
 | `resources/catalog_supplement/` | Strings game data updates added after the catalog was built, English and Indonesian, merged as the catalog loads |
-| `resources/sprites/` | Hand-finished atlas labels and pristine restore crops |
+| `resources/sprites/` | Hand-finished atlas labels, per-language label textures and pristine restore crops |
 | `resources/ui/` | Shared theme tokens (`theme.json`) and English/Indonesian strings (`strings.json`) for both patchers |
 | `resources/fonts/` | Barlow and Barlow Condensed, with the OFL licence |
 | `resources/adb/` | Bundled Android Debug Bridge |
