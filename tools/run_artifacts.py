@@ -487,12 +487,14 @@ def create_attempt(parent: Path, *, run_id: str, stage: str) -> Path:
 
 def publish_receipt(root: Path, *, identity: dict, run_id: str, stage: str,
                     references: dict[str, str | None] | None = None,
+                    expected_artifacts: dict | None = None,
                     failpoint: Callable[[str], None] | None = None) -> dict:
     """Verify all output bytes, fsync, then atomically publish the last commit marker.
 
     Exclusive ownership and no subsequent artifact writes are required. Failpoints are
     deterministic private probe hooks, never authorization. Kills can leave an inert temp;
     readers reject it as an extra file. Publication never adopts summary-only output.
+    When supplied, expected_artifacts must match the first byte audit before publishing.
     """
     _input(identity)
     if stage not in STAGES or not isinstance(run_id, str) or not 1 <= len(run_id) <= 128:
@@ -501,6 +503,8 @@ def publish_receipt(root: Path, *, identity: dict, run_id: str, stage: str,
     if set(references) != REFERENCES:
         raise ArtifactError("References must explicitly name summary, delta and manifest")
     artifacts = tree_manifest(root, exclude=frozenset({RECEIPT_NAME}))
+    if expected_artifacts is not None and artifacts != expected_artifacts:
+        raise ArtifactError("Artifact file set or bytes differ from expected")
     if not artifacts or set(artifacts) <= {"device_patch_summary.json", "attempt-owner.json"}:
         raise ArtifactError("Summary/owner alone is not an artifact checkpoint")
     _stage_references(root, stage, identity, references, artifacts)

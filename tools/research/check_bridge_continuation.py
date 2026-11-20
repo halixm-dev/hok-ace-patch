@@ -1,7 +1,7 @@
 """Synthetic bridge continuation probes; no phone, real package or game dump is used.
 
 Python 3.12 only. Authored during pass 1; execute in pass 2. The sole synthetic
-staging seam replaces build_snapshot/build_removal, not receipt/hash/delta checks.
+staging seam replaces _stage_translation/_stage_removal, not receipt/hash/delta checks.
 Fingerprinting real package layouts remains the external EN/ID parity gate.
 """
 from __future__ import annotations
@@ -95,7 +95,7 @@ class BridgeContinuation(unittest.TestCase):
         return json.dumps(summary)
 
     def build(self, *, identity: dict | None = None, remove: bool = False) -> dict:
-        with patch.object(bridge, "build_snapshot", self.stage), patch.object(bridge, "build_removal", self.remove_stage):
+        with patch.object(bridge, "_stage_translation", self.stage), patch.object(bridge, "_stage_removal", self.remove_stage):
             return json.loads(bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id,
                 str(self.apk), artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep),
                 json.dumps(self.identity if identity is None else identity), remove))
@@ -108,7 +108,7 @@ class BridgeContinuation(unittest.TestCase):
         return json.dumps(summary)
 
     def inspect(self, result: dict, identity: dict | None = None) -> dict:
-        with patch.object(bridge, "build_snapshot", side_effect=AssertionError("reuse staged again")):
+        with patch.object(bridge, "_stage_translation", side_effect=AssertionError("reuse staged again")):
             return json.loads(bridge.inspect_build_checkpoint(str(self.engine), str(self.session), self.run_id,
                 result["attempt"], str(self.apk), str(self.keep), json.dumps(identity or self.identity)))
 
@@ -119,6 +119,44 @@ class BridgeContinuation(unittest.TestCase):
         self.assertEqual(self.stage_calls, 1)
         self.assertEqual(reused, result)
         self.assertEqual(before, artifacts.tree_manifest(Path(result["result_root"])))
+
+    def test_build_verifies_source_once_on_each_side_of_staging(self) -> None:
+        game_file = self.session / "snapshot/packages/1/1.db"
+        original_open = Path.open
+        reads = 0
+
+        def count_reads(path, mode="r", *args, **kwargs):
+            nonlocal reads
+            if path == game_file and mode == "rb":
+                reads += 1
+            return original_open(path, mode, *args, **kwargs)
+
+        def stage(*args):
+            nonlocal reads
+            self.assertEqual(reads, 1)
+            summary = self.stage(*args)
+            reads = 0
+            return summary
+
+        apk_sha256 = artifacts.file_identity(self.apk)["sha256"]
+        with patch.object(Path, "open", count_reads), patch.object(bridge, "_stage_translation", stage):
+            result = json.loads(bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id,
+                str(self.apk), apk_sha256, "en", str(self.keep), json.dumps(self.identity)))
+        self.assertEqual(reads, 1)
+        self.assertTrue(result["reusable"])
+
+    def test_build_does_not_publish_when_source_changes_during_staging(self) -> None:
+        game_file = self.session / "snapshot/packages/1/1.db"
+
+        def stage(*args):
+            summary = self.stage(*args)
+            game_file.write_bytes(b"tampered")  # Same length as the fixture's original "pristine".
+            return summary
+
+        with patch.object(bridge, "_stage_translation", stage), self.assertRaisesRegex(ValueError, "Snapshot file changed"):
+            bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id, str(self.apk),
+                artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep), json.dumps(self.identity))
+        self.assertFalse(list((self.session / "build-attempts").rglob(artifacts.RECEIPT_NAME)))
 
     def phone_output_stage(self, engine: str, scratch_root: str, *args) -> str:
         """Exact run-63ff output layout, synthetic bytes; runtime receipts are not game files."""
@@ -148,7 +186,7 @@ class BridgeContinuation(unittest.TestCase):
         return summary
 
     def test_phone_runtime_metadata_does_not_enter_staged_payload(self) -> None:
-        with patch.object(bridge, "build_snapshot", self.phone_output_stage):
+        with patch.object(bridge, "_stage_translation", self.phone_output_stage):
             result = json.loads(bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id,
                 str(self.apk), artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep),
                 json.dumps(self.identity)))
@@ -196,14 +234,14 @@ class BridgeContinuation(unittest.TestCase):
                 if mutation != "report-name":
                     report_path.write_text(json.dumps(report), encoding="utf-8")
                 return summary
-            with self.subTest(mutation=mutation), patch.object(bridge, "build_snapshot", bad_stage):
+            with self.subTest(mutation=mutation), patch.object(bridge, "_stage_translation", bad_stage):
                 with self.assertRaises(artifacts.ArtifactError):
                     bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id,
                         str(self.apk), artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep),
                         json.dumps(self.identity))
 
     def test_metadata_receipt_tampering_and_final_numeric_changes_refuse_reuse(self) -> None:
-        with patch.object(bridge, "build_snapshot", self.phone_output_stage):
+        with patch.object(bridge, "_stage_translation", self.phone_output_stage):
             result = json.loads(bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id,
                 str(self.apk), artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep),
                 json.dumps(self.identity)))
@@ -274,10 +312,10 @@ class BridgeContinuation(unittest.TestCase):
             pristine_delta.write(pristine_delta.make(scratch / "snapshot/packages", scratch / "out",
                                                        fingerprint=False), scratch / bridge.SESSION_DELTA)
             return summary
-        with patch.object(bridge, "build_snapshot", omit_declared), self.assertRaises(artifacts.ArtifactError):
+        with patch.object(bridge, "_stage_translation", omit_declared), self.assertRaises(artifacts.ArtifactError):
             bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id, str(self.apk),
                 artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep), json.dumps(self.identity))
-        with patch.object(bridge, "build_snapshot", omit_declared), self.assertRaises(artifacts.ArtifactError):
+        with patch.object(bridge, "_stage_translation", omit_declared), self.assertRaises(artifacts.ArtifactError):
             bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id, str(self.apk),
                 artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep), "null")
 
@@ -294,7 +332,7 @@ class BridgeContinuation(unittest.TestCase):
             del hashes["1/1_0.db"]
             (scratch / "staged-hashes.json").write_text(json.dumps(hashes), encoding="utf-8")
             return json.dumps(summary)
-        with patch.object(bridge, "build_removal", omit_removed), self.assertRaises(artifacts.ArtifactError):
+        with patch.object(bridge, "_stage_removal", omit_removed), self.assertRaises(artifacts.ArtifactError):
             bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id, str(self.apk),
                 artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep), json.dumps(identity), True)
 
@@ -318,7 +356,7 @@ class BridgeContinuation(unittest.TestCase):
         def interrupt(*args) -> str:
             self.stage(*args)
             raise InterruptedError("native stage boundary")
-        with patch.object(bridge, "build_snapshot", interrupt), self.assertRaises(InterruptedError):
+        with patch.object(bridge, "_stage_translation", interrupt), self.assertRaises(InterruptedError):
             bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id, str(self.apk),
                 artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep), json.dumps(self.identity))
         failed = next((self.session / "build-attempts").iterdir())
@@ -444,10 +482,10 @@ class BridgeContinuation(unittest.TestCase):
             summary = self.stage(*args)
             (Path(args[1]) / "out/1/1_0.db").unlink()
             return summary
-        with patch.object(bridge, "build_snapshot", incomplete), self.assertRaises(artifacts.ArtifactError):
+        with patch.object(bridge, "_stage_translation", incomplete), self.assertRaises(artifacts.ArtifactError):
             bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id, str(self.apk),
                 artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep), "null")
-        with patch.object(bridge, "build_snapshot", self.stage):
+        with patch.object(bridge, "_stage_translation", self.stage):
             fresh = json.loads(bridge.build_checkpoint(str(self.engine), str(self.session), self.run_id,
                 str(self.apk), artifacts.file_identity(self.apk)["sha256"], "en", str(self.keep), "null"))
         self.assertFalse(fresh["reusable"])
@@ -463,6 +501,37 @@ class BridgeContinuation(unittest.TestCase):
         (self.session / "snapshot/packages/1/1.db").unlink()
         with self.assertRaises(ValueError):
             verify_snapshot(self.session / "snapshot")
+
+    def test_snapshot_checkpoint_reads_each_game_file_once_per_receipt_audit(self) -> None:
+        destination = self.session / "snapshot"
+        game_file = destination / "packages/1/1.db"
+        original_open = Path.open
+        reads = 0
+
+        def count_reads(path, mode="r", *args, **kwargs):
+            nonlocal reads
+            if path == game_file and mode == "rb":
+                reads += 1
+            return original_open(path, mode, *args, **kwargs)
+
+        (destination / artifacts.RECEIPT_NAME).unlink()
+        with patch.object(Path, "open", count_reads):
+            published = checkpoint_snapshot(destination, identity=self.identity, run_id=self.run_id, publish=True)
+        self.assertEqual(reads, 3)  # Before publication, just before rename, and the committed read-back.
+        reads = 0
+        with patch.object(Path, "open", count_reads):
+            reused = checkpoint_snapshot(destination, identity=self.identity, run_id=self.run_id)
+        self.assertEqual(reads, 1)
+        self.assertEqual(reused, published)
+
+    def test_snapshot_checkpoint_refuses_same_size_corruption_before_publication(self) -> None:
+        destination = self.session / "snapshot"
+        receipt = destination / artifacts.RECEIPT_NAME
+        receipt.unlink()
+        (destination / "packages/1/1.db").write_bytes(b"tampered")
+        with self.assertRaises(artifacts.ArtifactError):
+            checkpoint_snapshot(destination, identity=self.identity, run_id=self.run_id, publish=True)
+        self.assertFalse(receipt.exists())
 
     def test_snapshot_publication_interrupted_before_after_commit(self) -> None:
         import shutil

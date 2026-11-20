@@ -156,7 +156,11 @@ def extract_snapshot(archive: Path | BinaryIO, destination: Path, *, maximum_byt
 
 def read_manifest(destination: Path) -> dict:
     """The retained manifest, unverified: for estimates only, never to trust the files it names."""
-    manifest = json.loads((destination / "manifest.json").read_text(encoding="utf-8"))
+    return _parse_manifest((destination / "manifest.json").read_bytes())
+
+
+def _parse_manifest(payload: bytes) -> dict:
+    manifest = json.loads(payload.decode("utf-8"))
     if manifest.get("schema") != 1 or not 0 < len(manifest["files"]) <= MAX_FILES:
         raise ValueError("Unsupported snapshot manifest")
     return manifest
@@ -201,34 +205,42 @@ def verify_snapshot(destination: Path) -> dict:
 
 
 def checkpoint_snapshot(destination: Path, *, identity: dict, run_id: str,
-                        publish: bool = False) -> dict:
+                        publish: bool = False) -> tuple[dict, dict]:
     """Verify the complete measured source set before publishing/reusing snapshot proof.
 
     The caller independently reconciles live source/readiness/APKs under coordinator ownership.
     Extraction/stream completion alone never calls this: compare transport evidence first.
     Producer changes invalidate a build, not immutable rollback/snapshot bytes. Snapshot reuse
     therefore compares source/target/APKs and verifies its saved producer receipt separately.
+    Return the receipt and the manifest whose exact bytes the receipt audit verified.
     """
-    from run_artifacts import ArtifactError, file_identity, publish_receipt, tree_manifest, verify_receipt
+    from run_artifacts import ArtifactError, RECEIPT_NAME, publish_receipt, safe_file, verify_receipt
 
-    manifest = verify_snapshot(destination)
+    manifest_path = destination / "manifest.json"
+    safe_file(manifest_path)
+    payload = manifest_path.read_bytes()
+    manifest = _parse_manifest(payload)
     files = {name: {"size": item["bytes"], "sha256": item["sha256"]}
              for name, item in manifest["files"].items()}
+    for name in files:
+        validate_path(name)
     if files != identity["game"]["files"]:
         raise ArtifactError("Snapshot differs from independently measured source set")
-    actual = tree_manifest(destination, exclude=frozenset({"build-receipt.json"}))
-    if actual != {**files, "manifest.json": file_identity(destination / "manifest.json")}:
-        raise ArtifactError("Snapshot contains unexpected artifacts")
+    expected = {**files, "manifest.json": {"size": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}}
     if publish:
-        if (destination / "build-receipt.json").exists():
+        if (destination / RECEIPT_NAME).exists():
             raise ArtifactError("Snapshot checkpoint is already published")
-        return publish_receipt(destination, identity=identity, run_id=run_id, stage="snapshot",
-                               references={"summary": None, "delta": None, "manifest": "manifest.json"})
+        receipt = publish_receipt(destination, identity=identity, run_id=run_id, stage="snapshot",
+                                  expected_artifacts=expected,
+                                  references={"summary": None, "delta": None, "manifest": "manifest.json"})
+        return receipt, manifest
     receipt = verify_receipt(destination, stage="snapshot")
+    if receipt["artifacts"] != expected:
+        raise ArtifactError("Snapshot differs from its committed artifacts")
     if receipt["run_id"] != run_id:
         raise ArtifactError("Snapshot owner differs")
     saved = receipt["identity"]
     for field in ("target", "game", "apks"):
         if saved[field] != identity[field]:
             raise ArtifactError(f"Snapshot {field} identity changed")
-    return receipt
+    return receipt, manifest

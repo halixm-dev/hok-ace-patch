@@ -1135,13 +1135,20 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
         actual = hashlib.file_digest(stream, "sha256").hexdigest()
     if actual != expected_apk_sha256:
         raise PatchError("Recovery APK changed before snapshot build")
+    keep = Path(keep_root) if keep_root else None
+    return _stage_translation(root, session, apk, expected_apk_sha256, language, keep, manifest)
+
+
+def _stage_translation(root: Path, session: Path, apk: Path, expected_apk_sha256: str,
+                       language: str, keep: Path | None, manifest: dict) -> str:
+    """Stage from the snapshot and APK verified by the caller under exclusive ownership."""
     game = session / "game"
     builtin = game / "WXQ_Data" / "Package" / "builtin"
     if game.exists() or (session / "normal.apk").exists() or (session / "control.json").exists():
         raise PatchError("Snapshot build requires a fresh session layout")
     _own_legacy_build(session)
-    redownload_done = _refuse_stuck_update(session, Path(keep_root), manifest) if keep_root else None
-    restored = (_restore_pristine(session, Path(keep_root), manifest, engine=root) if keep_root
+    redownload_done = _refuse_stuck_update(session, keep, manifest) if keep else None
+    restored = (_restore_pristine(session, keep, manifest, engine=root) if keep
                 else {"mode": "first", "rebuilt": [], "pristine": [], "sha256": {}})
     builtin.parent.mkdir(parents=True)
     if restored["mode"] == "rebuilt":
@@ -1158,7 +1165,7 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
     (session / "control.json").write_text(json.dumps(control), encoding="utf-8")
     # The snapshot files and the APK were verified above; only the pristine copy is hashed again.
     summary = json.loads(_build_scratch(root, session, language, trusted=(session / "snapshot").resolve()))
-    if keep_root is None:
+    if keep is None:
         return json.dumps(summary)
     import pristine_delta
 
@@ -1169,7 +1176,6 @@ def build_snapshot(engine_root: str, session_root: str, normal_apk: str,
             # Restore read back, yet the layer is not pristine. The text pass does not say which package
             # holds the text, so Re-download takes every package restored or replaced instead.
             suspects = set(restored_packages) | {name.split("/")[0] for name in restored["replaced"]}
-            keep = Path(keep_root)
             named = sorted(_restore_refused(keep) | suspects, key=int)
             pristine_delta.write_atomic(keep / RESTORE_REFUSED_NAME, json.dumps({"packages": named}).encode("utf-8"))
             raise PatchError(f"{UPDATE_MIXED}: package {', '.join(sorted(suspects, key=int))}. Re-download those "
@@ -1233,10 +1239,16 @@ def build_removal(engine_root: str, session_root: str, keep_root: str) -> str:
     """
     root, session, keep = Path(engine_root).resolve(), Path(session_root).resolve(), Path(keep_root).resolve()
     _prepare(root)
-    import pristine_delta
     from mobile_snapshot import verify_snapshot
 
     manifest = verify_snapshot((session / "snapshot").resolve())
+    return _stage_removal(root, session, keep, manifest)
+
+
+def _stage_removal(root: Path, session: Path, keep: Path, manifest: dict) -> str:
+    """Stage Remove from the snapshot verified by the caller under exclusive ownership."""
+    import pristine_delta
+
     output = session / "out"
     if output.exists() or (session / "staged-hashes.json").exists():
         raise PatchError("Removal requires a fresh session layout")
@@ -1427,7 +1439,8 @@ def checkpoint_identity(engine_root: str, session_root: str, normal_apk: str,
     producer = json.loads(producer_json)
     if producer is None:
         return json.dumps({"reusable": False, "identity": None})
-    if producer["kind"] != "android" or producer["components"]["engine"]["files_key"] != identity_key(tree_manifest(root)):
+    engine_key = identity_key(tree_manifest(root))
+    if producer["kind"] != "android" or producer["components"]["engine"]["files_key"] != engine_key:
         raise ArtifactError("Current engine differs from producer evidence")
     request = json.loads(request_json)
     if request["action"] not in {"translate", "remove"} or request["options"]:
@@ -1440,18 +1453,26 @@ def checkpoint_identity(engine_root: str, session_root: str, normal_apk: str,
         game={"files": files, "readiness": json.loads(readiness_json)},
         apks={"normal": file_identity(Path(normal_apk).resolve()), "prepared": prepared},
         delta=_delta_identity(Path(keep_root).resolve() if keep_root else None),
-        translation={"engine_files_key": identity_key(tree_manifest(root))}, producer=producer)
+        translation={"engine_files_key": engine_key}, producer=producer)
     return json.dumps({"reusable": True, "identity": identity})
 
 
 def _validate_checkpoint_inputs(root: Path, session: Path, apk: Path | None,
                                 keep: Path | None, identity: dict) -> None:
     from mobile_snapshot import verify_snapshot
-    from run_artifacts import ArtifactError, file_identity, identity_key, make_input_identity, tree_manifest
+    from run_artifacts import file_identity
+
+    _check_checkpoint_inputs(root, identity, verify_snapshot(session / "snapshot"),
+                             file_identity(apk) if apk is not None else None, _delta_identity(keep))
+
+
+def _check_checkpoint_inputs(root: Path, identity: dict, manifest: dict,
+                             apk_identity: dict | None, delta_identity: dict | None) -> None:
+    """Compare one audit of the current inputs with the saved build identity."""
+    from run_artifacts import ArtifactError, identity_key, make_input_identity, tree_manifest
 
     # Validate every shared identity field, not just its digest.
     make_input_identity(**{name: item for name, item in identity.items() if name != "schema"})
-    manifest = verify_snapshot(session / "snapshot")
     files = {name: {"size": item["bytes"], "sha256": item["sha256"]}
              for name, item in manifest["files"].items()}
     if identity["game"]["files"] != files:
@@ -1461,9 +1482,9 @@ def _validate_checkpoint_inputs(root: Path, session: Path, apk: Path | None,
             or identity["producer"]["components"]["engine"]["files_key"] != engine
             or identity["translation"] != {"engine_files_key": engine}):
         raise ArtifactError("Engine identity changed")
-    if apk is not None and identity["apks"]["normal"] != file_identity(apk):
+    if apk_identity is not None and identity["apks"]["normal"] != apk_identity:
         raise ArtifactError("Pinned normal APK changed")
-    if identity["delta"] != _delta_identity(keep):
+    if identity["delta"] != delta_identity:
         raise ArtifactError("Kept pristine delta identity changed")
     if identity["request"]["action"] not in {"translate", "remove"} or identity["request"]["options"]:
         raise ArtifactError("Unsupported checkpoint action/options")
@@ -1478,9 +1499,9 @@ def snapshot_checkpoint(engine_root: str, session_root: str, run_id: str,
     """
     _prepare(Path(engine_root).resolve())
     from mobile_snapshot import checkpoint_snapshot
-    return json.dumps(checkpoint_snapshot(Path(session_root).resolve() / "snapshot",
-                                          identity=json.loads(identity_json), run_id=run_id,
-                                          publish=publish))
+    receipt, _ = checkpoint_snapshot(Path(session_root).resolve() / "snapshot",
+                                     identity=json.loads(identity_json), run_id=run_id, publish=publish)
+    return json.dumps(receipt)
 
 
 def begin_snapshot_attempt(engine_root: str, session_root: str, run_id: str) -> str:
@@ -1602,14 +1623,17 @@ def build_checkpoint(engine_root: str, session_root: str, run_id: str, normal_ap
     from run_artifacts import create_attempt, file_identity, publish_receipt
 
     identity = json.loads(identity_json)
-    snapshot_before = verify_snapshot(session / "snapshot")
+    if identity is None:
+        snapshot_before = verify_snapshot(session / "snapshot")
+    else:
+        _, snapshot_before = checkpoint_snapshot(session / "snapshot", identity=identity, run_id=run_id)
     delta_before = _delta_identity(keep)
+    apk_before = file_identity(apk)
     if identity is not None:
-        _validate_checkpoint_inputs(root, session, apk, keep, identity)
+        _check_checkpoint_inputs(root, identity, snapshot_before, apk_before, delta_before)
         if identity["request"]["action"] != ("remove" if remove else "translate") or identity["request"]["language"] != language:
             raise PatchError("Build action/language differs from saved inputs")
-        checkpoint_snapshot(session / "snapshot", identity=identity, run_id=run_id)
-    if file_identity(apk)["sha256"] != expected_apk_sha256:
+    if apk_before["sha256"] != expected_apk_sha256:
         raise PatchError("Pinned normal APK differs")
     parent = session / "build-attempts"
     parent.mkdir(exist_ok=True)
@@ -1621,11 +1645,11 @@ def build_checkpoint(engine_root: str, session_root: str, run_id: str, normal_ap
     if remove:
         if keep is None:
             raise PatchError("Remove requires this patcher's pristine delta")
-        summary = json.loads(build_removal(str(root), str(scratch), str(keep)))
+        summary = json.loads(_stage_removal(root, scratch, keep, snapshot_before))
     else:
         try:
-            summary = json.loads(build_snapshot(str(root), str(scratch), str(apk), expected_apk_sha256,
-                                                language, str(keep) if keep else None))
+            summary = json.loads(_stage_translation(root, scratch, apk, expected_apk_sha256,
+                                                    language, keep, snapshot_before))
         except UnreachableSlot as error:
             if (keep is not None and _delta_identity(keep) == delta_before
                     and file_identity(apk)["sha256"] == expected_apk_sha256
@@ -1644,12 +1668,6 @@ def build_checkpoint(engine_root: str, session_root: str, run_id: str, normal_ap
             delta = pristine_delta.make(scratch / "game/WXQ_Data/Package/builtin", scratch / "out",
                                         info={"patcher": "android", "language": language}, fingerprint=True)
             pristine_delta.write(delta, scratch / SESSION_DELTA)
-    # The build only reads the kept folder; an obsolete Re-download record is reported in the summary
-    # (`redownload_done`) and dropped at finalization, so any kept change here is foreign and refuses.
-    if (verify_snapshot(session / "snapshot") != snapshot_before
-            or _delta_identity(keep) != delta_before
-            or file_identity(apk)["sha256"] != expected_apk_sha256):
-        raise PatchError("Snapshot, kept delta or pinned APK changed during build")
     result = attempt / "result"
     result.mkdir()
     (scratch / "out").replace(result / "out")
@@ -1658,11 +1676,18 @@ def build_checkpoint(engine_root: str, session_root: str, run_id: str, normal_ap
             (scratch / name).replace(result / name)
     # Preserve pipeline summary format; final bridge summary (with pristine information) is separate.
     (result / "bridge-summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    (result / "metrics.json").write_text(json.dumps({"elapsed_seconds": time.monotonic() - started}), encoding="utf-8")
     _final_build_manifest(result, remove=remove)
     receipt = None
+    # The build only reads the kept folder; an obsolete Re-download record is reported in the summary
+    # (`redownload_done`) and dropped at finalization, so any kept change here is foreign and refuses.
+    snapshot_after = verify_snapshot(session / "snapshot")
+    delta_after = _delta_identity(keep)
+    apk_after = file_identity(apk)
+    if snapshot_after != snapshot_before or delta_after != delta_before or apk_after != apk_before:
+        raise PatchError("Snapshot, kept delta or pinned APK changed during build")
+    (result / "metrics.json").write_text(json.dumps({"elapsed_seconds": time.monotonic() - started}), encoding="utf-8")
     if identity is not None:
-        _validate_checkpoint_inputs(root, session, apk, keep, identity)
+        _check_checkpoint_inputs(root, identity, snapshot_after, apk_after, delta_after)
         # Empty translation output is valid ordinary work but cannot be a reusable STAGED.
         from run_artifacts import read_record
         reusable_payload = bool(read_record(result / "staged-hashes.json")) or remove

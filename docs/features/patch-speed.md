@@ -173,3 +173,14 @@ is claimed; authored synthetic probes and external matching EN/ID controls remai
 | Metrics | `resource-metrics.json.file_io` records original/planned/written/skipped files and bytes plus original hash passes. Written counts acknowledge replies; a lost reply remains an uncertain outcome, not a measured successful write. `recovery_original_hash_passes` records the latest recovery invocation. |
 
 Private transaction, Remove, recovery, policy parser/large-manifest and full-coordinator probes are authored; none ran. Historical timings above do not measure this change. Output/summary/delta parity, interruption behavior, device transport/ownership and comparative timings remain Pass-2 gates.
+
+### Re-patch after an in-game update (2026-11-20)
+
+| Repeated check | Evidence used now |
+|---|---|
+| Snapshot checkpoint's separate verification and tree read | Receipt publication checks the exact snapshot tree against the independently measured file identities and the bytes of the manifest. It checks the tree again before renaming the receipt and reads back the committed receipt and tree. Reopening checks the entire tree and the expected manifest in one audit. |
+| Repeated snapshot, APK and delta reads before staging | The build checks the snapshot receipt or audits the snapshot directly when producer evidence is unavailable. It passes the verified snapshot and measured APK and delta identities within the same worker, while the coordinator owns the private files. |
+| Two checks of build inputs after staging | One fresh audit, after the final output manifest, compares the snapshot, APK and delta to the opening measurements and checks the complete input identity before publishing. A changed file of the same size still fails. |
+| Early and late engine-tree reads inside checkpoint identity | One engine tree digest must match the producer and is bound as the translation identity. The build measures the engine again at entry and before publishing reusable output. |
+
+The phone baseline and profiles are in the [lab notebook](../lab-notebook.md#2026-11-20--root-re-patch-baseline-on-ebad528e).
