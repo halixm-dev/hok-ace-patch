@@ -92,7 +92,7 @@ class PatchRequestStore(private val context: Context) {
         check(run.provider == ShellProvider.ROOT)
         val saved = checkNotNull(run.preparation)
         check(ApkIdentity.digest(receipt(saved.getString("id"))) == saved.getString("receipt_sha256")) { "Prepared receipt changed" }
-        RunStore.safe(base, File(base, "preparations/${saved.getString("id")}/original.apk"))
+        RunStore.safeShared(base, File(base, "preparations/${saved.getString("id")}/original.apk"))
         val prepared = ApkPreparation(context).loadRoot(saved.getString("id"))
         check(ArtifactReceipts.canonical(binding(prepared.directory, prepared.installed, null, null)) == ArtifactReceipts.canonical(saved)) {
             "Prepared identities changed"
