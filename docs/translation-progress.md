@@ -473,6 +473,44 @@ The other 396 applied textures carry the English edit. Two gaps are specific to 
   English-staged tables changes none of them; only the re-drawn textures would switch. Clear the game's
   data first, as for any newer translation build.
 
+## The PC edition
+
+The Windows patcher also installs into the PC edition (`app/pc_edition.py`). The runtime engine writes
+the catalog in place under `WXQ_Data\Package\builtin\`, from a per-install copy of the catalog
+(`tools/pc_catalog.py`). There is no prime layer, so nothing is appended. No card dictionary gains a
+chunk, and no config bin is translated: the allowlist is per edition, and no PC cycle has cleared a
+bin yet. The PC counts below come from the frozen exe's `--pc-selftest` on a full copy of the PC
+edition at game data **1.11.0.2**, as the copy's `WXQ_Data\StreamingAssets\Config\Version.txt` reads
+(2026-11-20, `pc_selftest.json`, lab notebook "PC edition ticket 02").
+That run stages each language and has the engine verify it. An English install on the same copy
+reported the same counts and verified every package. Both are offline. Nothing has been watched in the
+game yet; that is ticket 05's PC cycle (`docs/runbooks/pc-cycle.md`).
+
+| result | Mobile edition (data 1.9.0.1, 2026-11-05) | PC edition, English | PC edition, Indonesian |
+|---|---:|---:|---:|
+| Textures applied (PC: the engine's `graphics`) | 398 | 359 | 359 |
+| Text tables applied (`count_translated`) | 391 | not counted per table | not counted per table |
+| Tables the engine's scan read (`tables`) | — | 506 | 506 |
+| Strings translated (`translated`) | — | 248 321 | 248 321 |
+| Replacements written, across packages | — | 755 in 7 | 755 in 7 |
+| Assets the per-install catalog overrides (`pc_catalog`) | — | 48 | 49 |
+| Regioned atlases refused at the sprite table | — | 1 (`E86DF43167CA2143`) | 1 (`E86DF43167CA2143`) |
+| Assets the engine could not read (`unreadable_assets`) | — | 6 | 6 |
+| Config bins | 1 (`F79FB1A213A9DA90`) | 0 | 0 |
+
+- **Replacements per package:** `1` 396, `10` 10, `1050016095` 71, `15` 219, `19` 57, `20` 1, `21` 1.
+  The engine reports no split between text tables and textures inside a package, so there is no PC
+  text-table count to set beside the mobile one.
+- **The per-install catalog's overrides** are the regioned atlases ported at the PC sprite table, the
+  Secret Technique title atlas and the assets its relayout moves, and the Lua label and edits. The
+  Indonesian count is one higher: a re-drawn payload, re-hashed from the installed original.
+- **The refused atlas** is the ready atlas. Its installed source does not match the catalog, and its
+  sprite table has no `Image_1585869273`. The mobile layer skips the same atlas.
+- **The six unreadable assets:** the English install's `skipped` list names six assets, all in package
+  `1`, each with "Asset length differs from its current index descriptor". That matches the count.
+- **The window title** stays 王者万象棋. The launcher lists the title file, and a translated title
+  changes its size (ADR 0011).
+
 ## Knowingly left Chinese
 
 - **Two tables in package `1` the catalog has no record for**, which a normal run no longer stages:
@@ -526,7 +564,9 @@ Update it in the same change as the work when any of these moves a count:
 
 - the catalog is re-imported — the four numbers in *What the catalog holds* change together;
 - a pass gains or loses a translated asset kind, or a package enters or leaves `REBUILD_PACKAGES`;
-- a device cycle adds or withdraws an `extra_text` allowlist entry;
+- a device cycle adds or withdraws an `extra_text` allowlist entry, or a PC cycle clears one for the
+  PC edition;
+- a PC run's `pc_selftest.json` or install counts move, which moves *The PC edition*;
 - a run comes back with `text_skipped`, `graphics_skipped` or `append_skipped` non-empty, which moves a
   count out of the applied column.
 
