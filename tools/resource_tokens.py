@@ -90,7 +90,13 @@ def expand_tokens_in_message(data: bytes, terms: dict[str, str] = RESOURCE_TOKEN
     Walks the protobuf framing the way <data>'s reader does, but visits a string whenever it carries
     a resource token rather than whenever it carries CJK: the strings that need expanding are the
     already-translated ones. Raises NotMessage when <data> is not a well-formed message.
+
+    A string field's bytes sit unbroken in its message at any depth, so <data> holding none of the
+    tokens in <terms> has nothing to expand: it comes back as it is, unwalked and so unchecked. Most
+    staged tables hold no token (337 of 388 on the 1.10.1.2 data).
     """
+    if not any(token.encode("utf-8") in data for token in terms):
+        return bytes(data), 0
     return _walk(data, 0, terms)
 
 

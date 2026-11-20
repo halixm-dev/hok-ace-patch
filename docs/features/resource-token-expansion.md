@@ -1,7 +1,7 @@
 ---
 feature: resource-token-expansion
 status: delivered
-updated: 2026-09-29
+updated: 2026-11-20
 branch: master
 commits: 7cada8e..d75cfa1
 ---
@@ -192,6 +192,13 @@ classification, and its own `NotMessage`.
 
 `NotMessage` is raised when the data is not a well-formed message (unknown wire type, field number 0,
 truncated varint, or a length that overruns the buffer).
+
+A message whose bytes hold none of the language's tokens is returned as it is, count 0, without being
+walked (2026-11-20). A string field's bytes sit unbroken in its message at any depth, so such a message
+has nothing to expand. The difference is only for a malformed message without a token: it is no longer
+walked, so it raises no `NotMessage` and logs no `token expand skipped`. Each caller leaves such an
+asset byte-for-byte alone either way. On the 1.10.1.2 data 337 of the 388 messages a run walks hold no
+token; replayed through both walkers, all 388 give the same result (lab notebook, 2026-11-20).
 
 ### Hook contract
 
