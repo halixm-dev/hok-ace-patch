@@ -3,6 +3,8 @@
 ``resources/ui/strings.json`` is the one vocabulary of the Windows patcher and the Android patcher. This
 reads the file and the patchers' sources as text (nothing is imported or built) and fails when:
 
+- one object in the file holds the same key twice. ``json.loads`` keeps the last silently, while Android's
+  ``org.json`` refuses the whole file, so every string on the phone is lost (2026-11-20);
 - a key lacks English or Indonesian, names an unknown platform, or its two languages carry different
   ``{name}`` placeholders, or two Android keys share an English text but not its Indonesian;
 - the Android patcher shows a literal the file has no English for. Literals are taken from the calls that
@@ -200,8 +202,32 @@ def _check_refusals() -> list[str]:
     return failures
 
 
+def _load(text: str) -> tuple[dict, list[str]]:
+    """The parsed file, and one failure per key repeated within one object."""
+    repeated: list[str] = []
+
+    def pairs(items: list[tuple[str, object]]) -> dict:
+        seen: set[str] = set()
+        for key, _ in items:
+            if key in seen:
+                repeated.append(key)
+            seen.add(key)
+        return dict(items)
+
+    data = json.loads(text, object_pairs_hook=pairs)
+    failures = []
+    for key in dict.fromkeys(repeated):
+        lines = [str(n) for n, line in enumerate(text.splitlines(), 1) if line.lstrip().startswith(f'"{key}":')]
+        failures.append(f"strings.json: key {key!r} appears more than once in one object (lines {', '.join(lines)})")
+    return data, failures
+
+
 def main() -> int:
-    data = json.loads(STRINGS.read_text(encoding="utf-8"))
+    data, repeated = _load(STRINGS.read_text(encoding="utf-8"))
+    if repeated:
+        for failure in repeated:
+            print(failure)
+        return 1
     if list(data.get("languages", [])) != list(LANGUAGES):
         print(f"strings.json: languages are {data.get('languages')}, expected {list(LANGUAGES)}")
         return 1
