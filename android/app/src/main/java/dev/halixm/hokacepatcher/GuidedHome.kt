@@ -120,11 +120,11 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         }
     }
     private var choosingProvider = false
-    /** ② Shell provider: Shizuku first, the two new providers tagged Beta while in early testing. */
+    /** ② Shell provider: Wireless debugging, Shizuku, then Root, in [ShellProvider] order. */
     private val providers = RadioGroup(activity).apply {
         tag = "provider-picker"; orientation = LinearLayout.VERTICAL
         ShellProvider.entries.forEach { provider ->
-            addView(choice(ui(provider.label) + if (provider.beta) "  ·  " + ui("Beta") else "", "provider-${provider.key}"))
+            addView(choice(ui(provider.label), "provider-${provider.key}"))
         }
         setOnCheckedChangeListener { group, checked ->
             val key = group.findViewById<RadioButton>(checked)?.tag?.toString()?.removePrefix("provider-")

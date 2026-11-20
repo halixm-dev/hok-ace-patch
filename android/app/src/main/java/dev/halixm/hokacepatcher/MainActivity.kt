@@ -185,6 +185,7 @@ class MainActivity : Activity() {
                 }
                 "recovery_options" -> home.showRecovery()
                 "pair" -> pairWireless()
+                "wireless_settings" -> openWirelessDebugging()
                 "provider:shizuku", "provider:wireless", "provider:root" -> {
                     val chosen = ShellProvider.of(key.removePrefix("provider:"))
                     // A saved action keeps the provider it was started with until Stop safely resolves it.
@@ -490,7 +491,8 @@ class MainActivity : Activity() {
                 "Turn on Wireless debugging, tap Pair, then type the pairing code into the patcher's notification.",
                 "Pair", "pair", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             provider == ShellProvider.WIRELESS && !WirelessDebugging.switchedOn(this) -> home.show("Turn on wireless debugging",
-                "Wireless debugging is off. Turn it on in Developer options, then tap Start.", "Start", "start",
+                "Wireless debugging is off. Turn it on, then come back here and tap Start.", "Open Wireless debugging",
+                "wireless_settings",
                 pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && !Shizuku.pingBinder() && !ShizukuLauncher.isInstalled(this) -> home.show("Install Shizuku", "Shizuku is required. Install it from Google Play, start it, then return here.", "Get Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             shizuku && !Shizuku.pingBinder() -> home.show("Start Shizuku", "Shizuku must be running. Start it, then return here. We will continue automatically.", "Open Shizuku", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)

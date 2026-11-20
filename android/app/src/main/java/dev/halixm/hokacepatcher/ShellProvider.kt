@@ -7,14 +7,14 @@ import android.content.Context
  * The user picks one on the home screen; the app never picks one by detection. [available] is false for a
  * provider this build cannot start yet: its guide says so and Start refuses it.
  */
-enum class ShellProvider(val key: String, val label: String, val beta: Boolean, val available: Boolean) {
-    SHIZUKU("shizuku", "Shizuku", false, true),
-    WIRELESS("wireless", "Wireless debugging", true, true),
-    ROOT("root", "Root", true, true);
+enum class ShellProvider(val key: String, val label: String, val available: Boolean) {
+    WIRELESS("wireless", "Wireless debugging", true),
+    SHIZUKU("shizuku", "Shizuku", true),
+    ROOT("root", "Root", true);
 
     companion object {
-        /** Shizuku stays the default, so a phone patched before the picker existed keeps the provider that patched it. */
-        val DEFAULT = SHIZUKU
+        /** Wireless debugging is the default: it needs no other app installed (user's request, 2026-11-20). */
+        val DEFAULT = WIRELESS
         private const val PREFERENCES = "shell-provider"
         private const val KEY = "provider"
         /** Worker connections refuse a Shizuku server running as root; the UI matches on it. */

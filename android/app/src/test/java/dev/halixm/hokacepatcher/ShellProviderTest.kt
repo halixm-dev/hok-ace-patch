@@ -15,17 +15,14 @@ class ShellProviderTest {
     }
 
     @Test fun nothingSavedOrAnUnknownKeyIsShizuku() {
-        // A phone patched before the picker existed has nothing saved, so it keeps Shizuku.
-        assertEquals(ShellProvider.SHIZUKU, ShellProvider.of(null))
-        assertEquals(ShellProvider.SHIZUKU, ShellProvider.of("adb"))
-        assertEquals(ShellProvider.SHIZUKU, ShellProvider.DEFAULT)
+        // Nothing saved, or a key this build does not know, is Wireless debugging.
+        assertEquals(ShellProvider.WIRELESS, ShellProvider.of(null))
+        assertEquals(ShellProvider.WIRELESS, ShellProvider.of("adb"))
+        assertEquals(ShellProvider.WIRELESS, ShellProvider.DEFAULT)
     }
 
-    @Test fun theTwoNewProvidersAreTaggedBetaAndShizukuIsNot() {
-        assertFalse(ShellProvider.SHIZUKU.beta)
-        assertTrue(ShellProvider.WIRELESS.beta)
-        assertTrue(ShellProvider.ROOT.beta)
-        assertEquals(listOf(ShellProvider.SHIZUKU, ShellProvider.WIRELESS, ShellProvider.ROOT), ShellProvider.entries)
+    @Test fun thePickerListsWirelessDebuggingThenShizukuThenRoot() {
+        assertEquals(listOf(ShellProvider.WIRELESS, ShellProvider.SHIZUKU, ShellProvider.ROOT), ShellProvider.entries)
     }
 
     @Test fun theWorkerTakesTheShellPathAsUid2000AndTheRootPathAsUid0() {

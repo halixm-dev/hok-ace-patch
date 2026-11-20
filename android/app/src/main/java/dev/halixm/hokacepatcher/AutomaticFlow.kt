@@ -54,6 +54,13 @@ internal fun MainActivity.wirelessRefusal(): String? = when {
     else -> null
 }
 
+/** ③ while Wireless debugging is off: open its Settings row, as Pair does; coming back re-reads the switch. */
+internal fun MainActivity.openWirelessDebugging() {
+    DiagnosticTrace.event("ui", "Opening Wireless debugging to turn it on")
+    if (!WirelessDebugging.openSettings(this))
+        home.message("Open Settings, then Developer options, then Wireless debugging.", failure = true)
+}
+
 /** Post the notification that takes the pairing code, then open Wireless debugging for its code. */
 internal fun MainActivity.pairWireless() {
     if (busy || (automatic && !waitingForAccess) || PatchWorkerService.isWorking) return
