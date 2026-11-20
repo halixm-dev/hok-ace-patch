@@ -16,6 +16,15 @@ import org.json.JSONObject
 
 /** Prepare manifest-only stable-key APKs and recovery identity before offering any game mutation. */
 class ApkPreparation(private val context: Context) {
+    companion object {
+        /**
+         * Source + signed normal + unsigned access + signed access is the measured implementation's peak.
+         * <reclaim> runs once on a shortage, then the same budget is remeasured (2026-11-19: it refused at once).
+         */
+        internal fun requirePreparationSpace(disk: File, bytes: Long, reclaim: (() -> Unit)?): JSONObject =
+            StorageBudget.requireAvailable(disk, "APK preparation", bytes, bytes, bytes, bytes, reclaim = reclaim)
+    }
+
     data class Prepared(val directory: File, val source: ApkIdentity, val normal: ApkIdentity, val access: ApkIdentity) {
         val requiresSignatureConversion: Boolean get() = source.certificateSha256 != GameSigner.CERTIFICATE_SHA256
         val accessFile: File get() = File(directory, "apks/access.apk")
@@ -77,7 +86,7 @@ class ApkPreparation(private val context: Context) {
                 .onFailure { report("Could not remove an older copy of the game app; keeping it") }
         }
         kept?.let { report("Reusing the verified saved copy of the game app"); return it }
-        StorageBudget.requireAvailable(context.filesDir, "game app copy", bytes)
+        StorageBudget.requireAvailable(context.filesDir, "game app copy", bytes, reclaim = shortageReclaim(report, checkpoint))
         val directory = File(context.filesDir, "preparations/${UUID.randomUUID()}")
         check(!directory.exists())
         DurableFiles.createDirectories(directory)
@@ -307,8 +316,7 @@ class ApkPreparation(private val context: Context) {
             report("Freed ${StorageBudget.freeSpaceLabel(abandoned)} left by unfinished earlier preparations")
         }
         StorageBudget.releaseReplacedGameApks(device, report)
-        // Source + signed normal + unsigned access + signed access is the measured implementation's peak.
-        StorageBudget.requireAvailable(context.filesDir, "APK preparation", bytes, bytes, bytes, bytes)
+        requirePreparationSpace(context.filesDir, bytes, shortageReclaim(report, checkpoint))
         val directory = File(context.filesDir, "preparations/${UUID.randomUUID()}")
         check(!directory.exists())
         DurableFiles.createDirectories(directory)
@@ -328,6 +336,23 @@ class ApkPreparation(private val context: Context) {
         // share them, or the run holds a second 2 GB copy through the snapshot (measured 2026-11-19).
         deduplicateApks(report, checkpoint)
         return prepared
+    }
+
+    /**
+     * `preparation.lock` held, for a preparation's own budget: the coordinator's measured-shortage reclaim
+     * ([SessionCleanup.reclaimForShortage]), run once before [StorageBudget.requireAvailable] remeasures. Its
+     * APK sharing runs here as [deduplicateApks], since [shareDuplicates] would skip on the lock this thread
+     * holds. No session is unfinished here (checked first), so there is no running journal to pass, and the
+     * pending run's own records stay pinned by the reclaim's rules. Null, so a shortage refuses as before,
+     * unless this thread holds the coordinator lock (the worker's prepare does).
+     */
+    private fun shortageReclaim(report: (String) -> Unit, checkpoint: () -> Unit): (() -> Unit)? {
+        if (!RunStore.ownsCoordinator(context)) return null
+        return {
+            SessionCleanup(context, File(RunStore.privateRoot(context), "sessions"), emptySet(), report)
+                .reclaimForShortage(null, shareApks = false)
+            deduplicateApks(report, checkpoint)
+        }
     }
 
     /**

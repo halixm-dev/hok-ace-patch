@@ -5944,6 +5944,30 @@ Phone `ebad528e` (Xiaomi Redmi Note 9 Pro, Android 15, 45 GB, 2.1–8.1 GB free)
   (`StorageBudget.installAllocations`, `InstallSpaceTest`).
 - **Other findings, not fixed here:** APK preparation refuses for space without first running the
   reclaim (`ApkPreparation` "APK preparation" budget). A Start refused for space leaves a pending run, so *Free up space*
-  refuses until *Stop safely*. A Kotlin incremental local build kept an old `BuildConfig.VERSION_NAME`;
+  refuses until *Stop safely* (both fixed and passed on the phone 2026-11-20: next entry). A Kotlin incremental local build kept an old `BuildConfig.VERSION_NAME`;
   deleting `app/build/kotlin` and `app/build/tmp/kotlin-classes` fixed it (CI builds clean).
 - **Limits:** one phone, one provider. Not done: logging in to check the screens. Shizuku and Root had no cycle.
+
+## 2026-11-20 — PR #36 on the phone: preparation reclaim, Free up space during a storage wait — pass (three more fixes)
+
+Phone `ebad528e` (Xiaomi Redmi Note 9 Pro, Android 15, 45 GB), Wireless debugging provider, normal APK
+`29b3ee7e…`. Debug builds 115, 116 and 117 from `fix/storage-wait-reclaim` (signed `555f2ff4`). Evidence: the
+app's `files/trace.log`. Shortage was made from the host: the saved preparation's receipt renamed (run 1), and a
+filler file in `/data/local/tmp` leaving 1.5 GB free (runs 3 and 4), both undone afterwards.
+
+| Run | Build | What was done | Result |
+|---|---|---|---|
+| 1 `c476bd2e` (ID) | 115 | Preparation `1a78f05f`'s receipt renamed, so the run prepares again: 8.1 GB needed, 5.3 GB free | The preparation budget reclaimed first: *Freed 5.1 GB of files left by earlier runs*, *Freed 56 MB of engine files* (07:45), then prepared. **Pass.** Then **fail**: sharing identical APKs made the new preparation's `apks/access.apk` a symlink to the hidden one's (*Freed 4.0 GB by sharing identical saved APKs*), and the claim refused it, *Linked private record*. The automatic retry ran every 4 s (13 times) until *Stop safely*: the claim fails before `beginAttempt`, so the retry budget (preparation 1 of 2) never ran out. No game file was written |
+| 2 `a9a64e7e` (ID) | 116 | Fresh Start after Stop; reused preparation `0e9e7132`, whose `access.apk` is that symlink | Claim accepted the link (`RunStore.safeShared`), access APK installed from it, *Freed 1.6 GB of finished build work*, complete 398/318 (08:51). **Pass** |
+| 3 `d990cc74` (EN) | 116 | Filler; Start | Snapshot budget: reclaimed 4.5 GB, still short (9.4 GB needed, 6.2 GB free): storage wait. *Free up space* ran instead of refusing: `space_freed`, `storage_wait: true`, freed 0 (the run's reclaim had taken it all), run still `claimed`, waiting for storage, saved apps kept. Filler removed, *Try again* continued without a new consent (re-measured, *Enough space now*), complete 398/318 (09:47). **Pass**. The card then read the generic *Work stopped…*: Free up space's result has no error line |
+| 4 `10d5c2c1` (ID) | 117 | Filler; Start; *Free up space* during the wait | The card reads *The patcher has nothing more to free…* (`storage_wait_nothing_freed`). **Pass**. Then *Stop safely* |
+
+- **Fixes:** `RunStore.safeShared` (the claim takes a preparation's `access.apk` as a link that resolves to a
+  plain read-only private file; `ApkPreparation.load` still verifies its identity), `RunStore.chargeFailure` (a
+  failure naming the operation already recorded spends its retry), and the storage card's line after Free up
+  space. Host tests: `SharedApkClaimTest` (its two link tests need POSIX links: skipped on Windows, run on CI).
+- **Reachability of the link refusal:** reached here by hiding a receipt. Without that, it needs a second
+  preparation while an identical one exists, for example when verifying the installed game app fails once.
+  Once the link exists, every later Start reuses that preparation and refused the same way.
+- **Limits:** the *Freed X* line of the storage card (`storage_wait_freed`) was not reached: the run's own
+  reclaim leaves Free up space nothing. *Also remove all saved game apps* was not ticked during the wait.
