@@ -38,6 +38,13 @@ in [`docs/lab-notebook.md`](../lab-notebook.md), 2026-11-20, "PC edition ticket 
    window open until it reports *Translation added*. The job's own log is
    `<work>\pc\jobs\install.json.log`; keep it with the cycle's evidence. The receipts in
    `<work>\pc\receipts\` are the rollback.
+
+   **A config bin** has no switch in the window. Run the jobs from source with the candidate added:
+   `.venv\Scripts\python.exe app\hok_patcher.py --pc-job install <game> <work> <answer.json> <language>
+   --cycle-asset <hash>`, and the same for Check (`status`). The hash must name one of
+   `extra_text.CANDIDATE_ASSETS`; the job's log reads `<hash>: config bin translated`, and its answer
+   lists it under `cycle_assets`. Step 4's `--pc-selftest` takes `--cycle-asset <hash>` after
+   `<out-dir>` too.
 6. **Start the launcher and watch it.** It must reach its start button with no repair or file check.
    A repair means the launcher refused a file: it empties `WXQ_Data\Package\builtin` and the translation
    goes with it (ADR 0011). Before starting it, `LocalFileList.json` must have the same bytes as before the

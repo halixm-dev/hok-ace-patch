@@ -1999,5 +1999,17 @@
       "锦绣星河默认音乐": ["Starry Brocade Default Music", "Musik Default Starry Brocade"],
       "锦羽织天，星罗漫舞。（个性戳戳，可在组队界面对其他玩家使用）": ["Brocade feathers weave the sky as stars dance. (Personalized Poke, usable on other players in team screens)", "Bulu brokat menenun langit saat bintang menari. (Personalized Poke, bisa dipakai ke pemain lain di layar tim)"]
     }
+  },
+  {
+    "note": "Super Weekend room perks (`9E924AAB5066EE19`, package `1`, a sealed config bin on `extra_text.CANDIDATE_ASSETS`): the room screen joins the active ones with `，` and fills `%d/%d`. Reaches the screen only once a cycle enables the bin.",
+    "texts": {
+      "全棋手限免": ["All Chessplayers on free trial", "Semua Chessplayer trial gratis"],
+      "前3局亲密度加成": ["Intimacy bonus for the first 3 matches", "Bonus Intimacy untuk 3 pertandingan pertama"],
+      "对局失败不扣分 %d/%d": ["No rank point loss on defeat %d/%d", "Poin rank tidak berkurang saat kalah %d/%d"],
+      "有分同享不限亲密度": ["Shared Score with no Intimacy limit", "Shared Score tanpa batas Intimacy"],
+      "组排不掉分 %d/%d": ["No rank point loss when teaming up %d/%d", "Poin rank tidak berkurang saat bermain tim %d/%d"],
+      "翻牌钻石翻倍 %d/%d": ["Double Diamonds from card flips %d/%d", "Diamond balik kartu jadi ganda %d/%d"],
+      "首胜额外加分 %d/%d": ["First win bonus points %d/%d", "Poin bonus kemenangan pertama %d/%d"]
+    }
   }
 ]

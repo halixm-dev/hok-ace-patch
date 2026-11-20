@@ -1523,14 +1523,21 @@ def main() -> None:
     if len(sys.argv) == 3 and sys.argv[1] == "--smoketest":
         smoketest(Path(sys.argv[2]))
         return
-    if len(sys.argv) == 7 and sys.argv[1] == "--pc-job":
-        import pc_edition  # a PC job's child: <action> <game> <work> <answer.json> <language>
+    if len(sys.argv) in (7, 9) and sys.argv[1] == "--pc-job":
+        import pc_edition  # a PC job's child: <action> <game> <work> <answer.json> <language> [--cycle-asset <hash>]
 
         sys.exit(pc_edition.job(*sys.argv[2:]))
-    if len(sys.argv) == 4 and sys.argv[1] == "--pc-selftest":
+    if len(sys.argv) in (4, 6) and sys.argv[1] == "--pc-selftest":
         import pc_edition
 
-        pc_edition.selftest(Path(sys.argv[2]), Path(sys.argv[3]))
+        cycle = frozenset()
+        if len(sys.argv) == 6:
+            import extra_text
+
+            if sys.argv[4] != "--cycle-asset":
+                sys.exit(f"unknown option {sys.argv[4]!r}; expected --cycle-asset <hash>")
+            cycle = frozenset(extra_text.resolve_candidates(sys.argv[5]))
+        pc_edition.selftest(Path(sys.argv[2]), Path(sys.argv[3]), cycle)
         return
     try:
         # Own taskbar identity so Windows shows our icon instead of the Python one.

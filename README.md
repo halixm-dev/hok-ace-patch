@@ -257,7 +257,10 @@ engine starts, or `LocalFileList.json` or a listed file's size changes. It write
 
 The window runs each PC job as a child process,
 `--pc-job <action> <game> <work> <answer.json> <language>` with `install`, `status` (Check) or
-`restore`; it answers through `<answer.json>` and logs to `<answer.json>.log`.
+`restore`; it answers through `<answer.json>` and logs to `<answer.json>.log`. A PC cycle of a config
+bin adds `--cycle-asset <hash>` after those five, run from source, and `--pc-selftest` takes the same
+two words after `<out-dir>`; the hash must name one of `extra_text.CANDIDATE_ASSETS` (see
+`docs/runbooks/pc-cycle.md`).
 
 ## Find the right file
 
