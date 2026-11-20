@@ -184,3 +184,10 @@ Private transaction, Remove, recovery, policy parser/large-manifest and full-coo
 | Early and late engine-tree reads inside checkpoint identity | One engine tree digest must match the producer and is bound as the translation identity. The build measures the engine again at entry and before publishing reusable output. |
 
 The phone baseline and profiles are in the [lab notebook](../lab-notebook.md#2026-11-20--root-re-patch-baseline-on-ebad528e).
+
+| Hypothesis | Evidence from the baseline and offline profiles |
+|---|---|
+| Use the first snapshot for most of the second | 15 paths changed, including six package files and nine Watchdog files. The changed files present in the second snapshot accounted for 3.5% of its bytes. Safe reuse still needs proof for the other paths and ownership of both rollback snapshots. |
+| Fold planning into the build refusal | The refusal found stuck assets in two packages. The plan inspected mixed packages and selected a third package too. The mixed-package inspection accounted for 39 s of the 53.9 s offline plan. Sharing only the stuck classification leaves that work in place. |
+| Encode textures ahead of time or cache them | The offline build profile counted 71 s constructing slot maps and 58 s making the pristine delta, including overlapping fingerprint work. Reusing encoded texture bytes would still leave those costs, plus the before and after snapshot audits. |
+| Stage packages during the game's download | The build scans inputs before relocation, then appends prime-only content and records the combined result. The two snapshots differed in packages used by those passes. A split build needs a parity check on the combined result and a separate phone run to measure contention with the downloader. |

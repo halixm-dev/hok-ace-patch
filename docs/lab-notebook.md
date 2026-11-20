@@ -6131,3 +6131,17 @@ work inside the recorded phone stages.
 The after-complete capture verified the normal APK (`29b3ee7e…`) and matched all 14 staged
 hashes to files on the phone. The normal game reached the English v1.11.2 login screen.
 `normal1.log` contained zero occurrences of `errorCode:361` before and after this launch.
+
+### 2026-11-20 — Candidate preparation on ebad528e
+
+A swipe after baseline verification accidentally started another run at 13:34:39. Stop safely
+resolved it during saved APK preparation, before snapshot or game writes. Built-in Free up space
+kept the recovery copy and raised `/data` free space from 4,572,620 to 10,462,680 KiB.
+
+An offline build on the exact second snapshot reached receipt publication and caught metrics
+being written after the output manifest. The failing continuation test now checks that the manifest
+includes the metrics file's final digest. The candidate writes metrics before sealing.
+The offline Windows output had five different package body hashes and differences within package
+summaries. Phone-to-phone parity is the release check. The offline candidate profile spent 71 s
+cumulatively in slot-map construction, 58 s making the pristine delta, and 41 s classifying mixed
+packages. These calls overlap other profile rows and are not phone timings.
