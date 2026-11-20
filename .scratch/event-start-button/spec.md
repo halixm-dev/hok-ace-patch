@@ -1,6 +1,6 @@
 # Event start button: the Super Weekend skin of START GAME
 
-Status: needs-info (waiting for the user's decision; see "Decisions for the user")
+Status: needs-info (mechanism decided; art and room line waiting for the user; see "Decisions for the user")
 
 ## Problem
 
@@ -107,13 +107,17 @@ the same hash.
 
 ## Decisions for the user
 
-1. Mechanism for the button: repo-drawn label texture (recommended) or a catalog addition through
-   `apply_catalog_fixes.py`.
-2. Art: a scripted re-shade of the existing START GAME / MULAI GAME renders for review, or hand-finished
-   art supplied by the user.
+1. ~~Mechanism for the button~~ **Decided 2026-11-21 (user): repo-drawn label texture.** The catalog
+   addition through `apply_catalog_fixes.py` is not pursued.
+2. Art. Drafts for review are in `drafts/`: `draft-en.png` and `draft-id.png` (top-down 372x102). They take
+   the catalog's English and Indonesian START GAME art and re-shade each row to the event label's measured
+   colour, with alpha kept. `compare.png` shows them over a dark and a warm background next to the game's
+   event label and the catalog art. Known difference: the catalog art has a dark bevelled edge, which the
+   re-shade turns brown, and the event label has only a soft shadow. Choose between: ship these drafts as the `labels/` art, or hand-finished art supplied by the user.
 3. Room line: queue `9E924AAB5066EE19` as a candidate (supplement strings + a reseal path in
    `rewrite_config` + device and PC cycles), or leave it Chinese.
-4. The AGENTS.md Coverage rule change that option 1 needs.
+4. The AGENTS.md Coverage rule change that the chosen mechanism needs (a standalone repo-drawn label
+   texture, re-drawn per language). It lands with the implementation, in the same change.
 
 ## Noticed in passing
 
