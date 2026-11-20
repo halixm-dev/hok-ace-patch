@@ -47,6 +47,17 @@ class PatchError(Exception):
         self.keys, self.values = keys, values
         super().__init__(self._text("en"))
 
+    @classmethod
+    def rebuilt(cls, keys: list[str], values: dict[str, object], detail: str) -> "PatchError":
+        """The error another process raised, from the keys and values it sent (`pc_edition.read_answer`).
+
+        Keys the strings file lacks fall back to `pc_engine_failed` with <detail>, so a stale or damaged
+        answer never fails on lookup.
+        """
+        if keys and all(key in UI_STRINGS for key in keys):
+            return cls(*keys, **values)
+        return cls("pc_engine_failed", detail=detail)
+
     def _text(self, language: str) -> str:
         return "\n\n".join(_render(key, language, self.values) for key in self.keys)
 

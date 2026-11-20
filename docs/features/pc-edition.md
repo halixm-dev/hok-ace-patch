@@ -1,10 +1,83 @@
+---
+feature: pc-edition
+status: built; PC-cycle-tested in English and Indonesian (switch and Remove translation included) on launcher 26111.0.4.30004, data 1.11.0.2
+updated: 2026-11-21
+branch: feat/pc-edition-05-cycles
+commits: 4b01ed9..291404f
+---
+
 # PC edition: the Windows patcher installs the translation into the game on the same computer
 
-Status: needs-triage
+Vocabulary: **PC edition**, **mobile edition**, **receipt**, **PC cycle** in [`GLOSSARY.md`](../../GLOSSARY.md).
+Decision record: [ADR 0011](../adr/0011-keep-every-file-the-pc-launcher-lists-at-its-listed-size.md).
+Runbook: [PC cycle](../runbooks/pc-cycle.md). Receipts and the language switch:
+[language-switch](language-switch.md#the-pc-edition-receipts-restore-then-install). BC7 ports:
+[texture-translation](texture-translation.md).
 
-Tickets: [`issues/`](issues/) 01–05. Settled through grilling rounds 1–3 and a round on code shape and speed (2026-11-20). Decision record: [ADR 0011](../../docs/adr/0011-never-write-a-file-the-pc-launcher-lists.md). Vocabulary: **PC edition**, **mobile edition**, **receipt**, **PC cycle** in [`GLOSSARY.md`](../../GLOSSARY.md).
+## Report
 
-## Problem
+### What landed
+
+Five slices, stacked (halixm-dev/hok-ace-patch #41, #43, #44, #45 and ticket 05's PR):
+
+1. **Offline pipeline**: `tools/engine_hooks.py` (terminology on `load_catalog`, token expansion on
+   `scan`, our `receipt_root`), `tools/pc_catalog.py` (the per-install catalog, staged once, hard-linked
+   and cached), `tools/bc7_mode6.py` and `mobile_graphics.port_atlas(codec="bc7")`, with etcpak as the
+   first BC7 encoder.
+2. **PC workflow**: `app/pc_edition.py` (finding the game, the process guard, receipts in
+   `<work>\pc\receipts\<game-id>\`, `state.json`, the `--pc-job` child, `--pc-selftest`) and
+   `tools/research/check_pc_install.py`.
+3. **Interface**: the target choice and the PC card in `app/hok_patcher.py`, every string a key in
+   `resources/ui/strings.json`.
+4. **Docs**: AGENTS.md's *PC edition* constraints, README, the PC cycle runbook, the PC column in
+   `translation-progress.md`.
+5. **PC cycles** on the installed game.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `check_graphics.py` BC7 case (ticket 01) | All sections pass; a re-run over its own output re-encodes 0 blocks |
+| Mobile `--selftest` before and after slice 1 | `selftest.json` and all 14 staged files identical, both languages |
+| `check_pc_install.py` on a full copy, `en:id` and `id:en` (ticket 02) | `OK`: restore returns every file, a second install changes nothing, each switch restores then installs, `replacements` empty at each start, `LocalFileList.json` and every listed size held |
+| `--smoketest` on the frozen exe | `ok`, with `import pc_edition`, `engine hook attributes` and `bc7 round trip` |
+| `--pc-selftest` on the frozen exe | `ok` in both languages, 359 graphics each, the ready atlas `E86DF43167CA2143` refused at this sprite table |
+| The window from source on the copy (ticket 03) | Check, Install (6:52), Remove (0:29) and every state drawn as designed |
+| PC cycle, English (2026-11-21) | Install 410 s; the launcher started with no repair; lobby English; wrapping, token-expanded card text, the Career labels and the Secret Technique titles in place. **Pass** |
+| PC cycle, Indonesian | Install through the receipts 509 s; the launcher started with no repair; lobby Indonesian; the same screens in place. **Pass** |
+| Switch back to English | 411 s; every file under `builtin` byte-identical to the first English install. **Pass** |
+| Remove translation | 31 s; every file back to its starting SHA-256; Check *not installed*; the launcher accepted the files with no repair. **Pass** |
+
+The numbers are in the [lab notebook](../lab-notebook.md), 2026-11-20 "PC edition ticket 01" and
+"ticket 02", and 2026-11-21 "PC edition ticket 05". `check_references.py`, `check_staging_contract.py`
+and `check_ui_strings.py` pass on the final branch.
+
+### Journey
+
+- **BC7 was the slow step** (ticket 01): etcpak 0.9.15 was added as the first encoder, and BC7 blocks
+  are judged by `BC7_MATCH_MEAN` = 14 while ASTC keeps 6, because no encoder brought the alpha'd
+  title-edge blocks within 6 levels (user's decisions). The pure-Python `bc7_mode6` stays as the fallback.
+- **ADR 0011 was reworded** (ticket 02): every package file the engine patches is listed in
+  `LocalFileList.json`, contrary to the fork's note, so *never write a listed file* became *keep every
+  listed file at its listed size*. The PC cycles confirmed the launcher compares sizes.
+- **Restore receipts**: the engine keeps an undone install receipt until its next run, so a completed
+  restore cancels the install receipts before it, and the engine's 4 GB `staged` folder is removed after
+  every job.
+- **The start button's event skin**: in the PC cycles the lobby showed an event skin of the start button
+  (开始游戏, "Super Weekend Perks Are Here!") that the catalog does not carry. It stays Chinese in both
+  editions and hides the two START GAME textures, which are verified on disk in each language (read
+  back from package `19` with the stage's `patched_sha256`). User's decision: the cycles pass, and the
+  event button is a coverage gap of its own.
+
+### Still owed
+
+*After a launcher update* (Check reads *replaced by an update*, then Install reaches the lobby
+translated) waits for an update that ships while a translation is installed: the one update during the
+cycles came before any install. The PC cycles ran from source, not from the frozen exe, and did not
+include a match start and end. MULAI GAME is verified on disk, not on screen, until the event skin
+leaves the lobby.
+
+## [S1] Problem
 
 The Windows patcher only patches a phone. Players with the PC edition (`WXQ.exe`) have two options today, and neither is this project's:
 
@@ -15,7 +88,7 @@ The fork's PC page works, but it copies this repo's engine and catalogs by hand 
 
 The goal is to add the PC edition to this repo's Windows patcher, in both languages, from the same catalogs. It should add as little new code as possible and reuse the runtime engine, the catalogs and the texture pipeline that already exist.
 
-## Evidence
+### Evidence
 
 Read from the fork and from `resources/runtime/` on 2026-11-20. Not yet measured in the PC edition by this repo.
 
@@ -32,15 +105,13 @@ Read from the fork and from `resources/runtime/` on 2026-11-20. Not yet measured
   - The engine never empties `<work>\replacements\`. A file left there for an asset a game update removed stops the next install (`... is absent from package 19`, 2026-11-18).
   - After a launcher update, the engine drops receipts that no longer describe the files. A language switch then has nothing to restore.
 
-## Solution
+## [S2] Design
 
 The Windows patcher gets a target choice, *Phone over USB* or *PC game on this computer*. The language card is shared, and it still sets the interface language.
 
 The PC target has a game-folder row and three actions: **Install**, **Check** and **Remove translation**. Check runs by itself when the target opens and shows one of four states: *installed*, *not installed*, *replaced by an update* or *partly installed*.
 
 Behind it, the runtime engine writes the files. This repo builds the per-install catalog the engine reads, holds the receipts in the working folder, and owns every hook into the engine.
-
-## Implementation Decisions
 
 ### Code shape
 
@@ -140,33 +211,9 @@ Four slices, each its own branch and PR off `master`:
 
 Then one PC cycle per language before release.
 
-## Testing
+## [S3] Out of Scope
 
-No test suite. Each slice proves itself with the offline checks below; the PC edition itself is proved by a PC cycle (`docs/runbooks/pc-cycle.md`, written in ticket 04).
-
-- **`tools/research/check_pc_install.py --game <scratch copy> --work <dir>`** drives `pc_edition.run` against a scratch copy of the PC edition's `builtin` packages, in each language. The run goes install → check → install → restore → install the other language → restore, and asserts each of these:
-  - restore returns every file to its original bytes;
-  - a second install changes nothing;
-  - the language switch goes through the receipts;
-  - `replacements\` is empty before each job;
-  - no file listed in `LocalFileList.json` changes.
-- **`tools/research/check_graphics.py`** BC7 case: a ported atlas round-trips, and a re-run re-encodes nothing.
-- **Mobile unchanged:** `--selftest` on a mobile dump gives an identical `device_patch_summary.json` and identical staged bytes before and after slice 1.
-- **`--smoketest`** imports `engine_hooks`, `pc_catalog` and `pc_edition`, checks the three engine attributes exist, and encodes one BC7 block.
-- **Speed:** wall time of Install, a repeat Install and Check, fork vs this repo, on the same scratch copy. Recorded in `docs/lab-notebook.md`.
-
-Measured in a PC cycle, never assumed:
-- in-game English and Indonesian;
-- text wrapping (the line-break Lua edit);
-- the regioned atlases and Secret Technique titles at their PC sprite rects;
-- MULAI GAME on both lobby textures;
-- token-expanded card text;
-- the launcher starting without a repair;
-- a launcher update followed by Check (*replaced by an update*) and Install.
-
-## Out of Scope
-
-- Translating the PC window title, or any file the launcher lists (ADR 0011).
+- Translating the PC window title, or changing the size of any file the launcher lists (ADR 0011).
 - Any config bin on the PC edition, the lineup bin included, until a PC cycle clears it.
 - Importing the fork's or the upstream PC patcher's receipts or state.
 - Stop safely and automatic continuation for PC jobs.

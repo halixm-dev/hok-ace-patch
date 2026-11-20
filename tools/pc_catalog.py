@@ -1,7 +1,7 @@
 """Build the per-install catalog the runtime engine reads for one PC edition game and one language.
 
 The engine (`wxq_patch.adaptive.run`) installs a catalog into the PC edition as it stands: each text
-table and catalog edit at the PC offsets the catalog records. Three things in that catalog do not fit
+table and catalog edit at the PC offsets the catalog records. Four things in that catalog do not fit
 an installed game as they are, so this module writes a per-install copy with them fixed:
 
 - **Regioned atlases** (`sprite_table.REGION_SPRITE_ASSETS`): the PC edition re-packs these atlases
@@ -13,6 +13,9 @@ an installed game as they are, so this module writes a per-install copy with the
   from the copy, never left for the engine to apply at the catalog's PC offsets. The Secret Technique
   title atlas has no catalog entry; its labels are drawn (`label_atlas`) after its title sprites are
   re-laid (`card_titles.relayout`), and the assets the relayout moves go in as whole-file entries.
+- **Repo-drawn label textures** (`mobile_graphics.LABEL_TEXTURES`): standalone labels the catalog has
+  no entry for. Each gets a new package-`19` entry whose payload is this repo's art for the language
+  (`label_texture(codec="rgba32")`); one at another size is refused and left out, like a refused atlas.
 - **Re-drawn payloads** of a language other than English (`catalog_id/<HASH>.blocks`): the catalog
   records the English payload's hashes, and the engine verifies each texture against
   `patched_sha256`, so these are re-hashed from the installed original. An entry whose installed
@@ -67,7 +70,8 @@ class Stage:
     cached: bool
     # The hash each overridden asset has once the engine installs this stage (state file, ticket 02).
     patched: dict[str, str] = field(default_factory=dict)
-    # Regioned atlases refused at this installation's sprite table, dropped from the copy.
+    # Regioned atlases refused at this installation's sprite table and label textures refused at their size,
+    # each dropped from the copy.
     skipped: list[str] = field(default_factory=list)
     timings: dict[str, float] = field(default_factory=dict)
 
@@ -165,6 +169,7 @@ def build(game: Path, resources: Path, language: str, work: Path, *, version: st
 
     mark = time.perf_counter()
     skipped = _regioned_atlases(reader, bundle, data, entries, overrides, patched, valid, log)
+    skipped += _label_textures(reader, bundle, data, overrides, patched, valid, log)
     timings["atlases"] = time.perf_counter() - mark
     mark = time.perf_counter()
     if bundle != english:
@@ -184,7 +189,7 @@ def build(game: Path, resources: Path, language: str, work: Path, *, version: st
     timings["total"] = time.perf_counter() - started
     log(f"PC catalog: {bundle.name} stage built: {len(patched)} assets patched, {len(overrides)} payloads "
         f"written, {linked} payloads linked, "
-        f"{copied} copied" + (f", {len(skipped)} atlases refused" if skipped else ""))
+        f"{copied} copied" + (f", {len(skipped)} textures refused" if skipped else ""))
     return Stage(stage, language, False, patched, skipped, timings)
 
 
@@ -219,6 +224,10 @@ def _stamps(game: Path, package_ids: set[str]) -> dict[str, list[int]]:
     A shortcut for the cache, not its key: while these match, the assets the stage was built from are
     the same bytes, so a cache check reads nothing. When any differs, every input asset is re-read and
     re-hashed, and a stage whose assets are all unchanged is still reused.
+
+    The engine rewrites a package's shards in place at the same size and modification time; only the
+    package's index (`<id>.db`) gets a new time (2026-11-20). An engine install or restore always
+    rewrites the index with its shards, so the index's stamp is what moves.
     """
     root = _builtin(game)
     stamps: dict[str, list[int]] = {}
@@ -349,6 +358,39 @@ def _title_atlas(reader: _Reader, bundle: Path, data: dict, source: bytes, table
         data["graphics"].append(moved_entry)
     data["graphics"].append(entry)
     return result, entry
+
+
+def _label_textures(reader: _Reader, bundle: Path, data: dict, overrides: dict, patched: dict,
+                    valid: dict, log) -> list[str]:
+    """Add an entry for each standalone label this repo draws (``LABEL_TEXTURES``); returns those refused.
+
+    The catalog has no entry for these, so each gets a new one in package `19`, its payload this
+    repo's art for the language as RGBA32 rows. A texture this installation lacks gets no entry; one at
+    another size is refused and left out.
+    """
+    import mobile_graphics as mg
+
+    refused: list[str] = []
+    for texture, (width, height, _name) in mg.LABEL_TEXTURES.items():
+        name = f"{texture:016X}"
+        source = reader.read(ATLAS_PACKAGE, texture)
+        if source is None:
+            continue
+        result = mg.label_texture(source, name, bundle, codec="rgba32")
+        if result is None:
+            refused.append(name)
+            log(f"{name}: not a {width}x{height} RGBA32 label in this installation; left out of the PC "
+                "catalog")
+            continue
+        entry = {"hash": name, "package": ATLAS_PACKAGE, "format": "rgba32", "width": width,
+                 "height": height, "label": "repo-drawn label"}
+        data["graphics"].append(entry)
+        if result == source:
+            _already(entry, source, patched, valid)
+        else:
+            _set_entry(entry, source, result, block_runs(source, result), f"{name}.pc.blocks",
+                       overrides, patched, valid)
+    return refused
 
 
 def _redrawn_payloads(reader: _Reader, bundle: Path, entries: dict, previous: dict[str, str],

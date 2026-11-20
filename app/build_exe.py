@@ -70,6 +70,10 @@ def build() -> None:
     # Their producer identity hashes the actual onefile exe and extracted native bundle,
     # so local changes and codec bytes are covered without trusting VERSION metadata.
     args += ["--hidden-import", "run_artifacts"]
+    # The PC edition: `hok_patcher` imports its workflow only for a PC job, and `bc7_mode6` imports the
+    # native BC7 encoder only when it encodes; named here so the freeze never depends on finding them.
+    for module in ("pc_edition", "pc_catalog", "engine_hooks", "bc7_mode6", "etcpak"):
+        args += ["--hidden-import", module]
     args.append(str(APP / "hok_patcher.py"))
     subprocess.run(args, check=True)
 

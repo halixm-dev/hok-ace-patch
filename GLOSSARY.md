@@ -35,7 +35,7 @@ The pristine bytes an install overwrote, kept so a later run can rebuild the pri
 _Avoid_: restore delta, backup, undo
 
 **Receipt**:
-The original bytes of a PC edition file, kept by the install that overwrote it; the PC edition's only undo record, owned by this patcher alone.
+The original bytes of the PC edition files one install overwrote, kept by the runtime engine in this patcher's working folder; the PC edition's only undo record, owned by this patcher alone.
 _Avoid_: backup, pristine delta (that is the mobile edition's)
 
 **Replaced file**:
@@ -165,7 +165,7 @@ One watched run in the PC edition itself that tests a single change and ends in 
 _Avoid_: device cycle (that is the phone's), PC test
 
 **Allowlist**:
-The config bins a device cycle has cleared for translation; one today, the Official recommendation lineups.
+The config bins a cycle has cleared for translation, per edition: a device cycle clears a bin for the mobile edition (one today, the Official recommendation lineups), a PC cycle for the PC edition (none yet).
 _Avoid_: safe list, whitelist
 
 **Candidate queue**:

@@ -1,12 +1,16 @@
 ---
 feature: language-switch
 status: built; device-tested in both patchers (switch, Remove) and the Android patcher (game update)
-updated: 2026-11-13
+updated: 2026-11-20
 branch: master
 commits: f428002..3bcae14
 ---
 
 # Repatch without clearing the game's data
+
+Everything here up to the last section is the mobile edition's: the pristine delta, its refusals and
+Remove translation on a phone. The PC edition keeps receipts instead, in
+[The PC edition: receipts, restore then install](#the-pc-edition-receipts-restore-then-install).
 
 ## Report
 
@@ -328,3 +332,32 @@ Its phone test (2026-11-20) found two more. APK sharing may leave a preparation'
 The Root re-patch on the same phone exposed the same claim failure for `original.apk` after
 shortage cleanup shared it. The Root claim now uses `RunStore.safeShared` for that saved APK.
 `ApkPreparation.loadRoot` still reads and verifies the complete APK identity bound to Start.
+
+## The PC edition: receipts, restore then install
+
+The PC edition has no pristine delta. The runtime engine (`wxq_patch.adaptive.run`) keeps a
+**receipt** of the original bytes of every file an install overwrites, and its `restore` writes them
+back. `app/pc_edition.py` drives it. The workflow's rules are in that module's docstring; the measured
+runs are in the lab notebook, 2026-11-20, "PC edition ticket 02".
+
+| Area | Decision |
+|---|---|
+| Where receipts live | `<work>\pc\receipts\<game-id>\`, through `engine_hooks.install(receipts=...)`, which moves the engine's `receipt_root` there. Never the engine's default folder, the upstream PC patcher's `%LOCALAPPDATA%\HoK Ace English Patch\adaptive`. `<game-id>` is the engine's own identity, `sha256(resolved path, casefolded)[:24]` (`engine_hooks.game_id`) |
+| Size | One install receipt holds the 16 files it rewrote in packages `1`, `10`, `15`, `19`, `20`, `21` and `1050016095`: about 4 GB. A restore writes its own receipt beside the install receipt it undid, and the engine prunes both on its next run (7.9 GB at the peak) |
+| State | `<work>\pc\<game-id>\state.json`: the language installed, the hash of every file the last verified install wrote, and the per-install catalog's patched hashes. Check reads it against the files |
+| Language switch | One Install job: the engine's `restore` from the receipts, then its `install` of the new language. Restore cancels the install receipts before it, so only receipts since the last restore count |
+| Receipts that no longer match | None of the files match (a launcher update replaced them): the install goes ahead, and the engine drops those receipts. Some match and some do not: the job refuses before any write (`pc_receipts_mismatch`) and advises the launcher's Repair, then Install |
+| A foreign install | The game reads translated, or its window title changed, and this patcher holds no receipts for it: Install refuses (`pc_foreign_install`) with the same repair advice. Nothing is imported from the azydev fork's files or the upstream PC patcher's receipts |
+| Remove translation | The engine's `restore`. Then the state file and the engine's `staged\` folder are deleted |
+| Before each job | `<work>\replacements\` is emptied before every Install and Check. The engine never empties it, and a file left there for an asset an update removed stops the next install |
+
+**Verified offline:** `tools/research/check_pc_install.py` on a full copy of the PC edition passed in
+both orders (`en` then `id`, `id` then `en`). Each switch ran the engine's restore and then its
+install in one job. Restore returned every file under `builtin` to its starting SHA-256. A second
+install changed nothing. `LocalFileList.json` and every listed size held (ADR 0011).
+
+**Verified in the game** (PC cycles on the installed game, 2026-11-21, launcher 26111.0.4.30004, data
+1.11.0.2, lab notebook "PC edition ticket 05"): English, then Indonesian, then English again through the
+receipts, then Remove translation. The switch back left every file under `builtin` byte-identical to the
+first English install, Remove returned every file to its starting SHA-256, and the launcher started
+without a repair after each install and after Remove ([`docs/runbooks/pc-cycle.md`](../runbooks/pc-cycle.md)).

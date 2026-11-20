@@ -781,6 +781,36 @@ def check_label_atlas() -> None:
           mg.label_atlas(raw, texture, CATALOG, unmoved) is None)
 
 
+def check_label_texture() -> None:
+    print("\n[14] a standalone label drawn from this repo's art, per language (LABEL_TEXTURES)")
+    for texture, (width, height, _name) in sorted(mg.LABEL_TEXTURES.items()):
+        name = f"{texture:016X}"
+        english = mg.label_texture_art(CATALOG, name)
+        indonesian = mg.label_texture_art(CATALOG.parent / "catalog_id", name)
+        check(f"{name}: English and Indonesian art ship at {width}x{height}",
+              english is not None and indonesian is not None)
+        if english is None or indonesian is None:
+            continue
+        check(f"{name}: Indonesian draws its own art, not the English", english != indonesian)
+        device = device_bytes(width, height, 6, 6)
+        drawn = mg.label_texture(device, name, CATALOG)
+        check(f"{name}: the phone's 6x6 texture is replaced whole at its own size",
+              drawn is not None and len(drawn) == len(device) and drawn != device)
+        if drawn is not None:
+            shown = vertical_flip(mg.decode_astc(drawn, width, height, 6, 6), width, height)
+            check(f"{name}: it decodes to the art", mean_abs_diff(shown, english) < 4,
+                  f"mean {mean_abs_diff(shown, english):.2f}")
+            check(f"{name}: a re-run over its own output changes nothing",
+                  mg.label_texture(drawn, name, CATALOG) == drawn)
+        pc = bytes(width * height * 4)
+        rows = mg.label_texture(pc, name, CATALOG, codec="rgba32")
+        check(f"{name}: the PC's RGBA32 texture gets the art in bottom-up rows",
+              rows is not None and vertical_flip(rows, width, height) == english)
+        check(f"{name}: a texture of another size returns None",
+              mg.label_texture(device[:-16], name, CATALOG) is None
+              and mg.label_texture(pc[:-4], name, CATALOG, codec="rgba32") is None)
+
+
 def check_relayout() -> None:
     print("\n[12] the Secret Technique title relayout, on pristine fixtures")
     import struct  # noqa: PLC0415
@@ -999,6 +1029,7 @@ def main() -> int:
     check_splice(catalog)
     check_atlas(catalog)
     check_label_atlas()
+    check_label_texture()
     check_relayout()
     check_bc7(catalog)
     if args.skip_slow:

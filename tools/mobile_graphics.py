@@ -19,7 +19,8 @@ Two payload families and five paths:
   only the label's pixels are copied across, and only the blocks those pixels touch are re-encoded.
 
 An atlas the catalog has no edit for at all (``LABEL_ATLASES``) carries only this repo's labels, drawn
-at the device's sprite rects by ``label_atlas``.
+at the device's sprite rects by ``label_atlas``. A standalone label the catalog has no edit for
+(``LABEL_TEXTURES``) is replaced whole by this repo's art for the patch language, by ``label_texture``.
 
 Both atlas functions also serve the PC edition (``codec="bc7"``, called by ``pc_catalog``): the same port
 onto the installed game's BC7 atlas, re-encoding only the stale blocks with ``bc7_mode6`` and judging
@@ -39,7 +40,7 @@ import astc_encoder
 import ooz
 import texture2ddecoder
 
-from languages import payload_path
+from languages import ENGLISH, for_catalog, payload_path
 from sprite_table import REGION_SPRITE_ASSETS
 
 OODLE_BLOCK = 0x40000  # Oodle LZ streams are split into 256 KiB blocks
@@ -147,6 +148,21 @@ LABEL_PASSES = 4  # redraws label_atlas allows before it returns what it has
 LABEL_ATLASES: dict[int, tuple[int, int]] = {
     0x0B4DA7A85D27E87A: (1024, 1024),  # UIResources/CardComponent/LordSkillCard/Atlas/LordSkillCardAtlas
 }
+# A standalone label texture the catalog has no edit for: the whole image is this repo's art
+# (``label_texture``). Unlike the atlas labels it is drawn per language: the art is
+# resources/<SPRITE_ART>/<HASH>/labels/<language code>/<name>.png, top-down RGBA at the texture's own
+# size, and a language with no art of its own draws the English one. Hash -> (width, height, name).
+LABEL_TEXTURES: dict[int, tuple[int, int, str]] = {
+    # 开始游戏 on the Super Weekend skin of the lobby's start button (package 19, UIResources/GameCenter;
+    # phone data 1.10.1.2 on, PC 1.11.0.2). A warm-tinted twin of the catalog's START GAME
+    # `863114A42F12EF76`, not a revision of it (57 % of alpha values equal), so not a DEVICE_REVISIONS
+    # alias. Art: the catalog's START GAME / MULAI GAME re-shaded row by row to the event label's colours,
+    # approved by the user 2026-11-21 (.scratch/event-start-button/).
+    0xA71C734D3EFAFBFF: (372, 102, "start_game"),
+}
+# A ``label_texture`` texture whose decoded pixels are within this many levels per channel of the art's
+# own encode is already drawn (another process's encode of the same art measured at most 1).
+LABEL_TEXTURE_KEEP = 2
 # A block whose decoded pixels already show the target within this mean premultiplied difference is left
 # alone: that keeps an untouched pristine block's own bytes and spares a re-run re-encoding a lossy decode
 # of itself. Measured on the Career atlas, the first run leaves 4350 (today's layout) to 7091 (10-03) of
@@ -614,6 +630,54 @@ def label_atlas(mobile_raw: bytes, texture: str, catalog: Path,
             break
         raw = drawn
     return raw
+
+
+def label_texture_art(catalog: Path, texture: str) -> bytes | None:
+    """<texture>'s art (``LABEL_TEXTURES``) for <catalog>'s language, top-down RGBA, or None."""
+    from PIL import Image
+
+    width, height, name = LABEL_TEXTURES[int(texture, 16)]
+    labels = Path(catalog).parent / SPRITE_ART / texture / "labels"
+    for code in dict.fromkeys((for_catalog(catalog).code, ENGLISH.code)):
+        path = labels / code / f"{name}.png"
+        if path.is_file():
+            with Image.open(path) as image:
+                if image.size != (width, height):
+                    return None
+                return image.convert("RGBA").tobytes()
+    return None
+
+
+def label_texture(raw: bytes, texture: str, catalog: Path, codec: str = "astc") -> bytes | None:
+    """<raw> replaced by this repo's art for a ``LABEL_TEXTURES`` label, or None when it cannot land.
+
+    <codec> is the texture's own format: ``astc`` on the phone (footprint from the raw size, the whole
+    image re-encoded, and a texture that already decodes to the art kept as it is, so a re-run over the
+    output changes nothing) or ``rgba32``
+    on the PC edition. A texture of any other size is refused, never drawn at a guessed geometry.
+    """
+    width, height, _name = LABEL_TEXTURES[int(texture, 16)]
+    art = label_texture_art(catalog, texture)
+    if art is None:
+        return None
+    stride = width * 4
+    rows = b"".join(art[row * stride:(row + 1) * stride] for row in reversed(range(height)))  # bottom-up
+    if codec == "rgba32":
+        return rows if len(raw) == len(rows) else None
+    if codec != "astc":
+        return None
+    layout = astc_layout(len(raw), width, height)
+    if layout is None:
+        return None
+    new = encode_astc(rows, width, height, *layout)
+    # The same art encoded in another process can differ in a few blocks (measured on the staged event
+    # label: 1-4 of 1054 blocks, no channel off by more than 1), so an earlier run's output that already
+    # decodes to the art within LABEL_TEXTURE_KEEP is kept as it is.
+    if new != raw:
+        old, drawn = decode_astc(raw, width, height, *layout), decode_astc(new, width, height, *layout)
+        if max(abs(a - b) for a, b in zip(old, drawn)) <= LABEL_TEXTURE_KEEP:
+            return raw
+    return new
 
 
 def _draw_labels(target: bytearray, decided: bytearray, labels: dict[str, bytes],
