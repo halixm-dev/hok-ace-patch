@@ -6034,3 +6034,24 @@ in native ASTC encoding (already threaded and cached), file traffic and the comp
 translation. Sharing parsed packages between passes would save about 1 s (1.5%), at the cost of
 holding runtime objects across passes that write files. Not measured: a phone, where the 2026-10-17
 run's build took about 4 min 41 s.
+
+## 2026-11-20 — The token walk skips messages with no token — pass
+
+- **Change:** `resource_tokens.expand_tokens_in_message` returns a message unchanged, count 0, when its
+  bytes hold none of the language's tokens, instead of walking it. A string field's bytes sit unbroken
+  in its message at any depth, so such a message has nothing to expand. A malformed message without a
+  token now raises no `NotMessage` and logs no `token expand skipped`; its three callers leave it
+  byte-for-byte alone either way.
+- **Inputs:** a full English build of the 1.10.1.2 pristine layer with its `normal.apk` walks 388
+  messages, 24.1 MB. 337 of them (7.5 MB) hold no token. Recorded on master by wrapping the function:
+  none of the 337 changed, raised or came back different from its input; no `token expand skipped`.
+- **Same output:** the same build on master `70950ed` and on this change: all 15 package files under
+  `out/` byte-identical (SHA-256), `device_patch_summary.json` identical once the run folder name is
+  normalized, build logs identical. The 388 inputs, captured during the second build, replayed through
+  both walkers: 388 of 388 identical results.
+- **Speed:** the byte check costs 12.7 ms over all 388. Replaying all 388, best of 7, four paired runs:
+  master 1592 / 2390 / 1860 / 2767 ms, this change 1421 / 1465 / 1413 / 2333 ms, so 0.17–0.93 s saved.
+  This machine was noisy (master varied by 74% between runs), so the saving is the 337 messages no
+  longer walked, about 1% of the 69 s build, rather than a precise figure.
+- **Checks:** the 12 repository checks the Android workflow runs, all exit 0.
+- **Verdict:** pass offline. Not run: the frozen exe `--smoketest`, a patch on a phone with this build.
