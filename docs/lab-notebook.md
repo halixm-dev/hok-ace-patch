@@ -6540,3 +6540,35 @@ Redmi Note 9 Pro `ebad528e`, rooted (KernelSU), game data 1.11.0.2, English, the
   phone's rects. `--pc-selftest` on `C:\scratch\pc-edition-02\game`: `ok: true`, 49 assets patched in
   English and 50 in Indonesian, as before (the atlas was already patched). No PC cycle: not seen on screen.
 
+## 2026-11-21 — The ready atlas: a dropped sprite left out instead of refusing; CANCEL READY device pass
+
+Redmi Note 9 Pro `ebad528e`, rooted, game data 1.11.0.2, English, Super Weekend live. The user's
+decision: amend ADR 0006 so a region whose sprite the device's table dropped is left out.
+
+- **Symptom.** In a Ranking room, the user ready, the room's button read 取消准备 over "Super Weekend Perks
+  Are Here!" (`evidence\room-cancel-ready-crop.png`). It is the ready atlas `E86DF43167CA2143`'s
+  `cancel_ready` (`Image_1489283173`), which the build refused whole: its sprite table (`9F240FDA0FA58988`,
+  182 sprites) has no `Image_1585869273` (`confirm_choice`). `cancel_ready` (1,16) and
+  `waiting_for_players` (608,1) are still there at the catalog's own boxes and size.
+- **What sits in CONFIRM CHOICE's place.** `Image_1495219937`, the 超级周末 sprite, at (608,106)-(980,208),
+  CONFIRM CHOICE's old box; its pixels differ from the lobby atlas's by a mean of 8/8/8/1. It lies inside the
+  old offset port's footprint, so with no restoration crop an input carrying that damage kept the old
+  English there: `check_graphics.py --game` measured 3866 blocks, decoded mean 3.98, against clean input.
+  Drawing the lobby's SUPER WEEKEND over its whole box (`ATLAS_LABELS["E86DF43167CA2143"]`) brings that to
+  2198 blocks at mean 0.019, the same agreement as the other atlases.
+- **Code.** `port_atlas` skips a region the table lacks; a resized region, a missing table, or no region
+  and no label left still refuse. The fast offset path is taken only when every region is present.
+  `check_graphics.py`: `[7]` drops `confirm_choice` from the catalog layout (the others still port, within
+  `BLOCK_MATCH_MEAN` of the full port), and a table with none of the regions or a resized one refuses;
+  `[10]` now expects a missing Career region left out; `skip_reason` no longer counts a missing sprite.
+- **Offline.** `check_graphics.py --game` on the 1.11.0.2 dump: all checks passed, 238 ported, 3 ported by
+  sprite, 1 replaced, 1 spliced, 0 skipped. The build: package `19` 24 textures translated, none skipped.
+  `atlas_sprites.py labels --check` passes.
+- **Device: pass.** Package `19` without the ready atlas's SUPER WEEKEND label (the build before that
+  addition) pushed as root, hashes matched; in the same room, ready, the button reads **CANCEL READY**
+  (`evidence\room-ready-small.png`). The ready atlas's SUPER WEEKEND label is verified offline only, and
+  WAITING FOR PLAYERS was not seen on screen.
+- **PC edition, offline:** `--pc-selftest` on `C:\scratch\pc-edition-02\game`: `ok: true`; the per-install
+  catalog patches 50 assets in English and 51 in Indonesian (49 and 50 before), with no texture refused:
+  the PC table lacks the same sprite. No PC cycle.
+

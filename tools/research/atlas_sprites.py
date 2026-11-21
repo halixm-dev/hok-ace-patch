@@ -63,7 +63,8 @@ CATALOG = ROOT / "resources" / "catalog"
 ART = ROOT / "resources" / mg.SPRITE_ART
 CAREER = "13C19E4E4486B31C"
 SECRET_TITLES = "0B4DA7A85D27E87A"  # LordSkillCardAtlas, the Secret Technique cards' titles
-LOBBY = "C9F49510F2F67402"  # the lobby atlas: the Super Weekend start-button labels, cream like the event art
+# The Super Weekend start-button labels, cream like the event art: the lobby atlas and the ready atlas.
+CREAM_LABELS = {"C9F49510F2F67402", "E86DF43167CA2143"}
 TITLE_FONT = ROOT / "resources" / "fonts" / "BarlowCondensed-ExtraBold.ttf"
 # Measured on the 32 Chinese titles: black fill and a ~2 px edge, grey near (102, 99, 89) at alpha ~165.
 # The edge is shaded, measured by distance from the ink (2026-11-11): a 1 px dark outline all round, a
@@ -663,7 +664,7 @@ def _label_faults(image: Image.Image, atlas: str) -> list[str]:
         tinted = sum(1 for r, g, b, _a in pixels if min(r, g, b) < 245)
         if tinted:
             faults.append(f"{tinted} tinted pixels (labels are white, shaped by alpha)")
-    elif atlas == LOBBY:
+    elif atlas in CREAM_LABELS:
         solid = [p for p in pixels if p[3] >= 240]
         light = sum(1 for r, g, b, _a in solid if min(r, g, b) >= 180) / max(1, len(solid))
         if light < 0.6:  # the approved MULAI GAME keeps its bevel brown: 69 %

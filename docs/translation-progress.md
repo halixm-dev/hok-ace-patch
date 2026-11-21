@@ -395,7 +395,13 @@ and **SUPER WEEKEND** in both (the supplement's "Super Weekend"). They are drawn
 catalog already edits, so they add no texture to the count. Device-verified on the lobby, 2026-11-21
 (English, Redmi, data 1.11.0.2).
 
-36 images are this repo's own, not the catalog's. Two are on the lobby atlas (above). Two are on the Career atlas `13C19E4E4486B31C`,
+The room's ready atlas `E86DF43167CA2143` carries the same 超级周末 sprite where 1.11.0.2 dropped CONFIRM
+CHOICE, and draws the same **SUPER WEEKEND** over it. That atlas is ported again since 2026-11-21: a sprite
+the device dropped is now left out instead of refusing the atlas (ADR 0006, amended), so the room's
+**CANCEL READY** and **WAITING FOR PLAYERS** are back, and package `19` applies 24 of 24 textures over the
+1.11.0.2 dump. CANCEL READY device-verified in the Ranking room, 2026-11-21 (English, Redmi).
+
+37 images are this repo's own, not the catalog's. Three are on the lobby and ready atlases (above). Two are on the Career atlas `13C19E4E4486B31C`,
 `Image_410780920` `我的皮肤` → **MY SKINS** (no catalog entry) and `Image_920603129` `总盈利` → **TOTAL
 PROFIT** (the text table's "Total profit"), in `resources/sprites/` (`mobile_graphics.ATLAS_LABELS`). They
 are drawn into a texture the catalog already edits, so they add no texture to the count. Every language
@@ -531,7 +537,8 @@ textures, which are written. Since 2026-11-21 this repo draws the skin's sprites
   Secret Technique title atlas and the assets its relayout moves, and the Lua label and edits. The
   Indonesian count is one higher: a re-drawn payload, re-hashed from the installed original.
 - **The refused atlas** is the ready atlas. Its installed source does not match the catalog, and its
-  sprite table has no `Image_1585869273`. The mobile layer skips the same atlas.
+  sprite table has no `Image_1585869273`. The mobile layer skipped the same atlas. Since 2026-11-21 both
+  editions port it without that sprite (ADR 0006, amended); these counts predate that.
 - **The six unreadable assets:** the English install's `skipped` list names six assets, all in package
   `1`, each with "Asset length differs from its current index descriptor". That matches the count.
 - **The window title** stays 王者万象棋. The launcher lists the title file, and a translated title

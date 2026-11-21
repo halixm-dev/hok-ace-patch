@@ -456,9 +456,11 @@ bytes, both languages.
   6 levels for about 2600 title-atlas blocks (median 7.5, worst 13.9), so each re-run re-encoded them.
   A BC7 block is stale only above `BC7_MATCH_MEAN` (14); ASTC keeps `BLOCK_MATCH_MEAN` (6). Every
   label still lands at its box within 6 (worst 3.25).
-- **Refusal is the same.** A missing or moved region refuses the atlas (ADR 0006). On the PC data of
-  2026-11-20, the ready atlas `E86DF43167CA2143` has no `Image_1585869273` (*confirm choice*) in its
-  sprite table and is refused; `pc_catalog` drops its entry, never leaving it to land at the PC offsets.
+- **Refusal is the same.** A missing table or a resized region refuses the atlas (ADR 0006), and
+  `pc_catalog` drops its entry, never leaving it to land at the PC offsets. A region whose sprite the
+  table dropped is left out (ADR 0006, amended 2026-11-21): the ready atlas `E86DF43167CA2143` has had no
+  `Image_1585869273` (*confirm choice*) since the PC data of 2026-11-20 and the phone's 1.11.0.2, and its
+  CANCEL READY and WAITING FOR PLAYERS now port without it, in both editions.
 
 | Check | Result |
 |---|---|
