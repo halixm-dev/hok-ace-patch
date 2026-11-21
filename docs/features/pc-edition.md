@@ -143,7 +143,7 @@ It starts from the language's catalog (`catalog/`, or `catalog_id/` with its pay
 - **Regioned atlases:** every atlas in `sprite_table.REGION_SPRITE_ASSETS`, ported at the PC edition's own sprite table from package 19. That covers the Career, lobby, ready and Secret Technique title atlases, with the art in `resources/sprites/`. As on the mobile edition, a missing or moved region refuses the texture (ADR 0006).
   - The result replaces the catalog entry: payload, `patch_ranges` and all three hashes describe exactly the blocks this installation needs.
 - **Indonesian re-drawn payloads:** their `payload_sha256` and `patched_sha256` are recomputed from the installed original. An entry whose source matches neither the catalog's `source_sha256` nor this patcher's last result is left for the engine to skip.
-- **Lua:** the Lua label and the nine Lua edits (`extra_text.SCRIPT_ASSETS`), each a whole-file entry with no `patch_ranges`, rewritten by `extra_text.rewrite_script`.
+- **Lua:** the Lua label and the Lua edits (`extra_text.SCRIPT_ASSETS`), each a whole-file entry with no `patch_ranges`, rewritten by `extra_text.rewrite_script`.
 
 Not carried:
 - append (there is no prime layer);
