@@ -6460,3 +6460,40 @@ the phone's pristine snapshots `20261029-1.8.0.1` and `20261118-1.10.1.2`. Plan 
     runtime (and no `WXQ.exe`, so `--pc-selftest` refuses it as a game folder).
 - **Not run:** a phone cycle and a PC cycle with the event live, the engine's own stage verification on a
   full PC copy, and the APK-included phone run.
+
+## 2026-11-21 — Room: Lineup and Settings clear of their icons, one size for the friend panel tabs
+
+- **Seen:** phone screenshot, data 1.11.0.2, English, 2400 x 1080, the match room. Bottom left, the
+  Lineup and Settings icons sit under the first letters of their names. Top right, the friend panel's
+  tabs read Friend, Recent and Team at full size and "Recommend" at roughly 20.
+- **Cause** (Lua in package `10`, both scripts in the 1.11.0.2 override and stored with CRLF line
+  endings; prefabs read from the phone's package `19` with `unity_text.SerializedFile`):
+  - `UIPVPRoomLeftDown_NormalClass` (`29FE6D03415A0971`), prefab `UIPVPRoomLeftDown_Normal`
+    (`381C56013262A1B3`): `BtnGroup` is a horizontal layout (spacing 20) under a content size fitter;
+    each button is a 200 x 104 cell with a `LayoutElement` (preferred width 200). `Img_EmbattleEnter`
+    (75 x 72) is centred at x -43.5 and `Img_Setting` (84 x 82) at -45; `Txt_Embattle` and
+    `Txt_Setting` are 33-point labels sized by a content size fitter, centred at x 18. Two Chinese
+    characters span x -15 to 51; an English name centred on 18 starts inside the icon.
+  - `UIPVPRoomNestedRecommendTabItemClass` (`7C2AE97D11BD7B4F`, override only), prefab
+    `UIPVPRoomNestedRecommendTabItem` (`86546979A75C9A8B`): `Txt_Title` fills a 146 x 40 item with
+    best fit (max 33, min 1, wrapping). `UIPVPRoomNestedRecommend`'s `List_Tab` (518 wide) is a
+    horizontal layout that splits its width evenly, about 130 a tab on the screenshot.
+- **Change:** two `SCRIPT_EDITS` entries. The room buttons pin each name's left edge at its centre less
+  one font size (where the Chinese starts) and grow the cell by what the name needs to end 30 units
+  before the divider, moving the icon and name left by half the growth; run when the buttons are shown
+  and again on the next tick. The tabs turn best fit off and set every name to the largest size at which
+  each of the four names fits the tab's own width less 8 (never below 16). Anchors occur once in the dump's override copies (`D:/scratch/event-room-line/device/game`,
+  1.11.0.2); the prime `29FE6D03415A0971` takes only the helper, unused. The edited scripts compile
+  (Lua 5.5, `lupa`).
+- **On the phone** (1.11.0.2, rewritten package `10` pushed in place through the access APK, normal APK
+  reinstalled):
+  - First push: Lineup and Settings clear of their icons, the room bar wider. Tabs unchanged.
+  - Probe 1 and 2 (visible markers in the tab names, since Lua `Debug.LogWarning` never reaches logcat on
+    this build): each tab item sits in a cell of its own, so a group found through the parent held one
+    tab; `List_Tab` ignores a `LayoutElement` width and keeps every cell at 129. Changed to measure all
+    four names (`RoomRecommendTabFriend`, `…Recent`, `…Player`, `…Room`) on each tab against its own
+    label width less 8, then restore the tab's own text.
+  - Final push: Friend, Recent, Recommend and Team at one size (about 20); Lineup and Settings still clear.
+    Package `10` hashes on the phone: `10.db` `33507622…`, `10_0.db` `8daf3cef…`.
+  - Two access installs failed with `INSUFFICIENT_STORAGE` until the phone was rebooted (a failed
+    streamed install held about 2 GB).

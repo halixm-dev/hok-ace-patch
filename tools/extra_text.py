@@ -440,6 +440,160 @@ def _lobby_menu_button_gap() -> tuple[tuple[str, str], ...]:
             (_LOBBY_REGIST_RED, "    self:RegistRedPoint()\n    _tidyLobbyMenuButton(self)\n    self:GetApplyList()"))
 
 
+def _crlf(edits: tuple[tuple[str, str], ...]) -> tuple[tuple[str, str], ...]:
+    """<edits> with every line ending CRLF, for a script stored with Windows line endings."""
+    return tuple((old.replace("\n", "\r\n"), new.replace("\n", "\r\n")) for old, new in edits)
+
+
+# The room's bottom-left buttons (`UIPVPRoomLeftDown_NormalClass`): its class declaration, and the end
+# of OnSetSelfPersonalTrainer, which runs at initialize and whenever the buttons are shown or hidden.
+_ROOM_LEFT_DOWN_CLASS = ("---@class UIPVPRoomLeftDown_NormalClass : "
+                         "UIPVPRoomLeftDown_NormalClass_AutoBind\n")
+_ROOM_LEFT_DOWN_SHOWN = "    self:SetLineupSeparator(showSetting)\nend\n"
+
+
+def _room_buttons_clear_of_icons() -> tuple[tuple[str, str], ...]:
+    """The edit that keeps the room's Lineup and Settings names clear of their icons.
+
+    Prefab `UIPVPRoomLeftDown_Normal` (package 19): each button is a 200-unit cell (a `LayoutElement`
+    in `BtnGroup`'s horizontal layout, which a content size fitter sizes), with its icon centred at
+    x -43.5 (`Img_EmbattleEnter`, 75 wide) or -45 (`Img_Setting`, 84 wide) and its name a 33-point label
+    sized to its text and centred at x 18. Two Chinese characters span x -15 to 51, clear of the icon;
+    "Lineup" and "Settings", centred on the same point, start inside the icon. Each name is now pinned
+    by its left edge where the Chinese starts (its centre less one font size), and the cell grows by
+    whatever the name needs to end 30 units before the cell's divider, with the icon and the name moved
+    left by half that growth so they keep their place from the cell's left edge. The prefab's width and
+    positions are kept per transform, because a second pass must not add up. The fit runs when the
+    buttons are shown and once more on the next tick, in case the name is filled after this script;
+    a failure leaves the button as the game drew it, logged as a Unity warning.
+    """
+    helper = ("local _roomButtonBase = setmetatable({}, { __mode = \"k\" })\n\n"
+              "local function _fitRoomButton(button, iconName, labelName)\n"
+              "    if not CommonUtility:NotNull(button) then\n"
+              "        return\n"
+              "    end\n"
+              "    local root = button.transform\n"
+              "    local icon = root:Find(iconName)\n"
+              "    local labelTf = root:Find(labelName)\n"
+              "    if icon == nil or labelTf == nil then\n"
+              "        return\n"
+              "    end\n"
+              "    local label = labelTf:GetComponent(typeof(CS.Timi.TimiText))\n"
+              "    local element = root:GetComponent(typeof(CS.UnityEngine.UI.LayoutElement))\n"
+              "    if not CommonUtility:NotNull(label) then\n"
+              "        return\n"
+              "    end\n"
+              "    local base = _roomButtonBase[root]\n"
+              "    if base == nil then\n"
+              "        local width = root.rect.width\n"
+              "        if CommonUtility:NotNull(element) and element.preferredWidth > 0 then\n"
+              "            width = element.preferredWidth\n"
+              "        end\n"
+              "        base = { width = width, iconX = icon.anchoredPosition.x,\n"
+              "                 left = labelTf.anchoredPosition.x - label.fontSize }\n"
+              "        _roomButtonBase[root] = base\n"
+              "    end\n"
+              "    local grow = math.max(math.ceil(base.left + label.preferredWidth + 30 - base.width / 2), 0)\n"
+              "    if CommonUtility:NotNull(element) then\n"
+              "        element.preferredWidth = base.width + grow\n"
+              "    else\n"
+              "        root:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, "
+              "base.width + grow)\n"
+              "    end\n"
+              "    icon.anchoredPosition = CSVector2(base.iconX - grow / 2, icon.anchoredPosition.y)\n"
+              "    labelTf.pivot = CSVector2(0, labelTf.pivot.y)\n"
+              "    labelTf.anchoredPosition = CSVector2(base.left - grow / 2, labelTf.anchoredPosition.y)\n"
+              "    pcall(function() ForceRebuildLayoutImmediate(root.parent) end)\n"
+              "end\n\n"
+              "local function _fitRoomButtons(view)\n"
+              "    local ok, err = pcall(function()\n"
+              "        _fitRoomButton(view.btnEmbattle, \"Img_EmbattleEnter\", \"Txt_Embattle\")\n"
+              "        _fitRoomButton(view.btn_Setting, \"Img_Setting\", \"Txt_Setting\")\n"
+              "    end)\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE room buttons: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n")
+    return _crlf(((_ROOM_LEFT_DOWN_CLASS, helper + _ROOM_LEFT_DOWN_CLASS),
+                  (_ROOM_LEFT_DOWN_SHOWN,
+                   "    self:SetLineupSeparator(showSetting)\n"
+                   "    pcall(_fitRoomButtons, self)\n"
+                   "    pcall(function()\n"
+                   "        ScheduleService:SetTimeout(function()\n"
+                   "            if self:Available() then\n"
+                   "                pcall(_fitRoomButtons, self)\n"
+                   "            end\n"
+                   "        end, 0)\n"
+                   "    end)\n"
+                   "end\n")))
+
+
+# The room's friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`): its class declaration, and the
+# end of CMLTSetData, after the title is set.
+_ROOM_TAB_CLASS = ("---@class UIPVPRoomNestedRecommendTabItemClass : "
+                   "UIPVPRoomNestedRecommendTabItemClass_AutoBind\n")
+_ROOM_TAB_SET_DATA_END = "    self:SetShowSplitLine(index == count)\nend\n"
+
+
+def _room_tab_names_fit() -> tuple[tuple[str, str], ...]:
+    """The edit that gives the room's friend panel tab names (Friend, Recent, Recommend, Team) one shared
+    size.
+
+    Prefab `UIPVPRoomNestedRecommendTabItem` (package 19): each name (`Txt_Title`) fills its tab with
+    best fit (33 at most), and `List_Tab` gives every tab the same width, 129 units on a 2400 x 1080
+    phone, so "Recommend" alone shrank to about 20. Each tab, once its title is set, turns best fit off,
+    lets its name overflow (still centred), and measures on its own label, at the prefab's largest size,
+    every name the panel can show (`UIPVPRoomRecommendBaseClass`'s TAB2NAME keys); it takes the size at
+    which the widest fits its label less 8 units (never below 16). Every tab measures the same names, so
+    all reach the same size without knowing each other: on the phone each tab sits in its own list cell,
+    so tabs grouped by parent each fitted only themselves, and the list kept its even widths when a tab
+    asked for more (2026-11-21, probe). A label not laid out yet (no width) keeps best fit. The prefab's
+    size is kept per label, because list items are reused; the tab's own name is put back; a failure
+    leaves the tab as the game drew it, logged as a Unity warning.
+    """
+    helper = ("local _roomTabNameSize = setmetatable({}, { __mode = \"k\" })\n"
+              "local _ROOM_TAB_NAME_KEYS = { \"RoomRecommendTabFriend\", \"RoomRecommendTabRecent\",\n"
+              "    \"RoomRecommendTabPlayer\", \"RoomRecommendTabRoom\" }\n\n"
+              "local function _fitRoomTabName(item)\n"
+              "    local label = item.txtTitle\n"
+              "    local own = label and label.text\n"
+              "    local ok, err = pcall(function()\n"
+              "        local size = _roomTabNameSize[label]\n"
+              "        if size == nil then\n"
+              "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "            _roomTabNameSize[label] = size\n"
+              "        end\n"
+              "        local room = label.rectTransform.rect.width - 8\n"
+              "        if room <= 0 then\n"
+              "            return\n"
+              "        end\n"
+              "        label.resizeTextForBestFit = false\n"
+              "        label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "        label.fontSize = size\n"
+              "        local scale = 1\n"
+              "        for _, key in ipairs(_ROOM_TAB_NAME_KEYS) do\n"
+              "            label.text = Localize.GetString(key)\n"
+              "            local width = label.preferredWidth\n"
+              "            if width > room then\n"
+              "                scale = math.min(scale, room / width)\n"
+              "            end\n"
+              "        end\n"
+              "        label.fontSize = math.max(math.floor(size * scale), 16)\n"
+              "    end)\n"
+              "    if own ~= nil then\n"
+              "        pcall(function() label.text = own end)\n"
+              "    end\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE room tab fit: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n")
+    return _crlf(((_ROOM_TAB_CLASS, helper + _ROOM_TAB_CLASS),
+                  (_ROOM_TAB_SET_DATA_END,
+                   "    self:SetShowSplitLine(index == count)\n"
+                   "    pcall(_fitRoomTabName, self)\n"
+                   "end\n")))
+
+
 # Lua UI scripts whose own formatting or behaviour is wrong for a translation: each entry is an exact
 # source literal and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
@@ -456,6 +610,11 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     0xEFB633FD63FC35CF: _lobby_btn_names_fit(),
     0x2C5B589676763044: _lobby_menu_icon_gap(),
     0xFC07FFAAB85F0418: _lobby_menu_button_gap(),
+    # The room (package 10, both in the 1.11 override, stored with CRLF line endings): "Lineup" and
+    # "Settings" ran into their icons (`UIPVPRoomLeftDown_NormalClass`), and "Recommend" alone shrank
+    # among the friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`).
+    0x29FE6D03415A0971: _room_buttons_clear_of_icons(),
+    0x7C2AE97D11BD7B4F: _room_tab_names_fit(),
     # The match-end ranking toasts (package 10, prime-only, so they are appended): 1st to 3rd place
     # (`UIPvpSettlementRankingToastTopShowClass`, the button shows at 3rd) and 4th and lower
     # (`UIPvpSettlementRankingToastOtherShowClass`). Their "Exit now" button read 现在退出 on 1.8.0.1.

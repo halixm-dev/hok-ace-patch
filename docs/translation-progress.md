@@ -14,7 +14,7 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **nine Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
+(`extra_text.SCRIPT_LABELS`), **eleven Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
 (`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21) —
 nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
@@ -365,6 +365,16 @@ its red-dot effect plays, which had put Mall's cart on its name. `UILobbyClass` 
 the Menu name right, and the divider and the rest of the top bar with it, to the Chinese layout's gaps. The last two sit
 in the 1.9.2.4 override, so they are rewritten in place. Device-verified on 1.9.2.4 on 2026-11-11: all
 three bottom names at one size (about 21), both icons clear of their names, the Menu gaps as in Chinese.
+The tenth and eleventh tidy the room, both package `10` and in the 1.11.0.2 override, so rewritten in
+place (both scripts are stored with CRLF line endings, which the edits carry). `UIPVPRoomLeftDown_NormalClass`
+(`29FE6D03415A0971`) pins the Lineup and Settings names by their left edge where the two Chinese
+characters start, clear of the icon, and widens the 200-unit button by whatever the name needs to end 30
+units before its divider: centred on the Chinese point, "Lineup" and "Settings" had started inside their
+icons. `UIPVPRoomNestedRecommendTabItemClass` (`7C2AE97D11BD7B4F`) turns best fit off on the friend panel's
+four tabs and gives all four one size, the largest at which every tab's name fits its own 129-unit cell
+less 8 units (each tab measures all four names, since every tab sits in its own cell): best fit had
+shrunk "Recommend" alone to about 20 while Friend, Recent and Team read at 33. Device-verified on
+1.11.0.2 on 2026-11-21: both room names clear of their icons, all four tab names at one size.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 

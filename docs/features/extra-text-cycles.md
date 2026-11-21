@@ -91,7 +91,8 @@ the already-translated `PVPSettleNowQuitBtnTxt` because the button otherwise sho
 default, and the Card screen's faction tab names (`A7D00B2D657BB71F`, the tab item, with the spacing `678810D31DBD5621`, the tab bar,
 records), which take one shared font size that fits every fixed 195-unit tab and the space beside it because "Three Kingdoms" overflowed onto the next tab. Three edits tidy the lobby: the bottom-right button names (`EFB633FD63FC35CF`) take one size their
 neighbours leave room for, and the top-bar entries (`2C5B589676763044`) and the Menu button
-(`FC07FFAAB85F0418`) keep their names clear of their icons. Symptoms and dates are beside the allowlist in
+(`FC07FFAAB85F0418`) keep their names clear of their icons. Two edits tidy the room: the Lineup and Settings buttons (`29FE6D03415A0971`) keep their names clear of
+their icons, and the friend panel's tabs (`7C2AE97D11BD7B4F`) share one name size. Symptoms and dates are beside the allowlist in
 `tools/extra_text.py`; the evidence is in `docs/lab-notebook.md`'s 2026-10-05 section.
 
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the
