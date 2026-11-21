@@ -6777,3 +6777,27 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   names at one size; the Card screen's faction tabs at one size with "Three Kingdoms" clear of Zhulu
   Plateau. The match-end ranking tabs and the All Things Moment tip need a finished ranked match and are
   not yet seen.
+
+## 2026-11-22 — Career and Chessplayer detail spacing
+
+- **Seen before the fix** (Redmi Note 9 Pro, 1.11.0.2, English, 2400 × 1080). Career's four tabs used
+  different sizes, and Match, Like, and Days were much smaller than their counts. The Chessplayer
+  detail tabs clipped and overlapped. Difficulty ran into the tags, the skill captions touched, and
+  the Combat Power value ran into its info icon.
+- **Measured** from the phone's package `19`. Career tab cells are 196 units wide, with selected
+  labels in 76-unit boxes. Each stat button is 190 units wide. The Chessplayer tab and difficulty
+  rows are 460 units wide. Placing the Career number and unit in separate text fields left the
+  three-digit Match count touching its label. Drawing the pair in one text field keeps the gap after
+  the count and uses the prefab's localized title. The stat renderer drew the pair about 20 units
+  left of the divider midpoint even after moving the text rect. A transparent inset centered the
+  visible text without affecting the original buttons. Measuring all three pairs together lets
+  the longest label or count set one font size for the row.
+- **Staged** the three Lua edits against the phone's package `10`. All three compile, survive a
+  package read-back, and match the bytes staged from the 1.10.1.2 dump with the English and
+  Indonesian catalogs. A hash-verified backup of the phone's package was kept before testing.
+- **Seen on the phone** with the final package. The four Career cells grew from 196 to 252 units so the
+  tabs could use larger type at one size. The selection line follows the wider cells. Match,
+  Like, and Days use the same font size, sit between their dividers, and stay aligned after switching from Overview to
+  Record and back. On Qiao Xi,
+  Overview, Skill, and Combat Power align on one row. The difficulty indicators, tags, and skill
+  captions have room, and the Combat Power value clears its info icon.
