@@ -463,11 +463,12 @@ def _room_buttons_clear_of_icons() -> tuple[tuple[str, str], ...]:
     by its left edge where the Chinese starts (its centre less one font size), and the cell grows by
     whatever the name needs to end 30 units before the cell's divider, with the icon and the name moved
     left by half that growth so they keep their place from the cell's left edge. The prefab's width and
-    positions are kept per transform, because a second pass must not add up. The fit runs when the
+    positions are kept by the button's instance id (not in a weak table keyed by its Lua wrapper, which
+    can be collected and lose them), because a second pass must not add up. The fit runs when the
     buttons are shown and once more on the next tick, in case the name is filled after this script;
     a failure leaves the button as the game drew it, logged as a Unity warning.
     """
-    helper = ("local _roomButtonBase = setmetatable({}, { __mode = \"k\" })\n\n"
+    helper = ("local _roomButtonBase = {}\n\n"
               "local function _fitRoomButton(button, iconName, labelName)\n"
               "    if not CommonUtility:NotNull(button) then\n"
               "        return\n"
@@ -483,7 +484,7 @@ def _room_buttons_clear_of_icons() -> tuple[tuple[str, str], ...]:
               "    if not CommonUtility:NotNull(label) then\n"
               "        return\n"
               "    end\n"
-              "    local base = _roomButtonBase[root]\n"
+              "    local base = _roomButtonBase[root:GetInstanceID()]\n"
               "    if base == nil then\n"
               "        local width = root.rect.width\n"
               "        if CommonUtility:NotNull(element) and element.preferredWidth > 0 then\n"
@@ -491,7 +492,7 @@ def _room_buttons_clear_of_icons() -> tuple[tuple[str, str], ...]:
               "        end\n"
               "        base = { width = width, iconX = icon.anchoredPosition.x,\n"
               "                 left = labelTf.anchoredPosition.x - label.fontSize }\n"
-              "        _roomButtonBase[root] = base\n"
+              "        _roomButtonBase[root:GetInstanceID()] = base\n"
               "    end\n"
               "    local grow = math.max(math.ceil(base.left + label.preferredWidth + 30 - base.width / 2), 0)\n"
               "    if CommonUtility:NotNull(element) then\n"
@@ -594,6 +595,266 @@ def _room_tab_names_fit() -> tuple[tuple[str, str], ...]:
                    "end\n")))
 
 
+# The lobby's Menu panel entries (`UILobbyMenuLittleItemClass`): its class declaration, the empty-entry
+# return in CMLTSetData, and the line that sets the name.
+_MAIN_MENU_ITEM_CLASS = ("---@class UILobbyMenuLittleItemClass : "
+                         "UILobbyMenuLittleItemClass_AutoBind\n")
+_MAIN_MENU_ITEM_EMPTY = "    if data.empty or not data.cfg then\n        return\n    end\n"
+_MAIN_MENU_ITEM_NAME = "    self:SetContent(self.cfg.Name)\n"
+
+
+def _main_menu_names_fit() -> tuple[tuple[str, str], ...]:
+    """The edit that gives the lobby Menu panel's entry names (Custom, Achievement, Encyclopedia,
+    Announcement and the rest) one shared size.
+
+    Prefab `UILobbyMenuLittleItem` (package 19, `52615AAB6C452819`): each entry is a 195 x 240 cell, its
+    name (`Txt_UnLockName`) a 150 x 44 box with best fit, so "Achievement", "Encyclopedia" and
+    "Announcement" each shrank to their own size while the short names stayed at full size (1.11.0.2,
+    2026-11-21). One list (`menuRootTimiList`) holds every entry, four to a row, plus blank fillers. Each
+    entry records its name once set (a filler records none), then refits every recorded entry: best fit
+    off, the name allowed to overflow its box (still centred), and every recorded name measured on that
+    entry's label at the prefab's largest size; all take the size at which the widest fits one cell less
+    12 units (never below 16). The prefab's size is kept per label, because list items are reused, the
+    entry's own name is put back, and a failure leaves the entry as the game drew it, logged as a Unity
+    warning.
+    """
+    helper = ("local _mainMenuNameSize = setmetatable({}, { __mode = \"k\" })\n"
+              "local _mainMenuNames = setmetatable({}, { __mode = \"k\" })\n\n"
+              "local function _fitMainMenuName(item)\n"
+              "    local label = item.content\n"
+              "    local own = label and label.text\n"
+              "    local ok, err = pcall(function()\n"
+              "        local size = _mainMenuNameSize[label]\n"
+              "        if size == nil then\n"
+              "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "            _mainMenuNameSize[label] = size\n"
+              "        end\n"
+              "        local room = item._rootTf.rect.width - 12\n"
+              "        if room <= 0 then\n"
+              "            return\n"
+              "        end\n"
+              "        label.resizeTextForBestFit = false\n"
+              "        label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "        label.fontSize = size\n"
+              "        local scale = 1\n"
+              "        for other, name in pairs(_mainMenuNames) do\n"
+              "            if CommonUtility:NotNull(other.content) then\n"
+              "                label.text = name\n"
+              "                local width = label.preferredWidth\n"
+              "                if width > room then\n"
+              "                    scale = math.min(scale, room / width)\n"
+              "                end\n"
+              "            end\n"
+              "        end\n"
+              "        label.fontSize = math.max(math.floor(size * scale), 16)\n"
+              "    end)\n"
+              "    if own ~= nil then\n"
+              "        pcall(function() label.text = own end)\n"
+              "    end\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE main menu fit: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n"
+              "local function _fitMainMenuNames()\n"
+              "    for item in pairs(_mainMenuNames) do\n"
+              "        if CommonUtility:NotNull(item.content) then\n"
+              "            _fitMainMenuName(item)\n"
+              "        end\n"
+              "    end\n"
+              "end\n\n")
+    return ((_MAIN_MENU_ITEM_CLASS, helper + _MAIN_MENU_ITEM_CLASS),
+            (_MAIN_MENU_ITEM_EMPTY, "    _mainMenuNames[self] = nil\n" + _MAIN_MENU_ITEM_EMPTY),
+            (_MAIN_MENU_ITEM_NAME, _MAIN_MENU_ITEM_NAME
+             + "    if not string.isNullOrEmpty(self.cfg.Name) then\n"
+               "        _mainMenuNames[self] = self.cfg.Name\n"
+               "        pcall(_fitMainMenuNames)\n"
+               "    end\n"))
+
+
+# The Chessplayer page (`UILordListClass`): its class declaration, the end of InitCombatPowerTab, and the
+# switch to the Combat Power tab.
+_LORD_LIST_CLASS = "---@class UILordListClass : UILordListClass_AutoBind\n"
+_LORD_LIST_TABS_SET = ("    self:SetInterfaceType(defaultToPower and UILordListClassInterfaceType.TotalLegendPoint\n"
+                       "        or UILordListClassInterfaceType.ChessPlayer)\nend\n")
+_LORD_LIST_TO_POWER = "    self:SetInterfaceType(UILordListClassInterfaceType.TotalLegendPoint)\n"
+
+
+def _lord_list_header_fit() -> tuple[tuple[str, str], ...]:
+    """The edit that keeps the Chessplayer page's header readable: one size for its two tab names
+    (Chessplayer, Combat Power), and the Combat Power page's sort toggle clear of the back title.
+
+    Prefab `UILordList` (package 19): the tabs are a `TimiMenu` (`TabList`) of `UILordTotalPowerPaageItem`
+    items (`40090008899DA31A`), 197 x 69 each, whose name boxes are 76 units (selected) and 152 (not), so
+    "Chessplayer" and "Combat Power" ran into each other at full size (1.11.0.2, 2026-11-21). Both names
+    keep their full size (best fit off, overflowing their boxes, still centred), and every tab widens to the
+    widest name plus 40 units each side (never narrower than the prefab); the tabs stay centred where they
+    were, moving right only as far as keeps them 40 units clear of the sort toggle, sit side by side, each
+    tab's underline stretches with it, and the grey line under the bar (`WidgetCommonLine5`) is set to the
+    tabs' own left and right edges, measured where they sit (moving it by the tabs' offset left it about
+    100 units right of them on the phone). A first try shrank the names to fit 197 units instead; measured against the 76-unit box it put
+    them at 16, and the user asked for wider tabs and larger names, with the sort label smaller to make
+    room.
+
+    Prefab `UILordCombatpowerList` (`835EF33C7D9684AE`): the sort toggle (`WidgetCommonCheckWithLeftTitle`,
+    right-pivoted, its label left of the box) sits in a `Check` group whose left edge, a divider, is
+    where the two-character Chinese back title ends; "‹ Chessplayer" covered it and "Sort by Combat
+    Power" ran left under the title. Its label drops to 80% of the prefab's size (never below 16). The
+    group moves right until its left edge sits 24 units past the
+    back title's text (`UIFullScreenViewTemplate_Back`'s `title`, measured as left-aligned), and the
+    toggle's right edge moves out until the toggle starts 24 units past the divider. The toggle's width is
+    its widest label plus 64 units (the box and its gap, as the prefab's unselected state lays them out),
+    not its laid-out width: the Combat Power page is inactive until first shown, so its layout is not
+    built, and measured that way the tabs sat centred on the first visit and moved once the page had
+    been seen. Measured from the labels, the tabs take the Combat Power position from the first visit. Both run when the
+    tabs are set and when the Combat Power tab opens, and again on the next tick; the prefab positions
+    are kept by each object's instance id, so a rerun never drifts, and a failure leaves the header as the
+    game drew it, logged as a Unity warning. A rerun half a second later settles the header after the
+    page's opening animation. Kept in a weak table keyed by the Lua wrapper, the values were lost when
+    the wrapper was collected, and the next pass took the moved layout as the prefab's: on the phone the
+    sort label shrank again and the toggle and tabs crept right into the total power.
+    """
+    helper = ("local _lordTabSize = {}\n"
+              "local _lordTabBase = {}\n"
+              "local _lordCheckBase = {}\n\n"
+              "local function _fitLordTabs(page, toggleEnd)\n"
+              "    local menuTf = page.tabList.transform\n"
+              "    local texts = menuTf:GetComponentsInChildren(typeof(CS.UnityEngine.UI.Text), true)\n"
+              "    local items, seen = {}, {}\n"
+              "    local widest = 0\n"
+              "    for i = 0, texts.Length - 1 do\n"
+              "        local label = texts[i]\n"
+              "        local item = label.rectTransform\n"
+              "        while item ~= nil and item.parent ~= menuTf do\n"
+              "            item = item.parent\n"
+              "        end\n"
+              "        if item ~= nil then\n"
+              "            local size = _lordTabSize[label:GetInstanceID()]\n"
+              "            if size == nil then\n"
+              "                size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "                _lordTabSize[label:GetInstanceID()] = size\n"
+              "            end\n"
+              "            label.resizeTextForBestFit = false\n"
+              "            label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "            label.fontSize = size\n"
+              "            widest = math.max(widest, label.preferredWidth)\n"
+              "            if not seen[item] then\n"
+              "                seen[item] = true\n"
+              "                items[#items + 1] = item\n"
+              "            end\n"
+              "        end\n"
+              "    end\n"
+              "    if #items == 0 or widest <= 0 then\n"
+              "        return\n"
+              "    end\n"
+              "    for _, item in ipairs(items) do\n"
+              "        if _lordTabBase[item:GetInstanceID()] == nil then\n"
+              "            _lordTabBase[item:GetInstanceID()] = { w = item.rect.width, x = item.anchoredPosition.x }\n"
+              "        end\n"
+              "    end\n"
+              "    table.sort(items, function(a, b) return _lordTabBase[a:GetInstanceID()].x < _lordTabBase[b:GetInstanceID()].x end)\n"
+              "    local first = _lordTabBase[items[1]:GetInstanceID()]\n"
+              "    local width = math.max(widest + 80, first.w)\n"
+              "    local baseLeft = first.x - first.w * items[1].pivot.x\n"
+              "    local left = baseLeft + (first.w - width) * #items / 2\n"
+              "    local function place()\n"
+              "        for i, item in ipairs(items) do\n"
+              "            item:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, width)\n"
+              "            item.anchoredPosition = CSVector2(left + width * (i - 1) + width * item.pivot.x, item.anchoredPosition.y)\n"
+              "        end\n"
+              "    end\n"
+              "    place()\n"
+              "    if toggleEnd ~= nil then\n"
+              "        local tabStart = items[1]:TransformPoint(CS.UnityEngine.Vector3(items[1].rect.xMin, 0, 0))\n"
+              "        local gap = menuTf:InverseTransformPoint(toggleEnd).x + 40 - menuTf:InverseTransformPoint(tabStart).x\n"
+              "        if gap > 0 then\n"
+              "            left = left + gap\n"
+              "            place()\n"
+              "        end\n"
+              "    end\n"
+              "    local line = page.topTab:Find(\"WidgetCommonLine5\")\n"
+              "    if line ~= nil then\n"
+              "        local lineParent = line.parent\n"
+              "        local tabStart = items[1]:TransformPoint(CS.UnityEngine.Vector3(items[1].rect.xMin, 0, 0))\n"
+              "        local tabEnd = items[#items]:TransformPoint(CS.UnityEngine.Vector3(items[#items].rect.xMax, 0, 0))\n"
+              "        local startX = lineParent:InverseTransformPoint(tabStart).x\n"
+              "        local endX = lineParent:InverseTransformPoint(tabEnd).x\n"
+              "        line:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, endX - startX)\n"
+              "        local lineLeft = line.localPosition.x + line.rect.xMin\n"
+              "        line.anchoredPosition = CSVector2(line.anchoredPosition.x + startX - lineLeft, line.anchoredPosition.y)\n"
+              "    end\n"
+              "end\n\n"
+              "local function _placeLordSortToggle(page)\n"
+              "    local list = page.uiLordCombatpowerListChild\n"
+              "    local back = page.uiFullScreenViewTemplate_BackChild\n"
+              "    if not list or not back or not list.widgetCommonCheckWithLeftTitle or not back.title then\n"
+              "        return\n"
+              "    end\n"
+              "    local toggleTf = list.widgetCommonCheckWithLeftTitle.transform\n"
+              "    local check = toggleTf.parent\n"
+              "    local base = _lordCheckBase[check:GetInstanceID()]\n"
+              "    if base == nil then\n"
+              "        base = { checkX = check.anchoredPosition.x, toggleX = toggleTf.anchoredPosition.x }\n"
+              "        _lordCheckBase[check:GetInstanceID()] = base\n"
+              "    end\n"
+              "    local labels = toggleTf:GetComponentsInChildren(typeof(CS.UnityEngine.UI.Text), true)\n"
+              "    local labelWidth = 0\n"
+              "    for i = 0, labels.Length - 1 do\n"
+              "        local label = labels[i]\n"
+              "        local size = _lordTabSize[label:GetInstanceID()]\n"
+              "        if size == nil then\n"
+              "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "            _lordTabSize[label:GetInstanceID()] = size\n"
+              "        end\n"
+              "        label.resizeTextForBestFit = false\n"
+              "        label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "        label.fontSize = math.max(math.floor(size * 0.8), 16)\n"
+              "        labelWidth = math.max(labelWidth, label.preferredWidth)\n"
+              "    end\n"
+              "    pcall(function() ForceRebuildLayoutImmediate(toggleTf) end)\n"
+              "    local toggleX = math.max(base.toggleX, labelWidth + 64 + 24)\n"
+              "    toggleTf.anchoredPosition = CSVector2(toggleX, toggleTf.anchoredPosition.y)\n"
+              "    local title = back.title\n"
+              "    local titleTf = title.rectTransform\n"
+              "    local titleEnd = titleTf:TransformPoint(CS.UnityEngine.Vector3(titleTf.rect.xMin + title.preferredWidth, 0, 0))\n"
+              "    local titleRight = check.parent:InverseTransformPoint(titleEnd).x\n"
+              "    local baseLeft = check.localPosition.x - (check.anchoredPosition.x - base.checkX) + check.rect.xMin\n"
+              "    local shift = math.max(titleRight + 24 - baseLeft, 0)\n"
+              "    check.anchoredPosition = CSVector2(base.checkX + shift, check.anchoredPosition.y)\n"
+              "    return check:TransformPoint(CS.UnityEngine.Vector3(check.rect.xMin + toggleX, 0, 0))\n"
+              "end\n\n"
+              "local function _fitLordHeader(page)\n"
+              "    local toggleEnd = nil\n"
+              "    local ok2, err2 = pcall(function()\n"
+              "        toggleEnd = _placeLordSortToggle(page)\n"
+              "    end)\n"
+              "    local ok, err = pcall(function()\n"
+              "        _fitLordTabs(page, toggleEnd)\n"
+              "    end)\n"
+              "    if not ok or not ok2 then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE chessplayer header: \" .. tostring(err) .. \" \" .. tostring(err2)) end)\n"
+              "    end\n"
+              "end\n\n"
+              "local function _fitLordHeaderNowAndNext(page)\n"
+              "    pcall(_fitLordHeader, page)\n"
+              "    pcall(function()\n"
+              "        ScheduleService:SetTimeout(function()\n"
+              "            if page:Available() then\n"
+              "                pcall(_fitLordHeader, page)\n"
+              "            end\n"
+              "        end, 0)\n"
+              "        ScheduleService:SetTimeout(function()\n"
+              "            if page:Available() then\n"
+              "                pcall(_fitLordHeader, page)\n"
+              "            end\n"
+              "        end, 0.5)\n"
+              "    end)\n"
+              "end\n\n")
+    return ((_LORD_LIST_CLASS, helper + _LORD_LIST_CLASS),
+            (_LORD_LIST_TABS_SET, _LORD_LIST_TABS_SET[:-len("end\n")]
+             + "    _fitLordHeaderNowAndNext(self)\nend\n"),
+            (_LORD_LIST_TO_POWER, _LORD_LIST_TO_POWER + "    _fitLordHeaderNowAndNext(self)\n"))
+
+
 # Lua UI scripts whose own formatting or behaviour is wrong for a translation: each entry is an exact
 # source literal and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
@@ -610,6 +871,13 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     0xEFB633FD63FC35CF: _lobby_btn_names_fit(),
     0x2C5B589676763044: _lobby_menu_icon_gap(),
     0xFC07FFAAB85F0418: _lobby_menu_button_gap(),
+    # The lobby's Menu panel (`UILobbyMenuLittleItemClass`, package 10, in the 1.11 override), 1.11.0.2:
+    # "Achievement", "Encyclopedia" and "Announcement" each shrank to fit their cells.
+    0xD752489AB26CEFC8: _main_menu_names_fit(),
+    # The Chessplayer page (`UILordListClass`, package 10, in the 1.11 override), 1.11.0.2: the
+    # Chessplayer and Combat Power tab names ran into each other, and the Combat Power page's sort toggle
+    # sat under the back title.
+    0x428AF2481FE35A3A: _lord_list_header_fit(),
     # The room (package 10, both in the 1.11 override, stored with CRLF line endings): "Lineup" and
     # "Settings" ran into their icons (`UIPVPRoomLeftDown_NormalClass`), and "Recommend" alone shrank
     # among the friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`).

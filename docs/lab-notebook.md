@@ -6497,3 +6497,58 @@ the phone's pristine snapshots `20261029-1.8.0.1` and `20261118-1.10.1.2`. Plan 
     Package `10` hashes on the phone: `10.db` `33507622…`, `10_0.db` `8daf3cef…`.
   - Two access installs failed with `INSUFFICIENT_STORAGE` until the phone was rebooted (a failed
     streamed install held about 2 GB).
+
+## 2026-11-21 — Lobby Menu panel: one size for the entry names
+
+- **Seen:** phone screenshot, data 1.11.0.2, English, the lobby Menu panel. Custom, Backpack, Combine,
+  Mail, Season, Spectate, Briefing, Guide and Video read at full size; "Achievement", "Encyclopedia" and
+  "Announcement" each shrank to its own smaller size.
+- **Cause:** `UILobbyMenuLittleItemClass` (`D752489AB26CEFC8`, package `10`, in the override; LF line
+  endings), prefab `UILobbyMenuLittleItem` (`52615AAB6C452819`, package `19`): each entry is a 195 x 240
+  cell, its name `Txt_UnLockName` a 150 x 44 best-fit box. `UILobbyMainMenuClass`'s `menuRootTimiList`
+  holds every entry, four to a row, with blank fillers.
+- **Change:** one `SCRIPT_EDITS` entry. Each entry records its name once set (a filler clears its record)
+  and refits every recorded entry: best fit off, overflow on, every recorded name measured at the prefab's
+  largest size, all set to the size at which the widest fits the cell less 12 (never below 16). Anchors
+  occur once in both the prime and override copies; both edited copies compile (Lua 5.5, `lupa`).
+- **On the phone** (rewritten package `10` pushed in place through the access APK, normal APK
+  reinstalled; `10.db` `7fd52489…`, `10_0.db` `378b2da2…`): all twelve names at one size, about 22, none
+  reaching a neighbour. The room edits on the same build were untouched.
+
+## 2026-11-21 — Chessplayer page: wider tabs, sort toggle clear of the back title
+
+- **Seen:** phone screenshot, data 1.11.0.2, English, the Chessplayer page's Combat Power tab. The tab
+  names "Chessplayer" and "Combat Power" ran into each other; a dim "Sort by Combat Power" sat under the
+  "‹ Chessplayer" back title.
+- **Cause** (`UILordListClass`, `428AF2481FE35A3A`, package `10`, in the override, LF; prefabs from
+  package `19`):
+  - The tabs are a `TimiMenu` (`TabList`, in `UILordList`) of `UILordTotalPowerPaageItem` items
+    (`40090008899DA31A`): 197 x 69, name boxes 76 (selected) and 152 (not) wide, the underline stretching
+    with the item. `WidgetCommonLine5`, the grey line under them, is 394 wide.
+  - The toggle (`WidgetCommonCheckWithLeftTitle` in `UILordCombatpowerList`, `835EF33C7D9684AE`) is
+    right-pivoted inside a `Check` group whose left edge, a divider, is where the Chinese back title
+    (`UIFullScreenViewTemplate_Back`'s `title`) ends.
+- **Changes on the phone, in order:**
+  1. Tab names shrunk to fit their cell, measured against the nearest box with a width: that was the
+     76-unit name box, so both names fell to 16. Toggle moved past the title: correct.
+  2. The user asked for wider tabs and bigger names, with the sort label smaller: tabs widened to the
+     longer name plus 40 units a side, kept centred, pushed right only to stay 40 units clear of the
+     toggle; label at 80%. Names right, but the grey line sat about 100 units right of the tabs (moved
+     by the tabs' offset, from a different left edge).
+  3. Line set to the tabs' measured edges in its own parent's space. On this run the label had shrunk
+     again and the toggle and tabs had crept right into the total power: the prefab values were kept in
+     weak tables keyed by the Lua wrapper, which can be collected, and the next pass read the moved
+     layout as the prefab's.
+  4. Values keyed by `GetInstanceID()` instead, plus a rerun half a second after opening. Steady after
+     leaving and reopening the tab: tabs at full size with the line under them, toggle after the
+     title. The same weak-table keying in the room-button edit (`29FE6D03415A0971`) changed with it.
+  5. The user saw the tabs centred on the first visit to the Chessplayer page, then moved right once
+     Combat Power had been opened, and stay there. The Combat Power page is inactive until first
+     shown, so its toggle had no laid-out width and nothing pushed the tabs. The toggle's width is
+     now its widest label plus 64 units (box and gap, from the prefab's unselected state), measured
+     before layout. The user confirmed the tabs keep the Combat Power position from the first visit.
+- Package `10` on the phone, rebuilt from the original with all four 2026-11-21 edits: `10.db`
+  `1e515be3…`, `10_0.db` `20d7c307…`.
+- **Open:** the older lobby and Card-screen edits keep prefab sizes and positions in the same kind of
+  weak table (`_lobbyMenuSpacing`, `_lobbyMenuButtonX`, `_lobbyBtnNameSize`, `_campTabNameSize`); not
+  seen to drift.

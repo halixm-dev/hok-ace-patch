@@ -14,7 +14,7 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **eleven Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
+(`extra_text.SCRIPT_LABELS`), **thirteen Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
 (`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21) —
 nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
@@ -375,6 +375,18 @@ four tabs and gives all four one size, the largest at which every tab's name fit
 less 8 units (each tab measures all four names, since every tab sits in its own cell): best fit had
 shrunk "Recommend" alone to about 20 while Friend, Recent and Team read at 33. Device-verified on
 1.11.0.2 on 2026-11-21: both room names clear of their icons, all four tab names at one size.
+The twelfth gives the lobby Menu panel's twelve entry names one size: `UILobbyMenuLittleItemClass`
+(`D752489AB26CEFC8`, package `10`, in the 1.11.0.2 override, so rewritten in place) turns best fit off and
+sets every name to the size at which the widest fits one 195-unit cell less 12 units, about 22; best fit
+had shrunk "Achievement", "Encyclopedia" and "Announcement" each to its own size while the other nine
+read at 33. Device-verified on 1.11.0.2 on 2026-11-21.
+The thirteenth tidies the Chessplayer page's header: `UILordListClass` (`428AF2481FE35A3A`, package
+`10`, in the 1.11.0.2 override) widens the two tabs to the longer name plus 40 units a side, so
+"Chessplayer" and "Combat Power" keep their full size instead of running into each other in 197-unit
+tabs, with the grey line under them set to the tabs' edges; and it moves the Combat Power page's
+"Sort by Combat Power" toggle, its label at 80% size, to start past the back title, which had covered
+it. Device-verified on 1.11.0.2 on 2026-11-21: the tabs hold the same place from the first visit,
+on either tab, and stay there when the tab is opened again.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 
