@@ -6,7 +6,9 @@
 * UI text components in Unity prefabs get the official English for exact matches, when a package is
   listed as carrying them.
 * A Lua UI script that hard-codes a label (`SCRIPT_LABELS`) gets that one literal replaced, and one that
-  joins or wraps words the Chinese way (`SCRIPT_EDITS`) gets that one literal edited.
+  joins or wraps words the Chinese way (`SCRIPT_EDITS`) gets that one literal edited. An edit that
+  translates text the server sends reads a table of known texts the pass writes into the script from the
+  catalog (`SCRIPT_TRANSLATIONS`).
 * A lineup bin (`lineup_codes.LINEUP_BINS`), when a cycle enables it, gets the text inside its share
   codes and rows translated and its checksum resealed (`rewrite_config`).
 
@@ -855,6 +857,204 @@ def _lord_list_header_fit() -> tuple[tuple[str, str], ...]:
             (_LORD_LIST_TO_POWER, _LORD_LIST_TO_POWER + "    _fitLordHeaderNowAndNext(self)\n"))
 
 
+# The match-end ranking screen's tab bar (`UISettleBattle_OSGClass`): its class declaration, and the end
+# of RefreshTimiMenuOptions, after the tabs are set.
+_SETTLE_TABS_CLASS = "---@class UISettleBattle_OSGClass : UISettleBattleClass\n"
+_SETTLE_TABS_SET = ("    self.list_Tab:SetOptions(optionList)\n"
+                    "    self.list_Tab:SetSelect(CS.Timi.TimiMenuIndex(0), true)\nend\n")
+
+
+def _settle_tab_names_fit() -> tuple[tuple[str, str], ...]:
+    """The edit that keeps the match-end ranking screen's tab names (Lineup Combine, Post-game social,
+    Championship collection, and Support details in an apex room) apart.
+
+    Prefab `UISettleBattle` (package 19): `List_Tab` is a `TimiMenu` pinned to the top right (pivot on
+    its right edge) with a horizontal layout (middle right, spacing 53) under a content size fitter.
+    Each item (`UIPVPSettleBattleTabItem`) is a 144 x 60 cell whose names (`SelectTxt`, `UnSelectTxt`),
+    the `Select` group and its underline are 144 wide and centred, so a longer English name overflows
+    into its neighbours. Each cell (and those children of it that share its width) now widens to its own
+    name plus 24 units a side, at one shared size; the bar grows left, which the layout does by itself.
+    If the widened bar would reach the Feedback button (`btn_Problem`) less 40 units, every name shrinks
+    by one factor to fit (never below 16). The prefab's sizes and widths are kept by instance id, so a
+    rerun measures from them and never adds up. The fit runs when the tabs are set, on the next tick and
+    half a second later, in case the menu builds its items late; a failure leaves the bar as the game
+    drew it, logged as a Unity warning.
+    """
+    helper = ("local _settleTabSize = {}\n"
+              "local _settleTabWidth = {}\n\n"
+              "local function _fitSettleTabs(view)\n"
+              "    local listTf = view.list_Tab.transform\n"
+              "    local items = {}\n"
+              "    for i = 0, listTf.childCount - 1 do\n"
+              "        local item = listTf:GetChild(i)\n"
+              "        if item.gameObject.activeSelf then\n"
+              "            items[#items + 1] = item\n"
+              "        end\n"
+              "    end\n"
+              "    if #items == 0 then\n"
+              "        return\n"
+              "    end\n"
+              "    local cells = {}\n"
+              "    local namesWidth, baseWidth = 0, 0\n"
+              "    for _, item in ipairs(items) do\n"
+              "        local base = _settleTabWidth[item:GetInstanceID()]\n"
+              "        if base == nil then\n"
+              "            base = item.rect.width\n"
+              "            if base <= 0 then\n"
+              "                return\n"
+              "            end\n"
+              "            _settleTabWidth[item:GetInstanceID()] = base\n"
+              "        end\n"
+              "        local labels = item:GetComponentsInChildren(typeof(CS.UnityEngine.UI.Text), true)\n"
+              "        local cell = { item = item, base = base, labels = {}, name = 0 }\n"
+              "        for i = 0, labels.Length - 1 do\n"
+              "            local label = labels[i]\n"
+              "            local size = _settleTabSize[label:GetInstanceID()]\n"
+              "            if size == nil then\n"
+              "                size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "                _settleTabSize[label:GetInstanceID()] = size\n"
+              "            end\n"
+              "            label.resizeTextForBestFit = false\n"
+              "            label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "            label.fontSize = size\n"
+              "            cell.labels[#cell.labels + 1] = { label = label, size = size }\n"
+              "            cell.name = math.max(cell.name, label.preferredWidth)\n"
+              "        end\n"
+              "        namesWidth = namesWidth + cell.name\n"
+              "        baseWidth = baseWidth + base\n"
+              "        cells[#cells + 1] = cell\n"
+              "    end\n"
+              "    local scale = 1\n"
+              "    local layout = listTf:GetComponent(typeof(CS.UnityEngine.UI.HorizontalLayoutGroup))\n"
+              "    local spacing = CommonUtility:NotNull(layout) and layout.spacing or 0\n"
+              "    pcall(function()\n"
+              "        local feedback = view.btn_Problem.transform\n"
+              "        local limit = feedback:TransformPoint(CS.UnityEngine.Vector3(feedback.rect.xMax, 0, 0))\n"
+              "        local barRight = listTf:TransformPoint(CS.UnityEngine.Vector3(listTf.rect.xMax, 0, 0))\n"
+              "        local room = listTf:InverseTransformPoint(barRight).x - listTf:InverseTransformPoint(limit).x - 40\n"
+              "        local fixed = 48 * #cells + spacing * (#cells - 1)\n"
+              "        if room > fixed and namesWidth > 0 and namesWidth + fixed > room then\n"
+              "            scale = (room - fixed) / namesWidth\n"
+              "        end\n"
+              "    end)\n"
+              "    for _, cell in ipairs(cells) do\n"
+              "        local name = cell.name\n"
+              "        if scale < 1 then\n"
+              "            name = 0\n"
+              "            for _, entry in ipairs(cell.labels) do\n"
+              "                entry.label.fontSize = math.max(math.floor(entry.size * scale), 16)\n"
+              "                name = math.max(name, entry.label.preferredWidth)\n"
+              "            end\n"
+              "        end\n"
+              "        local width = math.max(math.ceil(name + 48), cell.base)\n"
+              "        local item = cell.item\n"
+              "        local parts = item:GetComponentsInChildren(typeof(CS.UnityEngine.RectTransform), true)\n"
+              "        for i = 0, parts.Length - 1 do\n"
+              "            local part = parts[i]\n"
+              "            if part ~= item and part.anchorMin.x == part.anchorMax.x then\n"
+              "                local partBase = _settleTabWidth[part:GetInstanceID()]\n"
+              "                if partBase == nil then\n"
+              "                    partBase = part.rect.width\n"
+              "                    _settleTabWidth[part:GetInstanceID()] = partBase\n"
+              "                end\n"
+              "                if math.abs(partBase - cell.base) < 1 then\n"
+              "                    part:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, width)\n"
+              "                end\n"
+              "            end\n"
+              "        end\n"
+              "        item:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, width)\n"
+              "        local element = item:GetComponent(typeof(CS.UnityEngine.UI.LayoutElement))\n"
+              "        if CommonUtility:NotNull(element) then\n"
+              "            element.preferredWidth = width\n"
+              "        end\n"
+              "    end\n"
+              "    pcall(function() ForceRebuildLayoutImmediate(listTf) end)\n"
+              "end\n\n"
+              "local function _fitSettleTabsSafely(view)\n"
+              "    local ok, err = pcall(_fitSettleTabs, view)\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE settle tabs: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n")
+    return ((_SETTLE_TABS_CLASS, helper + _SETTLE_TABS_CLASS),
+            (_SETTLE_TABS_SET,
+             _SETTLE_TABS_SET[:-len("end\n")]
+             + "    _fitSettleTabsSafely(self)\n"
+               "    pcall(function()\n"
+               "        ScheduleService:SetTimeout(function()\n"
+               "            if self:Available() then\n"
+               "                _fitSettleTabsSafely(self)\n"
+               "            end\n"
+               "        end, 0)\n"
+               "        ScheduleService:SetTimeout(function()\n"
+               "            if self:Available() then\n"
+               "                _fitSettleTabsSafely(self)\n"
+               "            end\n"
+               "        end, 0.5)\n"
+               "    end)\n"
+               "end\n"))
+
+
+# The All Things Moment service (`ICreateSDKServiceClass`): where it builds the match-end tip from the
+# server's notification.
+_MOMENT_TIPS = ("            self.DemandTips = data.Response.BubbleText .. "
+                "Localize.GetString(\"WanXiangReportShareTips\")\n"
+                "        else\n"
+                "            self.DemandTips = data.Response.BubbleTextDefault\n")
+
+
+def _moment_tip_translated() -> tuple[tuple[str, str], ...]:
+    """The edit that translates the match-end All Things Moment tip's highlight title.
+
+    The tip is the server's highlight title (`BubbleText`, such as `五连绝世无人能挡`) joined to
+    `WanXiangReportShareTips` (", tap to Generate All Things Moment report"), or the server's own default
+    (`BubbleTextDefault`) when there is no title. Neither server text is in any table or asset, so a
+    title is looked up in `_HOKACE_MOMENT_TITLES`, which `rewrite_script` fills from SCRIPT_TRANSLATIONS.
+    A Chinese title or default the table lacks is dropped while the tip itself is translated: the tip
+    shows alone, its leading comma removed and its first letter capitalised ("Tap to Generate All Things
+    Moment report"). A failure keeps the game's own text.
+    """
+    helper = ("local function _hokaceHasCjk(text)\n"
+              "    return type(text) == \"string\" and string.find(text, \"[\\228-\\233][\\128-\\191][\\128-\\191]\") ~= nil\n"
+              "end\n\n"
+              "local function _hokaceMomentTip(title, default)\n"
+              "    local tip = tostring(Localize.GetString(\"WanXiangReportShareTips\"))\n"
+              "    local ok, result = pcall(function()\n"
+              "        local function tipAlone()\n"
+              "            local text = string.gsub(tip, \"^\\239\\188\\140\", \"\")\n"
+              "            text = string.gsub(text, \"^[%s,]+\", \"\")\n"
+              "            return (string.gsub(text, \"^%l\", string.upper))\n"
+              "        end\n"
+              "        if title ~= nil then\n"
+              "            local known = _HOKACE_MOMENT_TITLES[title]\n"
+              "            if known ~= nil then\n"
+              "                return known .. tip\n"
+              "            end\n"
+              "            if _hokaceHasCjk(title) and not _hokaceHasCjk(tip) then\n"
+              "                return tipAlone()\n"
+              "            end\n"
+              "            return title .. tip\n"
+              "        end\n"
+              "        if _hokaceHasCjk(default) and not _hokaceHasCjk(tip) then\n"
+              "            return tipAlone()\n"
+              "        end\n"
+              "        return default\n"
+              "    end)\n"
+              "    if ok then\n"
+              "        return result\n"
+              "    end\n"
+              "    if title ~= nil then\n"
+              "        return title .. tip\n"
+              "    end\n"
+              "    return default\n"
+              "end\n\n")
+    return _crlf((("---@class ICreateSDKServiceClass\n", helper + "---@class ICreateSDKServiceClass\n"),
+                  (_MOMENT_TIPS,
+                   "            self.DemandTips = _hokaceMomentTip(data.Response.BubbleText, nil)\n"
+                   "        else\n"
+                   "            self.DemandTips = _hokaceMomentTip(nil, data.Response.BubbleTextDefault)\n")))
+
+
 # Lua UI scripts whose own formatting or behaviour is wrong for a translation: each entry is an exact
 # source literal and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
@@ -883,6 +1083,14 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     # among the friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`).
     0x29FE6D03415A0971: _room_buttons_clear_of_icons(),
     0x7C2AE97D11BD7B4F: _room_tab_names_fit(),
+    # The match-end ranking screen (`UISettleBattle_OSGClass`, package 10, in the 1.11 override),
+    # 1.11.0.2: "Lineup Combine", "Post-game social" and "Championship collection" overflowed their
+    # 144-unit tab cells and ran into each other.
+    0x915E19AB90FFA1D9: _settle_tab_names_fit(),
+    # The match-end All Things Moment tip (`ICreateSDKServiceClass`, package 10, in the 1.11 override,
+    # CRLF), 1.11.0.2: "五连绝世无人能挡, tap to Generate All Things Moment report", the title being
+    # the server's own text. Its titles are in SCRIPT_TRANSLATIONS.
+    0xCC55DC213C5C6913: _moment_tip_translated(),
     # The match-end ranking toasts (package 10, prime-only, so they are appended): 1st to 3rd place
     # (`UIPvpSettlementRankingToastTopShowClass`, the button shows at 3rd) and 4th and lower
     # (`UIPvpSettlementRankingToastOtherShowClass`). Their "Exit now" button read 现在退出 on 1.8.0.1.
@@ -936,8 +1144,16 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
          "    local resourcePath = self:vGetPath()\n"),
     ),
 }
+# Lua scripts that show text the server sends, which no table or asset holds: each entry names a Lua
+# table an edit in SCRIPT_EDITS reads, and the Chinese texts to fill it with. `rewrite_script` declares
+# the table at the top of the script with the catalog's translation of each (in the run's language, so
+# the pairs live in `resources/catalog_supplement/texts.json`), leaving out any the catalog lacks.
+SCRIPT_TRANSLATIONS: dict[int, tuple[str, tuple[str, ...]]] = {
+    # The match-end All Things Moment tip's highlight titles, each seen on a phone.
+    0xCC55DC213C5C6913: ("_HOKACE_MOMENT_TITLES", ("五连绝世无人能挡",)),
+}
 # Every Lua script the pass may write.
-SCRIPT_ASSETS = frozenset(SCRIPT_LABELS) | frozenset(SCRIPT_EDITS)
+SCRIPT_ASSETS = frozenset(SCRIPT_LABELS) | frozenset(SCRIPT_EDITS) | frozenset(SCRIPT_TRANSLATIONS)
 # The PC edition's package holding every SCRIPT_ASSETS script, the same Lua as the mobile edition's
 # (azydev fork, 2026-11-18, PC 1.10.1.2). `pc_catalog` opens only this package for them; a script it
 # lacks is looked for by a scan of every package's index, which the build logs.
@@ -1027,6 +1243,17 @@ def rewrite_script(file_hash: int, raw: bytes, catalog) -> bytes | None:
     for old, replacement in SCRIPT_EDITS.get(file_hash, ()):
         if new.count(old.encode()) == 1:
             new = new.replace(old.encode(), replacement.encode())
+    if file_hash in SCRIPT_TRANSLATIONS:
+        name, sources = SCRIPT_TRANSLATIONS[file_hash]
+        # Declared only where an edit uses the table, and only once.
+        if name.encode() in new and f"local {name} = ".encode() not in new:
+            rows = []
+            for source in sources:
+                target = translate(source)
+                if target and not any(char in target + source for char in '"\\\r\n'):
+                    rows.append(f'["{source}"] = "{target}", ')
+            line_end = "\r\n" if b"\r\n" in raw else "\n"
+            new = f"local {name} = {{ {''.join(rows)}}}{line_end}".encode() + new
     return new if new != raw else None
 
 

@@ -14,7 +14,7 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **thirteen Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
+(`extra_text.SCRIPT_LABELS`), **fifteen Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
 (`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21) —
 nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
@@ -387,6 +387,19 @@ tabs, with the grey line under them set to the tabs' edges; and it moves the Com
 "Sort by Combat Power" toggle, its label at 80% size, to start past the back title, which had covered
 it. Device-verified on 1.11.0.2 on 2026-11-21: the tabs hold the same place from the first visit,
 on either tab, and stay there when the tab is opened again.
+The fourteenth separates the match-end ranking screen's tab names: `UISettleBattle_OSGClass`
+(`915E19AB90FFA1D9`, package `10`, in the 1.11.0.2 override) widens each 144-unit tab cell to its own
+name plus 24 units a side at one shared size, so the right-aligned bar grows left; the names shrink by
+one factor only if the bar would reach the Feedback button. "Lineup Combine", "Post-game social" and
+"Championship collection" had overflowed their cells into each other. Offline only (2026-11-22): not yet
+seen on a phone.
+The fifteenth translates the match-end All Things Moment tip: `ICreateSDKServiceClass`
+(`CC55DC213C5C6913`, package `10`, in the 1.11.0.2 override) joins a highlight title the server sends
+(`五连绝世无人能挡`) to the catalog's ", tap to Generate All Things Moment report", so the title stayed
+Chinese. Known titles are looked up in a table the pass writes from the catalog
+(`extra_text.SCRIPT_TRANSLATIONS`, the pairs in the supplement, one so far: "Unstoppable Legendary Penta
+Kill"); an unknown Chinese title, or a Chinese server default, is dropped and the tip shows alone ("Tap
+to Generate All Things Moment report"). Offline only (2026-11-22): not yet seen on a phone.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 

@@ -1999,5 +1999,11 @@
       "锦绣星河默认音乐": ["Starry Brocade Default Music", "Musik Default Starry Brocade"],
       "锦羽织天，星罗漫舞。（个性戳戳，可在组队界面对其他玩家使用）": ["Brocade feathers weave the sky as stars dance. (Personalized Poke, usable on other players in team screens)", "Bulu brokat menenun langit saat bintang menari. (Personalized Poke, bisa dipakai ke pemain lain di layar tim)"]
     }
+  },
+  {
+    "note": "All Things Moment highlight titles the server sends with the match-end tip (BubbleText), read off a 1.11.0.2 screenshot; extra_text.SCRIPT_TRANSLATIONS reads them.",
+    "texts": {
+      "五连绝世无人能挡": ["Unstoppable Legendary Penta Kill", "Legendary Penta Kill tak terbendung"]
+    }
   }
 ]

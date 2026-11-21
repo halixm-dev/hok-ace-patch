@@ -6552,3 +6552,49 @@ the phone's pristine snapshots `20261029-1.8.0.1` and `20261118-1.10.1.2`. Plan 
 - **Open:** the older lobby and Card-screen edits keep prefab sizes and positions in the same kind of
   weak table (`_lobbyMenuSpacing`, `_lobbyMenuButtonX`, `_lobbyBtnNameSize`, `_campTabNameSize`); not
   seen to drift.
+
+## 2026-11-22 — Match-end ranking screen: tab cells wide enough for their names
+
+- **Seen:** phone screenshot, data 1.11.0.2, English, the match-end ranking screen after a ranked game
+  won (1st, so the Championship tab shows). Top right, "Lineup Combine", "Post-game social" and
+  "Championship collection" overlap, the last running off the screen edge.
+- **Cause** (Lua in package `10`; prefabs read from the dump's package `19` by their object tables):
+  - `UISettleBattle_OSGClass` (`915E19AB90FFA1D9`, in the 1.11.0.2 override, LF) builds the tabs in
+    `RefreshTimiMenuOptions` from `PvpSettleBattleTabName_*` keys (`阵容组合`, `赛后互动`, `夺冠收藏`, and
+    `支持详情` in an apex room).
+  - Prefab `UISettleBattle` (`711122B83B6963AA`): `List_Tab` is anchored top right (pivot 1, 0.5, x -12),
+    538 x 60, a `TimiMenu` with a horizontal layout (middle right, spacing 53) under a content size
+    fitter. Its left neighbour, the Feedback button (`Btn_Problem`, 155 wide), ends near x 850 of a
+    2322-unit top bar; the tab bar starts near 1772.
+  - Item prefab `UIPVPSettleBattleTabItem` (`4B32E2DF1E5D842D`): 144 x 60; `Select`, `SelectTxt`,
+    `UnSelectTxt` (144 x 44) and the underline `Img_PvpSettle_ToggleLine` (144 x 6) are centred and
+    144 wide, so a longer name overflows into its neighbours.
+- **Change:** one `SCRIPT_EDITS` entry. After the tabs are set (and on the next tick and 0.5 s later),
+  every active item turns best fit off and widens itself, and each centred child of the item's width, to
+  its own name plus 24 units a side, at the prefab's size; the layout grows the bar left. If the bar
+  would come within 40 units of the Feedback button, all names shrink by one factor (never below 16).
+  Prefab sizes and widths are kept by instance id. Both anchors occur once in the dump's override copy;
+  the edited script compiles (Lua 5.5, `lupa`).
+- **Open:** not yet on a phone.
+
+## 2026-11-22 — Match-end All Things Moment tip: the server's highlight title
+
+- **Seen:** the same screenshot, bottom centre: "五连绝世无人能挡, tap to Generate All Things Moment report".
+- **Cause:** `ICreateSDKServiceClass` (`CC55DC213C5C6913`, package `10`, in the 1.11.0.2 override, CRLF)
+  builds the tip in `HandleBattleCanGenerateVideoReportNTF` as `data.Response.BubbleText` (the server's
+  highlight title) joined to `WanXiangReportShareTips` (`，点击生成万象战报`, translated), or
+  `BubbleTextDefault` alone. A search of every package of the dump for `无人能挡` finds only a skin's
+  story line, so the titles exist in no asset and no catalog table.
+- **Change:** a `SCRIPT_EDITS` entry routes both through `_hokaceMomentTip`, which looks the title up in
+  `_HOKACE_MOMENT_TITLES`; `rewrite_script` declares that table at the top of the script from
+  `SCRIPT_TRANSLATIONS`, translated by the run's catalog (the pair is a new section of
+  `resources/catalog_supplement/texts.json`: "Unstoppable Legendary Penta Kill", "Legendary Penta Kill tak
+  terbendung"). An unknown title or default with Chinese in it, while the tip is translated, is dropped
+  and the tip shows alone, capitalised. Anchors occur once in the dump's override copy; the edited
+  scripts (English and Indonesian) compile, and a Lua run of the helper with a stubbed `Localize` gives
+  "Unstoppable Legendary Penta Kill, tap to Generate All Things Moment report" and, for `四连绝世`,
+  "Tap to Generate All Things Moment report" (Lua 5.5, `lupa`).
+- **Staged with the tab edit:** package `10` from the 2026-11-21 phone build (`1e515be3…`,
+  `20d7c307…`) with both scripts rewritten in English: `10.db` `b0838caf…`, `10_0.db` `68277bf1…`
+  (`D:/scratch/settle-tabs/stage/10`).
+- **Open:** not yet on a phone; other highlight titles join the table as they are seen.
