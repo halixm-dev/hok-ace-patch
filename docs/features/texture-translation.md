@@ -432,7 +432,8 @@ for any screen that draws it.
   and the full width, filled row by row with the 超级周末 sprite's own measured colour, with a soft brown
   shadow (script in the lab notebook entry). A draft, not hand-finished.
 - **Verified** offline (both languages port, re-runs change nothing, `check_graphics.py` passes) and on the
-  phone's lobby, 2026-11-21 (lab notebook, "Super Weekend lobby sprites").
+  phone's lobby: START GAME 2026-11-21, the SUPER WEEKEND flash on the user's report 2026-11-22 (lab
+  notebook, "Super Weekend lobby sprites" and "The ready atlas").
 
 ### The PC edition: the same ports in BC7 (2026-11-20)
 

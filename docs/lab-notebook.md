@@ -6566,8 +6566,10 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   `atlas_sprites.py labels --check` passes.
 - **Device: pass.** Package `19` without the ready atlas's SUPER WEEKEND label (the build before that
   addition) pushed as root, hashes matched; in the same room, ready, the button reads **CANCEL READY**
-  (`evidence\room-ready-small.png`). The ready atlas's SUPER WEEKEND label is verified offline only, and
-  WAITING FOR PLAYERS was not seen on screen.
+  (`evidence\room-ready-small.png`). 2026-11-22, the user's report on the same build: **WAITING FOR
+  PLAYERS** and **SUPER WEEKEND** show on screen. That build carries the lobby atlas's SUPER WEEKEND but
+  not the ready atlas's, so the SUPER WEEKEND seen is the lobby's login flash; the ready atlas's label is
+  verified offline only.
 - **PC edition, offline:** `--pc-selftest` on `C:\scratch\pc-edition-02\game`: `ok: true`; the per-install
   catalog patches 50 assets in English and 51 in Indonesian (49 and 50 before), with no texture refused:
   the PC table lacks the same sprite. No PC cycle.

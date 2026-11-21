@@ -432,14 +432,14 @@ there cover only the plain START GAME and BATTLE TRAINING. The event's steady la
 warm 开始游戏, the same art as `A71C734D3EFAFBFF`) and the login flash `Image_1495219937` (超级周末) are two
 more of this repo's labels (`mobile_graphics.ATLAS_LABELS`): **START GAME** / **MULAI GAME** per language,
 and **SUPER WEEKEND** in both (the supplement's "Super Weekend"). They are drawn into a texture the
-catalog already edits, so they add no texture to the count. Device-verified on the lobby, 2026-11-21
-(English, Redmi, data 1.11.0.2).
+catalog already edits, so they add no texture to the count. Device-verified on the lobby, START GAME
+2026-11-21 and the SUPER WEEKEND flash on the user's report 2026-11-22 (English, Redmi, data 1.11.0.2).
 
 The room's ready atlas `E86DF43167CA2143` carries the same 超级周末 sprite where 1.11.0.2 dropped CONFIRM
 CHOICE, and draws the same **SUPER WEEKEND** over it. That atlas is ported again since 2026-11-21: a sprite
 the device dropped is now left out instead of refusing the atlas (ADR 0006, amended), so the room's
 **CANCEL READY** and **WAITING FOR PLAYERS** are back, and package `19` applies 24 of 24 textures over the
-1.11.0.2 dump. CANCEL READY device-verified in the Ranking room, 2026-11-21 (English, Redmi).
+1.11.0.2 dump. CANCEL READY device-verified in the Ranking room, 2026-11-21, and WAITING FOR PLAYERS on the user's report, 2026-11-22 (English, Redmi).
 
 37 images are this repo's own, not the catalog's. Three are on the lobby and ready atlases (above). Two are on the Career atlas `13C19E4E4486B31C`,
 `Image_410780920` `我的皮肤` → **MY SKINS** (no catalog entry) and `Image_920603129` `总盈利` → **TOTAL
