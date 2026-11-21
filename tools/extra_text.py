@@ -1174,15 +1174,27 @@ _CAREER_STAT_SPACING = """    self:SetLine(true)
         value.verticalOverflow = CS.UnityEngine.VerticalWrapMode.Overflow
         value.resizeTextForBestFit = false
         value.supportRichText = true
-        value.fontSize = 27
         -- The prefab draws the text about 20 units left of the cell center.
-        -- Give the renderer a transparent leading space half that advance on center alignment.
+        -- The renderer centers the padding with the text, shifting the visible text right.
         local inset = "<color=#FFFFFF00>00 </color>"
         value.text = inset .. tostring(data.value or 0) .. " " .. unit.text
-        if value.preferredWidth > 172 then
-            value.fontSize = math.max(1, math.floor(27 * 172 / value.preferredWidth))
-        end
         unit.enabled = false
+        -- Measure all three pairs together so a long count or label cannot shrink one on its own.
+        local texts = self._rootTf.parent:GetComponentsInChildren(textType, false)
+        local stats, size = {}, 27
+        for i = 0, texts.Length - 1 do
+            local stat = texts[i]
+            if stat.name == "Txt_Num" and stat.rectTransform.parent.name == "Btn_CarrerDetail" then
+                stat.fontSize = 27
+                if stat.preferredWidth > 212 then
+                    size = math.min(size, math.floor(27 * 212 / stat.preferredWidth))
+                end
+                stats[#stats + 1] = stat
+            end
+        end
+        for _, stat in ipairs(stats) do
+            stat.fontSize = math.max(1, size)
+        end
     end
     pcall(fitCareerStat)
     pcall(function()
