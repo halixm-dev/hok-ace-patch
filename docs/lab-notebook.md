@@ -6792,7 +6792,8 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
 - **Staged** the three Lua edits against the phone's package `10`. All three compile, survive a
   package read-back, and match the bytes staged from the 1.10.1.2 dump with the English and
   Indonesian catalogs. A hash-verified backup of the phone's package was kept before testing.
-- **Seen on the phone** with the final package. The four Career tabs share a font size, and Match,
-  Like, and Days stay readable when switching from Overview to Record and back. On Qiao Xi, the
-  three tabs, difficulty indicators, tags, and four skill captions fit their rows. The Combat Power
-  value clears its info icon, and switching back to Skill keeps the spacing.
+- **Seen on the phone** with the final package. The four Career cells grew from 196 to 252 units so the
+  tabs could use larger type at one size. The selection line follows the wider cells, and Match,
+  Like, and Days stay readable after switching from Overview to Record and back. On Qiao Xi,
+  Overview, Skill, and Combat Power align on one row. The difficulty indicators, tags, and skill
+  captions have room, and the Combat Power value clears its info icon.

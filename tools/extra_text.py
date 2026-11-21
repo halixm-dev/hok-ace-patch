@@ -1084,25 +1084,50 @@ _CAREER_TAB_OPTIONS = "    self.tabList01:SetOptions(optionList)\n    self:UnReg
 _CAREER_TAB_SPACING = """    self.tabList01:SetOptions(optionList)
     local function fitCareerTabs()
         if not self:Available() then return end
-        local textType = typeof(CS.UnityEngine.UI.Text)
+        local ui = CS.UnityEngine.UI
+        local textType = typeof(ui.Text)
+        local horizontal = CS.UnityEngine.RectTransform.Axis.Horizontal
         local list = self.tabList01.transform
-        local labels, size = {}, 32
+        local items, labels = {}, {}
         for i = 0, list.childCount - 1 do
             local item = list:GetChild(i)
             if item.gameObject.activeSelf then
-                for _, path in ipairs({ "Group/Select/Txt_Select", "Group/UnSelect/Txt_UnSelect" }) do
-                    local tf = item:Find(path)
-                    if CommonUtility:NotNull(tf) and item.rect.width > 32 then
-                        local label = tf:GetComponent(textType)
-                        if CommonUtility:NotNull(label) then
-                            label.resizeTextForBestFit = false
-                            label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow
-                            label.fontSize = 32
-                            if label.preferredWidth > item.rect.width - 32 then
-                                size = math.min(size, math.floor(32 * (item.rect.width - 32) / label.preferredWidth))
-                            end
-                            labels[#labels + 1] = label
+                items[#items + 1] = item
+            end
+        end
+        if #items == 0 then return end
+        local width, targetSize = 252, 40
+        local total = width * #items
+        local size = targetSize
+        local layout = list:GetComponent(typeof(ui.HorizontalLayoutGroup))
+        if CommonUtility:NotNull(layout) then layout.enabled = false end
+        list.parent:SetSizeWithCurrentAnchors(horizontal, total)
+        list.anchorMin = CSVector2(0.5, list.anchorMin.y)
+        list.anchorMax = CSVector2(0.5, list.anchorMax.y)
+        list:SetSizeWithCurrentAnchors(horizontal, total)
+        list.anchoredPosition = CSVector2(0, list.anchoredPosition.y)
+        for i, item in ipairs(items) do
+            item.anchorMin = CSVector2(0.5, item.anchorMin.y)
+            item.anchorMax = CSVector2(0.5, item.anchorMax.y)
+            item:SetSizeWithCurrentAnchors(horizontal, width)
+            local x = width * (i - 1 - #items / 2 + item.pivot.x)
+            item.anchoredPosition = CSVector2(x, item.anchoredPosition.y)
+            local line = item:Find("Group/Select/Line_Select")
+            if CommonUtility:NotNull(line) then
+                line:SetSizeWithCurrentAnchors(horizontal, width)
+            end
+            for _, path in ipairs({ "Group/Select/Txt_Select", "Group/UnSelect/Txt_UnSelect" }) do
+                local tf = item:Find(path)
+                if CommonUtility:NotNull(tf) then
+                    local label = tf:GetComponent(textType)
+                    if CommonUtility:NotNull(label) then
+                        label.resizeTextForBestFit = false
+                        label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow
+                        label.fontSize = targetSize
+                        if label.preferredWidth > width - 36 then
+                            size = math.min(size, math.floor(targetSize * (width - 36) / label.preferredWidth))
                         end
+                        labels[#labels + 1] = label
                     end
                 end
             end
@@ -1210,9 +1235,11 @@ _LORD_DETAIL_SPACING = """    self:_RefreshLayout()
             local button, tf = buttons[i], label.rectTransform
             local width = label.preferredWidth + padding
             button:SetSizeWithCurrentAnchors(horizontal, width)
-            button.anchoredPosition = CSVector2(x + width / 2, button.anchoredPosition.y)
+            button.anchoredPosition = CSVector2(x + width / 2, -1)
             tf:SetSizeWithCurrentAnchors(horizontal, width - 12)
-            tf.anchoredPosition = CSVector2(0, tf.anchoredPosition.y)
+            tf:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Vertical, 46)
+            tf.anchoredPosition = CSVector2(0, 0)
+            label.alignment = CS.UnityEngine.TextAnchor.MiddleCenter
             x = x + width
             if i < #tabs then
                 local line = operation:Find("Line_Operation0" .. i)
