@@ -294,7 +294,10 @@ which this format cannot tell apart from a *stored* chunk; it is named in the lo
 localization table by shape and can resolve one the catalog has no record for, and two such tables in
 package `1` — `3914DBBFECD1E54D` and `63922EF4D4C86526` — were being staged by it while the rebuild path
 it replaced never would have. `build_device_patch._drop_uncatalogued_tables` drops them, so a normal run
-translates nothing outside the catalog; see *Knowingly left Chinese* for the two.
+translates nothing outside the catalog; see *Knowingly left Chinese* for the two. The exception is a
+mode's measured copy of catalog tables (`catalog_updates.MODE_TABLE_COPIES`): ACE Quick Match's card
+tables `39E980368CABE4A4` and `FABFEBEB801B5CD9`, which left that mode's whole match Chinese until
+2026-11-22 and are now listed as the catalog loads, their 16 mode-only strings from the supplement.
 
 Relocation is why the stager no longer loses these: it used to drop 11 of package `1`'s 92 translated
 override tables at the container, every one a chessplayer skill, talent or secret-skill table.
