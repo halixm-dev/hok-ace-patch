@@ -6598,3 +6598,27 @@ the phone's pristine snapshots `20261029-1.8.0.1` and `20261118-1.10.1.2`. Plan 
   `20d7c307…`) with both scripts rewritten in English: `10.db` `b0838caf…`, `10_0.db` `68277bf1…`
   (`D:/scratch/settle-tabs/stage/10`).
 - **Open:** not yet on a phone; other highlight titles join the table as they are seen.
+
+## 2026-11-22 — ACE Quick Match: the mode's copies of the card tables
+
+- **Seen (user's report):** in an ACE Quick Match (万象速决) every card and text read Chinese, though the
+  cards are the normal match's.
+- **Source:** the mode (`OSLab10GameplayClass`, the PVP flow under its own gameplay state) reads two text
+  tables in package `1` the catalog does not list, so `_drop_uncatalogued_tables` left them Chinese on
+  every run: `39E980368CABE4A4` (card names and effects, 8211 rows, 3064 distinct strings; 3051 shared
+  with `C13DF45E3492CA0C`, `9C4EC654D5454B46`, `9799DF91AB4F4FA3`, `23C9A9DEBB3BF40C`) and
+  `FABFEBEB801B5CD9` (Chessplayer, faction and mode texts, 4102 rows, 3216 distinct; 3212 shared with
+  `42E8DB43608C2FF1`, `04F21C6735D0D555`, ...). Dump: the 1.11.0.2 phone pull,
+  `D:\scratch\event-room-line\device\game`.
+- **Change (the user's decision):** `catalog_updates.MODE_TABLE_COPIES` lists both; `engine_hooks`'
+  catalog load adds them to `table_hashes` after the supplement. The 16 strings only the copies hold
+  (13 and 3: 快速模式, 屯田令, 烽火令, 磐石灵药, 扶摇研读会, four Fleeting and Temporary Level card texts, the
+  mode's rules) are a new supplement section in both languages; all 32 pass `validate_translation` and
+  the supplement's markup check. After it, both tables resolve with 0 missing strings in both catalogs.
+- **Offline** (`D:\scratch\quick-match-tables`, the dump plus its APK, both languages): `tables` 109 → 111,
+  `unknown` 0, 6 uncatalogued tables left (8 before). Read back with `install_btree_slot_map`: same row
+  keys; `39E98036…` 8208 of 8211 rows changed, `FABFEBEB…` 3901 of 4102; Chinese left only inside the two
+  `{推演战术:-5}` / `{推演高级战术:-10}` placeholders the catalog's own rows keep. Indonesian package `1`
+  drops 70 assets and relocates 82 tables; unchanged `master` on the same dump drops 70 and relocates 81
+  (its run then stopped on a full disk, after package `1`).
+- **Open:** not yet on a phone; the PC edition takes the same catalog load, not checked there.

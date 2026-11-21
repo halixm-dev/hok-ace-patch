@@ -96,6 +96,13 @@ list, which makes the primary pass mean *the catalog's tables* and returns anyth
 (`tables` 92 → 90, `records` and `translated` −4 each), so a shortened plan cannot leave the census
 claiming more than the run staged.
 
+One kind of uncatalogued table is admitted by measurement instead: a copy of catalog tables the game keeps
+for one mode. ACE Quick Match (万象速决, data 1.10 on) draws the normal match's cards from two such copies
+in package `1`, `39E980368CABE4A4` and `FABFEBEB801B5CD9`, so its match stayed Chinese. They share 3051 of
+3064 and 3212 of 3216 distinct strings with catalog tables; the rest is in the supplement. They are listed
+in `catalog_updates.MODE_TABLE_COPIES`, which `engine_hooks`' catalog load adds to `table_hashes`
+(the user's decision, 2026-11-22). A new copy joins only on the same measurement.
+
 Against the cycle's builder-produced rebuild the result is now the same package wherever the two can be
 compared. Packages `1050016095` (73 entries) and `21` (4867) hold exactly the assets the rebuild holds,
 and so does package `1` on every catalog table — **`3914DBBFECD1E54D` and `63922EF4D4C86526` are Chinese

@@ -1,10 +1,24 @@
-"""Exact updates for previously installed translations and for untranslated format rows, merged into
-the catalog in memory.
+"""Exact updates for previously installed translations and for untranslated format rows, and the
+measured copies of catalog tables a mode reads, merged into the catalog in memory.
 
 Each update names measured catalog tables, row keys and the full previous text. The runtime's
 english_updates path checks all three before replacing a value, so reruns need no pristine data.
+
+A copy (`MODE_TABLE_COPIES`) is a text table the game keeps for one mode beside the catalog tables it
+duplicates. The catalog, built before the mode, does not list it, so the text pass would leave it
+Chinese (`build_device_patch._drop_uncatalogued_tables`); `admit_tables` lists it, and the catalog's
+string map translates it like the table it copies.
 """
 from __future__ import annotations
+
+# The card text tables ACE Quick Match (万象速决, `OSLab10GameplayClass`) reads, measured in package 1 of
+# game data 1.11.0.2 (2026-11-22). The match draws the same cards as a normal match, all Chinese: these
+# copies held 3051 of 3064 and 3212 of 3216 distinct strings in common with the catalog tables named
+# here, and the mode's own 16 strings are in the supplement's "ACE Quick Match card tables" section.
+MODE_TABLE_COPIES: dict[str, str] = {
+    "39E980368CABE4A4": "card names and effects; a copy of C13DF45E3492CA0C, 9C4EC654D5454B46, ...",
+    "FABFEBEB801B5CD9": "Chessplayer, faction and mode texts; a copy of 42E8DB43608C2FF1, 04F21C6735D0D555, ...",
+}
 
 # Measured in both layers of package 1 on 2026-10-17 (game data 1.6.0.1).
 YAO_ROWS: tuple[tuple[str, tuple[str, str]], ...] = (
@@ -30,6 +44,14 @@ YAO_PREVIOUS = "Your Heroes gain +1 Level when <a href=13><color=#ffffff>╦<b>u
 CARD_OPERATE_ROW = ("DD5B5EDFBB69FEED", "Dps_CardOperate")
 CARD_OPERATE_PREVIOUS = "<color=#ffffff>{0}</color><color=#FFFFFFB2>{1}</color>"
 CARD_OPERATE_TARGET = "<color=#ffffff>{0}</color> <color=#FFFFFFB2>{1}</color>"
+
+
+def admit_tables(data: dict) -> int:
+    """List `MODE_TABLE_COPIES` among the catalog's tables; returns how many were added."""
+    known = data.setdefault("table_hashes", [])
+    added = [file_hash for file_hash in MODE_TABLE_COPIES if file_hash not in known]
+    known.extend(added)
+    return len(added)
 
 
 def apply(data: dict, code: str) -> int:
