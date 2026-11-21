@@ -6777,3 +6777,22 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   names at one size; the Card screen's faction tabs at one size with "Three Kingdoms" clear of Zhulu
   Plateau. The match-end ranking tabs and the All Things Moment tip need a finished ranked match and are
   not yet seen.
+
+## 2026-11-22 — Career and Chessplayer detail spacing
+
+- **Seen before the fix** (Redmi Note 9 Pro, 1.11.0.2, English, 2400 × 1080). Career's four tabs used
+  different sizes, and Match, Like, and Days were much smaller than their counts. The Chessplayer
+  detail tabs clipped and overlapped. Difficulty ran into the tags, the skill captions touched, and
+  the Combat Power value ran into its info icon.
+- **Measured** from the phone's package `19`. Career tab cells are 196 units wide, with selected
+  labels in 76-unit boxes. Each stat button is 190 units wide. The Chessplayer tab and difficulty
+  rows are 460 units wide. Placing the Career number and unit in separate text fields left the
+  three-digit Match count touching its label. Drawing the pair in one text field keeps the gap after
+  the count and uses the prefab's localized title.
+- **Staged** the three Lua edits against the phone's package `10`. All three compile, survive a
+  package read-back, and match the bytes staged from the 1.10.1.2 dump with the English and
+  Indonesian catalogs. A hash-verified backup of the phone's package was kept before testing.
+- **Seen on the phone** with the final package. The four Career tabs share a font size, and Match,
+  Like, and Days stay readable when switching from Overview to Record and back. On Qiao Xi, the
+  three tabs, difficulty indicators, tags, and four skill captions fit their rows. The Combat Power
+  value clears its info icon, and switching back to Skill keeps the spacing.

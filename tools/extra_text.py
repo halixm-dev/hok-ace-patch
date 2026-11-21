@@ -1080,6 +1080,219 @@ def _moment_tip_translated() -> tuple[tuple[str, str], ...]:
                    "            self.DemandTips = _hokaceMomentTip(nil, data.Response.BubbleTextDefault)\n")))
 
 
+_CAREER_TAB_OPTIONS = "    self.tabList01:SetOptions(optionList)\n    self:UnRegisterCareerBusinessCardRedDot()\n"
+_CAREER_TAB_SPACING = """    self.tabList01:SetOptions(optionList)
+    local function fitCareerTabs()
+        if not self:Available() then return end
+        local textType = typeof(CS.UnityEngine.UI.Text)
+        local list = self.tabList01.transform
+        local labels, size = {}, 32
+        for i = 0, list.childCount - 1 do
+            local item = list:GetChild(i)
+            if item.gameObject.activeSelf then
+                for _, path in ipairs({ "Group/Select/Txt_Select", "Group/UnSelect/Txt_UnSelect" }) do
+                    local tf = item:Find(path)
+                    if CommonUtility:NotNull(tf) and item.rect.width > 32 then
+                        local label = tf:GetComponent(textType)
+                        if CommonUtility:NotNull(label) then
+                            label.resizeTextForBestFit = false
+                            label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow
+                            label.fontSize = 32
+                            if label.preferredWidth > item.rect.width - 32 then
+                                size = math.min(size, math.floor(32 * (item.rect.width - 32) / label.preferredWidth))
+                            end
+                            labels[#labels + 1] = label
+                        end
+                    end
+                end
+            end
+        end
+        for _, label in ipairs(labels) do
+            label.fontSize = math.max(1, size)
+        end
+    end
+    pcall(fitCareerTabs)
+    pcall(function()
+        local options = self._optionList
+        ScheduleService:SetTimeout(function()
+            if self._optionList == options then pcall(fitCareerTabs) end
+        end, 0)
+    end)
+    self:UnRegisterCareerBusinessCardRedDot()
+"""
+
+_CAREER_STAT_TYPE = "    self:SetLine(true)\n    self:SetType(index - 1)\nend\n"
+_CAREER_STAT_SPACING = """    self:SetLine(true)
+    self:SetType(index - 1)
+    if not (data and data.ShowName) then return end
+    local function fitCareerStat()
+        if not self:Available() or self.data ~= data then return end
+        local button = self._rootTf:Find("Btn_CarrerDetail")
+        local valueTf = button:Find("Txt_Num")
+        if not CommonUtility:NotNull(valueTf) then
+            valueTf = button:Find("Group/Txt_Num")
+            valueTf:SetParent(button, false)
+        end
+        local textType = typeof(CS.UnityEngine.UI.Text)
+        local value = valueTf:GetComponent(textType)
+        local unit = button:Find("Group/Txt_Title"):GetComponent(textType)
+        -- Keep the title binding for localization and draw the pair with a fixed space.
+        if not unit.text or unit.text == "" then return end
+        local center = CSVector2(0.5, 0.5)
+        valueTf.anchorMin = center
+        valueTf.anchorMax = center
+        valueTf.pivot = center
+        valueTf:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, 172)
+        valueTf.anchoredPosition = CSVector2(16, 0)
+        value.alignment = CS.UnityEngine.TextAnchor.MiddleCenter
+        value.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow
+        value.verticalOverflow = CS.UnityEngine.VerticalWrapMode.Overflow
+        value.resizeTextForBestFit = false
+        value.supportRichText = true
+        value.fontSize = 30
+        value.text = tostring(data.value or 0) .. "  <size=25>" .. unit.text .. "</size>"
+        if value.preferredWidth > 172 then
+            value.fontSize = math.max(1, math.floor(30 * 172 / value.preferredWidth))
+            value.text = tostring(data.value or 0) .. "  " .. unit.text
+        end
+        unit.enabled = false
+    end
+    pcall(fitCareerStat)
+    pcall(function()
+        local function refreshStat() pcall(fitCareerStat) end
+        ScheduleService:SetTimeout(refreshStat, 0)
+        ScheduleService:SetTimeout(refreshStat, 0.5)
+    end)
+end
+"""
+
+_LORD_DETAIL_LAYOUT = "    self:_RefreshLayout()\nend\n\nfunction UILordOverviewInfoItemClass:_RefreshLayout()"
+_LORD_DETAIL_SPACING = """    self:_RefreshLayout()
+    local function fitLordDetails()
+        if not self:Available() then return end
+        local root = self._rootTf
+        local ui = CS.UnityEngine.UI
+        local textType = typeof(ui.Text)
+        local horizontal = CS.UnityEngine.RectTransform.Axis.Horizontal
+        local overflow = CS.UnityEngine.HorizontalWrapMode.Overflow
+        local function fit(label, size, width)
+            label.resizeTextForBestFit = false
+            label.horizontalOverflow = overflow
+            label.fontSize = size
+            if label.preferredWidth > width then
+                label.fontSize = math.max(1, math.floor(size * width / label.preferredWidth))
+            end
+        end
+        local operation = root:Find("Operation")
+        local tabs = { { "Btn_Overview", "OverviewTxt" }, { "Btn_Strategy", "StrategyTxt" },
+            { "Btn_GrowUp", "GrowUpTxt" } }
+        local names, buttons, available = {}, {}, operation.rect.width
+        local total, size = 0, 30
+        for i, tab in ipairs(tabs) do
+            buttons[i] = operation:Find(tab[1])
+            names[i] = buttons[i]:Find(tab[2]):GetComponent(textType)
+            fit(names[i], size, available)
+            total = total + names[i].preferredWidth
+        end
+        local textRoom = available - 22 * #tabs
+        if textRoom <= 0 then return end
+        if total > textRoom then
+            size = math.max(1, math.floor(size * textRoom / total))
+        end
+        total = 0
+        for _, label in ipairs(names) do
+            label.fontSize = size
+            total = total + label.preferredWidth
+        end
+        local padding = (available - total) / #tabs
+        local x = -available / 2
+        for i, label in ipairs(names) do
+            local button, tf = buttons[i], label.rectTransform
+            local width = label.preferredWidth + padding
+            button:SetSizeWithCurrentAnchors(horizontal, width)
+            button.anchoredPosition = CSVector2(x + width / 2, button.anchoredPosition.y)
+            tf:SetSizeWithCurrentAnchors(horizontal, width - 12)
+            tf.anchoredPosition = CSVector2(0, tf.anchoredPosition.y)
+            x = x + width
+            if i < #tabs then
+                local line = operation:Find("Line_Operation0" .. i)
+                line.anchoredPosition = CSVector2(x, line.anchoredPosition.y)
+            end
+        end
+
+        local title = root:Find("Name/NameGroup")
+        local name = title:Find("Txt_Name"):GetComponent(textType)
+        local skin = title:Find("Txt_SKinName"):GetComponent(textType)
+        if skin.gameObject.activeInHierarchy then
+            local layout = title:GetComponent(typeof(ui.HorizontalLayoutGroup))
+            if CommonUtility:NotNull(layout) then layout.spacing = 10 end
+            fit(name, 34, available * 0.42)
+            fit(skin, 30, available * 0.49)
+            UIUtility:ForceRebuildLayoutImmediate(title)
+        else
+            fit(name, 34, available)
+        end
+
+        if self._currentOpType == UILordOverviewInfoItemClassOperationType.GrowUp then
+            local detail = root:Find("GrowUp/CombatPower/Btn_Detail")
+            local icon = detail:Find("DetailIcon")
+            local power = detail:Find("Info/Txt_CombatPower"):GetComponent(textType)
+            local iconLeft = icon:TransformPoint(CS.UnityEngine.Vector3(icon.rect.xMin, 0, 0))
+            local room = power.rectTransform:InverseTransformPoint(iconLeft).x - power.rectTransform.rect.xMin - 12
+            if room > 0 then fit(power, 32, room) end
+        end
+        if self._currentOpType ~= UILordOverviewInfoItemClassOperationType.Strategy then return end
+        local strategy = root:Find("Strategy/Strategy_Info")
+        local strategyLabels = strategy:GetComponentsInChildren(textType, false)
+        local difficulty, tags = nil, {}
+        for i = 0, strategyLabels.Length - 1 do
+            local label = strategyLabels[i]
+            if label.name == "Txt_Diff" then
+                difficulty = label
+            else
+                tags[#tags + 1] = label
+            end
+        end
+        local tagRoom = math.max(20, (available - 230) / math.max(1, #tags) - 24)
+        for _, tag in ipairs(tags) do fit(tag, 20, tagRoom) end
+        if difficulty then pcall(function()
+            fit(difficulty, 20, 92)
+            local group = difficulty.rectTransform.parent
+            local left = 8
+            local tf = difficulty.rectTransform
+            local width = difficulty.preferredWidth
+            tf.anchoredPosition = CSVector2(left + width / 2, tf.anchoredPosition.y)
+            for _, path in ipairs({ "Di_Diff", "Stage_Diff" }) do
+                local markers = group:Find(path)
+                local scale = 0.8
+                markers.localScale = CS.UnityEngine.Vector3(scale, scale, 1)
+                local x = left + width + 10 + markers.rect.width * scale / 2
+                markers.anchoredPosition = CSVector2(x, markers.anchoredPosition.y)
+            end
+        end) end
+        local list = root:Find("Strategy/LordSkillList")
+        local captions = list:GetComponentsInChildren(textType, true)
+        for i = 0, captions.Length - 1 do
+            local caption = captions[i]
+            if caption.name == "Txt_Type" or caption.name == "Txt_Type_Select" then
+                fit(caption, 22, 102)
+            end
+        end
+    end
+    local function fitSafely()
+        local ok, err = pcall(fitLordDetails)
+        if not ok then CS.UnityEngine.Debug.LogWarning("HOKACE Chessplayer detail spacing: " .. tostring(err)) end
+    end
+    fitSafely()
+    pcall(function()
+        ScheduleService:SetTimeout(fitSafely, 0)
+        ScheduleService:SetTimeout(fitSafely, 0.5)
+    end)
+end
+
+function UILordOverviewInfoItemClass:_RefreshLayout()"""
+
+
 # Lua UI scripts whose own formatting or behaviour is wrong for a translation: each entry is an exact
 # source literal and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
@@ -1103,6 +1316,10 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     # Chessplayer and Combat Power tab names ran into each other, and the Combat Power page's sort toggle
     # sat under the back title.
     0x428AF2481FE35A3A: _lord_list_header_fit(),
+    # Career tab cells and stat units, and the Chessplayer character detail panel (package 10).
+    0x314286AA90A60098: ((_CAREER_TAB_OPTIONS, _CAREER_TAB_SPACING),),
+    0xC08C09E32934B2D1: _crlf(((_CAREER_STAT_TYPE, _CAREER_STAT_SPACING),)),
+    0x3EF1BE086B77011A: _crlf(((_LORD_DETAIL_LAYOUT, _LORD_DETAIL_SPACING),)),
     # The room (package 10, both in the 1.11 override, stored with CRLF line endings): "Lineup" and
     # "Settings" ran into their icons (`UIPVPRoomLeftDown_NormalClass`), and "Recommend" alone shrank
     # among the friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`).

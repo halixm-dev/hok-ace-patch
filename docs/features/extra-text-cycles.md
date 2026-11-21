@@ -107,6 +107,11 @@ neighbours leave room for, and the top-bar entries (`2C5B589676763044`) and the 
 their icons, the friend panel's tabs (`7C2AE97D11BD7B4F`) share one name size, and the Super Weekend perk line (`31A01EDC4D72FCCE`) joins its perks with an English comma. The lobby Menu panel's entries (`D752489AB26CEFC8`) share one name size too, and the Chessplayer page's header (`428AF2481FE35A3A`) widens its two tabs and moves its sort toggle clear of the back title. The match-end ranking screen's tab bar (`915E19AB90FFA1D9`) widens each tab cell to its name, and the All Things Moment tip (`CC55DC213C5C6913`) translates the server's highlight title from a table `SCRIPT_TRANSLATIONS` writes into the script, or drops a title it does not know. Symptoms and dates are beside the allowlist in
 `tools/extra_text.py`; the evidence is in `docs/lab-notebook.md`'s 2026-10-05 section.
 
+Career tabs (`314286AA90A60098`) share a font size that leaves room for the notification dot.
+The Match, Like, and Days labels (`C08C09E32934B2D1`) use larger type with a gap after each number.
+The Chessplayer detail panel (`3EF1BE086B77011A`) sizes its tabs to their labels and fits the
+difficulty tags and skill captions within their rows.
+
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the
 phone has since updated to 1.4.0.2, so they are no longer pushable as they stand. See the journey log's
 last entry: a staged package is a revision of one layer, and the phone's version has to be checked against
