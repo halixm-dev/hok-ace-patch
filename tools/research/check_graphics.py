@@ -123,8 +123,13 @@ def geometry_delta(raw_size: int, width: int, height: int) -> str:
     return best[1] if best else f"{blocks} blocks fit no geometry near {width}x{height}"
 
 
-def skip_reason(graphic: dict, raw_size: int, ported: bool) -> str | None:
-    """Why <graphic> could not be ported onto a <raw_size>-byte device texture, or None.
+def skip_reason(graphic: dict, raw_size: int, ported: bool,
+                sprites: dict[str, tuple[int, ...]] | None = None) -> str | None:
+    """Why <graphic> could not be ported onto a <raw_size>-byte device texture, or None when it was.
+
+    <sprites> is the device's sprite table for a regioned atlas: a region whose sprite it lacks or holds
+    at another size refuses the whole atlas (ADR 0006), the refusal a 1.11.0.2 layout makes of
+    ``E86DF43167CA2143`` (its ``Image_1585869273`` is gone).
 
     This explains a refusal that actually happened rather than predicting one. Whether a whole-image
     replacement whose geometry moved can be rescued depends on data -- the label has to align -- so a
@@ -143,9 +148,18 @@ def skip_reason(graphic: dict, raw_size: int, ported: bool) -> str | None:
                     f"not align)")
         return detail
     if graphic["payload"].endswith(".blocks"):
-        if fmt == "rgba32" or (fmt == "bc7" and layout == (4, 4)):
-            return None
-        return f"{fmt} .blocks on a {layout[0]}x{layout[1]} texture"
+        if fmt == "bc7" and layout == (4, 4) and sprites is not None:
+            refused = []
+            for region in graphic.get("regions", []):
+                pc, device = region["box"], sprites.get(region.get("sprite", ""))
+                if device is None:
+                    refused.append(f"{region.get('sprite')} ({region['label']}) not in the device's sprite table")
+                elif (device[2] - device[0], device[3] - device[1]) != (pc[2] - pc[0], pc[3] - pc[1]):
+                    refused.append(f"{region.get('sprite')} ({region['label']}) resized on the device")
+            if refused:
+                return "regioned atlas refused: " + "; ".join(refused)
+        if fmt not in ("rgba32", "bc7") or (fmt == "bc7" and layout != (4, 4)):
+            return f"{fmt} .blocks on a {layout[0]}x{layout[1]} texture"
     return "english_raw returned nothing for a texture it should have replaced"
 
 
@@ -448,7 +462,7 @@ def device_rows(catalog, game: pathlib.Path) -> list[dict]:
                 sprites = sprite_rects(table, width, height) if table else None
             new = mg.english_raw(row["raw"], graphic, CATALOG, sprites)
             ported = new is not None and len(new) == len(row["raw"])
-            reason = skip_reason(graphic, len(row["raw"]), ported)
+            reason = skip_reason(graphic, len(row["raw"]), ported, sprites)
             if reason is not None:
                 row["outcome"] = "skipped"
                 row["detail"] = reason

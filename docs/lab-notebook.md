@@ -6523,9 +6523,12 @@ Redmi Note 9 Pro `ebad528e`, rooted (KernelSU), game data 1.11.0.2, English, the
   soft brown shadow; `art\draw_sw.py`). `atlas_art` now reads `labels/<code>/` before the shared file.
 - **Offline.** `english_raw` on the dump's lobby atlas ports in both catalogs and is idempotent
   (`staged-lobby-atlas-both.png`); `check_graphics.py` (no `--game`) all checks passed;
-  `atlas_sprites.py labels --check` passes. `check_graphics.py --game` on this 1.11.0.2 dump stops with a
-  TypeError at `E86DF43167CA2143`, whose port returns None (the known skip) without a skip reason: a
-  check-script gap, untouched by this change (that atlas has no repo labels). The build over the dump with the APK:
+  `atlas_sprites.py labels --check` passes. `check_graphics.py --game` on this 1.11.0.2 dump first stopped with a TypeError at
+  `E86DF43167CA2143`: its region `confirm_choice` (`Image_1585869273`) is gone from the device's sprite
+  table, so `port_atlas` refuses it (ADR 0006), but `skip_reason` took every 4x4 BC7 `.blocks` as ported.
+  It now names a region missing or resized in the device table and never reads an unported texture as
+  ported; the run then passes every check (238 ported, 2 ported by sprite, 1 replaced, 1 spliced, 1
+  skipped: `E86DF43167CA2143`, that reason). The build over the dump with the APK:
   package `19` 23 textures, 1 of 24 skipped (`E86DF43167CA2143`), as before; only `19_0.db` changed
   against the room-perks build.
 - **Device: pass.** Root push of package `19` (hashes match the build), game started, notice closed,
