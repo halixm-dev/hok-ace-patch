@@ -239,11 +239,11 @@ def _camp_tab_names_fit() -> tuple[tuple[tuple[str, str], ...], tuple[tuple[str,
     text, so a clear gap to the next tab remains; a 40-unit margin left the names barely above 16, and
     an 8-unit one at about 21. Every tab measures the same names, so all reach the same size
     without waiting on each other: the tabs are list items created asynchronously, and a fit run from
-    the bar found none of them bound on the phone (2026-11-11). The prefab's size is kept per label,
+    the bar found none of them bound on the phone (2026-11-11). The prefab's size is kept by each label's instance id,
     because list items are reused; the tab's own name is put back whatever happens; a failure is logged
     as a Unity warning and leaves the tab as the game drew it.
     """
-    helper = ("local _campTabNameSize = setmetatable({}, { __mode = \"k\" })\n\n"
+    helper = ("local _campTabNameSize = {}\n\n"
               "local function _campTabNames()\n"
               "    local names = { Localize.GetString(\"HeroCollect_Filter_RelationAll\") }\n"
               "    local seasonId = HeroCollectData:GetSeasonId()\n"
@@ -259,10 +259,10 @@ def _camp_tab_names_fit() -> tuple[tuple[tuple[str, str], ...], tuple[tuple[str,
               "    local label = item.name\n"
               "    local own = label and label.text\n"
               "    local ok, err = pcall(function()\n"
-              "        local size = _campTabNameSize[label]\n"
+              "        local size = _campTabNameSize[label:GetInstanceID()]\n"
               "        if size == nil then\n"
               "            size = label.fontSize\n"
-              "            _campTabNameSize[label] = size\n"
+              "            _campTabNameSize[label:GetInstanceID()] = size\n"
               "        end\n"
               "        label.fontSize = size\n"
               f"        local space = math.max(tonumber(rawget(_G, \"{_CAMP_TAB_SPACE_GLOBAL}\")) or 0, 0)\n"
@@ -311,11 +311,11 @@ def _lobby_btn_names_fit() -> tuple[tuple[str, str], ...]:
     the names never reach into the 57 units between cells; the size shrinks only as far as the tightest
     pair needs (never below 16), about 21 on a 2400 x 1080 phone. Letting the names use that spacing
     too put all three at 33, with "Chessplayer" about 23 px short of "Card"; the user preferred the
-    smaller size (2026-11-11). The prefab's size is kept per label, because list items are reused, the
+    smaller size (2026-11-11). The prefab's size is kept by each label's instance id, because list items are reused, the
     button's own name is put back, and a failure leaves the button as the game drew it, logged as a
     Unity warning.
     """
-    helper = ("local _lobbyBtnNameSize = setmetatable({}, { __mode = \"k\" })\n"
+    helper = ("local _lobbyBtnNameSize = {}\n"
               "local _lobbyBtnItems = setmetatable({}, { __mode = \"k\" })\n\n"
               "local function _lobbyBtnNames()\n"
               "    local entries = {}\n"
@@ -332,10 +332,10 @@ def _lobby_btn_names_fit() -> tuple[tuple[str, str], ...]:
               "    local label = item.name\n"
               "    local own = label and label.text\n"
               "    local ok, err = pcall(function()\n"
-              "        local size = _lobbyBtnNameSize[label]\n"
+              "        local size = _lobbyBtnNameSize[label:GetInstanceID()]\n"
               "        if size == nil then\n"
               "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
-              "            _lobbyBtnNameSize[label] = size\n"
+              "            _lobbyBtnNameSize[label:GetInstanceID()] = size\n"
               "        end\n"
               "        label.resizeTextForBestFit = false\n"
               "        label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
@@ -391,9 +391,9 @@ def _lobby_menu_icon_gap() -> tuple[tuple[str, str], ...]:
     red dot shows, the game swaps the icon for a larger effect (Mall's yellow cart), which touches the
     name. That state now adds 16 units to the spacing, re-laid out at once, which leaves the cart about
     8 px clear of "Mall" on a 2400 x 1080 phone (8 units only moved it 3 px, 2026-11-11). The prefab's
-    spacing is kept per group, because list items are reused.
+    spacing is kept by each group's instance id, because list items are reused.
     """
-    helper = ("local _lobbyMenuSpacing = setmetatable({}, { __mode = \"k\" })\n\n"
+    helper = ("local _lobbyMenuSpacing = {}\n\n"
               "local function _tidyLobbyMenuItem(item)\n"
               "    pcall(function()\n"
               "        local group = item.name.transform.parent:GetComponent("
@@ -401,10 +401,10 @@ def _lobby_menu_icon_gap() -> tuple[tuple[str, str], ...]:
               "        if not CommonUtility:NotNull(group) then\n"
               "            return\n"
               "        end\n"
-              "        local spacing = _lobbyMenuSpacing[group]\n"
+              "        local spacing = _lobbyMenuSpacing[group:GetInstanceID()]\n"
               "        if spacing == nil then\n"
               "            spacing = group.spacing\n"
-              "            _lobbyMenuSpacing[group] = spacing\n"
+              "            _lobbyMenuSpacing[group:GetInstanceID()] = spacing\n"
               "        end\n"
               "        group.spacing = spacing + (item._isShowRed and 16 or 0)\n"
               "    end)\n"
@@ -437,18 +437,18 @@ def _lobby_menu_button_gap() -> tuple[tuple[str, str], ...]:
     carries an Animation that holds its position anyway), the name moves 18 units right, back to 11 px
     after the icon, and the divider and the entry row (`Left`: the top-bar list, First Top-up and
     Download) each move 36 units right, which restores 36 px before the divider and 40 px after it.
-    Each offset is taken from the prefab's own position, kept per transform, so a second initialize does
+    Each offset is taken from the prefab's own position, kept by each transform's instance id, so a second initialize does
     not add up.
     """
-    helper = ("local _lobbyMenuButtonX = setmetatable({}, { __mode = \"k\" })\n\n"
+    helper = ("local _lobbyMenuButtonX = {}\n\n"
               "local function _shiftLobbyMenuPart(tf, dx)\n"
               "    if tf == nil then\n"
               "        return\n"
               "    end\n"
-              "    local base = _lobbyMenuButtonX[tf]\n"
+              "    local base = _lobbyMenuButtonX[tf:GetInstanceID()]\n"
               "    if base == nil then\n"
               "        base = tf.anchoredPosition.x\n"
-              "        _lobbyMenuButtonX[tf] = base\n"
+              "        _lobbyMenuButtonX[tf:GetInstanceID()] = base\n"
               "    end\n"
               "    tf.anchoredPosition = CSVector2(base + dx, tf.anchoredPosition.y)\n"
               "end\n\n"
@@ -576,20 +576,20 @@ def _room_tab_names_fit() -> tuple[tuple[str, str], ...]:
     all reach the same size without knowing each other: on the phone each tab sits in its own list cell,
     so tabs grouped by parent each fitted only themselves, and the list kept its even widths when a tab
     asked for more (2026-11-21, probe). A label not laid out yet (no width) keeps best fit. The prefab's
-    size is kept per label, because list items are reused; the tab's own name is put back; a failure
+    size is kept by each label's instance id, because list items are reused; the tab's own name is put back; a failure
     leaves the tab as the game drew it, logged as a Unity warning.
     """
-    helper = ("local _roomTabNameSize = setmetatable({}, { __mode = \"k\" })\n"
+    helper = ("local _roomTabNameSize = {}\n"
               "local _ROOM_TAB_NAME_KEYS = { \"RoomRecommendTabFriend\", \"RoomRecommendTabRecent\",\n"
               "    \"RoomRecommendTabPlayer\", \"RoomRecommendTabRoom\" }\n\n"
               "local function _fitRoomTabName(item)\n"
               "    local label = item.txtTitle\n"
               "    local own = label and label.text\n"
               "    local ok, err = pcall(function()\n"
-              "        local size = _roomTabNameSize[label]\n"
+              "        local size = _roomTabNameSize[label:GetInstanceID()]\n"
               "        if size == nil then\n"
               "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
-              "            _roomTabNameSize[label] = size\n"
+              "            _roomTabNameSize[label:GetInstanceID()] = size\n"
               "        end\n"
               "        local room = label.rectTransform.rect.width - 8\n"
               "        if room <= 0 then\n"
@@ -641,20 +641,20 @@ def _main_menu_names_fit() -> tuple[tuple[str, str], ...]:
     entry records its name once set (a filler records none), then refits every recorded entry: best fit
     off, the name allowed to overflow its box (still centred), and every recorded name measured on that
     entry's label at the prefab's largest size; all take the size at which the widest fits one cell less
-    12 units (never below 16). The prefab's size is kept per label, because list items are reused, the
+    12 units (never below 16). The prefab's size is kept by each label's instance id, because list items are reused, the
     entry's own name is put back, and a failure leaves the entry as the game drew it, logged as a Unity
     warning.
     """
-    helper = ("local _mainMenuNameSize = setmetatable({}, { __mode = \"k\" })\n"
+    helper = ("local _mainMenuNameSize = {}\n"
               "local _mainMenuNames = setmetatable({}, { __mode = \"k\" })\n\n"
               "local function _fitMainMenuName(item)\n"
               "    local label = item.content\n"
               "    local own = label and label.text\n"
               "    local ok, err = pcall(function()\n"
-              "        local size = _mainMenuNameSize[label]\n"
+              "        local size = _mainMenuNameSize[label:GetInstanceID()]\n"
               "        if size == nil then\n"
               "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
-              "            _mainMenuNameSize[label] = size\n"
+              "            _mainMenuNameSize[label:GetInstanceID()] = size\n"
               "        end\n"
               "        local room = item._rootTf.rect.width - 12\n"
               "        if room <= 0 then\n"

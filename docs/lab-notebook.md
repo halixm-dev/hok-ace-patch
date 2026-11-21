@@ -6750,3 +6750,30 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   drops 70 assets and relocates 82 tables; unchanged `master` on the same dump drops 70 and relocates 81
   (its run then stopped on a full disk, after package `1`).
 - **Open:** not yet on a phone; the PC edition takes the same catalog load, not checked there.
+
+## 2026-11-22 — Older Lua edits: prefab values kept by instance id
+
+- **Change:** the Card faction tabs (`_campTabNameSize`), the lobby buttons (`_lobbyBtnNameSize`), the
+  lobby top-bar spacing (`_lobbyMenuSpacing`), the Menu button offsets (`_lobbyMenuButtonX`), the room
+  tabs (`_roomTabNameSize`) and the Menu panel (`_mainMenuNameSize`) now key the prefab's value by
+  `GetInstanceID()` in a plain table, closing the open note in the Chessplayer entry above. A weak table
+  keyed by the Lua wrapper loses the value when the wrapper is collected; the next pass then reads the
+  value it set (best fit already off, a position already moved) as the prefab's, so names could shrink
+  step by step and the Menu button parts creep right by 36 units at a time. `_lobbyBtnItems` and
+  `_mainMenuNames` stay weak: they only list live items.
+- **Staged from the phone's package `10`** (`1e515be3…`, `20d7c307…`): the six scripts re-keyed by the
+  same text change in place (they already carried the old edit); for the four with a pristine copy in the
+  dump's override (`2C5B589676763044`, `FC07FFAAB85F0418`, `7C2AE97D11BD7B4F`, `D752489AB26CEFC8`) the
+  result equals a fresh `rewrite_script`; `A7D00B2D657BB71F` and `EFB633FD63FC35CF` are prime-only. Plus
+  the tab and moment-tip edits from pristine. All eight compile (Lua 5.5, `lupa`). `10.db` `b0838caf…`,
+  `10_0.db` `81e16c43…`.
+- **Pushed** as root (no APK), game stopped, owner and context copied from the cache folder, `Watchdog`
+  cleared. A first attempt ran from Git Bash without `MSYS_NO_PATHCONV=1`: the device path was rewritten,
+  `adb push` failed, and `cat missing > 10.db` truncated `10.db` to zero bytes before `set -e` stopped
+  the script. The second attempt verified both files' hashes in `/data/local/tmp` before writing.
+- **On the phone** (Redmi Note 9 Pro, 1.11.0.2, English): the game loads; the lobby's Menu button,
+  divider and top bar sit where the 2026-11-21 build put them and stay there after the Menu panel is
+  opened and closed (no 36-unit creep); Chessplayer, Card and Lineup at one size; the Menu panel's twelve
+  names at one size; the Card screen's faction tabs at one size with "Three Kingdoms" clear of Zhulu
+  Plateau. The match-end ranking tabs and the All Things Moment tip need a finished ranked match and are
+  not yet seen.
