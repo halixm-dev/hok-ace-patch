@@ -94,8 +94,9 @@ DEVICE_REVISIONS: dict[int, int] = {
 # rects. This repo's art for it lives in resources/<SPRITE_ART>/<HASH>/, beside the catalogs: labels/
 # holds renders for sprites the catalog never translated, restore/ the pristine crops of the sprites the
 # old offset-for-offset port overwrote. Both are top-down RGBA PNGs at the sprite's own size, made by
-# tools/research/atlas_sprites.py. Every language draws the same labels/ renders: the Career atlas's rank
-# names and the Secret Technique card titles stay English in Indonesian too.
+# tools/research/atlas_sprites.py. A label is labels/<language code>/<sprite>.png for the patch language,
+# else the English one, else the shared labels/<sprite>.png, which every language draws: the Career atlas's
+# rank names and the Secret Technique card titles stay English in Indonesian too.
 SPRITE_ART = "sprites"
 # Wording of each label render, by atlas then sprite. Free translations where the catalog has none,
 # recorded here the way extra_text.OFFICIAL_FIXES records its own. The Career renders are hand-polished,
@@ -142,6 +143,22 @@ ATLAS_LABELS: dict[str, dict[str, str]] = {
         "Image_68423477": "FRIENDS GALORE",                   # 朋友多多
         "Image_753932360": "TIME LOOP",                       # 时之回环
         "Image_115131202": "JING HONG DIAO",                  # 惊鸿调
+    },
+    # The lobby atlas (UIResources/Lobby): the Super Weekend states of the start button's label
+    # (UILobbyClass textStatus, SetSimilarSpriteByIndex 2 and 3), which the catalog's two regions on this
+    # atlas do not cover. The event's steady label is the warm 开始游戏 twin of LABEL_TEXTURES' A71C (the
+    # same art, mean difference about 5 levels), so it draws that approved art per language (en START
+    # GAME, id MULAI GAME); 超级周末 flashes in on login, Super Weekend in both catalogs. Measured on the
+    # Redmi, game data 1.11.0.2, 2026-11-21.
+    "C9F49510F2F67402": {
+        "Image_2023783232": "START GAME",     # 开始游戏 (UILobbyClassTextStatus.StartPlayTwo); id: MULAI GAME
+        "Image_1495219937": "SUPER WEEKEND",  # 超级周末 (UILobbyClassTextStatus.SuperWeekends)
+    },
+    # The ready atlas (CANCEL READY / WAITING FOR PLAYERS): 1.11.0.2 put the same 超级周末 sprite where
+    # CONFIRM CHOICE was (608,106)-(980,208), so the old offset port's damage lies under it. Drawing the
+    # lobby's SUPER WEEKEND over its whole box gives clean and damaged input the same result.
+    "E86DF43167CA2143": {
+        "Image_1495219937": "SUPER WEEKEND",  # 超级周末, the same art as the lobby atlas's (mean diff 8)
     },
 }
 LABEL_PASSES = 4  # redraws label_atlas allows before it returns what it has
@@ -466,7 +483,10 @@ def atlas_art(catalog: Path, texture: str, sprites: dict[str, tuple[int, int, in
     from PIL import Image
 
     root = Path(catalog).parent / SPRITE_ART / texture
-    labels = [root / "labels" / f"{name}.png" for name in sorted(ATLAS_LABELS.get(texture, {}))]
+    codes = list(dict.fromkeys((for_catalog(catalog).code, ENGLISH.code, "")))
+    labels = [next((path for path in (root / "labels" / code / f"{name}.png" for code in codes)
+                    if path.is_file()), root / "labels" / f"{name}.png")
+              for name in sorted(ATLAS_LABELS.get(texture, {}))]
     art: tuple[dict[str, bytes], dict[str, bytes]] = ({}, {})
     for found, paths in zip(art, (labels, sorted((root / "restore").glob("Image_*.png")))):
         for path in paths:
@@ -503,6 +523,11 @@ def port_atlas(mobile_raw: bytes, graphic: dict, catalog: Path,
     keeps there (9 of the Career atlas's 13 labels did). So each region's English pixels are decoded out
     of the payload at the region's PC box and composited into the same sprite's **device** box.
 
+    A region whose sprite the device's table no longer carries is left out: no screen can draw it, and
+    the other regions still land at their own boxes (1.11.0.2 dropped CONFIRM CHOICE from
+    ``E86DF43167CA2143`` and kept CANCEL READY and WAITING FOR PLAYERS). A region the table carries at
+    another size refuses the whole atlas, and so does an atlas with no region left and no label to draw.
+
     The phone may already carry the old offset port's damage, so the pixels it could have damaged are
     taken from data rather than from the device copy wherever data exists: the blocks that port wrote
     (the payload's ``patch_ranges``) are redrawn from this repo's restoration crops (``atlas_art``),
@@ -522,12 +547,17 @@ def port_atlas(mobile_raw: bytes, graphic: dict, catalog: Path,
     moves: list[tuple[tuple[int, ...], tuple[int, ...]]] = []
     for region in graphic["regions"]:
         pc, device = tuple(region["box"]), sprites.get(region.get("sprite", ""))
-        if device is None or (device[2] - device[0], device[3] - device[1]) != (pc[2] - pc[0], pc[3] - pc[1]):
+        if device is None:
+            continue  # the device dropped this sprite: nothing draws it, so its English is left out
+        if (device[2] - device[0], device[3] - device[1]) != (pc[2] - pc[0], pc[3] - pc[1]):
             return None
         moves.append((pc, tuple(device)))
     payload = payload_path(catalog, graphic["payload"]).read_bytes()
     labels, restorations = atlas_art(catalog, graphic["hash"], sprites)
-    if all(pc == device for pc, device in moves) and not labels and not restorations:
+    if not moves and not labels:
+        return None
+    if (len(moves) == len(graphic["regions"]) and all(pc == device for pc, device in moves)
+            and not labels and not restorations):
         if codec == "bc7":
             return _apply_blocks(mobile_raw, graphic, payload)
         return _port_blocks(mobile_raw, graphic, payload)

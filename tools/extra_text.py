@@ -23,6 +23,7 @@ import struct
 import unicodedata
 from pathlib import Path
 
+import config_bin
 import lineup_codes
 import pb_text
 
@@ -41,7 +42,21 @@ BOT_NAME_ASSETS = {0x2D1113B0AD51A562}
 #                        Data 1.7.0.1 (57 rows, plus TalentDesc, EffectCardDesc and Author): passed
 #                        2026-10-22, same phone, English: names, descriptions, the author suffix and a
 #                        lineup's detail read translated, no popup, no repair.
-SAFE_ASSETS: frozenset[int] = frozenset({0xF79FB1A213A9DA90})
+#   0x9E924AAB5066EE19   the Super Weekend room perks (the room screen's event line): rows translated
+#                        through the supplement, fields 1 and 4 resealed (`_resealed`). Cleared
+#                        2026-11-21, Redmi Note 9 Pro (ebad528e), Root push, data 1.11.0.2, English: the
+#                        room reads "Double Diamonds from card flips 2/3，Shared Score with no Intimacy
+#                        limit", the counter advanced over the matches played, a match ended without the
+#                        QTS-failure popup, and no package was repaired. Mobile edition only: no PC cycle
+#                        yet, so it is not on `PC_SAFE_ASSETS` and stays on `CANDIDATE_ASSETS` for one.
+SAFE_ASSETS: frozenset[int] = frozenset({0xF79FB1A213A9DA90, 0x9E924AAB5066EE19})
+# The PC edition's own allowlist (AGENTS.md, "Allowlist per edition"): a config bin a device cycle cleared
+# stays untranslated on the PC edition until a PC cycle clears it there, so `pc_catalog` carries only
+# these, plus a PC cycle's one candidate (`resolve_candidates`). Empty: neither mobile bin has had a PC
+# cycle. The room perks bin passed `--pc-selftest` on a copy (2026-11-21), which is not a screen.
+PC_SAFE_ASSETS: frozenset[int] = frozenset()
+# The package a config bin sits in on the PC edition; one it lacks is found by a logged scan of every index.
+CONFIG_PC_PACKAGE = "1"
 # Rewrites that were tried on device and withdrawn (2026-09-30 / 10-01). Each was a single-variable
 # device cycle: the same build, with one more asset enabled, watching the screen it feeds.
 #   0x5214339F97C419ED   task names: translating it makes a tournament replay SIGSEGV -- signal 11,
@@ -94,6 +109,16 @@ SAFE_ASSETS: frozenset[int] = frozenset({0xF79FB1A213A9DA90})
 # the class is safe. Those eleven are step, buff, nickname and damage identifiers the catalog reaches 1.5-9% of, so a
 # cycle on one would add a handful of strings and risk a screen the note above already lists a synonym of.
 CANDIDATE_ASSETS: dict[int, str] = {
+    # The Super Weekend room perks, queued 2026-11-21 ahead of the rest because the event is time-limited
+    # and its room line shows only while it runs. Package 1, 293 B, the same bytes on the phone (1.10.1.2)
+    # and the PC edition (1.11.0.2); absent at 1.8.0.1. Seven rows of (id, name, sort); the room screen
+    # joins the active names with `，` and fills `%d/%d`. A sealed config bin, so `rewrite_config` reseals
+    # it after the generic rewrite (`_resealed`). None of the seven is in the catalog; the supplement's
+    # "Super Weekend room perks" section supplies them in both languages. Cleared on the phone 2026-11-21
+    # and on `SAFE_ASSETS`; it stays here for the PC cycle it still owes (`PC_SAFE_ASSETS`).
+    0x9E924AAB5066EE19: "7 of 7 (7 fields), via the supplement -- Super Weekend room perks (翻牌钻石翻倍 "
+                        "%d/%d, 有分同享不限亲密度, ...), the room screen's event line; sealed, resealed; "
+                        "mobile cleared 2026-11-21, PC cycle owed",
     # The other two lineup bins (`lineup_codes.LINEUP_BINS`), queued apart from the fifteen: their text
     # sits inside share codes, so `rewrite_config` translates them through `lineup_codes.rewrite_bin`,
     # which also reseals the checksum the withdrawn config bins were left with stale. Counts are distinct
@@ -689,7 +714,8 @@ def rewrite_config(file_hash: int, raw: bytes, catalog, log=None,
     share codes the generic protobuf rewrite cannot see, and stores a checksum over its rows, so it
     goes through `lineup_codes.rewrite_bin`, which translates inside the codes and reseals the bin.
     Its resource tokens are expanded string by string before the reseal, because expanding them in
-    the finished bin would leave the checksum stale. Every other asset goes through `pb_text.rewrite`.
+    the finished bin would leave the checksum stale. Every other asset goes through `pb_text.rewrite`,
+    and one that was a sealed config bin is resealed after it (`_resealed`), or refused.
     <terms> are the patch language's resource terms (`languages`); English when omitted.
     """
     from resource_tokens import RESOURCE_TOKENS, expand_resource_tokens, expand_tokens
@@ -715,9 +741,38 @@ def rewrite_config(file_hash: int, raw: bytes, catalog, log=None,
         new, changed = pb_text.rewrite(raw, translator_for(file_hash, catalog))
     except pb_text.NotMessage:
         return None
+    if not changed:
+        return None
     # The replacement comes from the catalog verbatim, so it carries the same {Energy}-style tokens the
     # staged path has to expand; the client would otherwise render them in Chinese.
-    return expand_tokens(new, log, terms) if changed else None
+    new = expand_tokens(new, log, terms)
+    return _resealed(file_hash, raw, new, log)
+
+
+def _resealed(file_hash: int, raw: bytes, new: bytes, log=None) -> bytes | None:
+    """<new> resealed when <raw> is a sealed config bin, <new> itself when <raw> is not; None to refuse.
+
+    The client checks field 4 of a sealed bin and frees a bin whose checksum is stale, so the game drops
+    what it feeds (ADR 0005; the withdrawals above). A rewritten sealed bin therefore gets fields 1 and 4
+    recomputed over its final bytes, after the token expansion, and is refused when it does not read back
+    sealed.
+    """
+    try:
+        sealed = config_bin.is_sealed(raw)
+    except config_bin.NotConfigBin:
+        sealed = False
+    if not sealed:
+        return new
+    try:
+        resealed = config_bin.encode(config_bin.reseal(config_bin.fields(new)))
+        if config_bin.is_sealed(resealed):
+            return resealed
+        problem = "the resealed bin does not pass its own checksum"
+    except config_bin.NotConfigBin as error:
+        problem = f"the rewrite does not parse as a config bin ({error})"
+    if log is not None:
+        log(f"  {file_hash:016X}: sealed config bin not translated ({problem})")
+    return None
 
 
 def extend_text(game: Path, catalog, output: Path, log, skip_packages: set[str] = frozenset(),

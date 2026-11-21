@@ -2,6 +2,18 @@
 
 ## Report
 
+**2026-11-21: `9E924AAB5066EE19`, the Super Weekend room perks, cleared on the mobile edition.** The first
+sealed config bin outside the lineup bins to be rewritten: `rewrite_config` now reseals any sealed bin
+after the generic `pb_text` rewrite and token expansion (`_resealed`), and refuses one that does not read
+back sealed. Its 7 strings come from the catalog supplement's "Super Weekend room perks" section. One
+device cycle, English, Redmi Note 9 Pro, Root push, data 1.11.0.2: the room reads "Double Diamonds from
+card flips 2/3，Shared Score with no Intimacy limit", matches end without the QTS-failure popup, and no
+package was repaired, so it is on `SAFE_ASSETS`. The PC edition gained its own allowlist,
+`extra_text.PC_SAFE_ASSETS` (empty), and a PC cycle's switch, `--pc-job ... --cycle-asset <hash>`
+(`pc_catalog._config_bins`). The bin passes `--pc-selftest` on a copy, but its PC cycle was skipped (the
+user's decision), so it stays on `CANDIDATE_ASSETS` for the PC edition. Evidence: lab notebook,
+2026-11-21, "Super Weekend room perks".
+
 **2026-10-21: `F79FB1A213A9DA90` cleared, the first candidate on `SAFE_ASSETS` (official-lineups ticket
 05).** Control and cycle builds, English then Indonesian, on a Xiaomi M2007J3SG with data 1.6.0.1. With the
 bin rewritten and resealed, the Official recommendation reads translated, and the detail, *Use*, copy and

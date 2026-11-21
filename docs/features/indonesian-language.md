@@ -26,7 +26,9 @@ path, and the path *is* the language.
   atlas whose `start_game` sprite is the same pixels). Every other texture edit is the English one.
 - The Super Weekend skin of the same button (`A71C734D3EFAFBFF`, which the catalog lacks) also reads
   MULAI GAME: `resources/sprites/A71C734D3EFAFBFF/labels/id/start_game.png`, the MULAI GAME render
-  re-shaded to the event's colour (`mobile_graphics.LABEL_TEXTURES`, `texture-translation.md`).
+  re-shaded to the event's colour (`mobile_graphics.LABEL_TEXTURES`, `texture-translation.md`). The
+  lobby draws the skin from the lobby atlas's `Image_2023783232`, which carries the same art per language
+  (`resources/sprites/C9F49510F2F67402/labels/id/`), the first atlas label not English in Indonesian.
 - `{Energy}`/`{LordExp}`/`{LordHp}` expand to the language's terms (`Language.resource_terms`):
   Indonesian writes `Energy`, `EXP Chessplayer`, `HP Chessplayer`, the order its own catalog uses.
 - `device_patch_summary.json` gains `language`, and the run logs `language: <name> (<catalog dir>)`.
