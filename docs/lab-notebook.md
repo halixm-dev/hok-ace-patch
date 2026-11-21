@@ -6788,12 +6788,15 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   labels in 76-unit boxes. Each stat button is 190 units wide. The Chessplayer tab and difficulty
   rows are 460 units wide. Placing the Career number and unit in separate text fields left the
   three-digit Match count touching its label. Drawing the pair in one text field keeps the gap after
-  the count and uses the prefab's localized title.
+  the count and uses the prefab's localized title. The stat renderer drew the pair about 20 units
+  left of the divider midpoint even after moving the text rect. A transparent inset centered the
+  visible text without affecting the original buttons.
 - **Staged** the three Lua edits against the phone's package `10`. All three compile, survive a
   package read-back, and match the bytes staged from the 1.10.1.2 dump with the English and
   Indonesian catalogs. A hash-verified backup of the phone's package was kept before testing.
 - **Seen on the phone** with the final package. The four Career cells grew from 196 to 252 units so the
-  tabs could use larger type at one size. The selection line follows the wider cells, and Match,
-  Like, and Days stay readable after switching from Overview to Record and back. On Qiao Xi,
+  tabs could use larger type at one size. The selection line follows the wider cells. Match,
+  Like, and Days sit between their dividers and stay aligned after switching from Overview to
+  Record and back. On Qiao Xi,
   Overview, Skill, and Combat Power align on one row. The difficulty indicators, tags, and skill
   captions have room, and the Combat Power value clears its info icon.

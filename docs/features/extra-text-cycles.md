@@ -109,7 +109,8 @@ their icons, the friend panel's tabs (`7C2AE97D11BD7B4F`) share one name size, a
 
 Career tabs (`314286AA90A60098`) use wider cells and share a larger font size that leaves room for
 the notification dot.
-The Match, Like, and Days labels (`C08C09E32934B2D1`) use larger type with a gap after each number.
+The Match, Like, and Days labels (`C08C09E32934B2D1`) use larger type and share a baseline with their
+counts. Each pair is centered between the dividers.
 The Chessplayer detail panel (`3EF1BE086B77011A`) sizes its tabs to their labels, aligns them on one
 row, and fits the difficulty tags and skill captions within their rows.
 

@@ -1168,17 +1168,19 @@ _CAREER_STAT_SPACING = """    self:SetLine(true)
         valueTf.anchorMax = center
         valueTf.pivot = center
         valueTf:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, 172)
-        valueTf.anchoredPosition = CSVector2(16, 0)
+        valueTf.anchoredPosition = CSVector2(0, 0)
         value.alignment = CS.UnityEngine.TextAnchor.MiddleCenter
         value.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow
         value.verticalOverflow = CS.UnityEngine.VerticalWrapMode.Overflow
         value.resizeTextForBestFit = false
         value.supportRichText = true
-        value.fontSize = 30
-        value.text = tostring(data.value or 0) .. "  <size=25>" .. unit.text .. "</size>"
+        value.fontSize = 27
+        -- The prefab draws the text about 20 units left of the cell center.
+        -- Give the renderer a transparent leading space half that advance on center alignment.
+        local inset = "<color=#FFFFFF00>00 </color>"
+        value.text = inset .. tostring(data.value or 0) .. " " .. unit.text
         if value.preferredWidth > 172 then
-            value.fontSize = math.max(1, math.floor(30 * 172 / value.preferredWidth))
-            value.text = tostring(data.value or 0) .. "  " .. unit.text
+            value.fontSize = math.max(1, math.floor(27 * 172 / value.preferredWidth))
         end
         unit.enabled = false
     end
