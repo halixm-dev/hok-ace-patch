@@ -6720,6 +6720,7 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
 - **Offline** (`D:\scratch\event-room-line\joiner`, the 1.11.0.2 dump plus its APK): the build writes 10
   extra assets in package `10`; the script's newest slot decodes to 42 934 bytes with both joiners `", "`
   and none `"，"`; a second `rewrite_script` changes nothing. Not compiled (no `lupa` in `.venv`).
-  `qts_relocate.read_raw` over the staged package returns an older slot of a relocated script (the rank
-  title edit reads unedited the same way), so check staged scripts by their newest slot.
+  `qts_relocate.read_raw` over the staged package, without `qts_relocate.install_btree_slot_map()` first,
+  returns a superseded slot of a relocated script (the rank title edit reads unedited the same way); the
+  staging contract names that call for exactly this reason.
 - **Open:** not yet on a phone.
