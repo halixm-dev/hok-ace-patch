@@ -14,8 +14,9 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **fifteen Lua edits** (`extra_text.SCRIPT_EDITS`) **and one config bin**
-(`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21) —
+(`extra_text.SCRIPT_LABELS`), **sixteen Lua edits** (`extra_text.SCRIPT_EDITS`) **and two config bins** on the mobile edition
+(`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21, and
+`9E924AAB5066EE19`, the Super Weekend room perks, since 2026-11-21) —
 nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
 
@@ -315,7 +316,10 @@ Re-measure:
 ## Translated outside the catalog
 
 `extra_text` (over `pb_text` and `unity_text`) translates display strings the catalog has no
-localization table for. Its config-asset allowlist, `SAFE_ASSETS`, is device-gated and holds **one** bin:
+localization table for. Its config-asset allowlist, `SAFE_ASSETS`, is device-gated and holds **two** bins.
+The second, since 2026-11-21, is `9E924AAB5066EE19`, the Super Weekend room perks: 7 of 7 strings, all
+from the catalog supplement, rewritten and resealed (`extra_text._resealed`), so the room screen's event
+line reads translated; device-cleared in English on a Redmi Note 9 Pro, data 1.11.0.2. The first is
 `F79FB1A213A9DA90` (`ResSeasonAILineupDataBin`), the Lineup → Official recommendation lineups, 118 of
 118 distinct strings (264 fields) inside its 28 share codes and its rows, translated and resealed
 (`lineup_codes.rewrite_bin`). Device-cleared on 2026-10-21 (Xiaomi M2007J3SG, data 1.6.0.1) in English
@@ -403,6 +407,10 @@ Chinese. Known titles are looked up in a table the pass writes from the catalog
 (`extra_text.SCRIPT_TRANSLATIONS`, the pairs in the supplement, one so far: "Unstoppable Legendary Penta
 Kill"); an unknown Chinese title, or a Chinese server default, is dropped and the tip shows alone ("Tap
 to Generate All Things Moment report"). Offline only (2026-11-22): not yet seen on a phone.
+The sixteenth joins the room's Super Weekend perks with an English comma: `UIPVPRoomClass`
+(`31A01EDC4D72FCCE`, package `10`) joined them with `，`, so the room read "Double Diamonds from card
+flips 2/3，Shared Score with no Intimacy limit" on 1.11.0.2 even with the perks bin translated. Offline
+only (2026-11-22): not yet seen on a phone.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 
@@ -421,7 +429,22 @@ textures (247 in all, the same in both languages), the label being the 24th; the
 overrides 49 assets in English and 50 in Indonesian against ticket 05's 48 and 49. Verified offline
 2026-11-21, not yet on screen; the skin shows only during the event.
 
-34 images are this repo's own, not the catalog's. Two are on the Career atlas `13C19E4E4486B31C`,
+The button the lobby actually draws during the event is not that texture: `UILobbyClass` swaps its label
+(`textStatus`) between four sprites of the lobby atlas `C9F49510F2F67402`, and the catalog's two regions
+there cover only the plain START GAME and BATTLE TRAINING. The event's steady label `Image_2023783232` (the
+warm 开始游戏, the same art as `A71C734D3EFAFBFF`) and the login flash `Image_1495219937` (超级周末) are two
+more of this repo's labels (`mobile_graphics.ATLAS_LABELS`): **START GAME** / **MULAI GAME** per language,
+and **SUPER WEEKEND** in both (the supplement's "Super Weekend"). They are drawn into a texture the
+catalog already edits, so they add no texture to the count. Device-verified on the lobby, START GAME
+2026-11-21 and the SUPER WEEKEND flash on the user's report 2026-11-22 (English, Redmi, data 1.11.0.2).
+
+The room's ready atlas `E86DF43167CA2143` carries the same 超级周末 sprite where 1.11.0.2 dropped CONFIRM
+CHOICE, and draws the same **SUPER WEEKEND** over it. That atlas is ported again since 2026-11-21: a sprite
+the device dropped is now left out instead of refusing the atlas (ADR 0006, amended), so the room's
+**CANCEL READY** and **WAITING FOR PLAYERS** are back, and package `19` applies 24 of 24 textures over the
+1.11.0.2 dump. CANCEL READY device-verified in the Ranking room, 2026-11-21, and WAITING FOR PLAYERS on the user's report, 2026-11-22 (English, Redmi).
+
+37 images are this repo's own, not the catalog's. Three are on the lobby and ready atlases (above). Two are on the Career atlas `13C19E4E4486B31C`,
 `Image_410780920` `我的皮肤` → **MY SKINS** (no catalog entry) and `Image_920603129` `总盈利` → **TOTAL
 PROFIT** (the text table's "Total profit"), in `resources/sprites/` (`mobile_graphics.ATLAS_LABELS`). They
 are drawn into a texture the catalog already edits, so they add no texture to the count. Every language
@@ -508,7 +531,7 @@ with MULAI GAME on its start button (`indonesian-language.md`, *Device cycle*):
 | Textures applied | 398 (395 before the device revisions) |
 | Text tables skipped | 1 (`0196F0E230EC1C70`, the append encoder's refusal) |
 | Textures skipped | 0 |
-| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME), plus the repo-drawn event label `A71C734D3EFAFBFF` (MULAI GAME) since 2026-11-21 |
+| Textures re-drawn in Indonesian | 2 (`863114A42F12EF76`, `C9F49510F2F67402`: the lobby's START GAME → MULAI GAME), plus the repo-drawn event label `A71C734D3EFAFBFF` and the lobby atlas's event sprite `Image_2023783232` (MULAI GAME) since 2026-11-21 |
 
 The other 396 applied textures carry the English edit. Two gaps are specific to the language:
 
@@ -525,8 +548,9 @@ The other 396 applied textures carry the English edit. Two gaps are specific to 
 The Windows patcher also installs into the PC edition (`app/pc_edition.py`). The runtime engine writes
 the catalog in place under `WXQ_Data\Package\builtin\`, from a per-install copy of the catalog
 (`tools/pc_catalog.py`). There is no prime layer, so nothing is appended. No card dictionary gains a
-chunk, and no config bin is translated: the allowlist is per edition, and no PC cycle has cleared a
-bin yet. The PC counts below come from the frozen exe's `--pc-selftest` on a full copy of the PC
+chunk, and no config bin is translated: the allowlist is per edition (`extra_text.PC_SAFE_ASSETS`), and
+no PC cycle has cleared a bin yet. The room perks bin `9E924AAB5066EE19` stages on a PC copy with
+`--cycle-asset` (2026-11-21) and waits for its PC cycle. The PC counts below come from the frozen exe's `--pc-selftest` on a full copy of the PC
 edition at game data **1.11.0.2**, as the copy's `WXQ_Data\StreamingAssets\Config\Version.txt` reads
 (2026-11-20, `pc_selftest.json`, lab notebook "PC edition ticket 02").
 That run stages each language and has the engine verify it. An English install on the same copy
@@ -534,7 +558,8 @@ reported the same counts and verified every package. The installed game gave the
 cycle per language (2026-11-21, launcher 26111.0.4.30004, data 1.11.0.2, lab notebook "PC edition ticket
 05"): the lobby reads English or Indonesian, and the start button's event skin (开始游戏, "Super Weekend
 Perks Are Here!") is not in the catalog and stays Chinese in both editions; it hides the two START GAME
-textures, which are written.
+textures, which are written. Since 2026-11-21 this repo draws the skin's sprites in the lobby atlas
+(see "Translated outside the catalog"); the phone shows them, the PC edition is not yet cycled.
 
 | result | Mobile edition (data 1.9.0.1, 2026-11-05) | PC edition, English | PC edition, Indonesian |
 |---|---:|---:|---:|
@@ -555,7 +580,8 @@ textures, which are written.
   Secret Technique title atlas and the assets its relayout moves, and the Lua label and edits. The
   Indonesian count is one higher: a re-drawn payload, re-hashed from the installed original.
 - **The refused atlas** is the ready atlas. Its installed source does not match the catalog, and its
-  sprite table has no `Image_1585869273`. The mobile layer skips the same atlas.
+  sprite table has no `Image_1585869273`. The mobile layer skipped the same atlas. Since 2026-11-21 both
+  editions port it without that sprite (ADR 0006, amended); these counts predate that.
 - **The six unreadable assets:** the English install's `skipped` list names six assets, all in package
   `1`, each with "Asset length differs from its current index descriptor". That matches the count.
 - **The window title** stays 王者万象棋. The launcher lists the title file, and a translated title

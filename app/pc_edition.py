@@ -40,7 +40,9 @@ engine's `<work>\\staged\\` (whole packages, about 4 GB) is removed; the receipt
 
 **A job runs in a child process**: the exe re-invoked as
 `--pc-job <action> <game> <work> <answer.json> <language>` at low priority, answering through a JSON
-file written atomically (`job`). The engine holds the GIL for minutes and would freeze the window.
+file written atomically (`job`). A PC cycle runs the job from source with `--cycle-asset <hash>` after
+those five, which turns one `extra_text.CANDIDATE_ASSETS` config bin on for that job (pc-cycle runbook);
+the window never passes it. The engine holds the GIL for minutes and would freeze the window.
 `--pc-selftest <game copy> <out>` stages both languages against a copy without writing to it.
 """
 from __future__ import annotations
@@ -348,11 +350,13 @@ def _looks_translated(counts: dict) -> bool:
     return int(counts.get("already_english", 0)) > int(counts.get("translated", 0))
 
 
-def _stage(game: Path, work: Path, language: str, state: dict | None, log) -> "pc_catalog.Stage":
+def _stage(game: Path, work: Path, language: str, state: dict | None, log,
+           cycle_assets: frozenset[int] = frozenset()) -> "pc_catalog.Stage":
     if not (languages.catalog_dir(BUNDLE, language) / "catalog.json.gz").is_file():
         raise PatchError("pc_catalog_missing", language=language)
     previous = state.get("patched", {}) if state and state.get("language") == language else {}
-    return pc_catalog.build(game, BUNDLE, language, work, version=_version(), previous=previous, log=log)
+    return pc_catalog.build(game, BUNDLE, language, work, version=_version(), previous=previous,
+                            cycle_assets=cycle_assets, log=log)
 
 
 def _classify(game: Path, state: dict | None, receipts: list[dict], counts: dict | None) -> str:
@@ -368,10 +372,10 @@ def _classify(game: Path, state: dict | None, receipts: list[dict], counts: dict
     return NOT_INSTALLED
 
 
-def check(game: Path, work: Path, language: str, *, log=print) -> dict:
+def check(game: Path, work: Path, language: str, *, log=print, cycle_assets: frozenset[int] = frozenset()) -> dict:
     """Check: build (or reuse) the stage, run the engine's scan, and say which of `STATES` the game is in."""
     state = read_state(work, game)
-    stage = _stage(game, work, language, state, log)
+    stage = _stage(game, work, language, state, log, cycle_assets)
     _empty_replacements(work)
     result = _engine("status", game, stage.catalog, work)
     answer = _classify(game, state, _install_receipts(game), result.get("counts", {}))
@@ -385,13 +389,14 @@ def _drop_staged(work: Path) -> None:
     shutil.rmtree(Path(work) / "staged", ignore_errors=True)
 
 
-def install(game: Path, work: Path, language: str, *, log=print) -> dict:
+def install(game: Path, work: Path, language: str, *, log=print,
+            cycle_assets: frozenset[int] = frozenset()) -> dict:
     """Install <language>, restoring another language first; see the module docstring for the refusals."""
     state = read_state(work, game)
     receipts = _install_receipts(game)
     written = _files_written(receipts)
     if not written and not (state or {}).get("files"):
-        stage = _stage(game, work, language, state, log)
+        stage = _stage(game, work, language, state, log, cycle_assets)
         _empty_replacements(work)
         scan = _engine("status", game, stage.catalog, work)
         if _classify(game, state, receipts, scan.get("counts", {})) == FOREIGN:
@@ -408,7 +413,7 @@ def install(game: Path, work: Path, language: str, *, log=print) -> dict:
             state = None
         else:
             log("PC edition: the receipts no longer describe the files (a launcher update); installing anew")
-    stage = _stage(game, work, language, state, log)
+    stage = _stage(game, work, language, state, log, cycle_assets)
     _empty_replacements(work)
     result = _engine("install", game, stage.catalog, work)
     files = {relative: digest for relative, digest in _files_written(_install_receipts(game)).items()
@@ -429,8 +434,12 @@ def restore(game: Path, work: Path, *, log=print) -> dict:
     return {"action": "restore", "state": NOT_INSTALLED, "language": None, "message": result.get("message", "")}
 
 
-def run(action: str, game: Path, work: Path, language: str, *, log=print) -> dict:
+def run(action: str, game: Path, work: Path, language: str, *, log=print,
+        cycle_assets: frozenset[int] = frozenset()) -> dict:
     """One PC job: `install`, `status` (Check) or `restore`, on the game at or under <game>.
+
+    <cycle_assets> is a PC cycle's one candidate config bin (`extra_text.resolve_candidates`), staged
+    for Check and Install beside `extra_text.PC_SAFE_ASSETS`.
 
     Returns a JSON-able answer with ``state`` (one of `STATES`, or `FOREIGN` from Check) and the
     engine's counts and message. Every failure a player can meet raises `PatchError`.
@@ -443,12 +452,14 @@ def run(action: str, game: Path, work: Path, language: str, *, log=print) -> dic
     engine_hooks.install(receipts=receipts_root(work), log=log)
     started = time.perf_counter()
     if action == "status":
-        answer = check(game, work, language, log=log)
+        answer = check(game, work, language, log=log, cycle_assets=cycle_assets)
     elif action == "install":
-        answer = install(game, work, language, log=log)
+        answer = install(game, work, language, log=log, cycle_assets=cycle_assets)
     else:
         answer = restore(game, work, log=log)
     answer["seconds"] = round(time.perf_counter() - started, 1)
+    if cycle_assets:
+        answer["cycle_assets"] = [f"{asset:016X}" for asset in sorted(cycle_assets)]
     return answer
 
 
@@ -482,8 +493,12 @@ def read_answer(answer: Path) -> dict:
     return data["result"]
 
 
-def job(action: str, game: str, work: str, answer: str, language: str) -> int:
-    """`--pc-job`: run one job, log to `<answer>.log`, answer `{"ok": ..., "result" | "keys": ...}` atomically."""
+def job(action: str, game: str, work: str, answer: str, language: str, *cycle: str) -> int:
+    """`--pc-job`: run one job, log to `<answer>.log`, answer `{"ok": ..., "result" | "keys": ...}` atomically.
+
+    <cycle> is empty, or `--cycle-asset <hash>` for a PC cycle (from source only; the window never
+    passes it).
+    """
     try:
         kernel = ctypes.windll.kernel32
         kernel.SetPriorityClass(kernel.GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS)
@@ -496,7 +511,16 @@ def job(action: str, game: str, work: str, answer: str, language: str) -> int:
 
         sys.stdout = sys.stderr = log_file
         try:
-            payload = {"ok": True, "result": run(action, Path(game), Path(work), language, log=log)}
+            cycle_assets: frozenset[int] = frozenset()
+            if cycle:
+                import extra_text
+
+                if len(cycle) != 2 or cycle[0] != "--cycle-asset":
+                    raise ValueError(f"unknown PC job options {cycle!r}")
+                cycle_assets = frozenset(extra_text.resolve_candidates(cycle[1]))
+                log("PC cycle: enabling " + ", ".join(f"{asset:016X}" for asset in sorted(cycle_assets)))
+            payload = {"ok": True, "result": run(action, Path(game), Path(work), language, log=log,
+                                                 cycle_assets=cycle_assets)}
         except PatchError as error:
             payload = {"ok": False, "keys": list(error.keys), "error": str(error),
                        "values": {name: str(value) for name, value in error.values.items()}}
@@ -508,8 +532,9 @@ def job(action: str, game: str, work: str, answer: str, language: str) -> int:
     return 0 if payload["ok"] else 1
 
 
-def selftest(game: Path, out: Path) -> None:
-    """`--pc-selftest <game copy> <out>`: stage each language and let the engine verify it, writing nothing.
+def selftest(game: Path, out: Path, cycle_assets: frozenset[int] = frozenset()) -> None:
+    """`--pc-selftest <game copy> <out> [--cycle-asset <hash>]`: stage each language and let the engine
+    verify it, writing nothing. <cycle_assets> is a PC cycle's candidate, staged as `run` stages it.
 
     The engine's `stage` action materializes the replacements and checks them without a commit, so the
     copy is never written and no process guard applies. `<out>/pc_selftest.json` has one entry per
@@ -523,7 +548,7 @@ def selftest(game: Path, out: Path) -> None:
             root, work = resolve(game), out / "work"
             engine_hooks.install(receipts=receipts_root(work))
             for code in languages.LANGUAGES:
-                stage = _stage(root, work, code, None, print)
+                stage = _stage(root, work, code, None, print, cycle_assets)
                 _empty_replacements(work)
                 started = time.perf_counter()
                 result = _engine("stage", root, stage.catalog, work)

@@ -2,6 +2,18 @@
 
 ## Report
 
+**2026-11-21: `9E924AAB5066EE19`, the Super Weekend room perks, cleared on the mobile edition.** The first
+sealed config bin outside the lineup bins to be rewritten: `rewrite_config` now reseals any sealed bin
+after the generic `pb_text` rewrite and token expansion (`_resealed`), and refuses one that does not read
+back sealed. Its 7 strings come from the catalog supplement's "Super Weekend room perks" section. One
+device cycle, English, Redmi Note 9 Pro, Root push, data 1.11.0.2: the room reads "Double Diamonds from
+card flips 2/3，Shared Score with no Intimacy limit", matches end without the QTS-failure popup, and no
+package was repaired, so it is on `SAFE_ASSETS`. The PC edition gained its own allowlist,
+`extra_text.PC_SAFE_ASSETS` (empty), and a PC cycle's switch, `--pc-job ... --cycle-asset <hash>`
+(`pc_catalog._config_bins`). The bin passes `--pc-selftest` on a copy, but its PC cycle was skipped (the
+user's decision), so it stays on `CANDIDATE_ASSETS` for the PC edition. Evidence: lab notebook,
+2026-11-21, "Super Weekend room perks".
+
 **2026-10-21: `F79FB1A213A9DA90` cleared, the first candidate on `SAFE_ASSETS` (official-lineups ticket
 05).** Control and cycle builds, English then Indonesian, on a Xiaomi M2007J3SG with data 1.6.0.1. With the
 bin rewritten and resealed, the Official recommendation reads translated, and the detail, *Use*, copy and
@@ -91,8 +103,8 @@ the already-translated `PVPSettleNowQuitBtnTxt` because the button otherwise sho
 default, and the Card screen's faction tab names (`A7D00B2D657BB71F`, the tab item, with the spacing `678810D31DBD5621`, the tab bar,
 records), which take one shared font size that fits every fixed 195-unit tab and the space beside it because "Three Kingdoms" overflowed onto the next tab. Three edits tidy the lobby: the bottom-right button names (`EFB633FD63FC35CF`) take one size their
 neighbours leave room for, and the top-bar entries (`2C5B589676763044`) and the Menu button
-(`FC07FFAAB85F0418`) keep their names clear of their icons. Two edits tidy the room: the Lineup and Settings buttons (`29FE6D03415A0971`) keep their names clear of
-their icons, and the friend panel's tabs (`7C2AE97D11BD7B4F`) share one name size. The lobby Menu panel's entries (`D752489AB26CEFC8`) share one name size too, and the Chessplayer page's header (`428AF2481FE35A3A`) widens its two tabs and moves its sort toggle clear of the back title. The match-end ranking screen's tab bar (`915E19AB90FFA1D9`) widens each tab cell to its name, and the All Things Moment tip (`CC55DC213C5C6913`) translates the server's highlight title from a table `SCRIPT_TRANSLATIONS` writes into the script, or drops a title it does not know. Symptoms and dates are beside the allowlist in
+(`FC07FFAAB85F0418`) keep their names clear of their icons. Three edits tidy the room: the Lineup and Settings buttons (`29FE6D03415A0971`) keep their names clear of
+their icons, the friend panel's tabs (`7C2AE97D11BD7B4F`) share one name size, and the Super Weekend perk line (`31A01EDC4D72FCCE`) joins its perks with an English comma. The lobby Menu panel's entries (`D752489AB26CEFC8`) share one name size too, and the Chessplayer page's header (`428AF2481FE35A3A`) widens its two tabs and moves its sort toggle clear of the back title. The match-end ranking screen's tab bar (`915E19AB90FFA1D9`) widens each tab cell to its name, and the All Things Moment tip (`CC55DC213C5C6913`) translates the server's highlight title from a table `SCRIPT_TRANSLATIONS` writes into the script, or drops a title it does not know. Symptoms and dates are beside the allowlist in
 `tools/extra_text.py`; the evidence is in `docs/lab-notebook.md`'s 2026-10-05 section.
 
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the

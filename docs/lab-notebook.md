@@ -6461,6 +6461,119 @@ the phone's pristine snapshots `20261029-1.8.0.1` and `20261118-1.10.1.2`. Plan 
 - **Not run:** a phone cycle and a PC cycle with the event live, the engine's own stage verification on a
   full PC copy, and the APK-included phone run.
 
+## 2026-11-21 — Super Weekend room perks `9E924AAB5066EE19`: resealed, device cycle pass, PC cycle skipped
+
+Evidence outside the repo: `D:\scratch\event-room-line\` (bins, build log, phone hashes, screenshots in
+`evidence\`). Plan: `.scratch/event-start-button/spec.md`, decision 3.
+
+- **The bin.** Package `1`, 293 B, sealed (`config_bin.is_sealed`), byte-identical on the PC edition
+  (1.11.0.2, scratch copy) and the phone (1.10.1.2 snapshot, and the Redmi's 1.11.0.2 pristine layer).
+  Seven rows (id, name, sort); the room joins the active names with `，`.
+- **Offline, the reseal.** `rewrite_config` with the loaded catalog: English 293 → 375 B, Indonesian
+  293 → 400 B, both read back sealed, field 3 (the index) unchanged, no Chinese left. The generic
+  `pb_text.rewrite` alone leaves the bin unsealed, the failure mode of the withdrawn bins.
+- **Offline, the PC edition.** `pc_catalog --cycle-asset 9E92` on the PC scratch copy: English 50
+  assets patched, Indonesian 51 (49 / 50 without it). `--pc-selftest ... --cycle-asset 9E92` on the full
+  copy `C:\scratch\pc-edition-02\game` (package indexes equal to `D:\WXQ`'s): `ok: true` in both
+  languages, 361 graphics (ticket 05's 359, the start label and this bin), package `1` 397 replacements.
+- **Device cycle, English: pass.** Redmi Note 9 Pro (`ebad528e`, KernelSU), original game APK, data
+  1.11.0.2. The Android patcher's Remove translation first (03:37), then the pristine `packages` and
+  `Watchdog` pulled as root (3.3 GB, the rollback copy) and the phone's `base.apk`. Built with
+  `build_device_patch.py --apk ... --cycle-asset 9E924AAB5066EE19`: package `1` "2 extra assets
+  translated"; the staged bin reads back sealed and byte-equal to the offline English result. Pushed as
+  root (`cat` into the existing files, `chown`/`chcon` to `QtsVFSCache`'s, `Watchdog` cleared).
+  A first push was spoiled by the game being opened during the copy (04:16:20): it recreated
+  `19_0.db` at 114,688 B. Force-stopped, re-pushed with the game closed: all 14 files match the build.
+  In the game (user, screenshot `phone-room-en.png`): the ranked room's event line reads
+  "Double Diamonds from card flips 2/3，Shared Score with no Intimacy limit"; the counter moved from 0/3
+  over the matches played; a match ended without the QTS-failure popup; the lobby, Card and Chessplayer
+  labels are as before. After play the 14 files still match (no repair); `normal1.log` has no
+  `errorCode:361`, `QtsVFS.log` no read failure. `9E924AAB5066EE19` joins `SAFE_ASSETS` (mobile).
+- **PC cycle: not run** (the user's decision). The bin stays off `PC_SAFE_ASSETS` and on
+  `CANDIDATE_ASSETS` for a PC cycle.
+- **Seen in passing, the event start button on the phone:** the lobby's Super Weekend button still reads
+  开始游戏 (`phone-lobby-en.png`), although this build stages `A71C734D3EFAFBFF` as START GAME (decoded
+  from the staged package `19`, whose files match the phone's). So the button on screen does not draw
+  that texture at 1.11.0.2; PR #47's label is applied but not what the lobby shows. Resolved in the
+  next entry. "万象速决" in the lobby's bottom row is Chinese too.
+- **Phone left on** the cycle build; the pristine copy is `D:\scratch\event-room-line\device\pristine-backup.tar`.
+
+## 2026-11-21 — Super Weekend lobby sprites: the button draws the lobby atlas, not `A71C734D3EFAFBFF`; device pass
+
+Redmi Note 9 Pro `ebad528e`, rooted (KernelSU), game data 1.11.0.2, English, the event live. Scratch
+`D:\scratch\event-room-line\` (`grep_assets.py`, `dump_asset.py`, `art\draw_sw.py`, `evidence\`).
+
+- **What the button draws.** The lobby script `FC07FFAAB85F0418` (`UILobbyClass`, package `10`) sets the
+  label with `SetTextStatus`, which `25D1A19B4BE0B669` maps to `textStatus:SetSimilarSpriteByIndex(0..3)`:
+  `StartPlay`, `MatchSpecialTraining`, `SuperWeekends`, `StartPlayTwo`. The lobby prefab `770C8EA0BD10E1F2`
+  (package `19`) lists that image's four sprites, all `UIResources/Lobby`: `Image_1845319953`,
+  `Image_546530720`, `Image_1495219937`, `Image_2023783232`. `RefreshRightBottomArtFont` shows
+  `StartPlayTwo` while `IsSuperWeekendActive()`; the login animation flashes `SuperWeekends` first.
+- **Where they are.** All four are sprites of the lobby atlas `C9F49510F2F67402` (sprite table
+  `22BD565B3703EDA9`; 1024x1024 ASTC 4x4). Device rects at 1.11.0.2: `Image_1495219937` (1,25)-(373,127),
+  `Image_1845319953` (1,130), `Image_2023783232` (1,235), `Image_546530720` (1,340), each 372x102. Pristine
+  crops: 开始游戏, 对战特训, 超级周末, warm 开始游戏 (`lobby-atlas-4.png`). The catalog's two regions on this
+  atlas are only `start_game` (`Image_1845319953`) and `battle_training` (`Image_546530720`).
+- **`A71C734D3EFAFBFF` is the GameCenter twin.** Against the pristine `Image_2023783232` crop its decode
+  differs by a mean of 5.2/5.7/5.7/3.0 per channel (ASTC 6x6 against 4x4), the same art. The same
+  `Image_` names are listed under `UIResources/GameCenter` too (`751B471494DC6BC6`).
+- **Fix.** `ATLAS_LABELS["C9F49510F2F67402"]`: `Image_2023783232` START GAME / MULAI GAME (copies of the
+  approved `A71C734D3EFAFBFF` art, per language), `Image_1495219937` SUPER WEEKEND (new draft: Barlow
+  Condensed ExtraBold at START GAME's cap height, rows 22-80, filled with the 超级周末 sprite's row colours,
+  soft brown shadow; `art\draw_sw.py`). `atlas_art` now reads `labels/<code>/` before the shared file.
+- **Offline.** `english_raw` on the dump's lobby atlas ports in both catalogs and is idempotent
+  (`staged-lobby-atlas-both.png`); `check_graphics.py` (no `--game`) all checks passed;
+  `atlas_sprites.py labels --check` passes. `check_graphics.py --game` on this 1.11.0.2 dump first stopped with a TypeError at
+  `E86DF43167CA2143`: its region `confirm_choice` (`Image_1585869273`) is gone from the device's sprite
+  table, so `port_atlas` refuses it (ADR 0006), but `skip_reason` took every 4x4 BC7 `.blocks` as ported.
+  It now names a region missing or resized in the device table and never reads an unported texture as
+  ported; the run then passes every check (238 ported, 2 ported by sprite, 1 replaced, 1 spliced, 1
+  skipped: `E86DF43167CA2143`, that reason). The build over the dump with the APK:
+  package `19` 23 textures, 1 of 24 skipped (`E86DF43167CA2143`), as before; only `19_0.db` changed
+  against the room-perks build.
+- **Device: pass.** Root push of package `19` (hashes match the build), game started, notice closed,
+  "Click to Enter Game": the lobby's button reads **START GAME** in the cream event art over "Super Weekend
+  Perks Are Here!" (`lobby-button-before-after.png`). No crash, no repair. The 超级周末 → SUPER WEEKEND
+  flash was not caught between 1.5 s screenshots, so it is verified offline only.
+- **PC edition:** the PC per-install catalog ports this atlas with `codec="bc7"` and draws the same
+  labels where the installed sprite table carries them. The PC copy's table carries both sprites at the
+  phone's rects. `--pc-selftest` on `C:\scratch\pc-edition-02\game`: `ok: true`, 49 assets patched in
+  English and 50 in Indonesian, as before (the atlas was already patched). No PC cycle: not seen on screen.
+
+## 2026-11-21 — The ready atlas: a dropped sprite left out instead of refusing; CANCEL READY device pass
+
+Redmi Note 9 Pro `ebad528e`, rooted, game data 1.11.0.2, English, Super Weekend live. The user's
+decision: amend ADR 0006 so a region whose sprite the device's table dropped is left out.
+
+- **Symptom.** In a Ranking room, the user ready, the room's button read 取消准备 over "Super Weekend Perks
+  Are Here!" (`evidence\room-cancel-ready-crop.png`). It is the ready atlas `E86DF43167CA2143`'s
+  `cancel_ready` (`Image_1489283173`), which the build refused whole: its sprite table (`9F240FDA0FA58988`,
+  182 sprites) has no `Image_1585869273` (`confirm_choice`). `cancel_ready` (1,16) and
+  `waiting_for_players` (608,1) are still there at the catalog's own boxes and size.
+- **What sits in CONFIRM CHOICE's place.** `Image_1495219937`, the 超级周末 sprite, at (608,106)-(980,208),
+  CONFIRM CHOICE's old box; its pixels differ from the lobby atlas's by a mean of 8/8/8/1. It lies inside the
+  old offset port's footprint, so with no restoration crop an input carrying that damage kept the old
+  English there: `check_graphics.py --game` measured 3866 blocks, decoded mean 3.98, against clean input.
+  Drawing the lobby's SUPER WEEKEND over its whole box (`ATLAS_LABELS["E86DF43167CA2143"]`) brings that to
+  2198 blocks at mean 0.019, the same agreement as the other atlases.
+- **Code.** `port_atlas` skips a region the table lacks; a resized region, a missing table, or no region
+  and no label left still refuse. The fast offset path is taken only when every region is present.
+  `check_graphics.py`: `[7]` drops `confirm_choice` from the catalog layout (the others still port, within
+  `BLOCK_MATCH_MEAN` of the full port), and a table with none of the regions or a resized one refuses;
+  `[10]` now expects a missing Career region left out; `skip_reason` no longer counts a missing sprite.
+- **Offline.** `check_graphics.py --game` on the 1.11.0.2 dump: all checks passed, 238 ported, 3 ported by
+  sprite, 1 replaced, 1 spliced, 0 skipped. The build: package `19` 24 textures translated, none skipped.
+  `atlas_sprites.py labels --check` passes.
+- **Device: pass.** Package `19` without the ready atlas's SUPER WEEKEND label (the build before that
+  addition) pushed as root, hashes matched; in the same room, ready, the button reads **CANCEL READY**
+  (`evidence\room-ready-small.png`). 2026-11-22, the user's report on the same build: **WAITING FOR
+  PLAYERS** and **SUPER WEEKEND** show on screen. That build carries the lobby atlas's SUPER WEEKEND but
+  not the ready atlas's, so the SUPER WEEKEND seen is the lobby's login flash; the ready atlas's label is
+  verified offline only.
+- **PC edition, offline:** `--pc-selftest` on `C:\scratch\pc-edition-02\game`: `ok: true`; the per-install
+  catalog patches 50 assets in English and 51 in Indonesian (49 and 50 before), with no texture refused:
+  the PC table lacks the same sprite. No PC cycle.
+
 ## 2026-11-21 — Room: Lineup and Settings clear of their icons, one size for the friend panel tabs
 
 - **Seen:** phone screenshot, data 1.11.0.2, English, 2400 x 1080, the match room. Bottom left, the
@@ -6598,6 +6711,21 @@ the phone's pristine snapshots `20261029-1.8.0.1` and `20261118-1.10.1.2`. Plan 
   `20d7c307…`) with both scripts rewritten in English: `10.db` `b0838caf…`, `10_0.db` `68277bf1…`
   (`D:/scratch/settle-tabs/stage/10`).
 - **Open:** not yet on a phone; other highlight titles join the table as they are seen.
+
+## 2026-11-22 — Room perk line: the `，` joiner
+
+- **Seen:** the PR #49 device cycle (1.11.0.2, English) read "Double Diamonds from card flips 2/3，Shared
+  Score with no Intimacy limit": the perks bin translated, the joiner Chinese.
+- **Source:** `UIPVPRoomClass:RefreshSettleAddBenefitTip` (`31A01EDC4D72FCCE`, package `10`, the
+  1.11.0.2 override's own copy, LF) joins the perks with a literal `"，"`, once per benefit set and once
+  across sets. A `SCRIPT_EDITS` entry swaps both for `", "`.
+- **Offline** (`D:\scratch\event-room-line\joiner`, the 1.11.0.2 dump plus its APK): the build writes 10
+  extra assets in package `10`; the script's newest slot decodes to 42 934 bytes with both joiners `", "`
+  and none `"，"`; a second `rewrite_script` changes nothing. Not compiled (no `lupa` in `.venv`).
+  `qts_relocate.read_raw` over the staged package, without `qts_relocate.install_btree_slot_map()` first,
+  returns a superseded slot of a relocated script (the rank title edit reads unedited the same way); the
+  staging contract names that call for exactly this reason.
+- **Open:** not yet on a phone.
 
 ## 2026-11-22 — ACE Quick Match: the mode's copies of the card tables
 

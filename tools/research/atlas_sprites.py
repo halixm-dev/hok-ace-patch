@@ -63,6 +63,8 @@ CATALOG = ROOT / "resources" / "catalog"
 ART = ROOT / "resources" / mg.SPRITE_ART
 CAREER = "13C19E4E4486B31C"
 SECRET_TITLES = "0B4DA7A85D27E87A"  # LordSkillCardAtlas, the Secret Technique cards' titles
+# The Super Weekend start-button labels, cream like the event art: the lobby atlas and the ready atlas.
+CREAM_LABELS = {"C9F49510F2F67402", "E86DF43167CA2143"}
 TITLE_FONT = ROOT / "resources" / "fonts" / "BarlowCondensed-ExtraBold.ttf"
 # Measured on the 32 Chinese titles: black fill and a ~2 px edge, grey near (102, 99, 89) at alpha ~165.
 # The edge is shaded, measured by distance from the ink (2026-11-11): a 1 px dark outline all round, a
@@ -662,6 +664,11 @@ def _label_faults(image: Image.Image, atlas: str) -> list[str]:
         tinted = sum(1 for r, g, b, _a in pixels if min(r, g, b) < 245)
         if tinted:
             faults.append(f"{tinted} tinted pixels (labels are white, shaped by alpha)")
+    elif atlas in CREAM_LABELS:
+        solid = [p for p in pixels if p[3] >= 240]
+        light = sum(1 for r, g, b, _a in solid if min(r, g, b) >= 180) / max(1, len(solid))
+        if light < 0.6:  # the approved MULAI GAME keeps its bevel brown: 69 %
+            faults.append(f"{light:.0%} of the solid pixels light (the event labels are cream)")
     else:
         solid = [p for p in pixels if p[3] >= 240]
         black = sum(1 for r, g, b, _a in solid if max(r, g, b) < 50) / max(1, len(solid))
@@ -696,17 +703,26 @@ def cmd_labels(args) -> int:
     for folder in sorted(folders):
         atlas, kind = folder.split("/")
         wording = mg.ATLAS_LABELS.get(atlas, {}) if kind == "labels" else {}
-        shipped = {p.stem: p for p in (ART / folder).glob("Image_*.png")}
+        # A label is shared (labels/<sprite>.png) or per language (labels/<code>/<sprite>.png, English
+        # required, as mobile_graphics.atlas_art reads it).
+        shipped = {p.stem: [p] for p in (ART / folder).glob("Image_*.png")}
+        for code in sorted(languages.LANGUAGES) if kind == "labels" else ():
+            for p in (ART / folder / code).glob("Image_*.png"):
+                shipped.setdefault(p.stem, []).append(p)
         for name in sorted(set(shipped) | set(wording)):
-            if name not in shipped or name not in wording:
-                print(f"  FAIL {folder}/{name}: {'no PNG' if name not in shipped else 'no wording for it'}")
+            english = ART / folder / languages.ENGLISH.code / f"{name}.png"
+            if name not in shipped or name not in wording or not ((ART / folder / f"{name}.png").is_file()
+                                                                  or english.is_file()):
+                print(f"  FAIL {folder}/{name}: {'no wording for it' if name not in wording else 'no shared or English PNG'}")
                 failed = True
                 continue
-            with Image.open(shipped[name]) as image:
-                faults = _label_faults(image, folder.split("/")[0])
-                print(f"  {'FAIL' if faults else 'ok  '} {folder}/{name} {image.size[0]}x{image.size[1]}: "
-                      f"{wording[name]}" + (f" -- {'; '.join(faults)}" if faults else ""))
-            failed |= bool(faults)
+            for path in shipped[name]:
+                with Image.open(path) as image:
+                    faults = _label_faults(image, atlas)
+                    print(f"  {'FAIL' if faults else 'ok  '} {path.relative_to(ART).as_posix()} "
+                          f"{image.size[0]}x{image.size[1]}: {wording[name]}"
+                          + (f" -- {'; '.join(faults)}" if faults else ""))
+                failed |= bool(faults)
     # Standalone label textures (mg.LABEL_TEXTURES): one PNG per language, at the texture's own size,
     # RGBA with a transparent outer ring. English is required; another language falls back to it.
     for texture, (width, height, name) in sorted(mg.LABEL_TEXTURES.items()):

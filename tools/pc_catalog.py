@@ -24,11 +24,14 @@ an installed game as they are, so this module writes a per-install copy with the
 - **Lua** (`extra_text.SCRIPT_ASSETS`): the Lua label and the Lua edits, each a whole-file entry
   with no `patch_ranges`, rewritten by `extra_text.rewrite_script`. The PC edition keeps them in
   package `extra_text.SCRIPT_PC_PACKAGE`; a script it lacks is found by a logged scan of every index.
+- **Config bins** on the PC edition's own allowlist (`extra_text.PC_SAFE_ASSETS`, empty today) and a PC
+  cycle's one candidate (<cycle_assets>), each a whole-file entry rewritten by `extra_text.rewrite_config`,
+  which reseals a sealed bin. A device cycle's verdict never carries over: the allowlist is per edition.
 
 Text tables stay as the catalog has them: the terminology table and the catalog supplement apply as
 the engine loads the copy (`engine_hooks`' `load_catalog`), and resource tokens are expanded after its
-scan (`engine_hooks`' `scan`). No append, no card-dictionary chunk gain and no config bin: those are
-the mobile edition's, and the allowlist is per edition.
+scan (`engine_hooks`' `scan`). No append and no card-dictionary chunk gain: those are the mobile
+edition's.
 
 **The stage** is `<work>/pc/<game id>/<catalog folder name>/`, named after the language's catalog
 folder because `languages.for_catalog` reads the language from that name. Every payload of the bundle
@@ -132,13 +135,15 @@ class _Reader:
 
 
 def build(game: Path, resources: Path, language: str, work: Path, *, version: str,
-          previous: dict[str, str] | None = None, log=print) -> Stage:
+          previous: dict[str, str] | None = None, cycle_assets: frozenset[int] = frozenset(),
+          log=print) -> Stage:
     """The per-install catalog for <game> (the PC edition's root, holding `WXQ_Data`) in <language>.
 
     <resources> is the bundle (`resources/` from source); <version> is the patcher's `VERSION`.
     <previous> maps an asset name to the hash this patcher's last verified install left it at (the
     state file's patched hashes); it only lets a re-drawn payload already in place be recognized.
-    Never writes into <game> or <resources>.
+    <cycle_assets> are the `extra_text.CANDIDATE_ASSETS` a PC cycle turns on for this build, beside
+    `PC_SAFE_ASSETS`; a stage built with other ones is not reused. Never writes into <game> or <resources>.
     """
     import languages
     from engine_hooks import game_id, install
@@ -153,7 +158,8 @@ def build(game: Path, resources: Path, language: str, work: Path, *, version: st
     reader = _Reader(game, log)
     timings: dict[str, float] = {}
 
-    cached = _cached(stage, reader, version, language, catalog_hash)
+    cycle = sorted(f"{asset:016X}" for asset in cycle_assets)
+    cached = _cached(stage, reader, version, language, catalog_hash, cycle)
     timings["inputs"] = time.perf_counter() - started
     if cached is not None:
         log(f"PC catalog: {bundle.name} stage reused ({len(cached['patched'])} assets patched)")
@@ -177,12 +183,13 @@ def build(game: Path, resources: Path, language: str, work: Path, *, version: st
     timings["redrawn"] = time.perf_counter() - mark
     mark = time.perf_counter()
     _scripts(reader, bundle, data, overrides, patched, valid, log)
+    _config_bins(reader, bundle, language, data, overrides, patched, valid, cycle_assets, log)
     timings["scripts"] = time.perf_counter() - mark
 
     mark = time.perf_counter()
     inputs = {name: sorted({digest} | valid.get(name, set())) for name, digest in reader.inputs.items()}
     record = {"schema": STAGE_SCHEMA, "version": version, "language": language, "catalog": catalog_hash,
-              "inputs": inputs, "packages": reader.where, "patched": patched, "skipped": skipped,
+              "cycle_assets": cycle, "inputs": inputs, "packages": reader.where, "patched": patched, "skipped": skipped,
               "stamps": _stamps(game, set(reader.where.values()))}
     linked, copied = _write_stage(stage, bundle, english, data, overrides, record)
     timings["stage"] = time.perf_counter() - mark
@@ -193,7 +200,8 @@ def build(game: Path, resources: Path, language: str, work: Path, *, version: st
     return Stage(stage, language, False, patched, skipped, timings)
 
 
-def _cached(stage: Path, reader: _Reader, version: str, language: str, catalog_hash: str) -> dict | None:
+def _cached(stage: Path, reader: _Reader, version: str, language: str, catalog_hash: str,
+            cycle: list[str]) -> dict | None:
     """The stage record when the stage at <stage> still fits every input it was built from, else None."""
     try:
         record = json.loads((stage / STAGE_RECORD).read_text(encoding="utf-8"))
@@ -201,7 +209,7 @@ def _cached(stage: Path, reader: _Reader, version: str, language: str, catalog_h
         return None
     if (record.get("schema") != STAGE_SCHEMA or record.get("version") != version
             or record.get("language") != language or record.get("catalog") != catalog_hash
-            or not (stage / "catalog.json.gz").is_file()):
+            or record.get("cycle_assets", []) != cycle or not (stage / "catalog.json.gz").is_file()):
         return None
     packages = record.get("packages", {})
     stamps = record.get("stamps")
@@ -452,6 +460,32 @@ def _scripts(reader: _Reader, bundle: Path, data: dict, overrides: dict, patched
         data["graphics"].append(entry)
 
 
+def _config_bins(reader: _Reader, bundle: Path, language: str, data: dict, overrides: dict, patched: dict,
+                 valid: dict, cycle_assets: frozenset[int], log) -> None:
+    """Add each allowed config bin `extra_text.rewrite_config` changes as a whole-file entry."""
+    import extra_text
+    import languages
+    from wxq_patch import adaptive
+
+    catalog = None
+    for asset in sorted(extra_text.PC_SAFE_ASSETS | cycle_assets):
+        package_id = reader.holder(asset, extra_text.CONFIG_PC_PACKAGE)
+        if package_id is None:
+            log(f"{asset:016X}: config bin not in this installation")
+            continue
+        source = reader.read(package_id, asset)
+        if catalog is None:
+            catalog = adaptive.load_catalog(bundle)
+        new = extra_text.rewrite_config(asset, source, catalog, log, languages.get(language).resource_terms)
+        if new is None or new == source:
+            log(f"{asset:016X}: config bin left as it is (nothing to translate, or refused)")
+            continue
+        entry = {"hash": f"{asset:016X}", "package": package_id, "label": "config bin"}
+        _set_entry(entry, source, new, None, f"{asset:016X}.pc.bin", overrides, patched, valid)
+        data["graphics"].append(entry)
+        log(f"{asset:016X}: config bin translated ({len(source)} -> {len(new)} B)")
+
+
 def _link(source: Path, target: Path) -> bool:
     """Hard-link <source> to <target>, or copy it when the two are on different drives; True if linked."""
     try:
@@ -506,10 +540,17 @@ def main() -> int:
     parser.add_argument("--language", default="en")
     parser.add_argument("--work", type=Path, required=True)
     parser.add_argument("--runtime", type=Path, default=None)
+    parser.add_argument("--cycle-asset", default=None, metavar="HASH",
+                        help="a PC cycle's one extra_text.CANDIDATE_ASSETS config bin")
     args = parser.parse_args()
     sys.path.append(str(args.runtime or args.resources / "runtime"))
     version = (args.resources.parent / "VERSION").read_text(encoding="utf-8").strip()
-    stage = build(args.game, args.resources, args.language, args.work, version=version)
+    cycle: frozenset[int] = frozenset()
+    if args.cycle_asset:
+        import extra_text
+
+        cycle = frozenset(extra_text.resolve_candidates(args.cycle_asset))
+    stage = build(args.game, args.resources, args.language, args.work, version=version, cycle_assets=cycle)
     print(json.dumps({"catalog": str(stage.catalog), "cached": stage.cached, "patched": len(stage.patched),
                       "skipped": stage.skipped, "timings": {k: round(v, 2) for k, v in stage.timings.items()}},
                      indent=1))
