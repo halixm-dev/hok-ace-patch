@@ -14,7 +14,7 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **fifteen Lua edits** (`extra_text.SCRIPT_EDITS`) **and two config bins** on the mobile edition
+(`extra_text.SCRIPT_LABELS`), **sixteen Lua edits** (`extra_text.SCRIPT_EDITS`) **and two config bins** on the mobile edition
 (`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21, and
 `9E924AAB5066EE19`, the Super Weekend room perks, since 2026-11-21) —
 nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
@@ -404,6 +404,10 @@ Chinese. Known titles are looked up in a table the pass writes from the catalog
 (`extra_text.SCRIPT_TRANSLATIONS`, the pairs in the supplement, one so far: "Unstoppable Legendary Penta
 Kill"); an unknown Chinese title, or a Chinese server default, is dropped and the tip shows alone ("Tap
 to Generate All Things Moment report"). Offline only (2026-11-22): not yet seen on a phone.
+The sixteenth joins the room's Super Weekend perks with an English comma: `UIPVPRoomClass`
+(`31A01EDC4D72FCCE`, package `10`) joined them with `，`, so the room read "Double Diamonds from card
+flips 2/3，Shared Score with no Intimacy limit" on 1.11.0.2 even with the perks bin translated. Offline
+only (2026-11-22): not yet seen on a phone.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 

@@ -2007,7 +2007,7 @@
     }
   },
   {
-    "note": "Super Weekend room perks (`9E924AAB5066EE19`, package `1`, a sealed config bin on `extra_text.CANDIDATE_ASSETS`): the room screen joins the active ones with `，` and fills `%d/%d`. Reaches the screen only once a cycle enables the bin.",
+    "note": "Super Weekend room perks (`9E924AAB5066EE19`, package `1`, a sealed config bin on `extra_text.CANDIDATE_ASSETS`): the room screen joins the active ones with `, ` (an `extra_text.SCRIPT_EDITS` entry; the game's own joiner is `，`) and fills `%d/%d`. Reaches the screen only once a cycle enables the bin.",
     "texts": {
       "全棋手限免": ["All Chessplayers on free trial", "Semua Chessplayer trial gratis"],
       "前3局亲密度加成": ["Intimacy bonus for the first 3 matches", "Bonus Intimacy untuk 3 pertandingan pertama"],

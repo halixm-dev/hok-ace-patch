@@ -6709,3 +6709,17 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   `20d7c307…`) with both scripts rewritten in English: `10.db` `b0838caf…`, `10_0.db` `68277bf1…`
   (`D:/scratch/settle-tabs/stage/10`).
 - **Open:** not yet on a phone; other highlight titles join the table as they are seen.
+
+## 2026-11-22 — Room perk line: the `，` joiner
+
+- **Seen:** the PR #49 device cycle (1.11.0.2, English) read "Double Diamonds from card flips 2/3，Shared
+  Score with no Intimacy limit": the perks bin translated, the joiner Chinese.
+- **Source:** `UIPVPRoomClass:RefreshSettleAddBenefitTip` (`31A01EDC4D72FCCE`, package `10`, the
+  1.11.0.2 override's own copy, LF) joins the perks with a literal `"，"`, once per benefit set and once
+  across sets. A `SCRIPT_EDITS` entry swaps both for `", "`.
+- **Offline** (`D:\scratch\event-room-line\joiner`, the 1.11.0.2 dump plus its APK): the build writes 10
+  extra assets in package `10`; the script's newest slot decodes to 42 934 bytes with both joiners `", "`
+  and none `"，"`; a second `rewrite_script` changes nothing. Not compiled (no `lupa` in `.venv`).
+  `qts_relocate.read_raw` over the staged package returns an older slot of a relocated script (the rank
+  title edit reads unedited the same way), so check staged scripts by their newest slot.
+- **Open:** not yet on a phone.

@@ -1108,6 +1108,15 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     # among the friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`).
     0x29FE6D03415A0971: _room_buttons_clear_of_icons(),
     0x7C2AE97D11BD7B4F: _room_tab_names_fit(),
+    # The room's Super Weekend perk line (`UIPVPRoomClass:RefreshSettleAddBenefitTip`, package 10, LF):
+    # it joins the perks of the bin `9E924AAB5066EE19` with a Chinese full-width comma, which read
+    # "Double Diamonds from card flips 2/3，Shared Score with no Intimacy limit" on 1.11.0.2.
+    0x31A01EDC4D72FCCE: (
+        ('table.append(sourceDescList, table.concat(descList, "，"))',
+         'table.append(sourceDescList, table.concat(descList, ", "))'),
+        ('self.uiRoomTipInfoItemChild:SetTxtContent(table.concat(sourceDescList, "，"))',
+         'self.uiRoomTipInfoItemChild:SetTxtContent(table.concat(sourceDescList, ", "))'),
+    ),
     # The match-end ranking screen (`UISettleBattle_OSGClass`, package 10, in the 1.11 override),
     # 1.11.0.2: "Lineup Combine", "Post-game social" and "Championship collection" overflowed their
     # 144-unit tab cells and ran into each other.
