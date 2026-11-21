@@ -5,8 +5,8 @@ replacing three of its module attributes. Each is looked up by name at call time
 calls `scan` and `commit` through the module, `commit` and `find_restore` call `receipt_root` the
 same way), so the replacement is seen by every caller:
 
-- `load_catalog`: the catalog as it loads gets the catalog supplement and the terminology table
-  (`terminology`). Both editions take it; the mobile pipeline installs it before its first load.
+- `load_catalog`: the catalog as it loads gets the catalog supplement, the measured mode copies of its
+  tables (`catalog_updates.admit_tables`) and the terminology table (`terminology`). Both editions take it; the mobile pipeline installs it before its first load.
 - `scan`: the language's resource terms are expanded in the replacements the scan materialized
   (`resource_tokens.expand_staged`). PC edition only: the mobile pipeline calls the same function
   itself, after it has dropped the uncatalogued tables.
@@ -95,6 +95,7 @@ def _load_catalog_hook(catalog_class):
             data = json.load(handle)
         language = for_catalog(folder)
         added = catalog_supplement.apply(data, language.code)
+        catalog_updates.admit_tables(data)
         changed = terminology.apply(data, language.terms)
         catalog_updates.apply(data, language.code)
         catalog = catalog_class(data)
