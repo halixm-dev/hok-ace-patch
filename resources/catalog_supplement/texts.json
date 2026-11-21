@@ -2001,6 +2001,12 @@
     }
   },
   {
+    "note": "All Things Moment highlight titles the server sends with the match-end tip (BubbleText), read off a 1.11.0.2 screenshot; extra_text.SCRIPT_TRANSLATIONS reads them.",
+    "texts": {
+      "五连绝世无人能挡": ["Unstoppable Legendary Penta Kill", "Legendary Penta Kill tak terbendung"]
+    }
+  },
+  {
     "note": "Super Weekend room perks (`9E924AAB5066EE19`, package `1`, a sealed config bin on `extra_text.CANDIDATE_ASSETS`): the room screen joins the active ones with `，` and fills `%d/%d`. Reaches the screen only once a cycle enables the bin.",
     "texts": {
       "全棋手限免": ["All Chessplayers on free trial", "Semua Chessplayer trial gratis"],

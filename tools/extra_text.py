@@ -6,7 +6,9 @@
 * UI text components in Unity prefabs get the official English for exact matches, when a package is
   listed as carrying them.
 * A Lua UI script that hard-codes a label (`SCRIPT_LABELS`) gets that one literal replaced, and one that
-  joins or wraps words the Chinese way (`SCRIPT_EDITS`) gets that one literal edited.
+  joins or wraps words the Chinese way (`SCRIPT_EDITS`) gets that one literal edited. An edit that
+  translates text the server sends reads a table of known texts the pass writes into the script from the
+  catalog (`SCRIPT_TRANSLATIONS`).
 * A lineup bin (`lineup_codes.LINEUP_BINS`), when a cycle enables it, gets the text inside its share
   codes and rows translated and its checksum resealed (`rewrite_config`).
 
@@ -465,6 +467,619 @@ def _lobby_menu_button_gap() -> tuple[tuple[str, str], ...]:
             (_LOBBY_REGIST_RED, "    self:RegistRedPoint()\n    _tidyLobbyMenuButton(self)\n    self:GetApplyList()"))
 
 
+def _crlf(edits: tuple[tuple[str, str], ...]) -> tuple[tuple[str, str], ...]:
+    """<edits> with every line ending CRLF, for a script stored with Windows line endings."""
+    return tuple((old.replace("\n", "\r\n"), new.replace("\n", "\r\n")) for old, new in edits)
+
+
+# The room's bottom-left buttons (`UIPVPRoomLeftDown_NormalClass`): its class declaration, and the end
+# of OnSetSelfPersonalTrainer, which runs at initialize and whenever the buttons are shown or hidden.
+_ROOM_LEFT_DOWN_CLASS = ("---@class UIPVPRoomLeftDown_NormalClass : "
+                         "UIPVPRoomLeftDown_NormalClass_AutoBind\n")
+_ROOM_LEFT_DOWN_SHOWN = "    self:SetLineupSeparator(showSetting)\nend\n"
+
+
+def _room_buttons_clear_of_icons() -> tuple[tuple[str, str], ...]:
+    """The edit that keeps the room's Lineup and Settings names clear of their icons.
+
+    Prefab `UIPVPRoomLeftDown_Normal` (package 19): each button is a 200-unit cell (a `LayoutElement`
+    in `BtnGroup`'s horizontal layout, which a content size fitter sizes), with its icon centred at
+    x -43.5 (`Img_EmbattleEnter`, 75 wide) or -45 (`Img_Setting`, 84 wide) and its name a 33-point label
+    sized to its text and centred at x 18. Two Chinese characters span x -15 to 51, clear of the icon;
+    "Lineup" and "Settings", centred on the same point, start inside the icon. Each name is now pinned
+    by its left edge where the Chinese starts (its centre less one font size), and the cell grows by
+    whatever the name needs to end 30 units before the cell's divider, with the icon and the name moved
+    left by half that growth so they keep their place from the cell's left edge. The prefab's width and
+    positions are kept by the button's instance id (not in a weak table keyed by its Lua wrapper, which
+    can be collected and lose them), because a second pass must not add up. The fit runs when the
+    buttons are shown and once more on the next tick, in case the name is filled after this script;
+    a failure leaves the button as the game drew it, logged as a Unity warning.
+    """
+    helper = ("local _roomButtonBase = {}\n\n"
+              "local function _fitRoomButton(button, iconName, labelName)\n"
+              "    if not CommonUtility:NotNull(button) then\n"
+              "        return\n"
+              "    end\n"
+              "    local root = button.transform\n"
+              "    local icon = root:Find(iconName)\n"
+              "    local labelTf = root:Find(labelName)\n"
+              "    if icon == nil or labelTf == nil then\n"
+              "        return\n"
+              "    end\n"
+              "    local label = labelTf:GetComponent(typeof(CS.Timi.TimiText))\n"
+              "    local element = root:GetComponent(typeof(CS.UnityEngine.UI.LayoutElement))\n"
+              "    if not CommonUtility:NotNull(label) then\n"
+              "        return\n"
+              "    end\n"
+              "    local base = _roomButtonBase[root:GetInstanceID()]\n"
+              "    if base == nil then\n"
+              "        local width = root.rect.width\n"
+              "        if CommonUtility:NotNull(element) and element.preferredWidth > 0 then\n"
+              "            width = element.preferredWidth\n"
+              "        end\n"
+              "        base = { width = width, iconX = icon.anchoredPosition.x,\n"
+              "                 left = labelTf.anchoredPosition.x - label.fontSize }\n"
+              "        _roomButtonBase[root:GetInstanceID()] = base\n"
+              "    end\n"
+              "    local grow = math.max(math.ceil(base.left + label.preferredWidth + 30 - base.width / 2), 0)\n"
+              "    if CommonUtility:NotNull(element) then\n"
+              "        element.preferredWidth = base.width + grow\n"
+              "    else\n"
+              "        root:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, "
+              "base.width + grow)\n"
+              "    end\n"
+              "    icon.anchoredPosition = CSVector2(base.iconX - grow / 2, icon.anchoredPosition.y)\n"
+              "    labelTf.pivot = CSVector2(0, labelTf.pivot.y)\n"
+              "    labelTf.anchoredPosition = CSVector2(base.left - grow / 2, labelTf.anchoredPosition.y)\n"
+              "    pcall(function() ForceRebuildLayoutImmediate(root.parent) end)\n"
+              "end\n\n"
+              "local function _fitRoomButtons(view)\n"
+              "    local ok, err = pcall(function()\n"
+              "        _fitRoomButton(view.btnEmbattle, \"Img_EmbattleEnter\", \"Txt_Embattle\")\n"
+              "        _fitRoomButton(view.btn_Setting, \"Img_Setting\", \"Txt_Setting\")\n"
+              "    end)\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE room buttons: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n")
+    return _crlf(((_ROOM_LEFT_DOWN_CLASS, helper + _ROOM_LEFT_DOWN_CLASS),
+                  (_ROOM_LEFT_DOWN_SHOWN,
+                   "    self:SetLineupSeparator(showSetting)\n"
+                   "    pcall(_fitRoomButtons, self)\n"
+                   "    pcall(function()\n"
+                   "        ScheduleService:SetTimeout(function()\n"
+                   "            if self:Available() then\n"
+                   "                pcall(_fitRoomButtons, self)\n"
+                   "            end\n"
+                   "        end, 0)\n"
+                   "    end)\n"
+                   "end\n")))
+
+
+# The room's friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`): its class declaration, and the
+# end of CMLTSetData, after the title is set.
+_ROOM_TAB_CLASS = ("---@class UIPVPRoomNestedRecommendTabItemClass : "
+                   "UIPVPRoomNestedRecommendTabItemClass_AutoBind\n")
+_ROOM_TAB_SET_DATA_END = "    self:SetShowSplitLine(index == count)\nend\n"
+
+
+def _room_tab_names_fit() -> tuple[tuple[str, str], ...]:
+    """The edit that gives the room's friend panel tab names (Friend, Recent, Recommend, Team) one shared
+    size.
+
+    Prefab `UIPVPRoomNestedRecommendTabItem` (package 19): each name (`Txt_Title`) fills its tab with
+    best fit (33 at most), and `List_Tab` gives every tab the same width, 129 units on a 2400 x 1080
+    phone, so "Recommend" alone shrank to about 20. Each tab, once its title is set, turns best fit off,
+    lets its name overflow (still centred), and measures on its own label, at the prefab's largest size,
+    every name the panel can show (`UIPVPRoomRecommendBaseClass`'s TAB2NAME keys); it takes the size at
+    which the widest fits its label less 8 units (never below 16). Every tab measures the same names, so
+    all reach the same size without knowing each other: on the phone each tab sits in its own list cell,
+    so tabs grouped by parent each fitted only themselves, and the list kept its even widths when a tab
+    asked for more (2026-11-21, probe). A label not laid out yet (no width) keeps best fit. The prefab's
+    size is kept per label, because list items are reused; the tab's own name is put back; a failure
+    leaves the tab as the game drew it, logged as a Unity warning.
+    """
+    helper = ("local _roomTabNameSize = setmetatable({}, { __mode = \"k\" })\n"
+              "local _ROOM_TAB_NAME_KEYS = { \"RoomRecommendTabFriend\", \"RoomRecommendTabRecent\",\n"
+              "    \"RoomRecommendTabPlayer\", \"RoomRecommendTabRoom\" }\n\n"
+              "local function _fitRoomTabName(item)\n"
+              "    local label = item.txtTitle\n"
+              "    local own = label and label.text\n"
+              "    local ok, err = pcall(function()\n"
+              "        local size = _roomTabNameSize[label]\n"
+              "        if size == nil then\n"
+              "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "            _roomTabNameSize[label] = size\n"
+              "        end\n"
+              "        local room = label.rectTransform.rect.width - 8\n"
+              "        if room <= 0 then\n"
+              "            return\n"
+              "        end\n"
+              "        label.resizeTextForBestFit = false\n"
+              "        label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "        label.fontSize = size\n"
+              "        local scale = 1\n"
+              "        for _, key in ipairs(_ROOM_TAB_NAME_KEYS) do\n"
+              "            label.text = Localize.GetString(key)\n"
+              "            local width = label.preferredWidth\n"
+              "            if width > room then\n"
+              "                scale = math.min(scale, room / width)\n"
+              "            end\n"
+              "        end\n"
+              "        label.fontSize = math.max(math.floor(size * scale), 16)\n"
+              "    end)\n"
+              "    if own ~= nil then\n"
+              "        pcall(function() label.text = own end)\n"
+              "    end\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE room tab fit: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n")
+    return _crlf(((_ROOM_TAB_CLASS, helper + _ROOM_TAB_CLASS),
+                  (_ROOM_TAB_SET_DATA_END,
+                   "    self:SetShowSplitLine(index == count)\n"
+                   "    pcall(_fitRoomTabName, self)\n"
+                   "end\n")))
+
+
+# The lobby's Menu panel entries (`UILobbyMenuLittleItemClass`): its class declaration, the empty-entry
+# return in CMLTSetData, and the line that sets the name.
+_MAIN_MENU_ITEM_CLASS = ("---@class UILobbyMenuLittleItemClass : "
+                         "UILobbyMenuLittleItemClass_AutoBind\n")
+_MAIN_MENU_ITEM_EMPTY = "    if data.empty or not data.cfg then\n        return\n    end\n"
+_MAIN_MENU_ITEM_NAME = "    self:SetContent(self.cfg.Name)\n"
+
+
+def _main_menu_names_fit() -> tuple[tuple[str, str], ...]:
+    """The edit that gives the lobby Menu panel's entry names (Custom, Achievement, Encyclopedia,
+    Announcement and the rest) one shared size.
+
+    Prefab `UILobbyMenuLittleItem` (package 19, `52615AAB6C452819`): each entry is a 195 x 240 cell, its
+    name (`Txt_UnLockName`) a 150 x 44 box with best fit, so "Achievement", "Encyclopedia" and
+    "Announcement" each shrank to their own size while the short names stayed at full size (1.11.0.2,
+    2026-11-21). One list (`menuRootTimiList`) holds every entry, four to a row, plus blank fillers. Each
+    entry records its name once set (a filler records none), then refits every recorded entry: best fit
+    off, the name allowed to overflow its box (still centred), and every recorded name measured on that
+    entry's label at the prefab's largest size; all take the size at which the widest fits one cell less
+    12 units (never below 16). The prefab's size is kept per label, because list items are reused, the
+    entry's own name is put back, and a failure leaves the entry as the game drew it, logged as a Unity
+    warning.
+    """
+    helper = ("local _mainMenuNameSize = setmetatable({}, { __mode = \"k\" })\n"
+              "local _mainMenuNames = setmetatable({}, { __mode = \"k\" })\n\n"
+              "local function _fitMainMenuName(item)\n"
+              "    local label = item.content\n"
+              "    local own = label and label.text\n"
+              "    local ok, err = pcall(function()\n"
+              "        local size = _mainMenuNameSize[label]\n"
+              "        if size == nil then\n"
+              "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "            _mainMenuNameSize[label] = size\n"
+              "        end\n"
+              "        local room = item._rootTf.rect.width - 12\n"
+              "        if room <= 0 then\n"
+              "            return\n"
+              "        end\n"
+              "        label.resizeTextForBestFit = false\n"
+              "        label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "        label.fontSize = size\n"
+              "        local scale = 1\n"
+              "        for other, name in pairs(_mainMenuNames) do\n"
+              "            if CommonUtility:NotNull(other.content) then\n"
+              "                label.text = name\n"
+              "                local width = label.preferredWidth\n"
+              "                if width > room then\n"
+              "                    scale = math.min(scale, room / width)\n"
+              "                end\n"
+              "            end\n"
+              "        end\n"
+              "        label.fontSize = math.max(math.floor(size * scale), 16)\n"
+              "    end)\n"
+              "    if own ~= nil then\n"
+              "        pcall(function() label.text = own end)\n"
+              "    end\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE main menu fit: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n"
+              "local function _fitMainMenuNames()\n"
+              "    for item in pairs(_mainMenuNames) do\n"
+              "        if CommonUtility:NotNull(item.content) then\n"
+              "            _fitMainMenuName(item)\n"
+              "        end\n"
+              "    end\n"
+              "end\n\n")
+    return ((_MAIN_MENU_ITEM_CLASS, helper + _MAIN_MENU_ITEM_CLASS),
+            (_MAIN_MENU_ITEM_EMPTY, "    _mainMenuNames[self] = nil\n" + _MAIN_MENU_ITEM_EMPTY),
+            (_MAIN_MENU_ITEM_NAME, _MAIN_MENU_ITEM_NAME
+             + "    if not string.isNullOrEmpty(self.cfg.Name) then\n"
+               "        _mainMenuNames[self] = self.cfg.Name\n"
+               "        pcall(_fitMainMenuNames)\n"
+               "    end\n"))
+
+
+# The Chessplayer page (`UILordListClass`): its class declaration, the end of InitCombatPowerTab, and the
+# switch to the Combat Power tab.
+_LORD_LIST_CLASS = "---@class UILordListClass : UILordListClass_AutoBind\n"
+_LORD_LIST_TABS_SET = ("    self:SetInterfaceType(defaultToPower and UILordListClassInterfaceType.TotalLegendPoint\n"
+                       "        or UILordListClassInterfaceType.ChessPlayer)\nend\n")
+_LORD_LIST_TO_POWER = "    self:SetInterfaceType(UILordListClassInterfaceType.TotalLegendPoint)\n"
+
+
+def _lord_list_header_fit() -> tuple[tuple[str, str], ...]:
+    """The edit that keeps the Chessplayer page's header readable: one size for its two tab names
+    (Chessplayer, Combat Power), and the Combat Power page's sort toggle clear of the back title.
+
+    Prefab `UILordList` (package 19): the tabs are a `TimiMenu` (`TabList`) of `UILordTotalPowerPaageItem`
+    items (`40090008899DA31A`), 197 x 69 each, whose name boxes are 76 units (selected) and 152 (not), so
+    "Chessplayer" and "Combat Power" ran into each other at full size (1.11.0.2, 2026-11-21). Both names
+    keep their full size (best fit off, overflowing their boxes, still centred), and every tab widens to the
+    widest name plus 40 units each side (never narrower than the prefab); the tabs stay centred where they
+    were, moving right only as far as keeps them 40 units clear of the sort toggle, sit side by side, each
+    tab's underline stretches with it, and the grey line under the bar (`WidgetCommonLine5`) is set to the
+    tabs' own left and right edges, measured where they sit (moving it by the tabs' offset left it about
+    100 units right of them on the phone). A first try shrank the names to fit 197 units instead; measured against the 76-unit box it put
+    them at 16, and the user asked for wider tabs and larger names, with the sort label smaller to make
+    room.
+
+    Prefab `UILordCombatpowerList` (`835EF33C7D9684AE`): the sort toggle (`WidgetCommonCheckWithLeftTitle`,
+    right-pivoted, its label left of the box) sits in a `Check` group whose left edge, a divider, is
+    where the two-character Chinese back title ends; "‹ Chessplayer" covered it and "Sort by Combat
+    Power" ran left under the title. Its label drops to 80% of the prefab's size (never below 16). The
+    group moves right until its left edge sits 24 units past the
+    back title's text (`UIFullScreenViewTemplate_Back`'s `title`, measured as left-aligned), and the
+    toggle's right edge moves out until the toggle starts 24 units past the divider. The toggle's width is
+    its widest label plus 64 units (the box and its gap, as the prefab's unselected state lays them out),
+    not its laid-out width: the Combat Power page is inactive until first shown, so its layout is not
+    built, and measured that way the tabs sat centred on the first visit and moved once the page had
+    been seen. Measured from the labels, the tabs take the Combat Power position from the first visit. Both run when the
+    tabs are set and when the Combat Power tab opens, and again on the next tick; the prefab positions
+    are kept by each object's instance id, so a rerun never drifts, and a failure leaves the header as the
+    game drew it, logged as a Unity warning. A rerun half a second later settles the header after the
+    page's opening animation. Kept in a weak table keyed by the Lua wrapper, the values were lost when
+    the wrapper was collected, and the next pass took the moved layout as the prefab's: on the phone the
+    sort label shrank again and the toggle and tabs crept right into the total power.
+    """
+    helper = ("local _lordTabSize = {}\n"
+              "local _lordTabBase = {}\n"
+              "local _lordCheckBase = {}\n\n"
+              "local function _fitLordTabs(page, toggleEnd)\n"
+              "    local menuTf = page.tabList.transform\n"
+              "    local texts = menuTf:GetComponentsInChildren(typeof(CS.UnityEngine.UI.Text), true)\n"
+              "    local items, seen = {}, {}\n"
+              "    local widest = 0\n"
+              "    for i = 0, texts.Length - 1 do\n"
+              "        local label = texts[i]\n"
+              "        local item = label.rectTransform\n"
+              "        while item ~= nil and item.parent ~= menuTf do\n"
+              "            item = item.parent\n"
+              "        end\n"
+              "        if item ~= nil then\n"
+              "            local size = _lordTabSize[label:GetInstanceID()]\n"
+              "            if size == nil then\n"
+              "                size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "                _lordTabSize[label:GetInstanceID()] = size\n"
+              "            end\n"
+              "            label.resizeTextForBestFit = false\n"
+              "            label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "            label.fontSize = size\n"
+              "            widest = math.max(widest, label.preferredWidth)\n"
+              "            if not seen[item] then\n"
+              "                seen[item] = true\n"
+              "                items[#items + 1] = item\n"
+              "            end\n"
+              "        end\n"
+              "    end\n"
+              "    if #items == 0 or widest <= 0 then\n"
+              "        return\n"
+              "    end\n"
+              "    for _, item in ipairs(items) do\n"
+              "        if _lordTabBase[item:GetInstanceID()] == nil then\n"
+              "            _lordTabBase[item:GetInstanceID()] = { w = item.rect.width, x = item.anchoredPosition.x }\n"
+              "        end\n"
+              "    end\n"
+              "    table.sort(items, function(a, b) return _lordTabBase[a:GetInstanceID()].x < _lordTabBase[b:GetInstanceID()].x end)\n"
+              "    local first = _lordTabBase[items[1]:GetInstanceID()]\n"
+              "    local width = math.max(widest + 80, first.w)\n"
+              "    local baseLeft = first.x - first.w * items[1].pivot.x\n"
+              "    local left = baseLeft + (first.w - width) * #items / 2\n"
+              "    local function place()\n"
+              "        for i, item in ipairs(items) do\n"
+              "            item:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, width)\n"
+              "            item.anchoredPosition = CSVector2(left + width * (i - 1) + width * item.pivot.x, item.anchoredPosition.y)\n"
+              "        end\n"
+              "    end\n"
+              "    place()\n"
+              "    if toggleEnd ~= nil then\n"
+              "        local tabStart = items[1]:TransformPoint(CS.UnityEngine.Vector3(items[1].rect.xMin, 0, 0))\n"
+              "        local gap = menuTf:InverseTransformPoint(toggleEnd).x + 40 - menuTf:InverseTransformPoint(tabStart).x\n"
+              "        if gap > 0 then\n"
+              "            left = left + gap\n"
+              "            place()\n"
+              "        end\n"
+              "    end\n"
+              "    local line = page.topTab:Find(\"WidgetCommonLine5\")\n"
+              "    if line ~= nil then\n"
+              "        local lineParent = line.parent\n"
+              "        local tabStart = items[1]:TransformPoint(CS.UnityEngine.Vector3(items[1].rect.xMin, 0, 0))\n"
+              "        local tabEnd = items[#items]:TransformPoint(CS.UnityEngine.Vector3(items[#items].rect.xMax, 0, 0))\n"
+              "        local startX = lineParent:InverseTransformPoint(tabStart).x\n"
+              "        local endX = lineParent:InverseTransformPoint(tabEnd).x\n"
+              "        line:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, endX - startX)\n"
+              "        local lineLeft = line.localPosition.x + line.rect.xMin\n"
+              "        line.anchoredPosition = CSVector2(line.anchoredPosition.x + startX - lineLeft, line.anchoredPosition.y)\n"
+              "    end\n"
+              "end\n\n"
+              "local function _placeLordSortToggle(page)\n"
+              "    local list = page.uiLordCombatpowerListChild\n"
+              "    local back = page.uiFullScreenViewTemplate_BackChild\n"
+              "    if not list or not back or not list.widgetCommonCheckWithLeftTitle or not back.title then\n"
+              "        return\n"
+              "    end\n"
+              "    local toggleTf = list.widgetCommonCheckWithLeftTitle.transform\n"
+              "    local check = toggleTf.parent\n"
+              "    local base = _lordCheckBase[check:GetInstanceID()]\n"
+              "    if base == nil then\n"
+              "        base = { checkX = check.anchoredPosition.x, toggleX = toggleTf.anchoredPosition.x }\n"
+              "        _lordCheckBase[check:GetInstanceID()] = base\n"
+              "    end\n"
+              "    local labels = toggleTf:GetComponentsInChildren(typeof(CS.UnityEngine.UI.Text), true)\n"
+              "    local labelWidth = 0\n"
+              "    for i = 0, labels.Length - 1 do\n"
+              "        local label = labels[i]\n"
+              "        local size = _lordTabSize[label:GetInstanceID()]\n"
+              "        if size == nil then\n"
+              "            size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "            _lordTabSize[label:GetInstanceID()] = size\n"
+              "        end\n"
+              "        label.resizeTextForBestFit = false\n"
+              "        label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "        label.fontSize = math.max(math.floor(size * 0.8), 16)\n"
+              "        labelWidth = math.max(labelWidth, label.preferredWidth)\n"
+              "    end\n"
+              "    pcall(function() ForceRebuildLayoutImmediate(toggleTf) end)\n"
+              "    local toggleX = math.max(base.toggleX, labelWidth + 64 + 24)\n"
+              "    toggleTf.anchoredPosition = CSVector2(toggleX, toggleTf.anchoredPosition.y)\n"
+              "    local title = back.title\n"
+              "    local titleTf = title.rectTransform\n"
+              "    local titleEnd = titleTf:TransformPoint(CS.UnityEngine.Vector3(titleTf.rect.xMin + title.preferredWidth, 0, 0))\n"
+              "    local titleRight = check.parent:InverseTransformPoint(titleEnd).x\n"
+              "    local baseLeft = check.localPosition.x - (check.anchoredPosition.x - base.checkX) + check.rect.xMin\n"
+              "    local shift = math.max(titleRight + 24 - baseLeft, 0)\n"
+              "    check.anchoredPosition = CSVector2(base.checkX + shift, check.anchoredPosition.y)\n"
+              "    return check:TransformPoint(CS.UnityEngine.Vector3(check.rect.xMin + toggleX, 0, 0))\n"
+              "end\n\n"
+              "local function _fitLordHeader(page)\n"
+              "    local toggleEnd = nil\n"
+              "    local ok2, err2 = pcall(function()\n"
+              "        toggleEnd = _placeLordSortToggle(page)\n"
+              "    end)\n"
+              "    local ok, err = pcall(function()\n"
+              "        _fitLordTabs(page, toggleEnd)\n"
+              "    end)\n"
+              "    if not ok or not ok2 then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE chessplayer header: \" .. tostring(err) .. \" \" .. tostring(err2)) end)\n"
+              "    end\n"
+              "end\n\n"
+              "local function _fitLordHeaderNowAndNext(page)\n"
+              "    pcall(_fitLordHeader, page)\n"
+              "    pcall(function()\n"
+              "        ScheduleService:SetTimeout(function()\n"
+              "            if page:Available() then\n"
+              "                pcall(_fitLordHeader, page)\n"
+              "            end\n"
+              "        end, 0)\n"
+              "        ScheduleService:SetTimeout(function()\n"
+              "            if page:Available() then\n"
+              "                pcall(_fitLordHeader, page)\n"
+              "            end\n"
+              "        end, 0.5)\n"
+              "    end)\n"
+              "end\n\n")
+    return ((_LORD_LIST_CLASS, helper + _LORD_LIST_CLASS),
+            (_LORD_LIST_TABS_SET, _LORD_LIST_TABS_SET[:-len("end\n")]
+             + "    _fitLordHeaderNowAndNext(self)\nend\n"),
+            (_LORD_LIST_TO_POWER, _LORD_LIST_TO_POWER + "    _fitLordHeaderNowAndNext(self)\n"))
+
+
+# The match-end ranking screen's tab bar (`UISettleBattle_OSGClass`): its class declaration, and the end
+# of RefreshTimiMenuOptions, after the tabs are set.
+_SETTLE_TABS_CLASS = "---@class UISettleBattle_OSGClass : UISettleBattleClass\n"
+_SETTLE_TABS_SET = ("    self.list_Tab:SetOptions(optionList)\n"
+                    "    self.list_Tab:SetSelect(CS.Timi.TimiMenuIndex(0), true)\nend\n")
+
+
+def _settle_tab_names_fit() -> tuple[tuple[str, str], ...]:
+    """The edit that keeps the match-end ranking screen's tab names (Lineup Combine, Post-game social,
+    Championship collection, and Support details in an apex room) apart.
+
+    Prefab `UISettleBattle` (package 19): `List_Tab` is a `TimiMenu` pinned to the top right (pivot on
+    its right edge) with a horizontal layout (middle right, spacing 53) under a content size fitter.
+    Each item (`UIPVPSettleBattleTabItem`) is a 144 x 60 cell whose names (`SelectTxt`, `UnSelectTxt`),
+    the `Select` group and its underline are 144 wide and centred, so a longer English name overflows
+    into its neighbours. Each cell (and those children of it that share its width) now widens to its own
+    name plus 24 units a side, at one shared size; the bar grows left, which the layout does by itself.
+    If the widened bar would reach the Feedback button (`btn_Problem`) less 40 units, every name shrinks
+    by one factor to fit (never below 16). The prefab's sizes and widths are kept by instance id, so a
+    rerun measures from them and never adds up. The fit runs when the tabs are set, on the next tick and
+    half a second later, in case the menu builds its items late; a failure leaves the bar as the game
+    drew it, logged as a Unity warning.
+    """
+    helper = ("local _settleTabSize = {}\n"
+              "local _settleTabWidth = {}\n\n"
+              "local function _fitSettleTabs(view)\n"
+              "    local listTf = view.list_Tab.transform\n"
+              "    local items = {}\n"
+              "    for i = 0, listTf.childCount - 1 do\n"
+              "        local item = listTf:GetChild(i)\n"
+              "        if item.gameObject.activeSelf then\n"
+              "            items[#items + 1] = item\n"
+              "        end\n"
+              "    end\n"
+              "    if #items == 0 then\n"
+              "        return\n"
+              "    end\n"
+              "    local cells = {}\n"
+              "    local namesWidth, baseWidth = 0, 0\n"
+              "    for _, item in ipairs(items) do\n"
+              "        local base = _settleTabWidth[item:GetInstanceID()]\n"
+              "        if base == nil then\n"
+              "            base = item.rect.width\n"
+              "            if base <= 0 then\n"
+              "                return\n"
+              "            end\n"
+              "            _settleTabWidth[item:GetInstanceID()] = base\n"
+              "        end\n"
+              "        local labels = item:GetComponentsInChildren(typeof(CS.UnityEngine.UI.Text), true)\n"
+              "        local cell = { item = item, base = base, labels = {}, name = 0 }\n"
+              "        for i = 0, labels.Length - 1 do\n"
+              "            local label = labels[i]\n"
+              "            local size = _settleTabSize[label:GetInstanceID()]\n"
+              "            if size == nil then\n"
+              "                size = label.resizeTextForBestFit and label.resizeTextMaxSize or label.fontSize\n"
+              "                _settleTabSize[label:GetInstanceID()] = size\n"
+              "            end\n"
+              "            label.resizeTextForBestFit = false\n"
+              "            label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow\n"
+              "            label.fontSize = size\n"
+              "            cell.labels[#cell.labels + 1] = { label = label, size = size }\n"
+              "            cell.name = math.max(cell.name, label.preferredWidth)\n"
+              "        end\n"
+              "        namesWidth = namesWidth + cell.name\n"
+              "        baseWidth = baseWidth + base\n"
+              "        cells[#cells + 1] = cell\n"
+              "    end\n"
+              "    local scale = 1\n"
+              "    local layout = listTf:GetComponent(typeof(CS.UnityEngine.UI.HorizontalLayoutGroup))\n"
+              "    local spacing = CommonUtility:NotNull(layout) and layout.spacing or 0\n"
+              "    pcall(function()\n"
+              "        local feedback = view.btn_Problem.transform\n"
+              "        local limit = feedback:TransformPoint(CS.UnityEngine.Vector3(feedback.rect.xMax, 0, 0))\n"
+              "        local barRight = listTf:TransformPoint(CS.UnityEngine.Vector3(listTf.rect.xMax, 0, 0))\n"
+              "        local room = listTf:InverseTransformPoint(barRight).x - listTf:InverseTransformPoint(limit).x - 40\n"
+              "        local fixed = 48 * #cells + spacing * (#cells - 1)\n"
+              "        if room > fixed and namesWidth > 0 and namesWidth + fixed > room then\n"
+              "            scale = (room - fixed) / namesWidth\n"
+              "        end\n"
+              "    end)\n"
+              "    for _, cell in ipairs(cells) do\n"
+              "        local name = cell.name\n"
+              "        if scale < 1 then\n"
+              "            name = 0\n"
+              "            for _, entry in ipairs(cell.labels) do\n"
+              "                entry.label.fontSize = math.max(math.floor(entry.size * scale), 16)\n"
+              "                name = math.max(name, entry.label.preferredWidth)\n"
+              "            end\n"
+              "        end\n"
+              "        local width = math.max(math.ceil(name + 48), cell.base)\n"
+              "        local item = cell.item\n"
+              "        local parts = item:GetComponentsInChildren(typeof(CS.UnityEngine.RectTransform), true)\n"
+              "        for i = 0, parts.Length - 1 do\n"
+              "            local part = parts[i]\n"
+              "            if part ~= item and part.anchorMin.x == part.anchorMax.x then\n"
+              "                local partBase = _settleTabWidth[part:GetInstanceID()]\n"
+              "                if partBase == nil then\n"
+              "                    partBase = part.rect.width\n"
+              "                    _settleTabWidth[part:GetInstanceID()] = partBase\n"
+              "                end\n"
+              "                if math.abs(partBase - cell.base) < 1 then\n"
+              "                    part:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, width)\n"
+              "                end\n"
+              "            end\n"
+              "        end\n"
+              "        item:SetSizeWithCurrentAnchors(CS.UnityEngine.RectTransform.Axis.Horizontal, width)\n"
+              "        local element = item:GetComponent(typeof(CS.UnityEngine.UI.LayoutElement))\n"
+              "        if CommonUtility:NotNull(element) then\n"
+              "            element.preferredWidth = width\n"
+              "        end\n"
+              "    end\n"
+              "    pcall(function() ForceRebuildLayoutImmediate(listTf) end)\n"
+              "end\n\n"
+              "local function _fitSettleTabsSafely(view)\n"
+              "    local ok, err = pcall(_fitSettleTabs, view)\n"
+              "    if not ok then\n"
+              "        pcall(function() CS.UnityEngine.Debug.LogWarning(\"HOKACE settle tabs: \" .. tostring(err)) end)\n"
+              "    end\n"
+              "end\n\n")
+    return ((_SETTLE_TABS_CLASS, helper + _SETTLE_TABS_CLASS),
+            (_SETTLE_TABS_SET,
+             _SETTLE_TABS_SET[:-len("end\n")]
+             + "    _fitSettleTabsSafely(self)\n"
+               "    pcall(function()\n"
+               "        ScheduleService:SetTimeout(function()\n"
+               "            if self:Available() then\n"
+               "                _fitSettleTabsSafely(self)\n"
+               "            end\n"
+               "        end, 0)\n"
+               "        ScheduleService:SetTimeout(function()\n"
+               "            if self:Available() then\n"
+               "                _fitSettleTabsSafely(self)\n"
+               "            end\n"
+               "        end, 0.5)\n"
+               "    end)\n"
+               "end\n"))
+
+
+# The All Things Moment service (`ICreateSDKServiceClass`): where it builds the match-end tip from the
+# server's notification.
+_MOMENT_TIPS = ("            self.DemandTips = data.Response.BubbleText .. "
+                "Localize.GetString(\"WanXiangReportShareTips\")\n"
+                "        else\n"
+                "            self.DemandTips = data.Response.BubbleTextDefault\n")
+
+
+def _moment_tip_translated() -> tuple[tuple[str, str], ...]:
+    """The edit that translates the match-end All Things Moment tip's highlight title.
+
+    The tip is the server's highlight title (`BubbleText`, such as `五连绝世无人能挡`) joined to
+    `WanXiangReportShareTips` (", tap to Generate All Things Moment report"), or the server's own default
+    (`BubbleTextDefault`) when there is no title. Neither server text is in any table or asset, so a
+    title is looked up in `_HOKACE_MOMENT_TITLES`, which `rewrite_script` fills from SCRIPT_TRANSLATIONS.
+    A Chinese title or default the table lacks is dropped while the tip itself is translated: the tip
+    shows alone, its leading comma removed and its first letter capitalised ("Tap to Generate All Things
+    Moment report"). A failure keeps the game's own text.
+    """
+    helper = ("local function _hokaceHasCjk(text)\n"
+              "    return type(text) == \"string\" and string.find(text, \"[\\228-\\233][\\128-\\191][\\128-\\191]\") ~= nil\n"
+              "end\n\n"
+              "local function _hokaceMomentTip(title, default)\n"
+              "    local tip = tostring(Localize.GetString(\"WanXiangReportShareTips\"))\n"
+              "    local ok, result = pcall(function()\n"
+              "        local function tipAlone()\n"
+              "            local text = string.gsub(tip, \"^\\239\\188\\140\", \"\")\n"
+              "            text = string.gsub(text, \"^[%s,]+\", \"\")\n"
+              "            return (string.gsub(text, \"^%l\", string.upper))\n"
+              "        end\n"
+              "        if title ~= nil then\n"
+              "            local known = _HOKACE_MOMENT_TITLES[title]\n"
+              "            if known ~= nil then\n"
+              "                return known .. tip\n"
+              "            end\n"
+              "            if _hokaceHasCjk(title) and not _hokaceHasCjk(tip) then\n"
+              "                return tipAlone()\n"
+              "            end\n"
+              "            return title .. tip\n"
+              "        end\n"
+              "        if _hokaceHasCjk(default) and not _hokaceHasCjk(tip) then\n"
+              "            return tipAlone()\n"
+              "        end\n"
+              "        return default\n"
+              "    end)\n"
+              "    if ok then\n"
+              "        return result\n"
+              "    end\n"
+              "    if title ~= nil then\n"
+              "        return title .. tip\n"
+              "    end\n"
+              "    return default\n"
+              "end\n\n")
+    return _crlf((("---@class ICreateSDKServiceClass\n", helper + "---@class ICreateSDKServiceClass\n"),
+                  (_MOMENT_TIPS,
+                   "            self.DemandTips = _hokaceMomentTip(data.Response.BubbleText, nil)\n"
+                   "        else\n"
+                   "            self.DemandTips = _hokaceMomentTip(nil, data.Response.BubbleTextDefault)\n")))
+
+
 # Lua UI scripts whose own formatting or behaviour is wrong for a translation: each entry is an exact
 # source literal and its replacement, applied under the same once-only rule as SCRIPT_LABELS.
 SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
@@ -481,6 +1096,26 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     0xEFB633FD63FC35CF: _lobby_btn_names_fit(),
     0x2C5B589676763044: _lobby_menu_icon_gap(),
     0xFC07FFAAB85F0418: _lobby_menu_button_gap(),
+    # The lobby's Menu panel (`UILobbyMenuLittleItemClass`, package 10, in the 1.11 override), 1.11.0.2:
+    # "Achievement", "Encyclopedia" and "Announcement" each shrank to fit their cells.
+    0xD752489AB26CEFC8: _main_menu_names_fit(),
+    # The Chessplayer page (`UILordListClass`, package 10, in the 1.11 override), 1.11.0.2: the
+    # Chessplayer and Combat Power tab names ran into each other, and the Combat Power page's sort toggle
+    # sat under the back title.
+    0x428AF2481FE35A3A: _lord_list_header_fit(),
+    # The room (package 10, both in the 1.11 override, stored with CRLF line endings): "Lineup" and
+    # "Settings" ran into their icons (`UIPVPRoomLeftDown_NormalClass`), and "Recommend" alone shrank
+    # among the friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`).
+    0x29FE6D03415A0971: _room_buttons_clear_of_icons(),
+    0x7C2AE97D11BD7B4F: _room_tab_names_fit(),
+    # The match-end ranking screen (`UISettleBattle_OSGClass`, package 10, in the 1.11 override),
+    # 1.11.0.2: "Lineup Combine", "Post-game social" and "Championship collection" overflowed their
+    # 144-unit tab cells and ran into each other.
+    0x915E19AB90FFA1D9: _settle_tab_names_fit(),
+    # The match-end All Things Moment tip (`ICreateSDKServiceClass`, package 10, in the 1.11 override,
+    # CRLF), 1.11.0.2: "五连绝世无人能挡, tap to Generate All Things Moment report", the title being
+    # the server's own text. Its titles are in SCRIPT_TRANSLATIONS.
+    0xCC55DC213C5C6913: _moment_tip_translated(),
     # The match-end ranking toasts (package 10, prime-only, so they are appended): 1st to 3rd place
     # (`UIPvpSettlementRankingToastTopShowClass`, the button shows at 3rd) and 4th and lower
     # (`UIPvpSettlementRankingToastOtherShowClass`). Their "Exit now" button read 现在退出 on 1.8.0.1.
@@ -534,8 +1169,16 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
          "    local resourcePath = self:vGetPath()\n"),
     ),
 }
+# Lua scripts that show text the server sends, which no table or asset holds: each entry names a Lua
+# table an edit in SCRIPT_EDITS reads, and the Chinese texts to fill it with. `rewrite_script` declares
+# the table at the top of the script with the catalog's translation of each (in the run's language, so
+# the pairs live in `resources/catalog_supplement/texts.json`), leaving out any the catalog lacks.
+SCRIPT_TRANSLATIONS: dict[int, tuple[str, tuple[str, ...]]] = {
+    # The match-end All Things Moment tip's highlight titles, each seen on a phone.
+    0xCC55DC213C5C6913: ("_HOKACE_MOMENT_TITLES", ("五连绝世无人能挡",)),
+}
 # Every Lua script the pass may write.
-SCRIPT_ASSETS = frozenset(SCRIPT_LABELS) | frozenset(SCRIPT_EDITS)
+SCRIPT_ASSETS = frozenset(SCRIPT_LABELS) | frozenset(SCRIPT_EDITS) | frozenset(SCRIPT_TRANSLATIONS)
 # The PC edition's package holding every SCRIPT_ASSETS script, the same Lua as the mobile edition's
 # (azydev fork, 2026-11-18, PC 1.10.1.2). `pc_catalog` opens only this package for them; a script it
 # lacks is looked for by a scan of every package's index, which the build logs.
@@ -625,6 +1268,17 @@ def rewrite_script(file_hash: int, raw: bytes, catalog) -> bytes | None:
     for old, replacement in SCRIPT_EDITS.get(file_hash, ()):
         if new.count(old.encode()) == 1:
             new = new.replace(old.encode(), replacement.encode())
+    if file_hash in SCRIPT_TRANSLATIONS:
+        name, sources = SCRIPT_TRANSLATIONS[file_hash]
+        # Declared only where an edit uses the table, and only once.
+        if name.encode() in new and f"local {name} = ".encode() not in new:
+            rows = []
+            for source in sources:
+                target = translate(source)
+                if target and not any(char in target + source for char in '"\\\r\n'):
+                    rows.append(f'["{source}"] = "{target}", ')
+            line_end = "\r\n" if b"\r\n" in raw else "\n"
+            new = f"local {name} = {{ {''.join(rows)}}}{line_end}".encode() + new
     return new if new != raw else None
 
 

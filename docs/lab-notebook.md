@@ -6572,3 +6572,140 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   catalog patches 50 assets in English and 51 in Indonesian (49 and 50 before), with no texture refused:
   the PC table lacks the same sprite. No PC cycle.
 
+## 2026-11-21 — Room: Lineup and Settings clear of their icons, one size for the friend panel tabs
+
+- **Seen:** phone screenshot, data 1.11.0.2, English, 2400 x 1080, the match room. Bottom left, the
+  Lineup and Settings icons sit under the first letters of their names. Top right, the friend panel's
+  tabs read Friend, Recent and Team at full size and "Recommend" at roughly 20.
+- **Cause** (Lua in package `10`, both scripts in the 1.11.0.2 override and stored with CRLF line
+  endings; prefabs read from the phone's package `19` with `unity_text.SerializedFile`):
+  - `UIPVPRoomLeftDown_NormalClass` (`29FE6D03415A0971`), prefab `UIPVPRoomLeftDown_Normal`
+    (`381C56013262A1B3`): `BtnGroup` is a horizontal layout (spacing 20) under a content size fitter;
+    each button is a 200 x 104 cell with a `LayoutElement` (preferred width 200). `Img_EmbattleEnter`
+    (75 x 72) is centred at x -43.5 and `Img_Setting` (84 x 82) at -45; `Txt_Embattle` and
+    `Txt_Setting` are 33-point labels sized by a content size fitter, centred at x 18. Two Chinese
+    characters span x -15 to 51; an English name centred on 18 starts inside the icon.
+  - `UIPVPRoomNestedRecommendTabItemClass` (`7C2AE97D11BD7B4F`, override only), prefab
+    `UIPVPRoomNestedRecommendTabItem` (`86546979A75C9A8B`): `Txt_Title` fills a 146 x 40 item with
+    best fit (max 33, min 1, wrapping). `UIPVPRoomNestedRecommend`'s `List_Tab` (518 wide) is a
+    horizontal layout that splits its width evenly, about 130 a tab on the screenshot.
+- **Change:** two `SCRIPT_EDITS` entries. The room buttons pin each name's left edge at its centre less
+  one font size (where the Chinese starts) and grow the cell by what the name needs to end 30 units
+  before the divider, moving the icon and name left by half the growth; run when the buttons are shown
+  and again on the next tick. The tabs turn best fit off and set every name to the largest size at which
+  each of the four names fits the tab's own width less 8 (never below 16). Anchors occur once in the dump's override copies (`D:/scratch/event-room-line/device/game`,
+  1.11.0.2); the prime `29FE6D03415A0971` takes only the helper, unused. The edited scripts compile
+  (Lua 5.5, `lupa`).
+- **On the phone** (1.11.0.2, rewritten package `10` pushed in place through the access APK, normal APK
+  reinstalled):
+  - First push: Lineup and Settings clear of their icons, the room bar wider. Tabs unchanged.
+  - Probe 1 and 2 (visible markers in the tab names, since Lua `Debug.LogWarning` never reaches logcat on
+    this build): each tab item sits in a cell of its own, so a group found through the parent held one
+    tab; `List_Tab` ignores a `LayoutElement` width and keeps every cell at 129. Changed to measure all
+    four names (`RoomRecommendTabFriend`, `…Recent`, `…Player`, `…Room`) on each tab against its own
+    label width less 8, then restore the tab's own text.
+  - Final push: Friend, Recent, Recommend and Team at one size (about 20); Lineup and Settings still clear.
+    Package `10` hashes on the phone: `10.db` `33507622…`, `10_0.db` `8daf3cef…`.
+  - Two access installs failed with `INSUFFICIENT_STORAGE` until the phone was rebooted (a failed
+    streamed install held about 2 GB).
+
+## 2026-11-21 — Lobby Menu panel: one size for the entry names
+
+- **Seen:** phone screenshot, data 1.11.0.2, English, the lobby Menu panel. Custom, Backpack, Combine,
+  Mail, Season, Spectate, Briefing, Guide and Video read at full size; "Achievement", "Encyclopedia" and
+  "Announcement" each shrank to its own smaller size.
+- **Cause:** `UILobbyMenuLittleItemClass` (`D752489AB26CEFC8`, package `10`, in the override; LF line
+  endings), prefab `UILobbyMenuLittleItem` (`52615AAB6C452819`, package `19`): each entry is a 195 x 240
+  cell, its name `Txt_UnLockName` a 150 x 44 best-fit box. `UILobbyMainMenuClass`'s `menuRootTimiList`
+  holds every entry, four to a row, with blank fillers.
+- **Change:** one `SCRIPT_EDITS` entry. Each entry records its name once set (a filler clears its record)
+  and refits every recorded entry: best fit off, overflow on, every recorded name measured at the prefab's
+  largest size, all set to the size at which the widest fits the cell less 12 (never below 16). Anchors
+  occur once in both the prime and override copies; both edited copies compile (Lua 5.5, `lupa`).
+- **On the phone** (rewritten package `10` pushed in place through the access APK, normal APK
+  reinstalled; `10.db` `7fd52489…`, `10_0.db` `378b2da2…`): all twelve names at one size, about 22, none
+  reaching a neighbour. The room edits on the same build were untouched.
+
+## 2026-11-21 — Chessplayer page: wider tabs, sort toggle clear of the back title
+
+- **Seen:** phone screenshot, data 1.11.0.2, English, the Chessplayer page's Combat Power tab. The tab
+  names "Chessplayer" and "Combat Power" ran into each other; a dim "Sort by Combat Power" sat under the
+  "‹ Chessplayer" back title.
+- **Cause** (`UILordListClass`, `428AF2481FE35A3A`, package `10`, in the override, LF; prefabs from
+  package `19`):
+  - The tabs are a `TimiMenu` (`TabList`, in `UILordList`) of `UILordTotalPowerPaageItem` items
+    (`40090008899DA31A`): 197 x 69, name boxes 76 (selected) and 152 (not) wide, the underline stretching
+    with the item. `WidgetCommonLine5`, the grey line under them, is 394 wide.
+  - The toggle (`WidgetCommonCheckWithLeftTitle` in `UILordCombatpowerList`, `835EF33C7D9684AE`) is
+    right-pivoted inside a `Check` group whose left edge, a divider, is where the Chinese back title
+    (`UIFullScreenViewTemplate_Back`'s `title`) ends.
+- **Changes on the phone, in order:**
+  1. Tab names shrunk to fit their cell, measured against the nearest box with a width: that was the
+     76-unit name box, so both names fell to 16. Toggle moved past the title: correct.
+  2. The user asked for wider tabs and bigger names, with the sort label smaller: tabs widened to the
+     longer name plus 40 units a side, kept centred, pushed right only to stay 40 units clear of the
+     toggle; label at 80%. Names right, but the grey line sat about 100 units right of the tabs (moved
+     by the tabs' offset, from a different left edge).
+  3. Line set to the tabs' measured edges in its own parent's space. On this run the label had shrunk
+     again and the toggle and tabs had crept right into the total power: the prefab values were kept in
+     weak tables keyed by the Lua wrapper, which can be collected, and the next pass read the moved
+     layout as the prefab's.
+  4. Values keyed by `GetInstanceID()` instead, plus a rerun half a second after opening. Steady after
+     leaving and reopening the tab: tabs at full size with the line under them, toggle after the
+     title. The same weak-table keying in the room-button edit (`29FE6D03415A0971`) changed with it.
+  5. The user saw the tabs centred on the first visit to the Chessplayer page, then moved right once
+     Combat Power had been opened, and stay there. The Combat Power page is inactive until first
+     shown, so its toggle had no laid-out width and nothing pushed the tabs. The toggle's width is
+     now its widest label plus 64 units (box and gap, from the prefab's unselected state), measured
+     before layout. The user confirmed the tabs keep the Combat Power position from the first visit.
+- Package `10` on the phone, rebuilt from the original with all four 2026-11-21 edits: `10.db`
+  `1e515be3…`, `10_0.db` `20d7c307…`.
+- **Open:** the older lobby and Card-screen edits keep prefab sizes and positions in the same kind of
+  weak table (`_lobbyMenuSpacing`, `_lobbyMenuButtonX`, `_lobbyBtnNameSize`, `_campTabNameSize`); not
+  seen to drift.
+
+## 2026-11-22 — Match-end ranking screen: tab cells wide enough for their names
+
+- **Seen:** phone screenshot, data 1.11.0.2, English, the match-end ranking screen after a ranked game
+  won (1st, so the Championship tab shows). Top right, "Lineup Combine", "Post-game social" and
+  "Championship collection" overlap, the last running off the screen edge.
+- **Cause** (Lua in package `10`; prefabs read from the dump's package `19` by their object tables):
+  - `UISettleBattle_OSGClass` (`915E19AB90FFA1D9`, in the 1.11.0.2 override, LF) builds the tabs in
+    `RefreshTimiMenuOptions` from `PvpSettleBattleTabName_*` keys (`阵容组合`, `赛后互动`, `夺冠收藏`, and
+    `支持详情` in an apex room).
+  - Prefab `UISettleBattle` (`711122B83B6963AA`): `List_Tab` is anchored top right (pivot 1, 0.5, x -12),
+    538 x 60, a `TimiMenu` with a horizontal layout (middle right, spacing 53) under a content size
+    fitter. Its left neighbour, the Feedback button (`Btn_Problem`, 155 wide), ends near x 850 of a
+    2322-unit top bar; the tab bar starts near 1772.
+  - Item prefab `UIPVPSettleBattleTabItem` (`4B32E2DF1E5D842D`): 144 x 60; `Select`, `SelectTxt`,
+    `UnSelectTxt` (144 x 44) and the underline `Img_PvpSettle_ToggleLine` (144 x 6) are centred and
+    144 wide, so a longer name overflows into its neighbours.
+- **Change:** one `SCRIPT_EDITS` entry. After the tabs are set (and on the next tick and 0.5 s later),
+  every active item turns best fit off and widens itself, and each centred child of the item's width, to
+  its own name plus 24 units a side, at the prefab's size; the layout grows the bar left. If the bar
+  would come within 40 units of the Feedback button, all names shrink by one factor (never below 16).
+  Prefab sizes and widths are kept by instance id. Both anchors occur once in the dump's override copy;
+  the edited script compiles (Lua 5.5, `lupa`).
+- **Open:** not yet on a phone.
+
+## 2026-11-22 — Match-end All Things Moment tip: the server's highlight title
+
+- **Seen:** the same screenshot, bottom centre: "五连绝世无人能挡, tap to Generate All Things Moment report".
+- **Cause:** `ICreateSDKServiceClass` (`CC55DC213C5C6913`, package `10`, in the 1.11.0.2 override, CRLF)
+  builds the tip in `HandleBattleCanGenerateVideoReportNTF` as `data.Response.BubbleText` (the server's
+  highlight title) joined to `WanXiangReportShareTips` (`，点击生成万象战报`, translated), or
+  `BubbleTextDefault` alone. A search of every package of the dump for `无人能挡` finds only a skin's
+  story line, so the titles exist in no asset and no catalog table.
+- **Change:** a `SCRIPT_EDITS` entry routes both through `_hokaceMomentTip`, which looks the title up in
+  `_HOKACE_MOMENT_TITLES`; `rewrite_script` declares that table at the top of the script from
+  `SCRIPT_TRANSLATIONS`, translated by the run's catalog (the pair is a new section of
+  `resources/catalog_supplement/texts.json`: "Unstoppable Legendary Penta Kill", "Legendary Penta Kill tak
+  terbendung"). An unknown title or default with Chinese in it, while the tip is translated, is dropped
+  and the tip shows alone, capitalised. Anchors occur once in the dump's override copy; the edited
+  scripts (English and Indonesian) compile, and a Lua run of the helper with a stubbed `Localize` gives
+  "Unstoppable Legendary Penta Kill, tap to Generate All Things Moment report" and, for `四连绝世`,
+  "Tap to Generate All Things Moment report" (Lua 5.5, `lupa`).
+- **Staged with the tab edit:** package `10` from the 2026-11-21 phone build (`1e515be3…`,
+  `20d7c307…`) with both scripts rewritten in English: `10.db` `b0838caf…`, `10_0.db` `68277bf1…`
+  (`D:/scratch/settle-tabs/stage/10`).
+- **Open:** not yet on a phone; other highlight titles join the table as they are seen.

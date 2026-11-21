@@ -21,7 +21,7 @@ an installed game as they are, so this module writes a per-install copy with the
   `patched_sha256`, so these are re-hashed from the installed original. An entry whose installed
   source matches neither the catalog's `source_sha256` nor this patcher's last result (<previous>)
   is left for the engine to skip.
-- **Lua** (`extra_text.SCRIPT_ASSETS`): the Lua label and the nine Lua edits, each a whole-file entry
+- **Lua** (`extra_text.SCRIPT_ASSETS`): the Lua label and the Lua edits, each a whole-file entry
   with no `patch_ranges`, rewritten by `extra_text.rewrite_script`. The PC edition keeps them in
   package `extra_text.SCRIPT_PC_PACKAGE`; a script it lacks is found by a logged scan of every index.
 - **Config bins** on the PC edition's own allowlist (`extra_text.PC_SAFE_ASSETS`, empty today) and a PC

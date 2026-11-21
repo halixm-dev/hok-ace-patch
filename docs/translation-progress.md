@@ -14,9 +14,10 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **nine Lua edits** (`extra_text.SCRIPT_EDITS`) **and two config bins** on the mobile edition
+(`extra_text.SCRIPT_LABELS`), **fifteen Lua edits** (`extra_text.SCRIPT_EDITS`) **and two config bins** on the mobile edition
 (`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21, and
-`9E924AAB5066EE19`, the Super Weekend room perks, since 2026-11-21) — nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
+`9E924AAB5066EE19`, the Super Weekend room perks, since 2026-11-21) —
+nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not
 published, so progress is the counts a run prints, and the gap is what the sections below name.
 
 A run reports four numbers through the app's `translate` step, all read from
@@ -368,6 +369,41 @@ its red-dot effect plays, which had put Mall's cart on its name. `UILobbyClass` 
 the Menu name right, and the divider and the rest of the top bar with it, to the Chinese layout's gaps. The last two sit
 in the 1.9.2.4 override, so they are rewritten in place. Device-verified on 1.9.2.4 on 2026-11-11: all
 three bottom names at one size (about 21), both icons clear of their names, the Menu gaps as in Chinese.
+The tenth and eleventh tidy the room, both package `10` and in the 1.11.0.2 override, so rewritten in
+place (both scripts are stored with CRLF line endings, which the edits carry). `UIPVPRoomLeftDown_NormalClass`
+(`29FE6D03415A0971`) pins the Lineup and Settings names by their left edge where the two Chinese
+characters start, clear of the icon, and widens the 200-unit button by whatever the name needs to end 30
+units before its divider: centred on the Chinese point, "Lineup" and "Settings" had started inside their
+icons. `UIPVPRoomNestedRecommendTabItemClass` (`7C2AE97D11BD7B4F`) turns best fit off on the friend panel's
+four tabs and gives all four one size, the largest at which every tab's name fits its own 129-unit cell
+less 8 units (each tab measures all four names, since every tab sits in its own cell): best fit had
+shrunk "Recommend" alone to about 20 while Friend, Recent and Team read at 33. Device-verified on
+1.11.0.2 on 2026-11-21: both room names clear of their icons, all four tab names at one size.
+The twelfth gives the lobby Menu panel's twelve entry names one size: `UILobbyMenuLittleItemClass`
+(`D752489AB26CEFC8`, package `10`, in the 1.11.0.2 override, so rewritten in place) turns best fit off and
+sets every name to the size at which the widest fits one 195-unit cell less 12 units, about 22; best fit
+had shrunk "Achievement", "Encyclopedia" and "Announcement" each to its own size while the other nine
+read at 33. Device-verified on 1.11.0.2 on 2026-11-21.
+The thirteenth tidies the Chessplayer page's header: `UILordListClass` (`428AF2481FE35A3A`, package
+`10`, in the 1.11.0.2 override) widens the two tabs to the longer name plus 40 units a side, so
+"Chessplayer" and "Combat Power" keep their full size instead of running into each other in 197-unit
+tabs, with the grey line under them set to the tabs' edges; and it moves the Combat Power page's
+"Sort by Combat Power" toggle, its label at 80% size, to start past the back title, which had covered
+it. Device-verified on 1.11.0.2 on 2026-11-21: the tabs hold the same place from the first visit,
+on either tab, and stay there when the tab is opened again.
+The fourteenth separates the match-end ranking screen's tab names: `UISettleBattle_OSGClass`
+(`915E19AB90FFA1D9`, package `10`, in the 1.11.0.2 override) widens each 144-unit tab cell to its own
+name plus 24 units a side at one shared size, so the right-aligned bar grows left; the names shrink by
+one factor only if the bar would reach the Feedback button. "Lineup Combine", "Post-game social" and
+"Championship collection" had overflowed their cells into each other. Offline only (2026-11-22): not yet
+seen on a phone.
+The fifteenth translates the match-end All Things Moment tip: `ICreateSDKServiceClass`
+(`CC55DC213C5C6913`, package `10`, in the 1.11.0.2 override) joins a highlight title the server sends
+(`五连绝世无人能挡`) to the catalog's ", tap to Generate All Things Moment report", so the title stayed
+Chinese. Known titles are looked up in a table the pass writes from the catalog
+(`extra_text.SCRIPT_TRANSLATIONS`, the pairs in the supplement, one so far: "Unstoppable Legendary Penta
+Kill"); an unknown Chinese title, or a Chinese server default, is dropped and the tip shows alone ("Tap
+to Generate All Things Moment report"). Offline only (2026-11-22): not yet seen on a phone.
 
 Three narrower gates sit beside the allowlist in `tools/extra_text.py`:
 
