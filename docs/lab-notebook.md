@@ -6821,3 +6821,15 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   Diamond Frenzy fit on one line with a visible gap. Tapping each tab changes the page and moves
   the underline. Both catalogs staged matching script bytes. The script compiled, passed package
   read-back, and produced the same bytes when patched again.
+
+## 2026-11-22 — Contract: Resonance description
+
+- **Seen on the Redmi Note 9 Pro (1.11.0.2, English)**. The Diamond Frenzy Encyclopedia card
+  preview joined “1 person” to surrounding words. The corrected description fits in four lines
+  and explains how Heroes on the player's board and Contract Heroes gain Levels.
+- **Staged** the two catalog forms of the effect, with and without the series heading. Both
+  catalogs staged the corrected body in the four matching tables in package `1`. The updated
+  phone package passed read-back and was backed up before installation.
+- **Series heading**. The translated `Txt_OSHType` sits over Chinese text in the `UICardBP` capture
+  layer. Disabling `Icon_Capture` removed the duplicate and the card artwork together. The phone
+  test restored the capture layer and kept the description fix.

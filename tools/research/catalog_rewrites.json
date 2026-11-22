@@ -227,7 +227,12 @@
   "id": "<color=#99DEB0>Seri Contract</color>\nDi awal Ronde, dapatkan <color=#99DEB0>2</color> Hero Card yang sesuai dengan Talent seri Contract (Talent Contract harus aktif)."
  },
  "<color=#99DEB0>契约系列</color>\n激活契约天赋时，回合开始场上每有<color=#99DEB0>1名</color>英雄，己方所有英雄等级<color=#99DEB0>+3</color>。契约英雄获得的等级翻倍。": {
+  "en": "<color=#99DEB0>Contract Series</color>\nWith the Contract Talent active, at the start of each Round, for every <color=#99DEB0>1</color> Hero on your board, all your Heroes gain <color=#99DEB0>+3</color> Levels. Contract Heroes gain double.",
   "id": "<color=#99DEB0>Seri Contract</color>\nSaat Talent Contract aktif, di awal Ronde, untuk setiap <color=#99DEB0>1</color> Hero di papan, semua Hero kamu mendapatkan <color=#99DEB0>+3</color> Level. Hero Contract mendapatkan Level dua kali lipat."
+ },
+ "激活契约天赋时，回合开始场上每有<color=#99DEB0>1名</color>英雄，己方所有英雄等级<color=#99DEB0>+3</color>。契约英雄获得的等级翻倍。": {
+  "en": "With the Contract Talent active, at the start of each Round, for every <color=#99DEB0>1</color> Hero on your board, all your Heroes gain <color=#99DEB0>+3</color> Levels. Contract Heroes gain double.",
+  "id": "Saat Talent Contract aktif, di awal Ronde, untuk setiap <color=#99DEB0>1</color> Hero di papanmu, semua Hero kamu mendapat <color=#99DEB0>+3</color> Level. Hero Contract mendapat Level dua kali lipat."
  },
  "<color=#99DEB0>契约系列</color>\n羁绊英雄共战时，任意一方每击败<color=#99DEB0>1名</color>敌方英雄，双方物理攻击力、法术攻击力<color=#99DEB0>+5%</color>（上限<color=#99DEB0>60%</color>）。": {
   "id": "<color=#99DEB0>Seri Contract</color>\nSaat Hero yang terikat bertarung bersama, untuk setiap <color=#99DEB0>1</color> Hero musuh yang dikalahkan salah satunya, keduanya mendapatkan <color=#99DEB0>+5%</color> Physical Attack dan Magic Attack (maksimal <color=#99DEB0>60%</color>)."
