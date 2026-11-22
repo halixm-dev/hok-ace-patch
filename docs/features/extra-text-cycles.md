@@ -111,6 +111,8 @@ Career tabs (`314286AA90A60098`) use wider cells and share a larger font size th
 the notification dot.
 The Match, Like, and Days labels (`C08C09E32934B2D1`) share one larger font size with their
 counts. The widest pair sets the size for the row, and each pair is centered between its dividers.
+The Activate Privilege button (`89729889DF8FCE3B`) places the account icon to the left of the
+localized label and keeps the icon tappable.
 The Chessplayer detail panel (`3EF1BE086B77011A`) sizes its tabs to their labels, aligns them on one
 row, and fits the difficulty tags and skill captions within their rows.
 

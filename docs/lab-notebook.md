@@ -6801,3 +6801,13 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   Record and back. On Qiao Xi,
   Overview, Skill, and Combat Power align on one row. The difficulty indicators, tags, and skill
   captions have room, and the Combat Power value clears its info icon.
+
+## Career Activate Privilege icon
+
+- **Measured** in prefab `BEED2E58FA20B08A`. The QQ and WeChat icons had fixed positions sized for
+  their original labels. The Lua edit in `89729889DF8FCE3B` places the right edge of the icon 12
+  units before the translated label and makes the icon receive taps for its parent button.
+- **Verified on the Redmi Note 9 Pro (1.11.0.2, English, WeChat)**. The icon clears Activate Privilege,
+  and tapping either opens the information popup. The QQ branch was checked against its prefab.
+  Both catalogs staged the same Lua bytes as the installed package, and the script compiled and
+  passed read-back.
