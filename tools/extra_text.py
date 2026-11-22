@@ -1080,6 +1080,45 @@ def _moment_tip_translated() -> tuple[tuple[str, str], ...]:
                    "            self.DemandTips = _hokaceMomentTip(nil, data.Response.BubbleTextDefault)\n")))
 
 
+_PRIVILEGE_REFRESH_END = """        self:SetPlatformType(false)
+    end
+end
+
+function UIPrivilegeInvitationItemClass:OnUIPrivilegeInvitationItemClickAction()
+"""
+_PRIVILEGE_ICON_GAP = """        self:SetPlatformType(false)
+    end
+    local function fitPrivilegeIcon()
+        if not self:Available() then return end
+        local group, iconPath, titlePath
+        if self.channelType == OSProto.EAcntType.ACNT_TYPE_QQ then
+            group, iconPath, titlePath = self.platformTypeRect1, "qqIcon", "textTitle"
+        elseif self.channelType == OSProto.EAcntType.ACNT_TYPE_WX then
+            group, iconPath, titlePath = self.platformTypeRect2, "weixinIcon", "textTitle1"
+        else
+            return
+        end
+        local icon = group:Find(iconPath)
+        local title = group:Find(titlePath)
+        local label = title:GetComponent(typeof(CS.UnityEngine.UI.Text))
+        if label.preferredWidth <= 0 then return end
+        local titleLeft = title:TransformPoint(CS.UnityEngine.Vector3(title.rect.center.x - label.preferredWidth / 2, 0, 0))
+        local iconRight = icon:TransformPoint(CS.UnityEngine.Vector3(icon.rect.xMax, 0, 0))
+        local delta = group:InverseTransformPoint(titleLeft).x - group:InverseTransformPoint(iconRight).x - 12
+        icon.anchoredPosition = CSVector2(icon.anchoredPosition.x + delta, icon.anchoredPosition.y)
+        local graphic = icon:GetComponent(typeof(CS.UnityEngine.UI.Graphic))
+        if CommonUtility:NotNull(graphic) then graphic.raycastTarget = true end
+    end
+    pcall(fitPrivilegeIcon)
+    pcall(function()
+        ScheduleService:SetTimeout(function() pcall(fitPrivilegeIcon) end, 0)
+    end)
+end
+
+function UIPrivilegeInvitationItemClass:OnUIPrivilegeInvitationItemClickAction()
+"""
+
+
 _CAREER_TAB_OPTIONS = "    self.tabList01:SetOptions(optionList)\n    self:UnRegisterCareerBusinessCardRedDot()\n"
 _CAREER_TAB_SPACING = """    self.tabList01:SetOptions(optionList)
     local function fitCareerTabs()
@@ -1361,6 +1400,8 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     0x314286AA90A60098: ((_CAREER_TAB_OPTIONS, _CAREER_TAB_SPACING),),
     0xC08C09E32934B2D1: _crlf(((_CAREER_STAT_TYPE, _CAREER_STAT_SPACING),)),
     0x3EF1BE086B77011A: _crlf(((_LORD_DETAIL_LAYOUT, _LORD_DETAIL_SPACING),)),
+    # Career's Activate Privilege button (`UIPrivilegeInvitationItemClass`, package 10).
+    0x89729889DF8FCE3B: _crlf(((_PRIVILEGE_REFRESH_END, _PRIVILEGE_ICON_GAP),)),
     # The room (package 10, both in the 1.11 override, stored with CRLF line endings): "Lineup" and
     # "Settings" ran into their icons (`UIPVPRoomLeftDown_NormalClass`), and "Recommend" alone shrank
     # among the friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`).
