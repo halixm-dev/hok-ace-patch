@@ -3221,6 +3221,110 @@
       "id": "1.  Biarkan pembaruan di launcher game selesai.\n2.  Tutup game dan launcher-nya, dan biarkan tertutup sampai patcher selesai.\n3.  Pemasangan memakan waktu sekitar 10 menit dan memerlukan sekitar 10 GB ruang kosong di drive folder kerja dan di drive sistem.",
       "draft": true
     },
+    "pc_workspace": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "PC edition",
+      "id": "Edisi PC",
+      "draft": true
+    },
+    "pc_setup": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Setup",
+      "id": "Pengaturan",
+      "draft": true
+    },
+    "pc_setup_tip": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Finish the update in the launcher before patching. Allow about 10 minutes and 10 GB free on both the working and system drives.",
+      "id": "Selesaikan pembaruan di launcher sebelum memasang. Siapkan sekitar 10 menit dan 10 GB ruang kosong di drive kerja dan drive sistem.",
+      "draft": true
+    },
+    "pc_install_translation": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Install the translation",
+      "id": "Pasang terjemahan",
+      "draft": true
+    },
+    "pc_reapply": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Reapply translation",
+      "id": "Pasang ulang",
+      "draft": true
+    },
+    "pc_switch": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Switch language",
+      "id": "Ganti bahasa",
+      "draft": true
+    },
+    "pc_switch_detail": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The patcher restores the saved game files, then installs {language}.",
+      "id": "Patcher mengembalikan file game yang disimpan, lalu memasang {language}.",
+      "draft": true
+    },
+    "pc_update_available": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Translation update available",
+      "id": "Pembaruan terjemahan tersedia",
+      "draft": true
+    },
+    "pc_update_translation": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Update translation",
+      "id": "Perbarui terjemahan",
+      "draft": true
+    },
+    "pc_update_detail": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Close the game and launcher, then apply the translation bundled with this patcher.",
+      "id": "Tutup game dan launcher, lalu pasang terjemahan yang disertakan dalam patcher ini.",
+      "draft": true
+    },
+    "pc_state_working": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Working…",
+      "id": "Sedang bekerja…",
+      "draft": true
+    },
+    "pc_resume": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Recover and install",
+      "id": "Pulihkan dan pasang",
+      "draft": true
+    },
+    "pc_resume_detail": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "The previous job stopped early. Recover the original files and try the install again.",
+      "id": "Proses sebelumnya terhenti. Pulihkan file asli dan coba pasang lagi.",
+      "draft": true
+    },
     "pc_game_folder_label": {
       "platforms": [
         "windows"
@@ -3265,8 +3369,8 @@
       "platforms": [
         "windows"
       ],
-      "en": "WORKING FOLDER  ·  saved original files, about 4 GB per install",
-      "id": "FOLDER KERJA  ·  file asli tersimpan, sekitar 4 GB per pemasangan",
+      "en": "WORKING FOLDER",
+      "id": "FOLDER KERJA",
       "draft": true
     },
     "pc_state_unknown": {
@@ -3401,16 +3505,16 @@
       "platforms": [
         "windows"
       ],
-      "en": "The launcher put back original game files. Click Install to add the translation again.",
-      "id": "Launcher mengembalikan file game asli. Klik Pasang untuk menambahkan terjemahan lagi.",
+      "en": "Close the game and launcher, then click Reapply translation.",
+      "id": "Tutup game dan launcher, lalu klik Pasang ulang.",
       "draft": true
     },
     "pc_detail_partly": {
       "platforms": [
         "windows"
       ],
-      "en": "Some game files carry the translation and some do not. Click Install to finish it, or Remove translation to put back the original files.",
-      "id": "Sebagian file game memuat terjemahan dan sebagian tidak. Klik Pasang untuk menyelesaikannya, atau Hapus terjemahan untuk mengembalikan file asli.",
+      "en": "Use Repair in the game launcher. When it finishes, close the launcher and click Check.",
+      "id": "Gunakan Perbaiki di launcher game. Setelah selesai, tutup launcher lalu klik Periksa.",
       "draft": true
     },
     "pc_result_added": {

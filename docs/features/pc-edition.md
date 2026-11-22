@@ -14,6 +14,19 @@ Runbook: [PC cycle](../runbooks/pc-cycle.md). Receipts and the language switch:
 [language-switch](language-switch.md#the-pc-edition-receipts-restore-then-install). BC7 ports:
 [texture-translation](texture-translation.md).
 
+## Windows patch 1.11.2.1
+
+The PC workspace places status and patch actions beside the game folder, working folder and language.
+The activity log spans the window below. The setup moves below the actions in a narrow window.
+
+| What Check finds | Next action |
+|---|---|
+| The whole translation was replaced | **Reapply translation** builds against the updated game files. |
+| An older bundled translation is installed | **Update translation** restores its saved originals, then installs the bundled patch. |
+| Another language is installed | **Switch language** restores its saved originals, then installs the selected language. |
+| A patch job was interrupted and its recovery is available | **Recover and install** lets the engine recover before retrying. |
+| The launcher left a mix of translated and updated files, or Check finds another patcher's files | Use **Repair** in the game launcher, close it and run **Check**. |
+
 ## Report
 
 ### What landed

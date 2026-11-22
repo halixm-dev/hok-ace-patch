@@ -31,12 +31,13 @@ update, partly installed. A game found translated with no receipt of ours (the u
 or the fork's install) is *foreign*: Install refuses it with the launcher's repair as advice, and
 nothing of theirs is imported.
 
-**Install** in another language restores from the receipts first, then installs. It goes ahead without
-a restore when no receipt remains, or when the receipts match none of the files (a launcher update
-replaced them; the engine prunes such receipts), and it refuses before any write when they match some
-files and not others. A completed restore cancels the install receipts before it: the engine keeps
-them beside its restore receipt until its next run prunes both (2026-11-20). After every job the
-engine's `<work>\\staged\\` (whole packages, about 4 GB) is removed; the receipts hold the originals.
+**Install** in another language or from a different patcher version restores from the receipts first.
+When a launcher update replaced every translated file, Install checks the updated files and builds a
+fresh catalog without carrying over the old patch's texture hashes. A mix of updated and translated
+files requires launcher Repair before Install or Remove. A completed restore cancels the earlier
+install receipts. The engine keeps them beside its restore receipt until its next run prunes both
+(2026-11-20). Each write job cleans up the engine's `<work>\\staged\\` folder, about 4 GB of staged
+packages. The receipts hold the originals.
 
 **A job runs in a child process**: the exe re-invoked as
 `--pc-job <action> <game> <work> <answer.json> <language>` at low priority, answering through a JSON
@@ -359,29 +360,61 @@ def _stage(game: Path, work: Path, language: str, state: dict | None, log,
                             cycle_assets=cycle_assets, log=log)
 
 
-def _classify(game: Path, state: dict | None, receipts: list[dict], counts: dict | None) -> str:
-    """One of `STATES`, or `FOREIGN`, from the state file, this patcher's receipts and the scan."""
+def _classify(game: Path, state: dict | None, receipts: list[dict]) -> str:
+    """Identify the patch from saved file hashes and the game title."""
     files = (state or {}).get("files") or _files_written(receipts)
     if files:
         same, changed = _matching(game, files)
         if not changed:
             return INSTALLED if state else PARTLY  # receipts with no state: an install cut short
-        return REPLACED if not same else PARTLY
-    if title_changed(game) or (counts is not None and _looks_translated(counts)):
+        if same:
+            return PARTLY
+    if title_changed(game):
         return FOREIGN
-    return NOT_INSTALLED
+    return REPLACED if files else NOT_INSTALLED
+
+
+def _pending(game: Path) -> bool:
+    from wxq_patch import adaptive
+
+    return adaptive.pending_recovery(game)
+
+
+def _recover_pending(game: Path) -> bool:
+    from wxq_patch import adaptive
+
+    if not _pending(game):
+        return False
+    guard()
+    try:
+        return bool(adaptive.recover_pending(game))
+    except (OSError, RuntimeError, ValueError) as error:
+        raise PatchError("pc_engine_failed", detail=error) from error
 
 
 def check(game: Path, work: Path, language: str, *, log=print, cycle_assets: frozenset[int] = frozenset()) -> dict:
     """Check: build (or reuse) the stage, run the engine's scan, and say which of `STATES` the game is in."""
     state = read_state(work, game)
-    stage = _stage(game, work, language, state, log, cycle_assets)
+    receipts = _install_receipts(game)
+    if _pending(game):
+        return {"action": "status", "state": PARTLY, "recoverable": True}
+    current = _classify(game, state, receipts)
+    recoverable = False
+    if current == PARTLY and not (state or {}).get("files"):
+        written = _files_written(receipts)
+        recoverable = bool(written) and not _matching(game, written)[1]
+    answer = {"action": "status", "state": current, "language": (state or {}).get("language"),
+              "version": (state or {}).get("version"), "recoverable": recoverable, "counts": {},
+              "message": "", "skipped_atlases": []}
+    if current in (PARTLY, FOREIGN):
+        return answer
+    stage = _stage(game, work, language, state if current == INSTALLED else None, log, cycle_assets)
     _empty_replacements(work)
     result = _engine("status", game, stage.catalog, work)
-    answer = _classify(game, state, _install_receipts(game), result.get("counts", {}))
-    return {"action": "status", "state": answer, "language": (state or {}).get("language"),
-            "counts": result.get("counts", {}), "message": result.get("message", ""),
-            "skipped_atlases": stage.skipped}
+    counts = result.get("counts", {})
+    if current in (NOT_INSTALLED, REPLACED) and _looks_translated(counts):
+        answer["state"] = FOREIGN
+    return {**answer, "counts": counts, "message": result.get("message", ""), "skipped_atlases": stage.skipped}
 
 
 def _drop_staged(work: Path) -> None:
@@ -391,45 +424,57 @@ def _drop_staged(work: Path) -> None:
 
 def install(game: Path, work: Path, language: str, *, log=print,
             cycle_assets: frozenset[int] = frozenset()) -> dict:
-    """Install <language>, restoring another language first; see the module docstring for the refusals."""
+    """Install a fresh patch, or restore a matching patch before changing language or version."""
+    _recover_pending(game)
     state = read_state(work, game)
     receipts = _install_receipts(game)
     written = _files_written(receipts)
-    if not written and not (state or {}).get("files"):
-        stage = _stage(game, work, language, state, log, cycle_assets)
+    current = _classify(game, state, receipts)
+    if current == FOREIGN:
+        raise PatchError("pc_foreign_install", "pc_repair_advice")
+    if current == PARTLY and ((state or {}).get("files") or not written or _matching(game, written)[1]):
+        raise PatchError("pc_receipts_mismatch", "pc_repair_advice")
+    if current in (NOT_INSTALLED, REPLACED):
+        stage = _stage(game, work, language, None, log, cycle_assets)
         _empty_replacements(work)
         scan = _engine("status", game, stage.catalog, work)
-        if _classify(game, state, receipts, scan.get("counts", {})) == FOREIGN:
+        if _looks_translated(scan.get("counts", {})):
             raise PatchError("pc_foreign_install", "pc_repair_advice")
-    installed = (state or {}).get("language")
-    if written and installed != language:
-        same, changed = _matching(game, written)
-        if same and changed:
+        if current == REPLACED:
+            log("PC edition: the launcher replaced the previous patch; installing against the updated files")
+    else:
+        previous = (state or {}).get("language"), (state or {}).get("version")
+        if not written or _matching(game, written)[1]:
             raise PatchError("pc_receipts_mismatch", "pc_repair_advice")
-        if same:
-            log(f"PC edition: restoring the {installed or 'earlier'} install before {language}")
+        if previous != (language, _version()):
+            log("PC edition: restoring the previous patch before installing the selected translation")
             _engine("restore", game, languages.catalog_dir(BUNDLE, languages.DEFAULT_LANGUAGE), work)
             state_path(work, game).unlink(missing_ok=True)
             state = None
-        else:
-            log("PC edition: the receipts no longer describe the files (a launcher update); installing anew")
-    stage = _stage(game, work, language, state, log, cycle_assets)
+        stage = _stage(game, work, language, state, log, cycle_assets)
     _empty_replacements(work)
     result = _engine("install", game, stage.catalog, work)
     files = {relative: digest for relative, digest in _files_written(_install_receipts(game)).items()
              if _sha256(Path(game) / relative) == digest}
+    if not files:
+        raise PatchError("pc_engine_failed", detail=result.get("message", ""))
     _write_json(state_path(work, game), {"schema": STATE_SCHEMA, "version": _version(), "language": language,
                                           "files": files, "patched": stage.patched})
-    _drop_staged(work)
     return {"action": "install", "state": INSTALLED, "language": language, "counts": result.get("counts", {}),
             "message": result.get("message", ""), "skipped_atlases": stage.skipped}
 
 
 def restore(game: Path, work: Path, *, log=print) -> dict:
     """Remove translation: put back the originals this patcher's receipts hold."""
-    result = _engine("restore", game, languages.catalog_dir(BUNDLE, languages.DEFAULT_LANGUAGE), work)
+    recovered = _recover_pending(game)
+    written = _files_written(_install_receipts(game))
+    same, changed = _matching(game, written)
+    if changed or (same and _classify(game, read_state(work, game), []) in (PARTLY, REPLACED)):
+        raise PatchError("pc_receipts_mismatch", "pc_repair_advice")
+    if not same and not recovered:
+        raise PatchError("pc_no_receipt", "pc_repair_advice")
+    result = _engine("restore", game, languages.catalog_dir(BUNDLE, languages.DEFAULT_LANGUAGE), work) if same else {}
     state_path(work, game).unlink(missing_ok=True)
-    _drop_staged(work)
     log("PC edition: " + str(result.get("message", "")))
     return {"action": "restore", "state": NOT_INSTALLED, "language": None, "message": result.get("message", "")}
 
@@ -453,10 +498,14 @@ def run(action: str, game: Path, work: Path, language: str, *, log=print,
     started = time.perf_counter()
     if action == "status":
         answer = check(game, work, language, log=log, cycle_assets=cycle_assets)
-    elif action == "install":
-        answer = install(game, work, language, log=log, cycle_assets=cycle_assets)
     else:
-        answer = restore(game, work, log=log)
+        try:
+            if action == "install":
+                answer = install(game, work, language, log=log, cycle_assets=cycle_assets)
+            else:
+                answer = restore(game, work, log=log)
+        finally:
+            _drop_staged(work)
     answer["seconds"] = round(time.perf_counter() - started, 1)
     if cycle_assets:
         answer["cycle_assets"] = [f"{asset:016X}" for asset in sorted(cycle_assets)]

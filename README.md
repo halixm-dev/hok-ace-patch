@@ -75,8 +75,8 @@ stall loading and cause the game to repair away the translation.
 
 1. Let the launcher finish any update, then close the game and the launcher. Every PC action refuses
    while `wxq*.exe` or `王者万象棋.exe` runs.
-2. Open the Windows app and choose **PC game on this computer** at the top. Choose the translation on
-   the Language card and a working folder on a drive with about 10 GB free: the receipts take about
+2. Open the Windows app and choose **PC game on this computer**. In **Setup**, choose the translation
+   and a working folder on a drive with about 10 GB free. The receipts take about
    4 GB per install, and a job stages about 4 GB more while it runs.
 3. The game folder is found from the launcher's records; otherwise use **Choose folder** and pick the
    folder that holds `WXQ.exe`. **Check** runs by itself and shows *installed*, *not installed*,
@@ -86,20 +86,21 @@ stall loading and cause the game to repair away the translation.
 
 Before each install the app keeps the original bytes of every file it changes as a **receipt**, in
 `pc\receipts\` in the working folder. **Remove translation** writes them back. Installing the other
-language restores from the receipts first, then installs, in one job. After a launcher update
-replaced the translated files, Check shows *replaced by an update*; run **Install** again. When the
-receipts no longer match the files, or the game was translated by another patcher, the app asks you
-to use the launcher's **Repair** first and then Install. The window title stays 王者万象棋: the
+language or applying a new bundled translation restores from the receipts first, then installs,
+in one job. When a launcher update replaces every translated file, Check shows *Replaced by an
+update*. Click **Reapply translation** to patch the updated files. For a mix of translated and
+updated files, or a translation from another patcher, use **Repair** in the launcher, close it,
+then click **Check**. The window title stays 王者万象棋 because the
 launcher repairs any listed file whose size changes
 ([ADR 0011](docs/adr/0011-keep-every-file-the-pc-launcher-lists-at-its-listed-size.md)).
 
 ## Patch versions
 
-The root `VERSION` file sets the Windows and Android patcher version: **1.11.1.1**.
+The root `VERSION` file sets the Windows and Android patcher version to **1.11.2.1**.
 Use three numbers from the game's **data version**, omitting its extra middle zero,
 then append the patch release number, starting at `1`. For example, game data
-`1.0.6.1` becomes patch `1.6.1.X`; the currently measured data `1.11.0.1` becomes
-`1.11.1.X`. Increase `X` for each patch release; reset it to `1` when the data version changes.
+`1.0.6.1` becomes patch `1.6.1.X` and data `1.11.0.2` becomes
+`1.11.2.X`. Increase `X` for each patch release. Reset it to `1` when the data version changes.
 
 | Change | Example version |
 |---|---|
@@ -115,18 +116,19 @@ increasing workflow run number; local builds can set `-PpatchVersionCode=<number
 
 ## Run or build from source
 
-### Automated Android builds
+### Automated builds and releases
 
 | Trigger | Result |
 |---|---|
 | Push to `master`, pull request, or **Actions → Android APK → Run workflow** | Full-codec development APK and check reports under the run's artifacts |
-| Push a tag matching `VERSION`, such as `android-v1.6.1.1` | Release APK signed with the current patcher key and its rotation lineage, SHA-256, codec source companion and a draft GitHub release |
+| Push to `master`, pull request, or **Actions → Windows exe → Run workflow** | Windows EXE build and smoke test |
+| Push a tag matching `VERSION`, such as `android-v1.6.1.1` | One draft GitHub release with the signed Android APK, smoke-tested Windows EXE, codec source companion and SHA-256 checksums |
 
 CI runs Android unit tests, lint, native ELF alignment, APK ZIP alignment and signer verification.
 A separate `checks` job runs every repository-only check under [Verify changes](#verify-changes)
-on each push and pull request, and a release waits for it.
-The release attaches only the APK, `SHA256SUMS` and the codec source companion; the native
-alignment and runtime dependency reports stay in the run's artifacts.
+on each push and pull request. A tagged release waits for those checks and both platform builds.
+`SHA256SUMS` covers the APK, EXE and codec source companion. Native alignment and
+runtime dependency reports stay in the run's artifacts.
 Artifacts expire after 14 days; draft release attachments remain. A draft's notes start from
 `tools/ci/release_notes.sh`: a player-facing changelog seeded with the `feat:` and `fix:` subjects since
 the previous `android-v` tag, to rewrite for players before publishing. Release drafts need review before

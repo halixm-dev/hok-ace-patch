@@ -61,6 +61,8 @@ CARD_PAD = SPACE["lg"]
 WRAP = COLUMN - 2 * CARD_PAD - 4
 BUTTON_HEIGHT = 44
 LOG_HEIGHT = 220
+PC_GEOMETRY = "1040x660"
+PC_TWO_COLUMNS = 740
 # Images are drawn at twice their size so they stay sharp up to 200 % display scaling.
 IMAGE_SCALE = 2
 
@@ -183,6 +185,10 @@ def _style_button(button: ctk.CTkButton, role: str, enabled: bool) -> None:
         button.configure(state="normal", fg_color=fill, hover_color=hover, text_color=text, border_color=edge)
     else:
         button.configure(state="disabled", fg_color=DISABLED_FILL, border_color=DISABLED_FILL)
+    if button.cget("border_width") == 2:
+        tkinter.Frame.configure(button, takefocus=int(enabled))
+        if enabled and button.focus_get() == button:
+            button.configure(border_color=PANEL_TOP if role == "secondary" else CONFIRM_RIGHT)
 
 
 # ---------- locally drawn panels (DESIGN.md: the gradients appear only in the hero and dialog images) ----------
@@ -351,6 +357,8 @@ class App(ctk.CTk):
         self.blocker = ""
         # The PC target: the game root, the running child job, Check's last state and the last job's result.
         self.target = load_target()
+        if self.target == PC:
+            self.geometry(PC_GEOMETRY)
         self.pc_game: Path | None = None
         self.pc_job = None
         self.pc_action = ""
@@ -360,6 +368,8 @@ class App(ctk.CTk):
         self.pc_follow_up = False
         self.pc_state: str | None = None
         self.pc_language: str | None = None
+        self.pc_version: str | None = None
+        self.pc_recoverable = False
         self.pc_result: tuple[str, float] | None = None
         self.pc_error: PatchError | None = None
         self.pc_opened = False
@@ -377,6 +387,7 @@ class App(ctk.CTk):
         self._build_target()
         self._build_language()
         self._build_start()
+        self._build_pc_header()
         self._build_pc()
         self._build_error()
         self._build_log()
@@ -403,15 +414,15 @@ class App(ctk.CTk):
         return card
 
     def label(self, master: ctk.CTkBaseClass, kind: str, color: str = INK, **options) -> ctk.CTkLabel:
-        return ctk.CTkLabel(master, text="", text_color=color, font=_font(kind), anchor="w", justify="left",
-                            **{"wraplength": WRAP, **options})
+        return ctk.CTkLabel(master, text_color=color, font=_font(kind), anchor="w", justify="left",
+                            **{"text": "", "wraplength": WRAP, **options})
 
     def place(self, widget: ctk.CTkBaseClass, row: int, top: int = 0, bottom: int = 0, **options) -> None:
         widget.grid(row=row, column=0, sticky="ew", padx=CARD_PAD, pady=(top, bottom), **options)
 
     def _build_target(self) -> None:
         """The target choice, above ①: Phone over USB or PC game on this computer."""
-        card = self.card(1)
+        self.target_card = card = self.card(1)
         self.place(self.bind_text(self.label(card, "label", MUTED), lambda: ui_text("target_eyebrow")), 0,
                    top=CARD_PAD)
         self.place(self.bind_text(self.label(card, "heading"), lambda: ui_text("target_title")), 1, top=SPACE["xxs"])
@@ -429,89 +440,155 @@ class App(ctk.CTk):
         self.place(self.target_note, 3, top=SPACE["xs"])
         ctk.CTkFrame(card, fg_color="transparent", width=1, height=CARD_PAD).grid(row=4, column=0)
 
+    def _pc_button(self, master, role: str, command: Callable[[], None], **options) -> ctk.CTkButton:
+        button = _make_button(master, role, command, height=36, **options)
+        button.configure(border_width=2)
+        tkinter.Frame.configure(button, takefocus=1)
+
+        def activate(_event: tkinter.Event) -> str:
+            if button.cget("state") == "normal":
+                button.invoke()
+            return "break"
+
+        def focus(event: tkinter.Event) -> None:
+            if button.cget("state") != "normal":
+                return
+            chosen = button.cget("fg_color") == PANEL_BOTTOM
+            edge = BUTTONS["primary" if chosen else "secondary"][3]
+            color = CONFIRM_RIGHT if chosen else PANEL_TOP
+            button.configure(border_color=color if event.type == tkinter.EventType.FocusIn else edge)
+
+        for key in ("<space>", "<Return>"):
+            tkinter.Misc.bind(button, key, activate)
+        for event in ("<FocusIn>", "<FocusOut>"):
+            tkinter.Misc.bind(button, event, focus)
+        return button
+
+    def _build_pc_header(self) -> None:
+        self.pc_header = header = ctk.CTkFrame(self.column, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew", pady=(0, SPACE["xs"]))
+        header.columnconfigure(0, weight=1)
+        self.label(header, "heading", text=APP_TITLE).grid(row=0, column=0, sticky="w")
+        self.pc_targets = {}
+        for index, (target, key) in enumerate(((PHONE, "target_phone"), (PC, "pc_workspace")), 1):
+            button = self._pc_button(header, "secondary", lambda target=target: self.choose_target(target),
+                                     width=112)
+            self.bind_text(button, lambda key=key: ui_text(key))
+            button.grid(row=0, column=index, padx=(SPACE["xs"], 0))
+            self.pc_targets[target] = button
+
     def _build_pc(self) -> None:
-        """② for the PC target: the checklist, game folder, Check's state and working folder, then the actions."""
+        """Keep patch status and actions beside the installation settings."""
         self.pc_card = card = self.card(3)
-        self.pc_stage = self.label(card, "label", MUTED)
-        self.place(self.pc_stage, 0, top=CARD_PAD)
+        card.columnconfigure(0, weight=3, uniform="pc")
+        card.columnconfigure(2, weight=2, uniform="pc")
 
-        self.pc_checklist = ctk.CTkFrame(card, fg_color="transparent")
-        self.pc_checklist.columnconfigure(0, weight=1)
-        self.bind_text(self.label(self.pc_checklist, "button"), lambda: ui_text("before_you_start")).grid(
-            row=0, column=0, sticky="ew")
-        self.bind_text(self.label(self.pc_checklist, "body", MUTED), lambda: ui_text("pc_before_you_start_tips")).grid(
-            row=1, column=0, sticky="ew", pady=(SPACE["xxs"], 0))
-        self.place(self.pc_checklist, 1, top=SPACE["sm"])
-
-        game = ctk.CTkFrame(card, fg_color="transparent")
-        game.columnconfigure(0, weight=1)
-        self.bind_text(self.label(game, "label", MUTED), lambda: ui_text("pc_game_folder_label")).grid(
-            row=0, column=0, sticky="ew")
-        self.pc_game_label = self.label(game, "body", wraplength=WRAP - 140)
-        self.pc_game_label.grid(row=1, column=0, sticky="ew")
-        self.pc_game_button = _make_button(game, "secondary", self.choose_game, width=120)
-        self.bind_text(self.pc_game_button, lambda: ui_text("pc_choose_folder"))
-        self.pc_game_button.grid(row=1, column=1, sticky="e", padx=(SPACE["sm"], 0))
-        self.place(game, 2, top=SPACE["md"])
-
-        status = ctk.CTkFrame(card, fg_color="transparent")
+        patch = ctk.CTkFrame(card, fg_color="transparent")
+        patch.grid(row=0, column=0, sticky="nsew", padx=CARD_PAD, pady=CARD_PAD)
+        patch.columnconfigure(0, weight=1)
+        status = ctk.CTkFrame(patch, fg_color=PAGE, corner_radius=RADIUS)
+        status.grid(row=0, column=0, sticky="ew")
         status.columnconfigure(1, weight=1)
-        self.bind_text(self.label(status, "label", MUTED), lambda: ui_text("pc_status_label")).grid(
-            row=0, column=0, columnspan=2, sticky="ew")
-        self.pc_dot = ctk.CTkLabel(status, text="●", text_color=DISABLED_TEXT, font=_font("body"), width=18)
-        self.pc_dot.grid(row=1, column=0, sticky="nw")
-        self.pc_state_label = self.label(status, "body", wraplength=WRAP - 24)
-        self.pc_state_label.grid(row=1, column=1, sticky="ew", padx=(SPACE["xxs"], 0))
-        self.place(status, 3, top=SPACE["md"])
+        self.pc_dot = tkinter.Canvas(status, width=10, height=10, bg=PAGE, highlightthickness=0)
+        self.pc_dot_mark = self.pc_dot.create_oval(1, 1, 9, 9, fill=MUTED, outline="")
+        self.pc_dot.grid(row=0, column=0, padx=(SPACE["sm"], SPACE["xs"]))
+        self.pc_state_label = self.label(status, "button")
+        self.pc_state_label.grid(row=0, column=1, sticky="ew", pady=SPACE["xxs"])
 
-        folder = ctk.CTkFrame(card, fg_color="transparent")
-        folder.columnconfigure(0, weight=1)
-        self.bind_text(self.label(folder, "label", MUTED), lambda: ui_text("pc_working_folder_label")).grid(
-            row=0, column=0, sticky="ew")
-        self.pc_folder_label = self.label(folder, "body", wraplength=WRAP - 140)
-        self.pc_folder_label.grid(row=1, column=0, sticky="ew")
-        self.pc_space_label = self.label(folder, "body", MUTED, wraplength=WRAP - 140)
-        self.pc_space_label.grid(row=2, column=0, sticky="ew")
-        self.pc_folder_button = _make_button(folder, "secondary", self.choose_folder, width=120)
-        self.bind_text(self.pc_folder_button, lambda: ui_text("change_folder"))
-        self.pc_folder_button.grid(row=1, column=1, rowspan=2, sticky="e", padx=(SPACE["sm"], 0))
-        self.place(folder, 4, top=SPACE["md"])
+        self.pc_heading = self.label(patch, "heading")
+        self.pc_heading.grid(row=1, column=0, sticky="ew", pady=(SPACE["md"], 0))
+        self.pc_detail = self.label(patch, "body", MUTED)
+        self.pc_detail.grid(row=2, column=0, sticky="ew")
 
-        self.pc_heading = self.label(card, "heading")
-        self.place(self.pc_heading, 5, top=SPACE["xl"])
-        self.pc_detail = self.label(card, "body", MUTED)
-        self.place(self.pc_detail, 6, top=SPACE["xxs"])
-
-        # Install is the card's primary action; Check and Remove translation share the row under it.
-        self.pc_actions = ctk.CTkFrame(card, fg_color="transparent")
-        self.pc_actions.columnconfigure((0, 1), weight=1, uniform="pc-action")
-        self.pc_install_button = _make_button(self.pc_actions, "primary", lambda: self.run_pc("install"))
-        self.bind_text(self.pc_install_button, lambda: ui_text("pc_install"))
-        self.pc_install_button.grid(row=0, column=0, columnspan=2, sticky="ew")
-        self.pc_check_button = _make_button(self.pc_actions, "secondary", lambda: self.run_pc("status"))
+        self.pc_actions = actions = ctk.CTkFrame(patch, fg_color="transparent")
+        actions.grid(row=3, column=0, sticky="ew", pady=(SPACE["md"], 0))
+        self.pc_install_button = self._pc_button(actions, "primary", lambda: self.run_pc("install"), width=138)
+        self.pc_install_button.grid(row=0, column=0, sticky="w")
+        self.pc_check_button = self._pc_button(actions, "secondary", lambda: self.run_pc("status"), width=76)
         self.bind_text(self.pc_check_button, lambda: ui_text("pc_check"))
-        self.pc_check_button.grid(row=1, column=0, sticky="ew", pady=(SPACE["xs"], 0))
-        self.pc_remove_button = _make_button(self.pc_actions, "secondary", self.confirm_pc_remove)
+        self.pc_check_button.grid(row=0, column=1, padx=SPACE["xs"])
+        self.pc_remove_button = self._pc_button(actions, "secondary", self.confirm_pc_remove, width=148)
         self.bind_text(self.pc_remove_button, lambda: ui_text("remove_translation"))
-        self.pc_remove_button.grid(row=1, column=1, sticky="ew", padx=(SPACE["xs"], 0), pady=(SPACE["xs"], 0))
-        self.place(self.pc_actions, 7, top=SPACE["md"], bottom=CARD_PAD)
+        self.pc_remove_button.grid(row=0, column=2, sticky="w")
 
-        # Running: the bar, the elapsed time and the child's last log line; a PC job has no Stop safely.
-        self.pc_progress_view = ctk.CTkFrame(card, fg_color="transparent")
-        self.pc_progress_view.columnconfigure(0, weight=1)
-        self.pc_progress = ctk.CTkProgressBar(self.pc_progress_view, mode="indeterminate", progress_color=INK,
-                                              fg_color=DISABLED_FILL, height=8, corner_radius=4)
+        self.pc_checklist = self.bind_text(self.label(patch, "body", MUTED), lambda: ui_text("pc_setup_tip"))
+        self.pc_checklist.grid(row=4, column=0, sticky="ew", pady=(SPACE["md"], 0))
+
+        self.pc_progress_view = progress = ctk.CTkFrame(patch, fg_color="transparent")
+        progress.columnconfigure(0, weight=1)
+        self.pc_progress = ctk.CTkProgressBar(progress, mode="indeterminate", progress_color=INK,
+                                              fg_color=DISABLED_FILL, height=6, corner_radius=3)
         self.pc_progress.grid(row=0, column=0, sticky="ew")
-        self.pc_elapsed_line = self.label(self.pc_progress_view, "button")
+        self.pc_elapsed_line = self.label(progress, "button")
         self.pc_elapsed_line.grid(row=1, column=0, sticky="ew", pady=(SPACE["xs"], 0))
-        self.pc_operation_line = self.label(self.pc_progress_view, "body", color=MUTED, wraplength=COLUMN - 80)
-        self.pc_operation_line.grid(row=2, column=0, sticky="ew", pady=(SPACE["xs"], 0))
-        self.place(self.pc_progress_view, 8, top=SPACE["md"], bottom=CARD_PAD)
+        self.pc_operation_line = self.label(progress, "body", MUTED)
+        self.pc_operation_line.grid(row=2, column=0, sticky="ew")
+        progress.grid(row=3, column=0, sticky="ew", pady=(SPACE["md"], 0))
+
+        divider = ctk.CTkFrame(card, width=1, height=1, fg_color=PAGE, corner_radius=0)
+        divider.grid(row=0, column=1, sticky="ns", pady=CARD_PAD)
+        settings = ctk.CTkFrame(card, fg_color="transparent")
+        settings.grid(row=0, column=2, sticky="nsew", padx=CARD_PAD, pady=CARD_PAD)
+        settings.columnconfigure(0, weight=1)
+        self.bind_text(self.label(settings, "heading"), lambda: ui_text("pc_setup")).grid(
+            row=0, column=0, columnspan=2, sticky="ew")
+        self.bind_text(self.label(settings, "label", MUTED), lambda: ui_text("pc_game_folder_label")).grid(
+            row=1, column=0, sticky="ew", pady=(SPACE["sm"], 0))
+        self.pc_game_label = self.label(settings, "body")
+        self.pc_game_label.grid(row=2, column=0, columnspan=2, sticky="ew")
+        self.pc_game_button = self._pc_button(settings, "secondary", self.choose_game, width=108)
+        self.bind_text(self.pc_game_button, lambda: ui_text("pc_choose_folder"))
+        self.pc_game_button.grid(row=1, column=1, sticky="e", padx=(SPACE["xs"], 0), pady=(SPACE["sm"], 0))
+
+        self.bind_text(self.label(settings, "label", MUTED), lambda: ui_text("pc_working_folder_label")).grid(
+            row=3, column=0, sticky="ew", pady=(SPACE["sm"], 0))
+        self.pc_folder_label = self.label(settings, "body")
+        self.pc_folder_label.grid(row=4, column=0, columnspan=2, sticky="ew")
+        self.pc_space_label = self.label(settings, "body", MUTED)
+        self.pc_space_label.grid(row=5, column=0, columnspan=2, sticky="ew")
+        self.pc_folder_button = self._pc_button(settings, "secondary", self.choose_folder, width=108)
+        self.bind_text(self.pc_folder_button, lambda: ui_text("change_folder"))
+        self.pc_folder_button.grid(row=3, column=1, sticky="e", padx=(SPACE["xs"], 0), pady=(SPACE["sm"], 0))
+
+        self.bind_text(self.label(settings, "label", MUTED), lambda: ui_text("language")).grid(
+            row=6, column=0, sticky="ew", pady=(SPACE["sm"], 0))
+        choices = ctk.CTkFrame(settings, fg_color="transparent")
+        choices.grid(row=7, column=0, columnspan=2, sticky="ew", pady=(SPACE["xxs"], 0))
+        self.pc_choices = {}
+        for column, (code, language) in enumerate(languages.LANGUAGES.items()):
+            button = self._pc_button(choices, "secondary", lambda code=code: self.choose_language(code),
+                                     text=language.name, width=76)
+            button.grid(row=0, column=column, sticky="w", padx=(SPACE["xs"] if column else 0, 0))
+            self.pc_choices[code] = button
+
+        # Use logical pixels for wrapping because CTk applies display scaling to label options.
+        def wrap(event: tkinter.Event, labels: tuple[ctk.CTkLabel, ...]) -> None:
+            width = max(1, event.widget._reverse_widget_scaling(event.width))
+            for label in labels:
+                label.configure(wraplength=width)
+
+        patch_labels = (self.pc_heading, self.pc_detail, self.pc_operation_line, self.pc_checklist)
+        settings_labels = (self.pc_game_label, self.pc_folder_label, self.pc_space_label)
+        for panel, labels, width in ((patch, patch_labels, 380), (settings, settings_labels, 250)):
+            for label in labels:
+                label.configure(wraplength=width)
+            tkinter.Misc.bind(panel, "<Configure>", lambda event, labels=labels: wrap(event, labels), add="+")
+
+        def reflow(event: tkinter.Event) -> None:
+            wide = card._reverse_widget_scaling(event.width) >= PC_TWO_COLUMNS
+            settings.grid_configure(row=0 if wide else 2, column=2 if wide else 0,
+                                    columnspan=1 if wide else 3)
+            patch.grid_configure(columnspan=1 if wide else 3)
+            divider.grid_configure(row=0 if wide else 1, column=1 if wide else 0,
+                                   columnspan=1 if wide else 3, sticky="ns" if wide else "ew",
+                                   padx=0 if wide else CARD_PAD, pady=CARD_PAD if wide else 0)
+
+        tkinter.Misc.bind(card, "<Configure>", reflow, add="+")
         card.grid_remove()
 
     def _build_language(self) -> None:
         """① Language: the title, the language note, the two choices, then Remove translation."""
-        card = self.card(2)
+        self.language_card = card = self.card(2)
         self.place(self.bind_text(self.label(card, "label", MUTED), lambda: ui_text("01_your_translation")), 0,
                    top=CARD_PAD)
         self.place(self.bind_text(self.label(card, "heading"), lambda: ui_text("language")), 1, top=SPACE["xxs"])
@@ -610,6 +687,9 @@ class App(ctk.CTk):
     def _build_log(self) -> None:
         card = self.card(5)
         self.place(self.bind_text(self.label(card, "heading"), lambda: ui_text("patching_activity")), 0, top=CARD_PAD)
+        self.pc_save_log = self._pc_button(card, "secondary", self.save_log, width=146)
+        self.bind_text(self.pc_save_log, lambda: ui_text("save_log_for_help"))
+        self.pc_save_log.grid(row=0, column=0, sticky="e", padx=CARD_PAD, pady=(SPACE["sm"], 0))
         _, size, _ = _type("log")
         self.log_view = ctk.CTkTextbox(card, fg_color=PAGE, text_color=INK, corner_radius=RADIUS, border_width=0,
                                    height=LOG_HEIGHT, font=ctk.CTkFont(family="Consolas", size=size), wrap="word")
@@ -625,12 +705,8 @@ class App(ctk.CTk):
     # ---------- ① Language ----------
     def show_language_card(self) -> None:
         """The note and Remove translation, from whether this folder keeps the phone's pristine delta."""
-        held = holds_delta(self.work_dir)
+        held = self.target == PHONE and holds_delta(self.work_dir)
         note = "language_note_no_clear" if held else "language_note_clear_first"
-        if self.target == PC:
-            # The PC target keeps no pristine delta: its receipts put the originals back before a switch,
-            # and its own Remove translation sits on its card.
-            note, held = "pc_language_note", False
         # Saved unfinished work keeps its language until it finishes or Stop safely resolves it.
         self.language_note.configure(text=ui_text("choices_locked") if self.pending_work and not self.busy
                                      else ui_text(note))
@@ -640,11 +716,12 @@ class App(ctk.CTk):
             self.remove_button.grid_remove()
         # A run reads the language once at its start, so the choices and Remove translation lock while it runs.
         locked = self.busy or self.pending_work or self.pc_busy
-        for code, button in self.choices.items():
-            chosen = code == self.language
-            _style_button(button, "primary" if chosen else "secondary", not locked)
-            if locked and chosen:
-                button.configure(border_color=DISABLED_TEXT)
+        for choices in (self.choices, self.pc_choices):
+            for code, button in choices.items():
+                chosen = code == self.language
+                _style_button(button, "primary" if chosen else "secondary", not locked)
+                if locked and chosen:
+                    button.configure(border_color=DISABLED_TEXT)
         _style_button(self.remove_button, "secondary", not locked)
         self.show_target_card()  # the target choice locks with the language choices
 
@@ -654,6 +731,8 @@ class App(ctk.CTk):
         if self.busy or not self.settings_available():
             return
         self.language = code
+        if self.target == PC and self.pc_result and self.pc_result[0] in ("added", "removed"):
+            self.pc_result = None
         save_language(code)
         set_interface_language(code)
         self.retext()
@@ -683,7 +762,7 @@ class App(ctk.CTk):
             self.blocker = ""
         self.space_label.configure(text=self.blocker or ui_text("drive_free", free=gigabytes),
                                    text_color=ERROR if self.blocker else MUTED)
-        self.pc_folder_label.configure(text=self.folder_label.cget("text"))
+        self.pc_folder_label.configure(text=path)
         self.pc_space_label.configure(text=self.space_label.cget("text"), text_color=ERROR if self.blocker else MUTED)
 
     def show_start(self) -> None:
@@ -810,17 +889,25 @@ class App(ctk.CTk):
     def show_target_card(self) -> None:
         """Mark the chosen target; the choice locks while either target works or saved phone work waits."""
         locked = self.busy or self.pc_busy or self.pending_work
-        for target, button in self.targets.items():
-            chosen = target == self.target
-            _style_button(button, "primary" if chosen else "secondary", not locked)
-            if locked and chosen:
-                button.configure(border_color=DISABLED_TEXT)
+        for targets in (self.targets, self.pc_targets):
+            for target, button in targets.items():
+                chosen = target == self.target
+                _style_button(button, "primary" if chosen else "secondary", not locked)
+                if locked and chosen:
+                    button.configure(border_color=DISABLED_TEXT)
         self._show(self.target_note, self.pending_work and not self.busy)
 
     def show_target(self) -> None:
-        """Show the chosen target's ② card and redraw everything that depends on the target."""
-        self._show(self.start_card, self.target == PHONE)
-        self._show(self.pc_card, self.target == PC)
+        """Switch between the phone guide and desktop workspace."""
+        pc = self.target == PC
+        self.minsize(620 if pc else COLUMN + 2 * SPACE["md"] + 40, 560)
+        self.column.grid_configure(sticky="ew" if pc else "", padx=SPACE["md"] if pc else 0)
+        for widget in (self.hero, self.target_card, self.language_card, self.start_card):
+            self._show(widget, not pc)
+        for widget in (self.pc_header, self.pc_card, self.pc_save_log):
+            self._show(widget, pc)
+        self.log_view.configure(height=170 if pc else LOG_HEIGHT)
+        self.page._parent_canvas.yview_moveto(0.0)
         if self.target == PHONE:
             self.error_card.grid_remove()
         self.show_language_card()
@@ -831,6 +918,8 @@ class App(ctk.CTk):
             return
         self.target = target
         save_target(target)
+        if target == PC and not self.pc_opened and self.state() == "normal":
+            self.geometry(PC_GEOMETRY)
         self.show_target()
         if target == PC:
             self.open_pc()
@@ -878,7 +967,8 @@ class App(ctk.CTk):
             pc_edition.remember_game(SETTINGS, root)
         except OSError as error:
             self.log(f"PC edition: the game folder was not saved: {error}")
-        self.pc_game, self.pc_state, self.pc_language = root, None, None
+        self.pc_game, self.pc_state, self.pc_language, self.pc_version = root, None, None, None
+        self.pc_recoverable = False
         self.pc_result = self.pc_error = None
         self.run_pc("status")
 
@@ -957,13 +1047,16 @@ class App(ctk.CTk):
         if action == "status":
             if error is None:
                 self.pc_state, self.pc_language = answer.get("state"), answer.get("language")
+                self.pc_version = answer.get("version")
+                self.pc_recoverable = bool(answer.get("recoverable"))
                 self.log(f"\nCHECKED: {self.pc_state}" + (f" ({self.pc_language})" if self.pc_language else ""))
             else:
-                self.pc_state = self.pc_language = None
+                self.pc_state = self.pc_language = self.pc_version = None
+                self.pc_recoverable = False
                 # A follow-up Check never hides the job's own error.
                 if not (self.pc_follow_up and self.pc_error is not None):
                     self.pc_error = error
-                if not self.pc_follow_up:
+                if not self.pc_follow_up or (self.pc_result or ("",))[0] != "failed":
                     self.pc_result = ("failed", seconds)
         else:
             if error is None:
@@ -978,40 +1071,46 @@ class App(ctk.CTk):
         self.show_language_card()
         self.show_start()
 
-    def _pc_view(self) -> tuple[str, str, str]:
-        """(eyebrow, heading, detail) of the PC card from the job running, the last result and Check's state."""
+    def _pc_view(self) -> tuple[str, str]:
+        """Heading and next step for the current PC state."""
         if self.pc_busy:
             heading = {"install": "pc_installing", "restore": "pc_removing"}.get(self.pc_action, "pc_checking")
-            return ui_text("02_working"), ui_text(heading), ui_text("pc_busy_note")
+            return ui_text(heading), ui_text("pc_busy_note")
         kind, seconds = self.pc_result or ("", 0.0)
         finished = ui_text("pc_finished_in", elapsed=_elapsed(seconds))
         if kind == "added":
-            return ui_text("02_done"), ui_text("translation_added"), f"{ui_text('pc_result_added')} {finished}"
+            return ui_text("translation_added"), f"{ui_text('pc_result_added')} {finished}"
         if kind == "removed":
-            return ui_text("02_done"), ui_text("translation_removed"), f"{ui_text('reads_chinese_again')} {finished}"
+            return ui_text("translation_removed"), f"{ui_text('reads_chinese_again')} {finished}"
         if kind == "failed":
-            return ui_text("02_needs_attention"), ui_text("work_stopped"), ui_text("pc_failed_status")
+            return ui_text("work_stopped"), ui_text("pc_failed_status")
         if self.pc_game is None:
-            return ui_text("02_ready_to_play"), ui_text("pc_heading_no_game"), ui_text("pc_detail_no_game")
+            return ui_text("pc_heading_no_game"), ui_text("pc_detail_no_game")
         state = self.pc_state
         if state == pc_edition.INSTALLED:
-            return ui_text("02_done"), ui_text("pc_heading_installed"), ui_text("pc_detail_installed")
+            if self.pc_language != self.language:
+                name = languages.get(self.language).name
+                return ui_text("pc_switch"), ui_text("pc_switch_detail", language=name)
+            if self.pc_version != APP_VERSION:
+                return ui_text("pc_update_available"), ui_text("pc_update_detail")
+            return ui_text("pc_heading_installed"), ui_text("pc_detail_installed")
         if state == pc_edition.REPLACED:
-            return ui_text("02_needs_attention"), ui_text("pc_heading_replaced"), ui_text("pc_detail_replaced")
+            return ui_text("pc_heading_replaced"), ui_text("pc_detail_replaced")
         if state == pc_edition.PARTLY:
-            return ui_text("02_needs_attention"), ui_text("pc_heading_partly"), ui_text("pc_detail_partly")
+            if self.pc_recoverable:
+                return ui_text("pc_heading_partly"), ui_text("pc_resume_detail")
+            return ui_text("pc_heading_partly"), ui_text("pc_detail_partly")
         if state == pc_edition.FOREIGN:
             advice = f"{ui_text('pc_foreign_install')} {ui_text('pc_repair_advice')}"
-            return ui_text("02_needs_attention"), ui_text("pc_heading_foreign"), advice
+            return ui_text("pc_heading_foreign"), advice
         if state == pc_edition.NOT_INSTALLED:
-            return ui_text("02_ready_to_play"), ui_text("ready_when_you_are"), self.blocker or ui_text(
-                "pc_detail_not_installed")
-        return ui_text("02_ready_to_play"), ui_text("ready_when_you_are"), self.blocker or ui_text("pc_detail_unknown")
+            return ui_text("pc_install_translation"), self.blocker or ui_text("pc_detail_not_installed")
+        return ui_text("pc_install_translation"), self.blocker or ui_text("pc_detail_unknown")
 
     def _pc_state_line(self) -> tuple[str, str]:
         """Check's state as the status row reads it, with its dot colour."""
-        if self.pc_busy and self.pc_action == "status":
-            return ui_text("pc_state_checking"), DISABLED_TEXT
+        if self.pc_busy:
+            return ui_text("pc_state_checking") if self.pc_action == "status" else ui_text("pc_state_working"), MUTED
         state = self.pc_state
         if state == pc_edition.INSTALLED:
             name = languages.get(self.pc_language).name if self.pc_language in languages.LANGUAGES else ""
@@ -1024,25 +1123,39 @@ class App(ctk.CTk):
 
     def show_pc(self) -> None:
         """Rewrite the PC card in place: running, a job's result, or Check's state with its next step."""
-        stage, heading, detail = self._pc_view()
-        self.pc_stage.configure(text=stage)
+        heading, detail = self._pc_view()
         self.pc_heading.configure(text=heading)
         self.pc_detail.configure(text=detail)
         game = str(self.pc_game) if self.pc_game is not None else ui_text("pc_no_game_found")
-        self.pc_game_label.configure(text=game if len(game) <= 70 else "…" + game[-69:])
+        self.pc_game_label.configure(text=game)
         text, color = self._pc_state_line()
         self.pc_state_label.configure(text=text)
-        self.pc_dot.configure(text_color=color)
+        self.pc_dot.itemconfigure(self.pc_dot_mark, fill=color)
         busy = self.pc_busy
-        self._show(self.pc_checklist, not busy and self.pc_state != pc_edition.INSTALLED
-                   and (self.pc_result or ("",))[0] not in ("added", "removed"))
+        self._show(self.pc_checklist, not busy and self.pc_state in (None, pc_edition.NOT_INSTALLED, pc_edition.REPLACED)
+                   and self.pc_game is not None and self.pc_result is None)
         self._show(self.pc_actions, not busy)
         self._show(self.pc_progress_view, busy)
         ready = not busy and self.pc_game is not None
-        _style_button(self.pc_install_button, "primary", ready and not self.blocker)
+        state = self.pc_state
+        install_text = ui_text("pc_install")
+        if state == pc_edition.REPLACED:
+            install_text = ui_text("pc_reapply")
+        elif state == pc_edition.PARTLY and self.pc_recoverable:
+            install_text = ui_text("pc_resume")
+        elif state == pc_edition.INSTALLED:
+            if self.pc_language != self.language:
+                install_text = ui_text("pc_switch")
+            elif self.pc_version != APP_VERSION:
+                install_text = ui_text("pc_update_translation")
+            else:
+                install_text = ui_text("pc_reapply")
+        self.pc_install_button.configure(text=install_text)
+        _style_button(self.pc_install_button, "primary",
+                      ready and not self.blocker and state != pc_edition.FOREIGN
+                      and (state != pc_edition.PARTLY or self.pc_recoverable))
         _style_button(self.pc_check_button, "secondary", ready)
-        _style_button(self.pc_remove_button, "secondary",
-                      ready and self.pc_state not in (pc_edition.NOT_INSTALLED, pc_edition.FOREIGN))
+        _style_button(self.pc_remove_button, "secondary", ready and state == pc_edition.INSTALLED)
         _style_button(self.pc_game_button, "secondary", not busy)
         _style_button(self.pc_folder_button, "secondary", not busy)
         if busy:
@@ -1053,6 +1166,7 @@ class App(ctk.CTk):
             self.error_card.grid()
         else:
             self.error_card.grid_remove()
+        self._show(self.pc_save_log, busy or self.pc_error is None)
 
     # ---------- working folder ----------
     def settings_available(self) -> bool:
@@ -1085,7 +1199,8 @@ class App(ctk.CTk):
         self.show_start()
         if self.target == PC and self.pc_game is not None:
             # The receipts live in the working folder, so Check reads the game against the new one.
-            self.pc_state = self.pc_language = None
+            self.pc_state = self.pc_language = self.pc_version = None
+            self.pc_recoverable = False
             self.run_pc("status")
 
     def save_log(self) -> None:

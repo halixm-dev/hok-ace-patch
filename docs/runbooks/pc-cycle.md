@@ -19,9 +19,9 @@ in [`docs/lab-notebook.md`](../lab-notebook.md), 2026-11-20, "PC edition ticket 
      root (`C:\Program Files\WXQLauncher\<version>\王者万象棋.exe`, for example `26102.0.2.30004`);
    - the **game's data version**: `Version` in `WXQ_Data\StreamingAssets\Config\Version.txt` (for example
      `1.11.0.2`), which `QtsDataFolder\Export\MiscExport\QtsPackageConfig.json` repeats as `version`.
-3. **Start from the launcher's own files.** For a first cycle in a language, or when Check shows
-   *partly installed* or *translated by another patcher*, run **Repair** in the launcher, let it finish,
-   and close it again. Check must then read *not installed*.
+3. **Start from the launcher's own files.** For a first cycle in a language, or when the patcher
+   directs you to Repair, run **Repair** in the launcher, let it finish, and close it again.
+   Check should show *Not installed* or *Replaced by an update*.
 4. **Prove the change offline first, on a copy.** Copy the game folder to a scratch folder (never point
    a check at the installed game), then run, with Python 3.12:
 
@@ -69,10 +69,10 @@ in [`docs/lab-notebook.md`](../lab-notebook.md), 2026-11-20, "PC edition ticket 
 
 ## A launcher update
 
-When the launcher updates while a translation is installed, run Check after the update finishes. It must
-read *Replaced by an update* (the update replaced the translated files and the engine drops receipts that
-no longer describe them), and a new Install must reach the lobby translated. Record the new launcher and
-data versions with that verdict.
+Run Check after the launcher finishes updating and closes. If the launcher replaced all patched files,
+Check shows *Replaced by an update*. Use **Reapply translation** and verify the lobby. If the launcher
+left some patched files in place, Check prompts you to use **Repair** first. Record the new launcher and
+data versions and whether Repair was needed.
 
 ## Done when
 

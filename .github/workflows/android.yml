@@ -132,9 +132,13 @@ jobs:
             android/app/build/reports/
             android/app/build/test-results/
 
+  windows:
+    if: startsWith(github.ref, 'refs/tags/android-v')
+    uses: ./.github/workflows/windows.yml
+
   release:
     if: startsWith(github.ref, 'refs/tags/android-v')
-    needs: [checks, build]
+    needs: [checks, build, windows]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -148,7 +152,11 @@ jobs:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: android-apk
-          path: download
+          path: download/android
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: windows-exe
+          path: download/windows
       - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -156,5 +164,9 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          mkdir release
+          cp download/android/artifacts/{hok-ace-patch.apk,hok-ace-patch-codec-sources.zip} release/
+          cp download/windows/hok-ace-patch-windows-x64.exe release/
+          (cd release && sha256sum hok-ace-patch.apk hok-ace-patch-windows-x64.exe hok-ace-patch-codec-sources.zip > SHA256SUMS)
           bash tools/ci/release_notes.sh "$RELEASE_TAG" > notes.md
-          gh release create "$RELEASE_TAG" --verify-tag --draft --title "HOK ACE Patch ${RELEASE_TAG#android-v}" --notes-file notes.md download/artifacts/hok-ace-patch.apk download/artifacts/SHA256SUMS download/artifacts/hok-ace-patch-codec-sources.zip
+          gh release create "$RELEASE_TAG" --verify-tag --draft --title "HOK ACE Patch ${RELEASE_TAG#android-v}" --notes-file notes.md release/*

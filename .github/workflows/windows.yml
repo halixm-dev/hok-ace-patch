@@ -5,6 +5,7 @@ on:
     branches: [master]
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -49,3 +50,13 @@ jobs:
           $report = Get-Content (Join-Path $out 'smoketest.json') -Raw | ConvertFrom-Json
           $report.passed | ForEach-Object { Write-Host "  ok  $_" }
           if (-not $report.ok) { throw 'The frozen smoke test failed; its traceback is above' }
+      - name: Name the Windows release executable
+        if: startsWith(github.ref, 'refs/tags/android-v')
+        run: Move-Item -LiteralPath 'dist/HOK ACE Language Patcher.exe' -Destination 'dist/hok-ace-patch-windows-x64.exe'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: startsWith(github.ref, 'refs/tags/android-v')
+        with:
+          name: windows-exe
+          path: dist/hok-ace-patch-windows-x64.exe
+          if-no-files-found: error
+          retention-days: 14

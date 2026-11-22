@@ -133,7 +133,8 @@ with the system font size on Android and with display scaling on Windows; layout
 
 ## Layout
 
-One column, centred, at most 720 px wide on Windows; full width less 16 px gutters on Android.
+The phone flow uses one column, centred and at most 720 px wide on Windows, or full width less
+16 px gutters on Android. The Windows PC target uses the desktop workspace in item 6.
 Top to bottom:
 
 1. **Hero** — a panel. Eyebrow `COMMUNITY PATCHER  /  HOK ACE` in `on-panel-muted`, the app title in `title`,
@@ -150,8 +151,6 @@ Top to bottom:
      delta; otherwise one short conditional line says a clear is needed only on a game another
      patcher or an older version translated. It never opens with the data-clearing instruction.
    - Remove translation shows only while a pristine delta is kept (Windows: in its working folder).
-   - On the **PC target** the note says a language switch puts back the saved originals first, and
-     Remove translation moves to the PC card.
    - The choices and Remove translation lock together while work runs, in the disabled colours.
      While unfinished work waits for recovery they stay locked, with one note saying the
      recovery action on Start comes first.
@@ -201,27 +200,22 @@ Top to bottom:
    then device status and the working folder (with its free space and Change…), above the state and
    the Start button. A folder short of space is the not-ready blocker. The *Translation added*
    counts leave out the "game app verified" line, which only the Android patcher checks.
-6. **② PC game** (Windows, PC target) — in place of ② Start, a card with, in order:
-   - the *Before you start* checklist for the PC (launcher update finished, game and launcher closed,
-     time and space), while the game is not installed and no job result shows;
-   - the game folder (`GAME FOLDER`) with *Choose folder*, or a line saying no PC game was found;
-   - Check's state (`TRANSLATION`): a dot and *Installed: <language>*, *Not installed*, *Replaced by an
-     update*, *Partly installed*, *Translated by another patcher*, *Checking…* or *Not checked yet*. The
-     dot is `ink` when installed, `warning` for the three that need action, `disabled-text` otherwise;
-   - the working folder, its free space and Change…, as on the phone;
-   - the heading and one line: the state's next step, or a job's result (*Translation added*,
-     *Translation removed*, with the time it took), or *Work stopped* with the error card;
-   - **Install** (primary, full width), then **Check** and **Remove translation** as two secondary
-     buttons sharing one row. Remove translation asks once with a plain dialog, like the phone's.
-     Install is disabled without a game or with too little space; Remove translation when Check says
-     *not installed* or *translated by another patcher*.
-
-   Its eyebrows are the phone's: `02  /  READY TO PLAY` (not installed, not checked, no game),
-   `IN PROGRESS`, `DONE` (installed, or a job's result) and `NEEDS ATTENTION` (replaced, partly
-   installed, another patcher's, a failure). While a job runs the actions give way to a bar, the
-   elapsed time and the job's last log line; there is no Stop safely, and one line says the game and
-   launcher stay closed. Check runs when the target opens and after each Install or Remove
-   translation. Closing the window during a job shows a dialog asking the player to wait.
+6. **PC workspace** (Windows, PC target) — a compact title bar with the Phone over USB and PC edition
+   target controls. The workspace fills the window. It uses two columns at 740 logical px of workspace
+   width and stacks them below that width.
+   - The patch column leads with a status strip and the next step. Install, Check and Remove
+     translation form one toolbar. The primary label follows the state: Install, Reapply translation,
+     Update translation, Switch language or Recover and install. Mixed updated files and another
+     patcher's files show Repair guidance. Remove translation is available with a verified install and
+     asks once through the shared confirmation dialog.
+   - Setup groups the full game and working folder paths, their chooser buttons, available space and
+     translation language. Long paths wrap. The language selection also redraws the interface.
+   - A PC job replaces the toolbar with a progress bar, elapsed time and the latest operation. The
+     game and launcher must stay closed. Check runs when opening the workspace and after Install
+     or Remove. The patcher asks the player to wait if they try to close it during work.
+   - Activity spans the workspace beneath the patch and setup columns. Save log for help is in its
+     header, or in the shared error panel when a job fails. Target, settings and patch buttons
+     use Tab focus with a visible outline and activate with Enter or Space.
 7. **Warning or error card**, directly under Start, when one exists:
    - The **warning card** holds anything that needs action. On Android it is "Game won't open?",
      with the recovery options folded behind *Show recovery options*, which reads *Hide recovery
@@ -239,7 +233,8 @@ Warnings and recovery messages never appear as extra steps.
 
 ## Components
 
-**Buttons.** Primary buttons fill the card width. Minimum height 60 dp on Android, 44 px on Windows.
+**Buttons.** Primary buttons fill the card width in the phone flow. Minimum height 60 dp on Android,
+44 px on Windows phone screens and 36 px in the PC workspace.
 Text buttons keep that height. The footer's text buttons share one row equally, and a long label
 wraps onto more lines rather than leaving the row. A label never breaks inside a word: when one
 label's longest word is wider than its share (a large system font), the three stack, one per line,

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Print the player-facing release notes a new Android draft release starts from.
+# Print the player-facing notes for a new Android and Windows draft release.
 #
 # Usage: tools/ci/release_notes.sh android-v1.7.1.2
 #
@@ -29,11 +29,15 @@ Before publishing:
 
 ${changes}
 
-## Good to know
-
--
-
 ## Install
 
-ARM64 Android 11 or newer, with Shizuku running, Wireless debugging available, or root. Install over ${version:-the previous version}; your translation and saved files are kept. Download the APK only from this repository, and check it against \`SHA256SUMS\`.
+### Android
+
+Install \`hok-ace-patch.apk\` on an ARM64 device running Android 11 or newer, with Wireless debugging, Shizuku, or root. Install over ${version:-the previous version} to keep your translation and saved files.
+
+### Windows
+
+Run \`hok-ace-patch-windows-x64.exe\`. For the PC game, finish the game update, close the game and launcher, then select **PC game on this computer** and your language. Select **Phone over USB** to patch a connected phone.
+
+Check your download against \`SHA256SUMS\`.
 EOF

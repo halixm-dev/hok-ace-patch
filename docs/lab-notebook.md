@@ -6861,3 +6861,26 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   refused. The isolated device-cycle output staged only the 32 faces and kept the original index.
 - **Verified on the same phone in ACE Tournament Battle Simulation:** Wu Feng's **MAKE IT MY WAY**
   appeared in English when earned, in hand, and when tapped to zoom.
+
+## 2026-11-22 — Windows patch 1.11.2.1 desktop workspace and simulated PC update
+
+- **Inputs:** a separate copy of PC game data 1.11.0.2 from launcher 26111.0.4.30004. The normal
+  process guard refused a job while the installed launcher was open. The offline runner bypassed
+  the name-only process checks for the isolated copy, which it never launched.
+- **Desktop:** English rendered at 1040 × 660 and Indonesian at 620 × 560. The narrow layout
+  stacked Setup below the actions. Verified keyboard focus, long folder paths, update actions
+  and return to the phone view. The rebuilt executable passed all 18 smoke checks.
+- **Game copy:** installed English, replaced one patched file with its original bytes and checked
+  that Install and Remove refused the mixed packages without writing. Replaced the remaining patched
+  files with their originals to simulate a complete launcher replacement, then reapplied in Indonesian.
+
+  | Step | Verdict |
+  |---|---|
+  | English install | Check reported English installed. |
+  | Partial replacement | Check reported Partly installed. The two refusals left package hashes unchanged. |
+  | Complete replacement | Check reported Replaced by an update. |
+  | Indonesian reapply | Check reported Bahasa Indonesia installed. |
+  | Remove translation | Every package returned to its original SHA-256. |
+
+  `LocalFileList.json` retained its bytes and the listed file sizes held throughout. A live launcher
+  update and in-game verification still need a PC cycle.
