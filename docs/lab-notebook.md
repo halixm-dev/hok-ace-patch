@@ -6846,3 +6846,18 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   without overlap. The gradient follow-up was checked on Central Plains Strategy and Contract:
   Resonance. Both catalogs staged Lua bytes matching the installed package and the edit passed
   compile, read-back, and idempotence checks.
+
+## 2026-11-22 — Secret Technique titles in the ACE Tournament hand
+
+- **Seen on the Redmi Note 9 Pro (1.11.0.2, English):** Wu Feng's card read 为我所用 in the
+  practice match hand and **MAKE IT MY WAY** in the Encyclopedia. Matching the screenshot to all
+  1,471 textures of the same size in package `15` identified `FEE257279B978F15`. Its Chinese title
+  is part of the card's 404 × 564 ASTC image. The APK has no package `15`.
+- **Measured:** 32 named faces and one blank face share the Secret Technique footer and card art
+  style. Each named face matched its Chinese title sprite from package `19`. Their source bytes
+  were identical in the 1.10.1.2 pristine dump and the 1.11.0.2 phone copy.
+- **Staged offline:** both catalogs wrote all 32 faces and the staged package read each back at its
+  expected translated hash. Reapplying the edit preserved those bytes and a changed source was
+  refused. The isolated device-cycle output staged only the 32 faces and kept the original index.
+- **Verified on the same phone in ACE Tournament Battle Simulation:** Wu Feng's **MAKE IT MY WAY**
+  appeared in English when earned, in hand, and when tapped to zoom.

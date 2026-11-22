@@ -455,6 +455,8 @@ The other 32 are drawn into a texture the catalog has no edit for at all, the Se
 `潮汐的交响` → **SYMPHONY OF TIDES** (Qiao Xi's card) and `永恒时之回环` → **ETERNAL TIME LOOP**. The
 titles stay English in Indonesian too. The atlas **adds one texture** to the images count: offline English
 and Indonesian runs over the 1.9.x dump each report 399 textures applied, 398 catalog edits plus this atlas.
+The mobile edition's ACE Tournament hand uses 32 separate card faces in package `15`. Those faces
+reuse the same English title art and add 32 applied textures on the measured game data.
 The 棋手·秘技 strip and the card art in the same atlas stay Chinese. Device-verified 2026-11-11 (English) on
 six of the 32 cards: SYMPHONY OF TIDES, four MAGIC DEER titles and MYRIAD MIRRORS. The titles were then
 re-set at one size for all 32 (22 pt), and eleven cards renamed to the user's own wording (MAGIC DEER → **MAGICAL

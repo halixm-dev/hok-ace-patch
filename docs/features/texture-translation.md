@@ -374,6 +374,21 @@ shard SHA-1 `d9f4a2a1…` matched on the phone): scan `errorCode=0`, SYMPHONY OF
 card. That output's layout differs from the prototype's only by five swaps of equal-width titles. The
 in-match hand card was not seen.
 
+### Secret Technique titles in the ACE Tournament hand (2026-11-22)
+
+The zoomed card draws the title atlas in package `19`. In the match hand, the game draws a
+pre-rendered card face from package `15`. Wu Feng's face (`FEE257279B978F15`, 404 × 564 ASTC 4×4)
+still showed 为我所用 even though the preview showed **MAKE IT MY WAY**. The mobile APK's prime
+layer has no package `15`.
+
+The 32 named card faces reuse the English title art from the preview in both languages. Their
+patches in `resources/sprites/0B4DA7A85D27E87A/hand_titles.blocks` replace only the ASTC blocks in
+the title area, including the restored pixels beneath the Chinese glyphs. Each face is checked
+against its measured source SHA-256. An already translated face is accepted by its output hash,
+and a changed source is skipped. The blank card face has no title and needs no edit.
+On the 1.11.0.2 phone build, **MAKE IT MY WAY** displayed in English when earned, held, and zoomed
+in ACE Tournament Battle Simulation.
+
 ### A standalone label the catalog lacks: the event start button (2026-11-21)
 
 - **The gap.** During Super Weekend the lobby's start button wears an event skin: 开始游戏 over the

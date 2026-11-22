@@ -62,6 +62,7 @@ def estimate(packages: Path | str, catalog: Path | str, apk: Path | str, manifes
     from wxq_patch.adaptive import load_catalog
     from wxq_patch.qtsvfs import QtsPackage
     from extra_text import SAFE_ASSETS, SCRIPT_ASSETS, UNITY_TEXT_PACKAGES
+    from hand_card_titles import PACKAGE as HAND_CARD_PACKAGE, load_edits as load_hand_card_edits
     from mobile_graphics import DEVICE_REVISIONS
 
     packages, catalog, apk = Path(packages), Path(catalog), Path(apk)
@@ -104,6 +105,8 @@ def estimate(packages: Path | str, catalog: Path | str, apk: Path | str, manifes
     index_bytes = sum(files.get(f"{package}.db", 0) for package, files in prime_files.items())
     prime_bytes = 0
     staged = {package for package, keys in device.items() if keys & wanted} | (set(UNITY_TEXT_PACKAGES) & device.keys())
+    if device.get(HAND_CARD_PACKAGE, set()) & load_hand_card_edits(catalog).keys():
+        staged.add(HAND_CARD_PACKAGE)
     for package, keys in prime_entries.items():
         if package in device and (keys & wanted) - device[package]:
             staged.add(package)

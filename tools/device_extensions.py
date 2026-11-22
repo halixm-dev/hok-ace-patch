@@ -243,7 +243,8 @@ def exclude_extra_chunks(package, replacements: Path, work: Path, log) -> tuple[
 def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dict:
     """Apply every catalog texture edit that exists in <package>, and this repo's labels to each atlas
     the catalog has no edit for (``mobile_graphics.LABEL_ATLASES``) and to each standalone label it has
-    no edit for (``mobile_graphics.LABEL_TEXTURES``, in the patch language).
+    no edit for (``mobile_graphics.LABEL_TEXTURES``, in the patch language). Package 15 also gets
+    the measured title blocks for the captured Secret Technique cards (``hand_card_titles``).
 
     The Secret Technique titles' atlas is re-laid out first (``card_titles.relayout``): its labels are
     drawn at the new sprite rects, and the Sprite table, TimiAtlas and card prefabs that move with them
@@ -257,14 +258,17 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
     an existing staged package gets a fresh slot scan because earlier passes may have relocated it.
     """
     import card_titles
+    import hand_card_titles
     import mobile_graphics as mg
     from qts_relocate import read_raw
     from sprite_table import REGION_SPRITE_ASSETS, sprite_rects
     from wxq_patch.qtsvfs import QtsPackage
 
     graphics = mg.catalog_graphics(catalog.graphics)
+    hand_titles = hand_card_titles.load_edits(catalog_dir) if package.package_id == hand_card_titles.PACKAGE else {}
     wanted = [file_hash for file_hash in package.entries
-              if file_hash in graphics or file_hash in mg.LABEL_ATLASES or file_hash in mg.LABEL_TEXTURES]
+              if file_hash in graphics or file_hash in mg.LABEL_ATLASES or file_hash in mg.LABEL_TEXTURES
+              or file_hash in hand_titles]
     if not wanted:
         return {"considered": 0, "written": 0, "skipped": []}
     source_slots = package.build_slot_map()
@@ -301,7 +305,9 @@ def port_graphics(package, catalog, catalog_dir: Path, output: Path, log) -> dic
         chunks = _read_chunks(source_slots.get(file_hash, {}))
         raw = b"".join(mg.oodle_decompress(payload, slot.uncompressed_size) for slot, payload in chunks)
         graphic = graphics.get(file_hash)
-        if graphic is None and file_hash in mg.LABEL_TEXTURES:
+        if file_hash in hand_titles:
+            new = hand_titles[file_hash].apply(raw)
+        elif graphic is None and file_hash in mg.LABEL_TEXTURES:
             new = mg.label_texture(raw, f"{file_hash:016X}", catalog_dir)
         elif graphic is None:
             sprites = device_sprites(file_hash, *mg.LABEL_ATLASES[file_hash])

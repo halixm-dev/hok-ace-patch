@@ -719,10 +719,12 @@ def _unreachable_packages(engine: Path, session: Path, keep: Path, manifest: dic
 
 def _graphics_candidates(engine: Path) -> set[int]:
     """Both catalogs' texture targets, with measured aliases and the repo's atlas labels."""
+    import hand_card_titles
     import mobile_graphics
     from wxq_patch import adaptive
 
     wanted = set(mobile_graphics.LABEL_ATLASES)
+    wanted.update(hand_card_titles.load_edits(_catalog(engine, "en")))
     for language in ("en", "id"):
         catalog = adaptive.load_catalog(_catalog(engine, language))
         wanted.update(mobile_graphics.catalog_graphics(catalog.graphics))

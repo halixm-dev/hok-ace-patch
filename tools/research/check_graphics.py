@@ -28,6 +28,7 @@ Off the runtime path: excluded from the exe build and never imported from ``app/
 from __future__ import annotations
 
 import argparse
+from hashlib import sha256
 import math
 import pathlib
 import sys
@@ -38,6 +39,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 sys.path.append(str(ROOT / "resources" / "runtime"))
 
 import card_titles  # noqa: E402
+import hand_card_titles  # noqa: E402
 import mobile_graphics as mg  # noqa: E402
 from PIL import Image  # noqa: E402
 from sprite_table import REGION_SPRITE_ASSETS, sprite_rects  # noqa: E402
@@ -1043,6 +1045,27 @@ def check_bc7(catalog) -> None:
           == mg.label_atlas(device_bytes(width, height, 4, 4), texture, CATALOG, titles, codec="astc"))
 
 
+def check_hand_card_titles() -> None:
+    print("\n[15] the captured Secret Technique hand cards")
+    edits = hand_card_titles.load_edits(CATALOG)
+    check("both languages carry one edit for each Secret Technique title",
+          len(edits) == len(mg.ATLAS_LABELS[f"{card_titles.TITLE_ATLAS:016X}"])
+          and edits == hand_card_titles.load_edits(CATALOG.with_name("catalog_id")))
+    raw = bytes(hand_card_titles.RAW_SIZE)
+    expected = bytearray(raw)
+    stride = hand_card_titles.ROW_BYTES
+    first = stride + 16
+    second = first + stride
+    expected[first:first + 16] = b"\x11" * 16
+    expected[second:second + 16] = b"\x22" * 16
+    edit = hand_card_titles.TitleEdit(sha256(raw).hexdigest(), sha256(expected).hexdigest(),
+                                    (1, 1, 2, 3), b"\x11" * 16 + b"\x22" * 16)
+    patched = edit.apply(raw)
+    check("only the measured title blocks change", patched == expected)
+    check("the title patch is idempotent", patched is not None and edit.apply(patched) == patched)
+    check("the title patch refuses an unmeasured revision", edit.apply(b"\xff" + raw[1:]) is None)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--game", type=pathlib.Path,
@@ -1069,6 +1092,7 @@ def main() -> int:
     check_label_atlas()
     check_label_texture()
     check_relayout()
+    check_hand_card_titles()
     check_bc7(catalog)
     if args.skip_slow:
         print("\n[5][6][7] skipped (--skip-slow)")
