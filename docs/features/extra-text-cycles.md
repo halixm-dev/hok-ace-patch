@@ -117,6 +117,8 @@ The Chessplayer detail panel (`3EF1BE086B77011A`) sizes its tabs to their labels
 row, and fits the difficulty tags and skill captions within their rows.
 The Encyclopedia mode tabs (`FE5A2BCACD864638`) use wider cells and one font size so
 ACE Tournament and Diamond Frenzy fit on one line.
+The Encyclopedia's Talent Card previews (`5471D39F4D9063ED`) place the translated series name
+over a feathered gradient that matches the captured card and covers its Chinese heading.
 
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the
 phone has since updated to 1.4.0.2, so they are no longer pushable as they stand. See the journey log's

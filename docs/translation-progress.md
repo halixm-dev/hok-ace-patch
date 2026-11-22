@@ -14,7 +14,7 @@ phone's own layer, not the 1.4.0.1 dump.
 ## How progress is counted
 
 Coverage is **the staged text tables, the catalog's textures, one hard-coded Lua label**
-(`extra_text.SCRIPT_LABELS`), **twenty-one Lua edits** (`extra_text.SCRIPT_EDITS`) **and two config bins** on the mobile edition
+(`extra_text.SCRIPT_LABELS`), **twenty-two Lua edits** (`extra_text.SCRIPT_EDITS`) **and two config bins** on the mobile edition
 (`extra_text.SAFE_ASSETS`: `F79FB1A213A9DA90`, the Official recommendation lineups, since 2026-10-21, and
 `9E924AAB5066EE19`, the Super Weekend room perks, since 2026-11-21) —
 nothing else. There is no percentage: the build's own totals for tables, textures and config bins are not

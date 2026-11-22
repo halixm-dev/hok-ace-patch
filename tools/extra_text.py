@@ -1128,6 +1128,70 @@ _ENCYCLOPEDIA_TAB_SPACING = """    self.mainMenu:SetOptions(optionList)
 """
 
 
+_ENCYCLOPEDIA_CARD_REFRESH = "    self:LowerUIRefresh()\nend\n"
+_ENCYCLOPEDIA_CARD_SERIES = """    self:LowerUIRefresh()
+    if self._curShowTabType == ResData.V8CardType.CardType_Talent then
+        pcall(function() self:_FitTalentSeriesHeading() end)
+    end
+end
+
+local talentSeriesGradient
+local function getTalentSeriesGradient()
+    if CommonUtility:NotNull(talentSeriesGradient) then return talentSeriesGradient end
+    local unity = CS.UnityEngine
+    local size = 16
+    local texture = unity.Texture2D(size, size, unity.TextureFormat.RGBA32, false)
+    texture.wrapMode = unity.TextureWrapMode.Clamp
+    texture.filterMode = unity.FilterMode.Bilinear
+    -- Match the card colors above and below the series row. Keep the center opaque over the glyphs.
+    for y = 0, size - 1 do
+        local v = y / (size - 1)
+        for x = 0, size - 1 do
+            local u = x / (size - 1)
+            local edge = math.abs(2 * u - 1)
+            local red = 20 - 2 * v + 3 * edge
+            local green = 35 - 4 * v + (6 - 3 * v) * edge
+            local blue = 31 - 5 * v + (5 - 2 * v) * edge
+            local alpha = math.min(1, 8 * u, 8 * (1 - u), 6 * v, 6 * (1 - v))
+            texture:SetPixel(x, y, unity.Color(red / 255, green / 255, blue / 255, alpha))
+        end
+    end
+    texture:Apply(false, true)
+    talentSeriesGradient = texture
+    return texture
+end
+
+function UIGameAtlasCardInfoItemClass:_FitTalentSeriesHeading()
+    local ui = CS.UnityEngine.UI
+    local previews = self._rootTf:GetComponentsInChildren(typeof(ui.Text), false)
+    for i = 0, previews.Length - 1 do
+        local label = previews[i]
+        local layout = label.transform.parent
+        if label.name == "Txt_OSHType" and layout.name == "OSHTypeLayout" then
+            local capture = layout.parent.parent:Find("Icon_Capture")
+            if CommonUtility:NotNull(capture) and capture.gameObject.activeSelf then
+                -- The captured card already contains the Chinese heading under this localized text.
+                local plate = layout:Find("HokAceSeriesBackground")
+                if not CommonUtility:NotNull(plate) then
+                    local gradient = getTalentSeriesGradient()
+                    local object = CS.UnityEngine.GameObject("HokAceSeriesBackground", typeof(CS.UnityEngine.RectTransform))
+                    local image = object:AddComponent(typeof(ui.RawImage))
+                    image.texture = gradient
+                    image.raycastTarget = false
+                    object:AddComponent(typeof(ui.LayoutElement)).ignoreLayout = true
+                    plate = image.rectTransform
+                    plate:SetParent(layout, false)
+                    plate:SetAsFirstSibling()
+                end
+                plate.sizeDelta = CSVector2(math.min(layout.rect.width, math.max(245, label.preferredWidth + 16)), 44)
+                label.color = CS.UnityEngine.Color(0.62, 0.86, 0.71, 1)
+            end
+        end
+    end
+end
+"""
+
+
 _PRIVILEGE_REFRESH_END = """        self:SetPlatformType(false)
     end
 end
@@ -1452,6 +1516,8 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     0x89729889DF8FCE3B: _crlf(((_PRIVILEGE_REFRESH_END, _PRIVILEGE_ICON_GAP),)),
     # Encyclopedia's two game mode tabs (`UIGameAtlasClass`, package 10).
     0xFE5A2BCACD864638: ((_ENCYCLOPEDIA_TABS, _ENCYCLOPEDIA_TAB_SPACING),),
+    # Encyclopedia Talent Card previews (`UIGameAtlasCardInfoItemClass`, package 10).
+    0x5471D39F4D9063ED: _crlf(((_ENCYCLOPEDIA_CARD_REFRESH, _ENCYCLOPEDIA_CARD_SERIES),)),
     # The room (package 10, both in the 1.11 override, stored with CRLF line endings): "Lineup" and
     # "Settings" ran into their icons (`UIPVPRoomLeftDown_NormalClass`), and "Recommend" alone shrank
     # among the friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`).

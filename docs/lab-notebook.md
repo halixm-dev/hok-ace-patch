@@ -6833,3 +6833,16 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
 - **Series heading**. The translated `Txt_OSHType` sits over Chinese text in the `UICardBP` capture
   layer. Disabling `Icon_Capture` removed the duplicate and the card artwork together. The phone
   test restored the capture layer and kept the description fix.
+
+## 2026-11-22 — Encyclopedia Talent Card series headings
+
+- **Measured** `UICardBP` (`7AD07A6D06BFE0DF`, package `19`). The series row is 373 × 33 units.
+  The preview's separate art layers rendered blank when enabled in place of the capture. The Lua
+  edit (`5471D39F4D9063ED`, package `10`) puts a 44-unit-tall background behind the localized
+  text. It matches the colors sampled above and below the series row, fades at all four edges,
+  and stays opaque over the Chinese glyphs. It widens for longer headings.
+- **Verified on the Redmi Note 9 Pro (1.11.0.2, English)** with Central Plains Strategy, Leverage,
+  and Contract: Resonance. Starting Lineup Series, General Series, and Contract Series display
+  without overlap. The gradient follow-up was checked on Central Plains Strategy and Contract:
+  Resonance. Both catalogs staged Lua bytes matching the installed package and the edit passed
+  compile, read-back, and idempotence checks.
