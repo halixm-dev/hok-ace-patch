@@ -115,6 +115,8 @@ The Activate Privilege button (`89729889DF8FCE3B`) places the account icon to th
 localized label and keeps the icon tappable.
 The Chessplayer detail panel (`3EF1BE086B77011A`) sizes its tabs to their labels, aligns them on one
 row, and fits the difficulty tags and skill captions within their rows.
+The Encyclopedia mode tabs (`FE5A2BCACD864638`) use wider cells and one font size so
+ACE Tournament and Diamond Frenzy fit on one line.
 
 **Those four staged builds are bound to game data 1.4.0.1** — the layer they were staged from — and the
 phone has since updated to 1.4.0.2, so they are no longer pushable as they stand. See the journey log's

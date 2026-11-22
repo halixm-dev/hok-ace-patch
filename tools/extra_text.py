@@ -1080,6 +1080,54 @@ def _moment_tip_translated() -> tuple[tuple[str, str], ...]:
                    "            self.DemandTips = _hokaceMomentTip(nil, data.Response.BubbleTextDefault)\n")))
 
 
+_ENCYCLOPEDIA_TABS = "    self.mainMenu:SetOptions(optionList)\n    self.submenuListTimiList:SetSingleSelectMode()\n"
+_ENCYCLOPEDIA_TAB_SPACING = """    self.mainMenu:SetOptions(optionList)
+    local function fitMainMenu()
+        if not self:Available() then return end
+        local menu = self.mainMenu.transform
+        local ui = CS.UnityEngine.UI
+        local textType = typeof(ui.Text)
+        local horizontal = CS.UnityEngine.RectTransform.Axis.Horizontal
+        local items, width = {}, 344
+        for i = 0, menu.childCount - 1 do
+            local item = menu:GetChild(i)
+            local selected = item:Find("Select/Txt_Select")
+            local unselected = item:Find("UnSelect")
+            if item.gameObject.activeSelf and CommonUtility:NotNull(selected) and CommonUtility:NotNull(unselected) then
+                items[#items + 1] = item
+                for _, tf in ipairs({ selected, unselected }) do
+                    local label = tf:GetComponent(textType)
+                    label.resizeTextForBestFit = false
+                    label.horizontalOverflow = CS.UnityEngine.HorizontalWrapMode.Overflow
+                    label.alignment = CS.UnityEngine.TextAnchor.MiddleCenter
+                    label.fontSize = 38
+                    width = math.max(width, math.ceil(label.preferredWidth + 48))
+                end
+            end
+        end
+        if #items == 0 then return end
+        local total = width * #items
+        local layout = menu:GetComponent(typeof(ui.HorizontalLayoutGroup))
+        if CommonUtility:NotNull(layout) then layout.enabled = false end
+        menu.parent:SetSizeWithCurrentAnchors(horizontal, total)
+        menu:SetSizeWithCurrentAnchors(horizontal, total)
+        menu.anchoredPosition = CSVector2(total / 2, menu.anchoredPosition.y)
+        for i, item in ipairs(items) do
+            item.anchorMin = CSVector2(0.5, item.anchorMin.y)
+            item.anchorMax = CSVector2(0.5, item.anchorMax.y)
+            item:SetSizeWithCurrentAnchors(horizontal, width)
+            local x = width * (i - 1 - #items / 2 + item.pivot.x)
+            item.anchoredPosition = CSVector2(x, item.anchoredPosition.y)
+        end
+    end
+    pcall(fitMainMenu)
+    pcall(function()
+        ScheduleService:SetTimeout(function() pcall(fitMainMenu) end, 0)
+    end)
+    self.submenuListTimiList:SetSingleSelectMode()
+"""
+
+
 _PRIVILEGE_REFRESH_END = """        self:SetPlatformType(false)
     end
 end
@@ -1402,6 +1450,8 @@ SCRIPT_EDITS: dict[int, tuple[tuple[str, str], ...]] = {
     0x3EF1BE086B77011A: _crlf(((_LORD_DETAIL_LAYOUT, _LORD_DETAIL_SPACING),)),
     # Career's Activate Privilege button (`UIPrivilegeInvitationItemClass`, package 10).
     0x89729889DF8FCE3B: _crlf(((_PRIVILEGE_REFRESH_END, _PRIVILEGE_ICON_GAP),)),
+    # Encyclopedia's two game mode tabs (`UIGameAtlasClass`, package 10).
+    0xFE5A2BCACD864638: ((_ENCYCLOPEDIA_TABS, _ENCYCLOPEDIA_TAB_SPACING),),
     # The room (package 10, both in the 1.11 override, stored with CRLF line endings): "Lineup" and
     # "Settings" ran into their icons (`UIPVPRoomLeftDown_NormalClass`), and "Recommend" alone shrank
     # among the friend panel tabs (`UIPVPRoomNestedRecommendTabItemClass`).

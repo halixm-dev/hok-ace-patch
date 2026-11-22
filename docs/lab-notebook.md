@@ -6811,3 +6811,13 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
   and tapping either opens the information popup. The QQ branch was checked against its prefab.
   Both catalogs staged the same Lua bytes as the installed package, and the script compiled and
   passed read-back.
+
+## 2026-11-22 — Encyclopedia mode tabs
+
+- **Measured** in package `19`. The Encyclopedia prefab (`679B314F0818AEBD`) gave each mode a
+  272-unit tab. The Lua edit (`FE5A2BCACD864638`, package `10`) gives both labels a font size of 38
+  and widens both tabs to fit the longer label, with at least 48 units of space per label.
+- **Verified on the Redmi Note 9 Pro (1.11.0.2, English, 2400 × 1080)**. ACE Tournament and
+  Diamond Frenzy fit on one line with a visible gap. Tapping each tab changes the page and moves
+  the underline. Both catalogs staged matching script bytes. The script compiled, passed package
+  read-back, and produced the same bytes when patched again.
