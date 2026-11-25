@@ -177,10 +177,10 @@ class InterfaceProbeTest {
                             val texts = shownTexts(card)
                             assertTrue("$code: $heading in $texts", heading in texts)
                             assertEquals(UiText.translate(code, "03  /  DONE").substringAfter("/").trim(), eyebrow.text.toString())
-                            // A result that leaves the game ready leads with Open game; Space freed keeps Start alone.
+                            // Only verified patch and removal results offer Open game.
                             val primary = view.findViewWithTag<TextView>("next-step")
                             val again = view.findViewWithTag<TextView>("start-again")
-                            if (heading == expected.last()) {
+                            if (state.getString("status") != "complete") {
                                 assertEquals(UiText.translate(code, "Start"), primary.text.toString())
                                 assertEquals(View.GONE, again.visibility)
                             } else {
