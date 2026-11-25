@@ -720,3 +720,22 @@ stays Chinese. The allowed Official recommendation lineups have no missing trans
 ambiguous table stays refused. Staging checks use package `1` only, without the APK, and do not change
 the full-install or texture counts above.
 See [the feature record](features/data-1.11.0.1.md) and the dated lab evidence.
+
+## 2026-11-25. Game data 1.12.0.1
+
+The re-downloaded phone data reports 1.12.0.1 revision 0. The census reads 111 catalogued
+override tables and 389 prime-only tables from the cached APK. The supplement adds 68 sources
+for the Hall of Glory, Quick Match, Surprise Gacha, Super Weekend, Starry Brocade gifting,
+and cross-game status.
+
+| Package `1` offline check | English | Indonesian |
+|---|---:|---:|
+| New sources translated | 68 | 68 |
+| New rows verified in staged bytes | 94 | 94 |
+| Tables with verified new rows | 22 | 22 |
+| Missing translations in readable catalogued tables | 0 | 0 |
+
+All nine tables that failed to parse in the mixed package now parse and reveal no additional
+missing translations. The existing ambiguous asset `4B15FC0D7596513F` remains refused.
+The allowed Official recommendation lineups have no missing translations. Lobby verification
+with the new translations remains pending.

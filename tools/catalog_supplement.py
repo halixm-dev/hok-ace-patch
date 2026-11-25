@@ -15,6 +15,8 @@ Game data 1.10.0.1 added 158 catalog-table strings: the Duo Festival, Super Week
 Quick Match, Intimacy gifting, and reworded card and talent effects.
 Game data 1.11.0.1 added 203 catalog-table strings: the Starry Brocade Wish and its gifting shop,
 ACE Quick Match, the Weaving the Stars mansions, team queue settings, and two reworded card texts.
+Game data 1.12.0.1 added 68 measured catalog-table strings for the Hall of Glory, Quick Match,
+Surprise Gacha, Super Weekend, Starry Brocade gifting, and cross-game status.
 `apply` fills them in.
 The pairs are data, not code: `resources/catalog_supplement/texts.json` (`TEXTS`) and `leaderboards.json`
 (`LEADERBOARDS`), each a list of sections, a `note` and its `{zh: [English, Indonesian]}` texts, read once
