@@ -62,7 +62,7 @@ class InterfaceProbeTest {
                     assertTrue(UiText.string(activity, "ready_before_start").startsWith("Selesaikan semua unduhan"))
                     assertTrue(UiText.storage(activity, StorageBudget.explainFailure("2000000000 bytes required, 1000000000 available")!!).contains("1.0 GB lagi"))
                     // The hero names a community patcher, not the game's publisher, and has no tagline.
-                    assertEquals("PATCHER KOMUNITAS  /  HOK ACE", activity.window.decorView.findViewWithTag<TextView>("hero-eyebrow").text.toString())
+                    assertTrue(activity.window.decorView.findViewWithTag<TextView>("patcher-version").text.startsWith("Patcher komunitas"))
                     assertFalse(shownTexts(activity.window.decorView).any { it.startsWith("Langkah berikutnya") || it.startsWith("Your next move") })
                     assertEquals("Terjemahan ditulis", UiText.text(activity, "Translation written"))
                     assertTrue(UiText.text(activity, WorkerStatus.UNCONFIRMED).startsWith("Pemulihan selesai."))
@@ -81,7 +81,7 @@ class InterfaceProbeTest {
                 scenario.onActivity { activity ->
                     assertEquals("en", PatchLanguage.current(activity))
                     assertEquals("Technical tools", activity.window.decorView.findViewWithTag<TextView>("show-technical").text.toString())
-                    assertEquals("COMMUNITY PATCHER  /  HOK ACE", activity.window.decorView.findViewWithTag<TextView>("hero-eyebrow").text.toString())
+                    assertTrue(activity.window.decorView.findViewWithTag<TextView>("patcher-version").text.startsWith("Community patcher"))
                     val view = activity.window.decorView
                     val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
                     view.draw(Canvas(bitmap))
@@ -103,7 +103,7 @@ class InterfaceProbeTest {
         if (delta.isFile) assertTrue(delta.renameTo(kept))
         try {
             val clear = "If another patcher or an older version translated this game, clear its data before you switch languages."
-            val noClear = "Switching languages? No need to clear: the patcher kept the original game files it changed."
+            val noClear = "Original files stay backed up so you can switch anytime."
             for ((code, held) in listOf("en" to false, "en" to true, "id" to false, "id" to true)) {
                 PatchLanguage.set(context, code)
                 val note = UiText.text(context, if (held) noClear else clear)
@@ -115,7 +115,7 @@ class InterfaceProbeTest {
                         val order = listOf("language-note", "language-picker", "remove-translation")
                             .map { tag -> (0 until card.childCount).indexOfFirst { card.getChildAt(it).tag == tag } }
                         val title = (0 until card.childCount).indexOfFirst {
-                            (card.getChildAt(it) as? TextView)?.text?.toString() == UiText.text(activity, "Language") }
+                            (card.getChildAt(it) as? TextView)?.text?.toString() == UiText.text(activity, "Translation language") }
                         assertTrue("$code: title $title, then $order", title >= 0 && order.all { it > title } && order == order.sorted())
                         assertEquals(note, view.findViewWithTag<TextView>("language-note").text.toString())
                         val remove = view.findViewWithTag<View>("remove-translation")
@@ -176,7 +176,7 @@ class InterfaceProbeTest {
                             home.result(UiText.result(code, state)!!, "Start")
                             val texts = shownTexts(card)
                             assertTrue("$code: $heading in $texts", heading in texts)
-                            assertEquals(UiText.translate(code, "03  /  DONE"), eyebrow.text.toString())
+                            assertEquals(UiText.translate(code, "03  /  DONE").substringAfter("/").trim(), eyebrow.text.toString())
                             // A result that leaves the game ready leads with Open game; Space freed keeps Start alone.
                             val primary = view.findViewWithTag<TextView>("next-step")
                             val again = view.findViewWithTag<TextView>("start-again")
@@ -194,7 +194,7 @@ class InterfaceProbeTest {
                         val items = view.findViewWithTag<ViewGroup>("result-items")
                         assertEquals(View.VISIBLE, items.visibility)
                         assertEquals(4, items.childCount)
-                        assertEquals("12345", shownTexts(items.getChildAt(0)).last())
+                        assertEquals("12345", shownTexts(items.getChildAt(0)).first())
                         assertEquals(View.VISIBLE, view.findViewWithTag<View>("result-note").visibility)
                         // A notice is one ink line inside ②; a failure leads with the warning disc, other notices do not.
                         home.message("Access was not allowed. Tap Start to try again.", failure = true)
@@ -210,11 +210,11 @@ class InterfaceProbeTest {
                         // Any other state clears the counts; the eyebrow names the state, never "READY TO PLAY" on a failure.
                         home.show("Ready when you are", "Tap Start.", "Start", "start", true)
                         assertEquals(View.GONE, items.visibility)
-                        assertEquals(UiText.translate(code, "03  /  READY TO PLAY"), eyebrow.text.toString())
+                        assertEquals(UiText.translate(code, "03  /  READY TO PLAY").substringAfter("/").trim(), eyebrow.text.toString())
                         home.show("Start Shizuku", "Tap Open Shizuku.", "Open Shizuku", "start", false, GuidedHome.Stage.ACCESS)
-                        assertEquals(UiText.translate(code, "03  /  NEEDS ACCESS"), eyebrow.text.toString())
+                        assertEquals(UiText.translate(code, "03  /  NEEDS ACCESS").substringAfter("/").trim(), eyebrow.text.toString())
                         home.show("Work stopped", "Tap Try again.", "Try again", "start", true, GuidedHome.Stage.ATTENTION)
-                        assertEquals(UiText.translate(code, "03  /  NEEDS ATTENTION"), eyebrow.text.toString())
+                        assertEquals(UiText.translate(code, "03  /  NEEDS ATTENTION").substringAfter("/").trim(), eyebrow.text.toString())
                         // One Save log for help: the recovery group's steps aside while the error card shows.
                         val recoveryExport = view.findViewWithTag<View>("export-log")
                         assertEquals(View.VISIBLE, recoveryExport.visibility)
@@ -300,10 +300,22 @@ class InterfaceProbeTest {
             scenario.onActivity { activity ->
                 val view = activity.window.decorView
                 val footer = view.findViewWithTag<ViewGroup>("footer")
-                assertTrue(shownTexts(footer.getChildAt(0)).single().contains(BuildConfig.VERSION_NAME))
-                // One row, left to right: the three sit side by side, none filling the width; stacked
-                // in order only when a label's longest word would not fit its share (a large system font).
-                val row = listOf("show-technical", "check-app-update", "free-space").map { view.findViewWithTag<View>(it) }
+                val masthead = view.findViewWithTag<ViewGroup>("patcher-masthead")
+                val wordmark = masthead.findViewWithTag<View>("patcher-wordmark")
+                assertEquals("HONOR OF KINGS ACE", wordmark.contentDescription)
+                assertTrue(wordmark.isAccessibilityHeading)
+                val version = masthead.findViewWithTag<TextView>("patcher-version")
+                val update = masthead.findViewWithTag<View>("check-app-update")
+                assertTrue(version.text.contains(BuildConfig.VERSION_NAME))
+                assertEquals(version.parent, update.parent)
+                assertEquals(UiText.text(activity, "Check for updates"), update.contentDescription)
+                assertTrue(update.isEnabled)
+                home.checkingUpdate(true)
+                assertFalse(update.isEnabled)
+                assertEquals(UiText.text(activity, "Checking for updates…"), update.contentDescription)
+                home.checkingUpdate(false)
+                // Utility buttons share the footer or stack when a label would break inside a word.
+                val row = listOf("show-technical", "free-space").map { footer.findViewWithTag<View>(it) }
                 val places = row.map { IntArray(2).also(it::getLocationOnScreen) }
                 val stacked = places.any { it[1] != places[0][1] }
                 val (across, down) = if (stacked) 1 to 0 else 0 to 1
@@ -331,7 +343,7 @@ class InterfaceProbeTest {
                 for (tag in listOf("free-space-recovery", "recover-setup", "recover-apk", "verify-game", "export-log")) {
                     assertNotNull(tag, more.findViewWithTag<View>(tag))
                 }
-                // Tags and callbacks are unchanged, and every target is at least 60 dp.
+                // Every action still routes to its callback and has a 48 dp touch target.
                 val keys = mapOf("check-app-update" to "check_update", "free-space" to "free_space",
                     "free-space-recovery" to "free_space", "recover-patch" to "recover", "recover-setup" to "setup_recover",
                     "recover-apk" to "installer", "verify-game" to "verify", "export-log" to "export")
@@ -340,10 +352,10 @@ class InterfaceProbeTest {
                     assertTrue(tag, view.findViewWithTag<View>(tag).performClick())
                     assertEquals(tag, listOf(key), taps)
                 }
-                val minimum = 60 * activity.resources.displayMetrics.density - 1
+                val minimum = 48 * activity.resources.displayMetrics.density - 1
                 for (tag in keys.keys + "show-technical") {
-                    val button = view.findViewWithTag<android.widget.Button>(tag)
-                    assertTrue("$tag is ${button.height}px", button.minimumHeight >= minimum && button.height >= minimum)
+                    val button = view.findViewWithTag<View>(tag)
+                    assertTrue("$tag is ${button.height}px", button.height >= minimum)
                 }
             }
         }

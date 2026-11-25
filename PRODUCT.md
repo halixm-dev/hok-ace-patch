@@ -95,8 +95,8 @@ affiliated with Tencent.
 ## Brand Commitments
 
 - Name: **HOK ACE Language Patcher**. Self-description: a community patcher.
-- Unofficial and not affiliated with Tencent. It must never look or read like a Tencent product: no
-  Tencent artwork, logos, images or fonts.
+- Unofficial and not affiliated with Tencent. The supplied Android mark and wordmark appear with
+  the community patcher label. Avoid additional Tencent artwork or typefaces.
 - Honest about coverage: always says some game text stays Chinese, and reports counts as *applied*.
 - Voice: plain, calm instructions that put the game's safety first ("Keep the game closed"). Warnings
   state the consequence and the next step; they never alarm or blame.

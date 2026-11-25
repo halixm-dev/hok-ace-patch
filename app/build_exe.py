@@ -50,7 +50,7 @@ def build() -> None:
         "--add-data", f"{RESOURCES / 'key' / 'key.pk8'}{sep}key",
         "--add-data", f"{RESOURCES / 'ui' / 'strings.json'}{sep}ui",
         "--add-data", f"{RESOURCES / 'ui' / 'theme.json'}{sep}ui",
-        # Barlow and its licence, loaded privately at startup (hok_patcher.load_fonts); nothing is installed.
+        # Shared UI fonts and their licenses. The app loads the fonts privately at startup.
         "--add-data", f"{RESOURCES / 'fonts'}{sep}fonts",
         "--add-data", f"{RESOURCES / 'icon.ico'}{sep}.",
         "--add-data", f"{RESOURCES / 'icon.png'}{sep}.",

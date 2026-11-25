@@ -213,3 +213,15 @@ SIL Open Font License 1.1; ship `resources/fonts/OFL.txt` beside the fonts. The 
 | `Barlow-Regular.ttf` | `95aa02c7c43096e0dd44d787ba6216864a67157e402adab59b35572e0c1577ea` |
 | `Barlow-SemiBold.ttf` | `86577cb32f8abe3673db53ca0f4221e6856751a4f6730c867e00f720f8bb1fc5` |
 | `BarlowCondensed-ExtraBold.ttf` | `724c9c25952d5f4a2d87185d9767aa006144c5f0d944dc05bf7d5d603551c260` |
+
+The Stitch revamp adds the following SIL Open Font License 1.1 fonts from
+[Google Fonts](https://github.com/google/fonts/tree/main/ofl). The Hubot Sans and Commissioner
+files are static instances of the variable fonts. The original license notices ship with each
+patcher.
+
+| File | Source and instance | License file | SHA-256 |
+|---|---|---|---|
+| `AceHeading-Bold.ttf` | Hubot Sans at width 100, weight 700, renamed Ace Heading | `hubotsans-OFL.txt` | `b0a346bf1b6eb734877dbb0077fc7bb56ca7b9c6eeb10e288cc4b92961cc69eb` |
+| `Commissioner-Regular.ttf` | Commissioner at weight 400 | `commissioner-OFL.txt` | `09e109e0aff42c22bdd726ed1bb2d8d5713228a1f1ae2734094fd54528b109b3` |
+| `Commissioner-SemiBold.ttf` | Commissioner at weight 600 | `commissioner-OFL.txt` | `78c5a140b44efd6a127944feec319ef44fcac6d2d8b7b70e795068ec57c31041` |
+| `FragmentMono-Regular.ttf` | Fragment Mono, copied from upstream | `fragmentmono-OFL.txt` | `0fe011f425873c2e0fc73a189e394e340ad48d2b9a99a576bdeec75cee000460` |

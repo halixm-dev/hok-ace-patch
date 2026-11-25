@@ -106,7 +106,9 @@ val stageUiResources by tasks.registering {
         val classes = uiClassResources.get().asFile.apply { deleteRecursively() }
         classes.resolve("ui").mkdirs()
         strings.copyTo(classes.resolve("ui/strings.json"))
-        fonts.resolve("OFL.txt").copyTo(classes.resolve("ui/fonts/OFL.txt"))
+        fonts.listFiles { font: File -> font.name.endsWith("OFL.txt") }!!.forEach { license ->
+            license.copyTo(classes.resolve("ui/fonts/${license.name}"))
+        }
         // Resource names are lower case: Barlow-SemiBold.ttf becomes barlow_semibold.ttf.
         res.resolve("font").mkdirs()
         fonts.listFiles { it: File -> it.extension == "ttf" }!!.forEach {

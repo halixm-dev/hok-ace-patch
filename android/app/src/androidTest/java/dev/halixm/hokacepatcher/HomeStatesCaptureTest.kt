@@ -174,7 +174,7 @@ class HomeStatesCaptureTest {
                         scenario.onActivity { activity -> apply(GuidedHome(activity) { }, activity) }
                         instrumentation.waitForIdleSync()
                         scenario.onActivity { activity ->
-                            val page = ((activity.window.decorView.findViewWithTag<View>("start-card").parent) as ViewGroup)
+                            val page = activity.window.decorView.findViewWithTag<ViewGroup>("guided-page")
                             val scale = activity.resources.configuration.fontScale
                             clipped(page).forEach { problems += "$code $scale $name: $it" }
                             val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)

@@ -400,8 +400,8 @@
         "android",
         "windows"
       ],
-      "en": "Switching languages? No need to clear: the patcher kept the original game files it changed.",
-      "id": "Mengganti bahasa? Tidak perlu menghapus data: patcher menyimpan file game asli yang diubahnya."
+      "en": "Original files stay backed up so you can switch anytime.",
+      "id": "File original tetap disimpan sehingga bisa mengganti kapan saja."
     },
     "language_note_clear_first": {
       "platforms": [
@@ -1026,14 +1026,6 @@
       ],
       "en": "COMMUNITY PATCHER  /  HOK ACE",
       "id": "PATCHER KOMUNITAS  /  HOK ACE"
-    },
-    "some_game_text_will_stay_chinese_use": {
-      "platforms": [
-        "android",
-        "windows"
-      ],
-      "en": "Some game text will stay Chinese.\nUse Scan to login after setup.",
-      "id": "Sebagian teks game tetap berbahasa Mandarin.\nGunakan Scan to login setelah penyiapan."
     },
     "keep_the_game_closed_any_unfinished": {
       "platforms": [
@@ -3620,6 +3612,134 @@
       "en": "The patcher is changing the game's files. Wait until the job finishes, then close the window.",
       "id": "Patcher sedang mengubah file game. Tunggu sampai pekerjaan selesai, lalu tutup jendela.",
       "draft": true
+    },
+    "community_patcher": {
+      "en": "Community patcher",
+      "id": "Patcher komunitas",
+      "platforms": [
+        "android",
+        "windows"
+      ]
+    },
+    "start_patching": {
+      "en": "Start patching",
+      "id": "Mulai terjemahkan",
+      "platforms": [
+        "android"
+      ]
+    },
+    "translation_language": {
+      "en": "Translation language",
+      "id": "Bahasa terjemahan",
+      "platforms": [
+        "android"
+      ]
+    },
+    "connection_method": {
+      "en": "Connection method",
+      "id": "Metode koneksi",
+      "platforms": [
+        "android"
+      ]
+    },
+    "connection_wireless_description": {
+      "en": "Pair over Wi-Fi. No extra app needed.",
+      "id": "Pasangkan lewat Wi-Fi. Tidak perlu aplikasi tambahan.",
+      "platforms": ["android"]
+    },
+    "connection_shizuku_description": {
+      "en": "Requires the Shizuku app to be running.",
+      "id": "Aplikasi Shizuku harus berjalan.",
+      "platforms": ["android"]
+    },
+    "connection_root_description": {
+      "en": "Requires root. Keeps the installed game app.",
+      "id": "Perlu root. Aplikasi game tetap terpasang.",
+      "platforms": ["android"]
+    },
+    "show_connection_guide": {
+      "en": "Show connection guide",
+      "id": "Tampilkan panduan koneksi",
+      "platforms": [
+        "android"
+      ]
+    },
+    "hide_connection_guide": {
+      "en": "Hide connection guide",
+      "id": "Sembunyikan panduan koneksi",
+      "platforms": [
+        "android"
+      ]
+    },
+    "windows_edition": {
+      "en": "Windows edition",
+      "id": "Edisi Windows",
+      "platforms": [
+        "windows"
+      ]
+    },
+    "target_android_short": {
+      "en": "Android USB",
+      "id": "Android USB",
+      "platforms": [
+        "windows"
+      ]
+    },
+    "target_pc_short": {
+      "en": "PC",
+      "id": "PC",
+      "platforms": [
+        "windows"
+      ]
+    },
+    "usb_waiting": {
+      "en": "Waiting for phone",
+      "id": "Menunggu ponsel",
+      "platforms": [
+        "windows"
+      ]
+    },
+    "usb_connected": {
+      "en": "USB debugging authorized",
+      "id": "Debugging USB diizinkan",
+      "platforms": [
+        "windows"
+      ]
+    },
+    "usb_waiting_hint": {
+      "en": "Connect the phone over USB, turn on USB debugging, and tap Allow on the phone.",
+      "id": "Sambungkan ponsel lewat USB, aktifkan debugging USB, lalu ketuk Izinkan di ponsel.",
+      "platforms": [
+        "windows"
+      ]
+    },
+    "usb_ready_hint": {
+      "en": "Finish all in-game downloads and close the game before starting. Keep the USB cable connected.",
+      "id": "Selesaikan semua unduhan dalam game dan tutup game sebelum mulai. Biarkan kabel USB terpasang.",
+      "platforms": [
+        "windows"
+      ]
+    },
+    "usb_waiting_heading": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Connect your phone over USB",
+      "id": "Sambungkan ponsel lewat USB"
+    },
+    "usb_ready_heading": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Ready to patch over USB",
+      "id": "Siap menerjemahkan lewat USB"
+    },
+    "usb_running_hint": {
+      "platforms": [
+        "windows"
+      ],
+      "en": "Keep your phone unlocked and the USB cable connected.",
+      "id": "Jaga ponsel tetap terbuka dan kabel USB tetap terpasang."
     }
   }
 }

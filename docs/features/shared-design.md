@@ -7,7 +7,15 @@ branch: master
 
 # One design for both patchers
 
-## Report
+## Stitch revamp
+
+The current layout is documented in [Design](../../DESIGN.md). Android groups setup under the
+status and keeps the active action at the bottom. Its masthead has the supplied white mark,
+a gradient wordmark drawn from the supplied title font, and Check for updates next to the version.
+The status and setup cards use a borderless gradient. Both Windows targets use a shared masthead,
+a responsive status and setup workspace, and a full-width activity panel.
+
+## Original design report (2026-10-23)
 
 Both patchers now follow one design, taken from the rendered wxq.qq.com page and recorded in
 `DESIGN.md`. They read the same colours, corners, spacing and type from `resources/ui/theme.json`, the

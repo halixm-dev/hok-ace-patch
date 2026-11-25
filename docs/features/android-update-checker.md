@@ -2,8 +2,8 @@
 
 ## Report
 
-Added a manual update checker to the home screen, below Technical tools, with the installed
-patcher version. The button, progress state and result dialogs support English and Indonesian.
+The manual update checker opens from the icon next to the installed version in the Android
+masthead. Its accessible label, progress state, and result dialogs support English and Indonesian.
 Checks run on a separate executor and never use the patch worker or Shizuku. Duplicate taps
 are disabled until the check finishes; destroyed activities discard results and dismiss dialogs.
 
