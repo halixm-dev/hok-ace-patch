@@ -2038,5 +2038,282 @@
       "OSLab10快速模式": ["OSLab10 Quick Mode", "Mode Cepat OSLab10"],
       "每回合3次免费刷新。每次刷新（含付费），商店英雄按本回合刷新次数永久增加初始等级（第1次+1，第2次+2，依此类推）；买走一张后，补上来的英雄比该格子上一张再+1。新回合额外等级从0开始计。商店中若有2/3/4张完全相同的英雄，这些英雄各额外+3/+10/+25级，只取最高档、不叠加；买牌补位凑成更高档时，这组英雄补齐到新档。商店每个格子（含买牌后补上来的）单独判定，每格1.8%，4个格子每次刷新至少出现1张的概率约7%：棋手5级起可变为6阶效果卡，售价6；没变成效果卡时，棋手3级起可变为特殊装备，售价5。": ["3 free refreshes each Round. Each refresh (paid ones included) permanently raises the starting Level of Shop Heroes by the number of refreshes this Round (1st +1, 2nd +2, and so on); after you buy one, the Hero that fills its slot gets +1 more than the one before it. The extra Levels start again from 0 each new Round. If the Shop holds 2/3/4 identical Heroes, each of them gains an extra +3/+10/+25 Levels; only the highest tier applies and they do not stack; when buying and refilling makes a higher tier, that group is raised to the new tier. Each Shop slot (refilled ones included) is checked on its own at 1.8% per slot, so a refresh of 4 slots shows at least 1 about 7% of the time: from Chessplayer Level 5 it can become a Tier 6 Effect Card costing 6; if it does not, from Chessplayer Level 3 it can become Special Equipment costing 5.", "3 refresh gratis setiap Ronde. Setiap refresh (termasuk yang berbayar) menaikkan Level awal Hero di Shop secara permanen sesuai jumlah refresh di Ronde ini (ke-1 +1, ke-2 +2, dan seterusnya); setelah kamu membeli satu, Hero pengisi slot itu mendapat +1 lagi dari Hero sebelumnya. Level tambahan dimulai lagi dari 0 setiap Ronde baru. Jika Shop berisi 2/3/4 Hero yang sama persis, masing-masing mendapat tambahan +3/+10/+25 Level; hanya tingkat tertinggi yang berlaku dan tidak bertumpuk; saat membeli dan mengisi ulang membentuk tingkat lebih tinggi, kelompok Hero itu dinaikkan ke tingkat baru. Setiap slot Shop (termasuk yang diisi ulang) diperiksa sendiri dengan peluang 1,8% per slot, jadi refresh 4 slot memunculkan minimal 1 sekitar 7%: mulai Chessplayer Level 5 bisa menjadi Kartu Efek Tier 6 seharga 6; jika tidak, mulai Chessplayer Level 3 bisa menjadi Special Equipment seharga 5."]
     }
+  },
+  {
+    "note": "Game data 1.12.0.1: Hall of Glory, Quick Match, Surprise Gacha, Super Weekend, Starry Brocade gifting, and cross-game status",
+    "texts": {
+      "1.组排同享最高排名基础分，再享双倍亲密度": [
+        "1. In team queue, share the base score of the highest-placing teammate and earn double Intimacy.",
+        "1. Saat antre sebagai tim, dapatkan poin dasar yang sama dengan rekan berperingkat tertinggi dan dapatkan Intimacy ganda."
+      ],
+      "<color=#98CBFF>《王者万象棋》《王者荣耀》《王者荣耀世界》</color>申请使用您的以下信息：\n【当前登录账号在<color=#98CBFF>王者荣耀</color>、 <color=#98CBFF>王者万象棋</color>、<color=#98CBFF>王者荣耀世界</color>中的注册情况、游戏账号信息、在线状态，用于在<color=#98CBFF>王者荣耀</color>、 <color=#98CBFF>王者万象棋</color>、<color=#98CBFF>王者荣耀世界</color>中向您的游戏好友展示您在关联游戏中的在线状态。】\n特别说明：\n系统默认优先展示<color=#98CBFF>王者万象棋</color>的在线状态，若您未在线，您在其他系列游戏中的状态才会被展示。\n本功能仅展示在线状态，不会额外收集您的个人信息。\n若您开启“隐身”状态，其他游戏的在线状态将不会通过本功能互通展示。\n您可以在【设置-隐私】界面调整或关闭上述信息同步和展示内容，关闭后将在所有关联游戏中同步生效。": [
+        "<color=#98CBFF>Honor of Kings: Ace, Honor of Kings, and Honor of Kings: World</color> request permission to use the following information:\n【Your signed-in account’s registration status, game account information, and Online Status in <color=#98CBFF>Honor of Kings</color>, <color=#98CBFF>Honor of Kings: Ace</color>, and <color=#98CBFF>Honor of Kings: World</color>. This lets your in-game friends in <color=#98CBFF>Honor of Kings</color>, <color=#98CBFF>Honor of Kings: Ace</color>, and <color=#98CBFF>Honor of Kings: World</color> see your Online Status in linked games.】\nSpecial Note:\nBy default, your Online Status in <color=#98CBFF>Honor of Kings: Ace</color> appears first. If you are offline there, your status in other games in the series may be shown.\nThis feature only displays Online Status and collects no additional personal information.\nIf you turn on Invisible status, this feature will stop sharing your Online Status from other games.\nYou can manage or turn off this sharing in [Settings - Privacy]. Turning it off takes effect in all linked games.",
+        "<color=#98CBFF>Honor of Kings: Ace, Honor of Kings, and Honor of Kings: World</color> meminta izin menggunakan informasi berikut:\n【Status registrasi, informasi akun game, dan Status Online akun yang sedang kamu gunakan di <color=#98CBFF>Honor of Kings</color>, <color=#98CBFF>Honor of Kings: Ace</color>, dan <color=#98CBFF>Honor of Kings: World</color>. Ini memungkinkan temanmu di <color=#98CBFF>Honor of Kings</color>, <color=#98CBFF>Honor of Kings: Ace</color>, dan <color=#98CBFF>Honor of Kings: World</color> melihat Status Online-mu di game yang terhubung.】\nCatatan Khusus:\nSecara default, Status Online-mu di <color=#98CBFF>Honor of Kings: Ace</color> ditampilkan lebih dulu. Jika kamu offline di sana, statusmu di game lain dalam seri ini dapat ditampilkan.\nFitur ini hanya menampilkan Status Online dan tidak mengumpulkan informasi pribadi tambahan.\nJika kamu mengaktifkan status Invisible, fitur ini berhenti membagikan Status Online-mu dari game lain.\nKamu bisa mengatur atau menonaktifkan berbagi status di [Pengaturan - Privasi]. Penonaktifan berlaku di semua game yang terhubung."
+      ],
+      "<color=#98CBFF>《王者荣耀世界》</color>额外申请使用您的以下信息：\n【当前登录账号在<color=#98CBFF>王者荣耀</color>、 <color=#98CBFF>王者万象棋</color>、<color=#98CBFF>王者荣耀世界</color>中的注册情况、游戏账号信息、在线状态，用于在<color=#98CBFF>王者荣耀</color>、 <color=#98CBFF>王者万象棋</color>、<color=#98CBFF>王者荣耀世界</color>中向您的游戏好友展示您在关联游戏中的在线状态。】\n特别说明：\n系统默认优先展示<color=#98CBFF>王者万象棋</color>的在线状态，若您未在线，您在其他系列游戏中的状态才会被展示。\n本功能仅展示在线状态，不会额外收集您的个人信息。\n若您开启“隐身”状态，其他游戏的在线状态将不会通过本功能互通展示。\n您可以在【设置-隐私】界面调整或关闭上述信息同步和展示内容，关闭后将在所有关联游戏中同步生效。": [
+        "<color=#98CBFF>Honor of Kings: World</color> also requests permission to use the following information:\n【Your signed-in account’s registration status, game account information, and Online Status in <color=#98CBFF>Honor of Kings</color>, <color=#98CBFF>Honor of Kings: Ace</color>, and <color=#98CBFF>Honor of Kings: World</color>. This lets your in-game friends in <color=#98CBFF>Honor of Kings</color>, <color=#98CBFF>Honor of Kings: Ace</color>, and <color=#98CBFF>Honor of Kings: World</color> see your Online Status in linked games.】\nSpecial Note:\nBy default, your Online Status in <color=#98CBFF>Honor of Kings: Ace</color> appears first. If you are offline there, your status in other games in the series may be shown.\nThis feature only displays Online Status and collects no additional personal information.\nIf you turn on Invisible status, this feature will stop sharing your Online Status from other games.\nYou can manage or turn off this sharing in [Settings - Privacy]. Turning it off takes effect in all linked games.",
+        "<color=#98CBFF>Honor of Kings: World</color> juga meminta izin menggunakan informasi berikut:\n【Status registrasi, informasi akun game, dan Status Online akun yang sedang kamu gunakan di <color=#98CBFF>Honor of Kings</color>, <color=#98CBFF>Honor of Kings: Ace</color>, dan <color=#98CBFF>Honor of Kings: World</color>. Ini memungkinkan temanmu di <color=#98CBFF>Honor of Kings</color>, <color=#98CBFF>Honor of Kings: Ace</color>, dan <color=#98CBFF>Honor of Kings: World</color> melihat Status Online-mu di game yang terhubung.】\nCatatan Khusus:\nSecara default, Status Online-mu di <color=#98CBFF>Honor of Kings: Ace</color> ditampilkan lebih dulu. Jika kamu offline di sana, statusmu di game lain dalam seri ini dapat ditampilkan.\nFitur ini hanya menampilkan Status Online dan tidak mengumpulkan informasi pribadi tambahan.\nJika kamu mengaktifkan status Invisible, fitur ini berhenti membagikan Status Online-mu dari game lain.\nKamu bisa mengatur atau menonaktifkan berbagi status di [Pengaturan - Privasi]. Penonaktifan berlaku di semua game yang terhubung."
+      ],
+      "<color=#98cbff>一、时间：</color>\n<color=#FFFFFF>1、祈愿时间：2026年11月20日 00:00:00-2026年12月19日 23:59:59。\n2、兑换时间：2026年11月20日 00:00:00-2026年12月22日 23:59:59。\n注：12月19日祈愿时间结束后，锦绣星河祈愿币将不可使用，请及时使用；12月19日后仅保留兑换商店，请拥有锦绣星河积分的玩家们及时兑换，兑换时间结束后活动道具（锦绣星河祈愿币，锦绣星河积分）将被清空。</color>\n\n<color=#98cbff>二、祈愿规则：</color>\n<color=#FFFFFF>1、在活动界面消耗100点券购买10个爱心投送1天体验卡可获赠10个【锦绣星河祈愿币】，每次祈愿消耗10个锦绣星河祈愿币。活动期间，每人祈愿限1000次。\n2、祈愿福利： \n（1）祈愿福利1：首次进入奖池将会赠送锦绣星河祈愿币×9，首抽仅需10点券；\n（2）祈愿福利2：每日首次进入锦绣星河无双祈愿，可获赠锦绣星河积分×1（活动期间限领7次）；\n（3）祈愿福利3：祈愿达5/10/25次，可领取锦绣星河随机积分礼包，领取后随机获得20/40/60锦绣星河积分，概率分别为60%/30%/10%；祈愿达40次，可领取锦绣星河积分×288，依此类推至120抽为止。\n3、锦绣星河积分可用于在兑换商店中兑换指定奖励，详细兑换内容可前往兑换商店查看。\n4、重复获取：抽到已拥有的棋盘、名片、特效将自动转化为指定数量的锦绣星河积分，具体重复转化数量如下：\n锦绣星河棋盘：288；锦绣星河名片：120；锦绣星河传送特效：98。\n5、祈愿盒规则：在祈愿盒中，玩家可选择领取或分解奖励，具体分解数量如下：\u000b互动道具-锦枕摧星（1天）*1：5；个性戳戳-羽织星罗（1天）*1：5；亲密度道具-锦绣星河刺绣*1：5。\n6、赠礼限制：棋盘支持赠送，每个角色总计限赠3个奖励（注：收到的物品不可转赠，好友可在定制界面查看或使用获赠的棋盘。）\n7、锦绣星河无双祈愿奖池限时开启，抽奖进度不会被其他祈愿活动继承。</color>\n\n<color=#98cbff>三、概率公示：</color>\n<color=#FFFFFF>锦绣星河无双棋盘：0.2%\n锦绣星河积分*288：0.2%\n锦绣星河动态名片：0.2%\n传送特效-织星为锦：0.3%\n锦绣星河积分*68：2.15%\n锦绣星河积分*48：4%\n锦绣星河积分*28：6%\n锦绣星河积分*18：24.85%\n锦绣星河积分*8：35%\n互动道具-锦枕摧星（1天）*1：7.5%\n个性戳戳-羽织星罗（1天）*1：7.5%\n亲密度道具-锦绣星河刺绣*1：12.1%\n</color>": [
+        "<color=#98cbff>I. Time:</color>\n<color=#FFFFFF>1. Wish period: November 20, 2026, 00:00:00 - December 19, 2026, 23:59:59.\n2. Exchange period: November 20, 2026, 00:00:00 - December 22, 2026, 23:59:59.\nNote: Starry Brocade Wish Coins can no longer be used after the Wish period ends on December 19, so use them in time. After December 19 only the Exchange Shop remains; players holding Starry Brocade Points should exchange them in time. When the exchange period ends, the event items (Starry Brocade Wish Coins, Starry Brocade Points) will be cleared.</color>\n\n<color=#98cbff>II. Wish Rules:</color>\n<color=#FFFFFF>1. On the event screen, spend 100 Coupons to buy 10 Love Delivery 1-Day Trial Cards and receive 10 [Starry Brocade Wish Coins]. Each Wish costs 10 Starry Brocade Wish Coins. Each player can make up to 1000 Wishes during the event.\n2. Wish perks:\n(1) Perk 1: your first visit to the pool grants Starry Brocade Wish Coin ×9, and your first draw costs only 10 Coupons;\n(2) Perk 2: your first visit to the Starry Brocade Peerless Wish each day grants Starry Brocade Points ×1 (up to 7 times during the event);\n(3) Perk 3: at 5/10/25 Wishes, claim a Starry Brocade Random Points Pack, which grants 20/40/60 Starry Brocade Points at 60%/30%/10% respectively; at 40 Wishes, claim Starry Brocade Points ×288, and so on up to 120 draws.\n3. Starry Brocade Points can be exchanged for set rewards in the Exchange Shop. See the Exchange Shop for details.\n4. Duplicates: a Board, Nameplate or Effect you already own is converted into Starry Brocade Points as follows:\nStarry Brocade Board: 288; Starry Brocade Nameplate: 120; Starry Brocade Teleport Effect: 98.\n5. Wish Box rules: in the Wish Box you can claim or Dismantle rewards. Dismantling grants:\nInteractive Item - Brocade Pillow Fight (1 Day) ×1: 5; Personalized Poke - Feather-Woven Stars (1 Day) ×1: 5; Intimacy Item - Starry Brocade Embroidery ×1: 5.\n6. Gifting limit: you can gift the Board, up to 3 rewards in total per character. Received items cannot be gifted again. Friends can view or use their gifted Board on the Customization screen.\n7. The Starry Brocade Peerless Wish pool is available for a limited time. Progress will not carry over to other Wish events.</color>\n\n<color=#98cbff>III. Probability Disclosure:</color>\n<color=#FFFFFF>Starry Brocade Peerless Board: 0.2%\nStarry Brocade Points ×288: 0.2%\nStarry Brocade Animated Nameplate: 0.2%\nTeleport Effect - Stars Woven to Brocade: 0.3%\nStarry Brocade Points ×68: 2.15%\nStarry Brocade Points ×48: 4%\nStarry Brocade Points ×28: 6%\nStarry Brocade Points ×18: 24.85%\nStarry Brocade Points ×8: 35%\nInteractive Item - Brocade Pillow Fight (1 Day) ×1: 7.5%\nPersonalized Poke - Feather-Woven Stars (1 Day) ×1: 7.5%\nIntimacy Item - Starry Brocade Embroidery ×1: 12.1%\n</color>",
+        "<color=#98cbff>I. Waktu:</color>\n<color=#FFFFFF>1. Waktu Doa: 20 November 2026, 00:00:00 - 19 Desember 2026, 23:59:59.\n2. Waktu Penukaran: 20 November 2026, 00:00:00 - 22 Desember 2026, 23:59:59.\nCatatan: Koin Doa Starry Brocade tidak bisa digunakan lagi setelah waktu Doa berakhir pada 19 Desember, jadi segera gunakan. Setelah 19 Desember hanya Exchange Shop yang tersisa; pemain yang memiliki Poin Starry Brocade harap segera menukarnya. Setelah waktu penukaran berakhir, item event (Koin Doa Starry Brocade, Poin Starry Brocade) akan dihapus.</color>\n\n<color=#98cbff>II. Aturan Doa:</color>\n<color=#FFFFFF>1. Di layar event, habiskan 100 Kupon untuk membeli 10 Kartu Uji Coba 1 Hari Love Delivery dan dapatkan 10 [Koin Doa Starry Brocade]. Setiap Doa memakan 10 Koin Doa Starry Brocade. Setiap pemain bisa melakukan hingga 1000 Doa selama event.\n2. Bonus Doa:\n(1) Bonus 1: kunjungan pertama ke pool memberi Koin Doa Starry Brocade ×9, dan tarikan pertama hanya 10 Kupon;\n(2) Bonus 2: kunjungan pertama ke Doa Peerless Starry Brocade setiap hari memberi Poin Starry Brocade ×1 (maksimal 7 kali selama event);\n(3) Bonus 3: pada 5/10/25 Doa, ambil Paket Poin Acak Starry Brocade, yang memberi 20/40/60 Poin Starry Brocade dengan peluang 60%/30%/10%; pada 40 Doa, ambil Poin Starry Brocade ×288, dan seterusnya hingga 120 tarikan.\n3. Poin Starry Brocade bisa ditukar dengan hadiah tertentu di Exchange Shop. Lihat Exchange Shop untuk detailnya.\n4. Duplikat: Board, Nameplate atau Efek yang sudah dimiliki diubah menjadi Poin Starry Brocade sebagai berikut:\nBoard Starry Brocade: 288; Nameplate Starry Brocade: 120; Efek Teleportasi Starry Brocade: 98.\n5. Aturan Kotak Doa: di Kotak Doa kamu bisa mengambil atau membongkar hadiah. Membongkar memberi:\nItem Interaktif - Brocade Pillow Fight (1 Hari) ×1: 5; Personalized Poke - Feather-Woven Stars (1 Hari) ×1: 5; Item Intimacy - Bordir Starry Brocade ×1: 5.\n6. Batas hadiah: kamu bisa menghadiahkan Board, dengan batas total 3 hadiah per karakter. Item yang diterima tidak bisa dihadiahkan lagi. Teman bisa melihat atau memakai Board hadiah di layar Kustomisasi.\n7. Pool Doa Peerless Starry Brocade tersedia dalam waktu terbatas. Progres tidak akan dibawa ke event Doa lainnya.</color>\n\n<color=#98cbff>III. Pengungkapan Peluang:</color>\n<color=#FFFFFF>Peerless Board Starry Brocade: 0,2%\nPoin Starry Brocade ×288: 0,2%\nNameplate Animasi Starry Brocade: 0,2%\nEfek Teleportasi - Stars Woven to Brocade: 0,3%\nPoin Starry Brocade ×68: 2,15%\nPoin Starry Brocade ×48: 4%\nPoin Starry Brocade ×28: 6%\nPoin Starry Brocade ×18: 24,85%\nPoin Starry Brocade ×8: 35%\nItem Interaktif - Brocade Pillow Fight (1 Hari) ×1: 7,5%\nPersonalized Poke - Feather-Woven Stars (1 Hari) ×1: 7,5%\nItem Intimacy - Bordir Starry Brocade ×1: 12,1%\n</color>"
+      ],
+      "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、万象大赛达到指定段位即可领取奖励。</color>": [
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Reach the required rank in ACE Tournament to claim rewards.</color>",
+        "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Capai rank yang ditentukan di ACE Tournament untuk mengambil hadiah.</color>"
+      ],
+      "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、万象速决娱乐积分达到指定要求即可领取奖励。</color>": [
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Earn the required Casual Points in ACE Quick Match to claim rewards.</color>",
+        "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Raih Poin Casual yang ditentukan di ACE Quick Match untuk mengambil hadiah.</color>"
+      ],
+      "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、完成惊喜扭蛋对局任务即可领取奖励。</color>\n<color=#FFFFFF>2、娱乐积分将在每次对应娱乐玩法结束时重置清零。</color>": [
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Complete Surprise Gacha match missions to claim rewards.</color>\n<color=#FFFFFF>2. Casual Points reset to zero when their Casual mode ends.</color>",
+        "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Selesaikan misi pertandingan Surprise Gacha untuk mengambil hadiah.</color>\n<color=#FFFFFF>2. Poin Casual kembali ke nol setiap kali mode Casual terkait berakhir.</color>"
+      ],
+      "<color=#98cbff>一、活动规则</color>\n<color=#FFFFFF>1、点击“前往”查看荣耀殿堂页面后即可领取奖励。</color>": [
+        "<color=#98cbff>I. Event Rules</color>\n<color=#FFFFFF>1. Tap Go and view the Hall of Glory page to claim rewards.</color>",
+        "<color=#98cbff>I. Aturan Event</color>\n<color=#FFFFFF>1. Ketuk Buka dan lihat halaman Hall of Glory untuk mengambil hadiah.</color>"
+      ],
+      "<color=#98cbff>一、超级周末专属特权</color>\n<color=#FFFFFF>超级周末开启！活动期间将开启以下特权：全棋手限时免费体验；有分同享不限亲密度；每日首局排位失败不掉分。</color>\n\n<color=#98cbff>二、特权具体说明</color>\n<color=#FFFFFF>1. 全棋手限时免费体验\n活动期间，全棋手均可限免使用。玩家选择棋手时处于活动时间内，本局即可享受全棋手限免特权。\n\n2. 有分同享不限亲密度\n活动期间，最强王者0-5000分的玩家组队参与排位时，无需满足好友亲密度条件，即可开启有分同享。\n开启后，每位玩家本局获得的段位分，将与队伍中排名最高的玩家保持一致。玩家开始游戏时处于活动时间内，本局即可享受该特权。\n若队伍中有最强王者5000分以上的玩家，则无法享受该特权。\n\n3. 每日首局排位失败不掉分\n活动期间，玩家每日首局排位失败时，若原本需要扣除段位分，本局将免除段位分扣除。对局结算时处于活动时间内，即可享受该特权。\n最强王者5000分以上的玩家，无法享受该特权。</color>": [
+        "<color=#98cbff>I. Super Weekend Perks</color>\n<color=#FFFFFF>Super Weekend is here! During the event: all Chessplayers are free to use, Shared Score has no Intimacy requirement, and your first Ranked loss each day costs no rank points.</color>\n\n<color=#98cbff>II. Perk Details</color>\n<color=#FFFFFF>1. All Chessplayers Free\nAll Chessplayers are free to use during the event. Select your Chessplayer during the event period to enjoy this perk for that match.\n\n2. Shared Score Without Intimacy Requirements\nDuring the event, players with 0-5000 Honor points can enable Shared Score in team Ranked matches without meeting friend Intimacy requirements.\nEach player's rank points gained in the match will match those of the highest-placing teammate. Start your match during the event period to enjoy this perk.\nThis perk is unavailable if anyone on the team has more than 5000 Honor points.\n\n3. No Point Loss on Your First Daily Ranked Loss\nDuring the event, if your first Ranked loss of the day would normally cost rank points, the deduction is waived. Finish the match during the event to qualify.\nPlayers with more than 5000 Honor points cannot use this perk.</color>",
+        "<color=#98cbff>I. Keuntungan Super Weekend</color>\n<color=#FFFFFF>Super Weekend tiba! Selama event: semua Chessplayer gratis digunakan, Shared Score tanpa syarat Intimacy, dan kekalahan Ranked pertama setiap hari tidak mengurangi poin rank.</color>\n\n<color=#98cbff>II. Rincian Keuntungan</color>\n<color=#FFFFFF>1. Semua Chessplayer Gratis\nSemua Chessplayer gratis digunakan selama event. Pilih Chessplayer saat event berlangsung untuk menikmati keuntungan ini dalam pertandingan tersebut.\n\n2. Shared Score Tanpa Syarat Intimacy\nSelama event, pemain dengan 0-5000 poin Honor dapat mengaktifkan Shared Score dalam Ranked tim tanpa memenuhi syarat Intimacy pertemanan.\nPoin rank yang didapat setiap pemain akan sama dengan rekan satu tim yang menempati peringkat tertinggi. Mulai pertandingan saat event berlangsung untuk menikmati keuntungan ini.\nKeuntungan ini tidak berlaku jika ada anggota tim dengan poin Honor di atas 5000.\n\n3. Poin Aman Saat Kekalahan Ranked Pertama Harian\nSelama event, jika kekalahan Ranked pertama hari itu biasanya mengurangi poin rank, pengurangan poin dibatalkan. Selesaikan pertandingan saat event berlangsung untuk menikmati keuntungan ini.\nPemain dengan poin Honor di atas 5000 tidak bisa memakai keuntungan ini.</color>"
+      ],
+      "<color=#98cbff>三、会员礼遇</color>\n<color=#FFFFFF>V1：阵容栏位卡*5；</color>\n<color=#FFFFFF>V2：专属聊天气泡；</color>\n<color=#FFFFFF>V3：阵容栏位卡*5；</color>\n<color=#FFFFFF>V5：香香·红粉春樱；</color>\n<color=#FFFFFF>V6：荣耀会员名片；</color>\n<color=#FFFFFF>V7：马可·黄金美梦；</color>\n<color=#FFFFFF>V8：皮肤共享红包*30；</color>\n<color=#FFFFFF>V9：棋盘·高空赛场；</color>\n<color=#FFFFFF>V10：棋盘共享红包*30；</color>": [
+        "<color=#98cbff>III. Member Benefits</color>\n<color=#FFFFFF>V1: Lineup Slot Card *5;</color>\n<color=#FFFFFF>V2: Exclusive Chat Bubble;</color>\n<color=#FFFFFF>V3: Lineup Slot Card *5;</color>\n<color=#FFFFFF>V5: Xiangxiang: Pink Spring Cherry;</color>\n<color=#FFFFFF>V6: Honor Member Nameplate;</color>\n<color=#FFFFFF>V7: Marco: Golden Dream;</color>\n<color=#FFFFFF>V8: Skin Share Red Packet *30;</color>\n<color=#FFFFFF>V9: Chessboard: High-Altitude Arena;</color>\n<color=#FFFFFF>V10: Chessboard Share Red Packet *30;</color>",
+        "<color=#98cbff>III. Member Benefits</color>\n<color=#FFFFFF>V1: Lineup Slot Card *5;</color>\n<color=#FFFFFF>V2: Exclusive Chat Bubble;</color>\n<color=#FFFFFF>V3: Lineup Slot Card *5;</color>\n<color=#FFFFFF>V5: Xiangxiang: Pink Spring Cherry;</color>\n<color=#FFFFFF>V6: Honor Member Nameplate;</color>\n<color=#FFFFFF>V7: Marco: Golden Dream;</color>\n<color=#FFFFFF>V8: Skin Share Red Packet *30;</color>\n<color=#FFFFFF>V9: Chessboard: High-Altitude Arena;</color>\n<color=#FFFFFF>V10: Chessboard Share Red Packet *30;</color>"
+      ],
+      "万象大赛排行榜规则": [
+        "ACE Tournament Leaderboard Rules",
+        "Aturan Papan Peringkat ACE Tournament"
+      ],
+      "万象大赛达到指定段位即可领奖": [
+        "Reach the required ACE Tournament rank to claim rewards",
+        "Capai rank ACE Tournament yang ditentukan untuk mengambil hadiah"
+      ],
+      "万象大赛达王者段位领取": [
+        "Reach King rank in ACE Tournament to claim",
+        "Capai rank King di ACE Tournament untuk mengambil hadiah"
+      ],
+      "万象速决积分冲刺": [
+        "ACE Quick Match Points Sprint",
+        "Sprint Poin ACE Quick Match"
+      ],
+      "万象速决积分冲刺赢奖励": [
+        "Earn ACE Quick Match points to win rewards",
+        "Raih poin ACE Quick Match untuk memenangkan hadiah"
+      ],
+      "万象速决积分达到1100分": [
+        "Reach 1100 points in ACE Quick Match",
+        "Raih 1100 poin di ACE Quick Match"
+      ],
+      "万象速决积分达到1300分": [
+        "Reach 1300 points in ACE Quick Match",
+        "Raih 1300 poin di ACE Quick Match"
+      ],
+      "万象速决积分达到1400分": [
+        "Reach 1400 points in ACE Quick Match",
+        "Raih 1400 poin di ACE Quick Match"
+      ],
+      "从武凤、赢律、安琪拉、阿离、玉环、小妲己、昭君7个棋手中，随机获得一张3天体验卡！": [
+        "Get a random 3-Day Trial Card for one of 7 Chessplayers: Wu Feng, Ying Lu, Angela, Arli, Yuhuan, Little Daji, or Zhaojun!",
+        "Dapatkan Kartu Uji Coba 3 Hari untuk 1 dari 7 Chessplayer secara acak: Wu Feng, Ying Lu, Angela, Arli, Yuhuan, Little Daji, atau Zhaojun!"
+      ],
+      "全棋手限时免费": [
+        "All Chessplayers Free for a Limited Time",
+        "Semua Chessplayer Gratis untuk Waktu Terbatas"
+      ],
+      "冲段钻石礼": [
+        "Rank Climb Diamond Rewards",
+        "Hadiah Diamond Naik Rank"
+      ],
+      "可在设置中调整": [
+        "You can change this in Settings",
+        "Bisa diubah di Pengaturan"
+      ],
+      "回收": [
+        "Recycle",
+        "Daur Ulang"
+      ],
+      "夜雾之拥7天限时卡": [
+        "Embrace of Night Mist 7-Day Trial Card",
+        "Kartu Uji Coba 7 Hari Embrace of Night Mist"
+      ],
+      "完成1局惊喜扭蛋": [
+        "Complete 1 Surprise Gacha match",
+        "Selesaikan 1 pertandingan Surprise Gacha"
+      ],
+      "完成3局惊喜扭蛋": [
+        "Complete 3 Surprise Gacha matches",
+        "Selesaikan 3 pertandingan Surprise Gacha"
+      ],
+      "完成5局惊喜扭蛋": [
+        "Complete 5 Surprise Gacha matches",
+        "Selesaikan 5 pertandingan Surprise Gacha"
+      ],
+      "开个扭蛋，惊喜不断": [
+        "Roll for More Surprises",
+        "Putar Gacha, Raih Kejutan"
+      ],
+      "您与好友亲密等级之和为{0}级": [
+        "Your combined Intimacy Level with this friend is {0}",
+        "Total Level Intimacy kamu dan teman ini adalah {0}"
+      ],
+      "惊喜扭蛋活动奖励": [
+        "Surprise Gacha Event Rewards",
+        "Hadiah Event Surprise Gacha"
+      ],
+      "抱歉本次刷新到的编号都已经被其他玩家占用了，是否继续刷新，寻找其他编号？": [
+        "Other players have taken all the IDs from this refresh. Refresh again for more IDs?",
+        "Semua ID dari penyegaran ini sudah dipakai pemain lain. Segarkan lagi untuk mencari ID lain?"
+      ],
+      "新玩法惊喜扭蛋": [
+        "New Mode: Surprise Gacha",
+        "Mode Baru: Surprise Gacha"
+      ],
+      "有": [
+        "Owned: ",
+        "Dimiliki: "
+      ],
+      "有效期倒计时：{0}": [
+        "Expires in: {0}",
+        "Berakhir dalam: {0}"
+      ],
+      "本局有分同享": [
+        "Shared Score This Match",
+        "Shared Score Pertandingan Ini"
+      ],
+      "本局王中王队伍计分": [
+        "King of Kings Team Score This Match",
+        "Skor Tim King of Kings Pertandingan Ini"
+      ],
+      "本局队伍计分": [
+        "Team Score This Match",
+        "Skor Tim Pertandingan Ini"
+      ],
+      "查看一次荣耀殿堂": [
+        "View the Hall of Glory once",
+        "Lihat Hall of Glory sekali"
+      ],
+      "查看一次荣耀殿堂 (0/1)": [
+        "View the Hall of Glory once (0/1)",
+        "Lihat Hall of Glory sekali (0/1)"
+      ],
+      "段位冲刺活动奖励": [
+        "Rank Sprint Event Rewards",
+        "Hadiah Event Sprint Rank"
+      ],
+      "特权限时开启中": [
+        "Limited-Time Perks Active",
+        "Keuntungan Terbatas Aktif"
+      ],
+      "特权限时开启中！": [
+        "Limited-Time Perks Active!",
+        "Keuntungan Terbatas Aktif!"
+      ],
+      "看我999头像框": [
+        "Look at My 999 Avatar Frame",
+        "Bingkai Avatar Look at My 999"
+      ],
+      "神秘玩家{0}": [
+        "Mystery Player {0}",
+        "Pemain Misterius {0}"
+      ],
+      "立刻在<color=#FFE897>嬴政和武则天中随机一人</color>，下场战斗开始时使其吸收<color=#FFE897>其他友军</color>的等级、初始法力值、双攻和双防（双防最多吸收100点）。": [
+        "Immediately pick <color=#FFE897>Ying Zheng or Wu Zetian at random</color>. At the start of the next battle, they absorb the Levels, starting Mana, Physical and Magic Attack, and Physical and Magic Defense of <color=#FFE897>other allies</color> (up to 100 of each Defense).",
+        "Segera pilih <color=#FFE897>Ying Zheng atau Wu Zetian secara acak</color>. Di awal pertempuran berikutnya, Hero itu menyerap Level, Mana awal, Physical dan Magic Attack, serta Physical dan Magic Defense dari <color=#FFE897>ally lainnya</color> (maksimal 100 untuk setiap Defense)."
+      ],
+      "累计{0}抽（{1}/{0}），开启宝箱可得<color=#FFF7D9FF>20/40/60</color>锦绣星河积分！": [
+        "Make {0} draws ({1}/{0}) and open the chest for <color=#FFF7D9FF>20/40/60</color> Starry Brocade Points!",
+        "Lakukan {0} tarikan ({1}/{0}) dan buka peti untuk mendapatkan <color=#FFF7D9FF>20/40/60</color> Poin Starry Brocade!"
+      ],
+      "组队排位不掉分": [
+        "No Point Loss in Team Ranked",
+        "Poin Aman di Ranked Tim"
+      ],
+      "花间集头像框": [
+        "Among the Blossoms Avatar Frame",
+        "Bingkai Avatar Among the Blossoms"
+      ],
+      "荣耀殿堂冲榜倒计时": [
+        "Hall of Glory Leaderboard Countdown",
+        "Hitung Mundur Papan Peringkat Hall of Glory"
+      ],
+      "荣耀殿堂活动奖励": [
+        "Hall of Glory Event Rewards",
+        "Hadiah Event Hall of Glory"
+      ],
+      "荣耀殿堂规则": [
+        "Hall of Glory Rules",
+        "Aturan Hall of Glory"
+      ],
+      "获得皮肤【夜雾之拥】7天限时体验。": [
+        "Grants a 7-day trial of the [Embrace of Night Mist] skin.",
+        "Memberikan uji coba skin [Embrace of Night Mist] selama 7 hari."
+      ],
+      "该物品已拥有": [
+        "You already own this item",
+        "Kamu sudah memiliki item ini"
+      ],
+      "该物品已拥有，不可重复兑换": [
+        "You already own this item and cannot redeem it again",
+        "Kamu sudah memiliki item ini dan tidak bisa menukarnya lagi"
+      ],
+      "赛季末段位达成有礼": [
+        "Season-End Rank Rewards",
+        "Hadiah Rank Akhir Musim"
+      ],
+      "赛季结束时，万象大赛国榜前9999名玩家\n进入当前赛季荣耀殿堂，获得荣耀殿堂称号": [
+        "At season end, the top 9999 players on the ACE Tournament national leaderboard\nenter this season’s Hall of Glory and earn a Hall of Glory title.",
+        "Di akhir musim, 9999 pemain teratas di papan peringkat nasional ACE Tournament\nmasuk ke Hall of Glory musim ini dan mendapat gelar Hall of Glory."
+      ],
+      "赛季结束时，万象大赛国榜前9999名玩家进入当前赛季让要殿堂，获得荣耀殿堂称号": [
+        "At season end, the top 9999 players on the ACE Tournament national leaderboard enter this season’s Hall of Glory and earn a Hall of Glory title.",
+        "Di akhir musim, 9999 pemain teratas di papan peringkat nasional ACE Tournament masuk ke Hall of Glory musim ini dan mendapat gelar Hall of Glory."
+      ],
+      "输入昵称搜索好友（可赠送成长之路{0}级以上的好友）": [
+        "Search by nickname (friends at Growth Path Level {0} or higher can receive gifts)",
+        "Cari dengan nama panggilan (hadiah bisa dikirim ke teman dengan Growth Path Level {0} ke atas)"
+      ],
+      "输入昵称搜索好友（可赠送成长之路{0}级以上的好友，{1}可赠{2}/{3}）": [
+        "Search by nickname (friends at Growth Path Level {0} or higher can receive gifts, {1} gifts: {2}/{3})",
+        "Cari dengan nama panggilan (hadiah bisa dikirim ke teman dengan Growth Path Level {0} ke atas, hadiah {1}: {2}/{3})"
+      ],
+      "输入的新ID不合法或者重复，请重新输入~": [
+        "That ID is invalid or already taken. Enter another ID.",
+        "ID itu tidak valid atau sudah dipakai. Masukkan ID lain."
+      ],
+      "这是神魔？": [
+        "Is That a God or a Demon?",
+        "Itu Dewa atau Iblis?"
+      ],
+      "速决冲刺": [
+        "Quick Match Sprint",
+        "Sprint Quick Match"
+      ],
+      "速决冲刺活动奖励": [
+        "Quick Match Sprint Event Rewards",
+        "Hadiah Event Sprint Quick Match"
+      ],
+      "队友仍在对局中，请稍后查看": [
+        "Your teammate is still in the match. Check again later.",
+        "Rekan timmu masih bertanding. Cek lagi nanti."
+      ],
+      "阵营中包含受限内容，无法收藏": [
+        "This Faction contains restricted content and cannot be saved to favorites",
+        "Faction ini berisi konten terbatas dan tidak bisa disimpan ke favorit"
+      ],
+      "随机棋手体验卡（3天）": [
+        "Random Chessplayer Trial Card (3 Days)",
+        "Kartu Uji Coba Chessplayer Acak (3 Hari)"
+      ],
+      "隐藏无货道具": [
+        "Hide Out-of-Stock Items",
+        "Sembunyikan Item yang Habis"
+      ],
+      "，差<color=#98CBFFFF>{0}</color>兑换{1}": [
+        ", <color=#98CBFFFF>{0}</color> more needed to redeem {1}",
+        ", perlu <color=#98CBFFFF>{0}</color> lagi untuk menukar {1}"
+      ]
+    }
   }
 ]

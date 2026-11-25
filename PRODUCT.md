@@ -33,13 +33,13 @@ affiliated with Tencent.
 
 ## Operating Context
 
-- **Windows patcher**: the player first picks where the game is, *Phone over USB* or *PC game on
-  this computer*; the language choice is shared by both and still sets the interface language.
-  - **Phone over USB**: the player connects the phone by USB with USB debugging allowed, picks a
+- **Windows patcher**: the player first picks *Android USB* or *PC*. The language choice is shared
+  by both and sets the interface language.
+  - **Android USB**: the player connects the phone by USB with USB debugging allowed, picks a
     language and a working folder (about 8 GB), and clicks Start. It runs seven device steps: connect
     phone, prepare game APK, unlock data access, read language data, build translation, install
     translation, restore game.
-  - **PC game on this computer**: the patcher finds the game from the launcher's records or a folder
+  - **PC**: the patcher finds the game from the launcher's records or a folder
     the player picks (it remembers the folder), and offers **Install**, **Check** and **Remove
     translation**. Check runs when the target opens and after every job, and says *installed*, *not
     installed*, *replaced by an update* or *partly installed*; a game another patcher translated is
@@ -95,8 +95,8 @@ affiliated with Tencent.
 ## Brand Commitments
 
 - Name: **HOK ACE Language Patcher**. Self-description: a community patcher.
-- Unofficial and not affiliated with Tencent. It must never look or read like a Tencent product: no
-  Tencent artwork, logos, images or fonts.
+- Unofficial and not affiliated with Tencent. The supplied Android mark and wordmark appear with
+  the community patcher label. Avoid additional Tencent artwork or typefaces.
 - Honest about coverage: always says some game text stays Chinese, and reports counts as *applied*.
 - Voice: plain, calm instructions that put the game's safety first ("Keep the game closed"). Warnings
   state the consequence and the next step; they never alarm or blame.

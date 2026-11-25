@@ -60,6 +60,7 @@ internal fun MainActivity.showFirstSetupConfirmation(prepared: ApkPreparation.Pr
         .setMessage(UiText.firstSetup(this))
         .setView(checks).setNegativeButton(ui("Cancel")) { _, _ -> stopAutomatic() }.setOnCancelListener { stopAutomatic() }.setPositiveButton(ui("Delete data and set up"), null).create()
     dialog.show()
+    PanelDialog.style(dialog, danger = true)
     val start = dialog.getButton(AlertDialog.BUTTON_POSITIVE); start.isEnabled = false
     val refresh = { start.isEnabled = loss.isChecked && login.isChecked }
     loss.setOnCheckedChangeListener { _, _ -> refresh() }
@@ -143,7 +144,7 @@ internal fun MainActivity.showFreeSpaceConfirmation() {
             if (!busy && !automatic && !PatchWorkerService.isWorking)
                 startWorker(Intent(this, PatchWorkerService::class.java).setAction("free_space")
                     .putExtra("remove_saved_apks", remove.isChecked))
-        }.show().also(PanelDialog::style)
+        }.show().also { PanelDialog.style(it) }
 }
 
 /**

@@ -136,6 +136,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
+        window.setDecorFitsSystemWindows(false)
         DiagnosticTrace.init(this)
         DiagnosticTrace.event("ui", "Activity created; restored ${state != null}, worker running ${PatchWorkerService.isWorking}")
         permissionRequested = state?.getBoolean("permission-requested") ?: false

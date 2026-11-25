@@ -22,7 +22,7 @@ each run reports what it actually applied and skipped.
 2. Enable **USB debugging** in the phone's Developer options. Connect it to Windows by USB
    and tap **Allow** on the phone's debugging prompt.
 3. Open `dist\HOK ACE Language Patcher.exe`, or [run from source](#run-or-build-from-source).
-4. In ① **Language**, choose the translation; the interface follows it. In ② choose a
+4. Under **Setup**, choose the translation and a
    **WORKING FOLDER** with at least 8 GB free. Keep working data outside this repository; the
    default folder is `HOK ACE Patcher Data` beside the exe.
 5. Click **Start** and follow the installation prompts. Keep the game closed until
@@ -40,8 +40,8 @@ and the log says `rebuilt N files from the pristine delta`. Each patcher keeps i
 switch with the patcher that translated the phone last. The Windows patcher can also make a first
 delta from a working folder that still holds the session of an earlier install.
 
-To go back to the untranslated game, use **Remove translation**, on the Language card of both
-patchers, shown while the patcher keeps a delta (Windows: in its working folder). It writes
+To go back to the untranslated game, use **Remove translation**. It appears when the patcher has
+a pristine delta (Windows: in its working folder). It writes
 the original files back the same way an install writes a translation; nothing is downloaded and no
 game data is deleted. The patcher-signed app stays installed, so keep using **Scan to login**; for the
 official app, reinstall the game from the store.
@@ -75,7 +75,7 @@ stall loading and cause the game to repair away the translation.
 
 1. Let the launcher finish any update, then close the game and the launcher. Every PC action refuses
    while `wxq*.exe` or `王者万象棋.exe` runs.
-2. Open the Windows app and choose **PC game on this computer**. In **Setup**, choose the translation
+2. Open the Windows app and choose **PC**. In **Setup**, choose the translation
    and a working folder on a drive with about 10 GB free. The receipts take about
    4 GB per install, and a job stages about 4 GB more while it runs.
 3. The game folder is found from the launcher's records; otherwise use **Choose folder** and pick the
@@ -96,7 +96,7 @@ launcher repairs any listed file whose size changes
 
 ## Patch versions
 
-The root `VERSION` file sets the Windows and Android patcher version to **1.11.2.1**.
+The root `VERSION` file sets the Windows and Android patcher version to **1.12.1.1**.
 Use three numbers from the game's **data version**, omitting its extra middle zero,
 then append the patch release number, starting at `1`. For example, game data
 `1.0.6.1` becomes patch `1.6.1.X` and data `1.11.0.2` becomes
@@ -291,7 +291,7 @@ two words after `<out-dir>`; the hash must name one of `extra_text.CANDIDATE_ASS
 | `resources/catalog_supplement/` | Strings game data updates added after the catalog was built, English and Indonesian, merged as the catalog loads |
 | `resources/sprites/` | Hand-finished atlas labels, per-language label textures and pristine restore crops |
 | `resources/ui/` | Shared theme tokens (`theme.json`) and English/Indonesian strings (`strings.json`) for both patchers |
-| `resources/fonts/` | Barlow and Barlow Condensed, with the OFL licence |
+| `resources/fonts/` | Bundled interface fonts and their OFL licenses |
 | `resources/adb/` | Bundled Android Debug Bridge |
 | `resources/key/` | Stable re-signing key shipped with the patcher |
 | `resources/qtsvfs/` | Tencent's package builder and its dependencies; kept for `--builder` runs from source, not shipped in the exe |

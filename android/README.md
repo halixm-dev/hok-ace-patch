@@ -27,8 +27,8 @@ release offers **Download update**, which opens that release's APK in your brows
 through Android after finishing patching or recovery. There are no automatic checks or installs.
 Offline checks, GitHub errors and releases without an APK show a retry message and leave patching
 available. See the [update checker feature record](../docs/features/android-update-checker.md).
-The home screen has one **Start** button. The look follows [DESIGN.md](../DESIGN.md): Gradle turns `resources/ui/theme.json`
-into colour and size resources, ships Barlow from `resources/fonts/`, and packs `resources/ui/strings.json`,
+The home screen keeps **Start patching** and other current actions at the bottom. The look follows [DESIGN.md](../DESIGN.md): Gradle turns `resources/ui/theme.json`
+into colour and size resources, ships the interface fonts from `resources/fonts/`, and packs `resources/ui/strings.json`,
 from which `UiText` reads every interface string in English and Indonesian.
 The hero is drawn locally; it needs no network or downloaded website artwork. Language choices,
 disabled states, recovery controls and scrolling retain their existing behavior.
@@ -120,7 +120,7 @@ releases. See [automated builds](../README.md#automated-android-builds) and [sec
 The lineage lets installs signed with the previous, public key update in place.
 Local release builds are unsigned unless the four signing environment variables documented
 there are supplied. The launcher name is **HOK ACE Patch**.
-The root `VERSION` file defaults the patcher version to `1.8.1.2`
+The root `VERSION` file sets the default patcher version to `1.12.1.1`
 (three game version numbers plus patch revision); see [patch versions](../README.md#patch-versions).
 `patchVersionName` can override it with another four-part numeric version, and
 `patchVersionCode` sets Android's separate, increasing install number. CI release tags

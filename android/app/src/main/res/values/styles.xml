@@ -1,11 +1,11 @@
 <resources>
     <!-- Colours come from resources/ui/theme.json (generated into values/theme.xml); see DESIGN.md. -->
     <style name="Theme.HokAce" parent="android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:fontFamily">@font/barlow_regular</item>
+        <item name="android:fontFamily">@font/commissioner_regular</item>
         <item name="android:colorAccent">@color/ink</item>
-        <item name="android:statusBarColor">@color/page_top</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/page_bottom</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">true</item>
         <item name="android:windowBackground">@color/page_top</item>
     </style>

@@ -2,7 +2,6 @@ package dev.halixm.hokacepatcher
 
 import android.app.AlertDialog
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.util.TypedValue
@@ -12,33 +11,28 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
 
-/**
- * DESIGN.md's plain confirmation dialog: a deep-indigo panel, the heading in `on-panel`, the message
- * in `on-panel-muted`, the ice-blue confirm button on the right and a secondary Cancel on the left.
- * Call after `show()`, once the dialog's views exist.
- */
 object PanelDialog {
-    fun style(dialog: AlertDialog) {
+    fun style(dialog: AlertDialog, danger: Boolean = false) {
         val context = dialog.context
         val resources = context.resources
         val density = resources.displayMetrics.density
         val corner = resources.getDimension(R.dimen.corner_card)
         val buttonCorner = resources.getDimension(R.dimen.corner_button)
-        dialog.window?.setBackgroundDrawable(GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(context.getColor(R.color.panel_top), context.getColor(R.color.panel_bottom))).apply {
-                cornerRadius = corner
-            })
+        dialog.window?.setBackgroundDrawable(GradientDrawable().apply {
+            setColor(context.getColor(R.color.card))
+            cornerRadius = corner
+        })
         val title = resources.getIdentifier("alertTitle", "id", "android")
         dialog.findViewById<TextView>(title)?.apply {
-            setTextColor(context.getColor(R.color.on_panel))
+            setTextColor(context.getColor(R.color.ink))
             setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.type_heading))
-            typeface = resources.getFont(R.font.barlow_bold)
+            typeface = resources.getFont(R.font.aceheading_bold)
             isAccessibilityHeading = true
         }
         dialog.findViewById<TextView>(android.R.id.message)?.apply {
-            setTextColor(context.getColor(R.color.on_panel_muted))
+            setTextColor(context.getColor(R.color.text_muted))
             setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.type_body))
-            typeface = resources.getFont(R.font.barlow_regular)
+            typeface = resources.getFont(R.font.commissioner_regular)
         }
         val disabled = intArrayOf(-android.R.attr.state_enabled)
         dialog.window?.decorView?.let { checkboxes(it).forEach(::checkbox) }
@@ -63,7 +57,7 @@ object PanelDialog {
         }
         fun button(view: Button?, fill: GradientDrawable, textColor: Int) = view?.apply {
             isAllCaps = false
-            typeface = resources.getFont(R.font.barlow_semibold)
+            typeface = resources.getFont(R.font.commissioner_semibold)
             setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.type_button))
             setTextColor(ColorStateList(arrayOf(disabled, intArrayOf()),
                 intArrayOf(context.getColor(R.color.disabled_text), context.getColor(textColor))))
@@ -75,21 +69,20 @@ object PanelDialog {
             }
             val pad = (12 * density).toInt()
             setPadding(pad, 0, pad, 0)
-            minHeight = (60 * density).toInt(); minimumHeight = minHeight
+            minHeight = (48 * density).toInt(); minimumHeight = minHeight
             // Half the gap on each side, so side-by-side buttons sit 8 dp apart.
             (layoutParams as? ViewGroup.MarginLayoutParams)?.let { params ->
                 val half = resources.getDimensionPixelSize(R.dimen.space_xxs)
                 params.marginStart = half; params.marginEnd = half; layoutParams = params
             }
         }
-        button(dialog.getButton(AlertDialog.BUTTON_POSITIVE), GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-            intArrayOf(context.getColor(R.color.confirm_left), context.getColor(R.color.confirm_right))).apply {
-                cornerRadius = buttonCorner
-            }, R.color.ink)
-        val ink = context.getColor(R.color.ink)
+        button(dialog.getButton(AlertDialog.BUTTON_POSITIVE), GradientDrawable().apply {
+            setColor(context.getColor(if (danger) R.color.error else R.color.panel_bottom))
+            cornerRadius = buttonCorner
+        }, R.color.on_panel)
         button(dialog.getButton(AlertDialog.BUTTON_NEGATIVE), GradientDrawable().apply {
-            setColor(context.getColor(R.color.card)); cornerRadius = buttonCorner
-            setStroke((1 * density).toInt(), Color.argb(77, Color.red(ink), Color.green(ink), Color.blue(ink)))
+            setColor(context.getColor(R.color.surface)); cornerRadius = buttonCorner
+            setStroke((1 * density).toInt(), context.getColor(R.color.outline))
         }, R.color.ink)
     }
 
@@ -102,8 +95,8 @@ object PanelDialog {
     /** A consent checkbox keeps its unchecked default; only its colours change. */
     private fun checkbox(view: CheckBox) {
         val context = view.context
-        view.setTextColor(context.getColor(R.color.on_panel))
-        view.typeface = context.resources.getFont(R.font.barlow_regular)
-        view.buttonTintList = ColorStateList.valueOf(context.getColor(R.color.on_panel))
+        view.setTextColor(context.getColor(R.color.ink))
+        view.typeface = context.resources.getFont(R.font.commissioner_regular)
+        view.buttonTintList = ColorStateList.valueOf(context.getColor(R.color.ink))
     }
 }

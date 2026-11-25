@@ -35,7 +35,7 @@ public final class GuidedHomeProbeTest {
                 View root = current.getWindow().getDecorView();
                 Button next = root.findViewWithTag("next-step");
                 assertNotNull(next); assertTrue(next.isShown());
-                assertTrue(next.getMinimumHeight() >= 60 * current.getResources().getDisplayMetrics().density - 1);
+                assertTrue(next.getMinimumHeight() >= 56 * current.getResources().getDisplayMetrics().density - 1);
                 assertFalse(root.findViewWithTag("worker-status").isShown());
                 assertNotNull(root.findViewWithTag("show-recovery"));
             });

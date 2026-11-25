@@ -1,282 +1,260 @@
 ---
-version: 1
 name: HOK ACE Language Patcher
-description: |
-  The one design both patchers follow, taken from the game's website (wxq.qq.com):
-  a light lavender page, frosted white cards, deep-indigo panels and heavy
-  condensed titles. Light only.
-source:
-  url: "https://wxq.qq.com"
-  sampledAt: 2026-10-17
-  method: colours sampled from screenshots of the rendered page; the site draws its look with images, so its CSS alone misses it
+description: A status-first workspace with light periwinkle cards and indigo actions.
 colors:
-  page-top: "#DCDCF1"
-  page-bottom: "#B5BAE5"
-  card: "rgba(255, 255, 255, 0.85)"
-  card-solid: "#F1F0FA"
-  card-edge: "rgba(255, 255, 255, 0.9)"
-  ink: "#343876"
-  text-muted: "#55597F"
-  panel-top: "#5A5496"
-  panel-bottom: "#343876"
+  page-top: "#3F459A"
+  page-mid: "#737CD9"
+  page-bottom: "#C4CCF7"
+  card: "#EEF1FF"
+  card-solid: "#EEF1FF"
+  card-edge: "#B8C0EE"
+  card-sweep-lilac: "#E6DCFA"
+  card-sweep-blue: "#CFD6FA"
+  surface: "#FFFFFF"
+  surface-subtle: "#E2E6FD"
+  ink: "#161B4A"
+  text-muted: "#434978"
+  outline: "#6E74A3"
+  panel-top: "#343B8E"
+  panel-bottom: "#262B73"
   on-panel: "#FFFFFF"
-  on-panel-muted: "#DCDCF1"
-  confirm-left: "#EAEEF7"
-  confirm-right: "#ADBEEC"
-  warning: "#D2AA60"
-  warning-surface: "#FBF1DD"
-  error: "#C8414B"
-  error-surface: "#FBE4E6"
-  disabled-fill: "#E2E2F0"
-  disabled-text: "#8C87B9"
+  on-panel-muted: "#EEF1FF"
+  accent-gold: "#F2CF66"
+  confirm-right: "#BFC6FF"
+  success: "#1B6B45"
+  success-surface: "#D6F5E3"
+  warning: "#7A5400"
+  warning-surface: "#FFEDCC"
+  error: "#BA1A1A"
+  error-surface: "#FFDAD6"
+  disabled-fill: "#E2E6FD"
+  disabled-text: "#62678E"
 typography:
   title:
     fontFamily: Barlow Condensed
     fontWeight: 800
     fontSize: 32px
   heading:
-    fontFamily: Barlow
+    fontFamily: Ace Heading
     fontWeight: 700
-    fontSize: 18px
+    fontSize: 20px
   body:
-    fontFamily: Barlow
+    fontFamily: Commissioner
     fontWeight: 400
     fontSize: 14px
   label:
-    fontFamily: Barlow
+    fontFamily: Commissioner
     fontWeight: 600
     fontSize: 12px
-    letterSpacing: 0.12em
+    letterSpacing: 0.025em
   button:
-    fontFamily: Barlow
+    fontFamily: Commissioner
     fontWeight: 600
-    fontSize: 15px
+    fontSize: 14px
   log:
-    fontFamily: monospace
+    fontFamily: Fragment Mono
     fontWeight: 400
     fontSize: 12px
 rounded:
-  card: 8px
-  button: 8px
+  card: "20px"
+  button: "12px"
+  field: "12px"
 spacing:
-  xxs: 4px
-  xs: 8px
-  sm: 12px
-  md: 16px
-  lg: 20px
-  xl: 24px
-  section: 32px
+  xxs: "4px"
+  xs: "8px"
+  sm: "12px"
+  md: "16px"
+  lg: "20px"
+  xl: "24px"
+  section: "32px"
+components:
+  button-primary:
+    backgroundColor: "{colors.panel-bottom}"
+    textColor: "{colors.on-panel}"
+    typography: "{typography.button}"
+    rounded: "{rounded.button}"
+  button-primary-hover:
+    backgroundColor: "{colors.panel-top}"
+  button-secondary:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.button}"
+    rounded: "{rounded.button}"
+  button-secondary-hover:
+    backgroundColor: "{colors.surface-subtle}"
+  button-text:
+    backgroundColor: transparent
+    textColor: "{colors.ink}"
+    typography: "{typography.button}"
+    height: "48px"
+  button-danger:
+    backgroundColor: "{colors.error}"
+    textColor: "{colors.on-panel}"
+    typography: "{typography.button}"
+    rounded: "{rounded.button}"
+  button-disabled:
+    backgroundColor: "{colors.disabled-fill}"
+    textColor: "{colors.disabled-text}"
+  card:
+    backgroundColor: "{colors.card}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.card}"
+    padding: "{spacing.lg}"
+  folder-path:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.field}"
+    padding: "{spacing.xs}"
+  status:
+    backgroundColor: "{colors.surface-subtle}"
+    textColor: "{colors.ink}"
+    typography: "{typography.label}"
+    padding: "4px 12px"
+  status-verified:
+    backgroundColor: "{colors.success-surface}"
+    textColor: "{colors.success}"
+  status-attention:
+    backgroundColor: "{colors.warning-surface}"
+    textColor: "{colors.warning}"
+  choice:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.button}"
+    rounded: "{rounded.field}"
+  choice-selected:
+    backgroundColor: "{colors.surface-subtle}"
+  target-selected:
+    backgroundColor: "{colors.panel-bottom}"
+    textColor: "{colors.on-panel}"
+    typography: "{typography.button}"
+    rounded: "{rounded.button}"
+    height: "36px"
 ---
+# Design System: HOK ACE Language Patcher
 
-# Design
+## Overview
 
-Both the Windows patcher and the Android patcher follow this file. It sets how they look and how
-their screens are laid out; it does not set what they do. Where a patcher cannot draw something,
-the **Windows fallback** or **Android note** under that rule says what it draws instead.
+**Creative North Star: "Status first"**
 
-## Reference
+The Android patcher and both Windows targets share the Stitch workspace. The masthead identifies
+the community patcher and its installed version. On Android, the supplied white mark sits
+behind the gradient HONOR OF KINGS ACE wordmark. Light cards give the current state, its next
+action, and setup clear places in the workspace.
 
-The look comes from the game's website, https://wxq.qq.com, as rendered on 2026-10-17. The site
-builds its look from images (glass cards, gradients, buttons), so the colours were sampled from
-screenshots, not read from its CSS. Its blue `#0000EE` is the browser's default link colour, not a
-brand colour.
+Keep the interface calm while the patcher works and specific when the player needs to act. Show
+the worker's current step and use the run's own counts for results.
 
-Only the feel is taken. Nothing is copied from the site: no artwork, character, logo, image or font
-file, and no game asset. The patchers are unofficial and must not look like a Tencent product.
+**Key Characteristics:**
 
-## Theme
+- Indigo shell with light periwinkle cards and white inset surfaces.
+- Current status before setup, with the next action within reach.
+- Gold metadata in the masthead and explicit labels for verified results and attention.
 
-Light only. A dark theme, when it comes, goes to both patchers at once.
+## Colors
 
-## Colour roles
+| Role | Use |
+|---|---|
+| Primary | The indigo shell uses the page gradient on Android and solid `page-top` on Windows. Use deep indigo and white text for the primary action. |
+| Secondary | Gold is the masthead's community, edition, and version metadata. |
+| Neutral | Windows cards use a fine edge. Android status and setup use a borderless white-to-periwinkle sweep. White surfaces hold paths, activity, and Android result counts. Use `ink` for content and `text-muted` for supporting copy. |
+| Status | Pair the neutral, amber, green, and red treatments with labels. Use neutral periwinkle for progress, amber for attention, green for verified results and live USB connection, and red for errors and destructive confirmation. |
+| Disabled | Use the disabled fill and text for locked choices and unavailable actions. |
 
-| Role | Value | Use |
-|---|---|---|
-| Page | gradient `page-top` → `page-bottom`, top to bottom | the window or screen background |
-| Card | `card` with a 1 px `card-edge` | every content card |
-| Ink | `ink` | headings and body text on the page and cards |
-| Muted text | `text-muted` | supporting text, captions, eyebrow labels |
-| Panel | gradient `panel-top` → `panel-bottom` | the hero and confirmation dialogs |
-| On panel | `on-panel`, `on-panel-muted` | text on a panel |
-| Primary button | panel gradient, `on-panel` text | Start and the main action of a card |
-| Confirm button | gradient `confirm-left` → `confirm-right`, left to right, `ink` text | the confirm action on a panel (dialogs) |
-| Secondary button | `card` fill, `ink` text, 1 px `ink` edge at 30 % | Cancel, Remove translation, Change… |
-| Text button | no fill or edge, `ink` text | the footer row, the quieter recovery tools |
-| Warning | `warning` accents on `warning-surface` | recovery, data-loss consent, storage shortfall |
-| Error | `error` accents on `error-surface` | a failed run, a danger confirmation |
-| Disabled | `disabled-fill`, `disabled-text` | any disabled button or locked choice |
+**The Verified Success Rule.** Show a verified result in green. The status label tells the
+player what the patcher verified.
 
-`warning` is the site's amber tag colour. The site shows no error state; `error` and
-`error-surface` are **patcher-only**, added because a patcher has to show failure.
+## Typography
 
-Never put an ice-blue confirm button on the lavender page: it is too pale there. It belongs on a
-panel, as on the site.
+| Role | Family and size |
+|---|---|
+| Masthead | Android wordmark rendered at a 32 sp reference size from the supplied title font. Windows uses Barlow Condensed ExtraBold (32). |
+| Section heading and Android count | Ace Heading Bold (20) |
+| Instructions and details | Commissioner Regular (14) |
+| Labels and status | Commissioner SemiBold (12). Android adds 0.025 em tracking. |
+| Controls | Commissioner SemiBold (14) |
+| Activity | Fragment Mono Regular (12) |
 
-**Windows fallback.** CustomTkinter has no transparency. Cards use `card-solid` (the card composited
-over the page) with a 1 px `#E4E3F2` edge, and the page is a flat `page-top`. The gradients appear
-only in the hero image and the dialog panel image, which are drawn locally at startup.
-
-## Shape
-
-Cards and buttons have 8 px corners. Nothing else is rounded. Depth comes from colour (glass on
-lavender, indigo panels), never from drop shadows. The site's cut-corner confirm button is not used.
-
-## Type
-
-Barlow (SIL Open Font License) for all interface text, Barlow Condensed ExtraBold for the hero title.
-Both are bundled from `resources/fonts/`. The site's own font, HYQiHei, is commercial and is not
-shipped. The game's Chinese name, 王者万象棋, uses the system CJK font (Microsoft YaHei on Windows,
-the system font on Android). Logs use the system monospace font.
-
-Eyebrow labels (`LANGUAGE`, `DEVICE`, `LOG`) are `label`, upper case, in `text-muted`. Text scales
-with the system font size on Android and with display scaling on Windows; layouts must survive both.
+Ace Heading is a static Hubot Sans instance with a separate font name. Barlow Condensed is the
+bundled display face for Windows. The Android wordmark ships as a PNG drawn from the supplied
+`honor-of-kings-ace-title.otf`. The four UI font families ship with their licenses. The
+numbers are scaled text units on Android and logical pixels on Windows. Follow Android font
+settings and Windows display scaling.
 
 ## Layout
 
-The phone flow uses one column, centred and at most 720 px wide on Windows, or full width less
-16 px gutters on Android. The Windows PC target uses the desktop workspace in item 6.
-Top to bottom:
+Use 16 dp or logical px outer gutters and a 20 dp or logical px inset on cards. Separate the
+status, setup, and activity surfaces with the spacing scale.
 
-1. **Hero** — a panel. Eyebrow `COMMUNITY PATCHER  /  HOK ACE` in `on-panel-muted`, the app title in `title`,
-   one line saying it is an unofficial, partial translation and that login goes through *Scan to
-   login*. Drawn locally: the panel gradient plus a few faint diagonal light bands. No images.
-2. **Target choice** (Windows only) — a card with the eyebrow `YOUR GAME`, the title and two choices:
-   *Phone over USB* and *PC game on this computer*, styled like the language choices. The chosen
-   target is remembered. It locks with the language choices while either target works, and while
-   saved phone work waits, which also puts the window back on the phone (one line says so). The
-   Android patcher has no target choice.
-3. **① Language** — a card with, in order: the title, the language note, the two choices (English
-   and Bahasa Indonesia), then **Remove translation**, a secondary outlined button.
-   - The language note has two variants: no clear is needed while the patcher keeps a pristine
-     delta; otherwise one short conditional line says a clear is needed only on a game another
-     patcher or an older version translated. It never opens with the data-clearing instruction.
-   - Remove translation shows only while a pristine delta is kept (Windows: in its working folder).
-   - The choices and Remove translation lock together while work runs, in the disabled colours.
-     While unfinished work waits for recovery they stay locked, with one note saying the
-     recovery action on Start comes first.
-4. **② Shell provider** (Android only) — a card with, in order: the eyebrow `02  /  SHELL PROVIDER`,
-   the title, one supporting line, the three choices (Wireless debugging, the default, then Shizuku
-   and Root), then the chosen provider's numbered guide, one
-   line per step. A provider the build cannot start yet shows one line saying so instead of steps.
-   The choices lock while work runs, like the language choices. **Windows** has no shell provider,
-   so its Start card stays ②.
-5. **③ Start** (② on Windows) — a card with the single Start button. It rewrites itself in place for each state:
-   - **Idle** and **not ready**: the Start button, with the blocker as the next step when there is one.
-     The idle instruction says, before Start, to finish every in-game download and close the game;
-     no checkbox or dialog follows Start.
-   - **Recovery needs attention**: unfinished work is saved, so the button becomes that work's
-     specific recovery action (*Continue saved work*, *Finish stopping safely*, *Restore interrupted
-     patch*, *Restore the game app*, *Check saved work* …) and never starts a fresh patch. Where
-     the action cannot be named the button opens the recovery options. *Save log for help* stays a
-     separate, secondary action.
-   - **Work stopped**: while the warning card offers recovery, the button opens it (*Open recovery
-     options*) instead of offering *Try again* against the card's "Use recovery first". With no
-     recovery to offer it reads *Try again*.
-   - **Running**: a bar and one line, `Step N of M · <step>`, in place of the button. The heading
-     names the continuation state: *Working*, *Continuing*, *Stopping safely*, *Restoring* or
-     *Waiting for you* (a game download or a consent the run needs).
-   - **Result**: a heading, one summary line, the run's own counts as a short list and, where the
-     translation was added or removed, the Scan to login note. The result states are
-     *Translation added*, *Translation removed*, *Translation written* (Android: recovery closed a
-     run whose translation is on the phone, unconfirmed) and *Space freed* (Android). Only a
-     verified result is *Verified complete*; *Translation written* is not. **Android**:
-     a verified result that leaves the game ready to play (*Translation added*, *Translation
-     removed*, *Damaged files deleted*) leads with *Open game* as the primary button, with *Start
-     another patch* under it as a secondary button. *Translation written* and *Space freed* offer Start.
-   - **Notice**: one `ink` line under the card's instruction, such as "Access was not allowed. Tap
-     Start to try again." A notice that reports a failure leads with a warning disc (`warning` fill,
-     `ink` mark, as tall as the text); an informational one has none. It is not a card, and the
-     next notice replaces it.
+- **Android.** Keep status and setup in the scrolling body. Pin the current action above the
+  navigation bar. Place the closed-game and download instructions before Start patching, keep
+  language and connection method in one setup card, and open the connection guide on demand.
+  Use two columns for language choices and result tiles at 360 dp or wider with a font scale
+  of 1.15 or less. Use one column at smaller widths or larger font sizes. Running
+  work hides setup and shows progress and activity. The update icon sits beside the masthead
+  version and has a 48 dp touch target, tooltip, and spoken label.
+- **Windows.** Put the target switch next to the masthead. From 740 logical px of workspace
+  width, place status and its actions beside setup in a 3-to-2 grid. At smaller widths, stack
+  status and setup. Activity sits below the workspace at both widths. Wrap full folder paths
+  and keep a single Save log for help action visible.
 
-   Its eyebrow names the state: `03  /  READY TO PLAY` while idle or not ready, `NEEDS ACCESS`
-   above a shell provider that is not ready (*Install Shizuku*, *Start Shizuku*, *Choose a shell
-   provider*), `IN PROGRESS` while running, `DONE` on a result and `NEEDS ATTENTION` on a failure or
-   unfinished work. A failure or a provider that is not ready never sits under READY TO PLAY.
-   **Windows** has no shell provider, so it uses `02  /` with READY TO PLAY, IN PROGRESS, DONE and
-   NEEDS ATTENTION; saved work it finds at launch puts the card under NEEDS ATTENTION with the
-   recovery action, as on Android.
+## Elevation & Depth
 
-   **Windows**: the card opens with the short *Before you start* checklist (idle and failed only),
-   then device status and the working folder (with its free space and Change…), above the state and
-   the Start button. A folder short of space is the not-ready blocker. The *Translation added*
-   counts leave out the "game app verified" line, which only the Android patcher checks.
-6. **PC workspace** (Windows, PC target) — a compact title bar with the Phone over USB and PC edition
-   target controls. The workspace fills the window. It uses two columns at 740 logical px of workspace
-   width and stacks them below that width.
-   - The patch column leads with a status strip and the next step. Install, Check and Remove
-     translation form one toolbar. The primary label follows the state: Install, Reapply translation,
-     Update translation, Switch language or Recover and install. Mixed updated files and another
-     patcher's files show Repair guidance. Remove translation is available with a verified install and
-     asks once through the shared confirmation dialog.
-   - Setup groups the full game and working folder paths, their chooser buttons, available space and
-     translation language. Long paths wrap. The language selection also redraws the interface.
-   - A PC job replaces the toolbar with a progress bar, elapsed time and the latest operation. The
-     game and launcher must stay closed. Check runs when opening the workspace and after Install
-     or Remove. The patcher asks the player to wait if they try to close it during work.
-   - Activity spans the workspace beneath the patch and setup columns. Save log for help is in its
-     header, or in the shared error panel when a job fails. Target, settings and patch buttons
-     use Tab focus with a visible outline and activate with Enter or Space.
-7. **Warning or error card**, directly under Start, when one exists:
-   - The **warning card** holds anything that needs action. On Android it is "Game won't open?",
-     with the recovery options folded behind *Show recovery options*, which reads *Hide recovery
-     options* while they are open. Restore interrupted patch comes first, a secondary button. The
-     other tools follow as text buttons under a `text-muted` *More recovery tools* label, and
-     their *Save log for help* is hidden while the error card or Start already offers it: one per screen.
-   - The **error card** holds the cause and the next step, with *Copy error details* (Android) and
-     *Save log for help*.
-8. **Log** — the live activity log; on the PC target, the job's log as it runs; on Android also the technical log. Each log scrolls inside its
-   own height-bounded panel while the page scrolls outside it.
-9. **Footer** — the installed version, then one row of text buttons: *Technical tools*, *Check for
-   updates* and, on Android, *Free up space*. They are not full-width buttons. At a large system font they stack, one per line, still text buttons (see Buttons).
+Use tonal layering for depth. The shell frames the periwinkle cards, and white surfaces sit
+inside the cards. The Android setup and status cards sweep from white through lilac and blue.
+Tonal fill and the radio indicator distinguish selected Android choices.
 
-Warnings and recovery messages never appear as extra steps.
+## Shapes
+
+Use 20 dp or logical px corners for cards and 12 dp or logical px corners for buttons and
+fields. Status labels are compact and rounded. Let controls grow with wrapped text on Android.
 
 ## Components
 
-**Buttons.** Primary buttons fill the card width in the phone flow. Minimum height 60 dp on Android,
-44 px on Windows phone screens and 36 px in the PC workspace.
-Text buttons keep that height. The footer's text buttons share one row equally, and a long label
-wraps onto more lines rather than leaving the row. A label never breaks inside a word: when one
-label's longest word is wider than its share (a large system font), the three stack, one per line,
-still as text buttons.
-Disabled buttons use the disabled colours and are never only dimmed.
+### Buttons and choices
 
-**Dialogs.** A panel with a heading in `on-panel`, the message in `on-panel-muted`, the confirm
-button on the right and a secondary Cancel on the left. A danger confirmation (data loss) uses an
-`error` confirm button instead of ice-blue. Consent checkboxes start unchecked.
+- The primary action uses the indigo gradient on Android home and a solid indigo on Windows.
+  Android home pins the raised primary button above the centered Technical tools and Free up
+  space links. The page background continues behind the footer.
+  Secondary buttons use white with a fine outline. Android also uses text buttons for help and
+  other secondary actions. Home actions have at least a 48 dp touch target, or 56 dp for the
+  primary action.
+- Android choices use radio controls. A selected row uses a periwinkle fill and a checked radio indicator.
+  Put a short prerequisite below each connection method. Windows target and language choices
+  use the filled button for selection. On Windows, Tab
+  reaches enabled buttons and scrolls them into view. Enter or Space activates the focused
+  button. Focus changes the border, and hover changes the fill.
 
-Remove translation and Free up space confirm with a plain dialog, not a danger one: neither
-deletes the game's data. On both patchers Remove translation asks once, at the tap, with no
-checkbox; the run that follows asks nothing more. Patching asks no routine confirmation after
-Start. Consent the run cannot do without (first setup's data loss, the setup downloads checkpoint)
-keeps its dialog and unchecked checkbox.
-Free up space's optional "also remove the saved game apps" checkbox starts unchecked and states the
-space the next patch will need.
+### Task status
 
-Re-download needs no card of its own: the run deletes the damaged files by itself (2026-11-13), and the
-progress line says so. The next card offers **Open game** and **Downloads finished**; the latter
-continues the saved action directly after the user returns. Returning alone never resumes
-translation. Only a package still damaged after its own download in the same run (or a deletion
-interrupted twice) shows **Review Re-download**: for the former, a line saying the game already
-downloaded these files again; then the measured
-file count, size, packages and deletion consequences above **Delete and re-download**. That tap
-approves the displayed scope and starts deletion directly, without a dialog.
+- Show the next step and put recovery or error details close to it. Saved work takes priority
+  in the next action. During work, show progress and the current step, with Stop safely
+  where available.
+- Let the heading carry the status when a chip would repeat it. The Android access heading
+  uses amber. The Windows USB ready heading carries the ready state.
+- On Windows, the Android USB target pairs live connection status with the working folder and
+  language. Put Save log for help beside the recovery action while saved work waits, in an
+  error card when one is visible, and beside Activity otherwise.
+  PC setup shows game and working folders, available space, and language. PC status
+  presents Install, Check, and Remove translation for the measured state. Running work locks
+  target, language, and setup.
+- On Android, a verified result that leaves the game ready to play leads with Open game.
+  Show applied and skipped totals in white count tiles. Use the amber callout for Scan to login
+  where applicable.
 
-**Progress.** The bar's track is `disabled-fill`, its fill `ink`.
+### Dialogs
 
-**Android note.** System bars, the launch background and native dialog accents use `page-top` and
-`ink`. Scroll content respects the system-bar insets on edge-to-edge Android versions.
+Use a light card with clear actions. Consent checkboxes open unchecked. Reserve red for the
+destructive action. Remove translation asks for one confirmation.
+On Windows, Tab reaches Cancel before the destructive action, and Escape closes the dialog.
 
-## Wording and language
+## Do's and Don'ts
 
-Every user-facing string comes from `resources/ui/strings.json`, in English and Indonesian, and both
-patchers use the same string for the same thing. The language choice in ① also sets the interface
-language, and switching it while idle redraws the screen at once. Protocol keys, technical tool
-names, durable records and raw technical logs are never translated. Both languages keep the same
-consent checkboxes and data-loss warnings. Say "translation", never "English", where either language
-is meant.
+- **Do** keep shared English and Indonesian text in `resources/ui/strings.json`. The selected
+  translation sets the interface language. Technical logs keep their original wording.
+- **Do** describe translation coverage in the results. Label counts as applied or skipped.
+- **Do** use the 208 dp white mark from the Android frames in `new-ui.figcraft` as a
+  15% opacity watermark in the upper-right background. The first card can cover its lower edge.
 
-## Tokens
-
-The values above are the source; `resources/ui/theme.json` carries them for both patchers and must
-match this file's front matter.
+`resources/ui/theme.json` supplies the runtime tokens. Gradle generates the Android resources
+from it, and the Windows patcher reads it directly.

@@ -5,28 +5,36 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.RippleDrawable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.RelativeSizeSpan
+import android.text.style.TypefaceSpan
 import android.util.TypedValue
-import android.view.View
+import android.view.Gravity
 import android.view.MotionEvent
+import android.view.View
 import android.widget.Button
+import android.widget.GridLayout
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import kotlin.math.roundToInt
 
 /** One start action; show only work progress and checkpoints that need the user. */
 class GuidedHome(private val activity: Activity, private val invoke: (String) -> Unit) {
-    /** DESIGN.md's four type steps; buttons and the log have their own tokens. */
+    /** DESIGN.md's text styles for the guided screen. */
     private enum class Type(val size: Int, val font: Int) {
-        TITLE(R.dimen.type_title, R.font.barlowcondensed_extrabold),
-        HEADING(R.dimen.type_heading, R.font.barlow_bold),
-        BODY(R.dimen.type_body, R.font.barlow_regular),
-        LABEL(R.dimen.type_label, R.font.barlow_semibold),
+        HEADING(R.dimen.type_heading, R.font.aceheading_bold),
+        BODY(R.dimen.type_body, R.font.commissioner_regular),
+        LABEL(R.dimen.type_label, R.font.commissioner_semibold),
     }
 
     /**
@@ -41,7 +49,9 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val ink = activity.getColor(R.color.ink)
     private val muted = activity.getColor(R.color.text_muted)
     private val root = column()
+    private val setup = card(sweep = true)
     private val stage = eyebrow(Stage.READY.eyebrow).apply { tag = "start-eyebrow" }
+    private var shownStage: Pair<Stage, Boolean>? = null
     private val heading = text("Let's get started", Type.HEADING)
     private val detail = text("", Type.BODY)
     private val primary = button("Start", "next-step", true) { invoke(next) }
@@ -54,6 +64,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
     private var shown = ""
     private val stop = button("Stop safely", "stop-automatic") { invoke("stop") }
+    private val actions = column()
     /** Running: the bar takes the button's place; determinate while the worker reports a step. */
     private val bar = android.widget.ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply {
         tag = "progress-bar"
@@ -75,9 +86,17 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         tag = "friendly-notice-row"; orientation = LinearLayout.HORIZONTAL; visibility = View.GONE
         addView(noticeMark); addView(notice)
     }
-    /** A result state's counts, one row each, and the login note that follows them. */
-    private val resultItems = column().apply { tag = "result-items"; visibility = View.GONE }
-    private val resultNote = text("", Type.BODY).apply { tag = "result-note"; visibility = View.GONE }
+    private val useTwoColumns = activity.resources.configuration.run { screenWidthDp >= 360 && fontScale <= 1.15f }
+    private val resultItems = GridLayout(activity).apply {
+        tag = "result-items"; visibility = View.GONE
+        columnCount = if (useTwoColumns) 2 else 1
+    }
+    private val resultNote = text("", Type.BODY).apply {
+        tag = "result-note"; visibility = View.GONE
+        background = background(activity.getColor(R.color.warning_surface))
+        setPadding(dp(12), dp(10), dp(12), dp(10))
+        layoutParams = LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) }
+    }
     private var shownItems = emptyList<String>()
     private val languageNote = text("", Type.BODY, supporting = true).apply { tag = "language-note" }
     private val removeButton = button("Remove translation", "remove-translation") { invoke("remove") }
@@ -92,28 +111,51 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
     private val liveLog = text("", Type.BODY).apply {
         tag = "live-patch-log"; setTextIsSelectable(true)
-        typeface = Typeface.MONOSPACE; setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_log))
+        typeface = activity.resources.getFont(R.font.fragmentmono_regular)
+        setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_log))
+        setPadding(dp(12), dp(8), dp(12), dp(8))
     }
     private val logScroll = LogScrollView(activity).apply {
         addView(liveLog)
         layoutParams = LinearLayout.LayoutParams(-1, dp(180)).apply { topMargin = dp(8) }
         tag = "live-log-scroll"
+        background = background(activity.getColor(R.color.surface), R.dimen.corner_field)
     }
     private val logCard = card().apply {
         visibility = View.GONE
         addView(text("Patching activity", Type.HEADING))
-        addView(text("New messages appear here as we work. Scroll to see earlier messages.", Type.BODY, supporting = true))
         addView(logScroll)
     }
-    val advanced = column()
-    private val updateButton = footerButton("Check for updates", "check-app-update") { invoke("check_update") }
+    val advanced = card()
+    private val updateButton = ImageButton(activity).apply {
+        tag = "check-app-update"
+        setImageResource(R.drawable.ic_update)
+        imageTintList = ColorStateList(
+            arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
+            intArrayOf(activity.getColor(R.color.page_bottom), activity.getColor(R.color.on_panel_muted)),
+        )
+        scaleType = ImageView.ScaleType.CENTER_INSIDE
+        setPadding(dp(14), dp(14), dp(14), dp(14))
+        val ripple = ColorStateList.valueOf(withAlpha(activity.getColor(R.color.on_panel), 0.24f))
+        background = RippleDrawable(ripple, null, background(Color.WHITE, R.dimen.corner_button))
+        layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
+        setOnClickListener { invoke("check_update") }
+    }
     private val freeSpaceButton = footerButton("Free up space", "free-space") { invoke("free_space") }
     private var next = "start"
     private var workerNotice = ""
     private var choosingLanguage = false
     private val languages = RadioGroup(activity).apply {
-        tag = "language-picker"; orientation = LinearLayout.VERTICAL
-        PatchLanguage.choices.forEach { (code, name) -> addView(choice(name, "language-$code")) }
+        tag = "language-picker"
+        orientation = if (useTwoColumns) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+        isBaselineAligned = false
+        PatchLanguage.choices.forEach { (code, name) ->
+            val option = choice(name, "language-$code")
+            if (useTwoColumns) option.layoutParams = RadioGroup.LayoutParams(0, -1, 1f).apply {
+                setMargins(if (childCount == 0) 0 else dp(8), dp(4), 0, dp(4))
+            }
+            addView(option)
+        }
         setOnCheckedChangeListener { group, checked ->
             val code = group.findViewById<RadioButton>(checked)?.tag?.toString()?.removePrefix("language-")
             if (!choosingLanguage && code != null) invoke("language:$code")
@@ -124,7 +166,19 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private val providers = RadioGroup(activity).apply {
         tag = "provider-picker"; orientation = LinearLayout.VERTICAL
         ShellProvider.entries.forEach { provider ->
-            addView(choice(ui(provider.label), "provider-${provider.key}"))
+            val label = ui(provider.label)
+            val description = ui(when (provider) {
+                ShellProvider.WIRELESS -> "Pair over Wi-Fi. No extra app needed."
+                ShellProvider.SHIZUKU -> "Requires the Shizuku app to be running."
+                ShellProvider.ROOT -> "Requires root. Keeps the installed game app."
+            })
+            addView(choice(label, "provider-${provider.key}").apply {
+                text = SpannableString("$label\n$description").apply {
+                    setSpan(RelativeSizeSpan(0.88f), label.length + 1, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    setSpan(TypefaceSpan(activity.resources.getFont(R.font.commissioner_regular)),
+                        label.length + 1, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            })
         }
         setOnCheckedChangeListener { group, checked ->
             val key = group.findViewById<RadioButton>(checked)?.tag?.toString()?.removePrefix("provider-")
@@ -133,6 +187,10 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
     /** The chosen provider's numbered guide, one line per step; its tag names the provider shown. */
     private val guide = column().apply { tag = "provider-guide" }
+    private val guideToggle = textButton("Show connection guide", "toggle-provider-guide") {
+        guide.visibility = if (guide.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        guideToggleLabel()
+    }
     private var guideShown: ShellProvider? = null
 
     /** Hidden while the screen already offers Save log for help: the error card's, or ③ itself. */
@@ -170,74 +228,98 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     }
 
     init {
-        root.setPadding(dp(20), dp(16), dp(20), dp(32))
-        root.background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(activity.getColor(R.color.page_top), activity.getColor(R.color.page_bottom)))
+        root.setPadding(dp(16), dp(8), dp(16), dp(16))
         root.addView(hero())
-        val languageCard = card().apply { tag = "language-card" }
-        languageCard.addView(eyebrow("01  /  YOUR TRANSLATION"))
-        languageCard.addView(text("Language", Type.HEADING))
+        checkingUpdate(false)
+
+        val status = card(sweep = true).apply { tag = "start-card" }
+        status.addView(stage)
+        status.addView(heading); status.addView(detail); status.addView(noticeRow)
+        status.addView(resultItems); status.addView(resultNote)
+        bar.progressTintList = ColorStateList.valueOf(activity.getColor(R.color.panel_bottom))
+        bar.indeterminateTintList = bar.progressTintList
+        bar.progressBackgroundTintList = ColorStateList.valueOf(activity.getColor(R.color.surface_subtle))
+        bar.visibility = View.GONE; stop.visibility = View.GONE
+        status.addView(bar)
+        root.addView(status)
+        styleStage(Stage.READY)
+
+        val languageCard = column().apply { tag = "language-card" }
+        languageCard.addView(text("Translation language", Type.HEADING))
         showLanguageNote()
         languageCard.addView(languageNote)
         languageCard.addView(languages)
         languageCard.addView(removeButton)
-        root.addView(languageCard)
-        root.addView(card().apply {
+        setup.addView(languageCard)
+        setup.addView(View(activity).apply {
+            setBackgroundColor(activity.getColor(R.color.card_edge))
+            layoutParams = LinearLayout.LayoutParams(-1, dp(1)).apply { topMargin = dp(12); bottomMargin = dp(8) }
+        })
+        setup.addView(column().apply {
             tag = "provider-card"
-            addView(eyebrow("02  /  SHELL PROVIDER"))
-            addView(text("How the patcher reaches the game", Type.HEADING))
-            addView(text("Pick what gives the patcher access to the game's files. You can change it whenever no work is running.",
-                Type.BODY, supporting = true))
+            addView(text("Connection method", Type.HEADING))
             addView(providers)
+            addView(guideToggle)
             addView(guide)
         })
-        // ③ rewrites itself in place: heading, instruction, the notice line, a result's counts and note, then the button.
-        val card = card().apply { tag = "start-card" }
-        card.addView(stage)
-        card.addView(heading); card.addView(detail); card.addView(noticeRow)
-        card.addView(resultItems); card.addView(resultNote); card.addView(primary); card.addView(again)
-        // DESIGN.md: the track is disabled-fill, the fill ink.
-        bar.progressTintList = ColorStateList.valueOf(ink); bar.indeterminateTintList = ColorStateList.valueOf(ink)
-        bar.progressBackgroundTintList = ColorStateList.valueOf(activity.getColor(R.color.disabled_fill))
-        bar.visibility = View.GONE; stop.visibility = View.GONE
-        card.addView(bar); card.addView(stop)
-        root.addView(card)
-        // Anything that needs the player sits directly under ③, above the log.
+        guide.visibility = View.GONE
         root.addView(errorBox)
         recovery.tag = "recovery-card"
         root.addView(recovery)
+        root.addView(setup)
         root.addView(logCard)
         recovery.addView(text("Game won't open?", Type.HEADING))
         recovery.addView(text("Keep the game closed. Use recovery first.", Type.BODY))
         recovery.addView(recoveryToggle)
         recovery.addView(recoveryOptions)
         recovery.visibility = View.GONE
-        // The footer: the version, then one row of text buttons; Technical tools opens below it.
-        root.addView(column().apply {
-            tag = "footer"
-            layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, space(R.dimen.space_md), 0, 0) }
-            addView(text("${ui("Patcher version")}: ${BuildConfig.VERSION_NAME}", Type.BODY, supporting = true).apply {
-                tag = "patcher-version"; textAlignment = View.TEXT_ALIGNMENT_CENTER
-            })
-            addView(FooterRow(activity).apply {
-                tag = "footer-actions"; isBaselineAligned = false
-                addView(footerButton("Technical tools", "show-technical") {
-                    advanced.visibility = if (advanced.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-                })
-                addView(updateButton)
-                addView(freeSpaceButton)
-            })
-        })
         advanced.visibility = View.GONE
         advanced.addView(text("For testing or support", Type.HEADING))
         root.addView(advanced)
-        activity.setContentView(ScrollView(activity).apply {
+        val scroll = ScrollView(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(-1, 0, 1f)
             isFillViewport = true
-            setBackgroundColor(activity.getColor(R.color.page_top))
             addView(root)
+        }
+        actions.apply {
+            tag = "footer"
+            setPadding(dp(16), dp(4), dp(16), dp(4))
+            clipToPadding = false
+            primary.elevation = dp(6).toFloat()
+            addView(primary); addView(again); addView(stop)
+            addView(FooterRow(activity).apply {
+                tag = "footer-actions"
+                gravity = Gravity.CENTER_HORIZONTAL
+                isBaselineAligned = false
+                addView(footerButton("Technical tools", "show-technical") {
+                    advanced.visibility = if (advanced.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                    if (advanced.visibility == View.VISIBLE) {
+                        scroll.post { scroll.smoothScrollTo(0, advanced.top) }
+                    }
+                })
+                addView(freeSpaceButton)
+            })
+        }
+        activity.setContentView(column().apply {
+            tag = "guided-page"
+            val gradient = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(activity.getColor(R.color.page_top), activity.getColor(R.color.page_mid),
+                    activity.getColor(R.color.page_bottom)))
+            // FigCraft places the watermark behind the status bar, masthead, and cards.
+            val watermark = requireNotNull(activity.getDrawable(R.drawable.hok_ace_logo_white)).mutate()
+            watermark.alpha = 38 // 15% opacity.
+            background = LayerDrawable(arrayOf(gradient, watermark)).apply {
+                setLayerSize(1, dp(208), dp(208))
+                setLayerGravity(1, Gravity.TOP or Gravity.END)
+                setLayerInsetRelative(1, 0, dp(8), dp(2), 0)
+            }
+            addView(scroll)
+            addView(actions)
             setOnApplyWindowInsetsListener { view, insets ->
-                val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars())
-                view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+                val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars() or
+                    android.view.WindowInsets.Type.displayCutout())
+                view.setPadding(bars.left, bars.top, bars.right, 0)
+                actions.setPadding(dp(16), dp(4), dp(16), dp(4) + bars.bottom)
                 insets
             }
         })
@@ -246,8 +328,10 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     fun show(title: String, instruction: String, label: String, action: String, recoveryNeeded: Boolean,
              stage: Stage = Stage.READY, secondaryLabel: String? = null, secondaryAction: String = "start") {
         trace("$title | $instruction | $label -> $action, recovery $recoveryNeeded")
-        heading.text = ui(title); detail.text = ui(instruction); primary.text = ui(label); next = action
-        this.stage.text = ui(stage.eyebrow)
+        heading.text = ui(title); detail.text = ui(instruction)
+        primary.text = ui(if (stage == Stage.READY && label == "Start") "Start patching" else label)
+        next = action
+        styleStage(stage)
         recovery.visibility = if (recoveryNeeded) View.VISIBLE else View.GONE
         this.secondaryAction = secondaryAction
         again.text = secondaryLabel?.let(::ui).orEmpty()
@@ -269,10 +353,32 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             primary.text = ui(label); next = "start"
             again.visibility = View.GONE
         }
-        stage.text = ui(Stage.DONE.eyebrow)
+        styleStage(Stage.DONE, verified = result.gameReady)
         recovery.visibility = View.GONE
         showItems(result.items, result.note)
         showRecoveryExport()
+    }
+
+    private fun styleStage(state: Stage, verified: Boolean = false) {
+        val nextStage = state to verified
+        if (shownStage == nextStage) return
+        shownStage = nextStage
+        val (fill, foreground) = when {
+            verified -> R.color.success_surface to R.color.success
+            state == Stage.ACCESS || state == Stage.ATTENTION -> R.color.warning_surface to R.color.warning
+            else -> R.color.surface_subtle to R.color.ink
+        }
+        stage.text = ui(state.eyebrow).substringAfter("/").trim()
+        stage.setTextColor(activity.getColor(foreground))
+        stage.background = background(activity.getColor(fill))
+        stage.layoutParams = LinearLayout.LayoutParams(-2, -2)
+        stage.setPadding(dp(12), dp(4), dp(12), dp(4))
+        stage.visibility = if (state == Stage.READY || state == Stage.ACCESS) View.GONE else View.VISIBLE
+        heading.setTextColor(if (state == Stage.ACCESS) activity.getColor(foreground) else ink)
+        setup.visibility = if (state == Stage.WORKING) View.GONE else View.VISIBLE
+        if (state == Stage.WORKING || state == Stage.DONE) (root.parent as? ScrollView)?.let { scroll ->
+            scroll.post { scroll.scrollTo(0, 0) }
+        }
     }
 
     /** Trace <screen> in English once per change; true when it changed. */
@@ -286,7 +392,17 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         if (items != shownItems) {
             shownItems = items
             resultItems.removeAllViews()
-            items.forEach { resultItems.addView(countRow(it)) }
+            items.forEachIndexed { index, item ->
+                val columns = resultItems.columnCount
+                resultItems.addView(countTile(item), GridLayout.LayoutParams(
+                    GridLayout.spec(index / columns, GridLayout.FILL),
+                    GridLayout.spec(index % columns, GridLayout.FILL, 1f)
+                ).apply {
+                    width = 0
+                    height = -2
+                    setMargins(0, 0, if (columns == 2 && index % columns == 0) dp(8) else 0, dp(8))
+                })
+            }
         }
         resultItems.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
         resultNote.text = note
@@ -294,18 +410,17 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         showNotice()
     }
 
-    /** "Label: value" as a row with the value at the end, so five-digit counts line up. */
-    private fun countRow(item: String) = LinearLayout(activity).apply {
-        tag = "result-item"; orientation = LinearLayout.HORIZONTAL
+    private fun countTile(item: String) = column().apply {
+        tag = "result-item"
+        background = background(activity.getColor(R.color.surface), R.dimen.corner_field)
+        setPadding(dp(12), dp(8), dp(12), dp(8))
         val split = item.lastIndexOf(": ")
         val label = if (split < 0) item else item.substring(0, split)
-        addView(text(label, Type.BODY).apply {
-            layoutParams = LinearLayout.LayoutParams(0, -2, 1f); setPadding(0, dp(2), dp(12), dp(2))
+        if (split >= 0) addView(text(item.substring(split + 2), Type.HEADING).apply {
+            isAccessibilityHeading = false
+            setPadding(0, 0, 0, 0)
         })
-        if (split >= 0) addView(text(item.substring(split + 2), Type.BODY).apply {
-            typeface = activity.resources.getFont(R.font.barlow_semibold); setPadding(0, dp(2), 0, dp(2))
-            textAlignment = View.TEXT_ALIGNMENT_VIEW_END
-        })
+        addView(text(label, Type.LABEL, supporting = true).apply { setPadding(0, dp(2), 0, 0) })
     }
 
     fun showRecovery() {
@@ -346,7 +461,9 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         if (liveLog.text.toString() == value) return
         val follow = logScroll.scrollY + logScroll.height >= liveLog.height - dp(24)
         liveLog.text = value
-        if (follow) logScroll.post { logScroll.fullScroll(View.FOCUS_DOWN) }
+        if (follow) logScroll.post {
+            logScroll.scrollTo(0, (liveLog.height - logScroll.height).coerceAtLeast(0))
+        }
     }
 
     fun working(value: Boolean) { primary.isEnabled = !value; again.isEnabled = !value; freeSpaceButton.isEnabled = !value }
@@ -364,7 +481,9 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
 
     fun checkingUpdate(value: Boolean) {
         updateButton.isEnabled = !value
-        updateButton.text = ui(if (value) "Checking for updates…" else "Check for updates")
+        val label = ui(if (value) "Checking for updates…" else "Check for updates")
+        updateButton.contentDescription = label
+        updateButton.tooltipText = label
     }
 
     /** Show <code> as chosen without reporting it back as a new choice. */
@@ -386,6 +505,10 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         guideShown = provider
         guide.removeAllViews()
         guideLines(provider).forEach { guide.addView(text(it, Type.BODY)) }
+    }
+
+    private fun guideToggleLabel() {
+        guideToggle.text = ui(if (guide.visibility == View.VISIBLE) "Hide connection guide" else "Show connection guide")
     }
 
     /** Each provider's numbered steps; one this build cannot start says so instead. */
@@ -415,7 +538,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         // Remove translation needs the delta, so it is offered only while one is kept.
         removeButton.visibility = if (PristineDelta.held(activity)) View.VISIBLE else View.GONE
         languageNote.text = ui(if (PristineDelta.held(activity)) {
-            "Switching languages? No need to clear: the patcher kept the original game files it changed."
+            "Original files stay backed up so you can switch anytime."
         } else {
             "If another patcher or an older version translated this game, clear its data before you switch languages."
         })
@@ -489,17 +612,20 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private fun choice(label: String, testTag: String) = RadioButton(activity).apply {
         id = View.generateViewId(); text = label; tag = testTag
         setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_button))
-        typeface = activity.resources.getFont(R.font.barlow_semibold)
+        typeface = activity.resources.getFont(R.font.commissioner_semibold)
         minHeight = dp(48)
         setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
             intArrayOf(activity.getColor(R.color.disabled_text), ink)))
         buttonTintList = ColorStateList(
             arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf(android.R.attr.state_checked), intArrayOf()),
             intArrayOf(activity.getColor(R.color.disabled_text), ink, muted))
-        background = android.graphics.drawable.StateListDrawable().apply {
-            addState(intArrayOf(-android.R.attr.state_enabled), background(activity.getColor(R.color.disabled_fill)))
-            addState(intArrayOf(), background(activity.getColor(R.color.card_solid)))
+        val states = android.graphics.drawable.StateListDrawable().apply {
+            addState(intArrayOf(-android.R.attr.state_enabled), background(activity.getColor(R.color.disabled_fill), R.dimen.corner_field))
+            addState(intArrayOf(android.R.attr.state_checked), background(activity.getColor(R.color.surface_subtle), R.dimen.corner_field))
+            addState(intArrayOf(), background(Color.TRANSPARENT, R.dimen.corner_field))
         }
+        background = RippleDrawable(ColorStateList.valueOf(withAlpha(ink, 0.16f)), states,
+            background(Color.WHITE, R.dimen.corner_field))
         setPadding(dp(12), dp(6), dp(12), dp(6))
         layoutParams = RadioGroup.LayoutParams(-1, -2).apply { setMargins(0, dp(4), 0, dp(4)) }
     }
@@ -508,31 +634,59 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     private fun space(token: Int) = activity.resources.getDimensionPixelSize(token)
     private fun withAlpha(color: Int, alpha: Float) = Color.argb(Math.round(alpha * 255), Color.red(color), Color.green(color), Color.blue(color))
     private fun column() = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-    private fun background(color: Int) = GradientDrawable().apply {
-        setColor(color); cornerRadius = activity.resources.getDimension(R.dimen.corner_card)
+    private fun background(color: Int, radius: Int = R.dimen.corner_card) = GradientDrawable().apply {
+        setColor(color); cornerRadius = activity.resources.getDimension(radius)
     }
     private fun eyebrow(value: String) = text(value, Type.LABEL, supporting = true).apply {
         setPadding(0, 0, 0, dp(4))
     }
 
-    /** Eyebrow, title and the one line on the partial translation and Scan to login: no tagline. */
     private fun hero() = column().apply {
-        background = AceHeroDrawable(activity)
-        space(R.dimen.space_lg).let { setPadding(it, it, it, it) }
-        addView(eyebrow("COMMUNITY PATCHER  /  HOK ACE").apply {
-            tag = "hero-eyebrow"; setTextColor(activity.getColor(R.color.on_panel_muted))
+        tag = "patcher-masthead"
+        setPadding(dp(4), dp(8), dp(4), 0)
+        addView(ImageView(activity).apply {
+            tag = "patcher-wordmark"
+            setImageResource(R.drawable.honor_of_kings_ace_wordmark)
+            contentDescription = "HONOR OF KINGS ACE"
+            isAccessibilityHeading = true
+            scaleType = ImageView.ScaleType.FIT_START
+            // The PNG was drawn at 4x the display size. Keep its aspect ratio as the font scales.
+            val contentWidth = (activity.resources.displayMetrics.widthPixels - dp(40)).coerceAtLeast(1)
+            val scale = minOf(
+                activity.resources.getDimension(R.dimen.type_title) / 128f,
+                contentWidth.toFloat() / drawable.intrinsicWidth,
+            )
+            layoutParams = LinearLayout.LayoutParams(
+                (drawable.intrinsicWidth * scale).roundToInt(),
+                (drawable.intrinsicHeight * scale).roundToInt(),
+            )
         })
-        addView(text(activity.getString(R.string.app_name), Type.TITLE).apply {
-            setTextColor(activity.getColor(R.color.on_panel)); setLineSpacing(0f, 0.95f)
-        })
-        addView(text("Some game text will stay Chinese.\nUse Scan to login after setup.", Type.BODY).apply {
-            setTextColor(activity.getColor(R.color.on_panel))
+        addView(LinearLayout(activity).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            isBaselineAligned = false
+            layoutParams = LinearLayout.LayoutParams(-2, -2)
+            addView(text("${ui("Community patcher")} · v${activity.installedPatcherVersion()}", Type.LABEL).apply {
+                tag = "patcher-version"
+                setTextColor(activity.getColor(R.color.accent_gold))
+                layoutParams = LinearLayout.LayoutParams(-2, -2, 1f)
+            })
+            addView(updateButton)
         })
     }
 
-    /** A content card; the warning and error cards pass their surface and accent colours. */
-    private fun card(fill: Int = R.color.card, edge: Int = R.color.card_edge) = column().apply {
-        background = background(activity.getColor(fill)).apply { setStroke(dp(1), activity.getColor(edge)) }
+    /** A tonal card, or a solid semantic surface with its own accent edge. */
+    private fun card(fill: Int = R.color.card, edge: Int? = null, sweep: Boolean = false) = column().apply {
+        background = if (sweep) GradientDrawable().apply {
+            orientation = GradientDrawable.Orientation.LEFT_RIGHT
+            setColors(
+                intArrayOf(R.color.surface, R.color.surface, R.color.card_sweep_lilac,
+                    R.color.card_sweep_blue, R.color.surface_subtle).map(activity::getColor).toIntArray(),
+                floatArrayOf(0f, 0.2f, 0.48f, 0.76f, 1f),
+            )
+            cornerRadius = activity.resources.getDimension(R.dimen.corner_card)
+        } else background(activity.getColor(fill)).apply {
+            edge?.let { setStroke(dp(1), activity.getColor(it)) }
+        }
         space(R.dimen.space_lg).let { setPadding(it, it, it, it) }
         layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, space(R.dimen.space_md), 0, 0) }
     }
@@ -541,16 +695,18 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         text = ui(value); setTextColor(if (supporting) muted else ink)
         setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(type.size))
         typeface = activity.resources.getFont(type.font)
-        setPadding(0, dp(8), 0, dp(10)); setLineSpacing(dp(3).toFloat(), 1f)
+        setPadding(0, dp(4), 0, dp(6)); setLineSpacing(dp(2).toFloat(), 1f)
         if (type == Type.LABEL) letterSpacing = activity.resources.getFloat(R.dimen.type_label_tracking)
-        if (type == Type.TITLE || type == Type.HEADING) isAccessibilityHeading = true
+        if (type == Type.HEADING) isAccessibilityHeading = true
     }
     /** [plain] draws a text button: no fill or edge, the ripple kept inside the corners. */
     private fun button(label: String, testTag: String?, primaryAction: Boolean = false, plain: Boolean = false,
                        callback: () -> Unit) = Button(activity).apply {
-        text = ui(label); tag = testTag; isAllCaps = false; minHeight = dp(60); minimumHeight = dp(60)
+        text = ui(label); tag = testTag; isAllCaps = false
+        stateListAnimator = null
+        minHeight = dp(if (primaryAction) 56 else 48); minimumHeight = minHeight
         setTextSize(TypedValue.COMPLEX_UNIT_PX, activity.resources.getDimension(R.dimen.type_button))
-        typeface = activity.resources.getFont(R.font.barlow_semibold)
+        typeface = activity.resources.getFont(R.font.commissioner_semibold)
         setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
             intArrayOf(activity.getColor(R.color.disabled_text), activity.getColor(if (primaryAction) R.color.on_panel else R.color.ink))))
         // Primary: the panel gradient. Secondary: the card fill with a 1 dp ink edge at 30 %. Text: nothing.
@@ -560,10 +716,15 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
                     cornerRadius = activity.resources.getDimension(R.dimen.corner_button)
                 }
             plain -> android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)
-            else -> background(activity.getColor(R.color.card)).apply { setStroke(dp(1), withAlpha(ink, 0.3f)) }
+            else -> background(activity.getColor(R.color.surface)).apply {
+                cornerRadius = activity.resources.getDimension(R.dimen.corner_button)
+                setStroke(dp(1), activity.getColor(R.color.outline))
+            }
         }
         val states = android.graphics.drawable.StateListDrawable().apply {
-            addState(intArrayOf(-android.R.attr.state_enabled), background(activity.getColor(R.color.disabled_fill)))
+            addState(intArrayOf(-android.R.attr.state_enabled), background(activity.getColor(R.color.disabled_fill)).apply {
+                cornerRadius = activity.resources.getDimension(R.dimen.corner_button)
+            })
             addState(intArrayOf(), enabled)
         }
         background = RippleDrawable(ColorStateList.valueOf(withAlpha(ink, 0.18f)), states, if (plain) background(Color.WHITE) else null)
@@ -572,7 +733,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
         setOnClickListener { callback() }
     }
 
-    /** DESIGN.md's text button: `ink` text with no fill or edge, still 60 dp tall, spanning the card with its label at the start. */
+    /** A full-width text button with a 48 dp touch target and leading alignment. */
     private fun textButton(label: String, testTag: String, callback: () -> Unit) =
         button(label, testTag, plain = true, callback = callback).apply {
             gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
@@ -580,31 +741,32 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             layoutParams = LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(2), 0, dp(2)) }
         }
 
-    /** A footer text button: the three share the row equally, and a long label wraps instead of leaving it. */
+    /** Footer actions share the row while their labels fit. */
     private fun footerButton(label: String, testTag: String, callback: () -> Unit) =
         button(label, testTag, plain = true, callback = callback).apply {
-            setPadding(dp(6), dp(8), dp(6), dp(8))
-            layoutParams = LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dp(2), dp(4), dp(2), dp(4)) }
+            minWidth = dp(48)
+            minimumWidth = minWidth
+            setPadding(dp(12), dp(8), dp(12), dp(8))
+            layoutParams = LinearLayout.LayoutParams(-2, -2)
         }
 }
 
 /**
- * The footer's text buttons: side by side, sharing the width, while every label's longest word fits its
- * share; stacked one per line otherwise, so a large system font never breaks a label inside a word.
+ * Keep the utility buttons compact when both labels fit on one line and stack them when needed.
  */
 private class FooterRow(context: android.content.Context) : LinearLayout(context) {
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val share = (MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight) / childCount.coerceAtLeast(1)
+        val available = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight
         val buttons = (0 until childCount).map { getChildAt(it) }.filterIsInstance<TextView>()
-        val fits = buttons.all { button ->
-            val margins = (button.layoutParams as MarginLayoutParams).let { it.leftMargin + it.rightMargin }
-            val word = button.text.split(Regex("\\s+")).maxOf { button.paint.measureText(it) }
-            word + button.paddingLeft + button.paddingRight + margins <= share
+        val required = buttons.sumOf { button ->
+            val label = kotlin.math.ceil(button.paint.measureText(button.text.toString())).toInt()
+            maxOf(button.minimumWidth, label + button.paddingLeft + button.paddingRight)
         }
+        val fits = required <= available
         val wanted = if (fits) HORIZONTAL else VERTICAL
         if (orientation != wanted) {
             orientation = wanted
-            buttons.forEach { (it.layoutParams as LayoutParams).apply { width = if (fits) 0 else -1; weight = if (fits) 1f else 0f } }
+            buttons.forEach { it.layoutParams.width = if (fits) LayoutParams.WRAP_CONTENT else LayoutParams.MATCH_PARENT }
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }

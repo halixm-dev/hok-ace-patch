@@ -2,7 +2,9 @@ package dev.halixm.hokacepatcher;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.ParcelFileDescriptor;
+import android.view.View;
 import android.widget.CheckBox;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -31,13 +33,18 @@ public final class FirstSetupConsentProbeTest {
             "preparations/" + UUID.randomUUID()), source, normal, access);
         try (ActivityScenario<MainActivity> activity = ActivityScenario.launch(MainActivity.class)) {
             AtomicReference<AlertDialog> shown = new AtomicReference<>();
+            activity.onActivity(current ->
+                shown.set(MainActivityDialogsKt.showFirstSetupConfirmation(current, fixture, null)));
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             activity.onActivity(current -> {
                 {
-                    // The dialogs are MainActivity extensions (MainActivityDialogs.kt), public in bytecode.
-                    AlertDialog dialog = MainActivityDialogsKt.showFirstSetupConfirmation(current, fixture, null); shown.set(dialog);
+                    AlertDialog dialog = shown.get();
                     CheckBox loss = dialog.getWindow().getDecorView().findViewWithTag("setup-data-loss");
                     CheckBox login = dialog.getWindow().getDecorView().findViewWithTag("setup-scan-login");
                     assertNotNull(loss); assertNotNull(login); assertFalse(loss.isChecked()); assertFalse(login.isChecked());
+                    assertFullyVisible(loss);
+                    assertFullyVisible(login);
+                    assertFullyVisible(dialog.getButton(AlertDialog.BUTTON_POSITIVE));
                     assertFalse(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
                     loss.setChecked(true); assertFalse(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
                     loss.setChecked(false); login.setChecked(true); assertFalse(dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());
@@ -64,5 +71,11 @@ public final class FirstSetupConsentProbeTest {
             activity.onActivity(current -> assertFalse(shown.get().isShowing()));
         }
         assertEquals(before, requests.isDirectory() ? requests.list().length : 0);
+    }
+
+    private static void assertFullyVisible(View view) {
+        Rect bounds = new Rect();
+        assertTrue(view.getGlobalVisibleRect(bounds));
+        assertEquals(view.getHeight(), bounds.height());
     }
 }
