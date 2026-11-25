@@ -37,7 +37,7 @@ Install \`hok-ace-patch.apk\` on an ARM64 device running Android 11 or newer, wi
 
 ### Windows
 
-Run \`hok-ace-patch-windows-x64.exe\`. For the PC game, finish the game update, close the game and launcher, then select **PC game on this computer** and your language. Select **Phone over USB** to patch a connected phone.
+Run \`hok-ace-patch-windows-x64.exe\`. For the PC game, finish the game update, close the game and launcher, then select **PC** and your language. Select **Android USB** to patch a connected phone.
 
 Check your download against \`SHA256SUMS\`.
 EOF

@@ -33,13 +33,13 @@ affiliated with Tencent.
 
 ## Operating Context
 
-- **Windows patcher**: the player first picks where the game is, *Phone over USB* or *PC game on
-  this computer*; the language choice is shared by both and still sets the interface language.
-  - **Phone over USB**: the player connects the phone by USB with USB debugging allowed, picks a
+- **Windows patcher**: the player first picks *Android USB* or *PC*. The language choice is shared
+  by both and sets the interface language.
+  - **Android USB**: the player connects the phone by USB with USB debugging allowed, picks a
     language and a working folder (about 8 GB), and clicks Start. It runs seven device steps: connect
     phone, prepare game APK, unlock data access, read language data, build translation, install
     translation, restore game.
-  - **PC game on this computer**: the patcher finds the game from the launcher's records or a folder
+  - **PC**: the patcher finds the game from the launcher's records or a folder
     the player picks (it remembers the folder), and offers **Install**, **Check** and **Remove
     translation**. Check runs when the target opens and after every job, and says *installed*, *not
     installed*, *replaced by an update* or *partly installed*; a game another patcher translated is

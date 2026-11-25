@@ -75,7 +75,7 @@ stall loading and cause the game to repair away the translation.
 
 1. Let the launcher finish any update, then close the game and the launcher. Every PC action refuses
    while `wxq*.exe` or `王者万象棋.exe` runs.
-2. Open the Windows app and choose **PC game on this computer**. In **Setup**, choose the translation
+2. Open the Windows app and choose **PC**. In **Setup**, choose the translation
    and a working folder on a drive with about 10 GB free. The receipts take about
    4 GB per install, and a job stages about 4 GB more while it runs.
 3. The game folder is found from the launcher's records; otherwise use **Choose folder** and pick the
