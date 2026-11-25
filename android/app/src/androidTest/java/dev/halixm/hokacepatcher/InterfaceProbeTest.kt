@@ -306,7 +306,8 @@ class InterfaceProbeTest {
                 assertTrue(wordmark.isAccessibilityHeading)
                 val version = masthead.findViewWithTag<TextView>("patcher-version")
                 val update = masthead.findViewWithTag<View>("check-app-update")
-                assertTrue(version.text.contains(BuildConfig.VERSION_NAME))
+                val installedVersion = activity.packageManager.getPackageInfo(activity.packageName, 0).versionName
+                assertTrue(version.text.endsWith("v$installedVersion"))
                 assertEquals(version.parent, update.parent)
                 assertEquals(UiText.text(activity, "Check for updates"), update.contentDescription)
                 assertTrue(update.isEnabled)

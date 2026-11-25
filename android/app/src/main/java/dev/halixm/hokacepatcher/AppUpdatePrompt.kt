@@ -1,9 +1,13 @@
 package dev.halixm.hokacepatcher
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import java.util.concurrent.Executors
+
+internal fun Context.installedPatcherVersion(): String =
+    requireNotNull(packageManager.getPackageInfo(packageName, 0).versionName)
 
 /**
  * The Check for updates action and its dialogs, with the state only it uses: moved verbatim from MainActivity
@@ -19,7 +23,7 @@ internal class AppUpdatePrompt(private val activity: MainActivity) {
         checkingUpdate = true
         home.checkingUpdate(true)
         updateWorker.execute {
-            val result = AppUpdateChecker().check(BuildConfig.VERSION_NAME)
+            val result = AppUpdateChecker().check(installedPatcherVersion())
             runOnUiThread {
                 if (destroyed || isFinishing) return@runOnUiThread
                 checkingUpdate = false

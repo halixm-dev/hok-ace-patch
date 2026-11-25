@@ -665,7 +665,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             gravity = Gravity.CENTER_VERTICAL
             isBaselineAligned = false
             layoutParams = LinearLayout.LayoutParams(-2, -2)
-            addView(text("${ui("Community patcher")} · v${BuildConfig.VERSION_NAME}", Type.LABEL).apply {
+            addView(text("${ui("Community patcher")} · v${activity.installedPatcherVersion()}", Type.LABEL).apply {
                 tag = "patcher-version"
                 setTextColor(activity.getColor(R.color.accent_gold))
                 layoutParams = LinearLayout.LayoutParams(-2, -2, 1f)

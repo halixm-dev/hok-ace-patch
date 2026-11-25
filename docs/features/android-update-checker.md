@@ -4,6 +4,7 @@
 
 The manual update checker opens from the icon next to the installed version in the Android
 masthead. Its accessible label, progress state, and result dialogs support English and Indonesian.
+The masthead and checker both read the installed APK's version from Android's package manager.
 Checks run on a separate executor and never use the patch worker or Shizuku. Duplicate taps
 are disabled until the check finishes; destroyed activities discard results and dismiss dialogs.
 
@@ -19,7 +20,7 @@ state and exact download URL were also checked without credentials.
 ## [S1] Problem
 
 Android users need to find newer patcher releases from inside the app without interrupting
-the translation workflow. Patcher versions have five numeric components, so string comparison
+the translation workflow. Patcher versions have four numeric components, so string comparison
 would incorrectly rank revision 10 below revision 9.
 
 ## [S2] Design
@@ -28,7 +29,7 @@ would incorrectly rank revision 10 below revision 9.
 |---|---|
 | Trigger | Manual Check for updates button; no startup check or reminders |
 | Source | Unauthenticated HTTPS GET to the repository's latest-release endpoint |
-| Version | Require android-v plus five numeric components; compare each numerically |
+| Version | Compare four numeric components. Normalize older five-component tags first. |
 | Stable releases | Refuse draft, prerelease, unrelated tags and malformed metadata |
 | Download | Offer only a newer release with an uploaded, nonempty hok-ace-patch.apk |
 | Destination | Exact HTTPS GitHub asset URL for the returned repository/tag |
