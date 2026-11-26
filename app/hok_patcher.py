@@ -1506,6 +1506,13 @@ def selftest(game: Path, out: Path, language: str = languages.DEFAULT_LANGUAGE) 
 
 # The runtime modules a run imports; the runtime ships as data, so PyInstaller never sees their imports.
 SMOKE_RUNTIME_MODULES = ("wxq_patch.adaptive", "wxq_patch.qtsvfs", "wxq_patch.unity_package_installer")
+# A block `bc7_mode6.encode_block` takes to mode 7 and keeps there, and the bytes the Python reference
+# writes for it (synthetic corpus record 69, `tools/research/bc7_corpus.py`, 2026-11-26).
+MODE7_FIXTURE = (
+    bytes.fromhex("c6e1b537734fd5acb447678d30f38941d33402d23cfecb4cd58f38c2e7ea93b4"
+                  "95b4c8c4a403ffc2e3995e9b4adfc1762da9a57ca668da050d1883fe999fdfdc"),
+    bytes.fromhex("80a4279c70607ead81479f8df31c997e"),
+)
 
 
 def smoketest(out: Path) -> None:
@@ -1569,6 +1576,16 @@ def smoketest(out: Path) -> None:
             decoded = mobile_graphics.decode_pc(bc7_mode6.encode_block(pixels), 4, 4, "bc7")
             assert max(abs(a - b) for a, b in zip(decoded, bytes(c for p in pixels for c in p))) <= 8
             passed.append("bc7 round trip")
+            # The search past etcpak through the native encoder (crates/hok_bc7), never the Python
+            # fallback: a block that runs modes 6, 5, 4 and 7 and keeps mode 7, against the Python
+            # reference's bytes.
+            assert bc7_mode6.backend_name() == "native", "the native BC7 encoder did not load"
+            pixels = [tuple(MODE7_FIXTURE[0][i:i + 4]) for i in range(0, 64, 4)]
+            calls = bc7_mode6.MODE7_CALLS["native"]
+            assert bc7_mode6.encode_block(pixels) == MODE7_FIXTURE[1], "native BC7 search bytes differ"
+            assert bc7_mode6.MODE7_CALLS["native"] == calls + 1, "encode_block did not reach native mode 7"
+            assert bc7_mode6._mode7_python(pixels)[0] == MODE7_FIXTURE[1], "Python mode 7 bytes differ"
+            passed.append("bc7 native search")
             ok = True
         except Exception:  # noqa: BLE001 - the report records the failure; CI reads ``ok``
             traceback.print_exc()

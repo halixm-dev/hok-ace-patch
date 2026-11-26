@@ -53,7 +53,7 @@ Five slices, stacked (halixm-dev/hok-ace-patch #41, #43, #44, #45 and ticket 05'
 | `check_graphics.py` BC7 case (ticket 01) | All sections pass; a re-run over its own output re-encodes 0 blocks |
 | Mobile `--selftest` before and after slice 1 | `selftest.json` and all 14 staged files identical, both languages |
 | `check_pc_install.py` on a full copy, `en:id` and `id:en` (ticket 02) | `OK`: restore returns every file, a second install changes nothing, each switch restores then installs, `replacements` empty at each start, `LocalFileList.json` and every listed size held |
-| `--smoketest` on the frozen exe | `ok`, with `import pc_edition`, `engine hook attributes` and `bc7 round trip` |
+| `--smoketest` on the frozen exe | `ok`, with `import pc_edition`, `engine hook attributes`, `bc7 round trip` and `bc7 native search` |
 | `--pc-selftest` on the frozen exe | `ok` in both languages, 359 graphics each, the ready atlas `E86DF43167CA2143` refused at this sprite table |
 | The window from source on the copy (ticket 03) | Check, Install (6:52), Remove (0:29) and every state drawn as designed |
 | PC cycle, English (2026-11-21) | Install 410 s; the launcher started with no repair; lobby English; wrapping, token-expanded card text, the Career labels and the Secret Technique titles in place. **Pass** |
@@ -70,6 +70,18 @@ and `check_ui_strings.py` pass on the final branch.
 - **BC7 was the slow step** (ticket 01): etcpak 0.9.15 was added as the first encoder, and BC7 blocks
   are judged by `BC7_MATCH_MEAN` = 14 while ASTC keeps 6, because no encoder brought the alpha'd
   title-edge blocks within 6 levels (user's decisions). The pure-Python `bc7_mode6` stays as the fallback.
+- **Mode 7 went native** (2026-11-26, `.scratch/pc-bc7-rust/`): the Python modes' mode 7 was the rest of
+  the cold build. `crates/hok_bc7` (Rust, PyO3) is a bit-exact port of `bc7_mode6._mode7_python`, frozen into
+  the exe as `hok_bc7`. etcpak and modes 6, 5 and 4 are unchanged. Source runs use it when
+  `build\native\hok_bc7.pyd` is built and fall back to Python otherwise. Cold builds fell from 80 s to
+  28 s (English) and from 78 s to 31 s (Indonesian), with byte-identical catalogs.
+- **Modes 6, 5 and 4 went native** (2026-11-26, `.scratch/pc-bc7-search/`, on the user's request): after
+  mode 7 they were over half of the cold build. `crates/hok_bc7` now runs `encode_block`'s whole search
+  past etcpak (`encode_search`), each mode a bit-exact port of the Python reference, which stays for
+  source runs without the extension. `HOK_BC7_ENCODER=native|python` (formerly `HOK_BC7_MODE7`)
+  requires one or the other. Cold builds fell again, from 28 s to 15 s (English) and from 31 s to 13 s
+  (Indonesian), with byte-identical catalogs. Parity is checked by `tools/research/check_bc7_native.py`
+  and `bc7_corpus.py replay --backend native --final`.
 - **ADR 0011 was reworded** (ticket 02): every package file the engine patches is listed in
   `LocalFileList.json`, contrary to the fork's note, so *never write a listed file* became *keep every
   listed file at its listed size*. The PC cycles confirmed the launcher compares sizes.
@@ -234,4 +246,3 @@ Then one PC cycle per language before release.
 - A drive scan to find the game.
 - Patching the PC edition from the Android patcher, or a phone from the PC target.
 - A separate PC-only exe.
-- A native BC7 encoder, unless ticket 01 measures the pure-Python one as the slow step.
