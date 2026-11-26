@@ -2918,6 +2918,12 @@
       "id": "{done} diterima",
       "draft": true
     },
+    "progress_bytes_rate": {
+      "platforms": ["windows"],
+      "en": "{done} received · {rate} MiB/s",
+      "id": "{done} diterima · {rate} MiB/s",
+      "draft": true
+    },
     "normal_install_progress": {
       "platforms": [
         "windows"

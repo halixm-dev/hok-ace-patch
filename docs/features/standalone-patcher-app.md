@@ -164,7 +164,10 @@ is `tools/pristine_delta.py`, shared with the Android patcher; `patcher_core` dr
 `pull_game_data` writes `sessions/<stamp>/pull.json` once the session's layer equals the phone's
 (`mode` `full` or `changed`). With such an earlier session, `pull_changed` has the phone `sha256sum` its
 layer, copies every file the earlier session's `staged/` or layer holds at that SHA-256, pulls only the
-rest in `tar` batches, and checks each pulled file against the phone's hash. Hash output it cannot
+rest in `tar` batches, and checks each pulled file against the phone's hash. The Windows worker
+extracts and hashes each file as its bytes arrive over USB. A partial pull writes directly to the
+new session. A full pull also copies the stream, including Watchdog and tar padding, into a
+temporary backup and publishes it after the transfer succeeds. Hash output it cannot
 parse, a failed transfer, or a pulled file at the wrong hash falls back to the full tar of `packages`
 and `Watchdog`. Only that full tar becomes `device-backup.tar`, so a partial session never qualifies
 for `bootstrap_delta`. A re-run on the same data pulls nothing. A data update pulls the files it
