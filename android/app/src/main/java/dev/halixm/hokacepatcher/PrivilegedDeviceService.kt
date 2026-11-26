@@ -496,17 +496,21 @@ open class PrivilegedDeviceService : IPrivilegedDeviceService.Stub() {
             GameFilePolicy.validate(relative)
             val hash = files.getJSONObject(relative).getString("sha256")
             check(hash.matches(Regex("[0-9a-f]{64}"))) { "Invalid source hash" }
-            rows += "$hash $relative"
+            rows += "$hash  $relative"
         }
+        // One sha256sum over every file, compared as sorted `hash  path` lines: a sha256sum per file spent
+        // about 17 s of its 31 s forking (3.4 GB, 798 files, Redmi Note 9 Pro, 2026-11-26). Only a
+        // mismatch walks the expected lines, to name the file that changed.
         val script = "cd files/QtsVFSCache || exit 1; " +
             "[ ! -L packages ] && [ ! -L Watchdog ] || exit 1; " +
             "[ -z \"\$(find packages Watchdog -type l -print)\" ] || exit 1; " +
             "count=\$(find packages Watchdog -type f | wc -l); " +
             "[ \"\$count\" -eq ${files.length()} ] || { echo 'Game file set changed' >&2; exit 1; }; " +
-            "while read -r expected path; do " +
-            "actual=\$(sha256sum \"\$path\") || exit 1; actual=\${actual%% *}; " +
-            "[ \"\$actual\" = \"\$expected\" ] || { echo \"Game file changed: \$path\" >&2; exit 1; }; " +
-            "done; printf 'verified'"
+            "expected=\$(LC_ALL=C sort) || exit 1; " +
+            "actual=\$(find packages Watchdog -type f -exec sha256sum {} + | LC_ALL=C sort) || exit 1; " +
+            "[ \"\$actual\" = \"\$expected\" ] || { printf '%s\\n' \"\$expected\" | while read -r hash path; do " +
+            "case \"\$actual\" in *\"\$hash  \$path\"*) ;; *) echo \"Game file changed: \$path\" >&2; exit 1;; esac; " +
+            "done; echo 'Game file set changed' >&2; exit 1; }; printf 'verified'"
         check(command(inGame(lockedGameScript(script)),
             (rows.joinToString("\n") + "\n").toByteArray(Charsets.UTF_8), timeoutSeconds = 900) == "verified")
         return JSONObject().put("verified_files", files.length()).toString()

@@ -11,6 +11,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -239,6 +240,49 @@ def _installed_keys() -> None:
         assert artifacts.installed_state_key(changed, files=files, installed=normal, delta=delta) != key
 
 
+def _remembered() -> None:
+    """`remember_verified`: an unchanged file is not read again, and any write is read again."""
+    reads = []
+    real = artifacts.hashlib.sha256
+    real_ns = time.time_ns
+
+    def counting(*args):
+        reads.append(1)
+        return real(*args)
+
+    artifacts.remember_verified()
+    try:
+        with tempfile.TemporaryDirectory() as directory, patch.object(artifacts.hashlib, "sha256", counting):
+            path = Path(directory) / "kept.db"
+            path.write_bytes(b"first bytes")
+            first = artifacts.file_identity(path)
+            assert artifacts.file_identity(path) == first and len(reads) == 2, "a file written just now was kept"
+            # Settle it: an mtime a minute back, and a clock a minute on for POSIX's ctime, which utime sets.
+            settled = time.time_ns() - 60_000_000_000
+            os.utime(path, ns=(settled, settled))
+            with patch.object(artifacts.time, "time_ns", lambda: real_ns() + 60_000_000_000):
+                artifacts.file_identity(path)
+                assert artifacts.file_identity(path) == first and len(reads) == 3, "unchanged file read again"
+                path.write_bytes(b"other bytes")  # same size, new content
+                second = artifacts.file_identity(path)
+                assert second != first and len(reads) == 4, "rewritten file not read again"
+                os.utime(path, ns=(settled, settled))
+                artifacts.file_identity(path)
+                path.unlink()
+                path.write_bytes(b"first bytes")  # replaced at the same path
+                assert artifacts.file_identity(path) == first, "replaced file not read again"
+            root = Path(directory) / "staged"
+            root.mkdir()
+            expected = _stage(root)
+            receipt = artifacts.publish_receipt(root, identity=_identity(), run_id="remembered", stage="staged",
+                                                references=expected)
+            assert artifacts.verify_receipt(root, stage="staged") == receipt
+            (root / "1/1_0.db").write_bytes(b"tiny staged packagf")
+            _refused(lambda: artifacts.verify_receipt(root, stage="staged"))
+    finally:
+        artifacts._VERIFIED = None
+
+
 def main() -> None:
     assert sys.version_info[:2] == (3, 12), "Use the project's Python 3.12 environment"
     vectors = json.loads(VECTORS.read_text(encoding="utf-8"))
@@ -255,7 +299,7 @@ def main() -> None:
             _refused(lambda: artifacts.read_record(path))
         path.write_bytes(b" " * (artifacts.MAX_JSON + 1))
         _refused(lambda: artifacts.read_record(path))
-    _publication(); _mutations(); _source_and_frozen(); _installed_keys(); _tracked_paths()
+    _publication(); _mutations(); _source_and_frozen(); _installed_keys(); _tracked_paths(); _remembered()
     print("PASS run artifact identities, byte mutations and all publication boundaries")
 
 

@@ -7015,3 +7015,53 @@ time still changed the status in the fixture. No game files were patched for thi
 - **Verdict:** ship the native search, with the Python reference kept for source runs without the
   extension. Not run: the PC cycle on the installed game, and `check_pc_install.py` on the copy. The
   staged catalogs are byte-identical, so the install path sees the same bytes.
+
+## 2026-11-26 — Where the Android snapshot step spends its time
+
+Patcher 124 (master `092445c`) on Redmi Note 9 Pro (SM7125, Android 15), Root shell provider, game
+data 1.11.0.2: 798 files, 3,384,820,433 bytes under `packages/` and `Watchdog/`. The run resumed at
+step 4 and stopped at the build ("cannot rebuild its untranslated game files"; package 10 still holds
+a hand-installed probe layout), so the build and install are not timed here.
+
+| Part of "Saving complete game data and Watchdog snapshot" (309.7 s) | Time | Full passes over the 3.4 GB |
+|---|---:|---:|
+| `unpack_snapshot_stream`: tar from the game, written, hashed, fsynced per file | 91.7 s | 1 live read, 1 write |
+| `validateLayer` in `takeSnapshot`, before the rename | ~31 s | 1 live |
+| `validateLayer` again in `snapshotStage`, right after | ~31 s | 1 live |
+| `checkpoint_identity`: `verify_snapshot`, engine tree, APK | 52.4 s | 1 private |
+| `snapshot_checkpoint` (publish): `tree_manifest`, `verify_manifest`, `verify_receipt` | 97.8 s | 3 private |
+| `estimate_snapshot_build` | 4.7 s | 0 |
+
+`build_checkpoint` (50.5 s before it stopped) rehashes the snapshot once more through
+`checkpoint_snapshot` before staging and once with `verify_snapshot` after it.
+
+Native floors on the same phone, caches dropped before each first pass:
+
+| Native operation over the same files | Time |
+|---|---:|
+| `cat` of the private snapshot | 12.8 s |
+| one `sha256sum` call over all files (twice) | 14.3 s, 13.0 s |
+| one `sha256sum` per file in a shell loop, as `validateGameSnapshot` runs it (twice) | 30.7 s, 30.4 s |
+| `tar cf - \| tar xf -` to `/data/local/tmp`, then `sync` | 48.1 s |
+
+So each Python rehash pass costs about 32 s against 13 s for native hashing. The CPU reports the
+`sha2` extension and the APK carries OpenSSL (`libcrypto_python.so`), so the cause is not measured
+yet. Each live validation pays about 17 s for forking one `sha256sum` per file.
+
+## 2026-11-26 — Android snapshot step after the three hashing changes
+
+The same phone, game data and stopping point as the entry above (package 10's probe layout still
+stops the build), with a debug build of master `092445c` plus the three changes in
+[patch-speed](features/patch-speed.md) ("Snapshot hashing"). One run, a fresh snapshot each time.
+
+| Part | Before | After |
+|---|---:|---:|
+| `unpack_snapshot_stream` | 91.7 s | 88.2 s |
+| Live check(s) between unpack and `checkpoint_identity` | 61.8 s (two) | 15.1 s (one) |
+| `checkpoint_identity` | 52.4 s | 49.2 s |
+| `snapshot_checkpoint` (publish) | 97.8 s | 1.8 s |
+| `estimate_snapshot_build` | 4.7 s | 5.0 s |
+| "Saving complete game data and Watchdog snapshot", whole step | 309.7 s | 160.0 s |
+| `build_checkpoint` until the same refusal | 50.5 s | 1.1 s |
+
+The refusal is the same text both times. The build and install after it are still not timed.
