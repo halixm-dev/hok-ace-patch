@@ -6884,3 +6884,18 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
 
   `LocalFileList.json` retained its bytes and the listed file sizes held throughout. A live launcher
   update and in-game verification still need a PC cycle.
+
+## 2026-11-26 — Faster PC Check
+
+Timed the English status job from source on a separate copy of PC game data 1.11.0.2.
+
+| Check | Previous | Window path |
+|---|---:|---:|
+| First check of the untranslated copy | 177.4 s | 41.1 s |
+| Saved install fixture, 16 package files totaling 4.2 GB | 41.0 s | 6.4 s |
+
+The first detailed check spent 139.6 s building the per-install catalog. The scan found 248,344
+strings to translate and 32,617 already English with either catalog. The saved install fixture
+used the actual package bytes and a synthetic state record. The detailed check reused its catalog
+and the window's child verified every saved hash. A same-size edit with the original modification
+time still changed the status in the fixture. No game files were patched for this measurement.

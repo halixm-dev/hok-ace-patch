@@ -198,6 +198,7 @@ Each item is timed against the fork in the lab notebook.
 ### Running a PC job
 
 - **Process guard:** Install, Check and Remove translation run only while neither `wxq*.exe` (the engine's own check) nor `王者万象棋.exe` is running. Processes are listed through `CreateToolhelp32Snapshot`, because `tasklist` mangles the launcher's name. This also keeps an install from starting while the launcher updates, mirroring ADR 0002 for the PC edition.
+- **Check in the window:** pending recovery, saved file hashes and the window title establish the state where possible. A fresh or updated game is scanned with the bundled catalog to detect translations installed by another patcher. The per-install catalog is built for Install and for detailed command-line checks.
 - **Child process:** each job runs as a low-priority child, the exe re-invoked as `--pc-job <action> <game> <work> <answer.json> <language>`. It answers through a JSON file written atomically. The engine holds the GIL for minutes and would freeze the window.
 - **Selftest:** the same entry point gives a headless `--pc-selftest <game-copy> <out>`.
 - **No Stop safely or automatic continuation** for PC jobs. The engine's `commit` is transactional and recovers its own pending files on the next run. Closing the window during a PC job asks the player to wait. ADR 0010's checkpoints stay mobile-only.

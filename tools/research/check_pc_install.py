@@ -95,7 +95,7 @@ def main() -> int:
     def job(action: str, language: str) -> dict:
         calls.clear()
         started = time.perf_counter()
-        answer = pc_edition.run(action, game, work, language, log=log)
+        answer = pc_edition.run(action, game, work, language, log=log, quick_status=action == "status")
         print(f"  {action} {language}: {answer['state']} in {time.perf_counter() - started:.1f} s, engine {calls}")
         return answer
 

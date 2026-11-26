@@ -351,10 +351,16 @@ def _looks_translated(counts: dict) -> bool:
     return int(counts.get("already_english", 0)) > int(counts.get("translated", 0))
 
 
+def _bundled_catalog(language: str) -> Path:
+    catalog = languages.catalog_dir(BUNDLE, language)
+    if not (catalog / "catalog.json.gz").is_file():
+        raise PatchError("pc_catalog_missing", language=language)
+    return catalog
+
+
 def _stage(game: Path, work: Path, language: str, state: dict | None, log,
            cycle_assets: frozenset[int] = frozenset()) -> "pc_catalog.Stage":
-    if not (languages.catalog_dir(BUNDLE, language) / "catalog.json.gz").is_file():
-        raise PatchError("pc_catalog_missing", language=language)
+    _bundled_catalog(language)
     previous = state.get("patched", {}) if state and state.get("language") == language else {}
     return pc_catalog.build(game, BUNDLE, language, work, version=_version(), previous=previous,
                             cycle_assets=cycle_assets, log=log)
@@ -392,8 +398,10 @@ def _recover_pending(game: Path) -> bool:
         raise PatchError("pc_engine_failed", detail=error) from error
 
 
-def check(game: Path, work: Path, language: str, *, log=print, cycle_assets: frozenset[int] = frozenset()) -> dict:
-    """Check: build (or reuse) the stage, run the engine's scan, and say which of `STATES` the game is in."""
+def check(game: Path, work: Path, language: str, *, log=print, cycle_assets: frozenset[int] = frozenset(),
+          quick_status: bool = False) -> dict:
+    """Report the game state. The window skips the per-install catalog and coverage report."""
+    _empty_replacements(work)
     state = read_state(work, game)
     receipts = _install_receipts(game)
     if _pending(game):
@@ -406,15 +414,22 @@ def check(game: Path, work: Path, language: str, *, log=print, cycle_assets: fro
     answer = {"action": "status", "state": current, "language": (state or {}).get("language"),
               "version": (state or {}).get("version"), "recoverable": recoverable, "counts": {},
               "message": "", "skipped_atlases": []}
-    if current in (PARTLY, FOREIGN):
+    if current in (PARTLY, FOREIGN) or (quick_status and current == INSTALLED):
         return answer
-    stage = _stage(game, work, language, state if current == INSTALLED else None, log, cycle_assets)
-    _empty_replacements(work)
-    result = _engine("status", game, stage.catalog, work)
+    if quick_status:
+        # Foreign install detection uses text counts. The per-install catalog adds asset edits.
+        stage = None
+        catalog = _bundled_catalog(language)
+    else:
+        stage = _stage(game, work, language, state if current == INSTALLED else None, log, cycle_assets)
+        catalog = stage.catalog
+    result = _engine("status", game, catalog, work)
     counts = result.get("counts", {})
     if current in (NOT_INSTALLED, REPLACED) and _looks_translated(counts):
         answer["state"] = FOREIGN
-    return {**answer, "counts": counts, "message": result.get("message", ""), "skipped_atlases": stage.skipped}
+    if stage is not None:
+        answer.update(counts=counts, message=result.get("message", ""), skipped_atlases=stage.skipped)
+    return answer
 
 
 def _drop_staged(work: Path) -> None:
@@ -480,14 +495,15 @@ def restore(game: Path, work: Path, *, log=print) -> dict:
 
 
 def run(action: str, game: Path, work: Path, language: str, *, log=print,
-        cycle_assets: frozenset[int] = frozenset()) -> dict:
+        cycle_assets: frozenset[int] = frozenset(), quick_status: bool = False) -> dict:
     """One PC job: `install`, `status` (Check) or `restore`, on the game at or under <game>.
 
     <cycle_assets> is a PC cycle's one candidate config bin (`extra_text.resolve_candidates`), staged
     for Check and Install beside `extra_text.PC_SAFE_ASSETS`.
 
-    Returns a JSON-able answer with ``state`` (one of `STATES`, or `FOREIGN` from Check) and the
-    engine's counts and message. Every failure a player can meet raises `PatchError`.
+    Returns a JSON-able answer with ``state`` (one of `STATES`, or `FOREIGN` from Check).
+    Check with <quick_status> returns the state without a coverage report.
+    Every failure a player can meet raises `PatchError`.
     """
     if action not in ACTIONS:
         raise ValueError(f"unknown PC action {action!r}")
@@ -497,7 +513,7 @@ def run(action: str, game: Path, work: Path, language: str, *, log=print,
     engine_hooks.install(receipts=receipts_root(work), log=log)
     started = time.perf_counter()
     if action == "status":
-        answer = check(game, work, language, log=log, cycle_assets=cycle_assets)
+        answer = check(game, work, language, log=log, cycle_assets=cycle_assets, quick_status=quick_status)
     else:
         try:
             if action == "install":
@@ -527,7 +543,10 @@ def start_job(action: str, game: Path, work: Path, answer: Path, language: str):
 
     Path(answer).unlink(missing_ok=True)
     flags = BELOW_NORMAL_PRIORITY_CLASS | getattr(subprocess, "CREATE_NO_WINDOW", 0)
-    return subprocess.Popen(job_command(action, game, work, answer, language), creationflags=flags,
+    command = job_command(action, game, work, answer, language)
+    if action == "status":
+        command.append("--quick-status")
+    return subprocess.Popen(command, creationflags=flags,
                             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
@@ -542,11 +561,11 @@ def read_answer(answer: Path) -> dict:
     return data["result"]
 
 
-def job(action: str, game: str, work: str, answer: str, language: str, *cycle: str) -> int:
+def job(action: str, game: str, work: str, answer: str, language: str, *options: str) -> int:
     """`--pc-job`: run one job, log to `<answer>.log`, answer `{"ok": ..., "result" | "keys": ...}` atomically.
 
-    <cycle> is empty, or `--cycle-asset <hash>` for a PC cycle (from source only; the window never
-    passes it).
+    The window passes `--quick-status` for Check. A source job can pass `--cycle-asset <hash>`
+    to inspect a candidate.
     """
     try:
         kernel = ctypes.windll.kernel32
@@ -561,15 +580,16 @@ def job(action: str, game: str, work: str, answer: str, language: str, *cycle: s
         sys.stdout = sys.stderr = log_file
         try:
             cycle_assets: frozenset[int] = frozenset()
-            if cycle:
+            quick_status = action == "status" and options == ("--quick-status",)
+            if options and not quick_status:
                 import extra_text
 
-                if len(cycle) != 2 or cycle[0] != "--cycle-asset":
-                    raise ValueError(f"unknown PC job options {cycle!r}")
-                cycle_assets = frozenset(extra_text.resolve_candidates(cycle[1]))
+                if len(options) != 2 or options[0] != "--cycle-asset":
+                    raise ValueError(f"unknown PC job options {options!r}")
+                cycle_assets = frozenset(extra_text.resolve_candidates(options[1]))
                 log("PC cycle: enabling " + ", ".join(f"{asset:016X}" for asset in sorted(cycle_assets)))
             payload = {"ok": True, "result": run(action, Path(game), Path(work), language, log=log,
-                                                 cycle_assets=cycle_assets)}
+                                                 cycle_assets=cycle_assets, quick_status=quick_status)}
         except PatchError as error:
             payload = {"ok": False, "keys": list(error.keys), "error": str(error),
                        "values": {name: str(value) for name, value in error.values.items()}}

@@ -1583,8 +1583,8 @@ def main() -> None:
     if len(sys.argv) == 3 and sys.argv[1] == "--smoketest":
         smoketest(Path(sys.argv[2]))
         return
-    if len(sys.argv) in (7, 9) and sys.argv[1] == "--pc-job":
-        import pc_edition  # a PC job's child: <action> <game> <work> <answer.json> <language> [--cycle-asset <hash>]
+    if len(sys.argv) in (7, 8, 9) and sys.argv[1] == "--pc-job":
+        import pc_edition
 
         sys.exit(pc_edition.job(*sys.argv[2:]))
     if len(sys.argv) in (4, 6) and sys.argv[1] == "--pc-selftest":
