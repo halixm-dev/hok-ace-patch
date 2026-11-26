@@ -11,6 +11,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -243,6 +244,7 @@ def _remembered() -> None:
     """`remember_verified`: an unchanged file is not read again, and any write is read again."""
     reads = []
     real = artifacts.hashlib.sha256
+    real_ns = time.time_ns
 
     def counting(*args):
         reads.append(1)
@@ -254,13 +256,21 @@ def _remembered() -> None:
             path = Path(directory) / "kept.db"
             path.write_bytes(b"first bytes")
             first = artifacts.file_identity(path)
-            assert artifacts.file_identity(path) == first and len(reads) == 1, "unchanged file read again"
-            path.write_bytes(b"other bytes")  # same size, new content
-            second = artifacts.file_identity(path)
-            assert second != first and len(reads) == 2, "rewritten file not read again"
-            path.unlink()
-            path.write_bytes(b"first bytes")  # replaced at the same path
-            assert artifacts.file_identity(path) == first and len(reads) == 3, "replaced file not read again"
+            assert artifacts.file_identity(path) == first and len(reads) == 2, "a file written just now was kept"
+            # Settle it: an mtime a minute back, and a clock a minute on for POSIX's ctime, which utime sets.
+            settled = time.time_ns() - 60_000_000_000
+            os.utime(path, ns=(settled, settled))
+            with patch.object(artifacts.time, "time_ns", lambda: real_ns() + 60_000_000_000):
+                artifacts.file_identity(path)
+                assert artifacts.file_identity(path) == first and len(reads) == 3, "unchanged file read again"
+                path.write_bytes(b"other bytes")  # same size, new content
+                second = artifacts.file_identity(path)
+                assert second != first and len(reads) == 4, "rewritten file not read again"
+                os.utime(path, ns=(settled, settled))
+                artifacts.file_identity(path)
+                path.unlink()
+                path.write_bytes(b"first bytes")  # replaced at the same path
+                assert artifacts.file_identity(path) == first, "replaced file not read again"
             root = Path(directory) / "staged"
             root.mkdir()
             expected = _stage(root)

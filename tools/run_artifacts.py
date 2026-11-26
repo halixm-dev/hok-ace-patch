@@ -3,7 +3,8 @@
 No receipt authorizes device work. Callers own locks, current-source reconciliation and
 retention. Rehash after restart; only retain descriptors within one immutable invocation.
 A process that calls ``remember_verified`` (the Android bridge) reuses a file's identity it
-hashed itself while the file's device, inode, link count, size, mtime and ctime stay the same;
+hashed itself while the file's device, inode, link count, size, mtime and ctime stay the same
+(a file changed in the three seconds before it was read is never remembered);
 a new process starts with nothing remembered, so its first check reads every byte.
 Snapshot wrappers must map the complete source manifest to their retained directory layout
 and verify it before publication/reuse (including recovery Watchdog bytes where touched).
@@ -150,6 +151,10 @@ def safe_file(path: Path, *, directory: bool = False) -> None:
 
 # {absolute path: (stat signature, identity)} for files this process hashed, or None when off.
 _VERIFIED: dict[str, tuple[tuple, dict]] | None = None
+# A file modified this recently is hashed but not remembered: a rewrite within the same timestamp tick
+# keeps its mtime and ctime (Linux's file clock is coarse, NTFS caches its times), as git's racy-clean
+# check knows. Three seconds covers FAT's two-second times too.
+_SETTLED_NS = 3_000_000_000
 
 
 def remember_verified() -> None:
@@ -167,6 +172,11 @@ def _signature(info: os.stat_result) -> tuple:
     return (info.st_dev, info.st_ino, info.st_nlink, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
 
 
+def _changed_ns(signature: tuple) -> int:
+    """The file's last change: mtime and ctime on POSIX; mtime alone on Windows, whose ctime is its creation."""
+    return signature[4] if os.name == "nt" else max(signature[4], signature[5])
+
+
 def file_identity(path: Path) -> dict:
     """Stream a regular file's actual bytes; callers must prevent concurrent mutation."""
     safe_file(path)
@@ -177,9 +187,11 @@ def content_identity(path: Path) -> dict:
     """`file_identity` without its link checks, for a caller that made its own.
 
     After `remember_verified`, a file hashed earlier in this process with the same stat signature
-    returns that identity without a read; a file whose signature moved while it was read is not kept.
+    returns that identity without a read. A file whose signature moved while it was read, or that was
+    modified less than `_SETTLED_NS` before the read began, is not kept.
     """
     key = str(path.absolute())
+    started = time.time_ns()
     before = _signature(os.stat(path)) if _VERIFIED is not None else None
     if before is not None:
         kept = _VERIFIED.get(key)
@@ -195,7 +207,8 @@ def content_identity(path: Path) -> dict:
         raise ArtifactError("Artifact exceeds size limit")
     identity = {"size": size, "sha256": digest.hexdigest()}
     if before is not None:
-        if _signature(os.stat(path)) == before and before[3] == size:
+        if (_signature(os.stat(path)) == before and before[3] == size
+                and started - _changed_ns(before) > _SETTLED_NS):
             _VERIFIED[key] = (before, dict(identity))
         else:
             _VERIFIED.pop(key, None)

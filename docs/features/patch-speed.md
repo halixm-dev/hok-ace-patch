@@ -19,7 +19,7 @@ cut that, and none changes what is checked first:
 |---|---|---|
 | A snapshot this call just took is not checked against the live layer a second time; `takeSnapshot` checked it before the rename | `PatchCoordinator.snapshotStage` | about 30 s |
 | The live check runs one `sha256sum` over every file and compares sorted lines; only a mismatch walks them to name the file | `PrivilegedDeviceService.validateGameSnapshot` | about 17 s per check (14.3 s against 30.7 s on the phone) |
-| The bridge's worker remembers each identity it hashed (`run_artifacts.remember_verified`) and rechecks it by device, inode, link count, size, mtime and ctime; a new process reads every byte again | `run_artifacts.content_identity`, `mobile_snapshot.verify_snapshot` | about 4 Python passes in the snapshot step and 2 in the build |
+| The bridge's worker remembers each identity it hashed (`run_artifacts.remember_verified`) and rechecks it by device, inode, link count, size, mtime and ctime; a file changed in the 3 s before its read is not remembered, since a rewrite in the same timestamp tick keeps both times; a new process reads every byte again | `run_artifacts.content_identity`, `mobile_snapshot.verify_snapshot` | about 4 Python passes in the snapshot step and 2 in the build |
 
 The first `verify_snapshot` after extraction still reads every byte back from storage, and a resumed
 run, being a new process, rehashes as before. On the Redmi Note 9 Pro the snapshot step went from
