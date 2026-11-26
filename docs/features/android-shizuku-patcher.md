@@ -112,7 +112,7 @@ Android's [run-as implementation](https://android.googlesource.com/platform/syst
 
 **Verdict:** a fully on-phone patcher is technically plausible. Shizuku is a suitable candidate for replacing the Windows ADB transport and shell execution, provided the device probes below pass. It does not port the Python engine, provide root on an unrooted phone, or grant direct access to the release game's private data. Full parity also requires Android builds of the native codecs. Treat this as a gated port, not a confirmed working replacement.
 
-The proposed first release targets **Android 11+ and arm64-v8a**, with Shizuku started through wireless debugging. End users should need neither a PC nor a USB cable. Developer options and wireless-debugging setup remain necessary; some OEMs also require their USB-debugging/security settings to be enabled. Shizuku must be started again after reboot. Android 10 and older are outside the PC-free first-release scope. These startup constraints are documented in the [Shizuku manual](https://shizuku.rikka.app/guide/setup/).
+The APK targets **Android 10+ and arm64-v8a**. On Android 10, start Shizuku from a computer over USB after each reboot. Android 11+ can start Shizuku on the phone through wireless debugging. Some OEMs also require their USB-debugging or security settings to be enabled. See the [Shizuku manual](https://shizuku.rikka.app/guide/setup/).
 
 ### What was inspected
 
@@ -276,8 +276,8 @@ Initially reuse streaming ZIP rewrite and APK v2 signing. If Android `cryptograp
 Preserve an already-normal stable-key source byte-for-byte when its manifest requires no edit,
 as the Windows cache does. Derive the access APK from the prepared normal APK. Check decoded
 entry hashes independently when cross-platform ZIP rewriting changes archive bytes; only the
-manifest may change. Verify v2 signatures for the supported Android 11+ range with
-`apksigner verify --min-sdk-version 30 --verbose --print-certs` before device installation.
+manifest may change. Verify v2 signatures for Android 10+ with
+`apksigner verify --min-sdk-version 29 --verbose --print-certs` before device installation.
 
 Fingerprint original, normal and access APKs by SHA-256, package/version, certificate and manifest debug flag. Do not reproduce the desktop cache's size-only identity heuristic on Android. Recovery must never adopt an access APK as the normal source. Normal manifest content changes remain exactly the debug flag and optional launcher label; app content inside the APK remains original. Inspect native-library alignment/install behavior on representative devices before claiming broad APK compatibility.
 

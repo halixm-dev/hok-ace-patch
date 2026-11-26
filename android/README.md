@@ -9,7 +9,11 @@ The deliverable copy is `artifacts/dev.halixm.hokacepatcher.apk`; Gradle's build
 `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 This is a development Android patcher alongside the Windows app. A full live patch succeeded on the Xiaomi Android 12 on 2026-10-05; broader device and release acceptance remains open.
-It targets Android 11+ / ARM64 and uses a Shizuku AIDL UserService with fixed operations.
+It targets Android 10+ on ARM64. On Android 10, the patcher defaults to **Shizuku**. Start Shizuku
+from a computer over USB after each phone reboot, then open the patcher. On an already rooted
+phone, choose **Root** instead. The built-in **Wireless debugging** option requires Android 11+.
+See the [Shizuku setup guide](https://shizuku.rikka.app/guide/setup/#start-by-connecting-to-a-computer).
+Shizuku uses an AIDL UserService with fixed operations.
 On ROMs where Shizuku's own user-service starter crashes (MediaTek `LoadedApk.makeApplicationInner`,
 seen on an Infinix X6853 with Android 16), the worker starts the same service itself through Shizuku's shell-process
 API (`ShellServiceStarter`) and receives its binder through the shell-only `WorkerBinderProvider`.
@@ -450,7 +454,7 @@ The passing test takes 146.058 s and retains receipts/entry inventories/resource
 `files/apk-preparation-probes/<uuid>/`. Its duplicate source is removed after verification;
 the access APK remains available for independent signature checks. Retained evidence is under
 `artifacts/android-apk-preparation-retained/`. For these v2-only APKs, SDK verification uses
-`apksigner verify --min-sdk-version 30 --verbose --print-certs <apk>`; default verification also
+`apksigner verify --min-sdk-version 29 --verbose --print-certs <apk>`; default verification also
 demands legacy v1 signing for the game's older declared minimum.
 
 `RecoveryStoreProbeTest` additionally needs the approved `control-1402-verified` and

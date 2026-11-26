@@ -9,16 +9,15 @@ import android.content.Context
  * checked by `tools/research/check_ui_strings.py`.
  */
 object FailureText {
-    /** The provider-not-ready line, shared with the home screen's own checks. */
-    fun notReady(context: Context, provider: ShellProvider): String =
-        UiText.string(context, "provider_not_ready", "provider" to UiText.text(context, provider.label))
+    /** Why Wireless debugging, the only provider an Android version can rule out, cannot run on this phone. */
+    fun wirelessNeedsAndroid11(context: Context): String =
+        UiText.string(context, "wireless_requires_android_11")
 
     fun explain(context: Context, shell: ShellProvider, message: String, recoverable: Boolean): String = with(context) {
         // The names the body used as MainActivity members, so it moved unchanged.
         fun provider() = shell
         fun usesShizuku() = shell == ShellProvider.SHIZUKU
         fun ui(value: String) = UiText.text(context, value)
-        fun notReady(provider: ShellProvider) = FailureText.notReady(context, provider)
 
         StorageBudget.explainFailure(message, filesDir.usableSpace)?.let { return UiText.storage(this, it) }
         if (message.contains("GB free for this step")) return UiText.storage(this, message.removePrefix("ERROR: "))
@@ -67,7 +66,7 @@ object FailureText {
                 if (recoverable) "phone_refused_step_check_recovery" else "phone_refused_step_try_again", "provider" to ui(provider().label))
             message.contains("Shizuku", true) || message.contains("permission", true) ||
                 message.contains("disconnected", true) || message.contains("is not available in this build") -> when {
-                    !provider().available -> notReady(provider())
+                    !provider().available -> wirelessNeedsAndroid11(context)
                     usesShizuku() -> "Open Shizuku. Start it and allow HOK ACE. Return here and retry. Keep the game closed."
                     else -> UiText.string(this, "work_could_not_start_check_provider", "provider" to ui(provider().label))
                 }
