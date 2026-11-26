@@ -6884,3 +6884,134 @@ decision: amend ADR 0006 so a region whose sprite the device's table dropped is 
 
   `LocalFileList.json` retained its bytes and the listed file sizes held throughout. A live launcher
   update and in-game verification still need a PC cycle.
+
+## 2026-11-26 — Faster PC Check
+
+Timed the English status job from source on a separate copy of PC game data 1.11.0.2.
+
+| Check | Previous | Window path |
+|---|---:|---:|
+| First check of the untranslated copy | 177.4 s | 41.1 s |
+| Saved install fixture, 16 package files totaling 4.2 GB | 41.0 s | 6.4 s |
+
+The first detailed check spent 139.6 s building the per-install catalog. The scan found 248,344
+strings to translate and 32,617 already English with either catalog. The saved install fixture
+used the actual package bytes and a synthetic state record. The detailed check reused its catalog
+and the window's child verified every saved hash. A same-size edit with the original modification
+time still changed the status in the fixture. No game files were patched for this measurement.
+
+## 2026-11-26 — PC BC7 mode 7 in Rust (`crates/hok_bc7`)
+
+- **Inputs:** a copy of PC game data 1.11.0.2 (launcher 26111.0.4.30004): packages `0 1 10 15 19`,
+  `LocalFileList.json`, `WXQ.exe` and `WXQ_Data\Plugins\x86_64`, copied from the installed game to
+  `D:/scratch/pc-bc7-rust/game`. Nothing ran against the installed game. Python 3.12.10, etcpak
+  0.9.15, texture2ddecoder 1.0.6, Rust 1.99.1 with PyO3 0.30.1 (abi3, x64 MSVC). CPU: Intel Family 6
+  Model 154 (12th-generation Core), Windows 11 Pro 26200. Patcher `VERSION` 1.12.1.1.
+- **Two float details the port had to copy.** Python 3.12's `sum()` over floats uses Neumaier
+  compensation. Python's `x ** 2` calls the C runtime's `pow`, which gave a different result from
+  `x * x` on 2054 of 4,000,000 random values. The crate calls the same `pow`, with the exponent hidden
+  from LLVM so it does not fold the call into a multiply.
+- **Corpus** (`tools/research/bc7_corpus.py capture`, then named bc7_mode7_corpus, one instrumented cold build per language,
+  Python encoder): every block that `encode_block` sent to mode 7, with its candidate, decoded pixels and
+  final bytes, in `D:/scratch/pc-bc7-rust/corpus/`.
+
+  | Language | `encode_block` calls | Reached mode 7 | Mode 7 kept | Distinct inputs | Record SHA-256 |
+  |---|---:|---:|---:|---:|---|
+  | English | 38175 | 8220 | 2487 | 6443 | `12c4eb10027721f6…` |
+  | Indonesian | 38360 | 8178 | 2426 | 6401 | `977f17f468795f42…` |
+
+  Mode 7 blocks by atlas, English: `0B4DA7A85D27E87A` 5828, `13C19E4E4486B31C` 1313,
+  `C9F49510F2F67402` 771 (Indonesian 729) and `E86DF43167CA2143` 308. The synthetic corpus (13 hand-made
+  cases plus 2000 seeded random blocks, seed 7) has 2013 records, SHA-256 `10c9bc347f881f55…`.
+- **Parity:** native mode 7 gave the reference bytes and decoded pixels on all 16,398 game records and
+  all 2013 synthetic ones, and `encode_block` through native gave every recorded final byte
+  (`replay --backend native --final`). `check_bc7_native.py` passes with 314 blocks: both backends,
+  the fallback with no extension, `HOK_BC7_MODE7=native` refused when the extension is absent, and
+  ValueError on lengths 0, 63 and 65.
+- **Mode 7 alone**, the game corpus through `encode_mode7` plus the texture2ddecoder decode, median of
+  3: Python 51.2 s and native 1.03 s per language, **50×**. The native call costs about 190 µs a block,
+  mostly in `pow`.
+- **Cold `pc_catalog.build`**, unprofiled, each run in its own process with a fresh work folder,
+  medians of 3 (`time-build`), in seconds:
+
+  | Language | Python total | Native total | Python atlases | Native atlases | Warm re-run |
+  |---|---:|---:|---:|---:|---:|
+  | English | 80.3 | 27.7 | 78.5 | 26.0 | 0.04 |
+  | Indonesian | 77.9 | 30.9 | 76.1 | 29.1 | 0.04 |
+
+  That saves about 50 s a build, 2.9× for English and 2.5× for Indonesian. The 2026-11-20 English
+  profile spent 174 s in mode 7. This copy's unprofiled Python build took 80 s, so the historical
+  139 s saving does not carry over.
+- **Catalogs:** all six cold builds per language (three Python, three native) staged the same 63
+  English and 64 Indonesian patched assets. None were refused, and the inputs and package records
+  matched. Every payload and the decompressed `catalog.json.gz` are byte-identical. The gzip file
+  itself differs from run to run only because its header stores a time, in either encoder.
+- **Frozen exe:** `--smoketest` passes with `bc7 native mode 7`. It encodes a fixture block that
+  reaches mode 7 and keeps it, checks the native call count and compares the bytes with the Python
+  reference. The exe was 63,924,872 bytes, and `hok_bc7.pyd` is 198,144 bytes. The previous build of
+  the same day was 63,976,395 bytes, but from a different working tree, so the size change is not
+  attributable.
+- **Frozen `--pc-selftest`** on the copy: `ok` in both languages, in 13 min 26 s. English took 334.7 s,
+  with 301 graphics and no atlas skipped. The copy first needed `WXQ_Data\Plugins\x86_64`, because
+  the engine loads QtsVFS from it. `check_graphics.py` passed every section in 92.6 s, against
+  136 s on 2026-11-20.
+- **Verdict:** ship native mode 7, with the Python reference kept for source runs without the
+  extension. Not run: the PC cycle on the installed game, and `check_pc_install.py` on the copy.
+  Their staged catalogs are byte-identical to the Python encoder's, so the install path sees the same
+  bytes.
+
+## 2026-11-26 — PC BC7 modes 6, 5 and 4 in Rust (`crates/hok_bc7`)
+
+- **Inputs:** the same PC game data 1.11.0.2 copy as the mode 7 port (`D:/scratch/pc-bc7-rust/game`),
+  the same machine and toolchain (Python 3.12.10, etcpak 0.9.15, texture2ddecoder 1.0.6, Rust 1.99.1,
+  PyO3 0.30.1). Patcher `VERSION` 1.12.1.1. Work folder `D:/scratch/pc-bc7-search/`. Ticket
+  `.scratch/pc-bc7-search/`.
+- **Where the time was:** an unprofiled cold English build with native mode 7, each phase timed,
+  took 33.9 s. `encode_block` took 21.3 s, of which etcpak was 1.1 s. Package slot maps
+  (`wxq_patch.qtsvfs`, upstream runtime) took 6.9 s and writing the stage 2.5 s. The rest of
+  `encode_block` was the Python modes 6, 5 and 4, about 18 s.
+- **Change:** the whole search past etcpak runs natively (`hok_bc7.encode_search`). All four modes
+  share one ported line fit. `round()` rounds half to even, alongside the Neumaier `sum()` and C `pow`
+  already matched for mode 7. `HOK_BC7_MODE7` became `HOK_BC7_ENCODER`.
+- **Corpus** (`tools/research/bc7_corpus.py capture`, one Python-encoder cold build per language):
+  every block `encode_block` searched, with the final bytes and each mode's reference block and
+  decoded pixels.
+
+  | Language | `encode_block` calls | Searched | Reached mode 7 | Kept 6 / 5 / 4.0 / 4.1 / 7 / etcpak | Record SHA-256 |
+  |---|---:|---:|---:|---|---|
+  | English | 38175 | 9054 | 8220 | 1178 / 254 / 3085 / 2023 / 2487 / 27 | `81360df81ef98584…` |
+  | Indonesian | 38360 | 8990 | 8178 | 1176 / 241 / 3071 / 2032 / 2426 / 44 | `f43b24f2012553cf…` |
+
+  The synthetic corpus (the same 13 cases and 2000 seeded blocks) has 2013 records, SHA-256
+  `069a56d557ca7b51…`.
+- **Parity:** `replay --backend native --final` matched every mode's block and decoded pixels and
+  every final `encode_block` byte on all 20,057 records. That includes mode 7 again, which now runs
+  through the shared fit. `check_bc7_native.py` passes with 414 blocks × 5 modes, both backends, the
+  fallback with no extension, and the refused lengths and modes.
+- **Search alone**, the 9054 English blocks through `encode_block`, one run each: Python 70.0 s
+  (Python mode 7 included), native 1.72 s. Of the native time, 0.42 s is the etcpak block, its
+  decode and its mismatch, which both backends run.
+- **Cold `pc_catalog.build`**, unprofiled, medians of 3 (`time-build --encoder native`), in seconds:
+
+  | Language | Mode 7 native (earlier today) | All modes native | Atlases | Warm re-run |
+  |---|---:|---:|---:|---:|
+  | English | 27.7 | 15.3 | 13.2 | 0.04 |
+  | Indonesian | 30.9 | 13.3 | 11.4 | 0.03 |
+
+  That is 1.8× for English and 2.3× for Indonesian on top of mode 7, and 5.3× and 5.9× against the
+  all-Python encoder (80.3 s and 77.9 s).
+- **Catalogs:** all three cold builds per language staged the same 63 English and 64 Indonesian
+  patched assets. All 462 staged files, with `catalog.json.gz` compared decompressed, are
+  byte-identical to the mode-7-only native build from earlier today.
+- **Frozen exe:** `--smoketest` passes with `bc7 native search`. Its fixture block runs modes 6, 5, 4
+  and 7 natively and keeps mode 7. The exe is 63,948,011 bytes, 23,139 more than the mode-7 build.
+  `hok_bc7.pyd` is 248,320 bytes. `check_graphics.py` passed every section in 59.1 s, against 92.6 s
+  with only mode 7 native.
+- **Frozen `--pc-selftest`** on the copy: `ok` in both languages, 301 graphics each, no atlas
+  skipped, the same counts as the mode-7 build. One run each: English 466.1 s and Indonesian
+  445.2 s, against 334.7 s and 395.0 s earlier today. The engine (`wxq_patch`) takes nearly all of a
+  selftest, and the catalog it stages is byte-identical, so the slower run says nothing about the
+  encoder. Its cause was not investigated.
+- **Verdict:** ship the native search, with the Python reference kept for source runs without the
+  extension. Not run: the PC cycle on the installed game, and `check_pc_install.py` on the copy. The
+  staged catalogs are byte-identical, so the install path sees the same bytes.

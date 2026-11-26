@@ -23,3 +23,6 @@ android/wheels/
 
 # Phone diagnostic exports: device details, kept local
 recovery-log/
+
+# The native BC7 encoder's cargo output
+crates/*/target/
