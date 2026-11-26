@@ -22,6 +22,13 @@ cycle. Details in the [lab notebook](../lab-notebook.md)'s 2026-11-18 Root and R
 
 Open: Shizuku real cycles (skipped by the user, 2026-11-18); revoking root mid-run was not tried.
 
+### Android 10
+
+The APK declares API 29. The home screen offers Shizuku and Root, with Shizuku as the default.
+Shizuku needs a computer over USB after each reboot on Android 10. The shell-side worker
+uses Android 10's content-provider call for its binder handoff. From Android 11, the picker
+also offers Wireless debugging and uses it as the default. A saved run keeps its recorded provider.
+
 ### Wireless debugging real interruption cycles (2026-11-12 to 2026-11-13, `f15a72e`)
 
 Phone `f15a72e` (Xiaomi M2007J3SG, Android 12), Wireless debugging only; details in the

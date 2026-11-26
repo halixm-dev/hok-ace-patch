@@ -9,7 +9,7 @@ on an Android phone, without root, or into the game's PC edition (`WXQ.exe`) on 
 |---|---|
 | Windows app, connected to the phone over USB | Follow the steps below |
 | Windows app, for the PC edition on this computer | [Patch the PC edition](#patch-the-pc-edition) |
-| Android app, using Shizuku on the phone | [Android setup and build guide](android/README.md); development build with device acceptance still pending |
+| Android app (Android 10+ on ARM64) | [Android setup and build guide](android/README.md); development build with device acceptance still pending |
 
 The translation includes catalog text tables, catalog edits, two Career-atlas labels
 (MY SKINS and TOTAL PROFIT), the 32 Secret Technique card titles, and one Lua label. Some content stays Chinese. See the

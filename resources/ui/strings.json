@@ -621,12 +621,20 @@
       "id": "3. Kembali ke sini dan ketuk Mulai. Izinkan HOK ACE saat Shizuku meminta.",
       "draft": true
     },
-    "provider_not_ready": {
+    "shizuku_guide_start_android_10": {
       "platforms": [
         "android"
       ],
-      "en": "{provider} arrives in a coming test build. Choose Shizuku for now.",
-      "id": "{provider} hadir di build uji berikutnya. Untuk sekarang, pilih Shizuku.",
+      "en": "2. In Shizuku, follow Start by connecting to a computer. Repeat after each phone reboot.",
+      "id": "2. Di Shizuku, ikuti langkah Mulai dengan menghubungkan ke komputer. Ulangi setiap kali ponsel dinyalakan ulang.",
+      "draft": true
+    },
+    "wireless_requires_android_11": {
+      "platforms": [
+        "android"
+      ],
+      "en": "Wireless debugging requires Android 11 or later.",
+      "id": "Debugging nirkabel memerlukan Android 11 atau yang lebih baru.",
       "draft": true
     },
     "choose_a_shell_provider": {

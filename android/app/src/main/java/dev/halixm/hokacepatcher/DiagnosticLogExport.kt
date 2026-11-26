@@ -143,7 +143,7 @@ class DiagnosticLogExport @JvmOverloads constructor(private val context: Context
         val self = packages.getPackageInfo(context.packageName, 0)
         line(output, "exported") { stamp(System.currentTimeMillis()) }
         line(output, "app") { "${context.packageName} ${self.versionName} (${self.longVersionCode}) ${BuildConfig.BUILD_TYPE}" }
-        line(output, "app installer") { packages.getInstallSourceInfo(context.packageName).installingPackageName }
+        line(output, "app installer") { installerName(context.packageName) }
         line(output, "app updated") { stamp(self.lastUpdateTime) }
         line(output, "patch language") { PatchLanguage.current(context) }
         line(output, "device") { "${Build.MANUFACTURER} / ${Build.BRAND} / ${Build.MODEL} / ${Build.DEVICE} / ${Build.PRODUCT}" }
@@ -215,10 +215,18 @@ class DiagnosticLogExport @JvmOverloads constructor(private val context: Context
         }
         val application = checkNotNull(info.applicationInfo)
         val debuggable = application.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
-        val installer = runCatching { packages.getInstallSourceInfo(name).installingPackageName }.getOrNull()
+        val installer = runCatching { installerName(name) }.getOrNull()
         return "${info.versionName} (${info.longVersionCode}), debuggable $debuggable, enabled ${application.enabled}, " +
             "splits ${application.splitSourceDirs?.size ?: 0}, installer $installer, " +
             "installed ${stamp(info.firstInstallTime)}, updated ${stamp(info.lastUpdateTime)}"
+    }
+
+    @Suppress("DEPRECATION")
+    private fun installerName(packageName: String): String? {
+        val packages = context.packageManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            packages.getInstallSourceInfo(packageName).installingPackageName
+        else packages.getInstallerPackageName(packageName)
     }
 
     /** A package this user cannot see: hidden here, only in another profile, or truly absent. */
@@ -242,6 +250,10 @@ class DiagnosticLogExport @JvmOverloads constructor(private val context: Context
     }
 
     private fun exits(output: Writer) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            output.write("Process exit history requires Android 11 or later\n")
+            return
+        }
         val reasons = context.getSystemService(ActivityManager::class.java)
             .getHistoricalProcessExitReasons(null, 0, EXIT_LIMIT)
         if (reasons.isEmpty()) output.write("none recorded\n")
