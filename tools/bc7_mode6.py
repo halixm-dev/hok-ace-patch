@@ -26,11 +26,18 @@ The Python modes alone cost about 3.7 ms a block, which made BC7 the slow step o
 (lab notebook, 2026-11-20); etcpak was added for that, and the Python modes remain for the blocks it
 cannot bring within the match threshold.
 
+Mode 7 runs natively (`crates/hok_bc7`, Rust) when that extension loads. It gives
+`_mode7_python`'s bytes, and it cut a cold PC catalog build from 80 s to 28 s (lab notebook,
+2026-11-26). `MODE7_ENV` requires one backend or the other.
+
 Started from the azydev fork's mode-6 encoder (hok-ace-patcher 1.10.1.3, `tools/bc7_mode6.py`).
 """
 from __future__ import annotations
 
+import os
+import sys
 from collections.abc import Callable
+from pathlib import Path
 
 BLOCK_BYTES = 16
 WEIGHTS2 = (0, 21, 43, 64)
@@ -57,6 +64,11 @@ ANCHORS2 = (
     6, 2, 6, 8, 15, 15, 2, 2, 15, 15, 15, 15, 15, 2, 2, 15,
 )
 TRANSPARENT_WEIGHT = 1e-3  # a fully transparent pixel's color still nudges a line, barely
+# Mode 7's backend: "native" requires the Rust extension (`crates/hok_bc7`), "python" forces the
+# reference below; unset, native when it loads, else Python. Checks set it so no fallback passes.
+MODE7_ENV = "HOK_BC7_MODE7"
+_MODE7: dict = {}  # the chosen backend, resolved once by `mode7_backend_name`
+MODE7_CALLS = {"native": 0, "python": 0}  # blocks each backend encoded in this process
 
 Pixel = tuple[int, int, int, int]
 # A quantizer: an endpoint as floats -> (its code for packing, its decoded 8-bit values).
@@ -323,8 +335,11 @@ def _spread(pixels: list[Pixel], members: list[int], importance: list[list[float
     return total
 
 
-def _mode7(pixels: list[Pixel]) -> tuple[bytes, list[tuple[int, ...]]]:
-    """Two RGBA lines, split by the best of the 64 two-subset partitions; 2-bit indices."""
+def _mode7_python(pixels: list[Pixel]) -> tuple[bytes, list[tuple[int, ...]]]:
+    """Two RGBA lines, split by the best of the 64 two-subset partitions; 2-bit indices.
+
+    The reference for the native port (`crates/hok_bc7`), which must give the same bytes.
+    """
     colour, alpha = _importance(pixels)
     importance = [c + a for c, a in zip(colour, alpha)]
     subsets = [([i for i in range(16) if not mask >> i & 1], [i for i in range(16) if mask >> i & 1])
@@ -359,6 +374,78 @@ def _mode7(pixels: list[Pixel]) -> tuple[bytes, list[tuple[int, ...]]]:
         bits.write(pbit, 1)
     bits.indices(indices, 2, (0, ANCHORS2[partition]))
     return bits.bytes(), decoded
+
+
+def _load_native():
+    """The native mode 7 module (`hok_bc7`), or None when it is not built.
+
+    Frozen, it ships beside the other modules. From source it is imported when on the path, else
+    read from `build/native/hok_bc7.pyd`, where `app/build_exe.py` puts it.
+    """
+    try:
+        import hok_bc7
+        return hok_bc7
+    except ImportError:
+        pass
+    if getattr(sys, "frozen", False):
+        return None
+    built = Path(__file__).resolve().parents[1] / "build" / "native" / "hok_bc7.pyd"
+    if not built.is_file():
+        return None
+    from importlib.machinery import ExtensionFileLoader
+    from importlib.util import module_from_spec, spec_from_loader
+
+    loader = ExtensionFileLoader("hok_bc7", str(built))
+    module = module_from_spec(spec_from_loader("hok_bc7", loader))
+    loader.exec_module(module)
+    sys.modules["hok_bc7"] = module
+    return module
+
+
+def _python_mode7_bytes(rgba: bytes) -> bytes:
+    if len(rgba) != 64:
+        raise ValueError(f"BC7 mode 7 needs 64 RGBA bytes, got {len(rgba)}")
+    return _mode7_python([tuple(rgba[i:i + 4]) for i in range(0, 64, 4)])[0]
+
+
+def mode7_backend(name: str | None = None) -> Callable[[bytes], bytes]:
+    """Mode 7 as ``encode_mode7(rgba: bytes) -> bytes`` for <name> (``native`` or ``python``).
+
+    With no name, the backend `MODE7_ENV` selects. ``native`` raises when the extension is absent,
+    so a check that names it never passes on the fallback.
+    """
+    name = name or mode7_backend_name()
+    if name == "python":
+        return _python_mode7_bytes
+    if name != "native":
+        raise ValueError(f"unknown BC7 mode 7 backend {name!r}")
+    module = _load_native()
+    if module is None:
+        raise RuntimeError("the native BC7 mode 7 encoder (hok_bc7) is not built")
+    return module.encode_mode7
+
+
+def mode7_backend_name() -> str:
+    """The backend `_mode7` uses, chosen once: `MODE7_ENV` if set, else native when it loads."""
+    if not _MODE7:
+        wanted = os.environ.get(MODE7_ENV, "").strip().lower()
+        if wanted not in ("", "native", "python"):
+            raise ValueError(f"{MODE7_ENV}={wanted!r}: expected native or python")
+        if wanted == "python" or (not wanted and _load_native() is None):
+            _MODE7["name"], _MODE7["encode"] = "python", None
+        else:
+            _MODE7["name"], _MODE7["encode"] = "native", mode7_backend("native")
+    return _MODE7["name"]
+
+
+def _mode7(pixels: list[Pixel]) -> tuple[bytes, list[tuple[int, ...]]]:
+    """Mode 7 through the chosen backend; the native block is decoded by texture2ddecoder."""
+    name = mode7_backend_name()
+    MODE7_CALLS[name] += 1
+    if name == "python":
+        return _mode7_python(pixels)
+    block = _MODE7["encode"](bytes(c for pixel in pixels for c in pixel))
+    return block, _decode(block)
 
 
 def _mode5(pixels: list[Pixel]) -> tuple[bytes, list[tuple[int, ...]]]:

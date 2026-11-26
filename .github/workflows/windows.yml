@@ -37,6 +37,14 @@ jobs:
           python -m venv .venv
           .venv/Scripts/python.exe -m pip install -r requirements.txt
           if ($LASTEXITCODE -ne 0) { throw 'requirements.txt failed to install' }
+      # The PC edition's native BC7 mode 7 (crates/hok_bc7): the toolchain its rust-toolchain.toml pins,
+      # for x64 like the Python 3.12 above; build.bat then builds it with the crates Cargo.lock locks.
+      - name: Install the pinned Rust toolchain
+        working-directory: crates/hok_bc7
+        run: |
+          rustup toolchain install
+          if ($LASTEXITCODE -ne 0) { throw 'the pinned Rust toolchain failed to install' }
+          rustc --version
       - name: Build the exe
         shell: cmd
         run: build.bat

@@ -5,6 +5,8 @@ Output: dist\\HOK ACE Language Patcher.exe (PyInstaller scratch goes to build\\,
 """
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -13,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 APP = ROOT / "app"
 RESOURCES = ROOT / "resources"
 NAME = "HOK ACE Language Patcher"
+NATIVE_CRATE = ROOT / "crates" / "hok_bc7"
+NATIVE_OUT = ROOT / "build" / "native"
 
 # Stdlib modules the compiled translation runtime imports at run time; PyInstaller cannot see them.
 HIDDEN_IMPORTS = [
@@ -24,14 +28,29 @@ HIDDEN_IMPORTS = [
 ]
 
 
+def build_native() -> Path:
+    """`crates/hok_bc7` in release mode, for this interpreter (64-bit Python 3.12), as a .pyd."""
+    if shutil.which("cargo") is None:
+        sys.exit("cargo not found: install Rust with rustup (https://rustup.rs); the toolchain "
+                 "crates/hok_bc7/rust-toolchain.toml pins is fetched on first build")
+    # rustup reads rust-toolchain.toml from the working folder, so cargo runs inside the crate.
+    env = {**os.environ, "PYO3_PYTHON": sys.executable}
+    subprocess.run(["cargo", "build", "--release", "--locked"], cwd=NATIVE_CRATE, env=env, check=True)
+    NATIVE_OUT.mkdir(parents=True, exist_ok=True)
+    target = NATIVE_OUT / "hok_bc7.pyd"
+    shutil.copyfile(NATIVE_CRATE / "target" / "release" / "hok_bc7.dll", target)
+    return target
+
+
 def build() -> None:
+    build_native()
     sep = ";"
     args = [
         sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onefile", "--windowed",
         "--name", NAME,
         "--distpath", str(ROOT / "dist"), "--workpath", str(ROOT / "build" / "pyinstaller"),
         "--specpath", str(ROOT / "build"),
-        "--paths", str(APP), "--paths", str(ROOT / "tools"),
+        "--paths", str(APP), "--paths", str(ROOT / "tools"), "--paths", str(NATIVE_OUT),
         "--add-data", f"{ROOT / 'VERSION'}{sep}.",
         "--add-data", f"{RESOURCES / 'adb'}{sep}adb",
         "--add-data", f"{RESOURCES / 'runtime'}{sep}runtime",
@@ -72,11 +91,15 @@ def build() -> None:
     args += ["--hidden-import", "run_artifacts"]
     # The PC edition: `hok_patcher` imports its workflow only for a PC job, and `bc7_mode6` imports the
     # native BC7 encoder only when it encodes; named here so the freeze never depends on finding them.
-    for module in ("pc_edition", "pc_catalog", "engine_hooks", "bc7_mode6", "etcpak"):
+    # `hok_bc7` is its native mode 7 (`build_native`); the frozen smoke test fails without it.
+    for module in ("pc_edition", "pc_catalog", "engine_hooks", "bc7_mode6", "etcpak", "hok_bc7"):
         args += ["--hidden-import", module]
     args.append(str(APP / "hok_patcher.py"))
     subprocess.run(args, check=True)
 
 
 if __name__ == "__main__":
-    build()
+    if sys.argv[1:] == ["--native-only"]:
+        print(build_native())
+    else:
+        build()
