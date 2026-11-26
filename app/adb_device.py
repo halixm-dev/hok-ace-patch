@@ -4,6 +4,7 @@ Moved verbatim out of `patcher_core`, which re-exports `Adb`, `PACKAGE` and `NO_
 """
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 import shutil
@@ -127,15 +128,27 @@ class Adb:
         with tempfile.TemporaryDirectory(prefix="apk-audit-", dir=Path(self.exe).parent) as temporary:
             local = Path(temporary) / "observed.apk"
             self.run("pull", remote, str(local))
+            parse_error = None
             try:
                 identity = apk_tools.apk_identity(local)
+                digest = identity["sha256"]
             except (OSError, ValueError, KeyError, IndexError, zipfile.BadZipFile) as error:
-                raise PatchError("error_apk_identity", detail=error) from error
-        after = self.shell(f"sha256sum '{remote}'").split()
-        if (before != after or identity["sha256"] != before[0]
-                or self.shell(f"pm path {PACKAGE}").strip() != path_output or identity["package"] != PACKAGE):
-            raise PatchError("error_apk_identity", detail="Installed APK changed during observation")
-        return identity
+                parse_error = error
+                try:
+                    with local.open("rb") as stream:
+                        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+                except OSError as read_error:
+                    raise PatchError("error_read_failed", output=read_error) from read_error
+            after = self.shell(f"sha256sum '{remote}'").split()
+            if before != after or self.shell(f"pm path {PACKAGE}").strip() != path_output:
+                raise PatchError("error_apk_identity", detail="Installed APK changed during observation")
+            if digest != before[0]:
+                raise PatchError("error_read_failed", output="APK copied over USB differs from the phone's checksum")
+            if parse_error is not None:
+                raise PatchError("error_apk_identity", detail=parse_error) from parse_error
+            if identity["package"] != PACKAGE:
+                raise PatchError("error_apk_identity", detail="Installed APK belongs to another package")
+            return identity
 
     def install(self, apk: Path) -> None:
         """Reconcile commit-before-lost-reply; transport Success alone is never proof."""
