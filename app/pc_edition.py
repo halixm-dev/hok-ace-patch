@@ -53,6 +53,7 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import sys
 import time
 import traceback
@@ -234,14 +235,11 @@ def _write_json(path: Path, value: object) -> None:
 
 
 def _sha256(path: Path) -> str | None:
-    digest = hashlib.sha256()
     try:
         with path.open("rb") as handle:
-            for chunk in iter(lambda: handle.read(1 << 22), b""):
-                digest.update(chunk)
+            return hashlib.file_digest(handle, "sha256").hexdigest()
     except FileNotFoundError:
         return None
-    return digest.hexdigest()
 
 
 def _install_receipts(game: Path) -> list[dict]:
@@ -283,13 +281,27 @@ def _files_written(receipts: list[dict]) -> dict[str, str | None]:
     return files
 
 
-def _matching(game: Path, files: dict[str, str | None]) -> tuple[list[str], list[str]]:
+type _ObservedFiles = dict[str, tuple[tuple[int, int, int, int] | None, str | None]]
+
+
+def _matching(game: Path, files: dict[str, str | None],
+              observed: _ObservedFiles | None = None) -> tuple[list[str], list[str]]:
     """The files of <files> that still hold the recorded hash, and the ones that do not."""
     same, changed = [], []
+    if observed is None:
+        observed = {}
     for relative, digest in sorted(files.items()):
         path = Path(game) / relative
-        live = _sha256(path) if path.is_file() else None
-        (same if live == digest else changed).append(relative)
+        identity = None
+        try:
+            info = path.stat()
+            if stat.S_ISREG(info.st_mode):
+                identity = (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns)
+        except FileNotFoundError:
+            pass
+        if relative not in observed or observed[relative][0] != identity:
+            observed[relative] = (identity, _sha256(path) if identity is not None else None)
+        (same if observed[relative][1] == digest else changed).append(relative)
     return same, changed
 
 
@@ -366,11 +378,12 @@ def _stage(game: Path, work: Path, language: str, state: dict | None, log,
                             cycle_assets=cycle_assets, log=log)
 
 
-def _classify(game: Path, state: dict | None, receipts: list[dict]) -> str:
+def _classify(game: Path, state: dict | None, receipts: list[dict],
+              observed: _ObservedFiles | None = None) -> str:
     """Identify the patch from saved file hashes and the game title."""
     files = (state or {}).get("files") or _files_written(receipts)
     if files:
-        same, changed = _matching(game, files)
+        same, changed = _matching(game, files, observed)
         if not changed:
             return INSTALLED if state else PARTLY  # receipts with no state: an install cut short
         if same:
@@ -406,11 +419,12 @@ def check(game: Path, work: Path, language: str, *, log=print, cycle_assets: fro
     receipts = _install_receipts(game)
     if _pending(game):
         return {"action": "status", "state": PARTLY, "recoverable": True}
-    current = _classify(game, state, receipts)
+    observed: _ObservedFiles = {}
+    current = _classify(game, state, receipts, observed)
     recoverable = False
     if current == PARTLY and not (state or {}).get("files"):
         written = _files_written(receipts)
-        recoverable = bool(written) and not _matching(game, written)[1]
+        recoverable = bool(written) and not _matching(game, written, observed)[1]
     answer = {"action": "status", "state": current, "language": (state or {}).get("language"),
               "version": (state or {}).get("version"), "recoverable": recoverable, "counts": {},
               "message": "", "skipped_atlases": []}
@@ -444,10 +458,13 @@ def install(game: Path, work: Path, language: str, *, log=print,
     state = read_state(work, game)
     receipts = _install_receipts(game)
     written = _files_written(receipts)
-    current = _classify(game, state, receipts)
+    # Receipts and state often name the same multi-GB files. Share observations
+    # only during preflight; the post-install verification reads fresh bytes.
+    observed: _ObservedFiles = {}
+    current = _classify(game, state, receipts, observed)
     if current == FOREIGN:
         raise PatchError("pc_foreign_install", "pc_repair_advice")
-    if current == PARTLY and ((state or {}).get("files") or not written or _matching(game, written)[1]):
+    if current == PARTLY and (state or {}).get("files"):
         raise PatchError("pc_receipts_mismatch", "pc_repair_advice")
     if current in (NOT_INSTALLED, REPLACED):
         stage = _stage(game, work, language, None, log, cycle_assets)
@@ -459,7 +476,7 @@ def install(game: Path, work: Path, language: str, *, log=print,
             log("PC edition: the launcher replaced the previous patch; installing against the updated files")
     else:
         previous = (state or {}).get("language"), (state or {}).get("version")
-        if not written or _matching(game, written)[1]:
+        if not written or _matching(game, written, observed)[1]:
             raise PatchError("pc_receipts_mismatch", "pc_repair_advice")
         if previous != (language, _version()):
             log("PC edition: restoring the previous patch before installing the selected translation")
@@ -483,8 +500,9 @@ def restore(game: Path, work: Path, *, log=print) -> dict:
     """Remove translation: put back the originals this patcher's receipts hold."""
     recovered = _recover_pending(game)
     written = _files_written(_install_receipts(game))
-    same, changed = _matching(game, written)
-    if changed or (same and _classify(game, read_state(work, game), []) in (PARTLY, REPLACED)):
+    observed: _ObservedFiles = {}
+    same, changed = _matching(game, written, observed)
+    if changed or (same and _classify(game, read_state(work, game), [], observed) in (PARTLY, REPLACED)):
         raise PatchError("pc_receipts_mismatch", "pc_repair_advice")
     if not same and not recovered:
         raise PatchError("pc_no_receipt", "pc_repair_advice")

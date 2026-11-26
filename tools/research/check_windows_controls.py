@@ -198,7 +198,7 @@ class WindowsControls(unittest.TestCase):
         self.assertTrue(self.store.load(self.work)["stop_requested"])
 
     def test_same_app_retry_keeps_unsaved_stop_before_replacement_worker(self) -> None:
-        ui = SimpleNamespace(busy=False, closing=False, worker_thread=None, pending_stop=True,
+        ui = SimpleNamespace(busy=False, driver_busy=False, closing=False, worker_thread=None, pending_stop=True,
                              pending_work=True, removing=False, ui_cancel=threading.Event(),
                              progress=Mock(), work_dir=self.work, language="en", folder_button=Mock(),
                              stop_button=Mock(), show_language_card=Mock(), show_start=Mock(), worker=Mock())
@@ -217,7 +217,7 @@ class WindowsControls(unittest.TestCase):
         ui.worker_thread.start.assert_called_once()
 
     def test_startup_idle_without_saved_authorization_never_dispatches(self) -> None:
-        ui = SimpleNamespace(busy=False, closing=False, work_dir=self.work,
+        ui = SimpleNamespace(busy=False, driver_busy=False, target=hok_patcher.PHONE, closing=False, work_dir=self.work,
                              pending_work=False, start=Mock(), finish=Mock())
         with patch.object(hok_patcher, "discover_pending_runs", return_value=[]):
             hok_patcher.App.discover_saved_work(ui)
@@ -225,7 +225,7 @@ class WindowsControls(unittest.TestCase):
         ui.finish.assert_not_called()
 
     def test_repeat_close_queues_one_control_and_never_kills_shared_adb(self) -> None:
-        ui = SimpleNamespace(closing=False, busy=True, stop_button=Mock(),
+        ui = SimpleNamespace(closing=False, pc_busy=False, busy=True, stop_button=Mock(),
                              _request_control=Mock(), _cancel_dialogs=Mock(), show_start=Mock())
         with patch.object(hok_patcher, "_style_button"), patch.object(patcher_core.Adb, "kill_server") as kill:
             hok_patcher.App.close(ui)
@@ -244,7 +244,7 @@ class WindowsControls(unittest.TestCase):
         self.assertEqual(error.keys, ("error_run_state",))
 
     def test_pump_preserves_measured_bytes_and_operation_detail(self) -> None:
-        ui = SimpleNamespace(messages=queue.Queue(), progress=Mock(), operation_line=Mock(),
+        ui = SimpleNamespace(messages=queue.Queue(), run_state={}, progress=Mock(), operation_line=Mock(),
                              step_detail="private indivisible operation", busy=True, closing=False,
                              show_start=Mock(), after=Mock(), pump=Mock())
         ui.messages.put(("event", {"state": "working", "next_action": "read_game_data", "bytes_done": 4096}))

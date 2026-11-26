@@ -37,7 +37,7 @@ from adb_device import NO_WINDOW, PACKAGE, Adb  # noqa: E402,F401
 from pristine_layer import LAYER, PENDING_DELTA, PristineLayer  # noqa: E402,F401
 from apk_preparation import APP_NAME, ApkPreparation, apk_manifest  # noqa: E402,F401
 from game_data_pull import (LAYER_NAME, PULL_BATCH_CHARS, PULL_RECORD, GameDataPull,  # noqa: E402,F401
-                            parse_device_hashes, reusable_files)
+                            parse_device_hashes)
 from translation_payload import TranslationPayload, build_patch  # noqa: E402,F401
 import languages  # noqa: E402
 import pristine_delta  # noqa: E402

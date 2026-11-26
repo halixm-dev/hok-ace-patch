@@ -22,6 +22,8 @@ each run reports what it actually applied and skipped.
 2. Enable **USB debugging** in the phone's Developer options. Connect it to Windows by USB
    and tap **Allow** on the phone's debugging prompt.
 3. Open `dist\HOK ACE Language Patcher.exe`, or [run from source](#run-or-build-from-source).
+   If the phone is missing in **Android USB** mode, click **Install Universal ADB Driver** under
+   **Setup**. Follow the Windows installer, then reconnect the phone.
 4. Under **Setup**, choose the translation and a
    **WORKING FOLDER** with at least 8 GB free. Keep working data outside this repository; the
    default folder is `HOK ACE Patcher Data` beside the exe.

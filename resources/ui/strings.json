@@ -2918,6 +2918,12 @@
       "id": "{done} diterima",
       "draft": true
     },
+    "progress_bytes_rate": {
+      "platforms": ["windows"],
+      "en": "{done} received · {rate} MiB/s",
+      "id": "{done} diterima · {rate} MiB/s",
+      "draft": true
+    },
     "normal_install_progress": {
       "platforms": [
         "windows"
@@ -3713,6 +3719,36 @@
       "platforms": [
         "windows"
       ]
+    },
+    "usb_driver_install": {
+      "en": "Install Universal ADB Driver",
+      "id": "Pasang Driver ADB Universal",
+      "platforms": ["windows"]
+    },
+    "usb_driver_running": {
+      "en": "Preparing driver setup. Follow the Windows installer when it opens.",
+      "id": "Menyiapkan pemasangan driver. Ikuti petunjuk penginstal Windows saat terbuka.",
+      "platforms": ["windows"]
+    },
+    "usb_driver_installed": {
+      "en": "Driver installed. If your phone still isn't detected, reconnect it.",
+      "id": "Driver terpasang. Jika ponsel masih belum terdeteksi, sambungkan ulang.",
+      "platforms": ["windows"]
+    },
+    "usb_driver_restart": {
+      "en": "Restart Windows to finish installing the driver.",
+      "id": "Mulai ulang Windows untuk menyelesaikan pemasangan driver.",
+      "platforms": ["windows"]
+    },
+    "usb_driver_cancelled": {
+      "en": "Driver installation canceled. You can try again.",
+      "id": "Pemasangan driver dibatalkan. Anda bisa mencoba lagi.",
+      "platforms": ["windows"]
+    },
+    "usb_driver_failed": {
+      "en": "Could not install the driver. Check your internet connection and try again. If it still fails, save the log for help.",
+      "id": "Driver gagal dipasang. Periksa koneksi internet dan coba lagi. Jika masih gagal, simpan log untuk meminta bantuan.",
+      "platforms": ["windows"]
     },
     "usb_waiting_hint": {
       "en": "Connect the phone over USB, turn on USB debugging, and tap Allow on the phone.",

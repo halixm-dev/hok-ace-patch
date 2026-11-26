@@ -27,6 +27,7 @@ from patcher_core import (BUNDLE, MIN_FREE_BYTES, SETTINGS, STEPS, Adb, PatchErr
                           set_interface_language, ui_text)
 from patcher_core import NOTHING_TO_RECOVER, discover_pending_runs
 import pc_edition  # noqa: E402 - after patcher_core, which puts tools/ and the runtime on sys.path
+from adb_driver import driver_outcome, install_adb_driver  # noqa: E402 - its PatchError needs tools/ too
 
 APP_TITLE = "HOK ACE Language Patcher"
 VERSION_FILE = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1])) / "VERSION"
@@ -293,14 +294,14 @@ class App(ctk.CTk):
         self.connected = False
         self.usb_status: str | None = None
         self.usb_probe: threading.Thread | None = None
+        self.driver_busy = False
+        self.driver_result: int | None = None
         self.blocker = ""
         # The PC target: the game root, the running child job, Check's last state and the last job's result.
         self.target = load_target()
         self.pc_game: Path | None = None
         self.pc_job = None
         self.pc_action = ""
-        self.pc_answer: Path | None = None
-        self.pc_log_offset = 0
         self.pc_started = 0.0
         self.pc_follow_up = False
         self.pc_state: str | None = None
@@ -517,17 +518,22 @@ class App(ctk.CTk):
                    top=SPACE["sm"])
         self.device_label = self.label(setup, "body")
         self.place(self.device_label, 2, top=SPACE["xxs"])
+        self.driver_button = self._workspace_button(setup, "secondary", self.install_driver)
+        self.bind_text(self.driver_button, lambda: ui_text("usb_driver_install"))
+        self.place(self.driver_button, 3, top=SPACE["xs"])
+        self.driver_status = self.label(setup, "body", MUTED)
+        self.place(self.driver_status, 4, top=SPACE["xxs"])
         self.folder_label, self.folder_button = self._folder_field(
-            setup, 3, "pc_working_folder_label", "change_folder", self.choose_folder)
+            setup, 5, "pc_working_folder_label", "change_folder", self.choose_folder)
         self.space_label = self.label(setup, "body", MUTED)
-        self.place(self.space_label, 4, top=SPACE["xxs"])
-        self.choices = self._language_field(setup, 5, bottom=0)
+        self.place(self.space_label, 6, top=SPACE["xxs"])
+        self.choices = self._language_field(setup, 7, bottom=0)
         self.language_note = self.label(setup, "body", MUTED)
-        self.place(self.language_note, 6, bottom=CARD_PAD)
+        self.place(self.language_note, 8, bottom=CARD_PAD)
         self.remove_button = self._workspace_button(card, "secondary", self.confirm_remove)
         self.bind_text(self.remove_button, lambda: ui_text("remove_translation"))
         self.place(self.remove_button, 11, bottom=CARD_PAD)
-        self._wrap_to(setup, (self.device_label, self.space_label, self.language_note))
+        self._wrap_to(setup, (self.device_label, self.driver_status, self.space_label, self.language_note))
 
         self.heading = self.label(card, "heading")
         self.place(self.heading, 4, top=SPACE["md"])
@@ -614,8 +620,10 @@ class App(ctk.CTk):
         else:
             self.remove_button.grid_remove()
         # A run reads the language once at its start, so the choices and Remove translation lock while it runs.
-        locked = self.busy or self.pending_work or self.pc_busy
+        locked = self.busy or self.pending_work or self.pc_busy or self.driver_busy
         _style_button(self.folder_button, "secondary", not locked)
+        _style_button(self.driver_button, "secondary", not (self.busy or self.driver_busy))
+        self.show_driver_status()
         for choices in (self.choices, self.pc_choices):
             for code, button in choices.items():
                 chosen = code == self.language
@@ -752,7 +760,7 @@ class App(ctk.CTk):
             again = {"added": ui_text("run_again"), "removed": ui_text("run_again"), "failed": ui_text("try_again")}
             self.button.configure(text=action or again.get(kind) or ui_text("start"))
             ready = not self.blocker and (self.usb_status is None or self.connected)
-            _style_button(self.button, "primary", self.pending_work or ready)
+            _style_button(self.button, "primary", not self.driver_busy and (self.pending_work or ready))
 
     def recovery_action(self) -> tuple[str, str]:
         """The attention state's (button label, instruction), from the saved run and the core's next action."""
@@ -797,7 +805,7 @@ class App(ctk.CTk):
 
     def poll_usb(self) -> None:
         """Read ADB transport status off the UI thread while the USB workspace is idle."""
-        if not self.closing and self.target == PHONE and not self.busy and not (
+        if not self.closing and self.target == PHONE and not self.busy and not self.driver_busy and not (
                 self.usb_probe is not None and self.usb_probe.is_alive()):
             self.usb_probe = threading.Thread(target=self._read_usb_status, args=(self.work_dir,), daemon=True)
             self.usb_probe.start()
@@ -825,6 +833,38 @@ class App(ctk.CTk):
             text = ui_text("device_not_connected")
         self.device_label.configure(text=text, text_color=SUCCESS if self.connected else MUTED)
 
+    def show_driver_status(self) -> None:
+        code = self.driver_result
+        color = MUTED
+        if self.driver_busy:
+            text = ui_text("usb_driver_running")
+        elif code is not None:
+            key = driver_outcome(code)
+            text = ui_text(key)
+            if key == "usb_driver_failed":
+                color = ERROR
+        else:
+            text = ""
+        self.driver_status.configure(text=text, text_color=color)
+        self._show(self.driver_status, bool(text) and not self.busy)
+
+    def install_driver(self) -> None:
+        if self.target != PHONE or self.busy or self.driver_busy or self.closing:
+            return
+        self.driver_busy = True
+        self.show_language_card()
+        self.show_start()
+        threading.Thread(target=self._run_driver_installer, name="adb-driver-installer").start()
+
+    def _run_driver_installer(self) -> None:
+        try:
+            code = install_adb_driver()
+            self.log(f"Universal ADB Driver installer exited with code {code}.")
+        except Exception:
+            self.log(traceback.format_exc())
+            code = -1
+        self.messages.put(("driver-done", code))
+
     # ---------- the target choice ----------
     @property
     def pc_busy(self) -> bool:
@@ -832,7 +872,7 @@ class App(ctk.CTk):
 
     def show_target_card(self) -> None:
         """Mark the chosen target; the choice locks while either target works or saved phone work waits."""
-        locked = self.busy or self.pc_busy or self.pending_work
+        locked = self.busy or self.pc_busy or self.pending_work or self.driver_busy
         for target, button in self.targets.items():
             chosen = target == self.target
             _style_button(button, "primary" if chosen else "secondary", not locked)
@@ -852,7 +892,7 @@ class App(ctk.CTk):
         self.show_start()
 
     def choose_target(self, target: str) -> None:
-        if target == self.target or self.busy or self.pc_busy or self.pending_work or self.closing:
+        if target == self.target or self.busy or self.pc_busy or self.pending_work or self.driver_busy or self.closing:
             return
         self.target = target
         save_target(target)
@@ -870,43 +910,44 @@ class App(ctk.CTk):
     def open_pc(self) -> None:
         """Find the game (the remembered folder, then the launcher's records) and run Check on it."""
         self.pc_opened = True
-        try:
-            games = pc_edition.find_games(SETTINGS)
-        except (PatchError, OSError, ValueError) as error:
-            self.log(f"PC edition: finding the game failed: {error}")
-            games = []
-        if games and self.pc_game is None:
-            self.pc_game = games[0]
-        self.show_start()
         if self.pc_game is not None:
             self.run_pc("status")
+            return
+        self._find_pc(None)
+
+    def _find_pc(self, folder: Path | None) -> None:
+        if self.pc_busy:
+            return
+        self.pc_action = "status"
+        self.pc_job = threading.Thread(target=self._read_pc_folder, args=(folder,), name="pc-game-discovery")
+        self.pc_job.start()
+        self.show_start()
+
+    def _read_pc_folder(self, folder: Path | None) -> None:
+        try:
+            if folder is None:
+                games = pc_edition.find_games(SETTINGS)
+                root = next(iter(games), None)
+            else:
+                root = pc_edition.resolve(folder)
+                try:
+                    pc_edition.remember_game(SETTINGS, root)
+                except OSError as error:
+                    self.log(f"PC edition: the game folder was not saved: {error}")
+        except (PatchError, OSError, ValueError) as error:
+            self.log(f"PC edition: finding the game failed: {error}")
+            self.messages.put(("pc-found", (None, error)))
+        else:
+            self.messages.put(("pc-found", (root, None)))
 
     def choose_game(self) -> None:
         if self.pc_busy:
             return
-        start = self.pc_game if self.pc_game is not None and self.pc_game.exists() else Path.home()
+        start = self.pc_game or Path.home()
         chosen = filedialog.askdirectory(parent=self, title=ui_text("pc_choose_folder_title"), initialdir=str(start))
         if not chosen:
             return
-        self.set_game(Path(chosen))
-
-    def set_game(self, folder: Path) -> None:
-        """Take a picked folder as the game once `pc_edition.resolve` accepts it, remember it, then Check."""
-        try:
-            root = pc_edition.resolve(folder)
-        except PatchError as error:
-            self.pc_result, self.pc_error = ("failed", 0.0), error
-            self.log(f"\nFAILED: {error}")
-            self.show_start()
-            return
-        try:
-            pc_edition.remember_game(SETTINGS, root)
-        except OSError as error:
-            self.log(f"PC edition: the game folder was not saved: {error}")
-        self.pc_game, self.pc_state, self.pc_language, self.pc_version = root, None, None, None
-        self.pc_recoverable = False
-        self.pc_result = self.pc_error = None
-        self.run_pc("status")
+        self._find_pc(Path(chosen))
 
     def confirm_pc_remove(self) -> None:
         # A plain dialog: Remove translation puts the saved originals back and deletes no game data.
@@ -915,71 +956,71 @@ class App(ctk.CTk):
             self.run_pc("restore")
 
     def run_pc(self, action: str, follow_up: bool = False) -> None:
-        """Start one PC job in its child process; `pc_tick` follows it until it answers."""
+        """Launch and follow the PC child from a worker; Tk receives only display events."""
         if self.pc_busy or self.busy or self.closing or self.pc_game is None:
             return
         if not follow_up:
             self.pc_result = self.pc_error = None
         self.pc_action, self.pc_follow_up = action, follow_up
         answer = self.work_dir / "pc" / "jobs" / f"{action}.json"
-        try:
-            answer.parent.mkdir(parents=True, exist_ok=True)
-            self.pc_job = pc_edition.start_job(action, self.pc_game, self.work_dir, answer, self.language)
-        except OSError as error:
-            self.pc_job = None
-            self.pc_result, self.pc_error = ("failed", 0.0), PatchError("pc_engine_failed", detail=error)
-            self.show_start()
-            return
-        self.pc_answer, self.pc_log_offset, self.pc_started = answer, 0, time.monotonic()
+        self.pc_started = time.monotonic()
+        self.pc_job = threading.Thread(target=self._watch_pc_job, name="pc-job-monitor",
+                                       args=(action, self.pc_game, self.work_dir, answer, self.language))
+        self.pc_job.start()
         self.log(f"\nPC edition: {action} on {self.pc_game} (working folder {self.work_dir})")
         self.pc_operation_line.configure(text="")
         self.pc_progress.start()
         self.show_language_card()
         self.show_start()
-        self.after(PC_TICK, self.pc_tick)
 
-    def _tail_pc_log(self) -> None:
-        """Copy the child's new log lines into the log; its last line goes under the bar."""
+    def _watch_pc_job(self, action: str, game: Path, work: Path, answer: Path, language: str) -> None:
+        log_path = answer.with_suffix(answer.suffix + ".log")
         try:
-            with (self.pc_answer.parent / (self.pc_answer.name + ".log")).open("rb") as handle:
-                handle.seek(self.pc_log_offset)
-                chunk = handle.read()
-        except OSError:
-            return
-        end = chunk.rfind(b"\n") + 1  # a line still being written waits for the next tick
-        if not end:
-            return
-        self.pc_log_offset += end
-        lines = [line for line in chunk[:end].decode("utf-8", "replace").splitlines() if line.strip()]
-        for line in lines:
-            self.log("  " + line)
-        if lines:
-            last = lines[-1].strip()
-            self.pc_operation_line.configure(text=last if len(last) <= 110 else last[:109] + "…")
+            answer.parent.mkdir(parents=True, exist_ok=True)
+            log_path.unlink(missing_ok=True)
+            child = pc_edition.start_job(action, game, work, answer, language)
+            offset = 0
+            while True:
+                finished = child.poll() is not None
+                last_line = ""
+                try:
+                    with log_path.open("rb") as stream:
+                        stream.seek(offset)
+                        lines = []
+                        for line in stream:
+                            if not finished and not line.endswith(b"\n"):
+                                break
+                            offset += len(line)
+                            message = line.decode("utf-8", "replace").rstrip()
+                            if message:
+                                last_line = message
+                                lines.append("  " + message)
+                                if len(lines) == 64:
+                                    self.log("\n".join(lines))
+                                    lines.clear()
+                        if lines:
+                            self.log("\n".join(lines))
+                except OSError:
+                    pass  # The child may still be opening the log.
+                self.messages.put(("pc-clock", (time.monotonic(), last_line)))
+                if finished:
+                    break
+                time.sleep(PC_TICK / 1000)
+            result = pc_edition.read_answer(answer)
+        except (OSError, PatchError) as error:
+            failure = error if isinstance(error, PatchError) else PatchError("pc_engine_failed", detail=error)
+            self.messages.put(("pc-done", ({}, failure)))
+        else:
+            self.messages.put(("pc-done", (result, None)))
 
-    def pc_tick(self) -> None:
-        if self.pc_job is None:
-            return
-        self._tail_pc_log()
-        self.pc_elapsed_line.configure(text=ui_text("pc_elapsed", elapsed=_elapsed(time.monotonic() - self.pc_started)))
-        if self.pc_job.poll() is None:
-            self.after(PC_TICK, self.pc_tick)
-            return
-        self._tail_pc_log()
+    def finish_pc(self, answer: dict, error: PatchError | None) -> None:
+        """Apply the child's answer, then run Check after Install and Remove translation."""
+        action, seconds = self.pc_action, time.monotonic() - self.pc_started
         self.pc_job = None
         self.pc_progress.stop()
-        self.finish_pc()
-
-    def finish_pc(self) -> None:
-        """Read the child's answer, then run Check after Install and Remove translation."""
-        action, seconds = self.pc_action, time.monotonic() - self.pc_started
-        error = None
         self.show_work_dir()  # the job used the working folder's space
-        try:
-            answer = pc_edition.read_answer(self.pc_answer)
-        except PatchError as failure:
-            error = failure
-            self.log(f"\nFAILED: {failure}")
+        if error is not None:
+            self.log(f"\nFAILED: {error}")
         if action == "status":
             if error is None:
                 self.pc_state, self.pc_language = answer.get("state"), answer.get("language")
@@ -1220,14 +1261,35 @@ class App(ctk.CTk):
 
     # ---------- event loop ----------
     def pump(self) -> None:
+        # Yield to input and repaint even if workers keep the queue continuously full.
+        deadline = time.monotonic() + 0.012
+        delay = 1
         try:
-            while True:
+            while time.monotonic() < deadline:
                 kind, value = self.messages.get_nowait()
                 if kind == "log":
                     self.log_view.configure(state="normal")
                     self.log_view.insert("end", value + "\n")
                     self.log_view.see("end")
                     self.log_view.configure(state="disabled")
+                elif kind == "pc-clock":
+                    observed, line = value
+                    self.pc_elapsed_line.configure(text=ui_text("pc_elapsed", elapsed=_elapsed(observed - self.pc_started)))
+                    if line:
+                        self.pc_operation_line.configure(text=line if len(line) <= 110 else line[:109] + "…")
+                elif kind == "pc-found":
+                    root, error = value
+                    self.pc_job = None
+                    if error is not None:
+                        self.pc_result = ("failed", 0.0)
+                        self.pc_error = error if isinstance(error, PatchError) else PatchError("pc_engine_failed", detail=error)
+                    elif root is not None and self.target == PC and not self.busy:
+                        self.pc_game, self.pc_state, self.pc_language, self.pc_version = root, None, None, None
+                        self.pc_recoverable = False
+                        self.run_pc("status")
+                    self.show_start()
+                elif kind == "pc-done":
+                    self.finish_pc(*value)
                 elif kind == "step":
                     key, state, self.step_detail = value
                     self.operation_line.configure(text=self.step_detail)
@@ -1247,13 +1309,19 @@ class App(ctk.CTk):
                     self.device_label.configure(text=text)
                 elif kind == "usb-status":
                     work, status = value
-                    if (self.target == PHONE and not self.busy and work == self.work_dir
+                    if (self.target == PHONE and not self.busy and not self.driver_busy and work == self.work_dir
                             and (status != self.usb_status or self.connected != (status == "device"))):
                         self.usb_status = status
                         self.connected = status == "device"
                         self.show_usb_device()
                         self.show_start()
+                elif kind == "driver-done":
+                    self.driver_busy = False
+                    self.driver_result = value
+                    self.show_language_card()
+                    self.show_start()
                 elif kind == "event":
+                    previous = self.run_state
                     self.run_state = value
                     done, total = value.get("bytes_done"), value.get("bytes_total")
                     detail = value.get("detail") or self.step_detail
@@ -1270,6 +1338,8 @@ class App(ctk.CTk):
                     elif self.busy:
                         if isinstance(done, int):
                             detail = ui_text("progress_bytes_read", done=_size(done))
+                            if rate := value.get("bytes_per_second"):
+                                detail = ui_text("progress_bytes_rate", done=_size(done), rate=f"{rate / 1024**2:.1f}")
                         self.progress.configure(mode="indeterminate")
                         self.progress.start()
                     if value.get("next_action") == "connect_saved_phone":
@@ -1277,7 +1347,8 @@ class App(ctk.CTk):
                     elif value.get("reason") == "transient_retry":
                         detail = ui_text("retrying_saved_action")
                     self.operation_line.configure(text=detail)
-                    self.show_start()
+                    if not value.get("bytes_per_second") or previous.get("next_action") != value.get("next_action"):
+                        self.show_start()
                 elif kind == "control":
                     if isinstance(value, Exception):
                         self.closing = False
@@ -1293,12 +1364,12 @@ class App(ctk.CTk):
                 elif kind == "done":
                     self.finish(*value)
         except queue.Empty:
-            pass
-        if self.closing and not self.busy and not any(t.is_alive() for t in self.control_threads):
+            delay = 100
+        if self.closing and not self.busy and not self.driver_busy and not any(t.is_alive() for t in self.control_threads):
             if self.worker_thread is None or not self.worker_thread.is_alive():
                 self.destroy()
                 return
-        self.after(100, self.pump)
+        self.after(delay, self.pump)
 
     def confirm_remove(self) -> None:
         # A plain dialog: removing writes the original files back and deletes no game data.
@@ -1309,6 +1380,9 @@ class App(ctk.CTk):
     def discover_saved_work(self) -> None:
         """Startup dispatch requires a durable intent; no pending run means idle."""
         if self.busy or self.closing:
+            return
+        if self.driver_busy:
+            self.after(250, self.discover_saved_work)
             return
         try:
             pending = discover_pending_runs(self.work_dir)
@@ -1360,7 +1434,8 @@ class App(ctk.CTk):
         self.start(remove=record.get("action") == "remove", recovery_only=True)
 
     def start(self, remove: bool = False, *, automatic: bool = False, recovery_only: bool = False) -> None:
-        if self.busy or self.closing or self.worker_thread is not None and self.worker_thread.is_alive():
+        if (self.busy or self.driver_busy or self.closing
+                or self.worker_thread is not None and self.worker_thread.is_alive()):
             return
         self.removing = remove
         self.busy = True
@@ -1472,7 +1547,7 @@ class App(ctk.CTk):
             self._request_control(close=True)
             self._cancel_dialogs()
             self.show_start()
-        elif not any(t.is_alive() for t in self.control_threads):
+        elif not self.driver_busy and not any(t.is_alive() for t in self.control_threads):
             self.destroy()
 
 
