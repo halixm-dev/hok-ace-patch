@@ -19,6 +19,10 @@ Runbook: [PC cycle](../runbooks/pc-cycle.md). Receipts and the language switch:
 The PC workspace places status and patch actions beside the game folder, working folder and language.
 The activity log spans the window below. The setup moves below the actions in a narrow window.
 
+PC preflight hashes each distinct game file once when comparing the saved state and receipts.
+Post-install verification reads the new bytes. The Windows UI receives log lines and results from
+a worker that monitors the child process.
+
 | What Check finds | Next action |
 |---|---|
 | The whole translation was replaced | **Reapply translation** builds against the updated game files. |
