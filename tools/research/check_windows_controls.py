@@ -198,7 +198,7 @@ class WindowsControls(unittest.TestCase):
         self.assertTrue(self.store.load(self.work)["stop_requested"])
 
     def test_same_app_retry_keeps_unsaved_stop_before_replacement_worker(self) -> None:
-        ui = SimpleNamespace(busy=False, closing=False, worker_thread=None, pending_stop=True,
+        ui = SimpleNamespace(busy=False, driver_busy=False, closing=False, worker_thread=None, pending_stop=True,
                              pending_work=True, removing=False, ui_cancel=threading.Event(),
                              progress=Mock(), work_dir=self.work, language="en", folder_button=Mock(),
                              stop_button=Mock(), show_language_card=Mock(), show_start=Mock(), worker=Mock())
@@ -217,7 +217,7 @@ class WindowsControls(unittest.TestCase):
         ui.worker_thread.start.assert_called_once()
 
     def test_startup_idle_without_saved_authorization_never_dispatches(self) -> None:
-        ui = SimpleNamespace(busy=False, target=hok_patcher.PHONE, closing=False, work_dir=self.work,
+        ui = SimpleNamespace(busy=False, driver_busy=False, target=hok_patcher.PHONE, closing=False, work_dir=self.work,
                              pending_work=False, start=Mock(), finish=Mock())
         with patch.object(hok_patcher, "discover_pending_runs", return_value=[]):
             hok_patcher.App.discover_saved_work(ui)

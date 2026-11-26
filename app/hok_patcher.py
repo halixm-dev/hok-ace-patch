@@ -27,6 +27,7 @@ from patcher_core import (BUNDLE, MIN_FREE_BYTES, SETTINGS, STEPS, Adb, PatchErr
                           set_interface_language, ui_text)
 from patcher_core import NOTHING_TO_RECOVER, discover_pending_runs
 import pc_edition  # noqa: E402 - after patcher_core, which puts tools/ and the runtime on sys.path
+from adb_driver import driver_outcome, install_adb_driver  # noqa: E402 - its PatchError needs tools/ too
 
 APP_TITLE = "HOK ACE Language Patcher"
 VERSION_FILE = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1])) / "VERSION"
@@ -293,6 +294,8 @@ class App(ctk.CTk):
         self.connected = False
         self.usb_status: str | None = None
         self.usb_probe: threading.Thread | None = None
+        self.driver_busy = False
+        self.driver_result: int | None = None
         self.blocker = ""
         # The PC target: the game root, the running child job, Check's last state and the last job's result.
         self.target = load_target()
@@ -515,17 +518,22 @@ class App(ctk.CTk):
                    top=SPACE["sm"])
         self.device_label = self.label(setup, "body")
         self.place(self.device_label, 2, top=SPACE["xxs"])
+        self.driver_button = self._workspace_button(setup, "secondary", self.install_driver)
+        self.bind_text(self.driver_button, lambda: ui_text("usb_driver_install"))
+        self.place(self.driver_button, 3, top=SPACE["xs"])
+        self.driver_status = self.label(setup, "body", MUTED)
+        self.place(self.driver_status, 4, top=SPACE["xxs"])
         self.folder_label, self.folder_button = self._folder_field(
-            setup, 3, "pc_working_folder_label", "change_folder", self.choose_folder)
+            setup, 5, "pc_working_folder_label", "change_folder", self.choose_folder)
         self.space_label = self.label(setup, "body", MUTED)
-        self.place(self.space_label, 4, top=SPACE["xxs"])
-        self.choices = self._language_field(setup, 5, bottom=0)
+        self.place(self.space_label, 6, top=SPACE["xxs"])
+        self.choices = self._language_field(setup, 7, bottom=0)
         self.language_note = self.label(setup, "body", MUTED)
-        self.place(self.language_note, 6, bottom=CARD_PAD)
+        self.place(self.language_note, 8, bottom=CARD_PAD)
         self.remove_button = self._workspace_button(card, "secondary", self.confirm_remove)
         self.bind_text(self.remove_button, lambda: ui_text("remove_translation"))
         self.place(self.remove_button, 11, bottom=CARD_PAD)
-        self._wrap_to(setup, (self.device_label, self.space_label, self.language_note))
+        self._wrap_to(setup, (self.device_label, self.driver_status, self.space_label, self.language_note))
 
         self.heading = self.label(card, "heading")
         self.place(self.heading, 4, top=SPACE["md"])
@@ -612,8 +620,10 @@ class App(ctk.CTk):
         else:
             self.remove_button.grid_remove()
         # A run reads the language once at its start, so the choices and Remove translation lock while it runs.
-        locked = self.busy or self.pending_work or self.pc_busy
+        locked = self.busy or self.pending_work or self.pc_busy or self.driver_busy
         _style_button(self.folder_button, "secondary", not locked)
+        _style_button(self.driver_button, "secondary", not (self.busy or self.driver_busy))
+        self.show_driver_status()
         for choices in (self.choices, self.pc_choices):
             for code, button in choices.items():
                 chosen = code == self.language
@@ -750,7 +760,7 @@ class App(ctk.CTk):
             again = {"added": ui_text("run_again"), "removed": ui_text("run_again"), "failed": ui_text("try_again")}
             self.button.configure(text=action or again.get(kind) or ui_text("start"))
             ready = not self.blocker and (self.usb_status is None or self.connected)
-            _style_button(self.button, "primary", self.pending_work or ready)
+            _style_button(self.button, "primary", not self.driver_busy and (self.pending_work or ready))
 
     def recovery_action(self) -> tuple[str, str]:
         """The attention state's (button label, instruction), from the saved run and the core's next action."""
@@ -795,7 +805,7 @@ class App(ctk.CTk):
 
     def poll_usb(self) -> None:
         """Read ADB transport status off the UI thread while the USB workspace is idle."""
-        if not self.closing and self.target == PHONE and not self.busy and not (
+        if not self.closing and self.target == PHONE and not self.busy and not self.driver_busy and not (
                 self.usb_probe is not None and self.usb_probe.is_alive()):
             self.usb_probe = threading.Thread(target=self._read_usb_status, args=(self.work_dir,), daemon=True)
             self.usb_probe.start()
@@ -823,6 +833,38 @@ class App(ctk.CTk):
             text = ui_text("device_not_connected")
         self.device_label.configure(text=text, text_color=SUCCESS if self.connected else MUTED)
 
+    def show_driver_status(self) -> None:
+        code = self.driver_result
+        color = MUTED
+        if self.driver_busy:
+            text = ui_text("usb_driver_running")
+        elif code is not None:
+            key = driver_outcome(code)
+            text = ui_text(key)
+            if key == "usb_driver_failed":
+                color = ERROR
+        else:
+            text = ""
+        self.driver_status.configure(text=text, text_color=color)
+        self._show(self.driver_status, bool(text) and not self.busy)
+
+    def install_driver(self) -> None:
+        if self.target != PHONE or self.busy or self.driver_busy or self.closing:
+            return
+        self.driver_busy = True
+        self.show_language_card()
+        self.show_start()
+        threading.Thread(target=self._run_driver_installer, name="adb-driver-installer").start()
+
+    def _run_driver_installer(self) -> None:
+        try:
+            code = install_adb_driver()
+            self.log(f"Universal ADB Driver installer exited with code {code}.")
+        except Exception:
+            self.log(traceback.format_exc())
+            code = -1
+        self.messages.put(("driver-done", code))
+
     # ---------- the target choice ----------
     @property
     def pc_busy(self) -> bool:
@@ -830,7 +872,7 @@ class App(ctk.CTk):
 
     def show_target_card(self) -> None:
         """Mark the chosen target; the choice locks while either target works or saved phone work waits."""
-        locked = self.busy or self.pc_busy or self.pending_work
+        locked = self.busy or self.pc_busy or self.pending_work or self.driver_busy
         for target, button in self.targets.items():
             chosen = target == self.target
             _style_button(button, "primary" if chosen else "secondary", not locked)
@@ -850,7 +892,7 @@ class App(ctk.CTk):
         self.show_start()
 
     def choose_target(self, target: str) -> None:
-        if target == self.target or self.busy or self.pc_busy or self.pending_work or self.closing:
+        if target == self.target or self.busy or self.pc_busy or self.pending_work or self.driver_busy or self.closing:
             return
         self.target = target
         save_target(target)
@@ -1267,12 +1309,17 @@ class App(ctk.CTk):
                     self.device_label.configure(text=text)
                 elif kind == "usb-status":
                     work, status = value
-                    if (self.target == PHONE and not self.busy and work == self.work_dir
+                    if (self.target == PHONE and not self.busy and not self.driver_busy and work == self.work_dir
                             and (status != self.usb_status or self.connected != (status == "device"))):
                         self.usb_status = status
                         self.connected = status == "device"
                         self.show_usb_device()
                         self.show_start()
+                elif kind == "driver-done":
+                    self.driver_busy = False
+                    self.driver_result = value
+                    self.show_language_card()
+                    self.show_start()
                 elif kind == "event":
                     previous = self.run_state
                     self.run_state = value
@@ -1318,7 +1365,7 @@ class App(ctk.CTk):
                     self.finish(*value)
         except queue.Empty:
             delay = 100
-        if self.closing and not self.busy and not any(t.is_alive() for t in self.control_threads):
+        if self.closing and not self.busy and not self.driver_busy and not any(t.is_alive() for t in self.control_threads):
             if self.worker_thread is None or not self.worker_thread.is_alive():
                 self.destroy()
                 return
@@ -1333,6 +1380,9 @@ class App(ctk.CTk):
     def discover_saved_work(self) -> None:
         """Startup dispatch requires a durable intent; no pending run means idle."""
         if self.busy or self.closing:
+            return
+        if self.driver_busy:
+            self.after(250, self.discover_saved_work)
             return
         try:
             pending = discover_pending_runs(self.work_dir)
@@ -1384,7 +1434,8 @@ class App(ctk.CTk):
         self.start(remove=record.get("action") == "remove", recovery_only=True)
 
     def start(self, remove: bool = False, *, automatic: bool = False, recovery_only: bool = False) -> None:
-        if self.busy or self.closing or self.worker_thread is not None and self.worker_thread.is_alive():
+        if (self.busy or self.driver_busy or self.closing
+                or self.worker_thread is not None and self.worker_thread.is_alive()):
             return
         self.removing = remove
         self.busy = True
@@ -1496,7 +1547,7 @@ class App(ctk.CTk):
             self._request_control(close=True)
             self._cancel_dialogs()
             self.show_start()
-        elif not any(t.is_alive() for t in self.control_threads):
+        elif not self.driver_busy and not any(t.is_alive() for t in self.control_threads):
             self.destroy()
 
 
