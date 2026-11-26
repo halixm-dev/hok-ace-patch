@@ -465,6 +465,47 @@ class Transport(unittest.TestCase):
         self.assertTrue(owner.record["retry"]["apk_final_normal"]["completed"])
         self.assertEqual(journal.load()["installs"]["apk_final_normal"]["outcome"], "verified")
 
+    def test_incomplete_apk_pull_is_retryable_during_recovery(self) -> None:
+        patcher, owner, journal = self.owned_apks()
+        adb = patcher.adb
+        run = adb.run
+
+        def incomplete_pull(*args: str, **kwargs: object) -> str:
+            result = run(*args, **kwargs)
+            if args[0] == "pull":
+                target = Path(args[2])
+                target.write_bytes(target.read_bytes()[:16])
+            return result
+
+        with patch.object(adb, "run", side_effect=incomplete_pull):
+            with self.assertRaises(PatchError) as error:
+                patcher.restore_normal_apk()
+        self.assertIsInstance(error.exception.__cause__, PatchError)
+        self.assertEqual(error.exception.__cause__.keys, ("error_read_failed",))
+        self.assertEqual(adb.install_attempts, 0)
+
+        patcher.restore_normal_apk()
+        self.assertEqual(adb.installed_identity(), journal.record["apks"]["normal"])
+        self.assertTrue(owner.record["retry"]["apk_final_normal"]["completed"])
+
+    def test_apk_changed_on_phone_during_pull_blocks_recovery(self) -> None:
+        patcher, _, _ = self.owned_apks()
+        adb = patcher.adb
+        run = adb.run
+
+        def replace_after_pull(*args: str, **kwargs: object) -> str:
+            result = run(*args, **kwargs)
+            if args[0] == "pull":
+                adb.installed += b"changed"
+            return result
+
+        with patch.object(adb, "run", side_effect=replace_after_pull):
+            with self.assertRaises(PatchError) as error:
+                patcher.restore_normal_apk()
+        self.assertIsInstance(error.exception.__cause__, PatchError)
+        self.assertEqual(error.exception.__cause__.keys, ("error_apk_identity",))
+        self.assertEqual(adb.install_attempts, 0)
+
     def test_unrelated_app_and_tampered_saved_apk_refuse(self) -> None:
         patcher, owner, journal = self.owned_apks(setup=True)
         foreign = signed_fixture(self.root, official=True)
