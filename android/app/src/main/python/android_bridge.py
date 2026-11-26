@@ -97,6 +97,10 @@ def _prepare(root: Path) -> None:
     pyc = runtime / "wxq_patch" / "__init__.pyc"
     if pyc.read_bytes()[:4] != importlib.util.MAGIC_NUMBER:
         raise PatchError("Consumed runtime bytecode does not match embedded Python")
+    import run_artifacts
+
+    # One worker process runs the whole action: a file it hashed once is rechecked by its stat signature.
+    run_artifacts.remember_verified()
 
 
 def _catalog(root: Path, language: str) -> Path:

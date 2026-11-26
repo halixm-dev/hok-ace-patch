@@ -178,7 +178,13 @@ def package_files_at(manifest: dict, hashes: set[str]) -> list[str]:
 
 
 def verify_snapshot(destination: Path) -> dict:
-    """Rehash retained originals before trusting them for build or rollback."""
+    """Rehash retained originals before trusting them for build or rollback.
+
+    Through `run_artifacts.content_identity`, so a process that called `remember_verified` reads each
+    file once and then rechecks only its stat signature.
+    """
+    from run_artifacts import content_identity
+
     if destination.is_symlink():
         raise ValueError("Snapshot destination contains a link")
     manifest = read_manifest(destination)
@@ -196,10 +202,8 @@ def verify_snapshot(destination: Path) -> dict:
         raise ValueError("Snapshot file set changed")
     for name, expected in manifest["files"].items():
         validate_path(name)
-        path = destination / name
-        with path.open("rb") as stream:
-            digest = hashlib.file_digest(stream, "sha256").hexdigest()
-        if path.stat().st_size != expected["bytes"] or digest != expected["sha256"]:
+        actual = content_identity(destination / name)
+        if actual["size"] != expected["bytes"] or actual["sha256"] != expected["sha256"]:
             raise ValueError(f"Snapshot file changed: {name}")
     return manifest
 

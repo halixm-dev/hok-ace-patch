@@ -227,7 +227,7 @@ only the safety recovery their records justify.
 | Artifact | Publication | Reuse / invalidation |
 |---|---|---|
 | Prepared APKs | Verified immutable APKs and identities, pinned | Reuse only for matching source/content/signature/manifest options; the access APK is never cached as normal |
-| Snapshot | Full file set verified; manifest and receipt committed last | Rehash after restart and compare current source evidence; an interrupted transport restarts |
+| Snapshot | Full file set verified; manifest and receipt committed last | Rehash after restart and compare current source evidence; within one worker a file already hashed is rechecked by its stat signature (`run_artifacts.remember_verified`); an interrupted transport restarts |
 | Pristine build input | Separate from the rollback snapshot | Never overwrites it, including through a shared hard link; recomputed when game or delta identity changes |
 | Staged build | Fresh attempt; all passes, restored files, summary, hashes and delta, then `build-receipt.json` last | Build changes invalidate the stage; source changes invalidate snapshot and stage |
 | Recovery originals | Actual pre-action bytes, including a previous translation, and Watchdog | Kept until consistency and every outcome are durable; never replaced by a pristine reconstruction |

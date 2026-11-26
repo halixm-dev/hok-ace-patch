@@ -816,7 +816,7 @@ class PatchCoordinator @JvmOverloads constructor(
      * SNAPSHOT_READY: the canonical snapshot verified against the live layer, plus the complete measured
      * input identity (null when the producer cannot be measured: ordinary work, no checkpoint reuse).
      * A published snapshot is reused after its retained bytes are rehashed (by the bridge) and the live layer
-     * matches it. A layer the game changed since retires the old snapshot (unreferenced; kept until a measured
+     * matches it; a snapshot this call just took was matched against the live layer before its rename. A layer the game changed since retires the old snapshot (unreferenced; kept until a measured
      * shortage releases it) and takes a
      * fresh one, once per call. Transport cut before publication restarts in a new owned attempt.
      */
@@ -826,9 +826,12 @@ class PatchCoordinator @JvmOverloads constructor(
         val manifest = File(snapshot, "manifest.json")
         var retired = false
         while (true) {
-            if (!snapshot.exists() && !Files.isSymbolicLink(snapshot.toPath())) takeSnapshot(journal, apks, enginePath, run)
+            // takeSnapshot validates the live layer against the snapshot it just took, before publishing it,
+            // so only a snapshot kept from earlier is validated here (about 30 s on 3.4 GB, 2026-11-26).
+            val fresh = !snapshot.exists() && !Files.isSymbolicLink(snapshot.toPath())
+            if (fresh) takeSnapshot(journal, apks, enginePath, run)
             requireOwnedSnapshot(journal, run)
-            try { validateLayer(manifest) } catch (changed: Throwable) {
+            try { if (!fresh) validateLayer(manifest) } catch (changed: Throwable) {
                 if (!gameChanged(changed) || retired) throw changed
                 retired = true
                 val runs = RunStore(context)

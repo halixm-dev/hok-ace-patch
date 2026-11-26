@@ -2,10 +2,14 @@
 
 No receipt authorizes device work. Callers own locks, current-source reconciliation and
 retention. Rehash after restart; only retain descriptors within one immutable invocation.
+A process that calls ``remember_verified`` (the Android bridge) reuses a file's identity it
+hashed itself while the file's device, inode, link count, size, mtime and ctime stay the same;
+a new process starts with nothing remembered, so its first check reads every byte.
 Snapshot wrappers must map the complete source manifest to their retained directory layout
 and verify it before publication/reuse (including recovery Watchdog bytes where touched).
 Missing complete producer evidence disables reuse (``windows_producer_identity`` returns
-None). This module never changes the pipeline summary or falls back to version/mtime.
+None). This module never changes the pipeline summary or falls back to version/mtime
+for a file this process has not hashed.
 """
 from __future__ import annotations
 
@@ -144,9 +148,43 @@ def safe_file(path: Path, *, directory: bool = False) -> None:
         raise ArtifactError("Expected a regular artifact")
 
 
+# {absolute path: (stat signature, identity)} for files this process hashed, or None when off.
+_VERIFIED: dict[str, tuple[tuple, dict]] | None = None
+
+
+def remember_verified() -> None:
+    """Reuse, for the rest of this process, each identity `content_identity` hashed while its file is unchanged.
+
+    The Android bridge rehashed the same 3.4 GB snapshot five times in one run, about 32 s a pass
+    (Redmi Note 9 Pro, 2026-11-26); its worker process lives for the whole run.
+    """
+    global _VERIFIED
+    if _VERIFIED is None:
+        _VERIFIED = {}
+
+
+def _signature(info: os.stat_result) -> tuple:
+    return (info.st_dev, info.st_ino, info.st_nlink, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+
 def file_identity(path: Path) -> dict:
     """Stream a regular file's actual bytes; callers must prevent concurrent mutation."""
     safe_file(path)
+    return content_identity(path)
+
+
+def content_identity(path: Path) -> dict:
+    """`file_identity` without its link checks, for a caller that made its own.
+
+    After `remember_verified`, a file hashed earlier in this process with the same stat signature
+    returns that identity without a read; a file whose signature moved while it was read is not kept.
+    """
+    key = str(path.absolute())
+    before = _signature(os.stat(path)) if _VERIFIED is not None else None
+    if before is not None:
+        kept = _VERIFIED.get(key)
+        if kept is not None and kept[0] == before:
+            return dict(kept[1])
     digest = hashlib.sha256()
     size = 0
     with path.open("rb") as stream:
@@ -155,7 +193,13 @@ def file_identity(path: Path) -> dict:
             size += len(chunk)
     if size > MAX_INTEGER:
         raise ArtifactError("Artifact exceeds size limit")
-    return {"size": size, "sha256": digest.hexdigest()}
+    identity = {"size": size, "sha256": digest.hexdigest()}
+    if before is not None:
+        if _signature(os.stat(path)) == before and before[3] == size:
+            _VERIFIED[key] = (before, dict(identity))
+        else:
+            _VERIFIED.pop(key, None)
+    return identity
 
 
 def validate_manifest(manifest: object) -> dict:
