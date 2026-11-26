@@ -1,0 +1,73 @@
+{
+  "schema": "rust-anything/bridge@1",
+  "root": "D:\\Projects\\hok-ace-android-en",
+  "unit": "tools/block_scan/__init__.py",
+  "language": "python",
+  "kind": "pyo3",
+  "crate_name": "stale-blocks-rs",
+  "exports": [
+    {
+      "name": "stale_blocks",
+      "file": "tools/block_scan/__init__.py",
+      "line": 32,
+      "params": [
+        {
+          "name": "target",
+          "ts_type": "pybytes",
+          "optional": false,
+          "rest": false
+        },
+        {
+          "name": "device",
+          "ts_type": "pybytes",
+          "optional": false,
+          "rest": false
+        },
+        {
+          "name": "decided",
+          "ts_type": "pybytes",
+          "optional": false,
+          "rest": false
+        },
+        {
+          "name": "blocks",
+          "ts_type": "int[]",
+          "optional": false,
+          "rest": false
+        },
+        {
+          "name": "width",
+          "ts_type": "int",
+          "optional": false,
+          "rest": false
+        },
+        {
+          "name": "threshold",
+          "ts_type": "number",
+          "optional": false,
+          "rest": false
+        }
+      ],
+      "returns": "int[]",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    }
+  ],
+  "classes": [],
+  "js_only": [
+    {
+      "name": "premultiplied_diff",
+      "file": "tools/block_scan/__init__.py",
+      "line": 10,
+      "reason": "not hot in the profiled run; `go` ports one function"
+    },
+    {
+      "name": "block_mismatch",
+      "file": "tools/block_scan/__init__.py",
+      "line": 19,
+      "reason": "not hot in the profiled run; `go` ports one function"
+    }
+  ]
+}

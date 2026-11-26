@@ -257,7 +257,7 @@ class _Bits:
 
 
 def mismatch(pixels: list[Pixel], decoded: list[tuple[int, ...]]) -> float:
-    """Mean premultiplied difference, as `mobile_graphics._block_mismatch` measures a block."""
+    """Mean premultiplied difference, as `block_scan.block_mismatch` measures a block."""
     total = 0
     for (r, g, b, a), (dr, dg, db, da) in zip(pixels, decoded):
         total += max(abs(a - da), abs(r * a - dr * da) // 255, abs(g * a - dg * da) // 255,

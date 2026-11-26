@@ -40,6 +40,7 @@ import astc_encoder
 import ooz
 import texture2ddecoder
 
+from block_scan import premultiplied_diff as _premultiplied_diff, stale_blocks
 from languages import ENGLISH, for_catalog, payload_path
 from sprite_table import REGION_SPRITE_ASSETS
 
@@ -500,14 +501,6 @@ def atlas_art(catalog: Path, texture: str, sprites: dict[str, tuple[int, int, in
     return art
 
 
-def _premultiplied_diff(left: bytes | bytearray, right: bytes | bytearray, at: int) -> int:
-    """Largest channel difference between two RGBA pixels once each is weighted by its own alpha."""
-    la, ra = left[at + 3], right[at + 3]
-    worst = abs(la - ra)
-    for channel in range(3):
-        worst = max(worst, abs(left[at + channel] * la - right[at + channel] * ra) // 255)
-    return worst
-
 
 def port_atlas(mobile_raw: bytes, graphic: dict, catalog: Path,
                sprites: dict[str, tuple[int, int, int, int]], codec: str = "astc") -> bytes | None:
@@ -742,8 +735,7 @@ def _reencode(mobile_raw: bytes, target: bytearray, device_rgba: bytes, decided:
     """
     blocks_x, stride = width // 4, width * 4
     threshold = BC7_MATCH_MEAN if codec == "bc7" else BLOCK_MATCH_MEAN
-    stale = [block for block in sorted(touched)
-             if _block_mismatch(target, device_rgba, decided, block, blocks_x, width) > threshold]
+    stale = stale_blocks(bytes(target), bytes(device_rgba), bytes(decided), sorted(touched), width, threshold)
     if not stale:
         return mobile_raw
     out = bytearray(mobile_raw)
@@ -773,17 +765,6 @@ def _reencode(mobile_raw: bytes, target: bytearray, device_rgba: bytes, decided:
     return bytes(out)
 
 
-def _block_mismatch(target: bytearray, device: bytes, decided: bytearray, block: int, blocks_x: int,
-                    width: int) -> float:
-    """Mean premultiplied difference between target and device over a block's decided pixels."""
-    raw_row, column = (block // blocks_x) * 4, (block % blocks_x) * 4
-    total = count = 0
-    for row in range(raw_row, raw_row + 4):
-        for x in range(column, column + 4):
-            if decided[row * width + x]:
-                total += _premultiplied_diff(target, device, (row * width + x) * 4)
-                count += 1
-    return total / count if count else 0.0
 
 
 def _same_art(crop: bytes, device: bytes, box: tuple[int, int, int, int], damaged: set[int],

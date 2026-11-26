@@ -40,6 +40,7 @@ val stageEngineAssets by tasks.registering(Sync::class) {
     from("../../tools") {
         into("engine/tools")
         include("*.py")
+        include("block_scan/*.py")
         // Research and Tencent's Windows builder are never shipped on Android.
         exclude("qts_builder.py")
         rename { "$it.payload" }

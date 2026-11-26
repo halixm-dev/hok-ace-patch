@@ -16,6 +16,9 @@ APP = ROOT / "app"
 RESOURCES = ROOT / "resources"
 NAME = "HOK ACE Language Patcher"
 NATIVE_CRATE = ROOT / "crates" / "hok_bc7"
+# The texture block scan (`tools/block_scan`), ported by rust-anything; a package, `stale_blocks_rs`,
+# whose `_native` extension it imports.
+SCAN_CRATE = ROOT / "rust" / "stale-blocks-rs"
 NATIVE_OUT = ROOT / "build" / "native"
 
 # Stdlib modules the compiled translation runtime imports at run time; PyInstaller cannot see them.
@@ -28,17 +31,38 @@ HIDDEN_IMPORTS = [
 ]
 
 
+def _cargo_release(crate: Path) -> Path:
+    """<crate> built in release mode for this interpreter; the folder holding its .dll."""
+    # rustup reads rust-toolchain.toml from the working folder, so cargo runs inside the crate; the
+    # target folder is named so a CARGO_TARGET_DIR (rust-anything sets one) never moves the output.
+    env = {**os.environ, "PYO3_PYTHON": sys.executable}
+    target = crate / "target"
+    subprocess.run(["cargo", "build", "--release", "--locked", "--target-dir", str(target)],
+                   cwd=crate, env=env, check=True)
+    return target / "release"
+
+
 def build_native() -> Path:
-    """`crates/hok_bc7` in release mode, for this interpreter (64-bit Python 3.12), as a .pyd."""
+    """The native modules, for this interpreter (64-bit Python 3.12), into `build/native`.
+
+    `crates/hok_bc7` as `hok_bc7.pyd`, and the block scan as the `stale_blocks_rs` package (its
+    generated `__init__.py` beside `_native.pyd`), whose `.pyd` also goes into the crate's own
+    `python/` folder for source runs.
+    """
     if shutil.which("cargo") is None:
         sys.exit("cargo not found: install Rust with rustup (https://rustup.rs); the toolchain "
                  "crates/hok_bc7/rust-toolchain.toml pins is fetched on first build")
-    # rustup reads rust-toolchain.toml from the working folder, so cargo runs inside the crate.
-    env = {**os.environ, "PYO3_PYTHON": sys.executable}
-    subprocess.run(["cargo", "build", "--release", "--locked"], cwd=NATIVE_CRATE, env=env, check=True)
     NATIVE_OUT.mkdir(parents=True, exist_ok=True)
     target = NATIVE_OUT / "hok_bc7.pyd"
-    shutil.copyfile(NATIVE_CRATE / "target" / "release" / "hok_bc7.dll", target)
+    shutil.copyfile(_cargo_release(NATIVE_CRATE) / "hok_bc7.dll", target)
+    scan = NATIVE_OUT / "stale_blocks_rs"
+    scan.mkdir(exist_ok=True)
+    built = _cargo_release(SCAN_CRATE) / "stale_blocks_rs.dll"
+    package = SCAN_CRATE / "python" / "stale_blocks_rs"
+    shutil.copyfile(built, scan / "_native.pyd")
+    shutil.copyfile(package / "__init__.py", scan / "__init__.py")
+    # Where `block_scan`'s switch-on block looks in a source run, as `rust-anything build` leaves it.
+    shutil.copyfile(built, package / "_native.pyd")
     return target
 
 
@@ -93,6 +117,10 @@ def build() -> None:
     # native BC7 encoder only when it encodes; named here so the freeze never depends on finding them.
     # `hok_bc7` is its native BC7 search (`build_native`); the frozen smoke test fails without it.
     for module in ("pc_edition", "pc_catalog", "engine_hooks", "bc7_mode6", "etcpak", "hok_bc7"):
+        args += ["--hidden-import", module]
+    # `block_scan` loads its native scan by name (`stale_blocks_rs`, from `build_native`) and runs the
+    # Python scan when it is missing; the frozen smoke test fails if the exe falls back.
+    for module in ("block_scan", "stale_blocks_rs", "stale_blocks_rs._native"):
         args += ["--hidden-import", module]
     args.append(str(APP / "hok_patcher.py"))
     subprocess.run(args, check=True)

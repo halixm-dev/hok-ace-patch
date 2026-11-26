@@ -7033,3 +7033,25 @@ matched all 790 device package digests and reproduced the backup at its original
 - **Verdict:** ship the native search, with the Python reference kept for source runs without the
   extension. Not run: the PC cycle on the installed game, and `check_pc_install.py` on the copy. The
   staged catalogs are byte-identical, so the install path sees the same bytes.
+
+## 2026-11-27 — The atlas block scan in Rust (`rust/stale-blocks-rs`)
+
+- **Inputs:** `tools/research/check_graphics.py` with no `--game` (the catalogs, this repo's art and its
+  recorded fixtures only; no phone, no game dump). Python 3.12.10, Rust 1.99.1 with PyO3 0.30 (abi3),
+  rust-anything 5.0.1. Windows 11 Pro 26200, Intel 12th-generation Core.
+- **Profile** (`rust-anything profile`): 106 s under the profiler. The scan `_reencode` runs before every
+  re-encode, `_block_mismatch` over each touched block (411,184 calls) and `_premultiplied_diff` over
+  each decided pixel (6,476,016 calls), took 20% of the run. rust-anything refuses to bridge anything in
+  `tools/` (one 8,900-line unit with regex, monkeypatching and dynamic-code risks), so the scan moved
+  unchanged into `tools/block_scan`, with one call per atlas, `stale_blocks`, so the bridge is crossed
+  once per atlas and not once per block.
+- **Recording:** 242 cases: 11 real calls captured from the check (whole atlases, 400 MB) and 231
+  generated, 174 of them raising in Python (`IndexError` past either end or past `Py_ssize_t`,
+  `ZeroDivisionError` for an image under 4 px wide). The port keeps Python's floor division, negative
+  indexing and the order the errors come in.
+- **Result:** `rust-anything diff` 242/242, `gate` passed (fmt, clippy, 4 tests with 13 assertions, 114
+  lines for 33). `bench`: 6.54 ms to 0.28 ms per recorded call, 23.2x; `go` measured 28.4x as its callers
+  call it. The whole check: 73.7 s before, 36.6 s with the native scan, every check passing on both.
+- **Freeze:** `app/build_exe.py` builds the crate into `build/native/stale_blocks_rs/`; the frozen
+  `--smoketest` passed "native block scan" and, with `RUST_ANYTHING_MODE=old`, failed on "the native
+  block scan did not load". The Android app ships `tools/block_scan` and runs the Python scan.

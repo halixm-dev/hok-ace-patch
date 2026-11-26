@@ -1661,6 +1661,16 @@ def smoketest(out: Path) -> None:
             assert bc7_mode6.MODE7_CALLS["native"] == calls + 1, "encode_block did not reach native mode 7"
             assert bc7_mode6._mode7_python(pixels)[0] == MODE7_FIXTURE[1], "Python mode 7 bytes differ"
             passed.append("bc7 native search")
+            # The block scan before every atlas re-encode runs natively (rust/stale-blocks-rs), never the
+            # Python fallback, and agrees with the Python measure on one stale and one matching block.
+            import block_scan
+
+            assert block_scan.stale_blocks.__module__ == "stale_blocks_rs._native", "the native block scan did not load"
+            # An 8x4 image: the device keeps the target in block 0 and is transparent in block 1.
+            target, device, every = bytes((255,)) * 128, (bytes((255,)) * 16 + bytes(16)) * 4, bytes((1,)) * 32
+            measured = [block for block in (0, 1) if block_scan.block_mismatch(target, device, every, block, 2, 8) > 6.0]
+            assert measured == [1] and block_scan.stale_blocks(target, device, every, [0, 1], 8, 6.0) == measured
+            passed.append("native block scan")
             ok = True
         except Exception:  # noqa: BLE001 - the report records the failure; CI reads ``ok``
             traceback.print_exc()
