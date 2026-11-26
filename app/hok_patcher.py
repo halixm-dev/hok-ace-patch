@@ -299,8 +299,6 @@ class App(ctk.CTk):
         self.pc_game: Path | None = None
         self.pc_job = None
         self.pc_action = ""
-        self.pc_answer: Path | None = None
-        self.pc_log_offset = 0
         self.pc_started = 0.0
         self.pc_follow_up = False
         self.pc_state: str | None = None
@@ -870,43 +868,44 @@ class App(ctk.CTk):
     def open_pc(self) -> None:
         """Find the game (the remembered folder, then the launcher's records) and run Check on it."""
         self.pc_opened = True
-        try:
-            games = pc_edition.find_games(SETTINGS)
-        except (PatchError, OSError, ValueError) as error:
-            self.log(f"PC edition: finding the game failed: {error}")
-            games = []
-        if games and self.pc_game is None:
-            self.pc_game = games[0]
-        self.show_start()
         if self.pc_game is not None:
             self.run_pc("status")
+            return
+        self._find_pc(None)
+
+    def _find_pc(self, folder: Path | None) -> None:
+        if self.pc_busy:
+            return
+        self.pc_action = "status"
+        self.pc_job = threading.Thread(target=self._read_pc_folder, args=(folder,), name="pc-game-discovery")
+        self.pc_job.start()
+        self.show_start()
+
+    def _read_pc_folder(self, folder: Path | None) -> None:
+        try:
+            if folder is None:
+                games = pc_edition.find_games(SETTINGS)
+                root = next(iter(games), None)
+            else:
+                root = pc_edition.resolve(folder)
+                try:
+                    pc_edition.remember_game(SETTINGS, root)
+                except OSError as error:
+                    self.log(f"PC edition: the game folder was not saved: {error}")
+        except (PatchError, OSError, ValueError) as error:
+            self.log(f"PC edition: finding the game failed: {error}")
+            self.messages.put(("pc-found", (None, error)))
+        else:
+            self.messages.put(("pc-found", (root, None)))
 
     def choose_game(self) -> None:
         if self.pc_busy:
             return
-        start = self.pc_game if self.pc_game is not None and self.pc_game.exists() else Path.home()
+        start = self.pc_game or Path.home()
         chosen = filedialog.askdirectory(parent=self, title=ui_text("pc_choose_folder_title"), initialdir=str(start))
         if not chosen:
             return
-        self.set_game(Path(chosen))
-
-    def set_game(self, folder: Path) -> None:
-        """Take a picked folder as the game once `pc_edition.resolve` accepts it, remember it, then Check."""
-        try:
-            root = pc_edition.resolve(folder)
-        except PatchError as error:
-            self.pc_result, self.pc_error = ("failed", 0.0), error
-            self.log(f"\nFAILED: {error}")
-            self.show_start()
-            return
-        try:
-            pc_edition.remember_game(SETTINGS, root)
-        except OSError as error:
-            self.log(f"PC edition: the game folder was not saved: {error}")
-        self.pc_game, self.pc_state, self.pc_language, self.pc_version = root, None, None, None
-        self.pc_recoverable = False
-        self.pc_result = self.pc_error = None
-        self.run_pc("status")
+        self._find_pc(Path(chosen))
 
     def confirm_pc_remove(self) -> None:
         # A plain dialog: Remove translation puts the saved originals back and deletes no game data.
@@ -915,71 +914,71 @@ class App(ctk.CTk):
             self.run_pc("restore")
 
     def run_pc(self, action: str, follow_up: bool = False) -> None:
-        """Start one PC job in its child process; `pc_tick` follows it until it answers."""
+        """Launch and follow the PC child from a worker; Tk receives only display events."""
         if self.pc_busy or self.busy or self.closing or self.pc_game is None:
             return
         if not follow_up:
             self.pc_result = self.pc_error = None
         self.pc_action, self.pc_follow_up = action, follow_up
         answer = self.work_dir / "pc" / "jobs" / f"{action}.json"
-        try:
-            answer.parent.mkdir(parents=True, exist_ok=True)
-            self.pc_job = pc_edition.start_job(action, self.pc_game, self.work_dir, answer, self.language)
-        except OSError as error:
-            self.pc_job = None
-            self.pc_result, self.pc_error = ("failed", 0.0), PatchError("pc_engine_failed", detail=error)
-            self.show_start()
-            return
-        self.pc_answer, self.pc_log_offset, self.pc_started = answer, 0, time.monotonic()
+        self.pc_started = time.monotonic()
+        self.pc_job = threading.Thread(target=self._watch_pc_job, name="pc-job-monitor",
+                                       args=(action, self.pc_game, self.work_dir, answer, self.language))
+        self.pc_job.start()
         self.log(f"\nPC edition: {action} on {self.pc_game} (working folder {self.work_dir})")
         self.pc_operation_line.configure(text="")
         self.pc_progress.start()
         self.show_language_card()
         self.show_start()
-        self.after(PC_TICK, self.pc_tick)
 
-    def _tail_pc_log(self) -> None:
-        """Copy the child's new log lines into the log; its last line goes under the bar."""
+    def _watch_pc_job(self, action: str, game: Path, work: Path, answer: Path, language: str) -> None:
+        log_path = answer.with_suffix(answer.suffix + ".log")
         try:
-            with (self.pc_answer.parent / (self.pc_answer.name + ".log")).open("rb") as handle:
-                handle.seek(self.pc_log_offset)
-                chunk = handle.read()
-        except OSError:
-            return
-        end = chunk.rfind(b"\n") + 1  # a line still being written waits for the next tick
-        if not end:
-            return
-        self.pc_log_offset += end
-        lines = [line for line in chunk[:end].decode("utf-8", "replace").splitlines() if line.strip()]
-        for line in lines:
-            self.log("  " + line)
-        if lines:
-            last = lines[-1].strip()
-            self.pc_operation_line.configure(text=last if len(last) <= 110 else last[:109] + "…")
+            answer.parent.mkdir(parents=True, exist_ok=True)
+            log_path.unlink(missing_ok=True)
+            child = pc_edition.start_job(action, game, work, answer, language)
+            offset = 0
+            while True:
+                finished = child.poll() is not None
+                last_line = ""
+                try:
+                    with log_path.open("rb") as stream:
+                        stream.seek(offset)
+                        lines = []
+                        for line in stream:
+                            if not finished and not line.endswith(b"\n"):
+                                break
+                            offset += len(line)
+                            message = line.decode("utf-8", "replace").rstrip()
+                            if message:
+                                last_line = message
+                                lines.append("  " + message)
+                                if len(lines) == 64:
+                                    self.log("\n".join(lines))
+                                    lines.clear()
+                        if lines:
+                            self.log("\n".join(lines))
+                except OSError:
+                    pass  # The child may still be opening the log.
+                self.messages.put(("pc-clock", (time.monotonic(), last_line)))
+                if finished:
+                    break
+                time.sleep(PC_TICK / 1000)
+            result = pc_edition.read_answer(answer)
+        except (OSError, PatchError) as error:
+            failure = error if isinstance(error, PatchError) else PatchError("pc_engine_failed", detail=error)
+            self.messages.put(("pc-done", ({}, failure)))
+        else:
+            self.messages.put(("pc-done", (result, None)))
 
-    def pc_tick(self) -> None:
-        if self.pc_job is None:
-            return
-        self._tail_pc_log()
-        self.pc_elapsed_line.configure(text=ui_text("pc_elapsed", elapsed=_elapsed(time.monotonic() - self.pc_started)))
-        if self.pc_job.poll() is None:
-            self.after(PC_TICK, self.pc_tick)
-            return
-        self._tail_pc_log()
+    def finish_pc(self, answer: dict, error: PatchError | None) -> None:
+        """Apply the child's answer, then run Check after Install and Remove translation."""
+        action, seconds = self.pc_action, time.monotonic() - self.pc_started
         self.pc_job = None
         self.pc_progress.stop()
-        self.finish_pc()
-
-    def finish_pc(self) -> None:
-        """Read the child's answer, then run Check after Install and Remove translation."""
-        action, seconds = self.pc_action, time.monotonic() - self.pc_started
-        error = None
         self.show_work_dir()  # the job used the working folder's space
-        try:
-            answer = pc_edition.read_answer(self.pc_answer)
-        except PatchError as failure:
-            error = failure
-            self.log(f"\nFAILED: {failure}")
+        if error is not None:
+            self.log(f"\nFAILED: {error}")
         if action == "status":
             if error is None:
                 self.pc_state, self.pc_language = answer.get("state"), answer.get("language")
@@ -1220,14 +1219,35 @@ class App(ctk.CTk):
 
     # ---------- event loop ----------
     def pump(self) -> None:
+        # Yield to input and repaint even if workers keep the queue continuously full.
+        deadline = time.monotonic() + 0.012
+        delay = 1
         try:
-            while True:
+            while time.monotonic() < deadline:
                 kind, value = self.messages.get_nowait()
                 if kind == "log":
                     self.log_view.configure(state="normal")
                     self.log_view.insert("end", value + "\n")
                     self.log_view.see("end")
                     self.log_view.configure(state="disabled")
+                elif kind == "pc-clock":
+                    observed, line = value
+                    self.pc_elapsed_line.configure(text=ui_text("pc_elapsed", elapsed=_elapsed(observed - self.pc_started)))
+                    if line:
+                        self.pc_operation_line.configure(text=line if len(line) <= 110 else line[:109] + "…")
+                elif kind == "pc-found":
+                    root, error = value
+                    self.pc_job = None
+                    if error is not None:
+                        self.pc_result = ("failed", 0.0)
+                        self.pc_error = error if isinstance(error, PatchError) else PatchError("pc_engine_failed", detail=error)
+                    elif root is not None and self.target == PC and not self.busy:
+                        self.pc_game, self.pc_state, self.pc_language, self.pc_version = root, None, None, None
+                        self.pc_recoverable = False
+                        self.run_pc("status")
+                    self.show_start()
+                elif kind == "pc-done":
+                    self.finish_pc(*value)
                 elif kind == "step":
                     key, state, self.step_detail = value
                     self.operation_line.configure(text=self.step_detail)
@@ -1293,12 +1313,12 @@ class App(ctk.CTk):
                 elif kind == "done":
                     self.finish(*value)
         except queue.Empty:
-            pass
+            delay = 100
         if self.closing and not self.busy and not any(t.is_alive() for t in self.control_threads):
             if self.worker_thread is None or not self.worker_thread.is_alive():
                 self.destroy()
                 return
-        self.after(100, self.pump)
+        self.after(delay, self.pump)
 
     def confirm_remove(self) -> None:
         # A plain dialog: removing writes the original files back and deletes no game data.
