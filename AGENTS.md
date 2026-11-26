@@ -53,7 +53,7 @@ After moving or renaming a doc, run `tools\research\check_references.py` and `to
 | `app/` | GUI (`hok_patcher.py`), device workflow (`patcher_core.py`, with its ADB client `adb_device.py`, its pristine layer `pristine_layer.py`, APK preparation `apk_preparation.py`, game-data pull `game_data_pull.py` and translation payload `translation_payload.py` (all four mixed into `Patcher`), and the interface strings and `PatchError` in `ui_strings.py`, all re-exported), APK rewrite + v2 signing (`apk_tools.py`), PC edition workflow (`pc_edition.py`: finding the game, the process guard, receipts, state, the `--pc-job` child) |
 | `tools/` | Pipeline: `languages`, `terminology`, staging (`build_device_patch`), rebuild (`package_rebuild`, `qts_builder`), append (`qts_insert`), textures (`device_extensions`, `sprite_table`, `mobile_graphics`), extra text (`extra_text`, `pb_text`, `unity_text`; lineup bins `lineup_codes`, `config_bin`), relocation (`qts_relocate`), PC edition (`engine_hooks`: every hook into the runtime; `pc_catalog`: the per-install catalog; `bc7_mode6`: the BC7 encoder for its atlas ports) |
 | `tools/research/` | Probes and offline checks, run by hand |
-| `crates/hok_bc7/` | The PC edition's BC7 mode 7 in Rust (PyO3), a bit-exact port of `bc7_mode6._mode7_python`; built by `app/build_exe.py` into `build/native/hok_bc7.pyd` |
+| `crates/hok_bc7/` | The PC edition's BC7 modes 6, 5, 4 and 7 and the search over them in Rust (PyO3), a bit-exact port of `bc7_mode6`'s Python modes; built by `app/build_exe.py` into `build/native/hok_bc7.pyd` |
 | `resources/runtime/` | Compiled `wxq_patch` translation runtime (from the PC patcher) |
 | `resources/catalog/` | English catalog (`catalog.json.gz`) plus the English catalog edits (`.blocks` / `.assets`) |
 | `resources/catalog_id/` | Indonesian catalog, plus only the catalog edits it re-draws (`<HASH>.blocks` + `previews/<HASH>.png`); every other payload is read from `catalog/` |
@@ -122,7 +122,7 @@ Module docstring, `from __future__ import annotations`, type hints, `pathlib.Pat
 
 **Freezing**
 
-- **Native mode 7**: `crates/hok_bc7` must give `bc7_mode6._mode7_python`'s bytes; check any change to either with `tools/research/check_bc7_native.py` and `tools/research/bc7_mode7_corpus.py replay --backend native --final` (lab notebook, 2026-11-26). The frozen `--smoketest` fails unless the native encoder ran. Source runs fall back to Python when it is not built; `HOK_BC7_MODE7=native|python` requires one.
+- **Native BC7**: `crates/hok_bc7` must give the bytes and decoded pixels of `bc7_mode6`'s Python modes (`_mode6`, `_separate`, `_mode7_python`) and `encode_block`'s Python search; check any change to either with `tools/research/check_bc7_native.py` and `tools/research/bc7_corpus.py replay --backend native --final` (lab notebook, 2026-11-26). The frozen `--smoketest` fails unless the native search ran through mode 7. Source runs fall back to Python when it is not built; `HOK_BC7_ENCODER=native|python` requires one.
 - **Runtime bytecode**: `resources/runtime/` is binary. A stdlib import it needs at freeze time goes in `HIDDEN_IMPORTS` in `app/build_exe.py`.
 - **Codec modules**: `app/build_exe.py` keeps `--collect-all` for `astc_encoder`, `ooz`, `texture2ddecoder` and `pypinyin` as margin. On PyInstaller 6.22 the `astc_encoder` and `pypinyin` flags are measured unneeded, the other two unmeasured; an emptied `HIDDEN_IMPORTS` is what fails. Check any freeze change with `--smoketest`. ([lab notebook](docs/lab-notebook.md), 2026-11-17)
 

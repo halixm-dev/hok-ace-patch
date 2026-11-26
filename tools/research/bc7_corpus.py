@@ -1,26 +1,27 @@
-"""Capture, replay and time the PC edition's BC7 mode 7 blocks (`tools/bc7_mode6.py`).
+"""Capture, replay and time the PC edition's hand-written BC7 modes (`tools/bc7_mode6.py`).
 
-Ticket `.scratch/pc-bc7-rust/issues/01-baseline.md`. Run from the project root, against a **copy** of
-the PC edition (packages `0 1 10 15 19`, `LocalFileList.json`, `WXQ.exe`), never the installed game:
+Tickets `.scratch/pc-bc7-rust/` (mode 7) and `.scratch/pc-bc7-search/` (modes 6, 5 and 4). Run from
+the project root, against a **copy** of the PC edition (packages `0 1 10 15 19`,
+`LocalFileList.json`, `WXQ.exe`), never the installed game:
 
-    .venv\\Scripts\\python.exe tools\\research\\bc7_mode7_corpus.py capture --game <copy> --work <dir>
-    .venv\\Scripts\\python.exe tools\\research\\bc7_mode7_corpus.py synthetic --work <dir>
-    .venv\\Scripts\\python.exe tools\\research\\bc7_mode7_corpus.py replay --work <dir> [--backend python|native] [--final]
-    .venv\\Scripts\\python.exe tools\\research\\bc7_mode7_corpus.py time-build --game <copy> --work <dir> \\
+    .venv\\Scripts\\python.exe tools\\research\\bc7_corpus.py capture --game <copy> --work <dir>
+    .venv\\Scripts\\python.exe tools\\research\\bc7_corpus.py synthetic --work <dir>
+    .venv\\Scripts\\python.exe tools\\research\\bc7_corpus.py replay --work <dir> [--backend python|native] [--final]
+    .venv\\Scripts\\python.exe tools\\research\\bc7_corpus.py time-build --game <copy> --work <dir> \\
         [--languages en id] [--runs 3] [--encoder python|native]
 
-``capture`` runs one instrumented cold `pc_catalog.build` per language, each in a fresh work folder,
-and records every block `encode_block` sends to mode 7 (also those mode 7 loses), with the atlas being
-ported. ``synthetic`` adds the hand-made cases: blank, solid, transparent colored pixels, alpha edges
-and tied partition scores, plus seeded random blocks. Each record holds the 64 input bytes, the
-Python mode 7 candidate, that candidate's pixels as texture2ddecoder decodes them, and the final
-`encode_block` bytes (`<work>/corpus/<name>.bin`, `RECORD` bytes each, with `<name>.json` beside it).
+``capture`` runs one instrumented cold `pc_catalog.build` per language with the Python encoder, each
+in a fresh work folder, and records every block `encode_block` searched past etcpak, with the atlas
+being ported. ``synthetic`` adds the hand-made cases: blank, solid, transparent colored pixels, alpha
+edges and tied partition scores, plus seeded random blocks. Each record holds the 64 input bytes, the
+final `encode_block` bytes, then for each of `MODES` the Python reference's block and its decoded
+RGBA (`<work>/corpus/<name>.bin`, `RECORD` bytes each, with `<name>.json` beside it).
 
-``replay`` re-encodes every record's input with the chosen mode 7 backend and fails on the first
-byte that differs, naming the input, the partition and the byte; it then times the corpus through
-`encode_mode7` alone (Python call, packing and decode included). ``time-build`` runs the unprofiled
-cold builds, each in its own process and fresh work folder, then one warm re-run per language, and
-prints the medians. Capture overhead never enters a timing. Writes only under <work>.
+``replay`` re-encodes every record's input in every mode with the chosen backend and fails on the
+first block or decoded pixel that differs; with ``--final`` it also compares `encode_block`'s bytes.
+It then times `encode_block` over each corpus. ``time-build`` runs the unprofiled cold builds, each in
+its own process and fresh work folder, then one warm re-run per language, and prints the medians.
+Capture overhead never enters a timing. Writes only under <work>.
 """
 from __future__ import annotations
 
@@ -42,25 +43,41 @@ sys.path.append(str(ROOT / "resources" / "runtime"))
 
 import bc7_mode6  # noqa: E402
 
-RECORD = 64 + 16 + 64 + 16  # input, mode 7 candidate, its decoded RGBA, final encode_block bytes
+MODES = ((6, 0), (5, 0), (4, 0), (4, 1), (7, 0))  # (mode, index mode), in `ENCODERS` order
+MODE_BYTES = 16 + 64  # one mode's block and its decoded RGBA
+RECORD = 64 + 16 + MODE_BYTES * len(MODES)  # input, final encode_block bytes, then each mode
 
 
 def _pixels(raw: bytes) -> list[tuple[int, int, int, int]]:
     return [tuple(raw[i:i + 4]) for i in range(0, 64, 4)]
 
 
-def _flat(pixels) -> bytes:
-    return bytes(c for p in pixels for c in p)
+def _use(backend: str) -> None:
+    """Make `encode_block` search with <backend> from here on, counters reset."""
+    bc7_mode6._BACKEND.clear()
+    os.environ[bc7_mode6.ENCODER_ENV] = backend
+    for counter in (bc7_mode6.SEARCH_CALLS, bc7_mode6.MODE7_CALLS):
+        for key in counter:
+            counter[key] = 0
+    bc7_mode6.backend_name()
 
 
 def _record(raw: bytes, final: bytes | None = None) -> bytes:
     """One corpus record for 64 input bytes, from the Python reference."""
-    pixels = _pixels(raw)
-    candidate, _decoded = bc7_mode6._mode7_python(pixels)
-    decoded = _flat(bc7_mode6._decode(candidate))
     if final is None:
-        final = bc7_mode6.encode_block(pixels)
-    return raw + candidate + decoded + final
+        _use("python")
+        final = bc7_mode6.encode_block(_pixels(raw))
+    reference = bc7_mode6.mode_backend("python")
+    return raw + final + b"".join(b"".join(reference(raw, mode, index_mode)) for mode, index_mode in MODES)
+
+
+def _modes(record: bytes) -> list[tuple[bytes, bytes]]:
+    """A record's per-mode ``(block, decoded RGBA)``, in `MODES` order."""
+    out = []
+    for n in range(len(MODES)):
+        at = 80 + n * MODE_BYTES
+        out.append((record[at:at + 16], record[at + 16:at + MODE_BYTES]))
+    return out
 
 
 def _environment() -> dict:
@@ -91,11 +108,10 @@ def _write(work: Path, name: str, records: list[bytes], meta: dict) -> None:
     folder.mkdir(parents=True, exist_ok=True)
     blob = b"".join(records)
     (folder / f"{name}.bin").write_bytes(blob)
-    meta = {**meta, "records": len(records), "record_bytes": RECORD,
+    meta = {**meta, "records": len(records), "record_bytes": RECORD, "modes": MODES,
             "sha256": hashlib.sha256(blob).hexdigest(),
             "inputs_sha256": hashlib.sha256(b"".join(r[:64] for r in records)).hexdigest(),
-            "candidates_sha256": hashlib.sha256(b"".join(r[64:80] for r in records)).hexdigest(),
-            "finals_sha256": hashlib.sha256(b"".join(r[144:160] for r in records)).hexdigest()}
+            "finals_sha256": hashlib.sha256(b"".join(r[64:80] for r in records)).hexdigest()}
     (folder / f"{name}.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
     print(f"{name}: {len(records)} records, sha256 {meta['sha256'][:16]}")
 
@@ -120,27 +136,21 @@ def capture(game: Path, work: Path, languages: list[str]) -> None:
     mg.label_atlas = tracking(mg.label_atlas, lambda args: str(args[1]).upper())
 
     for language in languages:
-        seen: list[tuple[bytes, str | None]] = []
-        reached: list[bool] = []
-        calls = {"encode_block": 0, "mode7": 0, "mode7_won": 0}
+        seen: list[tuple[bytes, bytes, str | None]] = []
+        calls = {"encode_block": 0, "searched": 0, "mode7": 0}
         reference_encode = bc7_mode6.encode_block
-        python_mode7 = bc7_mode6._mode7_python
-
-        def mode7(pixels):
-            reached[-1] = True
-            calls["mode7"] += 1
-            return python_mode7(pixels)
 
         def encode_block(pixels):
             calls["encode_block"] += 1
-            reached.append(False)
+            searched, mode7 = bc7_mode6.SEARCH_CALLS["python"], bc7_mode6.MODE7_CALLS["python"]
             final = reference_encode(pixels)
-            if reached[-1]:
-                seen.append((_flat(pixels) + final, current["atlas"]))
+            if bc7_mode6.SEARCH_CALLS["python"] > searched:
+                calls["searched"] += 1
+                calls["mode7"] += bc7_mode6.MODE7_CALLS["python"] - mode7
+                seen.append((bytes(c for p in pixels for c in p), final, current["atlas"]))
             return final
 
-        encoders = bc7_mode6.ENCODERS
-        bc7_mode6.ENCODERS = tuple(mode7 if e is bc7_mode6._mode7 else e for e in encoders)
+        _use("python")
         bc7_mode6.encode_block = encode_block
         try:
             build_work = work / f"capture-{language}"
@@ -148,20 +158,21 @@ def capture(game: Path, work: Path, languages: list[str]) -> None:
                 raise SystemExit(f"{build_work} exists; capture needs a fresh work folder")
             pc_catalog.build(game, ROOT / "resources", language, build_work, version=version)
         finally:
-            bc7_mode6.ENCODERS = encoders
             bc7_mode6.encode_block = reference_encode
         records, atlases = [], {}
-        for blob, atlas in seen:
-            raw, final = blob[:64], blob[64:]
+        kept = {f"{m}/{i}": 0 for m, i in MODES}
+        kept["etcpak"] = 0
+        for raw, final, atlas in seen:
             record = _record(raw, final)
             records.append(record)
-            if bc7_mode6._mode7_python(_pixels(raw))[0] == final:
-                calls["mode7_won"] += 1
+            winner = next((f"{m}/{i}" for (m, i), (block, _) in zip(MODES, _modes(record)) if block == final),
+                          "etcpak")
+            kept[winner] += 1
             atlases[atlas or "?"] = atlases.get(atlas or "?", 0) + 1
         distinct = len({r[:64] for r in records})
         _write(work, f"game-{language}", records,
                {"language": language, "game": str(game), "game_version": _game_version(game),
-                "atlas_blocks": atlases, "calls": calls, "distinct_inputs": distinct,
+                "atlas_blocks": atlases, "calls": calls, "kept": kept, "distinct_inputs": distinct,
                 "environment": _environment()})
 
 
@@ -198,7 +209,7 @@ def _synthetic_inputs(seed: int = 7, random_blocks: int = 2000) -> list[bytes]:
             palette = [tuple(rng.randrange(0, 256, 85) for _ in range(4)) for _ in range(2)]
             pixels = [rng.choice(palette) for _ in range(16)]
         cases.append(pixels)
-    return [_flat(p) for p in cases]
+    return [bytes(c for p in pixels for c in p) for pixels in cases]
 
 
 def synthetic(work: Path) -> None:
@@ -211,53 +222,52 @@ def _corpora(work: Path) -> list[tuple[str, bytes]]:
 
 
 def replay(work: Path, backend: str, final: bool = False) -> int:
-    """Parity on every record (and, with <final>, `encode_block`'s bytes), then the corpus timed
-    through `encode_mode7` alone."""
-    encode = bc7_mode6.mode7_backend(backend)
-    bc7_mode6._MODE7.update(name=backend, encode=None if backend == "python" else encode)
+    """Parity on every record in every mode (and, with <final>, `encode_block`'s bytes), then
+    `encode_block` timed over each corpus."""
+    encode = bc7_mode6.mode_backend(backend)
+    _use(backend)
     failures = 0
     for name, blob in _corpora(work):
+        if len(blob) % RECORD:
+            print(f"{name}: {len(blob)} bytes is not a whole number of {RECORD}-byte records")
+            return 1
         count = len(blob) // RECORD
         for n in range(count):
             record = blob[n * RECORD:(n + 1) * RECORD]
-            raw, candidate, decoded = record[:64], record[64:80], record[80:144]
-            got = encode(raw)
-            if got != candidate:
-                first = next(i for i in range(16) if got[i] != candidate[i])
-                print(f"MISMATCH {name}[{n}] input {raw.hex()} partition expected {candidate[1] & 0x3F} "
-                      f"got {got[1] & 0x3F}; first differing byte {first}: expected {candidate.hex()} "
-                      f"got {got.hex()}")
-                failures += 1
-                if failures >= 5:
-                    return 1
-                continue
-            if _flat(bc7_mode6._decode(got)) != decoded:
-                print(f"DECODE MISMATCH {name}[{n}]")
-                failures += 1
-            if final and bc7_mode6.encode_block(_pixels(raw)) != record[144:160]:
+            raw = record[:64]
+            for (mode, index_mode), want in zip(MODES, _modes(record)):
+                got = encode(raw, mode, index_mode)
+                if got != want:
+                    part = "block" if got[0] != want[0] else "decoded pixels"
+                    print(f"MISMATCH {name}[{n}] mode {mode}/{index_mode} {part}: input {raw.hex()} "
+                          f"expected {want[0].hex()} got {got[0].hex()}")
+                    failures += 1
+                    if failures >= 5:
+                        return 1
+            if final and bc7_mode6.encode_block(_pixels(raw)) != record[64:80]:
                 print(f"FINAL MISMATCH {name}[{n}] input {raw.hex()}")
                 failures += 1
-        calls = dict(bc7_mode6.MODE7_CALLS)
-        print(f"{name}: {count} records, {backend} mode 7 {'matches' if not failures else 'DIFFERS'}"
-              + (f"; encode_block matches, mode 7 calls {calls}" if final and not failures else ""))
+        print(f"{name}: {count} records x {len(MODES)} modes, {backend} "
+              f"{'matches' if not failures else 'DIFFERS'}"
+              + (f"; encode_block matches, searched {dict(bc7_mode6.SEARCH_CALLS)}, "
+                 f"mode 7 {dict(bc7_mode6.MODE7_CALLS)}" if final and not failures else ""))
     for name, blob in _corpora(work):
-        inputs = [blob[n * RECORD:n * RECORD + 64] for n in range(len(blob) // RECORD)]
+        inputs = [_pixels(blob[n * RECORD:n * RECORD + 64]) for n in range(len(blob) // RECORD)]
         runs = []
         for _ in range(3):
             started = time.perf_counter()
-            for raw in inputs:
-                block = encode(raw)
-                bc7_mode6._decode(block)
+            for pixels in inputs:
+                bc7_mode6.encode_block(pixels)
             runs.append(time.perf_counter() - started)
-        print(f"{name}: {backend} mode 7 + decode over {len(inputs)} blocks: median {statistics.median(runs):.3f} s "
-              f"({', '.join(f'{r:.3f}' for r in runs)})")
+        print(f"{name}: encode_block via {backend} over {len(inputs)} blocks: median "
+              f"{statistics.median(runs):.3f} s ({', '.join(f'{r:.3f}' for r in runs)})")
     return 1 if failures else 0
 
 
 def time_build(game: Path, work: Path, languages: list[str], runs: int, encoder: str) -> None:
     """Cold builds in fresh processes and work folders, then one warm re-run of the last."""
     results: dict[str, dict] = {}
-    env = {**os.environ, "HOK_BC7_MODE7": encoder}
+    env = {**os.environ, bc7_mode6.ENCODER_ENV: encoder}
     for language in languages:
         cold, warm = [], []
         for run in range(runs):

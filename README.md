@@ -147,10 +147,10 @@ Run these commands from the repository root in Windows Command Prompt:
 | Build the Windows exe | `build.bat` | Creates `dist\HOK ACE Language Patcher.exe` |
 | Build only the native BC7 encoder | `.venv\Scripts\python.exe app\build_exe.py --native-only` | Creates `build\native\hok_bc7.pyd`, which source runs also load |
 
-`build.bat` also needs Rust ([rustup](https://rustup.rs)): it builds the PC edition's BC7 mode 7
-encoder (`crates/hok_bc7`) with the toolchain pinned in its `rust-toolchain.toml`. Source runs work
-without it and fall back to the Python encoder; set `HOK_BC7_MODE7=native` or `python` to require
-one or the other.
+`build.bat` also needs Rust ([rustup](https://rustup.rs)): it builds the PC edition's native BC7
+encoder (`crates/hok_bc7`, modes 6, 5, 4 and 7) with the toolchain pinned in its `rust-toolchain.toml`.
+Source runs work without it and fall back to the Python encoder; set `HOK_BC7_ENCODER=native` or
+`python` to require one or the other.
 
 If `py -3.12` is unavailable, select your Python 3.12 executable before setup:
 

@@ -91,7 +91,7 @@ def build() -> None:
     args += ["--hidden-import", "run_artifacts"]
     # The PC edition: `hok_patcher` imports its workflow only for a PC job, and `bc7_mode6` imports the
     # native BC7 encoder only when it encodes; named here so the freeze never depends on finding them.
-    # `hok_bc7` is its native mode 7 (`build_native`); the frozen smoke test fails without it.
+    # `hok_bc7` is its native BC7 search (`build_native`); the frozen smoke test fails without it.
     for module in ("pc_edition", "pc_catalog", "engine_hooks", "bc7_mode6", "etcpak", "hok_bc7"):
         args += ["--hidden-import", module]
     args.append(str(APP / "hok_patcher.py"))

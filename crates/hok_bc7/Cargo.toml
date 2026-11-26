@@ -3,7 +3,7 @@ name = "hok_bc7"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "BC7 mode 7 for the PC edition's atlas ports: a port of tools/bc7_mode6.py's _mode7_python"
+description = "BC7 modes 6, 5, 4 and 7 for the PC edition's atlas ports: a port of tools/bc7_mode6.py's Python modes"
 license = "MIT"
 
 [lib]

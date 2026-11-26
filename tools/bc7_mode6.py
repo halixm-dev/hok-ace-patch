@@ -23,12 +23,13 @@ port measures them (`mobile_graphics.BLOCK_MATCH_MEAN`): each pixel's color weig
 the color of a transparent pixel costs nothing.
 
 The Python modes alone cost about 3.7 ms a block, which made BC7 the slow step of a PC catalog build
-(lab notebook, 2026-11-20); etcpak was added for that, and the Python modes remain for the blocks it
-cannot bring within the match threshold.
+(lab notebook, 2026-11-20); etcpak was added for that, and the hand-written modes remain for the
+blocks it cannot bring within the match threshold.
 
-Mode 7 runs natively (`crates/hok_bc7`, Rust) when that extension loads. It gives
-`_mode7_python`'s bytes, and it cut a cold PC catalog build from 80 s to 28 s (lab notebook,
-2026-11-26). `MODE7_ENV` requires one backend or the other.
+Those modes and the search over them run natively (`crates/hok_bc7`, Rust) when that extension
+loads; the Python below is the reference they must match byte for byte. Native mode 7 cut a cold PC
+catalog build from 80 s to 28 s, and native modes 6, 5 and 4 cut it further (lab notebook,
+2026-11-26, "PC BC7 modes 6, 5 and 4 in Rust"). `ENCODER_ENV` requires one backend or the other.
 
 Started from the azydev fork's mode-6 encoder (hok-ace-patcher 1.10.1.3, `tools/bc7_mode6.py`).
 """
@@ -64,11 +65,13 @@ ANCHORS2 = (
     6, 2, 6, 8, 15, 15, 2, 2, 15, 15, 15, 15, 15, 2, 2, 15,
 )
 TRANSPARENT_WEIGHT = 1e-3  # a fully transparent pixel's color still nudges a line, barely
-# Mode 7's backend: "native" requires the Rust extension (`crates/hok_bc7`), "python" forces the
-# reference below; unset, native when it loads, else Python. Checks set it so no fallback passes.
-MODE7_ENV = "HOK_BC7_MODE7"
-_MODE7: dict = {}  # the chosen backend, resolved once by `mode7_backend_name`
-MODE7_CALLS = {"native": 0, "python": 0}  # blocks each backend encoded in this process
+# The hand-written modes' backend: "native" requires the Rust extension (`crates/hok_bc7`), "python"
+# forces the reference below; unset, native when it loads, else Python. Checks set it so no fallback
+# passes.
+ENCODER_ENV = "HOK_BC7_ENCODER"
+_BACKEND: dict = {}  # the chosen backend, resolved once by `backend_name`
+SEARCH_CALLS = {"native": 0, "python": 0}  # blocks each backend searched past etcpak in this process
+MODE7_CALLS = {"native": 0, "python": 0}  # of those, the blocks that reached mode 7
 
 Pixel = tuple[int, int, int, int]
 # A quantizer: an endpoint as floats -> (its code for packing, its decoded 8-bit values).
@@ -377,14 +380,15 @@ def _mode7_python(pixels: list[Pixel]) -> tuple[bytes, list[tuple[int, ...]]]:
 
 
 def _load_native():
-    """The native mode 7 module (`hok_bc7`), or None when it is not built.
+    """The native encoder module (`hok_bc7`), or None when it is not built.
 
     Frozen, it ships beside the other modules. From source it is imported when on the path, else
-    read from `build/native/hok_bc7.pyd`, where `app/build_exe.py` puts it.
+    read from `build/native/hok_bc7.pyd`, where `app/build_exe.py` puts it. A build older than the
+    native search (mode 7 alone) counts as not built.
     """
     try:
         import hok_bc7
-        return hok_bc7
+        return hok_bc7 if hasattr(hok_bc7, "encode_search") else None
     except ImportError:
         pass
     if getattr(sys, "frozen", False):
@@ -398,54 +402,69 @@ def _load_native():
     loader = ExtensionFileLoader("hok_bc7", str(built))
     module = module_from_spec(spec_from_loader("hok_bc7", loader))
     loader.exec_module(module)
+    if not hasattr(module, "encode_search"):
+        return None
     sys.modules["hok_bc7"] = module
     return module
 
 
-def _python_mode7_bytes(rgba: bytes) -> bytes:
+def _python_mode_bytes(rgba: bytes, mode: int, index_mode: int = 0) -> tuple[bytes, bytes]:
     if len(rgba) != 64:
-        raise ValueError(f"BC7 mode 7 needs 64 RGBA bytes, got {len(rgba)}")
-    return _mode7_python([tuple(rgba[i:i + 4]) for i in range(0, 64, 4)])[0]
+        raise ValueError(f"a BC7 block needs 64 RGBA bytes, got {len(rgba)}")
+    if mode not in (4, 5, 6, 7) or index_mode not in (0, 1) or (index_mode and mode != 4):
+        raise ValueError(f"no BC7 mode {mode} with index mode {index_mode}")
+    pixels = [tuple(rgba[i:i + 4]) for i in range(0, 64, 4)]
+    if mode == 6:
+        block, decoded = _mode6(pixels)
+    elif mode in (4, 5):
+        block, decoded = _separate(pixels, mode, index_mode)
+    else:
+        block, decoded = _mode7_python(pixels)
+    return block, bytes(c for pixel in decoded for c in pixel)
+
+
+def mode_backend(name: str | None = None) -> Callable[..., tuple[bytes, bytes]]:
+    """``encode_mode(rgba, mode, index_mode=0) -> (block, decoded RGBA)`` for <name>.
+
+    <name> is ``native`` or ``python``; with none, the backend `ENCODER_ENV` selects. ``native``
+    raises when the extension is absent, so a check that names it never passes on the fallback.
+    """
+    name = name or backend_name()
+    if name == "python":
+        return _python_mode_bytes
+    if name != "native":
+        raise ValueError(f"unknown BC7 encoder backend {name!r}")
+    module = _load_native()
+    if module is None:
+        raise RuntimeError("the native BC7 encoder (hok_bc7) is not built")
+    return module.encode_mode
 
 
 def mode7_backend(name: str | None = None) -> Callable[[bytes], bytes]:
-    """Mode 7 as ``encode_mode7(rgba: bytes) -> bytes`` for <name> (``native`` or ``python``).
-
-    With no name, the backend `MODE7_ENV` selects. ``native`` raises when the extension is absent,
-    so a check that names it never passes on the fallback.
-    """
-    name = name or mode7_backend_name()
-    if name == "python":
-        return _python_mode7_bytes
-    if name != "native":
-        raise ValueError(f"unknown BC7 mode 7 backend {name!r}")
-    module = _load_native()
-    if module is None:
-        raise RuntimeError("the native BC7 mode 7 encoder (hok_bc7) is not built")
-    return module.encode_mode7
+    """Mode 7 alone as ``encode_mode7(rgba: bytes) -> bytes`` for <name>, as `mode_backend`."""
+    encode = mode_backend(name)
+    return lambda rgba: encode(rgba, 7)[0]
 
 
-def mode7_backend_name() -> str:
-    """The backend `_mode7` uses, chosen once: `MODE7_ENV` if set, else native when it loads."""
-    if not _MODE7:
-        wanted = os.environ.get(MODE7_ENV, "").strip().lower()
+def backend_name() -> str:
+    """The backend `encode_block` searches with, chosen once: `ENCODER_ENV` if set, else native
+    when it loads."""
+    if not _BACKEND:
+        wanted = os.environ.get(ENCODER_ENV, "").strip().lower()
         if wanted not in ("", "native", "python"):
-            raise ValueError(f"{MODE7_ENV}={wanted!r}: expected native or python")
+            raise ValueError(f"{ENCODER_ENV}={wanted!r}: expected native or python")
         if wanted == "python" or (not wanted and _load_native() is None):
-            _MODE7["name"], _MODE7["encode"] = "python", None
+            _BACKEND["name"], _BACKEND["module"] = "python", None
         else:
-            _MODE7["name"], _MODE7["encode"] = "native", mode7_backend("native")
-    return _MODE7["name"]
+            mode_backend("native")  # raises when the extension is absent
+            _BACKEND["name"], _BACKEND["module"] = "native", _load_native()
+    return _BACKEND["name"]
 
 
 def _mode7(pixels: list[Pixel]) -> tuple[bytes, list[tuple[int, ...]]]:
-    """Mode 7 through the chosen backend; the native block is decoded by texture2ddecoder."""
-    name = mode7_backend_name()
-    MODE7_CALLS[name] += 1
-    if name == "python":
-        return _mode7_python(pixels)
-    block = _MODE7["encode"](bytes(c for pixel in pixels for c in pixel))
-    return block, _decode(block)
+    """The Python search's mode 7, counted."""
+    MODE7_CALLS["python"] += 1
+    return _mode7_python(pixels)
 
 
 def _mode5(pixels: list[Pixel]) -> tuple[bytes, list[tuple[int, ...]]]:
@@ -460,7 +479,8 @@ def _mode4_colour3(pixels: list[Pixel]) -> tuple[bytes, list[tuple[int, ...]]]:
     return _separate(pixels, 4, 1)
 
 
-# Cheapest first; `encode_block` stops at the first that comes within GOOD_ENOUGH.
+# Cheapest first; `encode_block` stops at the first that comes within GOOD_ENOUGH. The native
+# search (`hok_bc7.encode_search`) runs the same order.
 ENCODERS = (_mode6, _mode5, _mode4, _mode4_colour3, _mode7)
 
 
@@ -504,6 +524,13 @@ def encode_block(pixels: list[Pixel]) -> bytes:
     best = (mismatch(pixels, _decode(native)), native)
     if best[0] <= NATIVE_GOOD_ENOUGH:
         return native
+    name = backend_name()
+    SEARCH_CALLS[name] += 1
+    if name == "native":
+        found, tried = _BACKEND["module"].encode_search(bytes(c for pixel in pixels for c in pixel), best[0])
+        if tried == len(ENCODERS):
+            MODE7_CALLS["native"] += 1
+        return native if found is None else found
     for encode in ENCODERS:
         block, decoded = encode(pixels)
         error = mismatch(pixels, decoded)
