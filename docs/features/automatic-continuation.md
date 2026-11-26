@@ -173,6 +173,9 @@ references; neither may contradict the other. UI/status is a projection, never a
 | Android | `RunStore` owns durable authorization and discovery and links `SessionJournal`/`FirstSetupJournal` by id. `sessions/coordinator.lock` serializes claim, dispatch, setup and recovery (coordinator lock first, then the run store). Service busy flags are UI aids. |
 | Both | `GameFileLock` semantics for game-file scripts, with descriptor inheritance so a child still writing holds the lock; an unknown live lock is never broken on a timeout. |
 
+On Windows, a USB copy that differs from a stable phone checksum is a retryable read failure.
+If the phone's APK path or checksum changes during the read, recovery requires a new verification.
+
 A run never retargets itself to a different phone, provider, language or action. Different settings on
 a later explicit Start create a new run and use only identity-compatible cached work. No cross-patcher
 pending-run or delta import. Records are bounded; unsupported schemas, traversal, links, duplicate

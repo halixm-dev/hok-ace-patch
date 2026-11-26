@@ -5,11 +5,13 @@ import android.content.Intent
 import android.content.ComponentName
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
+import android.view.View
 import android.widget.Button
 import android.widget.ScrollView
 import android.widget.TextView
@@ -134,9 +136,16 @@ class MainActivity : Activity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
-        window.setDecorFitsSystemWindows(false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+        } else {
+            window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        }
         DiagnosticTrace.init(this)
         DiagnosticTrace.event("ui", "Activity created; restored ${state != null}, worker running ${PatchWorkerService.isWorking}")
         permissionRequested = state?.getBoolean("permission-requested") ?: false
@@ -188,7 +197,7 @@ class MainActivity : Activity() {
                 "pair" -> pairWireless()
                 "wireless_settings" -> openWirelessDebugging()
                 "provider:shizuku", "provider:wireless", "provider:root" -> {
-                    val chosen = ShellProvider.of(key.removePrefix("provider:"))
+                    val chosen = ShellProvider.of(key.removePrefix("provider:"), Build.VERSION.SDK_INT)
                     // A saved action keeps the provider it was started with until Stop safely resolves it.
                     if (busy || automatic || PatchWorkerService.isWorking || savedRun != null) home.provider(provider())
                     else runCatching { ShellProvider.set(this, chosen) }
@@ -484,7 +493,7 @@ class MainActivity : Activity() {
             busy && automatic -> home.show("Checking game files", "Please wait. We are checking the saved game app and recovery files.", "Please wait", "start", false, GuidedHome.Stage.WORKING)
             // Unreadable records: the recovery options are the action; Save log for help stays among them, secondary.
             pending.isFailure -> home.show("Recovery needs attention", "Keep the game closed. Use recovery first.", "Open recovery options", "recovery_options", true, GuidedHome.Stage.ATTENTION)
-            !provider.available -> home.show("Choose a shell provider", notReady(provider), "Start", "start",
+            !provider.available -> home.show("Choose a shell provider", FailureText.wirelessNeedsAndroid11(this), "Start", "start",
                 pending.getOrDefault(false), GuidedHome.Stage.ACCESS)
             provider == ShellProvider.WIRELESS && !WirelessDebugging.onWifi(this) -> home.show("Connect to Wi-Fi",
                 WirelessDebugging.NO_WIFI, "Start", "start", pending.getOrDefault(false), GuidedHome.Stage.ACCESS)

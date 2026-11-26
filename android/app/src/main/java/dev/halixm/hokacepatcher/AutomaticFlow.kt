@@ -29,7 +29,7 @@ internal fun MainActivity.beginAutomatic(explicit: Boolean = false) {
     val provider = provider()
     val waits = savedRun != null
     if (!provider.available) {
-        stopAutomatic(); home.message(notReady(provider), failure = true); return
+        stopAutomatic(); home.message(FailureText.wirelessNeedsAndroid11(this), failure = true); return
     }
     if (provider == ShellProvider.WIRELESS) wirelessRefusal()?.let {
         // The saved provider is never swapped for another: wait for it, showing what it needs.
@@ -79,9 +79,6 @@ internal fun MainActivity.pairWireless() {
     if (!WirelessDebugging.openSettings(this))
         home.message("Open Settings, then Developer options, then Wireless debugging.", failure = true)
 }
-
-/** The guide's line for a provider this build cannot start yet. */
-internal fun MainActivity.notReady(provider: ShellProvider) = FailureText.notReady(this, provider)
 
 internal fun MainActivity.stopAutomatic() { automatic = false; removing = false; awaitingToken = null; awaitingAction = null; waitingForShizuku = false; waitingForDownloads = null; waitingForAccess = false; stopping = false; continuing = false; recoveryOnly = false }
 

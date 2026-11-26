@@ -69,7 +69,7 @@ object ShellServiceStarter {
         }
     }
 
-    /** `IContentProvider.call` gained an AttributionSource in API 31; API 30 takes a package and feature id. */
+    /** Android 10 takes the caller package, Android 11 adds a feature ID, and Android 12 uses AttributionSource. */
     private fun call(provider: Any, authority: String, token: String, extras: Bundle): Bundle? {
         val methods = Class.forName("android.content.IContentProvider").methods.filter { it.name == "call" }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -77,8 +77,12 @@ object ShellServiceStarter {
             val source = AttributionSource.Builder(Process.myUid()).setPackageName(caller()).build()
             return method.invoke(provider, source, authority, ATTACH, token, extras) as Bundle?
         }
-        val method = methods.first { it.parameterTypes.size == 6 }
-        return method.invoke(provider, caller(), null, authority, ATTACH, token, extras) as Bundle?
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val method = methods.first { it.parameterTypes.size == 6 }
+            return method.invoke(provider, caller(), null, authority, ATTACH, token, extras) as Bundle?
+        }
+        val method = methods.first { it.parameterTypes.size == 5 }
+        return method.invoke(provider, caller(), authority, ATTACH, token, extras) as Bundle?
     }
 
     private fun caller() = if (Process.myUid() == WorkerAccess.ROOT_UID) ROOT else SHELL

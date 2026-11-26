@@ -5,9 +5,11 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Insets
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.RippleDrawable
+import android.os.Build
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.RelativeSizeSpan
@@ -16,6 +18,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsets
 import android.widget.Button
 import android.widget.GridLayout
 import android.widget.ImageButton
@@ -165,7 +168,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
     /** ② Shell provider: Wireless debugging, Shizuku, then Root, in [ShellProvider] order. */
     private val providers = RadioGroup(activity).apply {
         tag = "provider-picker"; orientation = LinearLayout.VERTICAL
-        ShellProvider.entries.forEach { provider ->
+        ShellProvider.entries.filter { it.available }.forEach { provider ->
             val label = ui(provider.label)
             val description = ui(when (provider) {
                 ShellProvider.WIRELESS -> "Pair over Wi-Fi. No extra app needed."
@@ -316,13 +319,22 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             addView(scroll)
             addView(actions)
             setOnApplyWindowInsetsListener { view, insets ->
-                val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars() or
-                    android.view.WindowInsets.Type.displayCutout())
+                val bars = systemBarInsets(insets)
                 view.setPadding(bars.left, bars.top, bars.right, 0)
                 actions.setPadding(dp(16), dp(4), dp(16), dp(4) + bars.bottom)
                 insets
             }
         })
+    }
+
+    @Suppress("DEPRECATION")
+    private fun systemBarInsets(insets: WindowInsets): Insets {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+        }
+        val cutout = insets.displayCutout
+        return Insets.max(insets.systemWindowInsets, Insets.of(cutout?.safeInsetLeft ?: 0,
+            cutout?.safeInsetTop ?: 0, cutout?.safeInsetRight ?: 0, cutout?.safeInsetBottom ?: 0))
     }
 
     fun show(title: String, instruction: String, label: String, action: String, recoveryNeeded: Boolean,
@@ -496,10 +508,10 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
 
     /** Show <provider> as chosen, without reporting it back as a new choice, and its guide. */
     fun provider(provider: ShellProvider) {
-        val button = providers.findViewWithTag<RadioButton>("provider-${provider.key}") ?: return
-        if (!button.isChecked) {
+        val button = providers.findViewWithTag<RadioButton>("provider-${provider.key}")
+        if (button?.isChecked != true) {
             choosingProvider = true
-            try { providers.check(button.id) } finally { choosingProvider = false }
+            try { providers.check(button?.id ?: View.NO_ID) } finally { choosingProvider = false }
         }
         if (guideShown == provider) return
         guideShown = provider
@@ -513,7 +525,7 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
 
     /** Each provider's numbered steps; one this build cannot start says so instead. */
     private fun guideLines(provider: ShellProvider): List<String> = when {
-        !provider.available -> listOf(UiText.string(activity, "provider_not_ready", "provider" to ui(provider.label)))
+        !provider.available -> listOf(FailureText.wirelessNeedsAndroid11(activity))
         provider == ShellProvider.WIRELESS -> listOf(ui("1. Connect this phone to Wi-Fi."),
             ui("2. Turn on Developer options: in About phone, tap Build number seven times."),
             ui("3. In Developer options, turn on Wireless debugging."),
@@ -524,7 +536,9 @@ class GuidedHome(private val activity: Activity, private val invoke: (String) ->
             ui("3. Come back here and tap Start. The patcher writes the game files itself and never replaces the game app."),
             ui("4. Hiding root from the game is up to you; the patcher does not touch it."))
 
-        else -> listOf(ui("1. Install Shizuku from Google Play."), ui("2. Start Shizuku, following the steps it shows."),
+        else -> listOf(ui("1. Install Shizuku from Google Play."),
+            ui(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) "2. Start Shizuku, following the steps it shows."
+                else "2. In Shizuku, follow Start by connecting to a computer. Repeat after each phone reboot."),
             ui("3. Come back here and tap Start. Allow HOK ACE when Shizuku asks."))
     }
 

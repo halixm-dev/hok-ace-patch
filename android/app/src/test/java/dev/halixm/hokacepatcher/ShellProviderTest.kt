@@ -10,15 +10,22 @@ import org.junit.Test
 /** The shell provider choice, the worker's uid dispatch and the provider-specific strings. */
 class ShellProviderTest {
     @Test fun eachProviderReadsBackFromTheKeyItIsSavedUnder() {
-        ShellProvider.entries.forEach { assertEquals(it, ShellProvider.of(it.key)) }
+        ShellProvider.entries.forEach { assertEquals(it, ShellProvider.of(it.key, 30)) }
         assertEquals(ShellProvider.entries.size, ShellProvider.entries.map { it.key }.toSet().size)
     }
 
-    @Test fun nothingSavedOrAnUnknownKeyIsShizuku() {
-        // Nothing saved, or a key this build does not know, is Wireless debugging.
-        assertEquals(ShellProvider.WIRELESS, ShellProvider.of(null))
-        assertEquals(ShellProvider.WIRELESS, ShellProvider.of("adb"))
-        assertEquals(ShellProvider.WIRELESS, ShellProvider.DEFAULT)
+    @Test fun android11DefaultsToWirelessDebugging() {
+        assertEquals(ShellProvider.WIRELESS, ShellProvider.of(null, 30))
+        assertEquals(ShellProvider.WIRELESS, ShellProvider.of("adb", 30))
+    }
+
+    @Test fun android10OffersShizukuAndRootAndDefaultsToShizuku() {
+        assertFalse(ShellProvider.WIRELESS.availableOn(29))
+        assertTrue(ShellProvider.SHIZUKU.availableOn(29))
+        assertTrue(ShellProvider.ROOT.availableOn(29))
+        assertEquals(ShellProvider.SHIZUKU, ShellProvider.of(null, 29))
+        assertEquals(ShellProvider.SHIZUKU, ShellProvider.of("wireless", 29))
+        assertEquals(ShellProvider.ROOT, ShellProvider.of("root", 29))
     }
 
     @Test fun thePickerListsWirelessDebuggingThenShizukuThenRoot() {

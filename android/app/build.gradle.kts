@@ -155,7 +155,7 @@ android {
     ndkVersion = "28.2.13676358"
     defaultConfig {
         applicationId = "dev.halixm.hokacepatcher"
-        minSdk = 30
+        minSdk = 29
         targetSdk = 35
         versionCode = providers.gradleProperty("patchVersionCode").orElse("1").get().toInt()
         versionName = buildVersion

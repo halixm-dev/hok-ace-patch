@@ -1,30 +1,35 @@
 package dev.halixm.hokacepatcher
 
 import android.content.Context
+import android.os.Build
 
 /**
  * What starts the patcher's worker with the privileges to reach the game's files (GLOSSARY: shell provider).
- * The user picks one on the home screen; the app never picks one by detection. [available] is false for a
- * provider this build cannot start yet: its guide says so and Start refuses it.
+ * The user picks one on the home screen from the providers supported by their Android version.
  */
-enum class ShellProvider(val key: String, val label: String, val available: Boolean) {
-    WIRELESS("wireless", "Wireless debugging", true),
-    SHIZUKU("shizuku", "Shizuku", true),
-    ROOT("root", "Root", true);
+enum class ShellProvider(val key: String, val label: String) {
+    WIRELESS("wireless", "Wireless debugging"),
+    SHIZUKU("shizuku", "Shizuku"),
+    ROOT("root", "Root");
+
+    val available: Boolean get() = availableOn(Build.VERSION.SDK_INT)
+
+    fun availableOn(sdk: Int): Boolean = this != WIRELESS || sdk >= Build.VERSION_CODES.R
 
     companion object {
-        /** Wireless debugging is the default: it needs no other app installed (user's request, 2026-11-20). */
-        val DEFAULT = WIRELESS
         private const val PREFERENCES = "shell-provider"
         private const val KEY = "provider"
         /** Worker connections refuse a Shizuku server running as root; the UI matches on it. */
         const val SHIZUKU_AS_ROOT = "Shizuku is running with root. Choose the Root provider instead."
 
-        /** The provider <saved> names; nothing saved, or a key this build does not know, is [DEFAULT]. */
-        fun of(saved: String?): ShellProvider = entries.firstOrNull { it.key == saved } ?: DEFAULT
+        /** Resolve the preference for this OS. Saved runs keep the exact provider recorded in RunStore. */
+        fun of(saved: String?, sdk: Int): ShellProvider =
+            entries.firstOrNull { it.key == saved && it.availableOn(sdk) }
+                ?: if (WIRELESS.availableOn(sdk)) WIRELESS else SHIZUKU
 
         fun current(context: Context): ShellProvider = of(
-            context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(KEY, null))
+            context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(KEY, null),
+            Build.VERSION.SDK_INT)
 
         fun set(context: Context, provider: ShellProvider) {
             // commit, not apply: a run started right after choosing must read the new value.
