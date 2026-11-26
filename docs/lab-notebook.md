@@ -7065,3 +7065,48 @@ stops the build), with a debug build of master `092445c` plus the three changes 
 | `build_checkpoint` until the same refusal | 50.5 s | 1.1 s |
 
 The refusal is the same text both times. The build and install after it are still not timed.
+
+## 2026-11-27 — A full Android patch after the hashing changes, and the build by pass
+
+The same Redmi Note 9 Pro (`ebad528e`, Root), after its game data was cleared and the in-game update
+downloaded, with a debug build of `e0cd32a` (English). One run, completed: 414 text tables and 352
+textures applied, 1 table and 0 textures skipped, 543.6 s from start to finish (18–19 min on 2026-11-18,
+a different build and game state, so not a like-for-like comparison).
+
+| Stage | Time |
+|---|---:|
+| Source APK copy | 35.4 s |
+| Recovery material | 27.4 s |
+| Unlock skip | 10.1 s |
+| Snapshot step (unpack 86.7 s, `checkpoint_identity` 51.9 s, `snapshot_checkpoint` 1.9 s, estimate 5.7 s) | 160.6 s |
+| `build_checkpoint` | 193.1 s |
+| Build end until the first package write | 40.3 s |
+| Package writes (`21_0` 14.8 s, `19_0` 6.9 s, `15_0` 5.6 s, `20_0` 4.6 s, rest small) | about 38 s |
+| Installed app check | 10.0 s |
+| Delta kept | 15.6 s |
+
+The phone logs no per-pass build times, so the same build (`android_bridge._stage_translation`, the
+pulled snapshot, the same APK) ran on the PC under cProfile: 133.1 s against the phone's 193.1 s.
+Times by build-log line, then by function (cumulative, cProfile overhead included):
+
+| Pass | PC time |
+|---|---:|
+| Catalog and language load | 4.5 s |
+| Text pass (`adaptive.scan`, runtime) | about 42 s |
+| Token expansion (`resource_tokens.expand_staged`) | 8.5 s |
+| Package staging and relocation | 8 s |
+| Texture ports (`device_extensions.extend_graphics`) | 32.7 s |
+| Prime-only append from the APK (`package_rebuild.add_prime_only`) | 32.2 s |
+| Extra text and the rest | about 5 s |
+
+| Function | Calls | Time | Note |
+|---|---:|---:|---|
+| `adaptive.translate_table` | 511 | 33.1 s | 14.7 s of it `validate_translation`, 248,413 calls |
+| `qtsvfs.parse_index` (via `QtsPackage.__init__`) | 1,313 | 13.3 s | 891 from `adaptive.discover`; each re-reads the index file |
+| ASTC `compress` | 1,447 | 11.8 s | already on `ASTC_THREADS` |
+| `pathlib.read_bytes` | 1,869 | 14.0 s | `english_raw` 4.5 s (314), `parse_index` 4.0 s, `expand_staged` 3.6 s (111) |
+| lz4 `compress` | 648 | 4.5 s | |
+| `shutil.copy2` | 212 | 3.5 s | |
+
+Package indexes opened more than once and package bodies read again per texture are the parts this
+repo's code controls; the text pass's per-row work is in the runtime bytecode.

@@ -1,7 +1,7 @@
 ---
 feature: patch-speed
 status: built; phone-checked on the Redmi Note 9 Pro
-updated: 2026-11-26
+updated: 2026-11-27
 branch: master
 ---
 
@@ -25,6 +25,14 @@ The first `verify_snapshot` after extraction still reads every byte back from st
 run, being a new process, rehashes as before. On the Redmi Note 9 Pro the snapshot step went from
 309.7 s to 160.0 s and `snapshot_checkpoint` from 97.8 s to 1.8 s in one run each; the build and
 install were not reached (lab notebook, 2026-11-26).
+
+### Full run and build breakdown (2026-11-27, one phone run)
+
+A full English patch on the same phone, after the game data was cleared, completed in 543.6 s: the
+snapshot step 160.6 s, `build_checkpoint` 193.1 s, and the APK copy, recovery material, package
+writes, app check and delta about 180 s between them. The same build profiled on the PC (133.1 s) puts
+the text pass at about 42 s, the texture ports at 33 s and the prime-only append at 32 s; package
+indexes re-parsed 1,313 times cost 13 s of that (lab notebook, 2026-11-27).
 
 ### Phone observations on the Root phone `ebad528e` (2026-11-18, single runs, no comparison)
 
