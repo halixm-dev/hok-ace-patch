@@ -28,6 +28,9 @@ from windows_checkpoints import PreparedApks
 # The name the game is listed under once patched. Writing it is cosmetic, so a manifest this cannot
 # be written into is logged and the run continues.
 APP_NAME = "Honor of Kings: ACE"
+# Seconds between APK build progress events, and between its percentage lines in the log.
+PROGRESS_INTERVAL = 0.1
+PROGRESS_LOG_INTERVAL = 5
 
 
 def apk_manifest(apk: Path) -> bytes:
@@ -241,13 +244,17 @@ class ApkPreparation:
             raise PatchError("error_run_state", detail=error) from error
         if set(replacements) != {"AndroidManifest.xml"}:
             raise PatchError("error_apk_identity", detail="Only manifest rewriting is permitted")
-        last = [0.0]
+        next_update = next_log = 0.0
 
-        def progress(done, total):
+        def progress(done: int, total: int) -> None:
+            nonlocal next_update, next_log
             self.control_boundary()
-            self.event("working", "prepare_apk", items_done=done, items_total=total)
-            if time.time() - last[0] > 5:
-                last[0] = time.time()
+            now = time.monotonic()
+            if now >= next_update or done == total:
+                self.event("working", "prepare_apk", items_done=done, items_total=total)
+                next_update = now + PROGRESS_INTERVAL
+            if now >= next_log:
+                next_log = now + PROGRESS_LOG_INTERVAL
                 self.log(f"  building APK {done * 100 // total}%")
 
         apk_tools.rewrite_apk(source, unsigned, replacements, progress)

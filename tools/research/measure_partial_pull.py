@@ -18,8 +18,27 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "app"))
-from patcher_core import LAYER, reusable_files  # noqa: E402
+from patcher_core import LAYER  # noqa: E402
 import pristine_delta  # noqa: E402
+
+
+def reusable_files(device: dict[str, str], sources: list[Path]) -> tuple[dict[str, Path], list[str]]:
+    """Split <device> into the files some <sources> folder holds at the same SHA-256, and the rest.
+
+    The patcher's pull now hashes while it copies (`game_data_pull._copy_reusable`); this keeps the
+    read-only match the measurement times.
+    """
+    found: dict[str, Path] = {}
+    missing = []
+    for name, digest in sorted(device.items()):
+        for source in sources:
+            path = source / name
+            if path.is_file() and pristine_delta.sha256_file(path) == digest:
+                found[name] = path
+                break
+        else:
+            missing.append(name)
+    return found, missing
 
 
 def main() -> None:

@@ -6900,6 +6900,24 @@ used the actual package bytes and a synthetic state record. The detailed check r
 and the window's child verified every saved hash. A same-size edit with the original modification
 time still changed the status in the fixture. No game files were patched for this measurement.
 
+## 2026-11-26 — Streaming the Windows USB pull
+
+The same local Python child emitted a 128 MiB plain tar (eight 16 MiB package files) for both
+changed-pull paths. The old path saved the tar, extracted the batch, then hashed each extracted
+file. The streaming path hashed each file while writing it. Runs alternated order, used fresh
+output folders on the Windows temporary drive and verified identical digests.
+
+| Producer | Runs per path | Previous median | Streaming median |
+|---|---:|---:|---:|
+| Limited to 32 MiB/s | 3 | 4.575 s | 4.069 s |
+| Uncapped local child | 4 | 0.972 s | 1.119 s |
+
+The changed pull avoids one archive write, one archive read and one package read. This helped the
+transfer-limited case. The uncapped local child was faster with the old path on this machine.
+These timings measure the transfer and extraction stage. Neither physical USB nor separate HDD and
+SSD installs were timed. A full replay of the 3,105,320,960-byte saved 1.10.1.2 device archive
+matched all 790 device package digests and reproduced the backup at its original SHA-256.
+
 ## 2026-11-26 — PC BC7 mode 7 in Rust (`crates/hok_bc7`)
 
 - **Inputs:** a copy of PC game data 1.11.0.2 (launcher 26111.0.4.30004): packages `0 1 10 15 19`,

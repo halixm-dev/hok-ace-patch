@@ -244,7 +244,7 @@ class WindowsControls(unittest.TestCase):
         self.assertEqual(error.keys, ("error_run_state",))
 
     def test_pump_preserves_measured_bytes_and_operation_detail(self) -> None:
-        ui = SimpleNamespace(messages=queue.Queue(), progress=Mock(), operation_line=Mock(),
+        ui = SimpleNamespace(messages=queue.Queue(), run_state={}, progress=Mock(), operation_line=Mock(),
                              step_detail="private indivisible operation", busy=True, closing=False,
                              show_start=Mock(), after=Mock(), pump=Mock())
         ui.messages.put(("event", {"state": "working", "next_action": "read_game_data", "bytes_done": 4096}))

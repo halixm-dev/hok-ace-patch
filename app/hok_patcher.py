@@ -1274,6 +1274,7 @@ class App(ctk.CTk):
                         self.show_usb_device()
                         self.show_start()
                 elif kind == "event":
+                    previous = self.run_state
                     self.run_state = value
                     done, total = value.get("bytes_done"), value.get("bytes_total")
                     detail = value.get("detail") or self.step_detail
@@ -1290,6 +1291,8 @@ class App(ctk.CTk):
                     elif self.busy:
                         if isinstance(done, int):
                             detail = ui_text("progress_bytes_read", done=_size(done))
+                            if rate := value.get("bytes_per_second"):
+                                detail = ui_text("progress_bytes_rate", done=_size(done), rate=f"{rate / 1024**2:.1f}")
                         self.progress.configure(mode="indeterminate")
                         self.progress.start()
                     if value.get("next_action") == "connect_saved_phone":
@@ -1297,7 +1300,8 @@ class App(ctk.CTk):
                     elif value.get("reason") == "transient_retry":
                         detail = ui_text("retrying_saved_action")
                     self.operation_line.configure(text=detail)
-                    self.show_start()
+                    if not value.get("bytes_per_second") or previous.get("next_action") != value.get("next_action"):
+                        self.show_start()
                 elif kind == "control":
                     if isinstance(value, Exception):
                         self.closing = False

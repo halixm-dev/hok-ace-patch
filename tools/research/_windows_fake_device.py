@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 from collections import Counter
+from contextlib import contextmanager
 import hashlib
 import json
 from pathlib import Path
 import shlex
 import shutil
 import tarfile
+import tempfile
 from typing import Callable
 
 from patcher_core import PatchError, Adb, PACKAGE
@@ -230,6 +232,14 @@ class FakeAdb:
             return self.garble
         return "".join(f"{self.digest(path)}  ./{path.relative_to(self.phone).as_posix()}\n"
                        for path in sorted(self.phone.rglob("*")) if path.is_file())
+
+    @contextmanager
+    def exec_out_stream(self, command: str):
+        with tempfile.TemporaryDirectory() as folder:
+            archive = Path(folder) / "wire.tar"
+            self.exec_out_to_file(command, archive)
+            with archive.open("rb") as stream:
+                yield stream
 
     def exec_out_to_file(self, command: str, target: Path) -> None:
         self._boundary()

@@ -10,9 +10,13 @@ import re
 import shutil
 import subprocess
 import tempfile
+import threading
+import time
 import zipfile
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, BinaryIO, Protocol
 
 import apk_tools
 from ui_strings import BUNDLE, PatchError
@@ -23,6 +27,23 @@ if TYPE_CHECKING:
 
 PACKAGE = "com.tencent.tmgp.osgame"
 NO_WINDOW = 0x08000000 if os.name == "nt" else 0
+# A streamed read is killed once the phone sends nothing for this long; checked every poll.
+READ_STALL_SECONDS = 180
+STALL_POLL_SECONDS = 5
+
+
+class ByteReader(Protocol):
+    def read(self, size: int) -> bytes: ...
+
+
+class _PipeReader:
+    def __init__(self, pipe: BinaryIO):
+        self.pipe = pipe
+        self.last_read = time.monotonic()
+
+    def read(self, size: int) -> bytes:
+        self.last_read = time.monotonic()
+        return self.pipe.read(size)
 
 
 class Adb:
@@ -96,10 +117,47 @@ class Adb:
         self.assert_target()
         return self.run("exec-out", command)
 
-    def exec_out_to_file(self, command: str, target: Path) -> None:
+    @contextmanager
+    def exec_out_stream(self, command: str) -> Iterator[ByteReader]:
+        """The ADB child produces bytes while the worker consumes its bounded stdout pipe."""
+        self._begin_read()
+        # stderr must drain independently even if the archive reader stops on an invalid header.
+        with tempfile.TemporaryFile() as errors, subprocess.Popen(
+            self._argv(("exec-out", command)), stdout=subprocess.PIPE, stderr=errors,
+            creationflags=NO_WINDOW, **self._process_options(),
+        ) as process:
+            assert process.stdout is not None
+            reader = _PipeReader(process.stdout)
+            stopped = threading.Event()
+
+            def watch_stall() -> None:
+                while not stopped.wait(STALL_POLL_SECONDS):
+                    if time.monotonic() - reader.last_read >= READ_STALL_SECONDS:
+                        process.kill()
+                        return
+
+            watchdog = threading.Thread(target=watch_stall, name="adb-read-timeout")
+            watchdog.start()
+            try:
+                yield reader
+                if process.wait() != 0:
+                    errors.seek(0)
+                    detail = errors.read(4096).decode(errors="replace")
+                    raise PatchError("error_read_failed", output=detail)
+            finally:
+                stopped.set()
+                if process.poll() is None:
+                    process.kill()
+                watchdog.join()
+
+    def _begin_read(self) -> None:
+        """Honour a pending Stop, then refuse a phone other than the saved target."""
         if self.boundary is not None:
             self.boundary()
         self.assert_target()
+
+    def exec_out_to_file(self, command: str, target: Path) -> None:
+        self._begin_read()
         with target.open("wb") as out:
             result = subprocess.run(self._argv(("exec-out", command)), stdout=out, stderr=subprocess.PIPE,
                                     creationflags=NO_WINDOW, timeout=180, **self._process_options())

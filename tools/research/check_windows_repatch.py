@@ -12,6 +12,7 @@ whose SHA-256 no copy in that session holds, and anything it cannot trust falls 
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
 import hashlib
 import io
 import json
@@ -335,6 +336,26 @@ class Repatch(unittest.TestCase):
             self.assertEqual(self.record(session)["mode"], "full", reason)
             self.assertTrue(any("pulling everything" in line and reason in line for line in patcher.ui.lines))
             self.assertEqual(list(session.glob("pull-*.tar")), [])
+
+    def test_full_pull_waits_for_adb_exit_before_publishing_backup(self):
+        # The USB child can return complete-looking bytes, then exit unsuccessfully.
+        _write(self.phone, {"1/1.info": b'{"version":"test"}'})
+        patcher = self.patcher()
+        original = patcher.adb.exec_out_stream
+
+        @contextmanager
+        def failed_exit(command):
+            with original(command) as stream:
+                yield stream
+            raise PatchError("error_read_failed", output="disconnected")
+
+        with unittest.mock.patch.object(patcher.adb, "exec_out_stream", failed_exit):
+            with self.assertRaises(PatchError):
+                patcher.pull_game_data()
+        session = self.work / "sessions" / patcher.run_owner.record["children"]["data_session"]
+        self.assertTrue((session / LAYER / "1/1.info").is_file())
+        self.assertFalse((session / PULL_RECORD).exists())
+        self.assertFalse(list(session.glob("device-backup.tar*")))
 
     def test_partial_pull_batches_long_lists(self):
         _write(self.phone, {"1/1.info": b'{"version":"1.6.0.1","revision":"0"}'})
