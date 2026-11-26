@@ -111,6 +111,7 @@ app is the same product surface; only the translation pipeline behind it differs
 | `hok_patcher.py` | customtkinter GUI on the shared design (`DESIGN.md`): one column with ① Language, ② Start (device, working folder, progress and results in place), the error card and the log |
 | `patcher_core.py` | device workflow: adb, APK re-sign, data pull, translation, push, reinstall |
 | `apk_tools.py` | APK entry rewrite and APK Signature Scheme v2 signing (no Java / build-tools) |
+| `adb_driver.py` | downloads and launches the Universal ADB Driver installer (see below) |
 | `build_exe.py` | PyInstaller one-file build |
 | `make_icon.py` | regenerates `resources/icon.*` from the Android launcher artwork |
 
@@ -123,6 +124,22 @@ Branding is taken verbatim from the reference: window title and exe name
 `patcher_core` sets module search paths the same way the reference does: `tools/` is inserted for
 source runs (the frozen exe gets it via PyInstaller `--paths`), and `resources/runtime/` is
 **appended** so the project's own stdlib wins over the runtime's bundled copy.
+
+### Universal ADB Driver installer (2026-11-26, unverified on a phone)
+
+In **Android USB** mode, **Setup** offers **Install Universal ADB Driver** for a phone Windows
+does not detect. The exe ships no driver: `app/adb_driver.py` downloads ClockworkMod's
+`UniversalAdbDriverSetup.msi` from its GitHub release at click time, refuses anything over
+20 MiB or off the SHA-256 pinned from Microsoft's WinGet manifest (version 1.0.4), and runs
+`msiexec /i <msi> /norestart` interactively from a temporary folder. A click does nothing while a
+run or another driver install is busy. The installer's exit code picks the status line:
+
+| Exit code | Meaning | String key |
+|---|---|---|
+| `0` | installed | `usb_driver_installed` |
+| `1641`, `3010` | installed, restart needed | `usb_driver_restart` |
+| `1223`, `1602` | canceled by the user | `usb_driver_cancelled` |
+| any other, or a download, size or checksum failure (`-1`) | failed; the log keeps the code or traceback | `usb_driver_failed` |
 
 ### Repatch from the pristine delta (2026-10-17)
 
