@@ -7126,3 +7126,18 @@ matched all 790 device package digests and reproduced the backup at its original
 - The frozen exe passed `--smoketest` with native extraction. The Android debug build and JVM
   test task passed. All 88 native libraries and the APK passed 16 KiB alignment checks, and the
   packaged `hok_codecs` binary matched the rebuilt wheel.
+
+### The PC engine's `run`
+
+- `hokace-core::run` matched the runtime's `adaptive.run` on all 42 steps of eight synthetic PC
+  installations (`build/wave2-run`): the full status, stage, install, repair and restore cycle;
+  a new shard and a removed one; a launcher list whose size went stale after an install; an
+  install killed mid-swap and recovered; stale, rolled-back and escaping receipts with leftover
+  `.ace-old`, `.ace-new` and engine temporaries; a receipt that will not parse; every error `_run`
+  raises on purpose; a lock another handle holds; and staged files on another volume, which
+  `commit` copies instead of hard-linking. Each step matched its report, its error, every host
+  call and the bytes of every file left in the game, the receipts and the work folder. A second
+  replay matched too.
+- The first replay matched 39 of 42 steps. The three left were one receipt that will not parse:
+  serde words it differently from `json.loads`. `hokace-core::pyjson` now words it as CPython 3.12's
+  scanner does, and matched all 2,145 vectors Python gave (`rust/generators/json_errors.py`).

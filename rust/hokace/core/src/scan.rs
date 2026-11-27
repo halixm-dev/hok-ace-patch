@@ -43,7 +43,7 @@ pub struct PyError {
 }
 
 impl PyError {
-    fn new(class: &'static str, message: impl Into<String>) -> Self {
+    pub fn new(class: &'static str, message: impl Into<String>) -> Self {
         Self {
             class,
             message: message.into(),

@@ -172,8 +172,10 @@ this file holds what is not in it.
   other than ASCII in a hash, both of which the runtime would accept; the shipped catalogs have
   neither. Nothing calls it yet: `scan` reads the Python catalog until it moves.
 - `build/wave2-qts-staged` named a staged output in a temporary folder that no longer exists, so it
-  cannot be replayed; `build/wave2-qts-staged-scratch` re-records the same cases on
-  `D:\scratch\rust-port\out` (86 calls, 0 mismatches).
+  cannot be replayed, and was deleted on 2026-11-27; `build/wave2-qts-staged-scratch` re-records the
+  same cases on `D:\scratch\rust-port\out` (86 calls, 0 mismatches). The Wave 1 forced-native runs'
+  staged output under `D:\scratch\rust-port\wave1-wired` was deleted the same day; their manifests
+  `en.json` and `id.json` remain.
 - `hokace-core::scan` ports `adaptive.discover`, `adaptive.scan` and `apply_graphic_payload`, plus
   `QtsPackage.__init__` and the slot map `qts_relocate.install_btree_slot_map` installs (stock map,
   first slot per chunk; a single shard's stale chunks repointed through its B-tree; an unreadable
@@ -194,6 +196,28 @@ this file holds what is not in it.
 - `hokace-core` now depends on `sha2` (fingerprints), so `crates/hok_codecs/Cargo.lock` was refreshed.
 - Drive D had 1.4 GB free on 2026-11-27, not 7 GB. The materialized scans write their replacements to
   the `<work>` given to `--scan-runtime`. Point it at drive C.
-- Continue with `run`. PC metadata staging, DLL
-  calls and `native_verify` also remain. The glossary data has no active caller and follows
+- `hokace-core::run` ports `adaptive.run` and `_run`; `hokace-core::transaction` ports the receipts,
+  `commit`, `recover`, `recover_pending`, `pending_recovery`, `find_restore`, `prune_stale_state`,
+  `clear_watchdog_state` and `mutation_lock`; `hokace-core::launcher` ports `launcher_metadata`'s
+  `stage_local_file_list` and `local_file_list_mismatches`. `hokace-core::pyos` holds the Windows
+  `pathlib` and `os` behaviour they lean on (`resolve`, case-blind path equality and sort, glob,
+  `OSError` text, text-mode CRLF, `json.dump` at `indent=2` and the launcher's inline layout,
+  `casefold` from a generated table) and `hokace-core::pyjson` words a refused document as
+  `json.loads` does (2,145 vectors from Python in `core/tests/json_errors.jsonl`). `scan`, the
+  DLL-backed `stage_unity_package`, `query_package_hash` and `stage_package_hash_metadata_batch`,
+  `receipt_root` and `_assert_game_stopped` stay behind `RunHost`.
+  `rust/harness/run_tap.py <dir> <live-base> [<cross-volume-work>]` stubs those calls, runs eight
+  synthetic PC installations through 42 steps and records each step's host calls, report (less
+  `seconds`), error and tree; `cargo run --release -p hokace-core --example run_replay -- <dir>`
+  rebuilds each pre-state at its recorded paths and replays it. All 42 matched, twice
+  (`build/wave2-run`, cases under `%LOCALAPPDATA%\Temp\hokace-wave2-run`, the cross-volume work under
+  `D:\scratch\rust-port\run-xvol`). The port's own: the mutation lock covers the whole lock file
+  where the runtime locks byte 0 (each still shuts the other out); receipts are read as UTF-8 where
+  the runtime uses the locale's encoding (receipts are ASCII); a receipt folder's random suffix
+  comes from `RandomState`, not `uuid4`; `rmtree` clears read-only files; a document serde refuses
+  that Python accepts (`NaN`, a lone surrogate) keeps serde's text. No recording reaches the
+  rollback of a commit that fails mid-swap (only an `OSError` can), the `Recovery refused` checks,
+  the backup and staged-copy verification failures or a Watchdog error. Nothing calls it yet:
+  wiring it means a PyO3 `RunHost` over the Python scan and DLL calls.
+- PC metadata staging, DLL calls and `native_verify` remain. The glossary data has no active caller and follows
   ADR-020. Wave 2 is still open under ADR-007.

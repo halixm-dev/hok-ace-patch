@@ -7,10 +7,15 @@
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub mod catalog;
+pub mod launcher;
 pub mod package_metadata;
 pub mod protobuf;
+pub mod pyjson;
+pub mod pyos;
 pub mod qts;
+pub mod run;
 pub mod scan;
+pub mod transaction;
 pub mod translation;
 
 #[cfg(test)]
