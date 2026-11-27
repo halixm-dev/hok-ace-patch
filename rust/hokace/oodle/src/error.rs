@@ -1,5 +1,12 @@
 // Adapted from oozextract 0.5.7, a Rust port of ooz.
 // Ooz copyright (C) 2016 Powzix. See ../NOTICE.md for provenance and licenses.
+#![cfg_attr(
+    not(feature = "verbose_errors"),
+    expect(
+        clippy::needless_update,
+        reason = "`ErrorBuilder` has fields only with `verbose_errors`; the updates fill the ones a site leaves out"
+    )
+)]
 
 use std::error::Error;
 use std::fmt::{Debug, Display};

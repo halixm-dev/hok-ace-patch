@@ -144,6 +144,7 @@ dependencies = [
 name = "hokace-codecs"
 version = "0.1.0"
 dependencies = [
+ "hokace-astcenc",
  "lz4-pure-rs",
  "lz4_flex",
  "png",

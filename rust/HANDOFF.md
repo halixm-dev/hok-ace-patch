@@ -72,8 +72,13 @@ this file holds what is not in it.
   91.3 s for Arm's NEON build and 102.3 s for its scalar build, both with the Android wheel's
   flags. It takes 38.7 s at 8 threads, and every call matches the Windows bytes. NEON kernels
   would gain at most about 7%, and they need `unsafe`, which the workspace forbids. Going past
-  AVX2-wheel parity at one thread needs 8-wide loops and runtime CPU dispatch. Next: call it from
-  `hokace-codecs`, then the Python fallback wiring.
+  AVX2-wheel parity at one thread needs 8-wide loops and runtime CPU dispatch.
+- `hokace-codecs` encodes ASTC through it (`astc_encode::AstcEncoder`). The encoder keeps one
+  context per footprint, as `mobile_graphics._contexts` does, and refuses input whose size isn't
+  `width * height * 4`. `cargo run --release -p hokace-codecs --example tap -- <tap-dir>` now
+  replays `encode_astc` too. Every codec call matched in both taps: English 1,272 encodes, 26
+  ASTC and 1,200 PC decodes, 466 LZ4 writes; Indonesian 1,275 encodes and 469 LZ4 writes. Next:
+  the Python fallback wiring.
 - Upstream quirk kept: `compress_block`'s `static` overshoot is set by the first block the process
   compresses and reused by every later context (`ERRORVAL_OVERSHOOT`). A replay must run its calls
   in the tap's order in one process.

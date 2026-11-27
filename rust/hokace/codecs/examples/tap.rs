@@ -8,6 +8,7 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::process::ExitCode;
 
+use hokace_codecs::astc_encode::AstcEncoder;
 use hokace_codecs::{lz4, png, texture};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -19,7 +20,7 @@ fn hex_digest(data: &[u8]) -> String {
         .collect()
 }
 
-fn replay(record: &Value, input: &[u8]) -> Result<Option<Vec<u8>>, String> {
+fn replay(record: &Value, input: &[u8], astc: &mut AstcEncoder) -> Result<Option<Vec<u8>>, String> {
     let args = &record["args"];
     let size = |index: usize| {
         args[index]
@@ -57,7 +58,12 @@ fn replay(record: &Value, input: &[u8]) -> Result<Option<Vec<u8>>, String> {
             }
             lz4::compress_hc12(input).map_err(|error| error.to_string())?
         }
-        Some("encode_astc") => return Ok(None), // The lossy encoder has its own comparison.
+        Some("encode_astc") => {
+            let dim = |index: usize| {
+                size(index).and_then(|n| u32::try_from(n).map_err(|error| error.to_string()))
+            };
+            astc.encode(input, dim(0)?, dim(1)?, dim(2)?, dim(3)?)?
+        }
         _ => return Err(format!("unknown codec: {}", record["fn"])),
     };
     Ok(Some(output))
@@ -73,13 +79,16 @@ fn main() -> Result<ExitCode, Box<dyn std::error::Error>> {
         let dir = Path::new(&dir);
         let calls = BufReader::new(fs::File::open(dir.join("calls.jsonl"))?);
         let mut counts: BTreeMap<String, [usize; 3]> = BTreeMap::new();
+        // One encoder per tap, as one app run; calls replay in the tap's order.
+        let threads = std::thread::available_parallelism().map_or(1, usize::from);
+        let mut astc = AstcEncoder::new(threads);
         for line in calls.lines() {
             let record: Value = serde_json::from_str(&line?)?;
             let name = record["fn"].as_str().ok_or("missing codec name")?;
             let hash = record["input"].as_str().ok_or("missing input hash")?;
             let expected = record["output"].as_str().ok_or("missing output hash")?;
             let input = fs::read(dir.join("blobs").join(hash))?;
-            let result = match replay(&record, &input) {
+            let result = match replay(&record, &input, &mut astc) {
                 Ok(Some(output)) if hex_digest(&output) == expected => 0,
                 Ok(Some(_)) => {
                     eprintln!("{name} {hash}: output differs");

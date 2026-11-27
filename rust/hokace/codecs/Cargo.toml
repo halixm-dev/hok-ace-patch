@@ -1,13 +1,14 @@
 [package]
 name = "hokace-codecs"
 version = "0.1.0"
-description = "The pipeline's codecs in pure Rust (rust/MAP.md, wave 1): LZ4, zstd, texture decode, BC7 encode, PNG"
+description = "The pipeline's codecs in pure Rust (rust/MAP.md, wave 1): LZ4, zstd, texture decode, ASTC and BC7 encode, PNG"
 license = "MIT AND Apache-2.0"
 edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
 
 [dependencies]
+hokace-astcenc = { version = "0.1.0", path = "../astcenc" }
 lz4-pure-rs = "0.1.2"
 lz4_flex = { version = "0.14", default-features = false, features = ["std", "safe-encode", "safe-decode", "checked-decode"] }
 png = "0.18"
