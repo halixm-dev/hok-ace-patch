@@ -42,6 +42,7 @@ import card_titles  # noqa: E402
 import hand_card_titles  # noqa: E402
 import mobile_graphics as mg  # noqa: E402
 from PIL import Image  # noqa: E402
+from pixel_diff import mean_abs_diff, outside_ranges, sprite_diff  # noqa: E402
 from sprite_table import REGION_SPRITE_ASSETS, sprite_rects  # noqa: E402
 from wxq_patch import adaptive  # noqa: E402
 
@@ -74,10 +75,6 @@ def vertical_flip(rgba: bytes, width: int, height: int) -> bytes:
     for row in range(height):
         out[row * stride:(row + 1) * stride] = rgba[(height - 1 - row) * stride:(height - row) * stride]
     return bytes(out)
-
-
-def mean_abs_diff(left: bytes, right: bytes) -> float:
-    return sum(abs(a - b) for a, b in zip(left, right)) / len(left)
 
 
 def device_bytes(width: int, height: int, bx: int, by: int) -> bytes:
@@ -234,13 +231,6 @@ def atlas_blocks(graphic: dict, sprites: dict[str, tuple[int, ...]]) -> set[int]
 def blocks_outside(raw: bytes, new: bytes, allowed: set[int]) -> int:
     return sum(1 for index in range(0, len(raw), 16)
                if raw[index:index + 16] != new[index:index + 16] and index // 16 not in allowed)
-
-
-def outside_ranges(raw: bytes, new: bytes, ranges: list[tuple[int, int]]) -> int:
-    return sum(
-        1 for index, (before, after) in enumerate(zip(raw, new))
-        if before != after and not any(start <= index < end for start, end in ranges)
-    )
 
 
 # --------------------------------------------------------------------------------------------
@@ -685,21 +675,6 @@ def crop_box(image: bytes, width: int, height: int, box) -> bytes:
         at = ((height - 1 - y) * width + x0) * 4
         out += image[at:at + (x1 - x0) * 4]
     return bytes(out)
-
-
-def sprite_diff(image: bytes, width: int, height: int, box, pixels: bytes) -> float:
-    """Mean premultiplied difference between a decoded texture's top-down <box> and <pixels>."""
-    x0, y0, x1, y1 = box
-    total = count = 0
-    for y in range(y0, y1):
-        for x in range(x0, x1):
-            at, src = ((height - 1 - y) * width + x) * 4, ((y - y0) * (x1 - x0) + x - x0) * 4
-            total += max(
-                [abs(image[at + 3] - pixels[src + 3])]
-                + [abs(image[at + c] * image[at + 3] - pixels[src + c] * pixels[src + 3]) // 255
-                   for c in range(3)])
-            count += 1
-    return total / count
 
 
 def check_atlas(catalog) -> None:

@@ -7055,3 +7055,18 @@ matched all 790 device package digests and reproduced the backup at its original
 - **Freeze:** `app/build_exe.py` builds the crate into `build/native/stale_blocks_rs/`; the frozen
   `--smoketest` passed "native block scan" and, with `RUST_ANYTHING_MODE=old`, failed on "the native
   block scan did not load". The Android app ships `tools/block_scan` and runs the Python scan.
+
+## 2026-11-27 — `check_graphics.py`'s byte comparison in Rust (`rust/outside-ranges-rs`)
+
+- **Inputs:** `tools/research/check_graphics.py` with no `--game`, the same machine and tools as the block
+  scan entry above.
+- **Profile:** with the native block scan on, the next hot Python was the check's own comparisons:
+  `mean_abs_diff` (22%), `outside_ranges` (18%) and `sprite_diff` (4%). They moved unchanged into
+  `tools/research/pixel_diff`, so rust-anything could bridge them; `go` picked `outside_ranges`.
+- **Recording:** 455 cases: 247 real calls from the check and 208 generated, 106 raising in Python. Python
+  reads the ranges only at a differing byte and unpacks them lazily, so the port raises the same
+  `TypeError`/`ValueError` only where Python would reach it.
+- **Result:** `diff` 455/455, `gate` passed (2 tests, 11 assertions). `report`: 8.9 ms to 0.18 ms per
+  recorded call, 49x; `go` measured 52.2x as its callers call it. The whole check: 42.0 s with
+  `RUST_ANYTHING_MODE=old`, 30.2 s with the port on, every check passing on both. Not ported yet:
+  `mean_abs_diff` and `sprite_diff`.
