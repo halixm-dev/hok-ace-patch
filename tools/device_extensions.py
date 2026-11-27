@@ -93,7 +93,7 @@ def write_assets(package_dir: Path, jobs: dict[int, bytes]) -> tuple[list[str], 
     NATIVE_CHUNK_KEYS: their measured native keys let them gain chunks and keep the original chunk
     size. Returns (written hashes, refused hashes).
     """
-    import lz4.block
+    from codec_backend import lz4_compress
     import mobile_graphics as mg
     from wxq_patch.qtsvfs import QtsPackage
 
@@ -117,7 +117,7 @@ def write_assets(package_dir: Path, jobs: dict[int, bytes]) -> tuple[list[str], 
         for chunk_id, start in enumerate(range(0, len(raw), chunk_size)):
             piece = raw[start:start + chunk_size]
             if entry.compression == 1:
-                payload = lz4.block.compress(piece, mode="high_compression", compression=12, store_size=False)
+                payload = lz4_compress(piece)
             else:
                 payload = mg.oodle_stored(piece)
             if chunk_id in original_slots:

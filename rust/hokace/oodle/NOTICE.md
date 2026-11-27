@@ -10,6 +10,12 @@ distributed under GPL-3.0-or-later. [GPL text](../../../android/native/licenses/
 This adaptation keeps only the Leviathan paths, uses this crate's QTS framing
 and exact-size checks, and replaces the SIMD helpers with safe Rust.
 
+The patcher's source repository is https://github.com/halixm-dev/hok-ace-patch.
+The corresponding decoder is under `rust/hokace/oodle`, with Python bindings
+and their Cargo lockfile under `crates/hok_codecs`. Run `build.bat` for the
+Windows extension or `android/native/build_rust_wheels.py --help` for the
+Chaquopy wheel recipe.
+
 ## MIT terms for the oozextract contributions
 
 Copyright © the oozextract contributors.

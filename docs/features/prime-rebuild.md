@@ -10,6 +10,10 @@ commits: e21ed33..9be8adb
 
 ## Report
 
+In the current pipeline, `engine_hooks.install()` selects the Rust QtsVFS index and shard readers
+and the Rust table translator when `hok_codecs` loads. The same pipeline applies the catalog
+allowlist and staging checks with either backend.
+
 **What was built** — the patcher can now reach the half of the game's data it never touched. The game
 reads the packages baked into the APK (prime) when the downloaded ones (override) lack an asset, and
 this repo staged into override alone, so prime-only content was untranslatable — no text table, no
@@ -226,6 +230,10 @@ Contracts the code must keep, each already paid for once:
 - `finalize` must find exactly the entries it was given, and a B-tree leaf must not be emptied.
 
 ### The keys the builder derives
+
+The native runtime reader extracts stored and LZ4 assets and follows the active B-tree leaves when
+the stock slot map points at a superseded chunk. The Python reader handles ambiguous live offsets
+and reports unreadable B-trees through the existing fallback log.
 
 Both B-trees order a package by a key the builder mints: the index by each entry's key (record `+12`),
 the shard by each chunk's `hash1` (slot `+12`, ordered on its low 32 bits). Neither key depends on the

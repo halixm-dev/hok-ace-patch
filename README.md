@@ -147,7 +147,7 @@ Run these commands from the repository root in Windows Command Prompt:
 | Install dependencies | `setup.bat` | Creates `.venv` and installs `requirements.txt` |
 | Run the Windows app | `run.bat` | Opens the GUI from source |
 | Build the Windows exe | `build.bat` | Creates `dist\HOK ACE Language Patcher.exe` |
-| Build only the native modules | `.venv\Scripts\python.exe app\build_exe.py --native-only` | Creates `build\native\hok_bc7.pyd`, `build\native\hok_astc.pyd` and the block scan's `stale_blocks_rs`, which source runs also load |
+| Build only the native modules | `.venv\Scripts\python.exe app\build_exe.py --native-only` | Creates `hok_bc7.pyd`, `hok_astc.pyd`, `hok_codecs.pyd` and `stale_blocks_rs` under `build\native` |
 
 `build.bat` also needs Rust ([rustup](https://rustup.rs)): it builds the PC edition's native BC7
 encoder (`crates/hok_bc7`, modes 6, 5, 4 and 7) with the toolchain pinned in its `rust-toolchain.toml`.
@@ -159,6 +159,10 @@ re-encode (`rust/stale-blocks-rs`, a [rust-anything](https://github.com/erkamyam
 of `tools/block_scan`); without it the Python scan runs. The Android app carries it as a wheel that
 `android\native\build_rust_wheels.py` cross-builds (`tools\ci\build_android.ps1` runs it). Set
 `RUST_ANYTHING_MODE=new` to require the native scan or `old` to turn it off.
+Both apps use `hok_codecs` for LZ4, Zstandard, Oodle, texture decoding, sprite PNGs, localization
+tables and QtsVFS index and shard reads when the extension loads. Use `HOK_CODECS=native` to require
+the extension or `HOK_CODECS=python` to use the Python path. The
+[Leviathan decoder notice](rust/hokace/oodle/NOTICE.md) identifies its source and license.
 `tools/research/check_graphics.py` runs its byte comparisons natively once `rust-anything build`
 has built `rust/outside-ranges-rs` and `rust/mean-abs-diff-rs`, and in Python otherwise.
 

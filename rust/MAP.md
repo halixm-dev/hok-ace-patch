@@ -53,7 +53,7 @@ bridge it (as `tools/block_scan` did).
 | Pinyin table generator (ADR-014) | done: `rust/generators/pinyin_table.py` -> `core/data/pinyin.tsv.gz` (2026-11-27) |
 | App case: offline pipeline on the 2026-11-25 dump, both languages (`rust/harness/pipeline_case.py`) | done: `rust/app-cases/pipeline/en.json`, `id.json`; two runs each identical (2026-11-27) |
 | App cases: `--smoketest`, `--pc-selftest` | open (join waves 6 and 7) |
-| Android ARM64 wheel build for unit crates (ADR-019) | done: `android/native/build_rust_wheels.py`, `stale_blocks_rs` wheel 16 KiB aligned; not yet run on a phone (2026-11-27) |
+| Android ARM64 wheel build for unit crates (ADR-019) | done: `android/native/build_rust_wheels.py`, `stale_blocks_rs` and `hok_astc` wheels 16 KiB aligned; `hok_astc` built but not installed in the app (the phone keeps the `astc_encoder` wheel until a device cycle); neither yet run on a phone (2026-11-27) |
 
 ### Wave 1: codecs (ADR-005, ADR-010)
 
@@ -63,25 +63,29 @@ bridge it (as `tools/block_scan` did).
 | zstd decode and compress | done in `hokace-codecs`: 151 dump frames match Python, Rust encoder round-trips in the codec test |
 | ooz (Oodle) decode | done in `hokace-oodle`: 60,684 dump and 108,118 APK chunks match Python exactly |
 | texture2ddecoder (ASTC, BC7 and the formats the pipeline decodes) | done in `hokace-codecs`: pipeline decodes and 124 HDR fixtures match Python exactly |
-| ASTC encoder (ADR-026) | ported in `hokace-astcenc`: every call of both language taps (1,272 English, 1,275 Indonesian, 749,778 blocks) matches Python byte for byte at 1, 3 and 12 threads; `hokace-codecs` encodes through it (`AstcEncoder`, both taps match through the codec tap replay); wired into the Windows app through `crates/hok_astc` (`mobile_graphics` falls back to the wheel; both taps match through `_encode_astc`; frozen `--smoketest` checks it); Android keeps the wheel |
+| ASTC encoder (ADR-026) | ported in `hokace-astcenc`: every call of both language taps (1,272 English, 1,275 Indonesian, 749,778 blocks) matches Python byte for byte at 1, 3 and 12 threads; `hokace-codecs` encodes through it (`AstcEncoder`, both taps match through the codec tap replay); wired into the Windows app through `crates/hok_astc` (`mobile_graphics` falls back to the wheel; both taps match through `_encode_astc`; frozen `--smoketest` checks it); its Android wheel builds (`build_rust_wheels.py`), but the app keeps the `astc_encoder` wheel until a device cycle |
 | BC7 encoder (`bc7_mode6`) | done in `hokace-codecs`: both PC catalog builds match 76,535 blocks exactly, and the existing extension passes its 20,057-case replay |
 | PNG decode (`png`) | done in `hokace-codecs`: 105 repo PNGs match Pillow |
 
-Wave 1 stays open until ASTC passes ADR-026, the codecs have Python fallbacks wired through the
-existing apps, the Windows extension and Android wheel build, and both offline app cases pass.
-Both offline app cases pass with the native ASTC and BC7 encoders forced (`HOK_ASTC_ENCODER=native`,
-`HOK_BC7_ENCODER=native`): English and Indonesian identical to their baselines (2026-11-27).
+Wave 1 passed its offline checkpoint on 2026-11-27. The app codecs have Python fallbacks, the
+Windows smoke test passed, and the Android debug APK contains the aligned `hok_codecs` wheel.
+English and Indonesian match their baselines with native codecs forced, after accounting for the
+recorded scratch paths. See [the handoff](HANDOFF.md) for the verification record. Android's Rust
+ASTC encoder still needs a device cycle. The user approved Wave 2 (ADR-007).
 
 ### Wave 2: runtime parsing
 
 | Unit | State |
 |---|---|
-| `wxq_patch.qtsvfs` | open |
-| `wxq_patch.protobuf_i18n` | open |
-| `wxq_patch.gemini.validate_translation` | open |
-| `wxq_patch.adaptive` (`translate_table`, `scan`, `run`) | open |
-| `wxq_patch.glossary`, `hok_terminology` | open |
-| `wxq_patch.package_metadata`, `native_verify` | open |
+| `wxq_patch.qtsvfs` | Native index, slot and payload readers run through the app hooks. The mobile slot map uses Rust to resolve live B-tree offsets. All 200 cases matched across the clean and staged mobile packages, PC package 1 and generated fixtures. Position reference search and insertion match the synthetic replay and await writer integration. |
+| `wxq_patch.protobuf_i18n` and `adaptive.fields` | done for the Rust core. 3,676 generated and 2,578 game cases per language matched. `adaptive.fields` is used by the native translator. |
+| `wxq_patch.gemini.validate_translation` | done for the native table path. 78,258 pairs matched. |
+| `wxq_patch.adaptive` (`translate_table`, `scan`, `run`) | claimed by Codex Wave 2 session 2026-11-27. `translate_table` runs in both apps with the Rust text view of the catalog. 476 calls matched, with and without staged output. The runtime's catalog loader (`Catalog.__init__`, `lookup`, `load_catalog`) is ported in `hokace-core::catalog`: 2,783 calls matched (`build/wave2-catalog`: both shipped catalogs, both as the apps build them after `engine_hooks`' edits, 2,698 lookups and every error path); not yet wired, since `scan` still reads Python's catalog. Discovery, scan and run still use Python. |
+| `wxq_patch.glossary`, `hok_terminology` | deferred under ADR-020 until `pipeline` needs them. There are no active callers. |
+| `wxq_patch.package_metadata`, `native_verify` | claimed by Codex Wave 2 session 2026-11-27. Package hash lookup matches 17 recorded cases. DLL calls, metadata staging and verification remain. |
+
+Both offline mobile app cases matched with the Wave 2 readers and translator active, after accounting
+for three scratch paths in each summary. The Wave 2 checkpoint is still open.
 
 ### Wave 3: pipeline leaves (`tools/`)
 

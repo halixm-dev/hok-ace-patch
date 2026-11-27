@@ -347,16 +347,16 @@ def _windows_native_identity() -> dict:
     import ctypes
     import importlib
     from ctypes import wintypes
+
     # Load every shipped transform/signing binding before enumerating dependencies.
-    for name in ("lz4.block", "zstandard", "astc_encoder", "texture2ddecoder", "ooz",
+    # The adapter also finds the source run's extension under build/native.
+    for name in ("codec_backend", "lz4.block", "zstandard", "astc_encoder", "texture2ddecoder", "ooz",
                  "PIL.Image", "PIL.ImageFont", "cryptography.hazmat.primitives.asymmetric.rsa"):
         importlib.import_module(name)
-    # The native ASTC encoder ships in the exe; a source run without it encodes with the wheel.
-    if "hok_astc" not in sys.modules:
-        try:
-            importlib.import_module("hok_astc")
-        except ImportError:
-            pass
+    try:
+        importlib.import_module("hok_astc")
+    except ImportError:
+        pass
     kernel = ctypes.WinDLL("kernel32", use_last_error=True)
     process = kernel.GetCurrentProcess
     process.restype = wintypes.HANDLE

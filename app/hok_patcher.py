@@ -1601,6 +1601,7 @@ def smoketest(out: Path) -> None:
     import gzip
     import importlib
     import io
+    from tempfile import TemporaryDirectory
 
     out.mkdir(parents=True, exist_ok=True)
     passed: list[str] = []
@@ -1622,6 +1623,8 @@ def smoketest(out: Path) -> None:
             import ooz  # noqa: F401 - only decompress exists; the import loads the native module
             import zstandard
             from pypinyin import lazy_pinyin
+            import codec_backend
+            import hok_codecs
             import mobile_graphics
 
             sample = bytes(range(256)) * 4
@@ -1634,6 +1637,33 @@ def smoketest(out: Path) -> None:
             png = io.BytesIO()
             Image.new("RGBA", (4, 4), (200, 100, 50, 255)).save(png, "PNG")
             passed += ["lz4", "ooz", "zstandard", "pypinyin", "astc round trip", "png"]
+            assert codec_backend.backend_name() == "native", "the native codecs did not load"
+            compressed = lz4.block.compress(sample, mode="high_compression", compression=12, store_size=False)
+            assert hok_codecs.lz4_compress(sample) == compressed
+            assert hok_codecs.lz4_decompress(compressed, len(sample)) == sample
+            assert hok_codecs.zstd_decompress(zstandard.ZstdCompressor().compress(sample), len(sample)) == sample
+            stored = hok_codecs.oodle_stored(sample)
+            assert stored == b"\xcc\x0c" + sample and hok_codecs.oodle_decompress(stored, len(sample)) == sample
+            assert hok_codecs.decode_png(png.getvalue()) == (4, 4, block)
+            passed.append("native codecs")
+            runtime_catalog = hok_codecs.RuntimeCatalog({"中": "English"}, [], [])
+            assert runtime_catalog.translate(b"\n\x08\n\x01k\x12\x03" + "中".encode(), 0, True) == (
+                b"\n\x0c\n\x01k\x12\x07English", {"records": 1, "translated": 1}
+            )
+            import engine_hooks
+            from wxq_patch import adaptive, qtsvfs
+
+            engine_hooks.install()
+            assert getattr(adaptive.translate_table, "_engine_hooks", False)
+            assert getattr(qtsvfs.parse_index, "_engine_hooks", False)
+            assert callable(hok_codecs.qts_slots)
+            assert getattr(qtsvfs.QtsPackage.extract, "_engine_hooks", False)
+            assert callable(hok_codecs.qts_live_replacements)
+            with TemporaryDirectory(dir=out) as scratch:
+                shard = Path(scratch) / "shard.bin"
+                shard.write_bytes(compressed)
+                assert hok_codecs.qts_extract(1, {0: (shard, 0, len(compressed), len(sample))}) == sample
+            passed.append("native runtime readers and table translation")
             # ASTC encodes through the native encoder (crates/hok_astc), never the wheel fallback,
             # and gives the wheel's bytes on a gradient at the two footprints the pipeline uses most.
             assert mobile_graphics.astc_backend_name() == "native", "the native ASTC encoder did not load"
@@ -1663,10 +1693,10 @@ def smoketest(out: Path) -> None:
             decoded = mobile_graphics.decode_pc(bc7_mode6.encode_block(pixels), 4, 4, "bc7")
             assert max(abs(a - b) for a, b in zip(decoded, bytes(c for p in pixels for c in p))) <= 8
             passed.append("bc7 round trip")
-            # The search past etcpak through the native encoder (crates/hok_bc7), never the Python
-            # fallback: a block that runs modes 6, 5, 4 and 7 and keeps mode 7, against the Python
-            # reference's bytes.
+            # The full Rust encoder and the app entry point must both reach mode 7 and return
+            # the Python reference's bytes.
             assert bc7_mode6.backend_name() == "native", "the native BC7 encoder did not load"
+            assert hok_codecs.encode_bc7(MODE7_FIXTURE[0]) == (MODE7_FIXTURE[1], len(bc7_mode6.ENCODERS))
             pixels = [tuple(MODE7_FIXTURE[0][i:i + 4]) for i in range(0, 64, 4)]
             calls = bc7_mode6.MODE7_CALLS["native"]
             assert bc7_mode6.encode_block(pixels) == MODE7_FIXTURE[1], "native BC7 search bytes differ"

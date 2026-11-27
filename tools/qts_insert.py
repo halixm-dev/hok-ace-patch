@@ -42,9 +42,9 @@ def _encode(piece: bytes, compression: int) -> bytes | None:
     incompressible enough to hit this cannot be written without becoming ambiguous.
     """
     if compression == 1:
-        import lz4.block
+        from codec_backend import lz4_compress
 
-        payload = lz4.block.compress(piece, mode="high_compression", compression=12, store_size=False)
+        payload = lz4_compress(piece)
         return None if len(payload) == len(piece) else payload
     if compression == 4:
         import mobile_graphics as mg

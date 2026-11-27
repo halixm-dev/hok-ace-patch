@@ -132,6 +132,16 @@ mod tests {
     }
 
     #[test]
+    fn invalid_astc_weights_mark_the_block_magenta() {
+        // The graphics check's unrelated-art fixture starts with this invalid weight grid.
+        let block: [u8; 16] = std::array::from_fn(|index| (index * 37 + 11) as u8);
+        assert_eq!(
+            decode_astc(&block, 8, 8, 8, 8).unwrap(),
+            [255, 0, 255, 255].repeat(64),
+        );
+    }
+
+    #[test]
     fn rgba32_returns_at_most_the_declared_size() {
         assert_eq!(decode_pc(b"12345", 1, 1, "rgba32").unwrap(), b"1234");
         assert_eq!(decode_pc(b"123", 1, 1, "rgba32").unwrap(), b"123");

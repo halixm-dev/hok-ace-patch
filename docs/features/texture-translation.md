@@ -31,6 +31,11 @@ every asset keeps its chunk count and the index is never written. `extend_graphi
 packages afresh — a texture-heavy package stages no text, so the text scan never lists it — and
 returns `mode: "graphics"` summary entries totalling the textures written.
 
+`tools/codec_backend.py` uses the Rust extension when available to read Oodle chunks, decode
+ASTC and BC7 blocks, and read sprite PNGs. Invalid ASTC block parameters use the decoder's magenta
+error color so the label splice can reject unrelated art. Windows also encodes ASTC through Rust.
+Android uses its existing ASTC encoder wheel until a device cycle clears the Rust encoder.
+
 `build_patch` calls it after the text loop, and that is what makes a texture-only run install: an
 empty package list used to short-circuit the push. `count_translated` returns `(text tables, textures)`
 again and both GUI call sites report both. Two defects surfaced on the way and are fixed here. A

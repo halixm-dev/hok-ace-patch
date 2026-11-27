@@ -35,6 +35,9 @@ a worker that monitors the child process.
 
 ### What landed
 
+The runtime can read QtsVFS indexes and shard slots and translate localization tables through
+`hok_codecs`. The Python runtime still drives the PC job and verifies staged packages.
+
 Five slices, stacked (halixm-dev/hok-ace-patch #41, #43, #44, #45 and ticket 05's PR):
 
 1. **Offline pipeline**: `tools/engine_hooks.py` (terminology on `load_catalog`, token expansion on
@@ -86,6 +89,9 @@ and `check_ui_strings.py` pass on the final branch.
   requires one or the other. Cold builds fell again, from 28 s to 15 s (English) and from 31 s to 13 s
   (Indonesian), with byte-identical catalogs. Parity is checked by `tools/research/check_bc7_native.py`
   and `bc7_corpus.py replay --backend native --final`.
+- The full BC7 encoder now runs through `hok_codecs`, including the first block candidate and its
+  pixel comparison. Source runs can still use `hok_bc7` for the search and etcpak for the first
+  candidate. `HOK_BC7_ENCODER=python` selects the Python reference.
 - **ADR 0011 was reworded** (ticket 02): every package file the engine patches is listed in
   `LocalFileList.json`, contrary to the fork's note, so *never write a listed file* became *keep every
   listed file at its listed size*. The PC cycles confirmed the launcher compares sizes.

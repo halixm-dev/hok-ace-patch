@@ -18,6 +18,7 @@ NAME = "HOK ACE Language Patcher"
 NATIVE_CRATE = ROOT / "crates" / "hok_bc7"
 # The Rust ASTC encoder (`mobile_graphics.encode_astc`), byte for byte with the astc_encoder wheel.
 ASTC_CRATE = ROOT / "crates" / "hok_astc"
+CODECS_CRATE = ROOT / "crates" / "hok_codecs"
 # The texture block scan (`tools/block_scan`), ported by rust-anything; a package, `stale_blocks_rs`,
 # whose `_native` extension it imports.
 SCAN_CRATE = ROOT / "rust" / "stale-blocks-rs"
@@ -47,7 +48,7 @@ def _cargo_release(crate: Path) -> Path:
 def build_native() -> Path:
     """The native modules, for this interpreter (64-bit Python 3.12), into `build/native`.
 
-    `crates/hok_bc7` as `hok_bc7.pyd`, `crates/hok_astc` as `hok_astc.pyd`, and the block scan as
+    `crates/hok_bc7`, `crates/hok_astc`, and `crates/hok_codecs` as top-level extensions, and the block scan as
     the `stale_blocks_rs` package (its generated `__init__.py` beside `_native.pyd`), whose `.pyd`
     also goes into the crate's own
     `python/` folder for source runs.
@@ -59,6 +60,7 @@ def build_native() -> Path:
     target = NATIVE_OUT / "hok_bc7.pyd"
     shutil.copyfile(_cargo_release(NATIVE_CRATE) / "hok_bc7.dll", target)
     shutil.copyfile(_cargo_release(ASTC_CRATE) / "hok_astc.dll", NATIVE_OUT / "hok_astc.pyd")
+    shutil.copyfile(_cargo_release(CODECS_CRATE) / "hok_codecs.dll", NATIVE_OUT / "hok_codecs.pyd")
     scan = NATIVE_OUT / "stale_blocks_rs"
     scan.mkdir(exist_ok=True)
     built = _cargo_release(SCAN_CRATE) / "stale_blocks_rs.dll"
@@ -99,6 +101,8 @@ def build() -> None:
         "--add-data", f"{RESOURCES / 'ui' / 'theme.json'}{sep}ui",
         # Shared UI fonts and their licenses. The app loads the fonts privately at startup.
         "--add-data", f"{RESOURCES / 'fonts'}{sep}fonts",
+        "--add-data", f"{ROOT / 'android/native/licenses/GPL-3.0.txt'}{sep}notices",
+        "--add-data", f"{ROOT / 'rust/hokace/oodle/NOTICE.md'}{sep}notices/hok_codecs",
         "--add-data", f"{RESOURCES / 'icon.ico'}{sep}.",
         "--add-data", f"{RESOURCES / 'icon.png'}{sep}.",
         "--icon", str(RESOURCES / "icon.ico"),
@@ -124,7 +128,8 @@ def build() -> None:
         args += ["--hidden-import", module]
     # `mobile_graphics` encodes ASTC with `hok_astc` (`build_native`) and with the astc_encoder wheel
     # when it is missing; the frozen smoke test fails if the exe falls back.
-    args += ["--hidden-import", "hok_astc"]
+    for module in ("hok_astc", "hok_codecs"):
+        args += ["--hidden-import", module]
     # `block_scan` loads its native scan by name (`stale_blocks_rs`, from `build_native`) and runs the
     # Python scan when it is missing; the frozen smoke test fails if the exe falls back.
     for module in ("block_scan", "stale_blocks_rs", "stale_blocks_rs._native"):

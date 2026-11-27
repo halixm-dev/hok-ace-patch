@@ -14,6 +14,11 @@ static ENCODER: LazyLock<Bc7Enc> = LazyLock::new(Bc7Enc::new);
 
 /// Encode one 4×4 block of row-order RGBA8 pixels.
 pub fn encode_block(rgba: &[u8; 64]) -> Result<[u8; 16], String> {
+    encode_block_search(rgba).map(|(block, _)| block)
+}
+
+/// Encode a block and report how many fallback modes the search tried.
+pub fn encode_block_search(rgba: &[u8; 64]) -> Result<([u8; 16], usize), String> {
     let pixels = rgba.as_chunks::<4>().0;
     let pixels = std::array::from_fn(|index| pixels[index]);
     let params = CompressBlockParams {
@@ -32,12 +37,11 @@ pub fn encode_block(rgba: &[u8; 64]) -> Result<[u8; 16], String> {
         [i32::from(r), i32::from(g), i32::from(b), i32::from(a)]
     });
     let error = f64::from(search::mismatch_total(&search::rgba_pixels(rgba), &decoded)) / 16.0;
-    if error > NATIVE_GOOD_ENOUGH
-        && let Some(better) = search::search(rgba, error).0
-    {
-        return Ok(better);
+    if error > NATIVE_GOOD_ENOUGH {
+        let (better, tried) = search::search(rgba, error);
+        return Ok((better.unwrap_or(block), tried));
     }
-    Ok(block)
+    Ok((block, 0))
 }
 
 #[cfg(test)]

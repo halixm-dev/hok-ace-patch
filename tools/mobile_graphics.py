@@ -38,14 +38,12 @@ from functools import lru_cache
 from pathlib import Path
 
 import astc_encoder
-import ooz
-import texture2ddecoder
+import codec_backend
 
 from block_scan import premultiplied_diff as _premultiplied_diff, stale_blocks
 from languages import ENGLISH, for_catalog, payload_path
 from sprite_table import REGION_SPRITE_ASSETS
 
-OODLE_BLOCK = 0x40000  # Oodle LZ streams are split into 256 KiB blocks
 ASTC_FOOTPRINTS = [(4, 4), (5, 5), (6, 6), (8, 8), (10, 10), (12, 12)]
 PC_FORMATS = ("bc7", "rgba32")
 # The block formats a regioned atlas can be ported in: the mobile edition's and the PC edition's.
@@ -231,14 +229,11 @@ def oodle_stored(raw: bytes, decoder_type: int = 0x0C) -> bytes:
     No Oodle compressor exists for Python, only ooz's decompressor, and the game accepts stored
     blocks, so a relocated chunk keeps the container the shard expects without being recompressed.
     """
-    out = bytearray()
-    for start in range(0, len(raw), OODLE_BLOCK):
-        out += bytes((0xCC, decoder_type)) + raw[start:start + OODLE_BLOCK]
-    return bytes(out)
+    return codec_backend.oodle_stored(raw, decoder_type)
 
 
 def oodle_decompress(payload: bytes, raw_size: int) -> bytes:
-    return ooz.decompress(payload, raw_size)
+    return codec_backend.oodle_decompress(payload, raw_size)
 
 
 def astc_layout(raw_size: int, width: int, height: int) -> tuple[int, int] | None:
@@ -467,20 +462,14 @@ def astc_backend_name() -> str:
 def decode_pc(raw: bytes, width: int, height: int, fmt: str) -> bytes:
     """PC texture data -> RGBA8, in the PC's own row order (bottom-up)."""
     if fmt == "bc7":
-        return _bgra_to_rgba(texture2ddecoder.decode_bc7(raw, width, height))
+        return codec_backend.decode_bc7(raw, width, height)
     if fmt == "rgba32":
         return raw[: width * height * 4]
     raise ValueError(f"unsupported PC format {fmt}")
 
 
 def decode_astc(raw: bytes, width: int, height: int, bx: int, by: int) -> bytes:
-    return _bgra_to_rgba(texture2ddecoder.decode_astc(raw, width, height, bx, by))
-
-
-def _bgra_to_rgba(data: bytes) -> bytes:
-    buf = bytearray(data)
-    buf[0::4], buf[2::4] = buf[2::4], buf[0::4]
-    return bytes(buf)
+    return codec_backend.decode_astc(raw, width, height, bx, by)
 
 
 def _dimensions(graphic: dict) -> tuple[int, int, str | None]:
@@ -534,8 +523,6 @@ def atlas_art(catalog: Path, texture: str, sprites: dict[str, tuple[int, int, in
     Only a sprite the device table carries at the art's own size is returned; anything else is left out,
     so a later layout that drops or resizes a sprite stops drawing it rather than drawing it wrong.
     """
-    from PIL import Image
-
     root = Path(catalog).parent / SPRITE_ART / texture
     codes = list(dict.fromkeys((for_catalog(catalog).code, ENGLISH.code, "")))
     labels = [next((path for path in (root / "labels" / code / f"{name}.png" for code in codes)
@@ -547,10 +534,9 @@ def atlas_art(catalog: Path, texture: str, sprites: dict[str, tuple[int, int, in
             box = sprites.get(path.stem)
             if box is None or not path.is_file():
                 continue
-            with Image.open(path) as image:
-                if image.size != (box[2] - box[0], box[3] - box[1]):
-                    continue
-                found[path.stem] = image.convert("RGBA").tobytes()
+            pixels = codec_backend.png_pixels(path, (box[2] - box[0], box[3] - box[1]))
+            if pixels is not None:
+                found[path.stem] = pixels
     return art
 
 
@@ -710,17 +696,12 @@ def label_atlas(mobile_raw: bytes, texture: str, catalog: Path,
 
 def label_texture_art(catalog: Path, texture: str) -> bytes | None:
     """<texture>'s art (``LABEL_TEXTURES``) for <catalog>'s language, top-down RGBA, or None."""
-    from PIL import Image
-
     width, height, name = LABEL_TEXTURES[int(texture, 16)]
     labels = Path(catalog).parent / SPRITE_ART / texture / "labels"
     for code in dict.fromkeys((for_catalog(catalog).code, ENGLISH.code)):
         path = labels / code / f"{name}.png"
         if path.is_file():
-            with Image.open(path) as image:
-                if image.size != (width, height):
-                    return None
-                return image.convert("RGBA").tobytes()
+            return codec_backend.png_pixels(path, (width, height))
     return None
 
 

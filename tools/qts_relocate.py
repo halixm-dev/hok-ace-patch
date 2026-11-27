@@ -543,15 +543,12 @@ def read_raw(package, slots, file_hash: int) -> bytes | None:
     being LZ4 and 4 Oodle. A payload that will not decompress returns None rather than raising — the
     caller then leaves the asset alone, which is what the game already shows for it.
     """
-    import lz4.block
-    import ooz
-    import zstandard
+    import codec_backend
 
     entry = package.entries[file_hash]
     chunks = slots.get(file_hash)
     if not chunks:
         return None
-    zstd = None
     raw = bytearray()
     for chunk_id in sorted(chunks):
         slot = chunks[chunk_id]
@@ -562,13 +559,11 @@ def read_raw(package, slots, file_hash: int) -> bytes | None:
             if slot.compressed_size == slot.uncompressed_size:
                 raw += payload  # chunk stored uncompressed
             elif payload[:4] == ZSTD_MAGIC:
-                if zstd is None:
-                    zstd = zstandard.ZstdDecompressor()
-                raw += zstd.decompress(payload, max_output_size=slot.uncompressed_size)
+                raw += codec_backend.zstd_decompress(payload, slot.uncompressed_size)
             elif entry.compression in LZ4_CODECS:
-                raw += lz4.block.decompress(payload, uncompressed_size=slot.uncompressed_size)
+                raw += codec_backend.lz4_decompress(payload, slot.uncompressed_size)
             elif entry.compression == 4:
-                raw += ooz.decompress(payload, slot.uncompressed_size)
+                raw += codec_backend.oodle_decompress(payload, slot.uncompressed_size)
             else:
                 return None
         except Exception:  # noqa: BLE001 - unknown framing: leave the asset alone
@@ -580,6 +575,7 @@ def read_raw(package, slots, file_hash: int) -> bytes | None:
 # scanner, which is right on a pristine shard but can be stale after a relocation. `build_patch`
 # clears this before a run and logs each entry after it.
 BTREE_FALLBACKS: dict[str, str] = {}
+live_slot_replacements = None  # Installed by engine_hooks when the native backend is active.
 
 
 def install_btree_slot_map() -> None:
@@ -599,6 +595,18 @@ def install_btree_slot_map() -> None:
         slot_map = original(self)
         if len(self.shard_paths) != 1:
             return slot_map
+        if live_slot_replacements is not None:
+            path = self.shard_paths[0]
+            stock = [(fh, cid, slot.slot_offset, slot.hash1 & 0xFFFFFFFF)
+                     for fh, chunks in slot_map.items() for cid, slot in chunks.items()]
+            try:
+                replacements = live_slot_replacements(path, stock)
+            except (OSError, ValueError):
+                pass  # Resolve ties and preserve B-tree diagnostics through the reference path.
+            else:
+                for row in replacements:
+                    slot_map[row[0]][row[1]] = qtsvfs.ChunkSlot(path, *row)
+                return slot_map
         try:
             live = _read_btree_offsets(self.shard_paths[0])
         except Exception as error:  # noqa: BLE001 - keep the stock map, but say so (BTREE_FALLBACKS)

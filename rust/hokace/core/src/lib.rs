@@ -6,6 +6,12 @@
 /// The workspace's version, as Cargo records it.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+pub mod catalog;
+pub mod package_metadata;
+pub mod protobuf;
+pub mod qts;
+pub mod translation;
+
 #[cfg(test)]
 mod tests {
     #[test]

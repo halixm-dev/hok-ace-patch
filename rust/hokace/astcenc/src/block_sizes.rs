@@ -153,7 +153,7 @@ fn init_decimation_info_2d(
             weight[3] = (prod + 8) >> 4;
             weight[1] = x_weight_frac.wrapping_sub(weight[3]);
             weight[2] = y_weight_frac.wrapping_sub(weight[3]);
-            weight[0] = (16 - x_weight_frac - y_weight_frac).wrapping_add(weight[3]);
+            weight[0] = 16 + weight[3] - x_weight_frac - y_weight_frac;
             for i in 0..4 {
                 if weight[i] != 0 {
                     let q = qweight[i] as usize;

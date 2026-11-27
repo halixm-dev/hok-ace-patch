@@ -130,6 +130,7 @@ def diagnostics(engine_root: str) -> str:
             result["codecs"][name] = {"loaded": False, "reason": str(error)}
     import lz4.block
     import zstandard
+    import codec_backend
     from wxq_patch import adaptive
 
     raw = bytes(range(256)) * 4096
@@ -138,6 +139,13 @@ def diagnostics(engine_root: str) -> str:
         raise PatchError("LZ4 real block round-trip failed")
     if zstandard.ZstdDecompressor().decompress(zstandard.ZstdCompressor().compress(raw)) != raw:
         raise PatchError("Zstandard frame round-trip failed")
+    result["codec_backend"] = codec_backend.backend_name()
+    if result["codec_backend"] == "native":
+        import hok_codecs
+
+        compressed = hok_codecs.lz4_compress(raw)
+        if hok_codecs.lz4_decompress(compressed, len(raw)) != raw:
+            raise PatchError("Native LZ4 real block round-trip failed")
     catalog = adaptive.load_catalog(root / "catalog")
     result["catalog_tables"] = len(catalog.known)
     result["catalog_textures"] = len(catalog.graphics)

@@ -467,8 +467,10 @@ def build_patch(game: pathlib.Path, catalog: pathlib.Path, work: pathlib.Path, o
     - It imports `wxq_patch` from whatever runtime directory the caller already put on `sys.path`; it
       never adds paths itself. That is what lets the frozen exe run it.
     - Before the first catalog load it calls `engine_hooks.install()` with no receipts, which wraps
-      `adaptive.load_catalog` alone (terminology, the catalog supplement and the data-update catalog
-      edits); `scan` and `receipt_root` are taken only by a PC job. Right after `adaptive.scan` it calls
+      `adaptive.load_catalog` (terminology, the catalog supplement and data-update catalog edits)
+      and selects the native LZ4 codec, table translator and QtsVFS readers when available.
+      The `scan` and `receipt_root` hooks are PC
+      only. Right after `adaptive.scan` it calls
       `resource_tokens.expand_staged(plans, log, language.resource_terms)` on the materialized
       replacements, so both staging paths carry the expanded resource tokens.
     - `cycle_assets` is a device cycle's one variable: the candidate queue's assets

@@ -520,11 +520,22 @@ def encode_block(pixels: list[Pixel]) -> bytes:
     """One BC7 block for 16 RGBA pixels in row order (the texture's own row order)."""
     if len(pixels) != 16:
         raise ValueError("BC7 block needs 16 RGBA pixels")
+    name = backend_name()
+    if name == "native":
+        from codec_backend import encode_bc7
+
+        encoded = encode_bc7(bytes(c for pixel in pixels for c in pixel))
+        if encoded is not None:
+            block, tried = encoded
+            if tried:
+                SEARCH_CALLS["native"] += 1
+            if tried == len(ENCODERS):
+                MODE7_CALLS["native"] += 1
+            return block
     native = _native(pixels)
     best = (mismatch(pixels, _decode(native)), native)
     if best[0] <= NATIVE_GOOD_ENOUGH:
         return native
-    name = backend_name()
     SEARCH_CALLS[name] += 1
     if name == "native":
         found, tried = _BACKEND["module"].encode_search(bytes(c for pixel in pixels for c in pixel), best[0])

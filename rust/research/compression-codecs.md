@@ -56,7 +56,7 @@ Versions: `requirements.txt:16`, `android/app/build.gradle.kts:207,210`; `zstand
   research readers). pyooz's metadata: "Python bindings to the ooz decompressor", classifier GPLv3+
   (`.venv/Lib/site-packages/pyooz-0.0.8.dist-info/METADATA`).
 - There is no Oodle compressor. Writes use **stored** Oodle blocks: `oodle_stored` emits, per 256 KiB
-  block (`OODLE_BLOCK = 0x40000`, `mobile_graphics.py:47`), the two bytes `CC 0C` and the raw bytes
+  block (256 KiB), the two bytes `CC 0C` and the raw bytes
   (`mobile_graphics.py:221-230`); callers `device_extensions.py:122,348`, `qts_insert.py:49-52`.
 - The runtime never calls ooz (no code object names it); its `extract` raises `Unsupported compression`
   for anything but 0 and 1 (`qtsvfs.pyc:QtsPackage.extract`, l. 460-464).

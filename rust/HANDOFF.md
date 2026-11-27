@@ -18,7 +18,7 @@ this file holds what is not in it.
   identical, so a Rust run is held to them byte for byte. `--command` runs another pipeline with the
   same arguments.
 - **Android wheels:** `android/native/build_rust_wheels.py` cross-builds the crates in its `CRATES`
-  (today `stale-blocks-rs`) for `aarch64-linux-android` against Chaquopy's `libpython3.12.so`, with
+  for `aarch64-linux-android` against Chaquopy's `libpython3.12.so`, with
   16 KiB load alignment, as `cp312-cp312-android_24_arm64_v8a` wheels. `tools/ci/build_android.ps1`
   runs it; `android/app/build.gradle.kts` installs the wheel in the full-codec build. A new unit
   crate the Android app loads joins `CRATES` and the Gradle pip block.
@@ -39,7 +39,7 @@ this file holds what is not in it.
 - A running pipeline holds `rust/stale-blocks-rs/python/stale_blocks_rs/_native.pyd` open, so
   `rust-anything build` and `gate` fail with "Access is denied" until it exits.
 
-## Wave 1, in progress (2026-11-27)
+## Wave 1, offline checkpoint passed (2026-11-27)
 
 - `hokace-codecs` uses `lz4_flex`, `lz4-pure-rs` HC 12, `ruzstd`, `texture2ddecoder` and `png`.
   `cargo run --release -p hokace-codecs --example corpus -- <index> lz4 zstd stored` matched Python
@@ -88,9 +88,92 @@ this file holds what is not in it.
 - Both offline app cases pass with `HOK_ASTC_ENCODER=native` and `HOK_BC7_ENCODER=native`: the
   English and Indonesian runs on the 2026-11-25 dump compare identical to `rust/app-cases/pipeline/`
   (143 s and 223 s, against the baselines' 178 s and 490 s on a busier machine).
+- `android/native/build_rust_wheels.py` also builds `crates/hok_astc` as
+  `hok_astc-0.1.0-cp312-cp312-android_24_arm64_v8a.whl` (`hok_astc.abi3.so` at the top level, 16 KiB
+  aligned, `PyInit_hok_astc` exported, linked only to `libpython3.12.so`, libdl, libm, libc).
+  `build.gradle.kts` does not install it: installing it switches the phone from the `astc_encoder`
+  wheel, whose bytes differ, so it waits for a device cycle (ADR-007).
 - Upstream quirk kept: `compress_block`'s `static` overshoot is set by the first block the process
   compresses and reused by every later context (`ERRORVAL_OVERSHOOT`). A replay must run its calls
   in the tap's order in one process.
-- Workspace format, Clippy, Windows tests and Android ARM64 `cargo check` passed. The Wave 1
-  codecs still need the app fallback wiring, Windows extension, Android wheel and offline
-  replay before the ADR-007 checkpoint. The Python apps still drive both pipelines.
+- `crates/hok_codecs` exposes LZ4, zstd, Oodle, ASTC/BC7 decoding, BC7 encoding and PNG decoding. The Python
+  patchers select it through `tools/codec_backend.py`. In the binary runtime, `engine_hooks.install`
+  redirects the LZ4 calls in the four modules that use it. The app keeps its Python codec
+  fallbacks. `HOK_CODECS=native` exposes codec refusals and `HOK_CODECS=python` selects the reference.
+  The Windows PC edition uses the full Rust BC7 encoder with the native search selected. The older
+  `hok_bc7` extension and etcpak candidate still support source runs without `hok_codecs`.
+- The forced-native graphics check found an invalid ASTC weight grid in its unrelated-art fixture.
+  The decoder validates block parameters and marks invalid blocks magenta, so the splice can
+  refuse the texture. Encoder weight initialization also uses the same arithmetic in debug and
+  release builds.
+- The ARM64 `hok_codecs` wheel builds, exports `PyInit_hok_codecs`, has 16 KiB load alignment, and
+  links to Chaquopy's Python, libdl, libm and libc. Gradle includes it in the full-codec APK.
+  Android diagnostics report the active backend. The ASTC encoder wheel remains a separate device
+  gate.
+- Workspace format, Clippy, Windows tests and Android ARM64 `cargo check` passed. The Python
+  apps still drive both pipelines.
+- Both forced-native offline app cases matched their baselines. Manifests are
+  `D:\scratch\rust-port\wave1-wired\en.json` and `id.json`. In each summary, three
+  `source_package` paths record the fresh scratch directory. Replacing those paths with the
+  baseline's gave the expected SHA-256 for the summary and every other output already matched.
+  The decoder fix also matched all 26 recorded ASTC calls per language.
+- The rebuilt Windows exe passed `--smoketest`, including the full Rust BC7 encoder through mode
+  7. The forced-native graphics check and BC7 extension replay passed. The Android
+  `assembleDebug` and `testDebugUnitTest` tasks passed, and the debug APK passed ELF and ZIP
+  alignment checks. The APK contains the exact `hok_codecs` wheel binary and its notices.
+  See the [lab notebook](../docs/lab-notebook.md#2026-11-27--wave-1-codec-checkpoint).
+- The user approved Wave 2 under ADR-007.
+
+## Wave 2 in progress (2026-11-27)
+
+- The bytecode oracle `rust/harness/runtime_tap.py` records generated wire cases, a read-only game
+  scan in each language, catalog validation, QtsVFS readers and PC package hash lookup. It forces
+  the Python backend. The Rust workspace's `runtime_replay` example checks the result, error class,
+  field bytes and count order each case captures. Generated recordings are under `build/wave2-*`.
+- `hokace-core` now reads protobuf varints, localization fields and I18N records. The native table
+  translator uses Rust validation and keeps the original field bytes when it carries a field over.
+  Cases matched on both game scans (2,578 wire cases and 238 translation calls per language),
+  3,676 generated wire cases and 78,258 validation pairs. The PyO3 bridge prepares the text view
+  after Python finishes the language-specific catalog edits. The Python scanner and staging code
+  still own package discovery, I/O and writes. Source runs fall back when `hok_codecs` is absent.
+  The Rust varint encoder accepts unsigned inputs up to 128 bits. All game fields fit.
+- The Rust QtsVFS index and slot readers run through the existing engine hook. They use a buffered
+  file handle to stay within Android's memory budget. All 21 game database cases matched. Position
+  reference search and insertion matched ten synthetic cases, including failed insertion and an
+  earlier page retained after a later insertion failed. These helpers remain in the core while the
+  installers use the Python implementation. The PC package hash parser matched 17 cases on the
+  installed game's read-only internal index and generated fixtures.
+- Fully staged English and Indonesian on the 2026-11-25 dump with its normal APK and native readers,
+  translator and codecs. Each produced 16 files matching its baseline. The only change was three
+  scratch paths in each summary. The manifests are `build/wave2-en-pipeline.json` and
+  `build/wave2-id-pipeline.json`. The summary hashes were checked by substituting just those paths
+  in the verified Wave 1 summary bytes. No game or phone files were written.
+- The rebuilt Windows exe passed `--smoketest`, including a Rust table rewrite and the QtsVFS hook.
+  The ARM64 wheel rebuilt and matched the copy in the debug APK. The Gradle build and JVM tests
+  passed, as did the APK and ELF alignment checks. No on-device run was made.
+- The native reader now extracts stored and LZ4 assets and selects live B-tree slots. All 200 cases
+  matched in `build/wave2-qts-extract`, `build/wave2-qts-staged` and `build/wave2-qts-pc`.
+  The existing Python selection resolves ties and reports unreadable trees. The package writers
+  still use the Python implementation.
+- With extraction and slot selection active, all 16 file hashes per language matched after
+  substituting the three scratch paths in each summary. See `build/wave2-qts-en-pipeline.json`
+  and `build/wave2-qts-id-pipeline.json`.
+- The Windows exe passed the extraction smoke check. The Android debug build and JVM test task
+  passed. The APK contains the rebuilt ARM64 wheel binary, and its ELF and ZIP alignment checks
+  passed. A phone device cycle is pending.
+- `hokace-core::catalog` ports the runtime's `Catalog.__init__`, `Catalog.lookup` and `load_catalog`
+  (gzip, JSON with key order kept, `int(h, 16)` as Python parses it). `runtime_tap.py --catalog`
+  records the runtime's loader on both shipped catalogs, `Catalog(data)` on both as the apps build
+  them after `engine_hooks`' supplement, admissions, glossary and English updates, 78 generated
+  shapes (every error the runtime raises on purpose, the `KeyError`/`TypeError`/`ValueError` a
+  wrong catalog meets, 22 hash spellings, each as a table hash and a graphic hash) and 2,698 lookups: all 2,783 matched
+  (`build/wave2-catalog`). `int()` trims Unicode spaces but keeps `\x1c`-`\x1f`, unlike
+  `str.strip()`. The port refuses catalog text in a non-string JSON type and Unicode digits
+  other than ASCII in a hash, both of which the runtime would accept; the shipped catalogs have
+  neither. Nothing calls it yet: `scan` reads the Python catalog until it moves.
+- `build/wave2-qts-staged` named a staged output in a temporary folder that no longer exists, so it
+  cannot be replayed; `build/wave2-qts-staged-scratch` re-records the same cases on
+  `D:\scratch\rust-port\out` (86 calls, 0 mismatches).
+- Continue with discovery, scan and run. PC metadata staging, DLL
+  calls and `native_verify` also remain. The glossary data has no active caller and follows
+  ADR-020. Wave 2 is still open under ADR-007.

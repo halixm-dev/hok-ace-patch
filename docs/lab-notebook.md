@@ -7078,3 +7078,51 @@ matched all 790 device package digests and reproduced the backup at its original
   recording fingerprints `pixel_diff/__init__.py` with the other's block in it: both were re-recorded
   with `--inputs <crate>/test-inputs.jsonl` once both were on, and both gates pass. Still Python:
   `sprite_diff`.
+
+## 2026-11-27 — Wave 1 codec checkpoint
+
+- **Offline staging:** forced `HOK_CODECS=native`, `HOK_ASTC_ENCODER=native` and
+  `HOK_BC7_ENCODER=native` for both languages on the 2026-11-25 dump and normal APK. All 16
+  output hashes per language agreed after replacing the three prime source paths in each
+  summary with the baseline's scratch paths. The manifests are in
+  `D:\scratch\rust-port\wave1-wired`.
+- **Graphics:** the final decoder matched all 26 captured ASTC decodes per language and handled
+  6,144 arbitrary blocks without panicking. The forced-native `check_graphics.py` passed,
+  including the unrelated-art refusal. All 105 repository PNGs matched Pillow.
+- **Windows:** frozen `--smoketest` passed. The full native BC7 path matched all 20,057
+  blocks in `bc7_corpus.py replay --backend native --final`, and
+  `check_bc7_native.py` passed 414 blocks across five modes.
+- **Android:** Gradle assembled the debug APK and verified the JVM test task. All 88 ELF
+  files and the APK passed 16 KiB alignment checks. The packaged `hok_codecs` binary's SHA-256
+  matched the ARM64 wheel. Android still encodes ASTC through its existing wheel until the
+  device cycle.
+
+## 2026-11-27 — Wave 2 runtime readers and table translation
+
+- The Python 3.12 bytecode oracle matched the Rust wire readers on 3,676 generated cases and
+  2,578 game cases per language. The Rust validator matched 78,258 pairs. For each language the
+  table translator matched 238 calls, including staged bytes and count order.
+- The QtsVFS readers matched seven indexes and seven shards, each shard with both reserved-slot
+  settings. Ten synthetic position reference cases matched. Internal package hash lookup matched
+  17 cases from the installed PC edition's index and synthetic data.
+- Native readers and the translator were active for both staged runs on the 2026-11-25 dump and
+  normal APK. All 16 file hashes per language matched after accounting for exactly three scratch
+  paths in each summary. The pipeline cases took 185.0 s for English and 267.5 s for Indonesian
+  while other builds and checks were running. These are replay times for this run.
+
+### Package extraction and live slots
+
+- `runtime_replay` matched all 200 cases across the clean mobile dump, its staged English output,
+  PC package 1 and generated fixtures. The staged shards included 453 replacements for
+  superseded slots.
+- Five warm passes over the dump compared the new operations with the previous app hooks and
+  kept all other native readers and codecs enabled. The median for the seven slot maps was
+  1,116 ms in Rust and 1,435 ms in Python. Extracting 120 assets took 22.7 ms in Rust and
+  25.2 ms in Python. Both measurements include the Python bridge.
+- The forced-native pipeline matched all 16 baseline file hashes per language after substituting
+  the three scratch paths in each summary. The runs took 154.2 s for English and 333.2 s for
+  Indonesian alongside other builds. Synthetic ambiguous slots and an unreadable tree produced
+  the same slot maps and fallback diagnostics through both app hooks.
+- The frozen exe passed `--smoketest` with native extraction. The Android debug build and JVM
+  test task passed. All 88 native libraries and the APK passed 16 KiB alignment checks, and the
+  packaged `hok_codecs` binary matched the rebuilt wheel.

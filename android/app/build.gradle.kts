@@ -217,6 +217,7 @@ chaquopy {
                 install("astc-encoder-py==0.1.12")
                 install("texture2ddecoder==1.0.6")
                 install("pyooz==0.0.8")
+                install(rootProject.file("wheels/hok_codecs-0.1.0-cp312-cp312-android_24_arm64_v8a.whl").absolutePath)
                 install(rootProject.file("wheels/chaquopy_freetype-2.9.1-cp312-cp312-android_24_arm64_v8a.whl").absolutePath)
                 install("pillow==11.0.0")
                 // The atlas block scan in Rust (rust/stale-blocks-rs, android/native/build_rust_wheels.py);

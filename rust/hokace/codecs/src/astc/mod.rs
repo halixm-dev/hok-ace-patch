@@ -531,7 +531,7 @@ fn decode_intseq(
     }
 }
 
-fn decode_block_params(buf: &[u8], block_data: &mut BlockData) {
+fn decode_block_params(buf: &[u8], block_data: &mut BlockData) -> bool {
     block_data.dual_plane = (buf[1] & 4) != 0;
     block_data.weight_range = ((buf[0] >> 4 & 1) | (buf[1] << 2 & 8)) as usize;
 
@@ -607,6 +607,14 @@ fn decode_block_params(buf: &[u8], block_data: &mut BlockData) {
         }
         _ => block_data.weight_num as i32 * WEIGHT_PREC_TABLE_B[block_data.weight_range],
     };
+    if !(24..=96).contains(&weight_bits)
+        || block_data.weight_num > 64
+        || block_data.width > block_data.bw
+        || block_data.height > block_data.bh
+        || (block_data.dual_plane && block_data.part_num == 4)
+    {
+        return false;
+    }
 
     if block_data.part_num == 1 {
         block_data.cem[0] = (u8ptr_to_u16(&buf[1..]) >> 5 & 0xf) as usize;
@@ -657,12 +665,17 @@ fn decode_block_params(buf: &[u8], block_data: &mut BlockData) {
         ) as usize;
     }
 
-    let remain_bits = 128 - config_bits - weight_bits as usize;
+    let Some(remain_bits) = 128usize.checked_sub(config_bits + weight_bits as usize) else {
+        return false;
+    };
 
     block_data.endpoint_value_num = 0;
 
     (0..block_data.part_num)
         .for_each(|i| block_data.endpoint_value_num += (block_data.cem[i] >> 1 & 6) + 2);
+    if block_data.endpoint_value_num > 18 {
+        return false;
+    }
 
     let mut endpoint_bits: usize;
     for i in 0..CEM_TABLE_A.len() {
@@ -681,9 +694,10 @@ fn decode_block_params(buf: &[u8], block_data: &mut BlockData) {
         }
         if endpoint_bits <= remain_bits {
             block_data.cem_range = i;
-            break;
+            return true;
         }
     }
+    false
 }
 
 fn decode_endpoints_hdr7(endpoints: &mut [i32], v: &[i32]) {
@@ -1724,7 +1738,10 @@ pub fn decode_astc_block(buf: &[u8], block_width: usize, block_height: usize, ou
         let mut block_data = BlockData::default();
         block_data.bw = block_width;
         block_data.bh = block_height;
-        decode_block_params(buf, &mut block_data);
+        if !decode_block_params(buf, &mut block_data) {
+            outbuf[..block_width * block_height].fill(color(255, 0, 255, 255));
+            return;
+        }
         decode_endpoints(buf, &mut block_data);
         decode_weights(buf, &mut block_data);
         if block_data.part_num > 1 {
@@ -1762,7 +1779,12 @@ pub fn decode_astc(
 
     (0..num_blocks_y).for_each(|by| {
         (0..num_blocks_x).for_each(|bx| {
-            decode_astc_block(&data[data_offset..], block_width, block_height, &mut buffer);
+            decode_astc_block(
+                &data[data_offset..data_offset + 16],
+                block_width,
+                block_height,
+                &mut buffer,
+            );
             copy_block_buffer(
                 bx,
                 by,
