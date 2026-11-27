@@ -156,8 +156,8 @@ Source runs work without it and fall back to the Python encoder; set `HOK_BC7_EN
 re-encode (`rust/stale-blocks-rs`, a [rust-anything](https://github.com/erkamyaman/rust-anything) port
 of `tools/block_scan`); without it the Python scan runs, and the Android app always runs that one. Set
 `RUST_ANYTHING_MODE=new` to require the native scan or `old` to turn it off.
-`tools/research/check_graphics.py` runs its byte comparison natively once
-`rust-anything build rust/outside-ranges-rs` has built that port, and in Python otherwise.
+`tools/research/check_graphics.py` runs its byte comparisons natively once `rust-anything build`
+has built `rust/outside-ranges-rs` and `rust/mean-abs-diff-rs`, and in Python otherwise.
 
 If `py -3.12` is unavailable, select your Python 3.12 executable before setup:
 

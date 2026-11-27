@@ -33,6 +33,28 @@ def sprite_diff(image: bytes, width: int, height: int, box, pixels: bytes) -> fl
                    for c in range(3)])
             count += 1
     return total / count
+# >>> rust-anything: mean-abs-diff-rs is on. `rust-anything disable ../../../rust/mean-abs-diff-rs` removes this block.
+def _rust_anything_mean_abs_diff_rs():
+    import importlib, os, sys
+    mode = os.environ.get("RUST_ANYTHING_MODE")
+    if mode == "old" or os.environ.get("RUST_ANYTHING_UNIT_MEAN_ABS_DIFF") == "original":
+        return
+    at = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../rust/mean-abs-diff-rs/python"))
+    sys.path.insert(0, at)
+    try:
+        native = importlib.import_module("mean_abs_diff_rs")
+    except ImportError:
+        if mode == "new":
+            raise
+        return
+    finally:
+        sys.path.remove(at)
+    globals().update({name: getattr(native, name) for name in ["mean_abs_diff"]})
+
+
+_rust_anything_mean_abs_diff_rs()
+del _rust_anything_mean_abs_diff_rs
+# <<< rust-anything: mean-abs-diff-rs
 # >>> rust-anything: outside-ranges-rs is on. `rust-anything disable ../../../rust/outside-ranges-rs` removes this block.
 def _rust_anything_outside_ranges_rs():
     import importlib, os, sys

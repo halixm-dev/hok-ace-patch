@@ -7068,5 +7068,13 @@ matched all 790 device package digests and reproduced the backup at its original
   `TypeError`/`ValueError` only where Python would reach it.
 - **Result:** `diff` 455/455, `gate` passed (2 tests, 11 assertions). `report`: 8.9 ms to 0.18 ms per
   recorded call, 49x; `go` measured 52.2x as its callers call it. The whole check: 42.0 s with
-  `RUST_ANYTHING_MODE=old`, 30.2 s with the port on, every check passing on both. Not ported yet:
-  `mean_abs_diff` and `sprite_diff`.
+  `RUST_ANYTHING_MODE=old`, 30.2 s with the port on, every check passing on both.
+- **`mean_abs_diff`** (`rust/mean-abs-diff-rs`, its own crate: the first port's switch-on block marks the
+  package blocked, so it was disabled while `go` bridged this one). 254 cases: 46 real calls and 208
+  generated, 33 raising `ZeroDivisionError` on an empty left. `diff` 254/254, `gate` passed (2 tests, 4
+  assertions), `go` measured 38.5x as its callers call it. Over the 46 real calls (45 MB compared): 2.0 s
+  in Python, 0.037 s native. The whole check swings by about 3 s from run to run (28.2 to 34.5 s with
+  both ports on, 43.3 s with both off), so the 2 s saving does not show in one run. Each crate's
+  recording fingerprints `pixel_diff/__init__.py` with the other's block in it: both were re-recorded
+  with `--inputs <crate>/test-inputs.jsonl` once both were on, and both gates pass. Still Python:
+  `sprite_diff`.

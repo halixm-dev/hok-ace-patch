@@ -1,0 +1,49 @@
+{
+  "schema": "rust-anything/bridge@1",
+  "root": "D:\\Projects\\hok-ace-android-en",
+  "unit": "tools/research/pixel_diff/__init__.py",
+  "language": "python",
+  "kind": "pyo3",
+  "crate_name": "mean-abs-diff-rs",
+  "exports": [
+    {
+      "name": "mean_abs_diff",
+      "file": "tools/research/pixel_diff/__init__.py",
+      "line": 10,
+      "params": [
+        {
+          "name": "left",
+          "ts_type": "pybytes",
+          "optional": false,
+          "rest": false
+        },
+        {
+          "name": "right",
+          "ts_type": "pybytes",
+          "optional": false,
+          "rest": false
+        }
+      ],
+      "returns": "number",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false
+    }
+  ],
+  "classes": [],
+  "js_only": [
+    {
+      "name": "outside_ranges",
+      "file": "tools/research/pixel_diff/__init__.py",
+      "line": 15,
+      "reason": "not hot in the profiled run; `go` ports one function"
+    },
+    {
+      "name": "sprite_diff",
+      "file": "tools/research/pixel_diff/__init__.py",
+      "line": 23,
+      "reason": "not hot in the profiled run; `go` ports one function"
+    }
+  ]
+}
