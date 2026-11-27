@@ -174,6 +174,26 @@ this file holds what is not in it.
 - `build/wave2-qts-staged` named a staged output in a temporary folder that no longer exists, so it
   cannot be replayed; `build/wave2-qts-staged-scratch` re-records the same cases on
   `D:\scratch\rust-port\out` (86 calls, 0 mismatches).
-- Continue with discovery, scan and run. PC metadata staging, DLL
+- `hokace-core::scan` ports `adaptive.discover`, `adaptive.scan` and `apply_graphic_payload`, plus
+  `QtsPackage.__init__` and the slot map `qts_relocate.install_btree_slot_map` installs (stock map,
+  first slot per chunk; a single shard's stale chunks repointed through its B-tree; an unreadable
+  B-tree keeps the stock map and is reported with Python's `struct.error` or `RuntimeError` text,
+  as `BTREE_FALLBACKS` records it). `scan` takes the catalog already loaded (`CatalogData`, plus
+  `text_view()` for the translator), since the apps' `load_catalog` is `engine_hooks`' edited one.
+  `runtime_tap.py --scan-runtime <dir> <work> [<game> <catalog>] ...` records the runtime with its
+  catalog as the input blob and the staged files as hashes. All 30 calls matched (`build/wave2-scan`):
+  `clean-game` with both catalogs and both `materialize` values (709 unreadable assets, 118 tables,
+  202,078 strings, every package fingerprint), and 8 synthetic games under `build/wave2-scan/fixtures`
+  (folder sort and `isdecimal`, `<id>_*.db` matched case-insensitively and sorted so `3_10.db` comes
+  before `3_2.db`, each skip reason, four B-tree fallbacks, a repointed chunk, patch ranges, and every
+  error the scan lets out). The 2026-11-25 dump's B-trees all read, so its fallbacks list is empty.
+  The port's own behaviour: non-ASCII decimal folder names and two live slots for one chunk are
+  refused, and an `OSError` other than a missing file or refused permission, or an LZ4 block that
+  will not decompress, carries Rust's text (no recording has either). Nothing calls it yet: wiring it
+  means returning `QtsPackage` objects in the plans, and falling back to Python on a refusal.
+- `hokace-core` now depends on `sha2` (fingerprints), so `crates/hok_codecs/Cargo.lock` was refreshed.
+- Drive D had 1.4 GB free on 2026-11-27, not 7 GB. The materialized scans write their replacements to
+  the `<work>` given to `--scan-runtime`. Point it at drive C.
+- Continue with `run`. PC metadata staging, DLL
   calls and `native_verify` also remain. The glossary data has no active caller and follows
   ADR-020. Wave 2 is still open under ADR-007.

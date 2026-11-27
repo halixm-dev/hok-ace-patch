@@ -10,6 +10,7 @@ pub mod catalog;
 pub mod package_metadata;
 pub mod protobuf;
 pub mod qts;
+pub mod scan;
 pub mod translation;
 
 #[cfg(test)]

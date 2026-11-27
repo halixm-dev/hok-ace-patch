@@ -148,6 +148,23 @@ impl CatalogData {
             .or_else(|| self.unique.get(source))
             .map(String::as_str)
     }
+
+    /// The text view `translation::translate_table` reads, as `engine_hooks` builds it.
+    pub fn text_view(&self) -> crate::translation::Catalog {
+        crate::translation::Catalog::from_entries(
+            self.unique
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+            self.context
+                .iter()
+                .map(|((a, k, s), t)| (a.clone(), k.clone(), s.clone(), t.clone())),
+            self.english_updates.iter().map(|(id, t)| {
+                let base = self.english_sources[id].clone();
+                (id.0.clone(), id.1.clone(), id.2.clone(), t.clone(), base)
+            }),
+        )
+    }
 }
 
 /// `adaptive.load_catalog(folder)`: `<folder>/catalog.json.gz`, gzip, UTF-8, JSON.

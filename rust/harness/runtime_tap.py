@@ -21,6 +21,7 @@ canonical encoding the replay rebuilds (``stream_*`` below), so a 1 MB table cos
     .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --qts <dir> <package-root>
     .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --metadata <dir> <internal-index>
     .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --catalog <dir> <catalog-folder> ...
+    .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --scan-runtime <dir> <work> [<game> <catalog-folder>] ...
     .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --tap <dir> -- <build_device_patch arguments>
     cargo run --release -p hokace-core --example runtime_replay -- <dir> ...
 
@@ -630,12 +631,266 @@ def capture_catalog(rec: Recorder, folders: list[pathlib.Path], rng: random.Rand
         build(name, data)
 
 
+def _edited_catalog(folder: pathlib.Path) -> dict:
+    """The catalog data ``engine_hooks``' ``load_catalog`` builds ``Catalog`` from."""
+    import catalog_supplement
+    import catalog_updates
+    import terminology
+    from languages import for_catalog
+
+    with gzip.open(folder / "catalog.json.gz", "rt", encoding="utf-8") as handle:
+        data = json.load(handle)
+    language = for_catalog(folder)
+    catalog_supplement.apply(data, language.code)
+    catalog_updates.admit_tables(data)
+    terminology.apply(data, language.terms)
+    catalog_updates.apply(data, language.code)
+    return data
+
+
+BASE = 106_496
+
+
+def _index(entries) -> bytes:
+    """A QtsVFS index: one 84-byte entry per ``(hash, compression, chunk_size, size)``."""
+    data = bytearray(BASE)
+    for file_hash, compression, chunk_size, size in entries:
+        entry = bytearray(84)
+        struct.pack_into("<IiI", entry, 0, len(data), -1, len(entry))
+        struct.pack_into("<I", entry, 24, 48)
+        struct.pack_into("<I", entry, 44, size)
+        struct.pack_into("<HHIQ", entry, 68, compression, 0, chunk_size, file_hash)
+        data += entry
+    struct.pack_into("<I", data, 8, len(data))
+    return bytes(data)
+
+
+def _shard(slots, live="all", table=256, page=4096) -> bytes:
+    """A shard of ``(file_hash, chunk_id, payload, uncompressed_size, hash1)`` slots.
+
+    ``live`` is the B-tree leaf: ``"all"`` lists every slot, a list gives ``(key, offset)`` rows by
+    slot index (``("slot", i)``) or as numbers, ``None`` writes no page table, ``"count"`` an
+    over-full leaf and ``"short"`` a page past the end."""
+    data = bytearray(BASE)
+    offsets = []
+    for file_hash, chunk_id, payload, size, hash1 in slots:
+        body = (32 + len(payload) + 3) & ~3
+        slot = bytearray(max(body + 16, 48))
+        struct.pack_into("<IiI", slot, 0, len(data), -1, len(slot))
+        struct.pack_into("<QIII", slot, 12, hash1, 0, len(payload) + 4, size)
+        slot[32:32 + len(payload)] = payload
+        struct.pack_into("<QII", slot, len(slot) - 16, file_hash, 0, chunk_id)
+        offsets.append((hash1 & 0xFFFFFFFF, len(data)))
+        data += slot
+    struct.pack_into("<I", data, 8, len(data))
+    if live is None:
+        return bytes(data)
+    rows = offsets if live in ("all", "count", "short") else [
+        offsets[item[1]] if isinstance(item, tuple) else item for item in live]
+    struct.pack_into("<I", data, 0x30, table)
+    if table + 8 > len(data):
+        return bytes(data[:table])
+    struct.pack_into("<I", data, table + 4, 1)
+    struct.pack_into("<II", data, table + 24, 1, len(data) - 100 if live == "short" else page)
+    if live == "short":
+        return bytes(data)
+    for i, (key, offset) in enumerate(rows):
+        struct.pack_into("<I", data, page + i * 4, key)
+        struct.pack_into("<I", data, page + 2040 + i * 4, offset)
+    count = 600 if live == "count" else len(rows)
+    struct.pack_into("<4I", data, page + 4080, 1, 0, 0, 0x30000 | count)
+    return bytes(data)
+
+
+def _scan_fixtures(root: pathlib.Path) -> list[tuple[pathlib.Path, dict]]:
+    """Synthetic games for every path ``discover`` and ``scan`` take, each with its catalog."""
+    import lz4.block
+
+    def lz4_block(data: bytes) -> bytes:
+        return lz4.block.compress(data, store_size=False)
+
+    def sha(data: bytes) -> str:
+        return hashlib.sha256(data).hexdigest()
+
+    def text(*pairs) -> bytes:
+        return b"".join(_record(k.encode(), v.encode()) for k, v in pairs)
+
+    def package(game, name, index, shards):
+        folder = game / "WXQ_Data" / "Package" / "builtin" / name
+        folder.mkdir(parents=True, exist_ok=True)
+        if index is not None:
+            (folder / f"{name}.db").write_bytes(index)
+        for shard, data in shards.items():
+            (folder / shard).write_bytes(data)
+        return folder
+
+    hello, bye = text(("k1", "你好"), ("k2", "再见")), text(("k3", "再见"))
+    art, art2, new_art = b"chinese art bytes", b"older art bytes!!", b"english art"
+    ranged = bytearray(art2)
+    ranged[2:5], ranged[8:10] = b"ENG", b"XY"
+    assets = root / "assets"
+    assets.mkdir(parents=True, exist_ok=True)
+    (assets / "c.bin").write_bytes(new_art)
+    (assets / "f.bin").write_bytes(b"ENGXY")
+    known = [0x10, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1C, 0x1D, 0x1E, 0x30, 0x80, 0x91, 0xA0, 0xC0, 0xD0, 0xE0]
+    graphics = [
+        {"hash": "12", "source_sha256": sha(art), "patched_sha256": sha(new_art), "payload": "c.bin"},
+        {"hash": "13", "source_sha256": sha(art), "patched_sha256": sha(new_art), "payload": "c.bin"},
+        {"hash": "14", "source_sha256": sha(b"x"), "patched_sha256": sha(b"y"), "payload": "c.bin",
+         "previous_sha256": [sha(b"z")]},
+        {"hash": "15", "source_sha256": sha(b"x"), "patched_sha256": sha(bytes(ranged)), "payload": "f.bin",
+         "previous_sha256": [sha(b"z"), sha(art2)], "patch_ranges": [[2, 3], [8, 2]]},
+        {"hash": "20", "source_sha256": sha(art), "patched_sha256": sha(new_art), "payload": "c.bin"},
+    ]
+    catalog = {"schema": 1, "unique": {"你好": "Hello", "再见": "Goodbye"}, "contextual": [],
+               "english_updates": [], "table_hashes": [f"{h:X}" for h in known], "graphics": graphics}
+    games = []
+
+    game = root / "game-a"
+    old, new = b"\x0a\xff\xff", lz4_block(hello)
+    half = len(hello) // 2
+    first, second = lz4_block(hello[:half]), lz4_block(hello[half:])
+    slots = [
+        (0x10, 0, lz4_block(hello), len(hello), 0x1010),
+        (0x11, 0, lz4_block(bye), len(bye), 0x1011),
+        (0x12, 0, lz4_block(art), len(art), 0x1012),
+        (0x13, 0, lz4_block(new_art), len(new_art), 0x1013),
+        (0x14, 0, lz4_block(b"other"), 5, 0x1014),
+        (0x15, 0, lz4_block(art2), len(art2), 0x1015),
+        (0x16, 1, lz4_block(hello), len(hello), 0x1016),
+        (0x17, 0, lz4_block(hello), len(hello), 0x1017),
+        (0x18, 0, lz4_block(b"\x0a\xff"), 2, 0x1018),
+        (0x19, 0, hello, len(hello), 0x1019),
+        (0x1A, 0, lz4_block(old), len(old), 0x101A),
+        (0x1A, 0, new, len(hello), 0x101A),
+        (0x1B, 0, lz4_block(text(("k", "plain"))), len(text(("k", "plain"))), 0x101B),
+        (0x1D, 0, first, half, 0x101D),
+        (0x1D, 1, second, len(hello) - half, 0x111D),
+        (0x1E, 0, lz4_block(hello), len(hello), 0x101E),
+        (0x20, 0, art, len(art), 0x1020),
+    ]
+    live = [("slot", i) for i in range(len(slots)) if i != 10]
+    package(game, "1", _index([
+        (0x10, 1, 0, len(hello)), (0x11, 1, 0, len(bye)), (0x12, 1, 0, len(art)), (0x13, 1, 0, len(new_art)),
+        (0x14, 1, 0, 5), (0x15, 1, 0, len(art2)), (0x16, 1, 0, len(hello)), (0x17, 1, 0, len(hello) + 1),
+        (0x18, 1, 0, 2), (0x19, 0, 0, len(hello)), (0x1A, 1, 0, len(hello)), (0x1B, 1, 0, len(text(("k", "plain")))),
+        (0x1C, 1, 0, 4), (0x1D, 1, half, len(hello)), (0x1E, 9, 0, len(hello)), (0x20, 0, 0, len(art)),
+    ]), {"1_1.db": _shard(slots, live)})
+    package(game, "2", _index([(0x90, 1, 0, 4)]), {"2_1.db": _shard([(0x90, 0, lz4_block(b"abcd"), 4, 1)])})
+    package(game, "3", _index([(0x30, 1, 0, len(hello))]), {
+        "3_10.db": _shard([(0x30, 0, lz4_block(hello), len(hello), 0x3030)], None),
+        "3_2.db": _shard([(0x30, 0, lz4_block(bye), len(hello), 0x3031)], None),
+    })
+    package(game, "4", None, {})
+    package(game, "5", b"\0" * 100, {})
+    empty_index = bytearray(BASE + 400)
+    struct.pack_into("<I", empty_index, 8, len(empty_index))
+    package(game, "6", bytes(empty_index), {})
+    (game / "WXQ_Data" / "Package" / "builtin" / "7").write_bytes(b"a file")
+    package(game, "abc", _index([(0x10, 1, 0, 1)]), {})
+    package(game, "8", _index([(0x80, 1, 0, len(hello))]),
+            {"8_1.db": _shard([(0x80, 0, lz4_block(hello), len(hello), 0x8080)], None)})
+    folder = package(game, "9", _index([(0x91, 1, 0, len(hello))]),
+                     {"9_1.DB": _shard([(0x91, 0, lz4_block(hello), len(hello), 0x9191)]), "9_x.txt": b"x"})
+    (folder / "9_d.db").mkdir(exist_ok=True)
+    package(game, "10", _index([(0xA0, 1, 0, len(hello))]), {})
+    package(game, "11", b"", {})
+    package(game, "12", _index([(0xC0, 1, 0, len(hello))]),
+            {"12_1.db": _shard([(0xC0, 0, lz4_block(hello), len(hello), 0xC0C0)], "all", table=10**6)})
+    package(game, "13", _index([(0xD0, 1, 0, len(hello))]),
+            {"13_1.db": _shard([(0xD0, 0, lz4_block(hello), len(hello), 0xD0D0)], "count")})
+    package(game, "14", _index([(0xE0, 1, 0, len(hello))]),
+            {"14_1.db": _shard([(0xE0, 0, lz4_block(hello), len(hello), 0xE0E0)], "short")})
+    games.append((game, catalog))
+
+    games.append((root / "game-b", catalog))
+    (root / "game-b" / "WXQ_Data" / "Package").mkdir(parents=True, exist_ok=True)
+
+    game = root / "game-c"
+    package(game, "1", _index([(0x10, 1, 0, len(hello))]), {"1_1.db": b""})
+    games.append((game, catalog))
+
+    def graphic_game(name: str, entry: dict) -> None:
+        game = root / name
+        package(game, "1", _index([(0x12, 1, 0, len(art))]),
+                {"1_1.db": _shard([(0x12, 0, lz4_block(art), len(art), 0x1012)])})
+        data = json.loads(json.dumps(catalog))
+        data["graphics"] = [{"hash": "12", "source_sha256": sha(art), **entry}]
+        games.append((game, data))
+
+    graphic_game("game-d", {"patched_sha256": sha(new_art), "payload": "missing.bin"})
+    graphic_game("game-e", {"patched_sha256": sha(new_art), "payload": "c.bin", "patch_ranges": [[0, 99]]})
+    graphic_game("game-f", {"payload": "c.bin"})
+    graphic_game("game-g", {"patched_sha256": sha(b"not it"), "payload": "c.bin"})
+    graphic_game("game-h", {"patched_sha256": sha(new_art), "payload": "c.bin", "patch_ranges": [[0, 3]]})
+    return games
+
+
+def capture_scan(rec: Recorder, work_root: pathlib.Path, targets: list[tuple[pathlib.Path, pathlib.Path | None]]) -> None:
+    """``adaptive.discover`` and ``adaptive.scan`` (both ``materialize`` values) as the mobile
+    pipeline runs them: ``qts_relocate``'s B-tree slot map installed, ``load_catalog`` giving the
+    catalog the apps build. Each target is a game and a catalog folder; synthetic fixtures follow."""
+    import shutil
+
+    import qts_relocate
+
+    adaptive = rec.adaptive
+    qts_relocate.install_btree_slot_map()
+    original_loader = adaptive.load_catalog
+
+    def file_hash(path: pathlib.Path) -> str:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    def run(name: str, game: pathlib.Path, assets: pathlib.Path, data: dict) -> None:
+        blob = json.dumps(data, ensure_ascii=False).encode("utf-8")
+        adaptive.load_catalog = lambda folder: adaptive.Catalog(json.loads(blob))
+        try:
+            catalog = adaptive.load_catalog(assets)
+            try:
+                packages, skipped = adaptive.discover(game, catalog)
+                result = {"ok": [[[p.package_id, str(p.index_path), [str(s) for s in p.shard_paths],
+                                   hashlib.sha256(",".join(f"{h:016X}" for h in p.entries).encode()).hexdigest()]
+                                  for p in packages], skipped]}
+            except Exception as exc:  # noqa: BLE001 - the class and message are the recording
+                result = {"error": _error(exc)}
+            rec.write("adaptive.discover", [name, str(game)], blob, result)
+            for materialize in (False, True):
+                work = work_root / f"{len(rec.seen)}"
+                shutil.rmtree(work, ignore_errors=True)
+                qts_relocate.BTREE_FALLBACKS.clear()
+                try:
+                    plans, fingerprints, total, skipped = adaptive.scan(game, assets, work, materialize=materialize)
+                    written = sorted([str(p.relative_to(work)), file_hash(p)] for p in work.rglob("*") if p.is_file())
+                    result = {"ok": {
+                        "plans": [[package.package_id, str(replacements.relative_to(work)),
+                                   [[f"{h:016X}", list(counts.items())] for h, counts in per_asset.items()]]
+                                  for package, replacements, per_asset in plans],
+                        "fingerprints": list(fingerprints.items()), "total": list(total.items()),
+                        "skipped": skipped, "written": written,
+                        "fallbacks": list(qts_relocate.BTREE_FALLBACKS.items())}}
+                except Exception as exc:  # noqa: BLE001
+                    result = {"error": _error(exc)}
+                rec.write("adaptive.scan", [name, str(game), str(assets), materialize], blob, result)
+                shutil.rmtree(work, ignore_errors=True)
+                print(f"scan {name} materialize={materialize}: {str(result)[:160]}", flush=True)
+        finally:
+            adaptive.load_catalog = original_loader
+
+    for game, folder in targets:
+        run(f"{game.name}:{folder.name}", game, folder, _edited_catalog(folder))
+    fixtures = (rec.blobs.parent / "fixtures").resolve()
+    shutil.rmtree(fixtures, ignore_errors=True)
+    for game, data in _scan_fixtures(fixtures):
+        run(game.name, game, fixtures / "assets", data)
+
+
 def main() -> int:
     argv = sys.argv[1:]
     scan = None
     qts = None
     metadata = None
     catalogs = None
+    scan_targets = None
     if len(argv) == 2 and argv[0] in ("--generated", "--validation"):
         out, rest = pathlib.Path(argv[1]), None
     elif len(argv) >= 3 and argv[0] == "--tap" and argv[2] == "--":
@@ -652,6 +907,10 @@ def main() -> int:
     elif len(argv) >= 3 and argv[0] == "--catalog":
         out, catalogs = pathlib.Path(argv[1]), [pathlib.Path(a) for a in argv[2:]]
         rest = None
+    elif len(argv) >= 3 and argv[0] == "--scan-runtime" and len(argv) % 2 == 1:
+        out, work = pathlib.Path(argv[1]), pathlib.Path(argv[2])
+        pairs = [pathlib.Path(a) for a in argv[3:]]
+        rest, scan_targets = None, list(zip(pairs[::2], pairs[1::2]))
     else:
         print(__doc__)
         return 2
@@ -663,6 +922,8 @@ def main() -> int:
             from engine_hooks import install
             install()
             capture_tables(rec, lambda: rec.adaptive.scan(*scan, out, materialize=False), rng)
+        elif scan_targets is not None:
+            capture_scan(rec, work, scan_targets)
         elif qts is not None:
             capture_qts(rec, qts)
         elif catalogs is not None:

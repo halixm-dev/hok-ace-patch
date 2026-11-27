@@ -4,6 +4,7 @@ use hokace_core::catalog::{self, CatalogData, CatalogError};
 use hokace_core::package_metadata::{self, LookupError};
 use hokace_core::protobuf::{self, Error, Record, Value};
 use hokace_core::qts;
+use hokace_core::scan;
 use hokace_core::translation::{self, Catalog};
 use serde_json::{Value as Json, json};
 use sha2::{Digest, Sha256};
@@ -309,7 +310,9 @@ fn check(dir: &Path) -> Result<usize, Box<dyn std::error::Error>> {
             .transpose()?
             .unwrap_or_default();
         let args = &call["args"];
-        let actual = if let Some(result) = catalog_case(name, args, &data, &mut loaded)? {
+        let actual = if let Some(result) = scan_case(name, args, &data, &mut loaded)? {
+            result
+        } else if let Some(result) = catalog_case(name, args, &data, &mut loaded)? {
             result
         } else if name == "translate_table" {
             let snapshot = args[1].as_str().ok_or("missing catalog snapshot")?;
@@ -419,6 +422,131 @@ fn catalog_state(catalog: &CatalogData) -> Result<String, Box<dyn std::error::Er
         targets.iter().map(|t| texts(&[t])).collect(),
     );
     Ok(hex(&hash.finalize()))
+}
+
+fn py_error(error: &scan::PyError) -> Json {
+    json!({"error": error.to_string()})
+}
+
+fn skips(skipped: &[scan::Skip]) -> Json {
+    skipped
+        .iter()
+        .map(|skip| match &skip.asset {
+            None => json!({"package": skip.package, "reason": skip.reason}),
+            Some(asset) => json!({"package": skip.package, "asset": asset, "reason": skip.reason}),
+        })
+        .collect()
+}
+
+fn files_under(root: &Path, dir: &Path, out: &mut Vec<(String, String)>) -> std::io::Result<()> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+    for item in fs::read_dir(dir)? {
+        let path = item?.path();
+        if path.is_dir() {
+            files_under(root, &path, out)?;
+        } else {
+            let relative = path
+                .strip_prefix(root)
+                .unwrap_or(&path)
+                .display()
+                .to_string();
+            out.push((relative, hex(&Sha256::digest(fs::read(&path)?))));
+        }
+    }
+    Ok(())
+}
+
+/// The `--scan-runtime` cases: `adaptive.discover` and `adaptive.scan`.
+fn scan_case(
+    name: &str,
+    args: &Json,
+    data: &[u8],
+    loaded: &mut HashMap<Vec<u8>, Result<CatalogData, CatalogError>>,
+) -> Result<Option<Json>, Box<dyn std::error::Error>> {
+    if !matches!(name, "adaptive.discover" | "adaptive.scan") {
+        return Ok(None);
+    }
+    if !loaded.contains_key(data) {
+        let value: Json = serde_json::from_slice(data)?;
+        loaded.insert(data.to_vec(), CatalogData::from_value(&value));
+    }
+    let catalog = loaded[data]
+        .as_ref()
+        .map_err(|err| format!("scan on a refused catalog: {err}"))?;
+    let game = Path::new(args[1].as_str().ok_or("missing game")?);
+    if name == "adaptive.discover" {
+        return Ok(Some(match scan::discover(game, catalog) {
+            Ok((packages, skipped)) => {
+                let packages: Vec<Json> = packages
+                    .iter()
+                    .map(|p| {
+                        let hashes: Vec<String> =
+                            p.entries.keys().map(|h| format!("{h:016X}")).collect();
+                        json!([
+                            p.package_id,
+                            p.index_path.display().to_string(),
+                            p.shard_paths
+                                .iter()
+                                .map(|s| s.display().to_string())
+                                .collect::<Vec<_>>(),
+                            hex(&Sha256::digest(hashes.join(",")))
+                        ])
+                    })
+                    .collect();
+                json!({"ok": [packages, skips(&skipped)]})
+            }
+            Err(err) => py_error(&err),
+        }));
+    }
+    let assets = Path::new(args[2].as_str().ok_or("missing assets folder")?);
+    let materialize = args[3].as_bool().ok_or("missing materialize flag")?;
+    let work = env::temp_dir().join(format!("hokace-scan-replay-{}", std::process::id()));
+    if work.exists() {
+        fs::remove_dir_all(&work)?;
+    }
+    let text = catalog.text_view();
+    let result = match scan::scan(game, assets, catalog, &text, &work, materialize) {
+        Ok(report) => {
+            let mut written = Vec::new();
+            files_under(&work, &work, &mut written)?;
+            written.sort();
+            let plans: Vec<Json> = report
+                .plans
+                .iter()
+                .map(|plan| {
+                    let per_asset: Vec<Json> = plan
+                        .per_asset
+                        .iter()
+                        .map(|(h, counts)| json!([format!("{h:016X}"), counts]))
+                        .collect();
+                    let replacements = plan
+                        .replacements
+                        .strip_prefix(&work)
+                        .unwrap_or(&plan.replacements);
+                    json!([
+                        plan.package.package_id,
+                        replacements.display().to_string(),
+                        per_asset
+                    ])
+                })
+                .collect();
+            json!({"ok": {
+                "plans": plans,
+                "fingerprints": report.fingerprints.iter().map(|(k, v)| json!([k, v])).collect::<Vec<_>>(),
+                "total": report.total.iter().map(|(k, v)| json!([k, v])).collect::<Vec<_>>(),
+                "skipped": skips(&report.skipped),
+                "written": written.iter().map(|(p, h)| json!([p, h])).collect::<Vec<_>>(),
+                "fallbacks": report.fallbacks.iter().map(|(p, r)| json!([p, r])).collect::<Vec<_>>(),
+            }})
+        }
+        Err(err) => py_error(&err),
+    };
+    if work.exists() {
+        fs::remove_dir_all(&work)?;
+    }
+    Ok(Some(result))
 }
 
 /// The `--catalog` cases: `adaptive.Catalog`, its `lookup`, and `load_catalog`.
