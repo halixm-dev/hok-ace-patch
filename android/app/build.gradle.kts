@@ -219,6 +219,9 @@ chaquopy {
                 install("pyooz==0.0.8")
                 install(rootProject.file("wheels/chaquopy_freetype-2.9.1-cp312-cp312-android_24_arm64_v8a.whl").absolutePath)
                 install("pillow==11.0.0")
+                // The atlas block scan in Rust (rust/stale-blocks-rs, android/native/build_rust_wheels.py);
+                // tools/block_scan falls back to Python when it is missing.
+                install(rootProject.file("wheels/stale_blocks_rs-0.1.0-cp312-cp312-android_24_arm64_v8a.whl").absolutePath)
             }
         }
     }

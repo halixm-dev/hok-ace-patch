@@ -1,7 +1,7 @@
 {
   "unit": "tools/block_scan/__init__.py",
   "files": 1,
-  "fingerprint": "bd81bb1a5ac59940",
+  "fingerprint": "a5961bd40918998a",
   "cases": 242,
   "cases_hash": "7b484ea71baf69f5"
 }

@@ -32,6 +32,7 @@ if ((Get-FileHash $target -Algorithm SHA256).Hash -ne '7A4A278EC1FED0E0D0359FBEC
 Invoke-Checked $python @('android/native/build_wheels.py', '--ndk', $ndk, '--python-target', $target, '--work', "$work/codecs", '--output', 'android/wheels')
 Invoke-Checked $python @('android/native/build_compression_wheels.py', '--ndk', $ndk, '--python-headers', "$work/codecs/python-target/include/python3.12", '--python-libs', "$work/codecs/python-target/jniLibs/arm64-v8a", '--work', "$work/dependencies", '--output', 'android/wheels')
 Invoke-Checked $python @('android/native/build_freetype_wheel.py', '--ndk', $ndk, '--cmake', $cmake, '--work', "$work/dependencies", '--output', 'android/wheels')
+Invoke-Checked $python @('android/native/build_rust_wheels.py', '--ndk', $ndk, '--python-target', $target, '--work', "$work/rust", '--output', 'android/wheels')
 Invoke-Checked './android/gradlew.bat' @('-p', 'android', '--no-daemon', ":app:assemble$Variant", ':app:testDebugUnitTest', ':app:lintDebug', ':app:writeRuntimeDependencyInventory', "-PpatchVersionName=$VersionName", "-PpatchVersionCode=$VersionCode")
 $apk = "android/app/build/outputs/apk/$($Variant.ToLower())/app-$($Variant.ToLower()).apk"
 if (-not (Test-Path $apk)) { throw 'Expected signed APK is missing' }

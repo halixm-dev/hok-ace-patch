@@ -1,0 +1,10 @@
+[package]
+name = "hokace-core"
+version = "0.1.0"
+description = "The patchers' shared core: pipeline, runtime port and codecs (rust/MAP.md)"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true

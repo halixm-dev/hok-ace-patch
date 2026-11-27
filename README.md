@@ -154,10 +154,15 @@ encoder (`crates/hok_bc7`, modes 6, 5, 4 and 7) with the toolchain pinned in its
 Source runs work without it and fall back to the Python encoder; set `HOK_BC7_ENCODER=native` or
 `python` to require one or the other. It also builds the native scan that picks which atlas blocks to
 re-encode (`rust/stale-blocks-rs`, a [rust-anything](https://github.com/erkamyaman/rust-anything) port
-of `tools/block_scan`); without it the Python scan runs, and the Android app always runs that one. Set
+of `tools/block_scan`); without it the Python scan runs. The Android app carries it as a wheel that
+`android\native\build_rust_wheels.py` cross-builds (`tools\ci\build_android.ps1` runs it). Set
 `RUST_ANYTHING_MODE=new` to require the native scan or `old` to turn it off.
 `tools/research/check_graphics.py` runs its byte comparisons natively once `rust-anything build`
 has built `rust/outside-ranges-rs` and `rust/mean-abs-diff-rs`, and in Python otherwise.
+
+The whole-repo Rust migration lives under `rust/`: start at `rust/MAP.md` (plan and unit states) and
+`rust/HANDOFF.md`. `rust/hokace/` is its Cargo workspace, and `rust/harness/pipeline_case.py` checks
+a pipeline run against the recorded baselines in `rust/app-cases/`.
 
 If `py -3.12` is unavailable, select your Python 3.12 executable before setup:
 

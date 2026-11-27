@@ -1,0 +1,335 @@
+{
+ "apk": "D:\\HOK ACE Patcher Data\\update-20261125\\normal.apk",
+ "files": {
+  "1/1.db": [
+   196608,
+   "ddc7d5cb4ac025a355208ce8fca1f29a1a7cf7b27d8fa15c00da297a2e6d8bac"
+  ],
+  "1/1_0.db": [
+   41648128,
+   "62df888a2441fdf8f707b51676649b47fc18a64af2a88c90b4e1366406ec785f"
+  ],
+  "10/10.db": [
+   327680,
+   "18867a01e1fee041fa3ffaa2299398c0664a476fc3dd9fe82c3b525ed97fb870"
+  ],
+  "10/10_0.db": [
+   15843328,
+   "a3f0ea2353bdc59f81c2a18086a5d08b3f7111ec2853b690226945d06c8149ef"
+  ],
+  "1050016095/1050016095.db": [
+   131072,
+   "74f02620f94a43295354abfb09f8fd8e81f38dab00f265e36c038451d632d81f"
+  ],
+  "1050016095/1050016095_0.db": [
+   9224192,
+   "8d2c88afcaf197054238e6f47ab7d6b1efb861af4cd1df10fd878dde079a558d"
+  ],
+  "15/15.db": [
+   393216,
+   "fba8389194cbbe446122898a5dc3ec7ae942b0363c12ecd76ead52317b48b839"
+  ],
+  "15/15_0.db": [
+   393854976,
+   "1ae058393c67ae358d3f1c3d660bd50d4895c2ac5854c1134d41e314e53110ba"
+  ],
+  "19/19.db": [
+   2736128,
+   "9769158a77d7f4e6ce653b14abca2b707944216e76f0b4c6a43d727139a1363b"
+  ],
+  "19/19_0.db": [
+   365592576,
+   "b4783c874147a6e277a447dae24e6b2717600e7c1647e6414dbde379a6a5ab48"
+  ],
+  "20/20.db": [
+   3686400,
+   "894f1be235bf15c4eb9234602a26663dfcab42f5d30d1c8d18f1ce0c5375dcda"
+  ],
+  "20/20_0.db": [
+   225509376,
+   "4457ea65501a6e15f684f3247ea6980f1279198eada1f2b63b71837ec08c3943"
+  ],
+  "21/21.db": [
+   1114112,
+   "e70883ca6fbbca6068ea02e0d8f8a614d10ea5f7fd71f1131b8092ea1a626406"
+  ],
+  "21/21_0.db": [
+   67256320,
+   "bf61f1e8eff593800f55cac08bb70300f09b58c3ba0bc42359e7a5634e8e3546"
+  ],
+  "device_patch_summary.json": [
+   7317,
+   "498ed3203ee6807c0682461fc8eb05f7618a58851520cb42a865cb150202fcdf"
+  ],
+  "package1_stage_manifest.json": [
+   1108,
+   "618d3f7e31d8f97be720a879bcb5b752c1d368b6b5f724953c386a6f1c1644dd"
+  ]
+ },
+ "game": "D:\\HOK ACE Patcher Data\\update-20261125\\clean-game",
+ "lang": "id",
+ "seconds": 490.0,
+ "summary": {
+  "append_skipped": [
+   {
+    "assets": 1,
+    "mode": "added-from-apk",
+    "package_id": "1",
+    "reason": "its encoder cannot re-encode 1 of 279",
+    "textures": 0
+   }
+  ],
+  "counts": {
+   "already_english": 2477,
+   "graphics": 0,
+   "records": 205281,
+   "tables": 111,
+   "translated": 201765,
+   "unknown": 0,
+   "unreadable_assets": 709,
+   "unrecognized_tables": 1
+  },
+  "cycle_assets": [],
+  "fit_only": false,
+  "graphics_skipped": [],
+  "language": "id",
+  "packages": [
+   {
+    "fit_summary": {
+     "dropped_while_staging": [
+      "F87054BACA073D28",
+      "F46A897D9255970F",
+      "F1FA25BE131758CC",
+      "F1034D3BC743ED49",
+      "EEF4B093D8666761",
+      "EED092B38A4BF6C1",
+      "EE5CF72D67A94C1F",
+      "EBB4B2DDCD3E736F",
+      "EABE356D0A0BB65F",
+      "EAAC4D47ABAFD6F5",
+      "E88B57D296721DC0",
+      "E310BD26574A1C34",
+      "DD5B5EDFBB69FEED",
+      "DC76F5F79A86AD85",
+      "DA235E4F728242BD",
+      "DA170394EFB236E6",
+      "D850CF0180690C33",
+      "D45A4E09B2BE883B",
+      "CFA109C88E6327DA",
+      "CEB1AA41B4D8A0F3",
+      "C9BC3381603BDDB3",
+      "C680921B0DEC5BE9",
+      "C24B1E3D1E1B020F",
+      "C13DF45E3492CA0C",
+      "B990CF372E5633C5",
+      "B941DD41DB3C7A73",
+      "B812FA36E262F144",
+      "B6920AAC3ED83DFE",
+      "B493029FFD437C2D",
+      "B0AB5D84BCB03876",
+      "A4FDF25E51B190AC",
+      "A2C58867ECA77D95",
+      "A07B2B9F994FB0ED",
+      "9DCBAD5EA212C0CC",
+      "9CAA7228F782AB5A",
+      "9C4EC654D5454B46",
+      "9799DF91AB4F4FA3",
+      "95D5A9AC29D745FE",
+      "9438CC04480D97F6",
+      "8D167C92A38E79A0",
+      "8B66029B19910129",
+      "8B5FA32BAA3913D9",
+      "88DB6A2E7794293C",
+      "8891B21E34B0A36C",
+      "8715C3217A340953",
+      "8185A3D097A010C2",
+      "805FE814788EA4C6",
+      "7F7F60ACED822B5E",
+      "79E3F2A531266997",
+      "79B8029F37774FED",
+      "76E7CED2AB798CC0",
+      "6BF1BDFB7C267E09",
+      "6B4BE06E1593DD1C",
+      "6AC7DE169DDFEE64",
+      "69512BBC6B8D18CE",
+      "6649BBDD0B5C956F",
+      "61F8C1059D45BA37",
+      "616B352C296F1FFE",
+      "614D03A2080D75D0",
+      "60C22FD1BA2FA5E3",
+      "5E72CA8CAF015FDE",
+      "5AD1394B5FDEC7F9",
+      "58D24D0F3E982EFD",
+      "58B4B182D74B34B0",
+      "57C03656175B0904",
+      "56985DCB17BCDBF9",
+      "55EC8FF338904581",
+      "5560E5A826433EFA",
+      "4ECD35E31D166991",
+      "4E0F1B7C13F264AE",
+      "4C8CDABFC4BE8C4D",
+      "478B51E6E8082374",
+      "46C0FBE651EC2614",
+      "4642660EF6DA287C",
+      "4476EC307E0F2142",
+      "4332819ABE8E29C8",
+      "42D3B4645BC89C16",
+      "427283A6BBEA84D4",
+      "3FF82F7E6C74870C",
+      "3D889D9ABCEDE2A8",
+      "3B28B06FE5AF531D",
+      "39E980368CABE4A4",
+      "38A308C2EEFA40D0",
+      "3805791460961F46",
+      "374D23CB263125F9",
+      "36B19C9DB9A0762F",
+      "33FF286795643995",
+      "2EB901FA840C74E8",
+      "23C9A9DEBB3BF40C",
+      "20A7853F0A7B634D",
+      "1FFFD61DB73C942F",
+      "1586D98CC6E0B77E",
+      "1505337BD9C52209",
+      "14C9AD3E828F1FCC",
+      "12EBE81B167C5D69",
+      "0FE1CF4423F97FB6",
+      "0FAE04E0D84D16B2"
+     ]
+    },
+    "mode": "full",
+    "package_id": "1",
+    "source_package": "D:\\HOK ACE Patcher Data\\update-20261125\\clean-game\\WXQ_Data\\Package\\builtin\\1",
+    "stage_report": {
+     "assets": [
+      {
+       "chunks": 1,
+       "hash": "00BF2528D217FFFA",
+       "raw_sha256": "30548415c018383243c6597ee1a79b0dc0c824f37dec70a3b85c6df5620b97be",
+       "raw_size": 4987
+      },
+      {
+       "chunks": 1,
+       "hash": "049FDCA512DC8897",
+       "raw_sha256": "34317ff0436012e55916d0311d7834bccfeffabc063985167f23385104e12f94",
+       "raw_size": 20273
+      }
+     ],
+     "batch_builder_invocations": 1,
+     "files": [
+      {
+       "name": "1.db",
+       "source_sha256": "497d731cf742fbcda24a9e95c45f3a65593226e5a819bb6fc563eae60069b140",
+       "staged_sha256": "0e77ea445997b423abf9f320e82ff945153d1a29dc08f4d0cf407161230e788d"
+      },
+      {
+       "name": "1_0.db",
+       "source_sha256": "586d89ab18b27123e6d7c75b0ff528119726d1e3ed6304dd17001c7d3b3ef5ba",
+       "staged_sha256": "258eda58c1b0eac17caa2e5a9b68b6355caf0aca6ff1911328426a60cf9db45a"
+      }
+     ],
+     "package_id": "1",
+     "position_reference_insertions": [],
+     "position_reference_updates": [],
+     "replacement_count": 2,
+     "slot_donation_updates": [],
+     "status": "verified",
+     "verified_unrelated_assets": 0
+    }
+   },
+   {
+    "mode": "relocated-text",
+    "package_id": "1",
+    "stage_report": {
+     "replacement_count": 109,
+     "status": "relocated"
+    }
+   },
+   {
+    "mode": "graphics",
+    "package_id": "1050016095",
+    "stage_report": {
+     "replacement_count": 59,
+     "status": "relocated"
+    }
+   },
+   {
+    "mode": "graphics",
+    "package_id": "15",
+    "stage_report": {
+     "replacement_count": 130,
+     "status": "relocated"
+    }
+   },
+   {
+    "mode": "graphics",
+    "package_id": "19",
+    "stage_report": {
+     "replacement_count": 14,
+     "status": "relocated"
+    }
+   },
+   {
+    "mode": "graphics",
+    "package_id": "20",
+    "stage_report": {
+     "replacement_count": 1,
+     "status": "relocated"
+    }
+   },
+   {
+    "mode": "extra-text",
+    "package_id": "1",
+    "stage_report": {
+     "replacement_count": 2,
+     "status": "relocated"
+    }
+   },
+   {
+    "mode": "extra-text",
+    "package_id": "10",
+    "stage_report": {
+     "replacement_count": 16,
+     "status": "relocated"
+    }
+   },
+   {
+    "assets": 278,
+    "fit_summary": null,
+    "mode": "added-from-apk",
+    "package_id": "1",
+    "source_package": "D:\\scratch\\rust-port\\work\\prime\\1",
+    "stage_report": {
+     "replacement_count": 278,
+     "status": "verified"
+    },
+    "textures": 0
+   },
+   {
+    "assets": 7,
+    "fit_summary": null,
+    "mode": "added-from-apk",
+    "package_id": "10",
+    "source_package": "D:\\scratch\\rust-port\\work\\prime\\10",
+    "stage_report": {
+     "replacement_count": 7,
+     "status": "verified"
+    },
+    "textures": 0
+   },
+   {
+    "assets": 1,
+    "fit_summary": null,
+    "mode": "added-from-apk",
+    "package_id": "21",
+    "source_package": "D:\\scratch\\rust-port\\work\\prime\\21",
+    "stage_report": {
+     "replacement_count": 1,
+     "status": "verified"
+    },
+    "textures": 1
+   }
+  ],
+  "skipped_count": 709,
+  "text_skipped": []
+ }
+}
