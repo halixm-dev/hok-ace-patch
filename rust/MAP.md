@@ -63,7 +63,7 @@ bridge it (as `tools/block_scan` did).
 | zstd decode and compress | done in `hokace-codecs`: 151 dump frames match Python, Rust encoder round-trips in the codec test |
 | ooz (Oodle) decode | done in `hokace-oodle`: 60,684 dump and 108,118 APK chunks match Python exactly |
 | texture2ddecoder (ASTC, BC7 and the formats the pipeline decodes) | done in `hokace-codecs`: pipeline decodes and 124 HDR fixtures match Python exactly |
-| ASTC encoder (ADR-026) | ported in `hokace-astcenc`: every call of both language taps (1,272 English, 1,275 Indonesian, 749,778 blocks) matches Python byte for byte at 1, 3 and 12 threads; `hokace-codecs` encodes through it (`AstcEncoder`, both taps match through the codec tap replay); not yet wired into the apps |
+| ASTC encoder (ADR-026) | ported in `hokace-astcenc`: every call of both language taps (1,272 English, 1,275 Indonesian, 749,778 blocks) matches Python byte for byte at 1, 3 and 12 threads; `hokace-codecs` encodes through it (`AstcEncoder`, both taps match through the codec tap replay); wired into the Windows app through `crates/hok_astc` (`mobile_graphics` falls back to the wheel; both taps match through `_encode_astc`; frozen `--smoketest` checks it); Android keeps the wheel |
 | BC7 encoder (`bc7_mode6`) | done in `hokace-codecs`: both PC catalog builds match 76,535 blocks exactly, and the existing extension passes its 20,057-case replay |
 | PNG decode (`png`) | done in `hokace-codecs`: 105 repo PNGs match Pillow |
 

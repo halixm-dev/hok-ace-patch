@@ -1,0 +1,20 @@
+[package]
+name = "hok_astc"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Python bindings for the Rust ASTC encoder (rust/hokace/astcenc, ADR-026), byte for byte with the astc_encoder wheel on Windows"
+license = "Apache-2.0"
+
+[lib]
+name = "hok_astc"
+crate-type = ["cdylib"]
+
+[dependencies]
+hokace-codecs = { path = "../../rust/hokace/codecs" }
+pyo3 = { version = "=0.30.1", features = ["extension-module", "abi3-py312"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

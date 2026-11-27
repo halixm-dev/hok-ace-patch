@@ -1634,6 +1634,18 @@ def smoketest(out: Path) -> None:
             png = io.BytesIO()
             Image.new("RGBA", (4, 4), (200, 100, 50, 255)).save(png, "PNG")
             passed += ["lz4", "ooz", "zstandard", "pypinyin", "astc round trip", "png"]
+            # ASTC encodes through the native encoder (crates/hok_astc), never the wheel fallback,
+            # and gives the wheel's bytes on a gradient at the two footprints the pipeline uses most.
+            assert mobile_graphics.astc_backend_name() == "native", "the native ASTC encoder did not load"
+            import astc_encoder
+
+            gradient = bytes(c for y in range(9) for x in range(13)
+                             for c in (x * 19, y * 28, (x * y * 7) % 256, 255 - x * 3))
+            for bx, by in ((4, 4), (6, 6)):
+                wheel = mobile_graphics._context(bx, by).compress(
+                    astc_encoder.ASTCImage(astc_encoder.ASTCType.U8, 13, 9, 1, gradient), astc_encoder.ASTCSwizzle())
+                assert mobile_graphics.encode_astc(gradient, 13, 9, bx, by) == wheel, f"native ASTC {bx}x{by} bytes differ"
+            passed.append("astc native encoder")
 
             # The PC edition: its three modules, the engine attributes its hooks replace, and one BC7
             # block through the native encoder (etcpak) and the decoder.

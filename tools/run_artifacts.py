@@ -351,6 +351,12 @@ def _windows_native_identity() -> dict:
     for name in ("lz4.block", "zstandard", "astc_encoder", "texture2ddecoder", "ooz",
                  "PIL.Image", "PIL.ImageFont", "cryptography.hazmat.primitives.asymmetric.rsa"):
         importlib.import_module(name)
+    # The native ASTC encoder ships in the exe; a source run without it encodes with the wheel.
+    if "hok_astc" not in sys.modules:
+        try:
+            importlib.import_module("hok_astc")
+        except ImportError:
+            pass
     kernel = ctypes.WinDLL("kernel32", use_last_error=True)
     process = kernel.GetCurrentProcess
     process.restype = wintypes.HANDLE

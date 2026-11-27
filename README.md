@@ -147,12 +147,14 @@ Run these commands from the repository root in Windows Command Prompt:
 | Install dependencies | `setup.bat` | Creates `.venv` and installs `requirements.txt` |
 | Run the Windows app | `run.bat` | Opens the GUI from source |
 | Build the Windows exe | `build.bat` | Creates `dist\HOK ACE Language Patcher.exe` |
-| Build only the native modules | `.venv\Scripts\python.exe app\build_exe.py --native-only` | Creates `build\native\hok_bc7.pyd` and the block scan's `stale_blocks_rs`, which source runs also load |
+| Build only the native modules | `.venv\Scripts\python.exe app\build_exe.py --native-only` | Creates `build\native\hok_bc7.pyd`, `build\native\hok_astc.pyd` and the block scan's `stale_blocks_rs`, which source runs also load |
 
 `build.bat` also needs Rust ([rustup](https://rustup.rs)): it builds the PC edition's native BC7
 encoder (`crates/hok_bc7`, modes 6, 5, 4 and 7) with the toolchain pinned in its `rust-toolchain.toml`.
 Source runs work without it and fall back to the Python encoder; set `HOK_BC7_ENCODER=native` or
-`python` to require one or the other. It also builds the native scan that picks which atlas blocks to
+`python` to require one or the other. It also builds the phone's ASTC encoder (`crates/hok_astc`, the
+byte-identical Arm astcenc port in `rust/hokace/astcenc`); without it the `astc_encoder` wheel runs, and
+`HOK_ASTC_ENCODER=native` or `python` requires one. The Android app keeps the wheel. It also builds the native scan that picks which atlas blocks to
 re-encode (`rust/stale-blocks-rs`, a [rust-anything](https://github.com/erkamyaman/rust-anything) port
 of `tools/block_scan`); without it the Python scan runs. The Android app carries it as a wheel that
 `android\native\build_rust_wheels.py` cross-builds (`tools\ci\build_android.ps1` runs it). Set

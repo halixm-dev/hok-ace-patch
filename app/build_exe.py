@@ -16,6 +16,8 @@ APP = ROOT / "app"
 RESOURCES = ROOT / "resources"
 NAME = "HOK ACE Language Patcher"
 NATIVE_CRATE = ROOT / "crates" / "hok_bc7"
+# The Rust ASTC encoder (`mobile_graphics.encode_astc`), byte for byte with the astc_encoder wheel.
+ASTC_CRATE = ROOT / "crates" / "hok_astc"
 # The texture block scan (`tools/block_scan`), ported by rust-anything; a package, `stale_blocks_rs`,
 # whose `_native` extension it imports.
 SCAN_CRATE = ROOT / "rust" / "stale-blocks-rs"
@@ -45,8 +47,9 @@ def _cargo_release(crate: Path) -> Path:
 def build_native() -> Path:
     """The native modules, for this interpreter (64-bit Python 3.12), into `build/native`.
 
-    `crates/hok_bc7` as `hok_bc7.pyd`, and the block scan as the `stale_blocks_rs` package (its
-    generated `__init__.py` beside `_native.pyd`), whose `.pyd` also goes into the crate's own
+    `crates/hok_bc7` as `hok_bc7.pyd`, `crates/hok_astc` as `hok_astc.pyd`, and the block scan as
+    the `stale_blocks_rs` package (its generated `__init__.py` beside `_native.pyd`), whose `.pyd`
+    also goes into the crate's own
     `python/` folder for source runs.
     """
     if shutil.which("cargo") is None:
@@ -55,6 +58,7 @@ def build_native() -> Path:
     NATIVE_OUT.mkdir(parents=True, exist_ok=True)
     target = NATIVE_OUT / "hok_bc7.pyd"
     shutil.copyfile(_cargo_release(NATIVE_CRATE) / "hok_bc7.dll", target)
+    shutil.copyfile(_cargo_release(ASTC_CRATE) / "hok_astc.dll", NATIVE_OUT / "hok_astc.pyd")
     scan = NATIVE_OUT / "stale_blocks_rs"
     scan.mkdir(exist_ok=True)
     built = _cargo_release(SCAN_CRATE) / "stale_blocks_rs.dll"
@@ -118,6 +122,9 @@ def build() -> None:
     # `hok_bc7` is its native BC7 search (`build_native`); the frozen smoke test fails without it.
     for module in ("pc_edition", "pc_catalog", "engine_hooks", "bc7_mode6", "etcpak", "hok_bc7"):
         args += ["--hidden-import", module]
+    # `mobile_graphics` encodes ASTC with `hok_astc` (`build_native`) and with the astc_encoder wheel
+    # when it is missing; the frozen smoke test fails if the exe falls back.
+    args += ["--hidden-import", "hok_astc"]
     # `block_scan` loads its native scan by name (`stale_blocks_rs`, from `build_native`) and runs the
     # Python scan when it is missing; the frozen smoke test fails if the exe falls back.
     for module in ("block_scan", "stale_blocks_rs", "stale_blocks_rs._native"):

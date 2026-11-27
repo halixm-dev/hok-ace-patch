@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import math
 import os
+import sys
 from functools import lru_cache
 from pathlib import Path
 
@@ -206,6 +207,12 @@ ASTC_CACHE_ENTRIES = 512
 # settings; the full audited call sequence is byte-identical at 1-12 threads.
 ASTC_THREADS = max(1, os.cpu_count() or 1)
 
+# The ASTC encoder: "native" requires the Rust extension (`crates/hok_astc`, byte for byte with the
+# wheel on Windows, ADR-026), "python" forces the `astc_encoder` wheel; unset, native when it loads,
+# else the wheel. Checks set it so no fallback passes. The Android app ships no `hok_astc`, so the
+# phone keeps the wheel's bytes.
+ASTC_ENCODER_ENV = "HOK_ASTC_ENCODER"
+_astc_backend: dict = {}  # "name", and "encoder" for native; resolved once by `astc_backend_name`
 _contexts: dict[tuple[int, int], astc_encoder.ASTCContext] = {}
 
 
@@ -407,8 +414,54 @@ def _encode_astc_cached(rgba: bytes, width: int, height: int, bx: int, by: int) 
 
 
 def _encode_astc(rgba: bytes, width: int, height: int, bx: int, by: int) -> bytes:
+    if astc_backend_name() == "native":
+        return _astc_backend["encoder"].encode(rgba, width, height, bx, by)
     image = astc_encoder.ASTCImage(astc_encoder.ASTCType.U8, width, height, 1, rgba)
     return _context(bx, by).compress(image, astc_encoder.ASTCSwizzle())
+
+
+def _load_native_astc():
+    """The native ASTC module (`hok_astc`), or None when it is not built.
+
+    Frozen, it ships beside the other modules. From source it is imported when on the path, else
+    read from `build/native/hok_astc.pyd`, where `app/build_exe.py` puts it.
+    """
+    try:
+        import hok_astc
+        return hok_astc
+    except ImportError:
+        pass
+    if getattr(sys, "frozen", False):
+        return None
+    built = Path(__file__).resolve().parents[1] / "build" / "native" / "hok_astc.pyd"
+    if not built.is_file():
+        return None
+    from importlib.machinery import ExtensionFileLoader
+    from importlib.util import module_from_spec, spec_from_loader
+
+    loader = ExtensionFileLoader("hok_astc", str(built))
+    module = module_from_spec(spec_from_loader("hok_astc", loader))
+    loader.exec_module(module)
+    sys.modules["hok_astc"] = module
+    return module
+
+
+def astc_backend_name() -> str:
+    """The encoder `encode_astc` runs, chosen once: `ASTC_ENCODER_ENV` if set, else native when it
+    loads. "native" set and the extension absent raises, so a check that names it never passes on
+    the wheel."""
+    if not _astc_backend:
+        wanted = os.environ.get(ASTC_ENCODER_ENV, "").strip().lower()
+        if wanted not in ("", "native", "python"):
+            raise ValueError(f"{ASTC_ENCODER_ENV}={wanted!r}: expected native or python")
+        module = None if wanted == "python" else _load_native_astc()
+        if wanted == "native" and module is None:
+            raise RuntimeError("the native ASTC encoder (hok_astc) is not built")
+        if module is None:
+            _astc_backend["name"] = "python"
+        else:
+            _astc_backend["name"], _astc_backend["encoder"] = "native", module.Encoder(ASTC_THREADS)
+    return _astc_backend["name"]
 
 
 def decode_pc(raw: bytes, width: int, height: int, fmt: str) -> bytes:

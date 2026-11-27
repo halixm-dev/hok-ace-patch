@@ -77,8 +77,14 @@ this file holds what is not in it.
   context per footprint, as `mobile_graphics._contexts` does, and refuses input whose size isn't
   `width * height * 4`. `cargo run --release -p hokace-codecs --example tap -- <tap-dir>` now
   replays `encode_astc` too. Every codec call matched in both taps: English 1,272 encodes, 26
-  ASTC and 1,200 PC decodes, 466 LZ4 writes; Indonesian 1,275 encodes and 469 LZ4 writes. Next:
-  the Python fallback wiring.
+  ASTC and 1,200 PC decodes, 466 LZ4 writes; Indonesian 1,275 encodes and 469 LZ4 writes. 
+- The Windows app encodes ASTC through it: `crates/hok_astc` (PyO3) wraps `AstcEncoder`,
+  `app/build_exe.py` builds it into `build/native/hok_astc.pyd`, and `mobile_graphics._encode_astc`
+  uses it when it loads and the wheel otherwise (`HOK_ASTC_ENCODER=native|python` forces one).
+  Through `_encode_astc` both taps match (1,272/1,272 and 1,275/1,275), `check_graphics.py` passes
+  with native forced, and the frozen `--smoketest` checks it loaded and matches the wheel. Speed is
+  the wheel's (16.5 s against 16.1 s on the English tap). Android keeps the wheel: the phone
+  wheel's bytes differ (`-ffp-contract=fast`), so switching it needs a device cycle.
 - Upstream quirk kept: `compress_block`'s `static` overshoot is set by the first block the process
   compresses and reused by every later context (`ERRORVAL_OVERSHOOT`). A replay must run its calls
   in the tap's order in one process.
