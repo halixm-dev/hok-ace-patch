@@ -243,6 +243,49 @@ this file holds what is not in it.
   outside hash fields"). The port's own: a hash that is a bool or a fractional float raises its own
   `TypeError`, and a DLL that will not load raises `OSError` with the loader's text.
 - Not yet wired: the PC edition still runs Python's `scan`, `run`, metadata staging and
-  verification. Wiring them means a PyO3 `RunHost` that returns `QtsPackage` plans, with a fallback
-  to Python on a refusal. The glossary data has no active caller and follows ADR-020. Wave 2 is
-  still open under ADR-007.
+  verification. The glossary data has no active caller and follows ADR-020. Wave 2 is still open
+  under ADR-007.
+
+## Next: wire the PC ports into the apps
+
+Take these steps in order. Each is a separate change, and the apps keep working after each one.
+`tools/engine_hooks.install` is the one place to hook the runtime (AGENTS.md, "Hooks").
+
+1. **The DLL calls first.** These are the smallest seam, and Python keeps everything around them.
+   - Add `hokace-qtsvfs` to `crates/hok_codecs`, then refresh its `Cargo.lock`.
+   - Expose three `#[pyfunction]`s over `DllLoader`: `pc_query_package_hash`,
+     `pc_stage_package_hash_metadata_batch` and `pc_verify_staged_package`. Each maps `PyError` to
+     the Python class of the same name. For `NativeReadError`, raise
+     `wxq_patch.native_verify.NativeReadError` itself.
+   - Install them in the PC branch of `install`, after `check()`, and only when `hok_codecs` has
+     them. How the runtime looks each name up decides where to replace it:
+     - `unity_package_installer.stage_unity_package` and `stage_full_unity_package` import
+       `verify_staged_package` inside the function, at call time. Replacing
+       `native_verify.verify_staged_package` is enough; the tap does the same.
+     - `adaptive` binds `query_package_hash` and `stage_package_hash_metadata_batch` at import.
+       `_stage_package_hashes` reads them as globals, so replace `adaptive.<name>`, not
+       `package_metadata.<name>`.
+   - Do not fall back to Python after a DLL error: it is the game's answer, and Python would give
+     the same one. Fall back only when the module or the function is missing.
+   - Android builds `hok_codecs` too. Off Windows, `hokace-qtsvfs` compiles to a stub that refuses
+     to load, and the hooks are PC-only, so the phone never calls it. Check that the ARM64 wheel
+     still builds (`android/native/build_rust_wheels.py`).
+   - Check:
+     - `pc_native_tap.py` again, with the hooks installed. Add a flag that runs `install()` first,
+       so the recording goes through the hooks.
+     - `--pc-selftest` on a copy of the game.
+     - The frozen `--smoketest`. Freeze changes need the smoketest (AGENTS.md, "Freezing").
+     - `tools/research/check_pc_install.py --game <copy> --work <dir>` on a copy, never `D:\WXQ`.
+2. **`scan`.** `engine_hooks._scan_hook` already wraps `adaptive.scan`. Behind it, call
+   `hokace-core::scan` with the catalog `load_catalog` returned, through its `text_view()`. Then
+   build `qtsvfs.QtsPackage` objects for the plans, so Python's `stage_unity_package` takes them
+   unchanged. Fall back to Python's scan when the port refuses: a non-ASCII folder name, or two
+   live slots for one chunk. Re-run `runtime_tap.py --scan-runtime` through the hook.
+3. **`run`.** Implement a PyO3 `RunHost` whose `scan`, `stage_unity_package`, `receipt_root` and
+   `_assert_game_stopped` call back into Python, and whose two hash calls go to step 1's Rust
+   functions. `app/pc_edition.py`'s `adaptive.run` call (inside its `PatchError` wrapper) then calls
+   it. Replay `build/wave2-run` through it with `run_replay`. Then run the PC cycle
+   (`docs/runbooks/pc-cycle.md`) before recording it as wired in `MAP.md`.
+
+**Disk.** C: had 16 GB free after the staging tap. Delete
+`%LOCALAPPDATA%\Temp\hokace-wave2-pcstage` (8.4 GB) before the next materialized scan.
