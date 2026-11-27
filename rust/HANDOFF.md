@@ -38,3 +38,41 @@ this file holds what is not in it.
   switch-on block). Re-record with `RUST_ANYTHING_MODE=old` and `--inputs <crate>/test-inputs.jsonl`.
 - A running pipeline holds `rust/stale-blocks-rs/python/stale_blocks_rs/_native.pyd` open, so
   `rust-anything build` and `gate` fail with "Access is denied" until it exits.
+
+## Wave 1, in progress (2026-11-27)
+
+- `hokace-codecs` uses `lz4_flex`, `lz4-pure-rs` HC 12, `ruzstd`, `texture2ddecoder` and `png`.
+  `cargo run --release -p hokace-codecs --example corpus -- <index> lz4 zstd stored` matched Python
+  on 14,215 LZ4 chunks (including HC 12 bytes), 151 zstd and 2 stored. The index is
+  `D:\scratch\rust-port\corpus.jsonl`. `lz4-pure-rs` 0.1.2 has 293 `unsafe` occurrences in its
+  source. Its `libc` import in `sys.rs` supplies C type aliases. The workspace's own code forbids unsafe.
+- `cargo run --release -p hokace-codecs --example tap -- <tap-dir> ...` replays texture decodes,
+  LZ4 writes and PNGs. English is at `D:\scratch\rust-port\tap-en` and the fresh Indonesian recording
+  uses the baseline's `clean-game`. The ASTC decoder matches all 124 synthetic HDR fixtures from
+  `codec_tap.py --astc-hdr <dir>`, including rounding and signed endpoint deltas. The PNG decoder
+  matches all 105 repo PNGs from `codec_tap.py --png <dir>`. See [texture replay evidence](research/texture-codecs.md).
+- `hokace-oodle` decodes checksum-free Leviathan and writes stored blocks. The
+  `framing` example matched decoded bytes on all 60,684 dump and 108,118 APK chunks.
+  The APK index is `D:\scratch\rust-port\wave1-oodle\oodle-apk.jsonl`. See
+  [Oodle replay and provenance](research/compression-codecs.md#6-leviathan-port-replay).
+- BC7 encoding matched 76,535 PC catalog blocks across both languages and 2,013 synthetic blocks
+  byte for byte. The rebuilt Python extension passed the existing 20,057-case replay with
+  `--final`. See [BC7 replay evidence](research/texture-codecs.md#6-experiments).
+- **ASTC encoding is ported (ADR-026).** `hokace-astcenc` translates the wheel's Arm astcenc
+  (`.scratch/astcenc-port/plan.md`). `cargo run --release -p hokace-astcenc --example replay --
+  <tap-dir> --threads 12` matched every encode call of `tap-en` (1,272) and `tap-id-clean` (1,275)
+  byte for byte, also at 1 and 3 threads. Speed on the English calls: 13.4 s at 12 threads and
+  49 s at one (Indonesian: 13.2 s and 48 s), against the AVX2 wheel's 12.4 s and 32.8 s. The
+  first port took 25 s and about 120 s. On x86_64 the 4-lane layer runs SSE2 kernels through
+  `safe_arch` (`astcenc/src/lanes.rs`), each tested against the scalar definition. On the first
+  20 calls at one thread it takes 12.2 s, against Arm's own builds' 10.8 s (SSE2) and 7.1 s
+  (AVX2). Most of the gain came from inlining the bilinear infill closures. aarch64 still runs
+  the plain-Rust lanes: NEON intrinsics need `unsafe`, which the workspace forbids. Going past
+  AVX2-wheel parity at one thread needs 8-wide loops and runtime CPU dispatch. Next: call it from
+  `hokace-codecs`, then the Python fallback wiring.
+- Upstream quirk kept: `compress_block`'s `static` overshoot is set by the first block the process
+  compresses and reused by every later context (`ERRORVAL_OVERSHOOT`). A replay must run its calls
+  in the tap's order in one process.
+- Workspace format, Clippy, Windows tests and Android ARM64 `cargo check` passed. The Wave 1
+  codecs still need the app fallback wiring, Windows extension, Android wheel and offline
+  replay before the ADR-007 checkpoint. The Python apps still drive both pipelines.

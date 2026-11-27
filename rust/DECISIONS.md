@@ -193,13 +193,15 @@ Decision: Port BoringSSL's SPAKE2 on `curve25519-dalek` with a small RustCrypto 
 C++ pairing (`android/app/src/main/cpp`) stays until the port matches vectors from today's
 `libhokace_adb.so` and pairs with the user's phone; then it is deleted.
 
-## ADR-026: Vendor a pure-Rust astcenc; judge it against Python's decoded output
-Status: accepted (2026-11-27); restates ADR-010's ASTC limit
-Context: The only pure-Rust ASTC encoder is imgio 0.2.0's port of astcenc 6.0.0, six days old; today's
-encoder already reaches max 94-104 against source art (`research/texture-codecs.md`).
-Decision: Vendor imgio's astcenc at LDR, quality 85, one reused context per footprint. The limit
-(mean 2.0, max 48) compares Rust's output with Python's, both decoded, on the 1.12 dump; measure it on
-the user's phone. Port astcenc ourselves only if it fails.
+## ADR-026: Port Arm astcenc byte for byte
+Status: accepted (2026-11-27); replaces the imgio route at the user's choice, restates ADR-010's ASTC limit
+Context: imgio 0.2.0's astcenc 6.0.0 port exceeded the decoded limit on 57 of 1,272 English calls,
+6 of them a mis-scored block (`research/texture-codecs.md`). All four Windows wheel builds give the
+same bytes, which a scalar `/fp:precise` build of the wheel's own sources reproduces.
+Decision: `hokace-astcenc` translates the wheel's Arm astcenc (commit `631fb04e1c4b`) at LDR, quality
+85, identity swizzle, one reused context per footprint, following the scalar vector layer with no
+FMA and the build's own sin/cos tables embedded, so Android gets the Windows bytes. It is held to
+byte identity with Python on Windows. The decoded limit (mean 2.0, max 48) stays as ADR-027's.
 
 ## ADR-027: BC7 output is judged after decoding
 Status: accepted (2026-11-27); widens ADR-010 to BC7

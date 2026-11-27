@@ -1,0 +1,21 @@
+rustbcx (2026, Noolith project).
+
+The Rust port is offered under Apache License 2.0 (see LICENSE).
+
+2. bc7enc_rdo, by Richard Geldreich, Jr. (https://github.com/richgel999/bc7enc_rdo): its
+   bc7decomp.cpp, bc7enc.cpp, rgbcx.cpp, ert.cpp and rdo_bc_encoder.cpp with their headers
+   and tables, and the parts of utils.h and utils.cpp those use (src/bc7decomp.rs,
+   src/bc7enc.rs, src/rgbcx.rs, src/rgbcx_tables.rs, src/ert.rs, src/rdo_bc_encoder.rs,
+   src/image.rs).
+
+    Copyright(c) 2020-2021 Richard Geldreich, Jr.
+
+   Those files are offered by their author under the MIT licence or as public domain
+   (unlicense.org), whichever the user prefers; that notice is kept in LICENSE-bc7enc_rdo.txt.
+
+   They are changed here in that they are translated from C++ to Rust: the tables the C++
+   keeps in globals are values, and the entry points have Rust's names. What they compute is
+   kept: they give the same blocks as the C++ library.
+
+This import retains the single-block BC7 encoder, its format tables,
+and its float helper.

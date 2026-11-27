@@ -1,0 +1,20 @@
+hokace-astcenc is a translation into Rust of the Arm ASTC Encoder (astcenc),
+commit 631fb04e1c4b, as vendored in astc-encoder-py 0.1.12
+(sdist sha256 03759ac32804cae32bc238e72f94c5ba27e228507df00816b741f7961f1184f9).
+
+Copyright 2011-2024 Arm Limited
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this file except in compliance with the License. You may obtain a copy
+of the License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+
+Changes: translated from C++ to Rust; only the LDR compression path at one
+thread with the scalar (none_4) vector layer is kept.

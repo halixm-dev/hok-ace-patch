@@ -160,9 +160,10 @@ of `tools/block_scan`); without it the Python scan runs. The Android app carries
 `tools/research/check_graphics.py` runs its byte comparisons natively once `rust-anything build`
 has built `rust/outside-ranges-rs` and `rust/mean-abs-diff-rs`, and in Python otherwise.
 
-The whole-repo Rust migration lives under `rust/`: start at `rust/MAP.md` (plan and unit states) and
-`rust/HANDOFF.md`. `rust/hokace/` is its Cargo workspace, and `rust/harness/pipeline_case.py` checks
-a pipeline run against the recorded baselines in `rust/app-cases/`.
+Start with [the Rust migration map](rust/MAP.md) and [handoff](rust/HANDOFF.md). The Cargo workspace
+in `rust/hokace/` contains the core, codecs and Leviathan decoder. Run
+`rust/harness/pipeline_case.py` to compare pipeline output with the baselines in `rust/app-cases/`.
+The existing Windows BC7 extension and the Rust codec crate share their search implementation.
 
 If `py -3.12` is unavailable, select your Python 3.12 executable before setup:
 

@@ -241,3 +241,21 @@ GPL-3.0-or-later obligations (corresponding source, the GPL text), as ADR-005's 
 | zstd encode | **ruzstd** at Default, used only by the self-tests (T10). |
 | ooz decode | **Port** Leviathan (type 12) and the shared entropy decoders from powzix/ooz into a safe-Rust crate, GPL-3.0-or-later; reject every other decoder type, as `read_raw` treats failures (return `None`). Use oozextract only as a cross-check, not a dependency (its MIT label on GPL-derived code, failed docs.rs build, async deps). Gate on byte-identical decode of all 60 685 Oodle chunks against pyooz, then re-scan the APK's packages for decoder types before closing scope. |
 | Oodle stored encode | Port `oodle_stored` as is (`CC 0C` + raw per 256 KiB block); it is 10 lines. |
+
+## 6. Leviathan port replay
+
+`hokace-oodle` keeps the existing QTS framing and adapts the Leviathan and shared entropy code
+from oozextract 0.5.7 under the original ooz GPL-3.0-or-later terms. It uses safe scalar byte
+operations and has no runtime dependencies. The tANS reader zero-pads its forward lookahead
+when a short stream ends before the next full 32-bit read. The decoded bits still come from
+the recorded payload. [Source and license notices](../hokace/oodle/NOTICE.md)
+
+| Corpus (1.12) | Python-decodable chunks | Exact Rust matches |
+|---|---:|---:|
+| Game dump | 60,684 | 60,684 |
+| Cached normal APK | 108,118 | 108,118 |
+
+`rust/harness/codec_corpus.py` records decoded SHA-256 with pyooz. Pass `--out <index> <game-root>`
+for the dump, or `--out <index> --apk <normal.apk>` for the prime layer. Replay each index from
+`rust/hokace` with `cargo run --release -p hokace-oodle --example framing -- <index>`. Both
+layers use checksum-free Leviathan. The port also writes the existing stored block format.

@@ -112,11 +112,16 @@ over each).
   (`astc.cpp:888-991`, `astc.rs:1371-1502`), the BC7 interpolation and `expand_quantized` match
   (`bcn.cpp:932-1119`, `bc7.rs:127-330`), and both pack a pixel as `b | g<<8 | r<<16 | a<<24`
   (`color.h`, `color.rs:25-27`), so `u32::to_le_bytes` gives the Python's BGRA bytes.
-* **One known divergence**: FP16 to UNORM8 conversion. C++ uses `roundf(f * 255)`
+* **FP16 to UNORM8 conversion**: C++ uses `roundf(f * 255)`
   (`astc.cpp:160-181`); Rust uses `floor(f * 255)` (`astc.rs:227-249`). It reaches only HDR endpoint
   modes and **HDR (FP16) void-extent blocks** (`buf[1] & 2`, `astc.cpp:1117-1120`). Measured: 218 of
   439 FP16 void-extent blocks differ by 1 (experiment 1). The repo's encoder (LDR profile) never writes
   either; game textures might.
+* **Signed HDR endpoint deltas**: `decode_endpoints_hdr11` in C++ stores the deltas in `int16_t`.
+  The Rust crate sets the equivalent 16-bit mask in an `i32`, producing large positive values for
+  negative deltas in endpoint modes 11, 14 and 15. The ASTC source in `hokace-codecs` fixes both
+  differences. [Rust source](https://docs.rs/crate/texture2ddecoder/0.1.2/source/src/astc.rs)
+  [Python decoder's C++ source](https://github.com/K0lb3/texture2ddecoder/blob/master/src/Texture2DDecoder/astc.cpp)
 * Input checks differ: the Rust function returns `Err` on short data, too-large blocks, or a short
   output (`astc.rs:1774-1806`); the Python binding passes the buffer through unchecked
   (`pylink.cpp:101-130`). On malformed ASTC blocks the C++ reads out of bounds (11-14 of 20 random
@@ -248,9 +253,8 @@ A simple encoder: a week or two, with a quality gap that only a device cycle cou
    The repo judges every block by texture2ddecoder, so a new encoder should score its candidates with
    the same `select_color` rounding or accept a little slack; `USE_DECODE_UNORM8` is off today, so do not
    turn it on.
-6. **FP16 void-extent and HDR.** The only decode where the Rust crate and the Python disagree (round vs
-   floor, section 2.1). Device textures are not proven free of them; a census of the dump decides it, or
-   the crate's two `floor` calls are patched to round-half-away (C `roundf`).
+6. **FP16 void-extent and HDR.** Preserve rounding (C `roundf`) and sign extension for the endpoint
+   deltas. Both affect valid HDR blocks (section 2.1).
 7. **Malformed blocks.** The Python decoder can crash the process; the Rust crate panics. Wrap decodes
    in `catch_unwind` or patch the bounds, and keep "decode failed" a skipped texture, never a failed
    run (AGENTS.md, *Skipped textures*).
@@ -264,14 +268,13 @@ A simple encoder: a week or two, with a quality gap that only a device cycle cou
 10. **Threads and caching.** The current output is byte-identical at 1-12 threads (comment at
     `tools/mobile_graphics.py:205-206`) and small encodes are memoised; a port must be deterministic for
     a given input or the re-run guards (`LABEL_TEXTURE_KEEP` 2, `:183`) start keeping stale output.
-11. **BC7 is not covered by ADR-010.** Its output (PC edition) falls under "everything else stays byte
-    for byte", so etcpak's `bc7enc.cpp` at uber level 2 needs a bit-exact port (4,126 lines, float math in
-    a fixed order; Rust does not contract to FMA, MSVC `/fp:precise` does not either), or ADR-010 is
-    widened to BC7. `rustbcx` 0.8.0 (Apache-2.0, "bit-identical ports of bc7enc_rdo", created
-    2026-11-15, 0 stars) is unverified against this `bc7enc.cpp` variant.
-12. **`hok_bc7` already binds C.** `crates/hok_bc7/src/lib.rs:53-70` declares `extern "C" fn pow` to copy
-    Python's `float_pow`. Rust's `f64::powf` lowers to the same libm call, so it can be written without
-    the `extern` block, but it remains the platform libm, not Rust code.
+11. **BC7 first candidate.** The Python path runs etcpak's `bc7enc.cpp` at uber level 2, then tries
+    its own modes when the first candidate's premultiplied mean difference exceeds 6. ADR-027
+    evaluates the final block after decoding. The `rustbcx` subset matched the final Python bytes on
+    every recorded encoder call in both PC catalog builds (experiment 8).
+12. **BC7 float operations.** The shared fallback search calls `f64::powf` with an opaque exponent
+    to preserve CPython 3.12's `float_pow` behavior. The standard library uses the platform's
+    math implementation, so replay the fallback search when changing the target or toolchain.
 13. **FreeType metrics in a check.** `atlas_sprites.py layout --check` compares a layout computed from
     FreeType bboxes; a pure-Rust rasteriser cannot pass it as written.
 
@@ -279,9 +282,9 @@ A simple encoder: a week or two, with a quality gap that only a device cycle cou
 
 | Codec | Recommendation |
 |---|---|
-| ASTC and BC7 decode (texture2ddecoder) | Use the `texture2ddecoder` crate 0.1.2, pinned. Byte-identical on every well-formed LDR block tested. Before relying on it, run a census of FP16 void-extent and HDR-mode blocks over the 1.12 dump; if any exist, carry a two-line patch (`floor` to `roundf` in `f32_to_u8` and `select_color_hdr`). Wrap each texture's decode in `catch_unwind` and map a panic to a skipped texture. |
+| ASTC and BC7 decode (texture2ddecoder) | Use the `texture2ddecoder` crate 0.1.2 for BC7. The ASTC-only source in `hokace-codecs` matches the Python decoder's HDR rounding and signed endpoint deltas. Wrap each texture's decode in `catch_unwind` and map a panic to a skipped texture. |
 | ASTC encode (astcenc) | Vendor imgio 0.2.0's `src/astcenc` (Apache-2.0) into a workspace crate, call it at LDR / 85.0 / no flags / identity swizzle with one reused context per footprint, and judge it under ADR-010 against the Python encoder's decoded output on the 1.12 dump in both languages, plus `check_graphics.py`. Measure it on the phone before committing: it runs scalar on aarch64. Fall back to our own port of astcenc's reached path only if the vendored code fails that comparison; do not write a simplified encoder. |
-| BC7 encode (etcpak `bc7enc.cpp`) | Port `bc7enc.cpp`'s modes and search at uber level 2 into `crates/hok_bc7` beside the existing modes and prove it on `tools/research/bc7_corpus.py replay` byte for byte; or ask for ADR-010 to cover BC7 and judge it by decode. Decide which before porting. |
+| BC7 encode (etcpak `bc7enc.cpp`) | Use the `rustbcx` 0.8.0 single-block encoder at uber level 2 and the shared `hok_bc7` fallback search. Replay `rust/harness/bc7_case.py` captures for the complete output and `tools/research/bc7_corpus.py replay --backend native --final` for the existing Python extension. |
 | PNG read (Pillow) | `png` 0.18.1 with `EXPAND | ALPHA | STRIP_16`; identical to Pillow on all 105 repo PNGs. |
 | PNG/ICO write, resize (`make_icon.py`) | `image` 0.25.10 (`png`, `ico` features only), or keep `make_icon.py` as a build-time Python step; its output is a checked-in asset, not run output. |
 | Compositing in the research generators | Hand-written integer code; copy Pillow's rounding only where a `--check` compares the result. |
@@ -308,6 +311,33 @@ All on Windows 11 x86-64, Python 3.12 `.venv`, Rust 1.99.1, 2026-11-27.
    0 differ.
 6. **texture2ddecoder vs astcenc's decoder** (`ASTCContext.decompress`, DECOMPRESS_ONLY) on a 256x256
    encode at 4x4 and 8x8: 27,315 and 27,444 of 262,144 channels differ, max 1.
+7. **HDR decoder parity.** `rust/harness/codec_tap.py --astc-hdr <tap>` records 64 void-extent
+   images covering all 65,536 binary16 channel bit patterns and 60 images with 3,840 encoded HDR
+   and HDR RGB / LDR alpha blocks across the six pipeline footprints. `cargo run --release -p
+   hokace-codecs --example tap -- <tap>` replayed 124/124 against Python. The original crate matched
+   54/124. Rounding alone brought that to 64/124, and sign-extending the HDR endpoint deltas closed
+   the remaining 60 differences.
+8. **BC7 encoder parity.** `rust/harness/bc7_case.py --game <copy> --work <fresh-dir>` recorded all
+   38,175 English and 38,360 Indonesian blocks from cold Python PC catalog builds on the 1.11.0.2
+   copy used by the original BC7 corpus. `cargo run --release -p hokace-codecs --example bc7 --
+   <bc7-en.bin> <bc7-id.bin>` matched every 16-byte block. Decoded mean and maximum differences
+   were both zero. The rebuilt Python extension additionally matched all five modes and final blocks
+   on the existing 20,057-record corpus. The vendored single-block subset builds on Rust 1.99.1.
+   The full crate declares Rust 1.100.
+   [rustbcx source](https://github.com/OctoKeights/rustbcx/tree/e58a6dde6ade655bbba8357615cd48a59d6fdb39)
+
+9. **Solid ASTC encoding.** `cargo run --release -p hokace-codecs --example astc_solid -- <tap-dir> ...`
+   compares each solid source block to the corresponding block from Arm's encoder. The 1.12 English
+   tap matches all 86,195 solid blocks. `codec_tap.py --astc-solid <tap>` adds 1,536 blocks covering
+   every RGBA8 channel value at all six footprints, including partial blocks. All match exactly.
+10. **Non-solid ASTC encoding.** An imgio backport experiment restored reverse dual-plane search,
+    4-partition tuning and weight refinement. It still failed 57 of 1,272 English calls under
+    `astc_replay.py <tap-dir> <candidate-dir>`. The footprint breakdown is 6 of 1,190 at 4x4, 11 of 18
+    at 6x6 and 40 of 64 at 8x8. Re-encoding the same inputs in Python on one thread matched all recorded
+    bytes. Start the non-solid port at 4x4 with the one-partition dual-plane cases `700a9801…` at (0, 2)
+    and `ec24ae6c…` at (328, 2). Both encoders select mode 1106 in those blocks. Decode the symbol fields
+    and trace endpoint fitting and quantized weights against Arm's diagnostic build before changing
+    partition selection. [Pinned Arm source](https://github.com/ARM-software/astc-encoder/tree/631fb04e1c4b/Source)
 
 `cargo check --release --target aarch64-linux-android` passed for harnesses depending on
 `texture2ddecoder` 0.1.2, `imgio` 0.2.0 (default features off) and `png` 0.18.1; nothing was linked or

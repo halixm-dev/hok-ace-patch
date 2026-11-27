@@ -59,13 +59,16 @@ bridge it (as `tools/block_scan` did).
 
 | Unit | State |
 |---|---|
-| LZ4 decode (`lz4_flex`), HC 12 compress byte-exact (ADR-022) | open |
-| zstd decode and compress | open |
-| ooz (Oodle) decode | open |
-| texture2ddecoder (ASTC, BC7 and the formats the pipeline decodes) | open |
-| ASTC encoder: vendored imgio astcenc (ADR-026) | open |
-| BC7 encoder (`bc7_mode6`; `crates/hok_bc7` already ports modes 4 to 7) | open |
-| PNG decode (`png`) | open |
+| LZ4 decode (`lz4_flex`), HC 12 compress byte-exact (ADR-022) | done in `hokace-codecs`: 14,215 dump chunks and replayed pipeline writes match Python |
+| zstd decode and compress | done in `hokace-codecs`: 151 dump frames match Python, Rust encoder round-trips in the codec test |
+| ooz (Oodle) decode | done in `hokace-oodle`: 60,684 dump and 108,118 APK chunks match Python exactly |
+| texture2ddecoder (ASTC, BC7 and the formats the pipeline decodes) | done in `hokace-codecs`: pipeline decodes and 124 HDR fixtures match Python exactly |
+| ASTC encoder (ADR-026) | ported in `hokace-astcenc`: every call of both language taps (1,272 English, 1,275 Indonesian, 749,778 blocks) matches Python byte for byte at 1, 3 and 12 threads; not yet wired into `hokace-codecs` or the apps |
+| BC7 encoder (`bc7_mode6`) | done in `hokace-codecs`: both PC catalog builds match 76,535 blocks exactly, and the existing extension passes its 20,057-case replay |
+| PNG decode (`png`) | done in `hokace-codecs`: 105 repo PNGs match Pillow |
+
+Wave 1 stays open until ASTC passes ADR-026, the codecs have Python fallbacks wired through the
+existing apps, the Windows extension and Android wheel build, and both offline app cases pass.
 
 ### Wave 2: runtime parsing
 

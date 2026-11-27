@@ -1,0 +1,23 @@
+[package]
+name = "hokace-codecs"
+version = "0.1.0"
+description = "The pipeline's codecs in pure Rust (rust/MAP.md, wave 1): LZ4, zstd, texture decode, BC7 encode, PNG"
+license = "MIT AND Apache-2.0"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+lz4-pure-rs = "0.1.2"
+lz4_flex = { version = "0.14", default-features = false, features = ["std", "safe-encode", "safe-decode", "checked-decode"] }
+png = "0.18"
+ruzstd = "0.9"
+texture2ddecoder = "0.1.2"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+rayon = "1.12.0"
+serde_json = "1.0.154"
+sha2 = "0.11.2"

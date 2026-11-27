@@ -1,0 +1,18 @@
+[package]
+name = "hokace-oodle"
+version = "0.1.0"
+description = "Oodle Leviathan decoder for the HOK ACE game data"
+license = "GPL-3.0-or-later"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[features]
+verbose_errors = []
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+serde_json = "1.0.154"
+sha2 = "0.11.2"
