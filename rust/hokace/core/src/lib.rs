@@ -8,6 +8,7 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub mod catalog;
 pub mod launcher;
+pub mod native_verify;
 pub mod package_metadata;
 pub mod protobuf;
 pub mod pyjson;

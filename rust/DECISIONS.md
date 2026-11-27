@@ -165,6 +165,8 @@ Context: `adaptive._run`'s default metadata builder loads the game's installed `
 Decision: Rust loads and calls those DLLs (`libloading`) from the user's game install. They are the
 game's code, not shipped by this repo, so ADR-005 does not cover them.
 Consequences: The PC edition stays Windows-only; nothing reimplements Tencent's metadata.
+The DLL calls live in `hokace/qtsvfs`, the one workspace crate allowed `unsafe`, behind
+`hokace-core`'s `QtsVfs` trait (2026-11-27).
 
 ## ADR-022: The LZ4 encoder matches liblz4 1.9.4 level 12 byte for byte
 Status: accepted (2026-11-27); narrows ADR-010 for LZ4

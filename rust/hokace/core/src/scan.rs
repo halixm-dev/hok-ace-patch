@@ -50,12 +50,12 @@ impl PyError {
         }
     }
 
-    fn value(message: impl Into<String>) -> Self {
+    pub(crate) fn value(message: impl Into<String>) -> Self {
         Self::new("ValueError", message)
     }
 
     /// `OSError` as `open()` raises it for `path`.
-    fn os(error: &io::Error, path: &Path) -> Self {
+    pub(crate) fn os(error: &io::Error, path: &Path) -> Self {
         let name = py_repr(&path.display().to_string());
         match error.kind() {
             io::ErrorKind::NotFound => Self::new(
@@ -274,6 +274,35 @@ pub fn discover(game: &Path, catalog: &CatalogData) -> Result<(Vec<Package>, Vec
     Ok((packages, skipped))
 }
 
+/// `list(qtsvfs.iter_chunk_slots(shard_path, include_reserved_variants=...))`.
+pub fn iter_chunk_slots(shard_path: &Path, include_reserved: bool) -> Result<Vec<ChunkSlot>, PyError> {
+    let file = File::open(shard_path).map_err(|error| PyError::os(&error, shard_path))?;
+    match qts::chunk_slots(file, include_reserved) {
+        Ok(slots) => Ok(slots),
+        Err(qts::Error::EmptyShard) => Err(PyError::value("cannot mmap an empty file")),
+        Err(qts::Error::Io(error)) => Err(PyError::os(&error, shard_path)),
+        Err(error) => Err(PyError::value(error.to_string())),
+    }
+}
+
+/// The runtime's own `QtsPackage.build_slot_map`: per asset, the first slot each shard lists for
+/// each chunk, shards in their sorted order. The PC edition reads packages through it.
+pub fn stock_slot_map(package: &Package) -> Result<HashMap<u64, BTreeMap<u32, Slot>>, PyError> {
+    let mut map: HashMap<u64, BTreeMap<u32, Slot>> = HashMap::new();
+    for shard_path in &package.shard_paths {
+        for slot in iter_chunk_slots(shard_path, false)? {
+            map.entry(slot.file_hash)
+                .or_default()
+                .entry(slot.chunk_id)
+                .or_insert_with(|| Slot {
+                    shard_path: shard_path.clone(),
+                    slot,
+                });
+        }
+    }
+    Ok(map)
+}
+
 /// `QtsPackage.build_slot_map` as `qts_relocate.install_btree_slot_map` replaces it.
 pub fn build_slot_map(
     package: &Package,
@@ -281,16 +310,7 @@ pub fn build_slot_map(
 ) -> Result<HashMap<u64, BTreeMap<u32, Slot>>, PyError> {
     let mut map: HashMap<u64, BTreeMap<u32, Slot>> = HashMap::new();
     for shard_path in &package.shard_paths {
-        let file = File::open(shard_path).map_err(|error| PyError::os(&error, shard_path))?;
-        let slots = match qts::chunk_slots(file, false) {
-            Ok(slots) => slots,
-            Err(qts::Error::EmptyShard) => {
-                return Err(PyError::value("cannot mmap an empty file"));
-            }
-            Err(qts::Error::Io(error)) => return Err(PyError::os(&error, shard_path)),
-            Err(error) => return Err(PyError::value(error.to_string())),
-        };
-        for slot in slots {
+        for slot in iter_chunk_slots(shard_path, false)? {
             map.entry(slot.file_hash)
                 .or_default()
                 .entry(slot.chunk_id)
@@ -560,12 +580,37 @@ fn read_asset(
     let contiguous = chunk_map.is_some_and(|chunks| {
         !chunks.is_empty() && chunks.keys().copied().eq(0..chunks.len() as u32)
     });
-    let Some(chunk_map) = chunk_map.filter(|_| contiguous) else {
+    if chunk_map.filter(|_| contiguous).is_none() {
         return Err(PyError::value("Missing or non-contiguous asset chunks"));
-    };
+    }
     let entry = &package.entries[&hash];
-    let chunks: HashMap<u32, Payload> = chunk_map
-        .iter()
+    let raw = extract(package, slots, hash)?;
+    let at = entry.entry_offset as usize + 44;
+    let expected = index_data
+        .get(at..at + 4)
+        .map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
+        .ok_or_else(|| {
+            PyError::new("error", "unpack_from requires a buffer of at least 4 bytes")
+        })?;
+    if raw.len() != expected as usize {
+        return Err(PyError::value(
+            "Asset length differs from its current index descriptor",
+        ));
+    }
+    Ok(raw)
+}
+
+/// `package.extract(hash, slots)` for an asset in `package.entries`.
+pub fn extract(
+    package: &Package,
+    slots: &HashMap<u64, BTreeMap<u32, Slot>>,
+    hash: u64,
+) -> Result<Vec<u8>, PyError> {
+    let entry = &package.entries[&hash];
+    let chunks: HashMap<u32, Payload> = slots
+        .get(&hash)
+        .into_iter()
+        .flatten()
         .map(|(&id, slot)| {
             let payload = Payload {
                 path: slot.shard_path.clone(),
@@ -593,18 +638,6 @@ fn read_asset(
             PyError::value(format!("Chunk {chunk} decompressed to an unexpected size"))
         }
     })?;
-    let at = entry.entry_offset as usize + 44;
-    let expected = index_data
-        .get(at..at + 4)
-        .map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
-        .ok_or_else(|| {
-            PyError::new("error", "unpack_from requires a buffer of at least 4 bytes")
-        })?;
-    if raw.len() != expected as usize {
-        return Err(PyError::value(
-            "Asset length differs from its current index descriptor",
-        ));
-    }
     Ok(raw)
 }
 

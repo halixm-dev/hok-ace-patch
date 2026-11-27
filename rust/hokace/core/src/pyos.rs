@@ -515,6 +515,100 @@ pub fn mkdir(path: &Path, exist_ok: bool) -> Result<(), PyError> {
     fs::create_dir_all(path).map_err(|e| os_error(&e, Call::Win, &[path]))
 }
 
+/// `shutil.copytree(source, target)`, or with `copy_function=os.link` when `link` is set: every
+/// file and folder error is collected and raised together as `shutil.Error` (an `OSError`), whose
+/// `str()` is the list of `(source, target, reason)` triples. The port's own: the folders'
+/// timestamps are not copied (`copystat`), and an error listing a folder is raised at once.
+pub fn copytree(source: &Path, target: &Path, link: bool) -> Result<(), PyError> {
+    let mut errors = Vec::new();
+    copy_into(source, target, link, &mut errors)?;
+    if errors.is_empty() {
+        return Ok(());
+    }
+    let items: Vec<String> = errors
+        .iter()
+        .map(|(from, to, why): &(PathBuf, PathBuf, String)| {
+            format!(
+                "({}, {}, {})",
+                py_repr(&from.display().to_string()),
+                py_repr(&to.display().to_string()),
+                py_repr(why)
+            )
+        })
+        .collect();
+    Err(PyError::new("Error", format!("[{}]", items.join(", "))))
+}
+
+fn copy_into(
+    source: &Path,
+    target: &Path,
+    link: bool,
+    errors: &mut Vec<(PathBuf, PathBuf, String)>,
+) -> Result<(), PyError> {
+    let mut entries = Vec::new();
+    for entry in fs::read_dir(source).map_err(|e| os_error(&e, Call::Win, &[source]))? {
+        entries.push(entry.map_err(|e| os_error(&e, Call::Win, &[source]))?);
+    }
+    if is_dir(target)? || lexists(target)? {
+        return Err(os_error(
+            &io::Error::from_raw_os_error(if cfg!(windows) { 183 } else { 17 }),
+            Call::Win,
+            &[target],
+        ));
+    }
+    fs::create_dir_all(target).map_err(|e| os_error(&e, Call::Win, &[target]))?;
+    for entry in entries {
+        let from = entry.path();
+        let to = target.join(entry.file_name());
+        let is_folder = entry
+            .file_type()
+            .map(|kind| kind.is_dir())
+            .map_err(|e| os_error(&e, Call::Win, &[&from]))?;
+        if is_folder {
+            match copy_into(&from, &to, link, errors) {
+                Err(error) if error.class == "Error" => errors.push((from, to, error.message)),
+                other => other?,
+            }
+            continue;
+        }
+        let copied = if link {
+            fs::hard_link(&from, &to).map_err(|e| os_error(&e, Call::Win, &[&from, &to]))
+        } else {
+            fs::copy(&from, &to)
+                .map(|_| ())
+                .map_err(|e| os_error(&e, Call::Win, &[&from, &to]))
+        };
+        if let Err(error) = copied {
+            errors.push((from, to, error.message));
+        }
+    }
+    Ok(())
+}
+
+/// `shutil.rmtree(path)`. The port's own: read-only files are removed too.
+pub fn rmtree(path: &Path) -> Result<(), PyError> {
+    fs::remove_dir_all(path).map_err(|e| os_error(&e, Call::Win, &[path]))
+}
+
+/// `uuid.uuid4().hex`'s shape: 32 lowercase hex digits, from the standard library's random seed.
+pub fn random_hex() -> String {
+    use std::hash::{BuildHasher, Hasher};
+    let state = std::collections::hash_map::RandomState::new();
+    let mut out = String::with_capacity(32);
+    for part in 0..2u8 {
+        let mut hasher = state.build_hasher();
+        hasher.write_u8(part);
+        hasher.write_u128(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or_default(),
+        );
+        out.push_str(&format!("{:016x}", hasher.finish()));
+    }
+    out
+}
+
 /// `os.replace(source, target)`.
 pub fn replace(source: &Path, target: &Path) -> Result<(), PyError> {
     fs::rename(source, target).map_err(|e| os_error(&e, Call::Win, &[source, target]))

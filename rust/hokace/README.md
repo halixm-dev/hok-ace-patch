@@ -2,6 +2,8 @@
 
 The Rust migration's one Cargo workspace (`../DECISIONS.md`, ADR-012). `core/` is the shared core;
 the front ends join as members when their wave starts (`../MAP.md`).
+`qtsvfs/` calls the game's own `QtsVFS.dll` for the PC edition (ADR-021), the one member with
+`unsafe`.
 
 ```bat
 cargo test --manifest-path rust\hokace\Cargo.toml

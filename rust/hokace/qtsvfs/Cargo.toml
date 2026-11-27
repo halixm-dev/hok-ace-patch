@@ -1,0 +1,26 @@
+[package]
+name = "hokace-qtsvfs"
+version = "0.1.0"
+description = "The game's installed QtsVFS.dll and QtskDB.dll, loaded and called for the PC edition (rust/DECISIONS.md, ADR-021)"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+hokace-core = { path = "../core" }
+
+[target.'cfg(windows)'.dependencies]
+libloading = "0.8"
+windows-sys = { version = "0.61", features = ["Win32_System_LibraryLoader"] }
+
+[dev-dependencies]
+serde_json = "1.0.154"
+
+# The workspace forbids `unsafe`; calling the game's DLLs needs it (ADR-021), so this crate alone
+# allows it, every block documented.
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+undocumented_unsafe_blocks = "warn"

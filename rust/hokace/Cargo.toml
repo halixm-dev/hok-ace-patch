@@ -3,7 +3,7 @@
 # unit crates beside it (rust/*-rs) keep their own lockfiles until the lift folds them in.
 [workspace]
 resolver = "3"
-members = ["core", "codecs", "oodle", "astcenc"]
+members = ["core", "codecs", "oodle", "astcenc", "qtsvfs"]
 
 [workspace.package]
 edition = "2024"

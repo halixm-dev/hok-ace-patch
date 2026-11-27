@@ -219,5 +219,30 @@ this file holds what is not in it.
   rollback of a commit that fails mid-swap (only an `OSError` can), the `Recovery refused` checks,
   the backup and staged-copy verification failures or a Watchdog error. Nothing calls it yet:
   wiring it means a PyO3 `RunHost` over the Python scan and DLL calls.
-- PC metadata staging, DLL calls and `native_verify` remain. The glossary data has no active caller and follows
-  ADR-020. Wave 2 is still open under ADR-007.
+- `hokace-core::package_metadata` now ports `query_package_hash`, `stage_package_hash_metadata` and
+  `_batch`, and `hokace-core::native_verify` ports `verify_staged_package` with its structural
+  check (`_verify_structural`, `_verify_changed_positions`). Both call QtsVFS through the
+  `Loader`/`QtsVfs` traits. The new crate `rust/hokace/qtsvfs` (`hokace-qtsvfs`) implements them over
+  the game's `QtskDB.dll` and `QtsVFS.dll` with `libloading`, as `installer._load_qtsvfs` loads them:
+  the DLL folder is added with `AddDllDirectory`, initializers run, and libraries are never unloaded.
+  It is the workspace's one crate with `unsafe`, and every block is documented. `rust/harness/pc_native_tap.py
+  <dir> <game> <work> [<cross-volume-work>] [--stage <catalog-folder>]` records the runtime on the
+  installed game (read only; copies and staged output go under `<work>`).
+  `cargo run --release -p hokace-qtsvfs --example native_replay -- <dir>` replays a fresh tap's
+  recording. All matched: 36 calls in `build/wave2-pcnative` (work under
+  `%LOCALAPPDATA%\Temp\hokace-wave2-pcnative`, cross-volume copy on `D:\scratch\rust-port\pcnative-xvol`),
+  and 41 in `build/wave2-pcstage` with `--stage resources\catalog`, including the five verifications
+  staging packages 15, 19, 20, 21 and 30 makes. That work, 8.4 GB in
+  `%LOCALAPPDATA%\Temp\hokace-wave2-pcstage`, is safe to delete; the replay then needs a fresh tap.
+  Measured: only `read_source` is inside `_verify_contents`' `try`. A staged asset QtsVFS cannot
+  read raises `NativeReadError` and stops the run. A source asset it cannot read runs the structural
+  check once and is listed in `source_read_fallbacks`. No recording reaches that fallback, because
+  the installed game's sources all read. `{error}` in the messages is `VFS_GetLastError()`'s int
+  (open 5, read 20, mount 143). `query_package_hash` on package `0` raises `FileExistsError`,
+  because it copies `0` twice. A new hash that leaves an old byte in place is refused ("changed bytes
+  outside hash fields"). The port's own: a hash that is a bool or a fractional float raises its own
+  `TypeError`, and a DLL that will not load raises `OSError` with the loader's text.
+- Not yet wired: the PC edition still runs Python's `scan`, `run`, metadata staging and
+  verification. Wiring them means a PyO3 `RunHost` that returns `QtsPackage` plans, with a fallback
+  to Python on a refusal. The glossary data has no active caller and follows ADR-020. Wave 2 is
+  still open under ADR-007.
