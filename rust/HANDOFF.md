@@ -66,8 +66,12 @@ this file holds what is not in it.
   first port took 25 s and about 120 s. On x86_64 the 4-lane layer runs SSE2 kernels through
   `safe_arch` (`astcenc/src/lanes.rs`), each tested against the scalar definition. On the first
   20 calls at one thread it takes 12.2 s, against Arm's own builds' 10.8 s (SSE2) and 7.1 s
-  (AVX2). Most of the gain came from inlining the bilinear infill closures. aarch64 still runs
-  the plain-Rust lanes: NEON intrinsics need `unsafe`, which the workspace forbids. Going past
+  (AVX2). Most of the gain came from inlining the bilinear infill closures. aarch64 runs the
+  plain-Rust lanes, which LLVM vectorizes: on a Redmi Note 9 Pro
+  (`rust/harness/phone_astc_timing.py`), the English tap takes 97.6 s on one fast core, against
+  91.3 s for Arm's NEON build and 102.3 s for its scalar build, both with the Android wheel's
+  flags. It takes 38.7 s at 8 threads, and every call matches the Windows bytes. NEON kernels
+  would gain at most about 7%, and they need `unsafe`, which the workspace forbids. Going past
   AVX2-wheel parity at one thread needs 8-wide loops and runtime CPU dispatch. Next: call it from
   `hokace-codecs`, then the Python fallback wiring.
 - Upstream quirk kept: `compress_block`'s `static` overshoot is set by the first block the process

@@ -52,7 +52,7 @@ and compare the Rust side's trace at the first differing block.
 ## Not reached (not ported)
 
 HDR endpoint packing and unquantise, `compute_variance` (alpha scaling off), the diagnostic trace,
-decompress-only contexts, the 8-wide (AVX2) vector layer, NEON kernels on aarch64.
+decompress-only contexts, the 8-wide (AVX2) vector layer, NEON kernels on aarch64 (at most about 7% on the phone).
 
 ## Speed (2026-11-27)
 
@@ -61,3 +61,15 @@ bilinear infill taps are inlined functions instead of closures. On the English t
 at one thread and 13.4 s at 12; the first port took about 120 s and 25 s, and the AVX2 wheel
 takes 32.8 s and 12.4 s. The ties-to-even `round` is exact in SSE2 (`(|a| + 2^23) - 2^23`, sign
 put back). Both taps still match byte for byte at 1, 3 and 12 threads.
+
+On the phone (Redmi Note 9 Pro, `rust/harness/phone_astc_timing.py`), the English tap takes:
+
+| Build | Time |
+|---|---|
+| Rust port, one fast core | 97.6 s |
+| Rust port, 8 threads | 38.7 s |
+| Arm astcenc NEON, Android wheel flags | 91.3 s |
+| Arm astcenc scalar, Android wheel flags | 102.3 s |
+
+Every Rust call matches the Windows bytes on aarch64. Unpinned one-thread runs can land on the
+slow cores and take three times as long, so the script pins them with `taskset`.
