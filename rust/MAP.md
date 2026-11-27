@@ -69,6 +69,8 @@ bridge it (as `tools/block_scan` did).
 
 Wave 1 stays open until ASTC passes ADR-026, the codecs have Python fallbacks wired through the
 existing apps, the Windows extension and Android wheel build, and both offline app cases pass.
+Both offline app cases pass with the native ASTC and BC7 encoders forced (`HOK_ASTC_ENCODER=native`,
+`HOK_BC7_ENCODER=native`): English and Indonesian identical to their baselines (2026-11-27).
 
 ### Wave 2: runtime parsing
 

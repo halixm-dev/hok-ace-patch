@@ -85,6 +85,9 @@ this file holds what is not in it.
   with native forced, and the frozen `--smoketest` checks it loaded and matches the wheel. Speed is
   the wheel's (16.5 s against 16.1 s on the English tap). Android keeps the wheel: the phone
   wheel's bytes differ (`-ffp-contract=fast`), so switching it needs a device cycle.
+- Both offline app cases pass with `HOK_ASTC_ENCODER=native` and `HOK_BC7_ENCODER=native`: the
+  English and Indonesian runs on the 2026-11-25 dump compare identical to `rust/app-cases/pipeline/`
+  (143 s and 223 s, against the baselines' 178 s and 490 s on a busier machine).
 - Upstream quirk kept: `compress_block`'s `static` overshoot is set by the first block the process
   compresses and reused by every later context (`ERRORVAL_OVERSHOOT`). A replay must run its calls
   in the tap's order in one process.
