@@ -35,8 +35,11 @@ a worker that monitors the child process.
 
 ### What landed
 
-The runtime can read QtsVFS indexes and shard slots and translate localization tables through
-`hok_codecs`. The Python runtime still drives the PC job and verifies staged packages.
+Windows PC jobs use `hok_codecs` for QtsVFS scans, localization tables, package verification and
+the install and restore transactions. The Python app manages the job and calls the staging engine
+through `engine_hooks`. The Rust transaction refuses a commit that would rewrite
+`LocalFileList.json` or remove or resize a file it lists. Source runs without the extension use
+the Python engine.
 
 Five slices, stacked (halixm-dev/hok-ace-patch #41, #43, #44, #45 and ticket 05's PR):
 
@@ -154,10 +157,17 @@ Three new modules. `patcher_core` stays untouched; the GUI talks to `patcher_cor
 
 - **`tools/engine_hooks.py`** holds every hook into the runtime:
   - `load_catalog`: terminology. `terminology.install` moves here, and the mobile pipeline calls it from here.
-  - `scan`: token expansion, PC edition only.
+  - `scan`: the Windows Rust extension scans the game with the catalog as loaded by the patcher.
+    It uses the PC edition's stock slot map. Python builds the staging objects and expands resource
+    tokens in the replacements. If the native scan refuses an input, the hook clears any partial
+    replacements from that attempt and retries with the runtime's scanner.
   - `receipt_root`: our receipts folder, PC edition only.
+  - `query_package_hash`, `stage_package_hash_metadata_batch`, and `verify_staged_package`: the
+    Windows Rust extension queries the game's QtsVFS DLLs, stages the internal package index, and
+    verifies staged packages. Source runs use the runtime's originals when the extension or export
+    is absent. DLL errors reach the PC job through the existing error handling.
 
-  `install()` puts them in place once and is idempotent. `--smoketest` fails if any of the three attributes is missing from the runtime.
+  `install()` is idempotent. `--smoketest` checks the runtime attributes and the native PC bindings.
 - **`tools/pc_catalog.py`** builds the per-install catalog: pure pipeline code with no GUI.
 - **`app/pc_edition.py`** holds everything else for the PC target:
   - finding the game;

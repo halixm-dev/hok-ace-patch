@@ -215,3 +215,28 @@ pub fn local_file_list_mismatches(
     }
     Ok((entries, updates))
 }
+
+/// Reject a PC transaction that would remove or resize a file listed by the launcher.
+pub(crate) fn validate_listed_sizes(
+    source: &Path,
+    files: &[(String, Option<PathBuf>)],
+) -> Result<(), PyError> {
+    let entries = load_entries(source)?;
+    let names = by_name(&entries);
+    for (relative, staged) in files {
+        let Some(&index) = names.get(&name_key(relative)) else {
+            continue;
+        };
+        if let Some(staged) = staged {
+            let size = pyos::size(staged)?;
+            if same_size(&entry_size(&entries[index]), size) {
+                continue;
+            }
+        }
+        return Err(PyError::new(
+            "RuntimeError",
+            format!("Patching would change the launcher's listed size for {relative}"),
+        ));
+    }
+    Ok(())
+}

@@ -173,8 +173,8 @@ fn pairs<V: Into<Value> + Clone>(map: impl IntoIterator<Item = (String, V)>) -> 
 impl RunHost for Host {
     type Replacements = String;
 
-    fn receipt_root(&mut self, _game: &Path) -> PathBuf {
-        self.receipts.clone()
+    fn receipt_root(&mut self, _game: &Path) -> Result<PathBuf, PyError> {
+        Ok(self.receipts.clone())
     }
 
     fn assert_game_stopped(&mut self) -> Result<(), PyError> {

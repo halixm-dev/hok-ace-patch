@@ -26,7 +26,7 @@ use serde_json::{Map, Number, Value};
 use sha2::{Digest, Sha256};
 
 use crate::catalog::py_repr;
-use crate::scan::PyError;
+use crate::scan::{PyError, PyErrorDetail};
 
 /// Which call raised an `OSError`, which fixes how Python words it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -144,14 +144,21 @@ pub fn os_error(error: &io::Error, call: Call, paths: &[&Path]) -> PyError {
         return PyError::new(
             class,
             format!("[WinError {code}] {}{suffix}", system_text(error)),
-        );
+        )
+        .with_detail(PyErrorDetail::Os {
+            errno: number,
+            winerror: Some(code),
+        });
     }
     let text = if cfg!(windows) {
         strerror(number).to_owned()
     } else {
         system_text(error)
     };
-    PyError::new(class, format!("[Errno {number}] {text}{suffix}"))
+    PyError::new(class, format!("[Errno {number}] {text}{suffix}")).with_detail(PyErrorDetail::Os {
+        errno: number,
+        winerror: None,
+    })
 }
 
 /// `pathlib._ignore_error`: the errors `exists()`, `is_file()` and `is_dir()` read as "no".
@@ -474,13 +481,14 @@ pub fn read_json(path: &Path, sig: bool) -> Result<Value, PyError> {
             "UnicodeDecodeError",
             format!("'utf-8' codec can't decode bytes: {error}"),
         )
+        .with_detail(PyErrorDetail::Utf8(bytes.to_vec()))
     })?;
     // Text mode reads `\r\n` and a lone `\r` as `\n`; Python's error positions count the result.
     let text = text.replace("\r\n", "\n").replace('\r', "\n");
     serde_json::from_str(&text).map_err(|error| {
         // Where Python would accept what serde refuses (`NaN`, a lone surrogate), serde's wording.
         let message = crate::pyjson::decode_error(&text).unwrap_or_else(|| error.to_string());
-        PyError::new("JSONDecodeError", message)
+        PyError::new("JSONDecodeError", message).with_detail(PyErrorDetail::Json(text))
     })
 }
 
@@ -689,9 +697,7 @@ pub fn truthy(value: &Value) -> bool {
 /// `value[key]` for a string key.
 pub fn subscript<'a>(value: &'a Value, key: &str) -> Result<&'a Value, PyError> {
     match value {
-        Value::Object(map) => map
-            .get(key)
-            .ok_or_else(|| PyError::new("KeyError", py_repr(key))),
+        Value::Object(map) => map.get(key).ok_or_else(|| PyError::key(key)),
         Value::Array(_) => Err(PyError::new(
             "TypeError",
             "list indices must be integers or slices, not str",

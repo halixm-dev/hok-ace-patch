@@ -49,6 +49,7 @@ the window never passes it. The engine holds the GIL for minutes and would freez
 from __future__ import annotations
 
 import ctypes
+import errno
 import hashlib
 import json
 import os
@@ -338,7 +339,8 @@ def _engine(action: str, game: Path, catalog: Path, work: Path) -> dict:
             raise PatchError("pc_file_in_use") from error
         # A full drive: the engine stages whole packages (about 4 GB) in <work> and copies one to %TEMP%
         # to hash it; a failed `shutil` copy carries the WinError only in its text (2026-11-20).
-        if getattr(error, "winerror", None) == 112 or "WinError 112" in str(error):
+        if (error.errno == errno.ENOSPC or getattr(error, "winerror", None) == 112
+                or "WinError 112" in str(error)):
             raise PatchError("pc_disk_full", folder=work) from error
         raise PatchError("pc_engine_failed", detail=error) from error
     except RuntimeError as error:

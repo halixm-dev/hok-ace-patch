@@ -1651,7 +1651,7 @@ def smoketest(out: Path) -> None:
                 b"\n\x0c\n\x01k\x12\x07English", {"records": 1, "translated": 1}
             )
             import engine_hooks
-            from wxq_patch import adaptive, qtsvfs
+            from wxq_patch import adaptive, native_verify, qtsvfs
 
             engine_hooks.install()
             assert getattr(adaptive.translate_table, "_engine_hooks", False)
@@ -1689,6 +1689,18 @@ def smoketest(out: Path) -> None:
             missing = engine_hooks.check()
             assert not missing, f"runtime lacks {missing}"
             passed.append("engine hook attributes")
+            assert adaptive.query_package_hash is not hok_codecs.pc_query_package_hash
+            assert not getattr(adaptive.scan, "_engine_hooks", False)
+            assert adaptive.run is not hok_codecs.pc_run
+            engine_hooks.install(receipts=out / "receipts")
+            assert adaptive.scan._native_scan is hok_codecs.pc_scan
+            passed.append("native PC scan hook")
+            assert adaptive.run is hok_codecs.pc_run
+            passed.append("native PC run hook")
+            assert adaptive.query_package_hash is hok_codecs.pc_query_package_hash
+            assert adaptive.stage_package_hash_metadata_batch is hok_codecs.pc_stage_package_hash_metadata_batch
+            assert native_verify.verify_staged_package is hok_codecs.pc_verify_staged_package
+            passed.append("native PC package hooks")
             pixels = [(200, 100, 50, 255)] * 16
             decoded = mobile_graphics.decode_pc(bc7_mode6.encode_block(pixels), 4, 4, "bc7")
             assert max(abs(a - b) for a, b in zip(decoded, bytes(c for p in pixels for c in p))) <= 8

@@ -4,6 +4,10 @@ use hokace_codecs::{bc7, lz4, png, texture, zstd};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+#[cfg(windows)]
+mod pc;
+#[cfg(windows)]
+mod pc_run;
 mod runtime;
 use pyo3::types::PyBytes;
 
@@ -17,6 +21,15 @@ fn as_bytes<E: std::fmt::Display>(
 
 #[pymodule]
 mod hok_codecs {
+    #[cfg(windows)]
+    #[pymodule_export]
+    use super::pc::{
+        pc_query_package_hash, pc_scan, pc_stage_package_hash_metadata_batch,
+        pc_verify_staged_package,
+    };
+    #[cfg(windows)]
+    #[pymodule_export]
+    use super::pc_run::pc_run;
     #[pymodule_export]
     use super::runtime::RuntimeCatalog;
     #[pymodule_export]

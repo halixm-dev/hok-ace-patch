@@ -20,10 +20,12 @@ or ``{"error": "Class: message"}``. Replacement bytes are blobs under ``<dir>/bl
 ``verify`` call also names ``staged_copy``, a snapshot of the staged package taken at the call, so
 the replay reads what the runtime read.
 
-    .venv\\Scripts\\python.exe rust\\harness\\pc_native_tap.py <dir> <game> <work> [<cross-volume-work>] [--stage <catalog-folder>]
+    .venv\\Scripts\\python.exe rust\\harness\\pc_native_tap.py <dir> <game> <work> [<cross-volume-work>] [--stage <catalog-folder>] [--hooks]
     cargo run --release -p hokace-qtsvfs --example native_replay -- <dir>
 
-``<work>`` is wiped first. The game is never written. Migration tooling, run by hand: the exe, the
+``--hooks`` records through the installed PC hooks and checks they release their verification files.
+``<work>`` is wiped first. The game is never written.
+Migration tooling, run by hand: the exe, the
 APK and ``tools/`` never import it.
 """
 from __future__ import annotations
@@ -40,11 +42,23 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 QUERY_PACKAGES = ("30", "14", "10", "2", "1", "0")
 
 
-def _runtime():
+def _runtime(work: pathlib.Path, hooks: bool):
     sys.path[:0] = [str(ROOT / "tools")]
     sys.path.append(str(ROOT / "resources" / "runtime"))
     from wxq_patch import native_verify, package_metadata, qtsvfs
-    return native_verify, package_metadata, qtsvfs
+    metadata_calls = package_metadata
+    if hooks:
+        from engine_hooks import install
+        from wxq_patch import adaptive
+
+        install(receipts=work / "receipts")
+        import hok_codecs
+
+        assert adaptive.query_package_hash is hok_codecs.pc_query_package_hash
+        assert adaptive.stage_package_hash_metadata_batch is hok_codecs.pc_stage_package_hash_metadata_batch
+        assert native_verify.verify_staged_package is hok_codecs.pc_verify_staged_package
+        metadata_calls = adaptive
+    return native_verify, package_metadata, metadata_calls, qtsvfs
 
 
 def _error(exc: BaseException) -> str:
@@ -75,13 +89,13 @@ class Tap:
 
 
 def capture(tap: Tap, game: pathlib.Path, work: pathlib.Path, xvol: pathlib.Path | None,
-            stage_catalog: pathlib.Path | None) -> None:
-    native_verify, metadata, qtsvfs = _runtime()
+            stage_catalog: pathlib.Path | None, *, hooks: bool = False) -> None:
+    native_verify, metadata, metadata_calls, qtsvfs = _runtime(work, hooks)
     builtin = game / "WXQ_Data" / "Package" / "builtin"
 
     def query(package_dir: pathlib.Path, at: pathlib.Path = game) -> int | None:
         try:
-            value = metadata.query_package_hash(at, package_dir)
+            value = metadata_calls.query_package_hash(at, package_dir)
             result = {"ok": value}
         except Exception as exc:  # noqa: BLE001 - the class and message are the recording
             value, result = None, {"error": _error(exc)}
@@ -114,7 +128,7 @@ def capture(tap: Tap, game: pathlib.Path, work: pathlib.Path, xvol: pathlib.Path
     def stage(package_hashes, label: str) -> None:
         output = work / "stage" / label / "0.db"
         try:
-            result = {"ok": metadata.stage_package_hash_metadata_batch(game, package_hashes, output)}
+            result = {"ok": metadata_calls.stage_package_hash_metadata_batch(game, package_hashes, output)}
         except Exception as exc:  # noqa: BLE001
             result = {"error": _error(exc)}
         args = [str(game), list(package_hashes.items()) if isinstance(package_hashes, dict) else package_hashes,
@@ -152,6 +166,8 @@ def capture(tap: Tap, game: pathlib.Path, work: pathlib.Path, xvol: pathlib.Path
         tap.write("verify", [str(at), str(source), str(staged),
                              [[f"{h:016X}", tap.keep(data)] for h, data in replacements.items()],
                              str(target), verify_all], result, staged_copy=str(staged))
+        if hooks and target.exists():
+            shutil.rmtree(target)
 
     source = builtin / "30"
     package = qtsvfs.QtsPackage(source)
@@ -241,6 +257,9 @@ def capture_stage(tap: Tap, game: pathlib.Path, work: pathlib.Path, catalog: pat
 
 def main() -> int:
     argv = sys.argv[1:]
+    hooks = "--hooks" in argv
+    if hooks:
+        argv.remove("--hooks")
     stage_catalog = None
     if "--stage" in argv:
         at = argv.index("--stage")
@@ -251,13 +270,13 @@ def main() -> int:
         return 2
     out, game, work = map(pathlib.Path, argv[:3])
     xvol = pathlib.Path(argv[3]) if len(argv) == 4 else None
-    os.environ["HOK_CODECS"] = "python"
+    os.environ["HOK_CODECS"] = "native" if hooks else "python"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True)
     shutil.rmtree(out, ignore_errors=True)
     tap = Tap(out)
     try:
-        capture(tap, game.resolve(), work.resolve(), xvol, stage_catalog)
+        capture(tap, game.resolve(), work.resolve(), xvol, stage_catalog, hooks=hooks)
     finally:
         tap.calls.close()
     print(f"{tap.count} calls -> {out}")

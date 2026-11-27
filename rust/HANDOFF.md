@@ -242,50 +242,116 @@ this file holds what is not in it.
   because it copies `0` twice. A new hash that leaves an old byte in place is refused ("changed bytes
   outside hash fields"). The port's own: a hash that is a bool or a fractional float raises its own
   `TypeError`, and a DLL that will not load raises `OSError` with the loader's text.
-- Not yet wired: the PC edition still runs Python's `scan`, `run`, metadata staging and
-  verification. The glossary data has no active caller and follows ADR-020. Wave 2 is still open
-  under ADR-007.
+- The PC job now hooks `adaptive.query_package_hash`, `adaptive.stage_package_hash_metadata_batch`
+  and `native_verify.verify_staged_package` to the Windows `hok_codecs` exports. A missing export
+  keeps the runtime function. A DLL error is raised as the original Python exception class,
+  including the runtime's own `NativeReadError`.
+- The `pc_native_tap.py --hooks` recording matched all 36 Python calls on a scratch copy of PC
+  data version 1.11.0.2 after replacing the random temporary folder name in the package 0 error.
+  Rust verification releases its QtsVFS mounts on success and failure. The hooked tap deletes
+  each verification work directory immediately after the call.
+  Recordings, the passing frozen `--smoketest` report and the aligned ARM64 wheel build report are
+  under `build/wave2-pc-wire`. Clippy passed for the bridge.
+- The rebuilt exe passed `--pc-selftest` in English and Indonesian on the scratch copy.
+  The report is `build/wave2-pc-wire/selftest-d/pc_selftest.json`.
+- `check_pc_install.py` passed both language orders on the scratch copy. Repeat installs kept
+  the package hashes, both switches used receipts, and each restore returned every package to
+  its original bytes. The launcher list and listed sizes matched throughout. The log is
+  `build/wave2-pc-wire/install-permitted.log`.
+- The PC scan now uses Rust through `engine_hooks._scan_hook`. It takes the text view of the
+  catalog after the patcher's edits and uses the PC edition's stock slot map. Python rebuilds
+  the staging objects and expands resource tokens. A refusal retries Python after clearing any
+  partial replacements from the native attempt.
+- `runtime_tap.py --pc-hooks --stock-slots --scan-runtime` matched all 30 recorded calls on the
+  PC scratch copy and synthetic fixtures. This includes materialized files, fingerprints, counts,
+  and skip reports in English and Indonesian. The hook also matched 24 synthetic calls with the
+  B-tree slot map. The Rust core replay still matches all 30 original calls on the mobile dump and
+  fixtures. Recordings are under `build/wave2-scan-wire`.
+- The rebuilt exe passed `--smoketest` with the scan hook and `--pc-selftest` with seven packages
+  staged in each language. Counts, package results and skipped atlases matched the previous
+  frozen build. See `build/wave2-scan-wire/pc_selftest-final.json`. The Android ARM64 wheel
+  also rebuilt with 16 KiB alignment.
+- Windows PC jobs now call the Rust `run` through `engine_hooks.install`. The bridge uses the
+  app's receipt folder, running-game check, scan and per-package staging calls, and the existing Rust
+  package hash hooks. The Rust transaction checks that install or restore will preserve
+  `LocalFileList.json` and its listed sizes before committing.
+- `rust/harness/pc_run_replay.py` replayed all 42 recorded steps through the actual Windows hook.
+  It compared callbacks, reports and files, including across volumes, with the original Python
+  recording. A separate case confirmed that the app rejects a listed size change before commit.
+  The replay log is under `build/wave2-run-wire`.
+- The rebuilt EXE passed smoke and staged seven packages per language, with the same counts,
+  package results and skips as the previous build. The game-copy install test passed both
+  language orders and repeat installs. Each restore recovered the original SHA-256 of every
+  package file. The launcher list and listed sizes held throughout. See
+  `build/wave2-run-wire/selftest/pc_selftest.json` and `build/wave2-run-wire/install-cycle.log`.
+- The glossary data has no active caller and follows ADR-020. Wave 2 is still open under ADR-007.
 
-## Next: wire the PC ports into the apps
+## Wave 3 in progress (2026-11-28)
 
-Take these steps in order. Each is a separate change, and the apps keep working after each one.
-`tools/engine_hooks.install` is the one place to hook the runtime (AGENTS.md, "Hooks").
+- The user started Wave 3 with Wave 2's live PC cycle still open (ADR-007).
+- `rust/harness/leaves_tap.py <dir> --replacements <folder> --apk <apk> --broken-list <db>
+  --config-bins <folder> --titles <folder>` records the leaves. Beside it, `axml_cases.py` builds
+  the manifest and BrokenList cases, `lineup_cases.py` builds the config-bin, protobuf-text,
+  share-code and Unity cases, and `title_cases.py` builds the sprite-table, card-title and hand-card
+  cases (it also runs alone into its own folder). `cargo run --release -p hokace-core --example
+  leaves_replay -- <dir>` replays them. The recording used for the results below is
+  `build/wave3-leaves` (170 MB). Its inputs:
+  - the replacements under `D:\scratch\rust-port\work\scan\replacements`;
+  - the 2026-11-25 dump's `normal.apk`, `access.apk` and `mixed-repair-evidence\Watchdog\BrokenList.db`;
+  - `build/wave3-inputs` (41 MB): the three lineup bins of both layers as `<layer>-<HASH>.bin`, and
+    under `config/` the 1,185 package-1 config bins of `D:\scratch\rust-port\work\prime`, and
+    under `titles/` (16 MB) the 38 package-19 assets the title passes read and the 32 package-15
+    hand cards, as `<layer>/<package>/<HASH>.bin`, from the dump's `clean-game` and `game`.
 
-1. **The DLL calls first.** These are the smallest seam, and Python keeps everything around them.
-   - Add `hokace-qtsvfs` to `crates/hok_codecs`, then refresh its `Cargo.lock`.
-   - Expose three `#[pyfunction]`s over `DllLoader`: `pc_query_package_hash`,
-     `pc_stage_package_hash_metadata_batch` and `pc_verify_staged_package`. Each maps `PyError` to
-     the Python class of the same name. For `NativeReadError`, raise
-     `wxq_patch.native_verify.NativeReadError` itself.
-   - Install them in the PC branch of `install`, after `check()`, and only when `hok_codecs` has
-     them. How the runtime looks each name up decides where to replace it:
-     - `unity_package_installer.stage_unity_package` and `stage_full_unity_package` import
-       `verify_staged_package` inside the function, at call time. Replacing
-       `native_verify.verify_staged_package` is enough; the tap does the same.
-     - `adaptive` binds `query_package_hash` and `stage_package_hash_metadata_batch` at import.
-       `_stage_package_hashes` reads them as globals, so replace `adaptive.<name>`, not
-       `package_metadata.<name>`.
-   - Do not fall back to Python after a DLL error: it is the game's answer, and Python would give
-     the same one. Fall back only when the module or the function is missing.
-   - Android builds `hok_codecs` too. Off Windows, `hokace-qtsvfs` compiles to a stub that refuses
-     to load, and the hooks are PC-only, so the phone never calls it. Check that the ARM64 wheel
-     still builds (`android/native/build_rust_wheels.py`).
-   - Check:
-     - `pc_native_tap.py` again, with the hooks installed. Add a flag that runs `install()` first,
-       so the recording goes through the hooks.
-     - `--pc-selftest` on a copy of the game.
-     - The frozen `--smoketest`. Freeze changes need the smoketest (AGENTS.md, "Freezing").
-     - `tools/research/check_pc_install.py --game <copy> --work <dir>` on a copy, never `D:\WXQ`.
-2. **`scan`.** `engine_hooks._scan_hook` already wraps `adaptive.scan`. Behind it, call
-   `hokace-core::scan` with the catalog `load_catalog` returned, through its `text_view()`. Then
-   build `qtsvfs.QtsPackage` objects for the plans, so Python's `stage_unity_package` takes them
-   unchanged. Fall back to Python's scan when the port refuses: a non-ASCII folder name, or two
-   live slots for one chunk. Re-run `runtime_tap.py --scan-runtime` through the hook.
-3. **`run`.** Implement a PyO3 `RunHost` whose `scan`, `stage_unity_package`, `receipt_root` and
-   `_assert_game_stopped` call back into Python, and whose two hash calls go to step 1's Rust
-   functions. `app/pc_edition.py`'s `adaptive.run` call (inside its `PatchError` wrapper) then calls
-   it. Replay `build/wave2-run` through it with `run_replay`. Then run the PC cycle
-   (`docs/runbooks/pc-cycle.md`) before recording it as wired in `MAP.md`.
+  All 46,429 calls matched.
+- `languages`, `terminology`, `catalog_supplement`, `catalog_updates` and `resource_tokens` are in
+  `hokace-core`. Each shipped catalog through the hook's order (supplement, admitted tables,
+  glossary, update rows) matches the Python-edited catalog byte for byte. The supplement reads
+  `resources/catalog_supplement/` from a folder the caller names (`Supplement::load`), refusing a
+  repeated key as `_unique_keys` does.
+- The glossary's patterns run on `fancy-regex` (lookarounds). Python's `\w` is exactly
+  `[\p{L}\p{N}_]` on Unicode 15.0 (measured over every code point), unlike Rust's, so
+  `terminology::python_classes` rewrites `\b` and `\w` into it. Without that, the English
+  catalog's "④chess player" was rewritten where Python leaves it. `pystr` holds Python's
+  `isspace` (with `\x1c`-`\x1f`) and `isdigit` (superscript and circled digits) tables.
+- `axml` ports both manifest edits and their string pool codec, and `broken_list` the updater's
+  record. The errors are Python's class and text in the same place (`struct.error`, `IndexError`
+  with its `bytes` or `bytearray` wording, `UnicodeDecodeError` from both codecs, `StopIteration`),
+  because `manifest_to_install` catches only `ValueError`. The port's own: a chunk of size 0,
+  where Python's walk spins forever, is refused with a `ValueError` (the tap leaves those inputs
+  out). A UTF-16 pool string outside the BMP does not round-trip, in both: `build_string_pool`
+  writes the code-point count.
+- `config_bin`, `pb_text`, `lineup_codes` and `unity_text` are in `hokace-core`.
+  - Values and errors: a config-bin field keeps Python's int-or-bytes value, and Python's
+    `TypeError` and `OverflowError` texts are kept. `reseal` can put bytes or an int on any wire
+    type, and `rewrite_bin` lets those errors through.
+  - Deflate: a share code is compared byte for byte, and neither Rust deflater gives zlib's
+    stream (miniz_oxide 6 and zlib-rs 0 of the 132 shipped codes). So `pyzlib` ports zlib 1.3.1's
+    `deflate_slow` (level 6, memLevel 8) and `trees.c` line for line, in safe code. It keeps zlib's
+    `Freq`/`Code` and `Dad`/`Len` unions as shared arrays, and it does not compare `scan[2]`.
+  - Inflate: `pyzlib`'s inflater refuses what zlib's `inflate` refuses, with zlib's message.
+  - Base64: `binascii`'s non-strict decoder. Padding ends the input, and its two error texts are kept.
+  - `unity_text` reads offsets as Python's unbounded ints, negative `struct` offsets included.
+- `axml`'s `pack_into` past the end of the buffer now gives Python 3.12's "pack_into requires …"
+  text. The old "offset … out of range" text is only for a negative offset. No recorded case
+  reached that branch.
+- `sprite_table`, `card_titles` and `hand_card_titles` are in `hokace-core`.
+  - Both dumps hold the same package-19 and package-15 bytes, with the titles already moved, so
+    the real layout moves nothing there. `title_cases.py` therefore writes a third layer,
+    `titles/inverted`: Python's `relayout` with each title's `was` and `now` swapped, then each
+    card's `Title` box set back to its own `was`. The real layout moves all 35 assets of that
+    layer back to the dump's bytes, byte for byte.
+  - `relayout` returns the errors `_guarded` lets through: `KeyError` from the layout, the
+    `ValueError` of an `int(…, 16)` or of unpacking a `now` outside a move, and `OverflowError`
+    from a float `struct` cannot pack as `f`. A move's `UnsupportedFile`, `ValueError` and
+    `struct.error` are a refusal (None). The layout is read at its shipped JSON types.
+  - `unity_text`'s `align`, `unpack` and `pack` are now `pub(crate)` for `card_titles`.
+- Nothing is wired yet: the apps still call the Python. `asset_fingerprints` waits for
+  `qts_relocate.read_raw` (wave 4). All the other Wave 3 leaves are ported.
+- The format check reports diffs in `native_verify.rs` and `package_metadata.rs` from the
+  uncommitted Wave 2 work; Wave 3 left them alone.
 
-**Disk.** C: had 16 GB free after the staging tap. Delete
-`%LOCALAPPDATA%\Temp\hokace-wave2-pcstage` (8.4 GB) before the next materialized scan.
+## Next PC cycle
+
+The offline checks passed. Follow the [PC cycle](../docs/runbooks/pc-cycle.md) on the installed
+game. The live cycle needs the user's game login and ends with a dated launcher and game verdict.

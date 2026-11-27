@@ -8,15 +8,19 @@ same way), so the replacement is seen by every caller:
 - `load_catalog`: the catalog as it loads gets the catalog supplement, the measured mode copies of its
   tables (`catalog_updates.admit_tables`) and the terminology table (`terminology`). Both editions take it; the mobile pipeline installs it before its first load.
 - `scan`: the language's resource terms are expanded in the replacements the scan materialized
-  (`resource_tokens.expand_staged`). PC edition only: the mobile pipeline calls the same function
-  itself, after it has dropped the uncatalogued tables.
+  (`resource_tokens.expand_staged`). PC jobs use the Windows Rust scanner when it can handle the
+  inputs. The mobile pipeline calls `expand_staged` itself after dropping uncatalogued tables.
 - `receipt_root`: the PC edition's receipts live under this patcher's working folder,
   `<receipts>/<game id>`, never in the engine's default folder (the upstream PC patcher's
   `%LOCALAPPDATA%\\HoK Ace English Patch\\adaptive`). PC edition only.
 - `lz4`: the four runtime modules that use LZ4 use the Rust backend when the extension loads.
 - `qtsvfs`: Rust reads package indexes, shard headers and asset payloads when the extension loads.
+- `query_package_hash`, `stage_package_hash_metadata_batch`, `verify_staged_package`: Rust queries
+  the game's DLLs, stages the internal index and verifies staged packages in PC jobs.
+- `run`: Windows PC jobs use the Rust transaction engine with callbacks into the scan and package
+  staging hooks.
 - `translate_table`: the Rust wire reader and validator translate whole tables when the extension
-  loads. The Python scanner still owns discovery, package I/O and staging.
+  loads. The runtime still owns package staging.
 
 `install()` is idempotent: a hook already in place is never wrapped twice, and a second PC install
 only moves the receipts root. The PC hooks are taken only when the caller passes `receipts`, which
@@ -35,7 +39,7 @@ import json
 from pathlib import Path
 
 # The runtime attributes the hooks replace; `check` and `--smoketest` fail when one is missing.
-HOOKED_ATTRIBUTES = ("load_catalog", "scan", "receipt_root")
+HOOKED_ATTRIBUTES = ("load_catalog", "scan", "receipt_root", "run")
 
 _state: dict[str, object] = {"receipts": None, "log": print}
 
@@ -82,9 +86,26 @@ def install(*, receipts: Path | None = None, log=print) -> None:
     _state["receipts"] = Path(receipts)
     _state["log"] = log
     if not getattr(adaptive.scan, "_engine_hooks", False):
-        adaptive.scan = _scan_hook(adaptive.scan)
+        adaptive.scan = _scan_hook(adaptive.scan, getattr(native, "pc_scan", None))
     if not getattr(adaptive.receipt_root, "_engine_hooks", False):
         adaptive.receipt_root = _receipt_root
+    if native is not None:
+        _install_pc_package_hooks(native)
+        if getattr(native, "pc_run", None) is not None:
+            adaptive.run = native.pc_run
+
+
+def _install_pc_package_hooks(native) -> None:
+    from wxq_patch import adaptive, native_verify
+
+    for module, name in (
+        (adaptive, "query_package_hash"),
+        (adaptive, "stage_package_hash_metadata_batch"),
+        (native_verify, "verify_staged_package"),
+    ):
+        function = getattr(native, f"pc_{name}", None)
+        if function is not None:
+            setattr(module, name, function)
 
 
 def _install_codecs() -> None:
@@ -232,17 +253,69 @@ def _load_catalog_hook(catalog_class, native_catalog):
     return load_catalog
 
 
-def _scan_hook(scan):
+def _native_pc_scan(scan, game: Path, assets: Path, work: Path, materialize: bool):
+    from shutil import rmtree
+
+    from wxq_patch import adaptive, qtsvfs
+    from qts_relocate import BTREE_FALLBACKS
+
+    replacements = work / "replacements"
+    existed = False
+    if materialize:
+        # PC jobs empty this folder. Keep any pre-existing files if another caller supplied them.
+        try:
+            existed = replacements.exists()
+            if replacements.is_symlink() or replacements.is_junction():
+                return None
+            if existed and (not replacements.is_dir() or any(replacements.iterdir())):
+                return None
+        except OSError:
+            return None
+    catalog = adaptive.load_catalog(assets)
+    text = getattr(catalog, "_runtime_catalog", None)
+    if text is None:
+        return None
+    follow_btree = getattr(qtsvfs.QtsPackage.build_slot_map, "_btree_aware", False)
+    try:
+        result = scan(game, assets, work, text, (catalog.known, json.dumps(list(catalog.graphics.items()))),
+                      (materialize, follow_btree))
+    except (OverflowError, TypeError):
+        # Python's catalog permits integers beyond the bridge's range.
+        return None
+    if result is None:
+        # An error can occur after earlier packages wrote replacements. Retry with clean output.
+        if materialize and replacements.exists():
+            rmtree(replacements)
+            if existed:
+                replacements.mkdir()
+        return None
+    plans, fingerprints, total, skipped, fallbacks = result
+    plans = [(qtsvfs.QtsPackage(Path(package)), Path(folder),
+              {file_hash: Counter(dict(counts)) for file_hash, counts in per_asset})
+             for package, folder, per_asset in plans]
+    details = [dict(package=package, reason=reason) if asset is None
+               else dict(package=package, asset=asset, reason=reason)
+               for package, asset, reason in skipped]
+    BTREE_FALLBACKS.update(fallbacks)
+    return plans, dict(fingerprints), dict(total), details
+
+
+def _scan_hook(scan, native_scan):
     def hooked(game: Path, assets: Path, work: Path, *, materialize=True):
         from languages import for_catalog
         from resource_tokens import expand_staged
 
-        result = scan(game, assets, work, materialize=materialize)
+        result = None
+        if native_scan is not None:
+            result = _native_pc_scan(native_scan, Path(game), Path(assets), Path(work), materialize)
+        if result is None:
+            result = scan(game, assets, work, materialize=materialize)
         if materialize:
             expand_staged(result[0], _state["log"], for_catalog(assets).resource_terms)
         return result
 
     hooked._engine_hooks = True
+    hooked._native_scan = native_scan
     hooked.__wrapped__ = scan
     return hooked
 

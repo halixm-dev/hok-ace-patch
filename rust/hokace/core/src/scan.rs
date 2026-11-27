@@ -40,6 +40,16 @@ const LEAF_TYPE: u32 = 3;
 pub struct PyError {
     pub class: &'static str,
     pub message: String,
+    pub detail: Option<Box<PyErrorDetail>>,
+}
+
+/// Extra exception arguments needed by the Windows Python bridge.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PyErrorDetail {
+    Os { errno: i32, winerror: Option<i32> },
+    Json(String),
+    Utf8(Vec<u8>),
+    Key(String),
 }
 
 impl PyError {
@@ -47,7 +57,17 @@ impl PyError {
         Self {
             class,
             message: message.into(),
+            detail: None,
         }
+    }
+
+    pub(crate) fn with_detail(mut self, detail: PyErrorDetail) -> Self {
+        self.detail = Some(Box::new(detail));
+        self
+    }
+
+    pub(crate) fn key(key: &str) -> Self {
+        Self::new("KeyError", py_repr(key)).with_detail(PyErrorDetail::Key(key.to_owned()))
     }
 
     pub(crate) fn value(message: impl Into<String>) -> Self {
@@ -232,6 +252,14 @@ fn shards(package_dir: &Path, package_id: &str) -> io::Result<Vec<PathBuf>> {
 
 /// `adaptive.discover(game, catalog)`: every package folder, and why one would not open.
 pub fn discover(game: &Path, catalog: &CatalogData) -> Result<(Vec<Package>, Vec<Skip>), PyError> {
+    discover_packages(game, catalog, false)
+}
+
+fn discover_packages(
+    game: &Path,
+    catalog: &CatalogData,
+    exact_errors: bool,
+) -> Result<(Vec<Package>, Vec<Skip>), PyError> {
     let builtin: PathBuf = BUILTIN
         .iter()
         .fold(python_path(game), |path, part| path.join(part));
@@ -252,7 +280,12 @@ pub fn discover(game: &Path, catalog: &CatalogData) -> Result<(Vec<Package>, Vec
         }
         let package = match Package::open(&directory) {
             Ok(package) => package,
-            Err(error) if error.class == "PermissionError" => return Err(error),
+            Err(error)
+                if error.class == "PermissionError"
+                    || (exact_errors && error.class == "OSError") =>
+            {
+                return Err(error);
+            }
             Err(error) if error.is_os() || error.class == "ValueError" => {
                 skipped.push(Skip {
                     package: name,
@@ -275,7 +308,10 @@ pub fn discover(game: &Path, catalog: &CatalogData) -> Result<(Vec<Package>, Vec
 }
 
 /// `list(qtsvfs.iter_chunk_slots(shard_path, include_reserved_variants=...))`.
-pub fn iter_chunk_slots(shard_path: &Path, include_reserved: bool) -> Result<Vec<ChunkSlot>, PyError> {
+pub fn iter_chunk_slots(
+    shard_path: &Path,
+    include_reserved: bool,
+) -> Result<Vec<ChunkSlot>, PyError> {
     let file = File::open(shard_path).map_err(|error| PyError::os(&error, shard_path))?;
     match qts::chunk_slots(file, include_reserved) {
         Ok(slots) => Ok(slots),
@@ -308,18 +344,7 @@ pub fn build_slot_map(
     package: &Package,
     fallbacks: &mut Vec<(String, String)>,
 ) -> Result<HashMap<u64, BTreeMap<u32, Slot>>, PyError> {
-    let mut map: HashMap<u64, BTreeMap<u32, Slot>> = HashMap::new();
-    for shard_path in &package.shard_paths {
-        for slot in iter_chunk_slots(shard_path, false)? {
-            map.entry(slot.file_hash)
-                .or_default()
-                .entry(slot.chunk_id)
-                .or_insert_with(|| Slot {
-                    shard_path: shard_path.clone(),
-                    slot,
-                });
-        }
-    }
+    let mut map = stock_slot_map(package)?;
     let [path] = package.shard_paths.as_slice() else {
         return Ok(map);
     };
@@ -651,8 +676,50 @@ pub fn scan(
     work: &Path,
     materialize: bool,
 ) -> Result<ScanReport, PyError> {
+    scan_impl(
+        game,
+        assets,
+        catalog,
+        text,
+        work,
+        materialize,
+        (true, false),
+    )
+}
+
+/// Scan with the slot policy of the caller's runtime. Return errors whose skip diagnostics
+/// would differ so the Python caller can produce the original report.
+pub fn scan_with_slots(
+    game: &Path,
+    assets: &Path,
+    catalog: &CatalogData,
+    text: &Catalog,
+    work: &Path,
+    materialize: bool,
+    follow_btree: bool,
+) -> Result<ScanReport, PyError> {
+    scan_impl(
+        game,
+        assets,
+        catalog,
+        text,
+        work,
+        materialize,
+        (follow_btree, true),
+    )
+}
+
+fn scan_impl(
+    game: &Path,
+    assets: &Path,
+    catalog: &CatalogData,
+    text: &Catalog,
+    work: &Path,
+    materialize: bool,
+    (follow_btree, exact_errors): (bool, bool),
+) -> Result<ScanReport, PyError> {
     let game = python_path(game);
-    let (packages, skipped) = discover(&game, catalog)?;
+    let (packages, skipped) = discover_packages(&game, catalog, exact_errors)?;
     let mut report = ScanReport::default();
     let mut total = Counter::default();
     let mut details = Vec::new();
@@ -664,7 +731,11 @@ pub fn scan(
                 before.insert(relative.display().to_string(), sha256_file(path)?);
             }
         }
-        let slots = build_slot_map(&package, &mut report.fallbacks)?;
+        let slots = if follow_btree {
+            build_slot_map(&package, &mut report.fallbacks)?
+        } else {
+            stock_slot_map(&package)?
+        };
         let index_data =
             fs::read(&package.index_path).map_err(|e| PyError::os(&e, &package.index_path))?;
         let replacements = work.join("replacements").join(&package.package_id);
@@ -684,6 +755,9 @@ pub fn scan(
             let raw = match read_asset(&package, &slots, &index_data, hash) {
                 Ok(raw) => raw,
                 Err(error) if error.class == "PermissionError" => return Err(error),
+                Err(error) if exact_errors && (error.is_os() || error.class == "LZ4BlockError") => {
+                    return Err(error);
+                }
                 Err(error)
                     if error.is_os()
                         || matches!(error.class, "ValueError" | "KeyError" | "LZ4BlockError") =>

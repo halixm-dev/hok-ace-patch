@@ -83,7 +83,7 @@ pub(crate) fn qts_live_replacements(
 
 #[pyclass(module = "hok_codecs", frozen)]
 pub(crate) struct RuntimeCatalog {
-    catalog: Catalog,
+    pub(crate) catalog: Catalog,
 }
 
 #[pymethods]

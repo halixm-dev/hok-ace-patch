@@ -10,9 +10,10 @@
 //! Every exception the runtime raises keeps its class and message; a staged asset QtsVFS cannot
 //! read raises `NativeReadError` itself, since only the source read falls back.
 //!
-//! The port's own: a shard offset past 4 GiB is refused, and the runtime's systems, like
-//! its, are never destroyed.
+//! The port refuses a shard offset past 4 GiB and releases its QtsVFS mounts before the
+//! caller removes the verification files.
 
+use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fs::{self, File};
 use std::io::{Read, Seek, SeekFrom};
@@ -85,8 +86,7 @@ fn name_of(path: &Path) -> String {
 }
 
 fn offset32(offset: u64) -> Result<u32, PyError> {
-    u32::try_from(offset)
-        .map_err(|_| PyError::value(format!("slot offset {offset} is past 4 GiB")))
+    u32::try_from(offset).map_err(|_| PyError::value(format!("slot offset {offset} is past 4 GiB")))
 }
 
 /// `_verify_changed_positions(source, staged)`: each slot the staged shard adds is listed in
@@ -265,7 +265,12 @@ pub fn verify_structural(
     if source_keys != keys(staged) || !replacements.keys().all(|h| source_keys.contains(h)) {
         return Err(runtime("Structural package index key set changed"));
     }
-    let shards = |p: &Package| p.shard_paths.iter().map(|s| name_of(s)).collect::<HashSet<_>>();
+    let shards = |p: &Package| {
+        p.shard_paths
+            .iter()
+            .map(|s| name_of(s))
+            .collect::<HashSet<_>>()
+    };
     if shards(source) != shards(staged) {
         return Err(runtime("Structural package shard set changed"));
     }
@@ -290,8 +295,7 @@ pub fn verify_structural(
                 "Structural unrelated index entry changed for {hash:016X}"
             )));
         }
-        let original =
-            structural_extract(source, &source_slots, &source_aux, &source_index, hash)?;
+        let original = structural_extract(source, &source_slots, &source_aux, &source_index, hash)?;
         let actual = structural_extract(staged, &staged_slots, &staged_aux, &staged_index, hash)?;
         let matches = match replacement {
             Some(bytes) => actual.0 == *bytes && actual.1.is_empty(),
@@ -393,12 +397,13 @@ pub fn verify_staged_package<L: Loader>(
     verify_all_unrelated: bool,
 ) -> Result<Value, PyError> {
     pyos::mkdir(work, true)?;
-    let mut internal = source
-        .parent()
-        .unwrap_or(Path::new(""))
-        .join("0");
+    let mut internal = source.parent().unwrap_or(Path::new("")).join("0");
     if !pyos::is_dir(&internal)? {
-        internal = game.join("WXQ_Data").join("Package").join("builtin").join("0");
+        internal = game
+            .join("WXQ_Data")
+            .join("Package")
+            .join("builtin")
+            .join("0");
         if !pyos::is_dir(&internal)? {
             return Err(runtime("Native verification requires internal package 0"));
         }
@@ -428,10 +433,14 @@ pub fn verify_staged_package<L: Loader>(
         roots.push(root);
     }
     let bin_dir = qtsvfs_bin_dir(&pyos::resolve(game))?;
-    let mut api = loader.load(&bin_dir)?;
+    let mut mounts = VerifyMounts {
+        api: RefCell::new(loader.load(&bin_dir)?),
+        systems: Vec::new(),
+        handles: Vec::new(),
+    };
+    let api = mounts.api.get_mut();
     api.require(&VERIFY_SYMBOLS)?;
     let source_id = name_of(source);
-    let mut systems: Vec<Vec<u8>> = Vec::new();
     for root in &roots {
         let system = format!("verify_{}", pyos::random_hex()).into_bytes();
         let scratch = root.join("scratch");
@@ -440,25 +449,27 @@ pub fn verify_staged_package<L: Loader>(
         if !api.create_system(&system, &path_bytes(&pyos::resolve(root)), &scratch) {
             return Err(runtime(format!(
                 "Native CreateSystem failed: {}",
-                last_error(&mut api)
+                api.last_error()
             )));
         }
-        systems.push(system.clone());
+        mounts.systems.push(system.clone());
         for package_id in ["0", source_id.as_str()] {
             let handle = api.describe(&system, package_id.as_bytes(), package_id == "0");
+            if handle >= 0 {
+                mounts.handles.push(handle);
+            }
             if handle < 0 || !api.set_prime(handle, true) || !api.mount(handle) {
                 return Err(runtime(format!(
                     "Native mount failed for {package_id}: {}",
-                    last_error(&mut api)
+                    api.last_error()
                 )));
             }
         }
     }
     let source_package = Package::open(source)?;
     let staged_package = Package::open(staged)?;
-    let api = std::cell::RefCell::new(api);
     let content = |system: &[u8], hash: u64, label: &str| -> Result<Vec<u8>, ReadError> {
-        let mut api = api.borrow_mut();
+        let mut api = mounts.api.borrow_mut();
         let size = api.file_length(system, hash);
         let file = api.open_file(system, hash);
         let place = format!(
@@ -468,7 +479,7 @@ pub fn verify_staged_package<L: Loader>(
         if file == 0 {
             return Err(ReadError::Native(format!(
                 "Native open failed for {hash:016X}: {} {place}",
-                last_error(&mut *api)
+                api.last_error()
             )));
         }
         let mut buffer = vec![0; size as usize];
@@ -476,7 +487,7 @@ pub fn verify_staged_package<L: Loader>(
         let result = if count != size {
             Err(ReadError::Native(format!(
                 "Native read failed for {hash:016X}: {count}/{size}, error {} {place}",
-                last_error(&mut *api)
+                api.last_error()
             )))
         } else {
             Ok(buffer)
@@ -484,21 +495,34 @@ pub fn verify_staged_package<L: Loader>(
         api.close_file(file);
         result
     };
-    let source_system = systems[0].clone();
-    let staged_system = systems[systems.len() - 1].clone();
+    let source_system = &mounts.systems[0];
+    let staged_system = &mounts.systems[mounts.systems.len() - 1];
     verify_contents(
         &source_package,
         &staged_package,
         replacements,
-        |hash| content(&source_system, hash, "source"),
-        |hash| content(&staged_system, hash, "staged"),
+        |hash| content(source_system, hash, "source"),
+        |hash| content(staged_system, hash, "staged"),
         verify_all_unrelated,
     )
 }
 
-/// `error()`: the code `VFS_GetLastError` returns.
-fn last_error(api: &mut impl QtsVfs) -> i32 {
-    api.last_error()
+struct VerifyMounts<Api: QtsVfs> {
+    api: RefCell<Api>,
+    systems: Vec<Vec<u8>>,
+    handles: Vec<i32>,
+}
+
+impl<Api: QtsVfs> Drop for VerifyMounts<Api> {
+    fn drop(&mut self) {
+        let api = self.api.get_mut();
+        for &handle in self.handles.iter().rev() {
+            api.release(handle);
+        }
+        for system in self.systems.iter().rev() {
+            api.destroy(system);
+        }
+    }
 }
 
 /// `except OSError` (`shutil.Error` is one).

@@ -22,6 +22,7 @@ canonical encoding the replay rebuilds (``stream_*`` below), so a 1 MB table cos
     .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --metadata <dir> <internal-index>
     .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --catalog <dir> <catalog-folder> ...
     .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --scan-runtime <dir> <work> [<game> <catalog-folder>] ...
+    .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --pc-hooks [--stock-slots] --scan-runtime <dir> <work> [<game> <catalog-folder>] ...
     .venv\\Scripts\\python.exe rust\\harness\\runtime_tap.py --tap <dir> -- <build_device_patch arguments>
     cargo run --release -p hokace-core --example runtime_replay -- <dir> ...
 
@@ -826,7 +827,8 @@ def _scan_fixtures(root: pathlib.Path) -> list[tuple[pathlib.Path, dict]]:
     return games
 
 
-def capture_scan(rec: Recorder, work_root: pathlib.Path, targets: list[tuple[pathlib.Path, pathlib.Path | None]]) -> None:
+def capture_scan(rec: Recorder, work_root: pathlib.Path, targets: list[tuple[pathlib.Path, pathlib.Path | None]],
+                 *, pc_hooks: bool = False, stock_slots: bool = False) -> None:
     """``adaptive.discover`` and ``adaptive.scan`` (both ``materialize`` values) as the mobile
     pipeline runs them: ``qts_relocate``'s B-tree slot map installed, ``load_catalog`` giving the
     catalog the apps build. Each target is a game and a catalog folder; synthetic fixtures follow."""
@@ -835,7 +837,20 @@ def capture_scan(rec: Recorder, work_root: pathlib.Path, targets: list[tuple[pat
     import qts_relocate
 
     adaptive = rec.adaptive
-    qts_relocate.install_btree_slot_map()
+    if not stock_slots:
+        qts_relocate.install_btree_slot_map()
+    if pc_hooks:
+        import engine_hooks
+
+        engine_hooks.install(receipts=work_root / "receipts", log=lambda _: None)
+        original_native_scan = engine_hooks._native_pc_scan
+
+        def watched(*args):
+            result = original_native_scan(*args)
+            print(f"  {'Rust' if result is not None else 'Python fallback'}", flush=True)
+            return result
+
+        engine_hooks._native_pc_scan = watched
     original_loader = adaptive.load_catalog
 
     def file_hash(path: pathlib.Path) -> str:
@@ -843,7 +858,8 @@ def capture_scan(rec: Recorder, work_root: pathlib.Path, targets: list[tuple[pat
 
     def run(name: str, game: pathlib.Path, assets: pathlib.Path, data: dict) -> None:
         blob = json.dumps(data, ensure_ascii=False).encode("utf-8")
-        adaptive.load_catalog = lambda folder: adaptive.Catalog(json.loads(blob))
+        if not pc_hooks:
+            adaptive.load_catalog = lambda folder: adaptive.Catalog(json.loads(blob))
         try:
             catalog = adaptive.load_catalog(assets)
             try:
@@ -881,11 +897,21 @@ def capture_scan(rec: Recorder, work_root: pathlib.Path, targets: list[tuple[pat
     fixtures = (rec.blobs.parent / "fixtures").resolve()
     shutil.rmtree(fixtures, ignore_errors=True)
     for game, data in _scan_fixtures(fixtures):
-        run(game.name, game, fixtures / "assets", data)
+        assets = fixtures / "assets"
+        if pc_hooks:
+            with gzip.open(assets / "catalog.json.gz", "wt", encoding="utf-8") as handle:
+                json.dump(data, handle)
+        run(game.name, game, assets, data)
 
 
 def main() -> int:
     argv = sys.argv[1:]
+    pc_hooks = "--pc-hooks" in argv
+    stock_slots = "--stock-slots" in argv
+    if pc_hooks:
+        argv.remove("--pc-hooks")
+    if stock_slots:
+        argv.remove("--stock-slots")
     scan = None
     qts = None
     metadata = None
@@ -914,7 +940,10 @@ def main() -> int:
     else:
         print(__doc__)
         return 2
-    os.environ["HOK_CODECS"] = "python"
+    if pc_hooks:
+        os.environ.setdefault("HOK_CODECS", "native")
+    else:
+        os.environ["HOK_CODECS"] = "python"
     rec = Recorder(out)
     rng = random.Random(20261127)
     try:
@@ -923,7 +952,7 @@ def main() -> int:
             install()
             capture_tables(rec, lambda: rec.adaptive.scan(*scan, out, materialize=False), rng)
         elif scan_targets is not None:
-            capture_scan(rec, work, scan_targets)
+            capture_scan(rec, work, scan_targets, pc_hooks=pc_hooks, stock_slots=stock_slots)
         elif qts is not None:
             capture_qts(rec, qts)
         elif catalogs is not None:

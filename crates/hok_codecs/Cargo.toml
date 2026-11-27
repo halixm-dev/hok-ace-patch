@@ -15,6 +15,11 @@ hokace-core = { path = "../../rust/hokace/core" }
 hokace-oodle = { path = "../../rust/hokace/oodle" }
 pyo3 = { version = "=0.30.1", features = ["extension-module", "abi3-py312"] }
 
+[target.'cfg(windows)'.dependencies]
+hokace-qtsvfs = { path = "../../rust/hokace/qtsvfs" }
+indexmap = "2"
+serde_json = { version = "1.0.154", features = ["preserve_order"] }
+
 [profile.release]
 lto = true
 codegen-units = 1

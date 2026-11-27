@@ -7141,3 +7141,126 @@ matched all 790 device package digests and reproduced the backup at its original
 - The first replay matched 39 of 42 steps. The three left were one receipt that will not parse:
   serde words it differently from `json.loads`. `hokace-core::pyjson` now words it as CPython 3.12's
   scanner does, and matched all 2,145 vectors Python gave (`rust/generators/json_errors.py`).
+
+### PC package hooks
+
+- On a scratch copy of PC data version 1.11.0.2, `pc_native_tap.py --hooks` matched Python on all
+  36 calls. The JSON recordings match byte for byte after replacing the random temp folder name
+  in the package 0 error. Cases include metadata output hashes, failed mounts, corrupt staged
+  assets and verification across volumes.
+- The Windows bridge passed Clippy and the frozen `--smoketest` confirmed that all three exports
+  were active in PC jobs. The ARM64 `hok_codecs` wheel rebuilt with 16 KiB ELF alignment.
+  Reports and recordings are under `build/wave2-pc-wire`.
+- The first frozen PC staging check passed English and ran out of disk space in Indonesian.
+  Rust verification now releases the package descriptions and QtsVFS systems it opens.
+  All 36 calls still matched, and the hooked tap could delete each verification folder as soon
+  as the call returned.
+- The frozen retry passed `--pc-selftest` on the same scratch copy, staging seven packages in
+  each language with zero skipped atlases. English took 469.1 s and Indonesian took 444.0 s.
+  The report is `build/wave2-pc-wire/selftest-d/pc_selftest.json`.
+- `check_pc_install.py` passed on the scratch copy in both language orders, including repeat
+  installs, receipt-based switches, and restore. The package SHA-256 hashes returned to their
+  originals after each restore. `LocalFileList.json` and the sizes it lists matched at every
+  check. The sandbox refused the hardlink for the first commit and its copy fallback ran out of
+  space. The retry used normal filesystem permissions with the game and work on the same volume.
+  The log is `build/wave2-pc-wire/install-permitted.log`.
+
+### PC package scan hook
+
+- `runtime_tap.py --pc-hooks --stock-slots --scan-runtime` matched 30 of 30 calls against
+  Python on the PC scratch copy and synthetic fixtures. Both per-install catalogs matched for
+  status and materialized scans, including replacement SHA-256 hashes, fingerprints, counts,
+  and skip reports. The B-tree fixtures matched in 24 of 24 calls through the hook, and the
+  original mobile core replay matched 30 of 30. Only fixture paths were normalized.
+- A non-ASCII package folder exercised the Python fallback. An injected refusal after a write
+  confirmed that partial replacements were cleared before retry and existing files were kept.
+- In one source run on the English per-install catalog, with the other native hooks active in
+  both runs, the status scan took 43.13 s in Python and 30.41 s in Rust. Materializing took
+  71.23 s and 39.18 s. Windows and Android builds were running during the measurement.
+  Logs and recordings are under `build/wave2-scan-wire`.
+- The Windows bridge passed Clippy, the frozen smoke test confirmed the scan hook, and the
+  Android ARM64 wheel passed the 16 KiB alignment check. The frozen PC self-test staged seven
+  packages per language and matched the previous report on counts, packages and skipped atlases.
+  English took 343.3 s and Indonesian took 351.0 s. The successful run used a dedicated C: work
+  folder after D: ran out of space and a retry under Windows Temp lost its staged shards.
+  The report is `build/wave2-scan-wire/pc_selftest-final.json`.
+## 2026-11-28 — Windows PC transaction engine
+
+The Windows engine hook replayed all 42 steps from eight Python fixture installations against
+Rust. `rust/harness/pc_run_replay.py` checks callback arguments, reports and file hashes for
+status, stage, install, restore, interrupted swaps, corrupt receipts, the Python mutation lock
+and cross-volume copies. The app's default launcher check separately rejected a staged size
+change before commit. See `build/wave2-run-wire/replay.log`.
+
+The rebuilt Windows EXE passed `--smoketest` with the native PC run hook. The core's 17 unit
+tests passed, the Rust workspace checked all targets, and Clippy passed for the Windows bridge.
+The CPython 3.12 Android ARM64 wheels rebuilt with 16 KiB alignment.
+
+The frozen `--pc-selftest` passed on PC data 1.11.0.2. English and Indonesian each staged
+seven packages. Counts, package results and skipped atlases matched the scan-only build.
+The report is `build/wave2-run-wire/selftest/pc_selftest.json`.
+
+`check_pc_install.py` passed on a separate copy of the same data with the native hook required.
+Both English-to-Indonesian and Indonesian-to-English used the saved receipts. Repeat installs
+kept the package hashes, and both restores returned every package file to its original SHA-256.
+`LocalFileList.json` and its listed sizes held throughout. The copy's launcher config records
+26111.0.4.30004. The live launcher and game cycle is pending. See
+`build/wave2-run-wire/install-cycle.log`.
+
+## 2026-11-28 — Wave 3 pipeline leaves, first two groups
+
+`rust/harness/leaves_tap.py` recorded 21,529 calls of `languages`, `terminology`,
+`catalog_supplement`, `catalog_updates`, `resource_tokens`, `axml_set_debuggable`, `axml_label`
+and `broken_list`, and `leaves_replay` matched all of them against `hokace-core`
+(`build/wave3-leaves`). Both shipped catalogs through the load edits match the Python-edited
+catalog byte for byte: English added 2,982 supplement strings and 23 update rows and changed 1,417
+Chessplayer targets among 19 terms. The inputs were the 2026-11-25 dump's staged replacements,
+both of its APKs' manifests and its `BrokenList.db`, plus generated cases.
+
+Measured on CPython 3.12.10 (Unicode 15.0): `re`'s `\w` on `str` is exactly letters and numbers
+(`[\p{L}\p{N}_]`) for every code point. Rust's Unicode `\w` adds combining marks and the
+joiners and drops `No`/`Nl`, which changed one English catalog string ("④chess player") until
+the port spelled `\b` with Python's class.
+
+## 2026-11-28 — Wave 3 pipeline leaves, third group
+
+The tap now also records `config_bin`, `pb_text`, `lineup_codes` and `unity_text`
+(`rust/harness/lineup_cases.py`). `leaves_replay` matched all 43,392 calls against `hokace-core`,
+21,863 of them from this group (`build/wave3-leaves`). The inputs:
+
+- the 1,185 package-1 config bins of the prime layer;
+- the three lineup bins of both layers;
+- the staged replacements, cut short and with bytes changed;
+- generated share codes, deflate streams of every block kind, and Unity SerializedFiles.
+
+Python reports 1,188 of the 1,191 real bins as sealed (`is_sealed`). Every lineup bin rewrites and
+reseals in both translate modes. `unity_text` was checked on synthetic files only: the pipeline
+reads no Unity file.
+
+Measured on CPython 3.12.10, whose zlib is 1.3.1, on the 132 share codes the three lineup bins
+carry:
+
+- Python's `encode_code` rebuilds 129 of the 132 codes byte for byte.
+- miniz_oxide at level 6 gives 6 of Python's streams, and zlib-rs at level 6, memLevel 8 gives none.
+- A port of zlib's `deflate_slow` and `trees.c` (`hokace-core::pyzlib`) gives all 132, and all 228
+  recorded inputs up to 300 KB.
+
+`struct.pack_into` with an offset past the end of the buffer reports "pack_into requires a buffer
+of at least …". "offset … out of range" is only for a negative offset.
+
+## 2026-11-28 — Wave 3 pipeline leaves, last group
+
+The tap now also records `sprite_table`, `card_titles` and `hand_card_titles`
+(`rust/harness/title_cases.py`). `leaves_replay` matched all 46,429 calls against `hokace-core`,
+3,037 of them from this group (`build/wave3-leaves`). The inputs:
+
+- the 38 package-19 assets the title passes read, from the 2026-11-25 dump: the four regioned
+  sprite tables, the TimiAtlas and the 33 card prefabs;
+- the 32 package-15 hand cards, with the shipped `hand_titles` edits;
+- cuts and changed bytes of each, 31 changed layouts, and synthetic sprite records.
+
+The dump's `clean-game` and `game` hold the same bytes for all 70 assets, with the titles already
+at their new boxes, so the real layout moves nothing there. A third layer was made from Python's
+own `relayout`: each title's `was` and `now` swapped, then each card's `Title` box set back to its
+recorded `was`. The real layout moves all 35 changed assets of that layer back to the dump's
+bytes, byte for byte.

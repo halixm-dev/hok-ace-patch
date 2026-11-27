@@ -17,7 +17,6 @@ use std::time::Instant;
 use indexmap::IndexMap;
 use serde_json::{Map, Value};
 
-use crate::catalog::py_repr;
 use crate::launcher::{self, LOCAL_FILE_LIST};
 use crate::pyos;
 use crate::scan::PyError;
@@ -50,7 +49,11 @@ pub trait RunHost {
     type Replacements;
 
     /// `receipt_root(game)`, for the resolved game.
-    fn receipt_root(&mut self, game: &Path) -> PathBuf;
+    fn receipt_root(&mut self, game: &Path) -> Result<PathBuf, PyError>;
+    /// Whether this caller must leave the live launcher list and listed sizes intact.
+    fn preserve_launcher_list(&self) -> bool {
+        false
+    }
     /// `_assert_game_stopped()`.
     fn assert_game_stopped(&mut self) -> Result<(), PyError>;
     /// `scan(game, assets, work, materialize=...)`.
@@ -99,7 +102,7 @@ pub fn run<H: RunHost>(
     host: &mut H,
 ) -> Result<Map<String, Value>, PyError> {
     if matches!(action, "install" | "restore") {
-        let root = host.receipt_root(&pyos::resolve(game));
+        let root = host.receipt_root(&pyos::resolve(game))?;
         let _lock = MutationLock::acquire(&root)?;
         return run_unlocked(action, game, assets, work, host);
     }
@@ -256,15 +259,12 @@ fn source_read_fallbacks(stage: &Value) -> Result<usize, PyError> {
     py_len(&fallbacks)
 }
 
-fn key_error(key: &str) -> PyError {
-    PyError::new("KeyError", py_repr(key))
-}
-
 fn run_restore(
     game: &Path,
     root: &Path,
     recovered: usize,
     cleanup: Map<String, Value>,
+    preserve_launcher_list: bool,
 ) -> Result<Map<String, Value>, PyError> {
     let items = transaction::matching_restore_items(game, root)?;
     if items.is_empty() {
@@ -311,6 +311,9 @@ fn run_restore(
         });
         staged_hashes.insert(relative, pyos::subscript(item, "before")?.clone());
     }
+    if preserve_launcher_list {
+        validate_launcher_changes(game, &changes)?;
+    }
     transaction::commit(game, root, &changes, "restore", None, Some(&staged_hashes))?;
     let mut cleanup = cleanup;
     transaction::merge_watchdog_cleanup(&mut cleanup, &transaction::clear_watchdog_state(game)?);
@@ -336,7 +339,8 @@ fn run_unlocked<H: RunHost>(
     let start = Instant::now();
     let game = pyos::resolve(game);
     let game = game.as_path();
-    let root = host.receipt_root(game);
+    let root = host.receipt_root(game)?;
+    let preserve_launcher_list = host.preserve_launcher_list();
     let mut recovered = 0;
     let mut cleanup = None;
     if matches!(action, "install" | "restore") {
@@ -345,7 +349,13 @@ fn run_unlocked<H: RunHost>(
         cleanup = Some(transaction::prune_stale_state(game, &root)?);
     }
     if action == "restore" {
-        return run_restore(game, &root, recovered, cleanup.unwrap_or_default());
+        return run_restore(
+            game,
+            &root,
+            recovered,
+            cleanup.unwrap_or_default(),
+            preserve_launcher_list,
+        );
     }
     let scan = host.scan(game, assets, work, action != "status")?;
     let counts = scan.counts.clone();
@@ -402,6 +412,9 @@ fn run_unlocked<H: RunHost>(
                 );
             } else {
                 host.assert_game_stopped()?;
+                if preserve_launcher_list {
+                    validate_launcher_changes(game, &changes)?;
+                }
                 transaction::commit(game, &root, &changes, "install", None, None)?;
                 merge_cleanup(&mut report, &transaction::clear_watchdog_state(game)?);
                 report.insert(
@@ -474,7 +487,7 @@ fn run_unlocked<H: RunHost>(
                 let hash = scan
                     .fingerprints
                     .get(&relative)
-                    .ok_or_else(|| key_error(&relative))?;
+                    .ok_or_else(|| PyError::key(&relative))?;
                 source_hashes.insert(name, hash.clone());
             }
             let staged_report = host.stage_unity_package(
@@ -560,6 +573,9 @@ fn run_unlocked<H: RunHost>(
         let (manifest, manifest_change) =
             stage_launcher_manifest(game, &root, work, &changes, false)?;
         changes.extend(manifest_change);
+        if preserve_launcher_list {
+            validate_launcher_changes(game, &changes)?;
+        }
         report.insert(
             "launcher_manifest".to_owned(),
             manifest.map_or(Value::Null, Value::Object),
@@ -619,6 +635,26 @@ fn run_unlocked<H: RunHost>(
     let seconds = (start.elapsed().as_secs_f64() * 1000.0).round() / 1000.0;
     report.insert("seconds".to_owned(), Value::from(seconds));
     Ok(report)
+}
+
+fn validate_launcher_changes(game: &Path, changes: &[Change]) -> Result<(), PyError> {
+    if changes.is_empty() {
+        return Ok(());
+    }
+    let manifest = game.join(LOCAL_FILE_LIST);
+    for change in changes {
+        let live = transaction::safe_path(game, &Value::from(change.relative.clone()))?;
+        if pyos::normcase(&live) == pyos::normcase(&manifest) {
+            return Err(runtime(
+                "Patching would change the launcher's LocalFileList.json",
+            ));
+        }
+    }
+    let files = changes
+        .iter()
+        .map(|change| (change.relative.clone(), change.staged.clone()))
+        .collect::<Vec<_>>();
+    launcher::validate_listed_sizes(&manifest, &files)
 }
 
 /// A staged report's file name, which the runtime joins onto a path.

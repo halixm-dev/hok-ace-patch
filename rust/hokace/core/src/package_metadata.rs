@@ -100,7 +100,10 @@ impl LookupError {
         match self {
             Self::EmptyName => "Package name is empty".into(),
             Self::MissingMarker => {
-                format!("QtsVFS package metadata is missing from {}", source.display())
+                format!(
+                    "QtsVFS package metadata is missing from {}",
+                    source.display()
+                )
             }
             Self::MissingTable => format!(
                 "QtsVFS package metadata table is missing from {}",
@@ -285,7 +288,11 @@ pub fn query_package_hash<L: Loader>(
 ) -> Result<u64, PyError> {
     let game = pyos::resolve(game);
     let package_dir = pyos::resolve(package_dir);
-    let internal_dir = game.join("WXQ_Data").join("Package").join("builtin").join("0");
+    let internal_dir = game
+        .join("WXQ_Data")
+        .join("Package")
+        .join("builtin")
+        .join("0");
     if !pyos::is_dir(&internal_dir)? {
         return Err(PyError::new(
             "FileNotFoundError",
@@ -305,10 +312,7 @@ pub fn query_package_hash<L: Loader>(
             package_dir.display()
         )));
     }
-    let root = std::env::temp_dir().join(format!(
-        "ace-package-hash-{}",
-        &pyos::random_hex()[..8]
-    ));
+    let root = std::env::temp_dir().join(format!("ace-package-hash-{}", &pyos::random_hex()[..8]));
     pyos::mkdir(&root, false)?;
     let result = query_in(loader, &game, &internal_dir, &package_dir, &name, &root);
     let cleanup = pyos::rmtree(&root);
@@ -381,8 +385,8 @@ fn query_in<L: Loader>(
         api.release(handle);
     }
     api.destroy(&system);
-    let restored = std::env::set_current_dir(&old_cwd)
-        .map_err(|e| pyos::os_error(&e, Call::Win, &[&old_cwd]));
+    let restored =
+        std::env::set_current_dir(&old_cwd).map_err(|e| pyos::os_error(&e, Call::Win, &[&old_cwd]));
     drop(api);
     let hash = result?;
     restored?;
